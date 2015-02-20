@@ -23,6 +23,7 @@ namespace SonarProjectPropertiesGenerator.Tests
             List<string> productFiles = new List<string>();
             productFiles.Add(@"C:\MyProduct\File1.cs");
             productFiles.Add(@"C:\MyProduct\你好.cs");
+            productFiles.Add(@"C:\Somewhere\Foo.cs");
             Project product = new Project("你好", Guid.Parse("DB2E5521-3172-47B9-BA50-864F12E6DFFF"), @"C:\MyProduct\MyProduct.csproj", false, productFiles);
 
             List<string> testFiles = new List<string>();

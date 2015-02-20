@@ -34,5 +34,22 @@ namespace SonarProjectPropertiesGenerator
         {
             return Path.GetDirectoryName(MsBuildProject);
         }
+
+        public List<string> FilesInBaseDir()
+        {
+            var result = new List<string>();
+            var baseDir = BaseDir();
+
+            foreach (string file in Files)
+            {
+                // FIXME This test is not sufficient...
+                if (file.StartsWith(baseDir + Path.DirectorySeparatorChar))
+                {
+                    result.Add(file);
+                }
+            }
+
+            return result;
+        }
     }
 }

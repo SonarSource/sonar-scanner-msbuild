@@ -13,6 +13,7 @@ namespace SonarProjectPropertiesGenerator.Tests
             List<string> files = new List<string>();
             files.Add(@"C:\Test\Foo.cs");
             files.Add(@"C:\Test\Bar.cs");
+            files.Add(@"C:\Somewhere\Baz.cs");
             Project project = new Project("test", Guid.Parse("DB2E5521-3172-47B9-BA50-864F12E6DFFF"), @"C:\Test\Test.csproj", true, files);
 
             Assert.AreEqual("test", project.Name);
@@ -23,6 +24,11 @@ namespace SonarProjectPropertiesGenerator.Tests
 
             Assert.AreEqual("DB2E5521-3172-47B9-BA50-864F12E6DFFF", project.GuidAsString());
             Assert.AreEqual(@"C:\Test", project.BaseDir());
+
+            var filesInBaseDir = project.FilesInBaseDir();
+            Assert.AreEqual(2, filesInBaseDir.Count);
+            Assert.AreEqual(@"C:\Test\Foo.cs", filesInBaseDir[0]);
+            Assert.AreEqual(@"C:\Test\Bar.cs", filesInBaseDir[1]);
         }
     }
 }

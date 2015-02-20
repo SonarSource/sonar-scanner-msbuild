@@ -43,7 +43,7 @@ namespace SonarProjectPropertiesGenerator
                     AppendKeyValue(sb, guid, "sonar.sources", "");
                     sb.AppendLine(guid + @".sonar.tests=\");
                 }
-                var files = project.Files;
+                var files = project.FilesInBaseDir();
                 for (int i = 0; i < files.Count(); i++)
                 {
                     var file = files[i];
