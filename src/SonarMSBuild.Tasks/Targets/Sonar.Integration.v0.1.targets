@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+      This file contains targets to integrate SonarQube and MSBuild.
+      
+      The targets will produce an output folder structure containing information required
+      by SonarQube.
+      
+      A subdirectory will be created for each MSBuild project. 
+      The list of compiled files for that project will be written to the output file "CompileList.txt".
+      Information about project will be written to a file "ProjectInfo.xml".
+      
+      The output will only be produced if the property $(SonarOutputPath) is specified. $(SonarOutputPath) is
+      the output directory in which the output file should be dropped and can be relative or
+      absolute (use an absolute path if you want a consolidated set of output for a single build).
+
+      Using this targets file
+      - - - - - - - - - - - -
+      To use these targets with a single project, import the targets into that project.
+
+      To use these targets with all projects, put the file in:
+          C:\Program Files (x86)\MSBuild\12.0\Microsoft.Common.Targets\ImportAfter
+      ... adjusting the MSBuild version as necessary.
+
+
+      Example of use:
+      - - - - - - - -
+      msbuild MyProject.csproj /p:SonarOutputPath=C:\SonarOutput
+
+-->
+
+
+  <!-- **************************************************************************** -->
+  <!-- Using tasks -->
+  <!-- **************************************************************************** -->
+  <PropertyGroup>
+    <SonarBuildTasksAssemblyFile Condition=" $(SonarBuildTasksAssemblyFile) == '' ">$(MSBuildThisFileDirectory)\SonarMSBuild.Tasks.dll</SonarBuildTasksAssemblyFile>
+  </PropertyGroup>
+
+  <UsingTask TaskName="WriteProjectInfoFile" AssemblyFile="$(SonarBuildTasksAssemblyFile)" />
+
+
+  <!-- **************************************************************************** -->
+  <!-- Targets -->
+  <!-- **************************************************************************** -->
+
+  <Target Name="SkippingSonarAnalysis" AfterTargets="CoreCompile"
+          Condition=" $(SonarOutputPath) == '' ">
+    <Message Importance="high" Text="Skipping dumping compile outputs because SonarOutputPath has not been specified" />
+  </Target>
+
+  <Target Name="WriteSonarProjectData" AfterTargets="CoreCompile"
+          Condition=" $(SonarOutputPath) != '' ">
+
+    <!-- Calculate a project-specific folder name -->
+    <PropertyGroup>
+      <FolderDisambiguator>$(ProjectGuid)</FolderDisambiguator>
+      <FolderDisambiguator Condition=" $(FolderDisambiguator)=='' ">$([System.Guid]::NewGuid())</FolderDisambiguator>
+      <ProjectSpecificDir>$(SonarOutputPath)\$(MSBuildProjectName)_$(FolderDisambiguator)</ProjectSpecificDir>
+    </PropertyGroup>
+
+    <!-- Create the project-specific output folder -->
+    <RemoveDir Directories="$(ProjectSpecificDir)" />
+    <MakeDir Directories="$(ProjectSpecificDir)" />
+
+    <!-- Ensure the contents file doesn't already exist -->
+    <Delete Files="$(ProjectSpecificDir)\CompileList.txt" />
+
+    <!-- Write out a list of files that will be passed to the compiler -->
+    <WriteLinesToFile
+            File="$(ProjectSpecificDir)\CompileList.txt"
+            Lines="%(Compile.FullPath)"
+            Overwrite="false"
+            Encoding="Unicode"/>
+
+    <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
+       FullProjectPath="$(MSBuildProjectFullPath)"
+			 ProjectGuid="$(ProjectGuid)"
+       IsTest="false"
+       OutputFolder="$(ProjectSpecificDir)" />
+  </Target>
+
+</Project>

@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED}</ProjectGuid>
+    <ProjectGuid>{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarProjectPropertiesGenerator.Tests</RootNamespace>
-    <AssemblyName>SonarProjectPropertiesGenerator.Tests</AssemblyName>
+    <RootNamespace>SonarMSBuild.Tasks.IntegrationTests</RootNamespace>
+    <AssemblyName>SonarMSBuild.Tasks.IntegrationTests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -35,6 +35,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Build" />
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities.v4.0" />
     <Reference Include="System" />
   </ItemGroup>
   <Choose>
@@ -50,40 +53,30 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="PropertiesWriterTest.cs" />
-    <Compile Include="ProjectLoaderTest.cs" />
-    <Compile Include="ProjectTest.cs" />
+    <Compile Include="BuildUtilities.cs" />
+    <Compile Include="E2E\E2EAnalysisTests.cs" />
+    <Compile Include="Infrastructure\BuildLogger.cs" />
+    <Compile Include="Infrastructure\ProjectDescriptor.cs" />
+    <Compile Include="TargetConstants.cs" />
+    <Compile Include="TaskTests\WriteProjectInfoTaskTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SonarProjectPropertiesGenerator\SonarProjectPropertiesGenerator.csproj">
-      <Project>{6f9d11ed-51e2-47cf-be36-10fb3ccd50d1}</Project>
-      <Name>SonarProjectPropertiesGenerator</Name>
+    <ProjectReference Include="..\..\SonarMSBuild.Tasks\SonarMSBuild.Tasks.csproj">
+      <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>
+      <Name>SonarMSBuild.Tasks</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TestUtilities\TestUtilities.csproj">
+      <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>
+      <Name>TestUtilities</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Content Include="ProjectLoaderTest\EmptyFolder\README.txt">
+    <None Include="..\..\SonarMSBuild.Tasks\Targets\Sonar.Integration.v0.1.targets">
+      <Link>LinkedFiles\Sonar.Integration.v0.1.targets</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\NoCompileList\ProjectInfo.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\NoProjectInfo\CompileList.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\ProductProject\CompileList.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\ProductProject\ProjectInfo.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\TestProject\CompileList.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\TestProject\ProjectInfo.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

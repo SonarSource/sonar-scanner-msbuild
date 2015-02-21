@@ -1,11 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.22310.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarProjectPropertiesGenerator", "SonarProjectPropertiesGenerator\SonarProjectPropertiesGenerator.csproj", "{6F9D11ED-51E2-47CF-BE36-10FB3CCD50D1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarProjectPropertiesGenerator.Tests", "SonarProjectPropertiesGenerator.Tests\SonarProjectPropertiesGenerator.Tests.csproj", "{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarMSBuild.Tasks", "SonarMSBuild.Tasks\SonarMSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{E04A4D31-AC10-4F56-9678-5D538932578C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtilities", "Tests\TestUtilities\TestUtilities.csproj", "{2FA8E679-3BEC-4679-A543-8CADB117C9EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarMSBuild.Tasks.UnitTests", "Tests\SonarMSBuild.Tasks.UnitTests\SonarMSBuild.Tasks.UnitTests.csproj", "{9921D017-AAFC-48E3-8F48-E45DC084CEA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarMSBuild.Tasks.IntegrationTests", "Tests\SonarMSBuild.Tasks.IntegrationTests\SonarMSBuild.Tasks.IntegrationTests.csproj", "{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +31,30 @@ Global
 		{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FA8E679-3BEC-4679-A543-8CADB117C9EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FA8E679-3BEC-4679-A543-8CADB117C9EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FA8E679-3BEC-4679-A543-8CADB117C9EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FA8E679-3BEC-4679-A543-8CADB117C9EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9921D017-AAFC-48E3-8F48-E45DC084CEA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9921D017-AAFC-48E3-8F48-E45DC084CEA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9921D017-AAFC-48E3-8F48-E45DC084CEA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9921D017-AAFC-48E3-8F48-E45DC084CEA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED} = {E04A4D31-AC10-4F56-9678-5D538932578C}
+		{2FA8E679-3BEC-4679-A543-8CADB117C9EB} = {E04A4D31-AC10-4F56-9678-5D538932578C}
+		{9921D017-AAFC-48E3-8F48-E45DC084CEA4} = {E04A4D31-AC10-4F56-9678-5D538932578C}
+		{943D1B4C-578E-4A4D-ADB3-F823E13FBE28} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 	EndGlobalSection
 EndGlobal

@@ -2,16 +2,23 @@
 using System.Linq;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
 
 namespace SonarProjectPropertiesGenerator.Tests
 {
     [TestClass]
-    public class ProjecLoadertTest
+    public class ProjectLoaderTest
     {
+        public TestContext TestContext { get; set; }
+
         [TestMethod]
+        [DeploymentItem("ProjectLoaderTest", "ProjectLoaderTest")]
         public void ProjectLoader()
         {
-            List<Project> projects = SonarProjectPropertiesGenerator.ProjectLoader.LoadFrom(@"ProjectLoaderTest\");
+            string testSourcePath = Path.Combine(this.TestContext.DeploymentDirectory, "ProjectLoaderTest");
+            Assert.IsTrue(Directory.Exists(testSourcePath), "Test error: failed to locate the ProjectLoaderTest folder: {0}", testSourcePath);
+
+            List<Project> projects = SonarProjectPropertiesGenerator.ProjectLoader.LoadFrom(testSourcePath);
 
             Assert.AreEqual(2, projects.Count);
 
