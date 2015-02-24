@@ -101,14 +101,14 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
             CheckCompileList(expected, projectOutputFolder);
 
             // Check there are no other files
-            AssertNoAdditionalFilesInFolder(projectOutputFolder, FileConstants.CompileListFileName, FileConstants.ProjectInfoFileName);
+            AssertNoAdditionalFilesInFolder(projectOutputFolder, BuildTaskConstants.CompileListFileName, BuildTaskConstants.ProjectInfoFileName);
         }
 
         private void CheckCompileList(ProjectDescriptor expected, string projectOutputFolder)
         {
-            AssertFileExists(projectOutputFolder, FileConstants.CompileListFileName);
+            AssertFileExists(projectOutputFolder, BuildTaskConstants.CompileListFileName);
 
-            string fullName = Path.Combine(projectOutputFolder, FileConstants.CompileListFileName);
+            string fullName = Path.Combine(projectOutputFolder, BuildTaskConstants.CompileListFileName);
             string[] actualFileNames = File.ReadAllLines(fullName);
 
             CollectionAssert.AreEquivalent(expected.CompileInputs ?? new string[] { }, actualFileNames, "Compile list file does not contain the expected entries");
@@ -116,9 +116,9 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
 
         private void CheckProjectInfo(ProjectDescriptor expected, string projectOutputFolder)
         {
-            AssertFileExists(projectOutputFolder, FileConstants.ProjectInfoFileName); // should always exist
+            AssertFileExists(projectOutputFolder, BuildTaskConstants.ProjectInfoFileName); // should always exist
 
-            string fullName = Path.Combine(projectOutputFolder, FileConstants.ProjectInfoFileName);
+            string fullName = Path.Combine(projectOutputFolder, BuildTaskConstants.ProjectInfoFileName);
             ProjectInfo actualProjectInfo = ProjectInfo.Load(fullName);
 
             ProjectInfo expectedProjectInfo = expected.CreateProjectInfo();
@@ -155,7 +155,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
         {
             string[] files = Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly);
             IEnumerable<string> additionalFiles = files.Select(f => Path.GetFileName(f)).
-                Except(new string[] { FileConstants.CompileListFileName, FileConstants.ProjectInfoFileName });
+                Except(new string[] { BuildTaskConstants.CompileListFileName, BuildTaskConstants.ProjectInfoFileName });
 
             if (additionalFiles.Any())
             {

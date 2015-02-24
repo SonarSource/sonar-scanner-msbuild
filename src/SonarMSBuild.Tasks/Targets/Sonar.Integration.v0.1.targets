@@ -78,6 +78,7 @@
        FullProjectPath="$(MSBuildProjectFullPath)"
 			 ProjectGuid="$(ProjectGuid)"
        IsTest="false"
+       AnalysisResults="@(AnalysisResults)"
        OutputFolder="$(ProjectSpecificDir)" />
   </Target>
 
