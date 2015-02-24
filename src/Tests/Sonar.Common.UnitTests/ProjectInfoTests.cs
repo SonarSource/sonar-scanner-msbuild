@@ -6,6 +6,7 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using TestUtilities;
 
@@ -52,24 +53,57 @@ namespace Sonar.Common.UnitTests
 
             string fileName = Path.Combine(testFolder, "ProjectInfo1.xml");
 
-            // 1. Save
-            Assert.IsFalse(File.Exists(fileName), "Test error: file should not exist at the start of the test. File: {0}", fileName);
-            originalProjectInfo.Save(fileName);
-            Assert.IsTrue(File.Exists(fileName), "Failed to create the output file. File: {0}", fileName);
-            this.TestContext.AddResultFile(fileName);
+            SaveAndReloadProjectInfo(originalProjectInfo, fileName);
+        }
 
-            // 2. Re-load
-            ProjectInfo reloadedProjectInfo = ProjectInfo.Load(fileName);
-            Assert.IsNotNull(reloadedProjectInfo, "Reloaded project info should not be null");
+        [TestMethod]
+        [Description("Checks analysis results can be serialized and deserialized")]
+        public void ProjectInfo_Serialization_AnalysisResults()
+        {
 
-            ProjectInfoAssertions.AssertExpectedValues(
-                "c:\\fullPath\\project.proj",
-                ProjectType.Product,
-                projectGuid,
-                "MyProject",
-                reloadedProjectInfo);
+            // 0. Setup
+            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            Guid projectGuid = Guid.NewGuid();
+
+            ProjectInfo originalProjectInfo = new ProjectInfo();
+            originalProjectInfo.ProjectGuid = projectGuid;
+
+            // 1. Null list
+            SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults1.xml"));
+
+            // 2. Empty list
+            originalProjectInfo.AnalysisResults = new List<AnalysisResult>();
+            SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults2.xml"));
+
+            // 3. Non-empty list
+            originalProjectInfo.AnalysisResults.Add(new AnalysisResult()); // empty item
+            originalProjectInfo.AnalysisResults.Add(new AnalysisResult() { Id = "Id1", Location = "location1" });
+            originalProjectInfo.AnalysisResults.Add(new AnalysisResult() { Id = "Id2", Location = "location2" });
+            SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults3.xml"));
         }
 
         #endregion
+
+        #region Helper methods
+
+        private ProjectInfo SaveAndReloadProjectInfo(ProjectInfo original, string outputFileName)
+        {
+            Assert.IsFalse(File.Exists(outputFileName), "Test error: file should not exist at the start of the test. File: {0}", outputFileName);
+            original.Save(outputFileName);
+            Assert.IsTrue(File.Exists(outputFileName), "Failed to create the output file. File: {0}", outputFileName);
+            this.TestContext.AddResultFile(outputFileName);
+
+            ProjectInfo reloadedProjectInfo = ProjectInfo.Load(outputFileName);
+            Assert.IsNotNull(reloadedProjectInfo, "Reloaded project info should not be null");
+
+            ProjectInfoAssertions.AssertExpectedValues(original, reloadedProjectInfo);
+            return reloadedProjectInfo;
+        }
+
+        #endregion
+
     }
+
+
 }

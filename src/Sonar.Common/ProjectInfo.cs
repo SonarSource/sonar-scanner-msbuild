@@ -5,6 +5,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace Sonar.Common
@@ -55,6 +56,11 @@ namespace Sonar.Common
             get;
             set;
         }
+
+        /// <summary>
+        /// List of analysis results for the project
+        /// </summary>
+        public List<AnalysisResult> AnalysisResults { get; set; }
 
         #endregion
 
