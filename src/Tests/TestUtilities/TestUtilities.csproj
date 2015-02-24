@@ -49,9 +49,9 @@
     <Compile Include="TestUtils.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\SonarMSBuild.Tasks\SonarMSBuild.Tasks.csproj">
-      <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>
-      <Name>SonarMSBuild.Tasks</Name>
+    <ProjectReference Include="..\..\Sonar.Common\Sonar.Common.csproj">
+      <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
+      <Name>Sonar.Common</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

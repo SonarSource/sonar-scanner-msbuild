@@ -52,11 +52,14 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="ProjectInfoTests.cs" />
     <Compile Include="WriteProjectInfoFileTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Sonar.Common\Sonar.Common.csproj">
+      <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
+      <Name>Sonar.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\SonarMSBuild.Tasks\SonarMSBuild.Tasks.csproj">
       <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>
       <Name>SonarMSBuild.Tasks</Name>

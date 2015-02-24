@@ -5,7 +5,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarMSBuild.Tasks;
+using Sonar.Common;
 using System;
 
 namespace TestUtilities

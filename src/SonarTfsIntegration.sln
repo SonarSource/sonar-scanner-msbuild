@@ -17,6 +17,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarMSBuild.Tasks.UnitTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarMSBuild.Tasks.IntegrationTests", "Tests\SonarMSBuild.Tasks.IntegrationTests\SonarMSBuild.Tasks.IntegrationTests.csproj", "{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.Common", "Sonar.Common\Sonar.Common.csproj", "{E312FDBB-BC13-4559-8F21-76CA5B88EBC5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.Common.UnitTests", "Tests\Sonar.Common.UnitTests\Sonar.Common.UnitTests.csproj", "{A74AA08B-58D3-4B52-BC40-3A4F9A997705}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +51,14 @@ Global
 		{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E312FDBB-BC13-4559-8F21-76CA5B88EBC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E312FDBB-BC13-4559-8F21-76CA5B88EBC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E312FDBB-BC13-4559-8F21-76CA5B88EBC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E312FDBB-BC13-4559-8F21-76CA5B88EBC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A74AA08B-58D3-4B52-BC40-3A4F9A997705}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A74AA08B-58D3-4B52-BC40-3A4F9A997705}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A74AA08B-58D3-4B52-BC40-3A4F9A997705}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A74AA08B-58D3-4B52-BC40-3A4F9A997705}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -56,5 +68,6 @@ Global
 		{2FA8E679-3BEC-4679-A543-8CADB117C9EB} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{9921D017-AAFC-48E3-8F48-E45DC084CEA4} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{943D1B4C-578E-4A4D-ADB3-F823E13FBE28} = {E04A4D31-AC10-4F56-9678-5D538932578C}
+		{A74AA08B-58D3-4B52-BC40-3A4F9A997705} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 	EndGlobalSection
 EndGlobal

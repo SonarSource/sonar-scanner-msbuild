@@ -6,6 +6,7 @@
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Sonar.Common;
 using System;
 using System.IO;
 
@@ -53,7 +54,7 @@ namespace SonarMSBuild.Tasks
             pi.ProjectGuid = projectId;
 
             string outputFileName = Path.Combine(this.OutputFolder, FileConstants.ProjectInfoFileName);
-            Serializer.SaveModel(pi, outputFileName);
+            pi.Save(outputFileName);
 
             return true;
         }

@@ -9,7 +9,7 @@ using System;
 using System.IO;
 using TestUtilities;
 
-namespace SonarMSBuild.Tasks.UnitTests
+namespace Sonar.Common.UnitTests
 {
     [TestClass]
     public class ProjectInfoTests

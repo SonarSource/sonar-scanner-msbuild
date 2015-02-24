@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Sonar.Common;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using System.Xml.Linq;
 
 namespace SonarProjectPropertiesGenerator
 {
@@ -24,24 +23,15 @@ namespace SonarProjectPropertiesGenerator
                     continue;
                 }
 
-                var projectInfo = XDocument.Load(projectInfoPath).Root;
-
-                var name = SingleElement("ProjectName", projectInfo);
-                var guid = Guid.Parse(SingleElement("ProjectGuid", projectInfo));
-                var isTest = "Test".Equals(SingleElement("ProjectType", projectInfo));
-                var msBuildProject = SingleElement("FullPath", projectInfo);;
-
+                var projectInfo = ProjectInfo.Load(projectInfoPath);
+                bool isTest = projectInfo.ProjectType == ProjectType.Test;
+                
                 List<String> files = File.ReadAllLines(compileListPath, Encoding.UTF8).ToList();
 
-                result.Add(new Project(name, guid, msBuildProject, isTest, files));
+                result.Add(new Project(projectInfo.ProjectName, projectInfo.ProjectGuid, projectInfo.FullPath, isTest, files));
             }
 
             return result;
-        }
-
-        private static string SingleElement(string Name, XElement node)
-        {
-            return node.Elements(XName.Get(Name, "http://www.sonarsource.com/msbuild/integration/2015/1")).Single().Value;
         }
     }
 }

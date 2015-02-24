@@ -7,22 +7,13 @@
 using System;
 using System.Xml.Serialization;
 
-namespace SonarMSBuild.Tasks
+namespace Sonar.Common
 {
-    /// <summary>
-    /// Possible types of project
-    /// </summary>
-    public enum ProjectType
-    {
-        Product = 0,
-        Test
-    }
-
     /// <summary>
     /// Data class to describe a single project
     /// </summary>
     /// <remarks>The class is XML-serializable</remarks>
-    [XmlRoot(Namespace=XmlNamespace)]
+    [XmlRoot(Namespace = XmlNamespace)]
     public class ProjectInfo
     {
         public const string XmlNamespace = "http://www.sonarsource.com/msbuild/integration/2015/1";

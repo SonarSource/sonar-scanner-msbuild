@@ -7,6 +7,7 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sonar.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;

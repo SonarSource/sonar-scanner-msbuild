@@ -5,6 +5,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sonar.Common;
 using System;
 using System.IO;
 using TestUtilities;
