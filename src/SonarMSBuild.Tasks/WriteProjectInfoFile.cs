@@ -98,22 +98,17 @@ namespace SonarMSBuild.Tasks
         private static AnalysisResult TryCreateResultFromItem(ITaskItem taskItem)
         {
             Debug.Assert(taskItem != null, "Supplied task item should not be null");
-            Debug.Assert(taskItem.ItemSpec.Equals(BuildTaskConstants.ResultItemName),
-                string.Format(System.Globalization.CultureInfo.CurrentCulture,
-                    "Supplied task item does not have the expected name. Expected: {0}, Actual: {1}",
-                    BuildTaskConstants.ResultItemName, taskItem.ItemSpec));
-
+            
             AnalysisResult result = null;
 
             string id = taskItem.GetMetadata(BuildTaskConstants.ResultMetadataIdProperty);
-            string location = taskItem.GetMetadata(BuildTaskConstants.ResultMetadataLocationProperty);
 
-            if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(location))
+            if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(taskItem.ItemSpec))
             {
                 result = new AnalysisResult()
                 {
                     Id = id,
-                    Location = location
+                    Location = taskItem.ItemSpec
                 };
             }
             return result;

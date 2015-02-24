@@ -73,21 +73,17 @@ namespace SonarMSBuild.Tasks.UnitTests
             List<ITaskItem> resultInputs = new List<ITaskItem>();
 
             // Add invalid task items
-            resultInputs.Add(CreateMetadataItem("itemSpec1", "abc", "def")); // both metadata fields missing
-            resultInputs.Add(CreateMetadataItem("itemsSpec2", BuildTaskConstants.ResultMetadataIdProperty, "123")); // only id supplied
-            resultInputs.Add(CreateMetadataItem("itemSpec1", BuildTaskConstants.ResultMetadataLocationProperty, "456")); // only location supplied
+            // Note: the TaskItem class won't allow the item spec or metadata values to be null,
+            // so we aren't testing those
+            resultInputs.Add(CreateMetadataItem("itemSpec1", "abc", "def")); // Id field is missing
             resultInputs.Add(CreateAnalysisTaskItem("\r", "should be ignored - whitespace")); // whitespace id
             resultInputs.Add(CreateAnalysisTaskItem("should be ignored - whitespace", " ")); // whitespace location
 
             // Add valid task items
             resultInputs.Add(CreateAnalysisTaskItem("id1", "location1"));
             resultInputs.Add(CreateAnalysisTaskItem("id2", "location2", "md1", "md1 value", "md2", "md2 value")); // valid but with extra metadata
-            resultInputs.Add(CreateMetadataItem("itemSpec2",
-                BuildTaskConstants.ResultMetadataIdProperty, "ID 3",
-                BuildTaskConstants.ResultMetadataLocationProperty, "loc3")); // wrong item spec name but has the required metadata
 
             task.AnalysisResults = resultInputs.ToArray();
-
 
             // Act
             ProjectInfo createdProjectInfo;
@@ -99,8 +95,7 @@ namespace SonarMSBuild.Tasks.UnitTests
             // Assert
             AssertAnalysisResultExists(createdProjectInfo, "id1", "location1");
             AssertAnalysisResultExists(createdProjectInfo, "id2", "location2");
-            AssertAnalysisResultExists(createdProjectInfo, "ID 3", "loc3");
-            AssertExpectedAnalysisResultCount(3, createdProjectInfo);
+            AssertExpectedAnalysisResultCount(2, createdProjectInfo);
         }
 
         #endregion
@@ -109,9 +104,8 @@ namespace SonarMSBuild.Tasks.UnitTests
 
         private static ITaskItem CreateAnalysisTaskItem(string id, string location, params string[] idAndValuePairs)
         {
-            ITaskItem item = CreateMetadataItem(BuildTaskConstants.ResultItemName, idAndValuePairs);
+            ITaskItem item = CreateMetadataItem(location, idAndValuePairs);
             item.SetMetadata(BuildTaskConstants.ResultMetadataIdProperty, id);
-            item.SetMetadata(BuildTaskConstants.ResultMetadataLocationProperty, location);
             return item;
         }
 

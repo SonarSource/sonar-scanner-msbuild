@@ -13,6 +13,5 @@ namespace SonarMSBuild.Tasks
 
         public const string ResultItemName = "AnalysisResult";
         public const string ResultMetadataIdProperty = "Id";
-        public const string ResultMetadataLocationProperty = "Location";
     }
 }

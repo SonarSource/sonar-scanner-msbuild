@@ -19,6 +19,11 @@ namespace SonarMSBuild.Tasks.IntegrationTests
     internal class ProjectDescriptor
     {
 
+        public ProjectDescriptor()
+        {
+            this.AnalysisResults = new List<AnalysisResult>();
+        }
+
         #region Public properties
 
         public string ProjectPath { get; set; }
@@ -31,11 +36,16 @@ namespace SonarMSBuild.Tasks.IntegrationTests
 
         public bool IsTestProject { get; set; }
 
-        public string[] GeneratedFiles { get; set; }
+        public List<AnalysisResult> AnalysisResults { get; }
 
         #endregion
 
         #region Public methods
+
+        public void AddAnalysisResult(string id, string location)
+        {
+            this.AnalysisResults.Add(new AnalysisResult() { Id = id, Location = location });
+        }
 
         public ProjectInfo CreateProjectInfo()
         {
@@ -44,8 +54,10 @@ namespace SonarMSBuild.Tasks.IntegrationTests
                 FullPath = ProjectPath,
                 ProjectGuid = ProjectGuid,
                 ProjectName = ProjectName,
-                ProjectType = this.IsTestProject ? ProjectType.Test : ProjectType.Product
+                ProjectType = this.IsTestProject ? ProjectType.Test : ProjectType.Product,
+                AnalysisResults = this.AnalysisResults
             };
+
             return info;
         }
 

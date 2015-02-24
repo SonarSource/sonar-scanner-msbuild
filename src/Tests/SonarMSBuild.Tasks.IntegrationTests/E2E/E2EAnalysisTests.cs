@@ -71,6 +71,9 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
             string projectDir = Directory.EnumerateDirectories(rootOutputFolder).FirstOrDefault();
             Assert.IsFalse(string.IsNullOrEmpty(projectDir), "No project directories were created");
 
+            // Specify the expected analysis results
+            project1.AddAnalysisResult("ManagedCompileInputs", Path.Combine(projectDir, "CompileList.txt"));
+
             CheckProjectOutputFolder(project1, projectDir);
         }
 

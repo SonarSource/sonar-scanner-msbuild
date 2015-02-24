@@ -67,12 +67,20 @@
     <!-- Ensure the contents file doesn't already exist -->
     <Delete Files="$(ProjectSpecificDir)\CompileList.txt" />
 
-    <!-- Write out a list of files that will be passed to the compiler -->
+    <!-- Write out a list of managed files that will be passed to the compiler -->
     <WriteLinesToFile
             File="$(ProjectSpecificDir)\CompileList.txt"
             Lines="%(Compile.FullPath)"
             Overwrite="false"
             Encoding="Unicode"/>
+
+    <!-- Record the list of managed source files as an analysis result -->
+    <ItemGroup>
+      <AnalysisResults Include="$(ProjectSpecificDir)\CompileList.txt">
+        <Id>ManagedCompileInputs</Id>
+      </AnalysisResults>
+    </ItemGroup>
+    
 
     <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
        FullProjectPath="$(MSBuildProjectFullPath)"
