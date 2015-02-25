@@ -37,7 +37,7 @@ namespace TestUtilities
         /// </summary>
         public string ProjectName { get; set; }
 
-        public List<AnalysisResult> AnalysisResults { get; }
+        public List<AnalysisResult> AnalysisResults { get; private set; }
 
 
         /// <summary>

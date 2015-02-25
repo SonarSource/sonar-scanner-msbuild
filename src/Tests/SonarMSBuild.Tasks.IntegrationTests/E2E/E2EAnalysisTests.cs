@@ -220,7 +220,8 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
             ProjectRootElement project1Root = BuildUtilities.CreateMsBuildProject(this.TestContext, project1);
 
             // TODO: work out some way to automatically set the tools version depending on the version of VS being used
-            project1Root.ToolsVersion = "14.0"; // comment this line out if you are not using VS2013.
+            project1Root.ToolsVersion = "12.0"; // use this line for VS2013
+            //project1Root.ToolsVersion = "14.0"; // use this line for VS2015.
 
             if (!string.IsNullOrWhiteSpace(sonarOutputFolder))
             {
@@ -235,9 +236,11 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
         {
             ProjectInstance projectInstance = new ProjectInstance(projectRoot);
             BuildResult result = BuildUtilities.BuildTarget(projectInstance, targets);
+
+            BuildUtilities.DumpProjectProperties(projectInstance, "Project properties post-build");
+
             return result;
         }
-
 
         #endregion
 

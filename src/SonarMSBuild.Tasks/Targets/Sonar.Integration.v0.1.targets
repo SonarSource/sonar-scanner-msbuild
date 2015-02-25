@@ -35,6 +35,8 @@
   <!-- Using tasks -->
   <!-- **************************************************************************** -->
   <PropertyGroup>
+		<!-- Assume that the tasks assembly is in the same location as this targets file unless 
+		     another location has already been specified. -->
     <SonarBuildTasksAssemblyFile Condition=" $(SonarBuildTasksAssemblyFile) == '' ">$(MSBuildThisFileDirectory)\SonarMSBuild.Tasks.dll</SonarBuildTasksAssemblyFile>
   </PropertyGroup>
 

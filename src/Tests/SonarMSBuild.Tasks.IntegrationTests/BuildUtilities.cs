@@ -99,6 +99,32 @@ namespace SonarMSBuild.Tasks.IntegrationTests
             return result;
         }
 
+        /// <summary>
+        /// Dumps the project properties to the console
+        /// </summary>
+        /// <param name="projectInstance">The owning project</param>
+        /// <param name="title">Optional title to be written to the console</param>
+        public static void DumpProjectProperties(ProjectInstance projectInstance, string title)
+        {
+            if (projectInstance == null)
+            {
+                throw new ArgumentNullException("projectInstance");
+            }
+            
+            Console.WriteLine();
+            Console.WriteLine("******************************************************");
+            Console.WriteLine(title ?? "Project properties");
+            foreach (ProjectPropertyInstance property in projectInstance.Properties ?? Enumerable.Empty<ProjectPropertyInstance>())
+            {
+                Console.WriteLine("{0} = {1}{2}",
+                    property.Name,
+                    property.EvaluatedValue,
+                    property.IsImmutable ? ", IMMUTABLE" : null);
+            }
+            Console.WriteLine("******************************************************");
+            Console.WriteLine();
+        }
+
         #endregion
 
         #region Assertions
