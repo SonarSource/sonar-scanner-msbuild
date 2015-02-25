@@ -97,18 +97,14 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         /// <summary>
         /// Builds the specified target and returns the build result.
         /// </summary>
-        public static BuildResult BuildTarget(ProjectInstance project, params string[] targets)
-        {
-            return BuildTarget(project, new BuildLogger(), targets);
-        }
-
-        /// <summary>
-        /// Builds the specified target and returns the build result.
-        /// </summary>
+        /// <param name="project">The project to build</param>
+        /// <param name="logger">The build logger to use. If null then a default logger will be used that dumps the build output to the console.</param>
+        /// <param name="targets">Optional list of targets to execute</param>
+        /// <returns></returns>
         public static BuildResult BuildTarget(ProjectInstance project, ILogger logger, params string[] targets)
         {
             BuildParameters parameters = new BuildParameters();
-            parameters.Loggers = new ILogger[] { logger };
+            parameters.Loggers = new ILogger[] { logger ?? new BuildLogger() };
 
             BuildRequestData requestData = new BuildRequestData(project, targets);
 

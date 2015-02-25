@@ -60,10 +60,16 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
 
             ProjectRootElement project1Root = InitializeProject(project1, rootOutputFolder, null);
 
+            BuildLogger logger = new BuildLogger();
+
             // Act
-            BuildResult result = BuildProject(project1Root);
+            BuildResult result = BuildProject(project1Root, logger);
 
             // Assert
+            BuildUtilities.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertTargetExecuted(TargetConstants.WriteSonarProjectDataTargetName);
+
             // Check expected folder structure exists
             CheckRootOutputFolder(rootOutputFolder);
 
@@ -100,9 +106,14 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
 
             ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder, null);
 
+            BuildLogger logger = new BuildLogger();
+
             // 1. No code analysis properties
-            BuildResult result = BuildProject(project1Root);
+            BuildResult result = BuildProject(project1Root, logger);
             BuildUtilities.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertTargetNotExecuted(TargetConstants.SonarFxCopTargetName);
+            logger.AssertTargetNotExecuted(TargetConstants.FxCopTarget);
 
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, descriptor.FullFilePath);
             ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());
@@ -133,11 +144,16 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
 
             ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder, preImportProperties);
 
+            BuildLogger logger = new BuildLogger();
+
             // Act
-            BuildResult result = BuildProject(project1Root);
+            BuildResult result = BuildProject(project1Root, logger);
 
             // Assert
             BuildUtilities.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertTargetNotExecuted(TargetConstants.SonarFxCopTargetName);
+            logger.AssertTargetNotExecuted(TargetConstants.FxCopTarget);
 
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, descriptor.FullFilePath);
             ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());
@@ -167,14 +183,16 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
 
             ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder, preImportProperties);
 
-            project1Root.AddProperty("RunCodeAnalysis", "true");
-            project1Root.AddProperty("CodeAnalysisLogFile", string.Empty);
+            BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildResult result = BuildProject(project1Root);
+            BuildResult result = BuildProject(project1Root, logger);
 
             // Assert
             BuildUtilities.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertTargetNotExecuted(TargetConstants.SonarFxCopTargetName);
+            logger.AssertTargetNotExecuted(TargetConstants.FxCopTarget);
 
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, descriptor.FullFilePath);
             ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());
@@ -213,8 +231,8 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
             // Assert
             BuildUtilities.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
-            logger.AssertTargetExecuted("RunCodeAnalysis");
-            logger.AssertTargetExecuted("SetFxCopAnalysisResult");
+            logger.AssertTargetExecuted(TargetConstants.SonarFxCopTargetName);
+            logger.AssertTargetExecuted(TargetConstants.FxCopTarget);
 
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, descriptor.FullFilePath);
             ProjectInfoAssertions.AssertAnalysisResultExists(projectInfo, AnalysisType.FxCop.ToString(), fxCopLogFile);
@@ -243,11 +261,6 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
             }
             this.TestContext.AddResultFile(project1.FullFilePath);
             return project1Root;
-        }
-
-        private static BuildResult BuildProject(ProjectRootElement projectRoot, params string[] targets)
-        {
-            return BuildProject(projectRoot, null, targets); ;
         }
 
         private static BuildResult BuildProject(ProjectRootElement projectRoot, BuildLogger logger, params string[] targets)

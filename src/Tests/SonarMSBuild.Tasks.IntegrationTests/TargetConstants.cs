@@ -13,8 +13,11 @@ namespace SonarMSBuild.Tasks.IntegrationTests
 
         // Targets
         public const string WriteSonarProjectDataTargetName = "WriteSonarProjectData";
+        public const string SonarFxCopTargetName = "SetFxCopAnalysisResult";
 
         public const string DefaultBuildTarget = "Build";
+        public const string FxCopTarget = "RunCodeAnalysis";
+
     }
 
     internal static class TargetProperties

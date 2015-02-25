@@ -100,6 +100,13 @@ namespace SonarMSBuild.Tasks.IntegrationTests
             return found;
         }
 
+        public void AssertTargetNotExecuted(string targetName)
+        {
+            TargetStartedEventArgs found = this.executedTargets.FirstOrDefault(t => t.TargetName.Equals(targetName, StringComparison.InvariantCulture));
+            Assert.IsNull(found, "Not expecting the target to have been executed: {0}", targetName);
+        }
+
+
         #endregion
     }
 }
