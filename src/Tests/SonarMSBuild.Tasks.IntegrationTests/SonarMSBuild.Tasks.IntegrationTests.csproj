@@ -56,7 +56,6 @@
     <Compile Include="BuildUtilities.cs" />
     <Compile Include="E2E\E2EAnalysisTests.cs" />
     <Compile Include="Infrastructure\BuildLogger.cs" />
-    <Compile Include="Infrastructure\ProjectDescriptor.cs" />
     <Compile Include="TargetConstants.cs" />
     <Compile Include="TaskTests\WriteProjectInfoTaskTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

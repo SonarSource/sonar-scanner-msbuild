@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Linq;
+using TestUtilities;
 
 namespace SonarMSBuild.Tasks.IntegrationTests
 {
@@ -20,7 +21,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests
 
         /// <summary>
         /// Creates and returns an empty project using the data in the supplied descriptor.
-        /// The project will import the analysis targets file and will have it's project name
+        /// The project will import the analysis targets file and will have its project name
         /// and GUID set if the values are supplied in the descriptor.
         /// </summary>
         public static ProjectRootElement CreateProjectFromDescriptor(TestContext testContext, ProjectDescriptor descriptor)

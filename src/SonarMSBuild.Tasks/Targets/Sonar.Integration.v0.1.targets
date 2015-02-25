@@ -77,7 +77,7 @@
     <!-- Record the list of managed source files as an analysis result -->
     <ItemGroup>
       <AnalysisResults Include="$(ProjectSpecificDir)\CompileList.txt">
-        <Id>ManagedCompileInputs</Id>
+        <Id>ManagedCompilerInputs</Id>
       </AnalysisResults>
     </ItemGroup>
     

@@ -6,4 +6,8 @@
   <!-- Possible values: Product, Test -->
   <ProjectType>Test</ProjectType>
   <FullPath>C:\TestProject\TestProject.csproj</FullPath>
+  <AnalysisResults>
+    <!-- Location is relative and so won't be found, so the project info file should be ignored -->
+    <AnalysisResult Id="ManagedCompilerInputs" Location="CompileList.txt" />
+  </AnalysisResults>
 </ProjectInfo>

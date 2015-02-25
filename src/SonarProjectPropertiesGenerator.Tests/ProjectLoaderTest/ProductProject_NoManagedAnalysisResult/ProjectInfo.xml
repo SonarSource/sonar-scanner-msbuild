@@ -6,4 +6,7 @@
   <!-- Possible values: Product, Test -->
   <ProjectType>Product</ProjectType>
   <FullPath>C:\ProductProject\ProductProject.csproj</FullPath>
+  <AnalysisResults>
+    <AnalysisResult Id="AnotherAnalyserId" Location="CompileList.txt" />
+  </AnalysisResults>
 </ProjectInfo>

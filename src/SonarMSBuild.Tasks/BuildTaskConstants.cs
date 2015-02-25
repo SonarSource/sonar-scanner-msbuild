@@ -8,9 +8,6 @@ namespace SonarMSBuild.Tasks
 {
     public static class BuildTaskConstants
     {
-        public const string ProjectInfoFileName = "ProjectInfo.xml";
-        public const string CompileListFileName = "CompileList.txt";
-
         public const string ResultItemName = "AnalysisResult";
         public const string ResultMetadataIdProperty = "Id";
     }

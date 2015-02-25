@@ -33,6 +33,8 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
     [DeploymentItem("LinkedFiles\\Sonar.Integration.v0.1.targets")]
     public class E2EAnalysisTests
     {
+        private const string ExpectedCompileListFileName = "CompileList.txt";
+
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -46,17 +48,19 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
 
             ProjectDescriptor project1 = new ProjectDescriptor()
             {
-                ProjectName = "nonTestProject",
+                ProjectName= "nonTestProject",
                 ProjectGuid = Guid.NewGuid(),
-                IsTestProject = false
+                IsTestProject = false,
+                ParentDirectoryPath = rootInputFolder,
+                ProjectFolderName ="nonTestProjectDir",
+                ProjectFileName = "nonTestProject.csproj"
             };
-            project1.ProjectPath = Path.Combine(rootInputFolder, project1.ProjectName);
 
             ProjectRootElement project1Root = BuildUtilities.CreateProjectFromDescriptor(this.TestContext, project1);
             project1Root.AddProperty(TargetProperties.SonarOutputPath, rootOutputFolder);
-            project1Root.Save(project1.ProjectPath);
+            project1Root.Save(project1.FullFilePath);
 
-            this.TestContext.AddResultFile(project1.ProjectPath);
+            this.TestContext.AddResultFile(project1.FullFilePath);
 
             ProjectInstance project1Instance = new ProjectInstance(project1Root);
             BuildResult result = BuildUtilities.BuildTarget(project1Instance, TargetConstants.WriteSonarProjectDataTargetName);
@@ -72,7 +76,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
             Assert.IsFalse(string.IsNullOrEmpty(projectDir), "No project directories were created");
 
             // Specify the expected analysis results
-            project1.AddAnalysisResult("ManagedCompileInputs", Path.Combine(projectDir, "CompileList.txt"));
+            project1.AddAnalysisResult(AnalysisType.ManagedCompilerInputs.ToString(), Path.Combine(projectDir, ExpectedCompileListFileName));
 
             CheckProjectOutputFolder(project1, projectDir);
         }
@@ -97,43 +101,44 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
             // Check folder naming
             string folderName = Path.GetFileName(projectOutputFolder);
             Assert.IsTrue(folderName.StartsWith(expected.ProjectName), "Project output folder does not start with the project name. Expected: {0}, actual: {1}",
-                expected.ProjectName, folderName);
+                expected.ProjectFolderName, folderName);
 
             // Check specific files
             CheckProjectInfo(expected, projectOutputFolder);
             CheckCompileList(expected, projectOutputFolder);
 
             // Check there are no other files
-            AssertNoAdditionalFilesInFolder(projectOutputFolder, BuildTaskConstants.CompileListFileName, BuildTaskConstants.ProjectInfoFileName);
+            List<string> allowedFiles = new List<string>(expected.AnalysisResults.Select(ar => ar.Location));
+            allowedFiles.Add(Path.Combine(projectOutputFolder, FileConstants.ProjectInfoFileName));
+            AssertNoAdditionalFilesInFolder(projectOutputFolder, allowedFiles.ToArray());
         }
 
         private void CheckCompileList(ProjectDescriptor expected, string projectOutputFolder)
         {
-            AssertFileExists(projectOutputFolder, BuildTaskConstants.CompileListFileName);
+            string fullName = AssertFileExists(projectOutputFolder, ExpectedCompileListFileName);
 
-            string fullName = Path.Combine(projectOutputFolder, BuildTaskConstants.CompileListFileName);
             string[] actualFileNames = File.ReadAllLines(fullName);
 
-            CollectionAssert.AreEquivalent(expected.CompileInputs ?? new string[] { }, actualFileNames, "Compile list file does not contain the expected entries");
+            CollectionAssert.AreEquivalent(expected.ManagedSourceFiles ?? new string[] { }, actualFileNames, "Compile list file does not contain the expected entries");
         }
 
         private void CheckProjectInfo(ProjectDescriptor expected, string projectOutputFolder)
         {
-            AssertFileExists(projectOutputFolder, BuildTaskConstants.ProjectInfoFileName); // should always exist
+            string fullName = AssertFileExists(projectOutputFolder, FileConstants.ProjectInfoFileName); // should always exist
 
-            string fullName = Path.Combine(projectOutputFolder, BuildTaskConstants.ProjectInfoFileName);
             ProjectInfo actualProjectInfo = ProjectInfo.Load(fullName);
 
             ProjectInfo expectedProjectInfo = expected.CreateProjectInfo();
             TestUtilities.ProjectInfoAssertions.AssertExpectedValues(expectedProjectInfo, actualProjectInfo);
         }
 
-        private void AssertFileExists(string projectOutputFolder, string fileName)
+        private string AssertFileExists(string projectOutputFolder, string fileName)
         {
             string fullPath = Path.Combine(projectOutputFolder, fileName);
             bool exists = this.CheckExistenceAndAddToResults(fullPath);
 
             Assert.IsTrue(exists, "Expected file does not exist: {0}", fullPath);
+            return fullPath;
         }
 
         private void AssertFileDoesNotExist(string projectOutputFolder, string fileName)
@@ -157,8 +162,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
         private static void AssertNoAdditionalFilesInFolder(string folderPath, params string[] allowedFileNames)
         {
             string[] files = Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly);
-            IEnumerable<string> additionalFiles = files.Select(f => Path.GetFileName(f)).
-                Except(new string[] { BuildTaskConstants.CompileListFileName, BuildTaskConstants.ProjectInfoFileName });
+            IEnumerable<string> additionalFiles = files.Except(allowedFileNames);
 
             if (additionalFiles.Any())
             {

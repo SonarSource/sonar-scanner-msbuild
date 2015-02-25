@@ -7,16 +7,16 @@
 using Sonar.Common;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
-namespace SonarMSBuild.Tasks.IntegrationTests
+namespace TestUtilities
 {
     /// <summary>
     /// Describes the expected contents of a single project
     /// </summary>
-    internal class ProjectDescriptor
+    /// <remarks>Used to dynamically create folders and files for tests,
+    /// and to check actual results against</remarks>
+    public class ProjectDescriptor
     {
 
         public ProjectDescriptor()
@@ -26,17 +26,44 @@ namespace SonarMSBuild.Tasks.IntegrationTests
 
         #region Public properties
 
-        public string ProjectPath { get; set; }
-
         public Guid ProjectGuid { get; set; }
 
-        public string ProjectName { get; set; }
-
-        public string[] CompileInputs { get; set; }
+        public string[] ManagedSourceFiles { get; set; }
 
         public bool IsTestProject { get; set; }
 
+        /// <summary>
+        /// The user-friendly name for the project
+        /// </summary>
+        public string ProjectName { get; set; }
+
         public List<AnalysisResult> AnalysisResults { get; }
+
+
+        /// <summary>
+        /// The full path to the parent directory
+        /// </summary>
+        public string ParentDirectoryPath { get; set; }
+
+        /// <summary>
+        /// The name of the folder in which the project exists
+        /// </summary>
+        public string ProjectFolderName { get; set; }
+
+        /// <summary>
+        /// The name of the project file
+        /// </summary>
+        public string ProjectFileName { get; set; }
+
+        public string FullDirectoryPath
+        {
+            get { return Path.Combine(this.ParentDirectoryPath, this.ProjectFolderName); }
+        }
+
+        public string FullFilePath
+        {
+            get { return Path.Combine(this.FullDirectoryPath, this.ProjectFileName); }
+        }
 
         #endregion
 
@@ -51,9 +78,9 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         {
             ProjectInfo info = new ProjectInfo()
             {
-                FullPath = ProjectPath,
-                ProjectGuid = ProjectGuid,
-                ProjectName = ProjectName,
+                FullPath = this.FullFilePath,
+                ProjectGuid = this.ProjectGuid,
+                ProjectName = this.ProjectName,
                 ProjectType = this.IsTestProject ? ProjectType.Test : ProjectType.Product,
                 AnalysisResults = this.AnalysisResults
             };

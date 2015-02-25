@@ -60,7 +60,7 @@ namespace SonarMSBuild.Tasks
 
             pi.AnalysisResults = TryCreateAnalysisResults(this.AnalysisResults);
 
-            string outputFileName = Path.Combine(this.OutputFolder, BuildTaskConstants.ProjectInfoFileName);
+            string outputFileName = Path.Combine(this.OutputFolder, FileConstants.ProjectInfoFileName);
             pi.Save(outputFileName);
 
             return true;

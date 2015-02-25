@@ -56,9 +56,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Sonar.Common\Sonar.Common.csproj">
+      <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
+      <Name>Sonar.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SonarProjectPropertiesGenerator\SonarProjectPropertiesGenerator.csproj">
       <Project>{6f9d11ed-51e2-47cf-be36-10fb3ccd50d1}</Project>
       <Name>SonarProjectPropertiesGenerator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tests\TestUtilities\TestUtilities.csproj">
+      <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>
+      <Name>TestUtilities</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
@@ -72,16 +80,16 @@
     <Content Include="ProjectLoaderTest\NoProjectInfo\CompileList.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ProjectLoaderTest\ProductProject\CompileList.txt">
+    <Content Include="ProjectLoaderTest\ProductProject_NoManagedAnalysisResult\CompileList.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ProjectLoaderTest\ProductProject\ProjectInfo.xml">
+    <Content Include="ProjectLoaderTest\ProductProject_NoManagedAnalysisResult\ProjectInfo.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ProjectLoaderTest\TestProject\CompileList.txt">
+    <Content Include="ProjectLoaderTest\TestProject_RelativeAnalysisResultPath\CompileList.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ProjectLoaderTest\TestProject\ProjectInfo.xml">
+    <Content Include="ProjectLoaderTest\TestProject_RelativeAnalysisResultPath\ProjectInfo.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
