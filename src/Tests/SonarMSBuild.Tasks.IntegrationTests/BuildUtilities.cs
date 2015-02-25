@@ -9,6 +9,7 @@ using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TestUtilities;
@@ -24,9 +25,9 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         /// The project will import the analysis targets file and the standard C# targets file.
         /// The project name and GUID will be set if the values are supplied in the descriptor.
         /// </summary>
-        public static ProjectRootElement CreateMsBuildProject(TestContext testContext, ProjectDescriptor descriptor)
+        public static ProjectRootElement CreateMsBuildProject(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
         {
-            ProjectRootElement root = CreateMinimalBuildableProject(testContext.TestDeploymentDir);
+            ProjectRootElement root = CreateMinimalBuildableProject(testContext.TestDeploymentDir, preImportProperties);
 
             if (!string.IsNullOrEmpty(descriptor.ProjectName))
             {
@@ -62,14 +63,24 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         /// Creates and returns a minimal project file that can be built.
         /// The project imports the C# targets and the Sonar analysis targets.
         /// </summary>
-        public static ProjectRootElement CreateMinimalBuildableProject(string importedTargetsDir)
+        /// <param name="sonarTargetsDir">The directory containing the Sonar targets</param>
+        /// <param name="preImportProperties">Any properties that need to be set before the C# targets are imported. Can be null.</param>
+        public static ProjectRootElement CreateMinimalBuildableProject(string sonarTargetsDir, IDictionary<string, string> preImportProperties)
         {
-            Assert.IsTrue(Directory.Exists(importedTargetsDir), "Test error: the specified directory does not exist. Path: {0}", importedTargetsDir);
+            Assert.IsTrue(Directory.Exists(sonarTargetsDir), "Test error: the specified directory does not exist. Path: {0}", sonarTargetsDir);
 
             ProjectRootElement root = ProjectRootElement.Create();
 
+            if (preImportProperties != null)
+            {
+                foreach(KeyValuePair<string, string> kvp in preImportProperties)
+                {
+                    root.AddProperty(kvp.Key, kvp.Value);
+                }
+            }
+
             // Import the MsBuild Sonar targets file
-            string fullAnalysisTargetPath = Path.Combine(importedTargetsDir, TargetConstants.AnalysisTargetFileName);
+            string fullAnalysisTargetPath = Path.Combine(sonarTargetsDir, TargetConstants.AnalysisTargetFileName);
             Assert.IsTrue(File.Exists(fullAnalysisTargetPath), "Test error: the analysis target file does not exist. Path: {0}", fullAnalysisTargetPath);
             root.AddImport(fullAnalysisTargetPath);
 
@@ -88,8 +99,16 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         /// </summary>
         public static BuildResult BuildTarget(ProjectInstance project, params string[] targets)
         {
+            return BuildTarget(project, new BuildLogger(), targets);
+        }
+
+        /// <summary>
+        /// Builds the specified target and returns the build result.
+        /// </summary>
+        public static BuildResult BuildTarget(ProjectInstance project, ILogger logger, params string[] targets)
+        {
             BuildParameters parameters = new BuildParameters();
-            parameters.Loggers = new ILogger[] { new BuildLogger() };
+            parameters.Loggers = new ILogger[] { logger };
 
             BuildRequestData requestData = new BuildRequestData(project, targets);
 

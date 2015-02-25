@@ -58,7 +58,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
                 ProjectFileName = "nonTestProject.csproj"
             };
 
-            ProjectRootElement project1Root = InitializeProject(project1, rootOutputFolder);
+            ProjectRootElement project1Root = InitializeProject(project1, rootOutputFolder, null);
 
             // Act
             BuildResult result = BuildProject(project1Root);
@@ -98,7 +98,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
                 ProjectFileName = "FxCopProjectDir.csproj"
             };
 
-            ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder);
+            ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder, null);
 
             // 1. No code analysis properties
             BuildResult result = BuildProject(project1Root);
@@ -126,10 +126,12 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
                 ProjectFileName = "FxCopProjectDir.csproj"
             };
 
-            ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder);
             string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
-            project1Root.AddProperty("RunCodeAnalysis", "false");
-            project1Root.AddProperty("CodeAnalysisLogFile", fxCopLogFile);
+            Dictionary<string, string> preImportProperties = new Dictionary<string, string>();
+            preImportProperties["RunCodeAnalysis"] = "false";
+            preImportProperties["CodeAnalysisLogFile"] = fxCopLogFile;
+
+            ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder, preImportProperties);
 
             // Act
             BuildResult result = BuildProject(project1Root);
@@ -159,7 +161,11 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
                 ProjectFileName = "FxCopProjectDir.csproj"
             };
 
-            ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder);
+            Dictionary<string, string> preImportProperties = new Dictionary<string, string>();
+            preImportProperties["RunCodeAnalysis"] = "true";
+            preImportProperties["CodeAnalysisLogFile"] = string.Empty;
+
+            ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder, preImportProperties);
 
             project1Root.AddProperty("RunCodeAnalysis", "true");
             project1Root.AddProperty("CodeAnalysisLogFile", string.Empty);
@@ -192,16 +198,23 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
                 ProjectFileName = "FxCopProjectDir.csproj"
             };
 
-            ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder);
             string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
-            project1Root.AddProperty("RunCodeAnalysis", "true");
-            project1Root.AddProperty("CodeAnalysisLogFile", fxCopLogFile);
+            Dictionary<string, string> preImportProperties = new Dictionary<string, string>();
+            preImportProperties["RunCodeAnalysis"] = "true";
+            preImportProperties["CodeAnalysisLogFile"] = fxCopLogFile;
+
+            ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder, preImportProperties);
+
+            BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildResult result = BuildProject(project1Root);
+            BuildResult result = BuildProject(project1Root, logger);
 
             // Assert
             BuildUtilities.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertTargetExecuted("RunCodeAnalysis");
+            logger.AssertTargetExecuted("SetFxCopAnalysisResult");
 
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, descriptor.FullFilePath);
             ProjectInfoAssertions.AssertAnalysisResultExists(projectInfo, AnalysisType.FxCop.ToString(), fxCopLogFile);
@@ -215,9 +228,9 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
         /// Creates a project file on disk from the specified descriptor.
         /// Sets the Sonar output folder property, if specified.
         /// </summary>
-        private ProjectRootElement InitializeProject(ProjectDescriptor project1, string sonarOutputFolder)
+        private ProjectRootElement InitializeProject(ProjectDescriptor project1, string sonarOutputFolder, IDictionary<string, string> preImportProperties)
         {
-            ProjectRootElement project1Root = BuildUtilities.CreateMsBuildProject(this.TestContext, project1);
+            ProjectRootElement project1Root = BuildUtilities.CreateMsBuildProject(this.TestContext, project1, preImportProperties);
 
             // TODO: work out some way to automatically set the tools version depending on the version of VS being used
             project1Root.ToolsVersion = "12.0"; // use this line for VS2013
@@ -234,8 +247,14 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
 
         private static BuildResult BuildProject(ProjectRootElement projectRoot, params string[] targets)
         {
+            return BuildProject(projectRoot, null, targets); ;
+        }
+
+        private static BuildResult BuildProject(ProjectRootElement projectRoot, BuildLogger logger, params string[] targets)
+        {
             ProjectInstance projectInstance = new ProjectInstance(projectRoot);
-            BuildResult result = BuildUtilities.BuildTarget(projectInstance, targets);
+            
+            BuildResult result = BuildUtilities.BuildTarget(projectInstance, logger, targets);
 
             BuildUtilities.DumpProjectProperties(projectInstance, "Project properties post-build");
 

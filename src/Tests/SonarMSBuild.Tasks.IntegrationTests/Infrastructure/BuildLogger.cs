@@ -5,7 +5,10 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.Build.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SonarMSBuild.Tasks.IntegrationTests
 {
@@ -17,6 +20,9 @@ namespace SonarMSBuild.Tasks.IntegrationTests
     {
 
         private IEventSource eventSource;
+
+        private List<TargetStartedEventArgs> executedTargets;
+        private List<TaskStartedEventArgs> executedTasks;
 
         #region ILogger interface
 
@@ -33,8 +39,9 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         void ILogger.Initialize(IEventSource eventSource)
         {
             this.eventSource = eventSource;
+            this.executedTargets = new List<TargetStartedEventArgs>();
+            this.executedTasks = new List<TaskStartedEventArgs>();
             this.RegisterEvents(eventSource);
-
         }
 
         void ILogger.Shutdown()
@@ -49,11 +56,26 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         private void RegisterEvents(IEventSource source)
         {
             source.AnyEventRaised += Source_AnyEventRaised;
+            source.TargetStarted += source_TargetStarted;
+            source.TaskStarted += source_TaskStarted;
         }
+
+        void source_TargetStarted(object sender, TargetStartedEventArgs e)
+        {
+            this.executedTargets.Add(e);
+        }
+
+        void source_TaskStarted(object sender, TaskStartedEventArgs e)
+        {
+            this.executedTasks.Add(e);
+        }
+
 
         private void UnregisterEvents(IEventSource source)
         {
             source.AnyEventRaised -= Source_AnyEventRaised;
+            source.TargetStarted -= source_TargetStarted;
+            source.TaskStarted -= source_TaskStarted;
         }
 
         private void Source_AnyEventRaised(object sender, BuildEventArgs e)
@@ -68,5 +90,16 @@ namespace SonarMSBuild.Tasks.IntegrationTests
 
         #endregion
 
+
+        #region Assertions
+
+        public TargetStartedEventArgs AssertTargetExecuted(string targetName)
+        {
+            TargetStartedEventArgs found = this.executedTargets.FirstOrDefault(t => t.TargetName.Equals(targetName, StringComparison.InvariantCulture));
+            Assert.IsNotNull(found, "Specified target was not executed: {0}", targetName);
+            return found;
+        }
+
+        #endregion
     }
 }
