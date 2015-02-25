@@ -21,6 +21,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.Common", "Sonar.Commo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.Common.UnitTests", "Tests\Sonar.Common.UnitTests\Sonar.Common.UnitTests.csproj", "{A74AA08B-58D3-4B52-BC40-3A4F9A997705}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BatchFiles", "BatchFiles", "{E5506C78-82DD-46FA-A82C-C203C522A05D}"
+	ProjectSection(SolutionItems) = preProject
+		BatchFiles\SonarPostBuild.bat = BatchFiles\SonarPostBuild.bat
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
