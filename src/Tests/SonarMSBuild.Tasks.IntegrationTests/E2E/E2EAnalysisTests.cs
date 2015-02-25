@@ -43,6 +43,8 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
         public void E2E_OutputFolderStructure()
         {
             // Checks the output folder structure is correct for a simple solution
+
+            // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
@@ -56,22 +58,19 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
                 ProjectFileName = "nonTestProject.csproj"
             };
 
-            ProjectRootElement project1Root = BuildUtilities.CreateProjectFromDescriptor(this.TestContext, project1);
-            project1Root.AddProperty(TargetProperties.SonarOutputPath, rootOutputFolder);
-            project1Root.Save(project1.FullFilePath);
+            ProjectRootElement project1Root = InitializeProject(project1, rootOutputFolder);
 
-            this.TestContext.AddResultFile(project1.FullFilePath);
+            // Act
+            BuildResult result = BuildProject(project1Root);
 
-            ProjectInstance project1Instance = new ProjectInstance(project1Root);
-            BuildResult result = BuildUtilities.BuildTarget(project1Instance, TargetConstants.WriteSonarProjectDataTargetName);
-
-            BuildUtilities.AssertTargetSucceeded(result, TargetConstants.WriteSonarProjectDataTargetName);
-
+            // Assert
             // Check expected folder structure exists
             CheckRootOutputFolder(rootOutputFolder);
 
             // Check expected project outputs
-            // TODO: check only one
+            Assert.AreEqual(1, Directory.EnumerateDirectories(rootOutputFolder).Count(), "Only expecting one child directory to exist under the root analysis output folder");
+            ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, project1.FullFilePath);
+
             string projectDir = Directory.EnumerateDirectories(rootOutputFolder).FirstOrDefault();
             Assert.IsFalse(string.IsNullOrEmpty(projectDir), "No project directories were created");
 
@@ -81,9 +80,168 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
             CheckProjectOutputFolder(project1, projectDir);
         }
 
+        [TestMethod]
+        [Description("FxCop analysis result should not be produced if the required properties are missing")]
+        public void E2E_FxCop_MissingProperties()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = new ProjectDescriptor()
+            {
+                ProjectName = "FxCopProject",
+                ProjectGuid = Guid.NewGuid(),
+                IsTestProject = false,
+                ParentDirectoryPath = rootInputFolder,
+                ProjectFolderName = "FxCopProjectDir",
+                ProjectFileName = "FxCopProjectDir.csproj"
+            };
+
+            ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder);
+
+            // 1. No code analysis properties
+            BuildResult result = BuildProject(project1Root);
+            BuildUtilities.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, descriptor.FullFilePath);
+            ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());
+        }
+
+        [TestMethod]
+        [Description("FxCop analysis result should not be produced if property conditions are not met")]
+        public void E2E_FxCop_PropertyConditions_NotMet1()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = new ProjectDescriptor()
+            {
+                ProjectName = "FxCopProject",
+                ProjectGuid = Guid.NewGuid(),
+                IsTestProject = false,
+                ParentDirectoryPath = rootInputFolder,
+                ProjectFolderName = "FxCopProjectDir",
+                ProjectFileName = "FxCopProjectDir.csproj"
+            };
+
+            ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder);
+            string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
+            project1Root.AddProperty("RunCodeAnalysis", "false");
+            project1Root.AddProperty("CodeAnalysisLogFile", fxCopLogFile);
+
+            // Act
+            BuildResult result = BuildProject(project1Root);
+
+            // Assert
+            BuildUtilities.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, descriptor.FullFilePath);
+            ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());
+        }
+
+        [TestMethod]
+        [Description("FxCop analysis result should not be produced if property conditions are not met")]
+        public void E2E_FxCop_PropertyConditions_NotMet2()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = new ProjectDescriptor()
+            {
+                ProjectName = "FxCopProject",
+                ProjectGuid = Guid.NewGuid(),
+                IsTestProject = false,
+                ParentDirectoryPath = rootInputFolder,
+                ProjectFolderName = "FxCopProjectDir",
+                ProjectFileName = "FxCopProjectDir.csproj"
+            };
+
+            ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder);
+
+            project1Root.AddProperty("RunCodeAnalysis", "true");
+            project1Root.AddProperty("CodeAnalysisLogFile", string.Empty);
+
+            // Act
+            BuildResult result = BuildProject(project1Root);
+
+            // Assert
+            BuildUtilities.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, descriptor.FullFilePath);
+            ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());
+        }
+
+        [TestMethod]
+        [Description("Checks that FxCop results are correctly included in the project info file")]
+        public void E2E_FxCop_PropertyConditionsAreMet()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = new ProjectDescriptor()
+            {
+                ProjectName = "FxCopProject",
+                ProjectGuid = Guid.NewGuid(),
+                IsTestProject = false,
+                ParentDirectoryPath = rootInputFolder,
+                ProjectFolderName = "FxCopProjectDir",
+                ProjectFileName = "FxCopProjectDir.csproj"
+            };
+
+            ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder);
+            string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
+            project1Root.AddProperty("RunCodeAnalysis", "true");
+            project1Root.AddProperty("CodeAnalysisLogFile", fxCopLogFile);
+
+            // Act
+            BuildResult result = BuildProject(project1Root);
+
+            // Assert
+            BuildUtilities.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, descriptor.FullFilePath);
+            ProjectInfoAssertions.AssertAnalysisResultExists(projectInfo, AnalysisType.FxCop.ToString(), fxCopLogFile);
+        }
+
         #endregion
 
         #region Private methods
+
+        /// <summary>
+        /// Creates a project file on disk from the specified descriptor.
+        /// Sets the Sonar output folder property, if specified.
+        /// </summary>
+        private ProjectRootElement InitializeProject(ProjectDescriptor project1, string sonarOutputFolder)
+        {
+            ProjectRootElement project1Root = BuildUtilities.CreateMsBuildProject(this.TestContext, project1);
+
+            // TODO: work out some way to automatically set the tools version depending on the version of VS being used
+            project1Root.ToolsVersion = "14.0"; // comment this line out if you are not using VS2013.
+
+            if (!string.IsNullOrWhiteSpace(sonarOutputFolder))
+            {
+                project1Root.AddProperty(TargetProperties.SonarOutputPath, sonarOutputFolder);
+                project1Root.Save(project1.FullFilePath);
+            }
+            this.TestContext.AddResultFile(project1.FullFilePath);
+            return project1Root;
+        }
+
+        private static BuildResult BuildProject(ProjectRootElement projectRoot, params string[] targets)
+        {
+            ProjectInstance projectInstance = new ProjectInstance(projectRoot);
+            BuildResult result = BuildUtilities.BuildTarget(projectInstance, targets);
+            return result;
+        }
+
+
+        #endregion
+
+        #region Assertions methods
 
         private void CheckRootOutputFolder(string rootOutputFolder)
         {

@@ -20,13 +20,13 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         #region Public methods
 
         /// <summary>
-        /// Creates and returns an empty project using the data in the supplied descriptor.
-        /// The project will import the analysis targets file and will have its project name
-        /// and GUID set if the values are supplied in the descriptor.
+        /// Creates and returns an empty MSBuild project using the data in the supplied descriptor.
+        /// The project will import the analysis targets file and the standard C# targets file.
+        /// The project name and GUID will be set if the values are supplied in the descriptor.
         /// </summary>
-        public static ProjectRootElement CreateProjectFromDescriptor(TestContext testContext, ProjectDescriptor descriptor)
+        public static ProjectRootElement CreateMsBuildProject(TestContext testContext, ProjectDescriptor descriptor)
         {
-            ProjectRootElement root = CreateEmptyTargetProject(testContext.TestDeploymentDir);
+            ProjectRootElement root = CreateMinimalBuildableProject(testContext.TestDeploymentDir);
 
             if (!string.IsNullOrEmpty(descriptor.ProjectName))
             {
@@ -36,6 +36,14 @@ namespace SonarMSBuild.Tasks.IntegrationTests
             if (descriptor.ProjectGuid != Guid.Empty)
             {
                 root.AddProperty(TargetProperties.ProjectGuid, descriptor.ProjectGuid.ToString("D"));
+            }
+
+            if (descriptor.ManagedSourceFiles != null)
+            {
+                foreach (string managedInput in descriptor.ManagedSourceFiles)
+                {
+                    root.AddItem("Compile", managedInput);
+                }
             }
 
             if (descriptor.IsTestProject)
@@ -49,24 +57,28 @@ namespace SonarMSBuild.Tasks.IntegrationTests
 
             return root;
         }
-        
+
         /// <summary>
-        /// Creates and returns an empty project that imports the analysis targets file.
-        /// Optionally sets the project guid and name properties if they are not Guid.Empty/"".
+        /// Creates and returns a minimal project file that can be built.
+        /// The project imports the C# targets and the Sonar analysis targets.
         /// </summary>
-        public static ProjectRootElement CreateEmptyTargetProject(string importedTargetsDir)
+        public static ProjectRootElement CreateMinimalBuildableProject(string importedTargetsDir)
         {
             Assert.IsTrue(Directory.Exists(importedTargetsDir), "Test error: the specified directory does not exist. Path: {0}", importedTargetsDir);
 
             ProjectRootElement root = ProjectRootElement.Create();
 
-            // Import the MsBuild targets file
+            // Import the MsBuild Sonar targets file
             string fullAnalysisTargetPath = Path.Combine(importedTargetsDir, TargetConstants.AnalysisTargetFileName);
             Assert.IsTrue(File.Exists(fullAnalysisTargetPath), "Test error: the analysis target file does not exist. Path: {0}", fullAnalysisTargetPath);
             root.AddImport(fullAnalysisTargetPath);
 
             // Set the location of the task assembly
             root.AddProperty(TargetProperties.SonarBuildTasksAssemblyFile, typeof(WriteProjectInfoFile).Assembly.Location);
+
+            // Import the standard Microsoft targets
+            root.AddImport("$(MSBuildToolsPath)\\Microsoft.CSharp.targets");
+            root.AddProperty("OutputType", "library"); // build a library so we don't need a Main method
 
             return root;
         }

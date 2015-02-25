@@ -13,6 +13,8 @@ namespace SonarMSBuild.Tasks.IntegrationTests
 
         // Targets
         public const string WriteSonarProjectDataTargetName = "WriteSonarProjectData";
+
+        public const string DefaultBuildTarget = "Build";
     }
 
     internal static class TargetProperties

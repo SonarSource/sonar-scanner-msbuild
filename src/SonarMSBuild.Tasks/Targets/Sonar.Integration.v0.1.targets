@@ -42,7 +42,9 @@
 
 
   <!-- **************************************************************************** -->
+  <!-- **************************************************************************** -->
   <!-- Targets -->
+  <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
 
   <Target Name="SkippingSonarAnalysis" AfterTargets="CoreCompile"
@@ -50,6 +52,12 @@
     <Message Importance="high" Text="Skipping dumping compile outputs because SonarOutputPath has not been specified" />
   </Target>
 
+  <!-- **************************************************************************** -->
+  <!-- Write the project info file for the current project.
+       Any targets which affect @(AnalysisResults) should be run before this target,
+       otherwise those results will not appear in the project info file.
+  -->
+  <!-- **************************************************************************** -->
   <Target Name="WriteSonarProjectData" AfterTargets="CoreCompile"
           Condition=" $(SonarOutputPath) != '' ">
 
@@ -88,6 +96,21 @@
        IsTest="false"
        AnalysisResults="@(AnalysisResults)"
        OutputFolder="$(ProjectSpecificDir)" />
+  </Target>
+
+  <!-- **************************************************************************** -->
+  <!-- FxCop -->
+  <!-- **************************************************************************** -->
+  <Target Name="SetFxCopAnalysisResult" Condition=" $(SonarOutputPath) != '' AND $(RunCodeAnalysis) == 'true' "
+                AfterTargets="RunCodeAnalysis" BeforeTargets="WriteSonarProjectData" >
+
+    <!-- Record the FxCop output file as an analysis result -->
+    <ItemGroup>
+      <AnalysisResults Include="$(CodeAnalysisLogFile)">
+        <Id>FxCop</Id>
+      </AnalysisResults>
+    </ItemGroup>
+
   </Target>
 
 </Project>

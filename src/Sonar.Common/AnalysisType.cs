@@ -17,6 +17,7 @@ namespace Sonar.Common
     /// </summary>
     public enum AnalysisType
     {
-        ManagedCompilerInputs
+        ManagedCompilerInputs,
+        FxCop
     }
 }

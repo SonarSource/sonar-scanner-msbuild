@@ -20,7 +20,6 @@ namespace SonarMSBuild.Tasks.IntegrationTests
             // 0. Setup
             WriteProjectInfoFile task;
 
-            
             // 1. Missing project path
             task = this.CreateValidTask();
             task.FullProjectPath = null;
