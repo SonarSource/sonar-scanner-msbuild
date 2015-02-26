@@ -70,6 +70,8 @@ namespace SonarMSBuild.Tasks.IntegrationTests
             Assert.IsTrue(Directory.Exists(sonarTargetsDir), "Test error: the specified directory does not exist. Path: {0}", sonarTargetsDir);
 
             ProjectRootElement root = ProjectRootElement.Create();
+            
+            //root.AddImport(@"$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props");
 
             if (preImportProperties != null)
             {

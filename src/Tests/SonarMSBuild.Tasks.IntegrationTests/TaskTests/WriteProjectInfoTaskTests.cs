@@ -1,4 +1,10 @@
-﻿using System;
+﻿//-----------------------------------------------------------------------
+// <copyright file="WriteProjectInfoTaskTests.cs" company="SonarSource SA and Microsoft Corporation">
+//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 using Microsoft.Build.Utilities;
@@ -64,7 +70,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests
             return task;
         }
 
-        private static void AssertTaskExecutionThrows(Task buildTask)
+        private static void AssertTaskExecutionThrows(WriteProjectInfoFile buildTask)
         {
             AssertException.Expects<ArgumentNullException>(() => buildTask.Execute());
         }

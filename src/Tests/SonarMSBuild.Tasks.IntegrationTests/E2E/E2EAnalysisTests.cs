@@ -181,21 +181,21 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
             preImportProperties["RunCodeAnalysis"] = "true";
             preImportProperties["CodeAnalysisLogFile"] = string.Empty;
 
-            ProjectRootElement project1Root = InitializeProject(descriptor, rootOutputFolder, preImportProperties);
+            // Don't set the SonarOutputLog property
+            ProjectRootElement projectRoot = InitializeProject(descriptor, null, preImportProperties);
 
             BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildResult result = BuildProject(project1Root, logger);
+            BuildResult result = BuildProject(projectRoot, logger);
 
             // Assert
             BuildUtilities.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
             logger.AssertTargetNotExecuted(TargetConstants.SonarFxCopTargetName);
-            logger.AssertTargetNotExecuted(TargetConstants.FxCopTarget);
+            logger.AssertTargetExecuted(TargetConstants.FxCopTarget);
 
-            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, descriptor.FullFilePath);
-            ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());
+            ProjectInfoAssertions.AssertNoProjectInfoFilesExists(rootOutputFolder);
         }
 
         [TestMethod]
@@ -246,21 +246,22 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
         /// Creates a project file on disk from the specified descriptor.
         /// Sets the Sonar output folder property, if specified.
         /// </summary>
-        private ProjectRootElement InitializeProject(ProjectDescriptor project1, string sonarOutputFolder, IDictionary<string, string> preImportProperties)
+        private ProjectRootElement InitializeProject(ProjectDescriptor descriptor, string sonarOutputFolder, IDictionary<string, string> preImportProperties)
         {
-            ProjectRootElement project1Root = BuildUtilities.CreateMsBuildProject(this.TestContext, project1, preImportProperties);
+            ProjectRootElement projectRoot = BuildUtilities.CreateMsBuildProject(this.TestContext, descriptor, preImportProperties);
 
             // TODO: work out some way to automatically set the tools version depending on the version of VS being used
-            project1Root.ToolsVersion = "12.0"; // use this line for VS2013
+            projectRoot.ToolsVersion = "12.0"; // use this line for VS2013
             //project1Root.ToolsVersion = "14.0"; // use this line for VS2015.
 
             if (!string.IsNullOrWhiteSpace(sonarOutputFolder))
             {
-                project1Root.AddProperty(TargetProperties.SonarOutputPath, sonarOutputFolder);
-                project1Root.Save(project1.FullFilePath);
+                projectRoot.AddProperty(TargetProperties.SonarOutputPath, sonarOutputFolder);
             }
-            this.TestContext.AddResultFile(project1.FullFilePath);
-            return project1Root;
+            projectRoot.Save(descriptor.FullFilePath);
+
+            this.TestContext.AddResultFile(descriptor.FullFilePath);
+            return projectRoot;
         }
 
         private static BuildResult BuildProject(ProjectRootElement projectRoot, BuildLogger logger, params string[] targets)

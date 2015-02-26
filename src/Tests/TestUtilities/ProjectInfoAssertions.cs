@@ -72,6 +72,16 @@ namespace TestUtilities
         }
 
         /// <summary>
+        /// Checks that not project info files exist under the output folder
+        /// </summary>
+        /// <param name="rootOutputFolder">The root Sonar analysis output folder i.e. the folder that contains the per-project folders</param>
+        public static void AssertNoProjectInfoFilesExists(string rootOutputFolder)
+        {
+            IList<ProjectInfo> items = GetProjectInfosFromOutputFolder(rootOutputFolder);
+            Assert.AreEqual(0, items.Count, "Not expecting any project info files to exist");
+        }
+
+        /// <summary>
         /// Checks that a project info file exists for the specified project
         /// </summary>
         /// <param name="rootOutputFolder">The root Sonar analysis output folder i.e. the folder that contains the per-project folders</param>
