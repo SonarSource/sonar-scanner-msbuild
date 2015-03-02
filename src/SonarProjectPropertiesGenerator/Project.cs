@@ -21,14 +21,16 @@ namespace SonarProjectPropertiesGenerator
         public string MsBuildProject { get; private set; }
         public bool IsTest { get; private set; }
         public List<string> Files { get; private set; }
+        public string FxCopReport { get; private set; }
 
-        public Project(String name, Guid guid, String msBuildProject, bool isTest, List<string> files)
+        public Project(String name, Guid guid, String msBuildProject, bool isTest, List<string> files, string fxCopReport)
         {
             Name = name;
             Guid = guid;
             MsBuildProject = msBuildProject;
             IsTest = isTest;
             Files = files;
+            FxCopReport = fxCopReport;
         }
 
         public string GuidAsString()

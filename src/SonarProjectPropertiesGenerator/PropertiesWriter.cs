@@ -40,6 +40,10 @@ namespace SonarProjectPropertiesGenerator
                 AppendKeyValue(sb, guid, "sonar.projectKey", projectKey + ":" + guid);
                 AppendKeyValue(sb, guid, "sonar.projectName", project.Name);
                 AppendKeyValue(sb, guid, "sonar.projectBaseDir", project.BaseDir());
+                if (project.FxCopReport != null)
+                {
+                    AppendKeyValue(sb, guid, "sonar.fxcop.reportPath", project.FxCopReport);
+                }
                 if (!project.IsTest)
                 {
                     sb.AppendLine(guid + @".sonar.sources=\");

@@ -42,7 +42,7 @@ namespace SonarProjectPropertiesGenerator.Tests
                 IsTestProject = true,
                 ManagedSourceFiles = new string[] { "TestFile1.cs", "TestFile2.cs" },
             };
-            CreateFilesFromDescriptor(validTestProject, "testCompileListFile");
+            CreateFilesFromDescriptor(validTestProject, "testCompileListFile", "testFxCopReport");
 
             ProjectDescriptor validNonTestProject = new ProjectDescriptor()
             {
@@ -54,11 +54,10 @@ namespace SonarProjectPropertiesGenerator.Tests
                 IsTestProject = false,
                 ManagedSourceFiles = new string[] { "ASourceFile.vb", "AnotherSourceFile.vb" }
             };
-            CreateFilesFromDescriptor(validNonTestProject, "list.txt"); // name of the compile list file should not matter
+            CreateFilesFromDescriptor(validNonTestProject, "list.txt", "fxcop.xml");
 
             // Act
             List<Project> projects = SonarProjectPropertiesGenerator.ProjectLoader.LoadFrom(testSourcePath);
-
 
             // Assert
             Assert.AreEqual(2, projects.Count);
@@ -89,7 +88,7 @@ namespace SonarProjectPropertiesGenerator.Tests
                 IsTestProject = false,
                 ManagedSourceFiles = new string[] { "ASourceFile.vb", "AnotherSourceFile.vb" }
             };
-            CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt");
+            CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt", null);
 
             // 1. Run against the root dir -> not expecting the project to be found
             List<Project> projects = SonarProjectPropertiesGenerator.ProjectLoader.LoadFrom(rootTestDir);
@@ -108,7 +107,7 @@ namespace SonarProjectPropertiesGenerator.Tests
         /// Creates a folder containing a ProjectInfo.xml and compiled file list as
         /// specified in the supplied descriptor
         /// </summary>
-        private static void CreateFilesFromDescriptor(ProjectDescriptor descriptor, string compileListFileName)
+        private static void CreateFilesFromDescriptor(ProjectDescriptor descriptor, string compileListFileName, string fxcopReportFileName)
         {
             if (!Directory.Exists(descriptor.FullDirectoryPath))
             {
@@ -125,6 +124,18 @@ namespace SonarProjectPropertiesGenerator.Tests
 
                 // Add the compile list as an analysis result
                 projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisType.ManagedCompilerInputs.ToString(), Location = fullCompileListName });
+            }
+
+            // Create the FxCop report file
+            if (fxcopReportFileName != null)
+            {
+                string fullFxCopName = Path.Combine(descriptor.FullDirectoryPath, fxcopReportFileName);
+                File.Create(fullFxCopName);
+
+                // Add the FxCop report as an analysis result
+                var analysisResult = new AnalysisResult() { Id = AnalysisType.FxCop.ToString(), Location = fullFxCopName };
+                descriptor.AnalysisResults.Add(analysisResult);
+                projectInfo.AnalysisResults.Add(analysisResult);
             }
 
             // Save a project info file in the target directory
@@ -158,6 +169,14 @@ namespace SonarProjectPropertiesGenerator.Tests
                 Assert.AreEqual(expected.ManagedSourceFiles.Length, actual.Files.Count);
                 CollectionAssert.AreEqual(expected.ManagedSourceFiles, actual.Files);
             }
+
+            AnalysisResult fxCopResult = expected.AnalysisResults.FirstOrDefault(e => AnalysisType.FxCop.ToString().Equals(e.Id));
+            string fxCopReport = null;
+            if (fxCopResult != null)
+            {
+                fxCopReport = fxCopResult.Location;
+            }
+            Assert.AreEqual(fxCopReport, actual.FxCopReport);
         }
 
         #endregion

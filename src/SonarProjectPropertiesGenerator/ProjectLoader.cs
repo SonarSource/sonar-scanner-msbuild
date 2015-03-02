@@ -34,10 +34,10 @@ namespace SonarProjectPropertiesGenerator
                 }
 
                 bool isTest = projectInfo.ProjectType == ProjectType.Test;
-                
                 List<String> files = File.ReadAllLines(compileListPath, Encoding.UTF8).ToList();
+                string fxCopReport = TryGetAnalysisFileLocation(projectInfo, AnalysisType.FxCop);
 
-                result.Add(new Project(projectInfo.ProjectName, projectInfo.ProjectGuid, projectInfo.FullPath, isTest, files));
+                result.Add(new Project(projectInfo.ProjectName, projectInfo.ProjectGuid, projectInfo.FullPath, isTest, files, fxCopReport));
             }
 
             return result;

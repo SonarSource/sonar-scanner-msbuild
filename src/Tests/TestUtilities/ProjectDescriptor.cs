@@ -82,7 +82,7 @@ namespace TestUtilities
                 ProjectGuid = this.ProjectGuid,
                 ProjectName = this.ProjectName,
                 ProjectType = this.IsTestProject ? ProjectType.Test : ProjectType.Product,
-                AnalysisResults = this.AnalysisResults
+                AnalysisResults = new List<AnalysisResult>(this.AnalysisResults)
             };
 
             return info;
