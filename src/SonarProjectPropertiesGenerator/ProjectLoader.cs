@@ -1,4 +1,10 @@
-﻿using Sonar.Common;
+﻿//-----------------------------------------------------------------------
+// <copyright file="ProjectLoader.cs" company="SonarSource SA and Microsoft Corporation">
+//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using Sonar.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;

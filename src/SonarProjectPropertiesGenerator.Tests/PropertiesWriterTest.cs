@@ -1,4 +1,10 @@
-﻿using System;
+﻿//-----------------------------------------------------------------------
+// <copyright file="PropertiesWriterTest.cs" company="SonarSource SA and Microsoft Corporation">
+//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using System;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
