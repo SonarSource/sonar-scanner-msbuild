@@ -56,15 +56,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Sonar.Common\Sonar.Common.csproj">
+    <ProjectReference Include="..\..\Sonar.Common\Sonar.Common.csproj">
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>Sonar.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SonarProjectPropertiesGenerator\SonarProjectPropertiesGenerator.csproj">
+    <ProjectReference Include="..\..\SonarProjectPropertiesGenerator\SonarProjectPropertiesGenerator.csproj">
       <Project>{6f9d11ed-51e2-47cf-be36-10fb3ccd50d1}</Project>
       <Name>SonarProjectPropertiesGenerator</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Tests\TestUtilities\TestUtilities.csproj">
+    <ProjectReference Include="..\TestUtilities\TestUtilities.csproj">
       <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>
       <Name>TestUtilities</Name>
     </ProjectReference>

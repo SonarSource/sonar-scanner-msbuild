@@ -5,7 +5,7 @@ VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarProjectPropertiesGenerator", "SonarProjectPropertiesGenerator\SonarProjectPropertiesGenerator.csproj", "{6F9D11ED-51E2-47CF-BE36-10FB3CCD50D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarProjectPropertiesGenerator.Tests", "SonarProjectPropertiesGenerator.Tests\SonarProjectPropertiesGenerator.Tests.csproj", "{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarProjectPropertiesGenerator.Tests", "Tests\SonarProjectPropertiesGenerator.Tests\SonarProjectPropertiesGenerator.Tests.csproj", "{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarMSBuild.Tasks", "SonarMSBuild.Tasks\SonarMSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
 EndProject
