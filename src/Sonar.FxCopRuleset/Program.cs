@@ -19,20 +19,22 @@ namespace Sonar.FxCopRuleset
     {
         public static int Main(string[] args)
         {
-            if (args.Length != 4)
+            if (args.Length != 5)
             {
                 Console.WriteLine("Expected to be called with exactly 4 arguments:");
                 Console.WriteLine("  1) SonarQube Server URL");
-                Console.WriteLine("  2) SonarQube Username");
-                Console.WriteLine("  3) SonarQube Password");
-                Console.WriteLine("  4) Dump path");
+                Console.WriteLine("  2) SonarQube Project Key");
+                Console.WriteLine("  3) SonarQube Username");
+                Console.WriteLine("  4) SonarQube Password");
+                Console.WriteLine("  5) Dump path");
                 return 1;
             }
 
             var server = args[0];
-            var username = args[1];
-            var password = args[2];
-            var dumpPath = args[3];
+            var project = args[1];
+            var username = args[2];
+            var password = args[3];
+            var dumpPath = args[4];
 
             using (WebClient client = new WebClient())
             {
