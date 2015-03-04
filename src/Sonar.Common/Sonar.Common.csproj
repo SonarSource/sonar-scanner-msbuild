@@ -42,11 +42,25 @@
     <Compile Include="AnalysisResult.cs" />
     <Compile Include="AnalysisType.cs" />
     <Compile Include="FileConstants.cs" />
+    <Compile Include="FilePropertiesProvider.cs" />
+    <Compile Include="Interfaces\ISonarPropertyProvider.cs" />
     <Compile Include="ProjectInfo.cs" />
     <Compile Include="ProjectInfoExtensions.cs" />
     <Compile Include="ProjectType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Serializer.cs" />
+    <Compile Include="SonarProperties.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
