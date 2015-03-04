@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarProjectPropertiesGenerator", "SonarProjectPropertiesGenerator\SonarProjectPropertiesGenerator.csproj", "{6F9D11ED-51E2-47CF-BE36-10FB3CCD50D1}"
 EndProject
@@ -24,6 +24,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BatchFiles", "BatchFiles", "{E5506C78-82DD-46FA-A82C-C203C522A05D}"
 	ProjectSection(SolutionItems) = preProject
 		BatchFiles\SonarPostBuild.bat = BatchFiles\SonarPostBuild.bat
+		BatchFiles\SonarPreBuild.bat = BatchFiles\SonarPreBuild.bat
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.FxCopRuleset", "Sonar.FxCopRuleset\Sonar.FxCopRuleset.csproj", "{8D291C7A-180B-4ADB-86A7-B23596517B83}"

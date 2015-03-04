@@ -50,10 +50,11 @@
   <ItemGroup>
     <None Include="Targets\Prototypes\DumpCompileArguments_ImportsAfter v0.2.targets" />
     <None Include="Targets\Prototypes\DumpCompileArguments_ImportsBefore v0.2.targets" />
+    <None Include="Targets\Sonar.Integration.ImportAfter.targets" />
     <None Include="Targets\Sonar.Integration.v0.1.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Targets\Sonar.Integration.ImportAfter.targets" />
+    <None Include="Targets\Sonar.Integration.ImportBefore.targets" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sonar.Common\Sonar.Common.csproj">

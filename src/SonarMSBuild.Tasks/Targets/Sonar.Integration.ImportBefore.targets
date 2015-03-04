@@ -1,0 +1,7 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="$(SonarImported) != 'true'">
+    <SonarBinPath Condition="$(SonarBinPath) == ''">$(MSBuildExtensionsPath)\Microsoft\Sonar</SonarBinPath>
+    <SonarTargets>$(SonarBinPath)\Sonar.Integration.v0.1.targets</SonarTargets>
+  </PropertyGroup>
+  <Import Condition="$(SonarImported) != 'true' and Exists('$(SonarTargets)')" Project="$(SonarTargets)" />
+</Project>

@@ -35,8 +35,8 @@
   <!-- Using tasks -->
   <!-- **************************************************************************** -->
   <PropertyGroup>
-		<!-- Assume that the tasks assembly is in the same location as this targets file unless 
-		     another location has already been specified. -->
+    <!-- Assume that the tasks assembly is in the same location as this targets file unless 
+         another location has already been specified. -->
     <SonarBuildTasksAssemblyFile Condition=" $(SonarBuildTasksAssemblyFile) == '' ">$(MSBuildThisFileDirectory)\SonarMSBuild.Tasks.dll</SonarBuildTasksAssemblyFile>
   </PropertyGroup>
 
@@ -70,12 +70,12 @@
       <ProjectSpecificDir>$(SonarOutputPath)\$(MSBuildProjectName)_$(FolderDisambiguator)</ProjectSpecificDir>
     </PropertyGroup>
 
-    <!-- Create the project-specific output folder -->
+		<!-- Ensure the contents file doesn't already exist -->
+		<Delete Files="$(ProjectSpecificDir)\CompileList.txt" />
+
+		<!-- Create the project-specific output folder -->
     <RemoveDir Directories="$(ProjectSpecificDir)" />
     <MakeDir Directories="$(ProjectSpecificDir)" />
-
-    <!-- Ensure the contents file doesn't already exist -->
-    <Delete Files="$(ProjectSpecificDir)\CompileList.txt" />
 
     <!-- Write out a list of managed files that will be passed to the compiler -->
     <WriteLinesToFile
@@ -94,25 +94,87 @@
 
     <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
        FullProjectPath="$(MSBuildProjectFullPath)"
-			 ProjectGuid="$(ProjectGuid)"
+       ProjectGuid="$(ProjectGuid)"
        IsTest="false"
        AnalysisResults="@(AnalysisResults)"
        OutputFolder="$(ProjectSpecificDir)" />
   </Target>
 
+
   <!-- **************************************************************************** -->
   <!-- FxCop -->
   <!-- **************************************************************************** -->
-  <Target Name="SetFxCopAnalysisResult" Condition=" $(SonarOutputPath) != '' AND $(RunCodeAnalysis) == 'true' "
-                AfterTargets="RunCodeAnalysis" BeforeTargets="WriteSonarProjectData" >
+  <!-- We want to control whether or FxCop analysis is run or not, and we want to control
+	     the ruleset that is used.
+			 
+			 There may/may not be individual FxCop settings in each project, and the TeamBuild
+			 definition may also specify whether FxCop is to be run or not (the options being
+			 "As configured", "Always", and "Never". 
+			 
+			 We need to make sure the FxCop targets get loaded if we want to run FxCop, and then
+			 we need to override any other settings that may exist.
+			 
+			 We ensure the FxCop targets are loaded by setting the $(RunCodeAnalysisOnce).
+			 We then override any FxCop property settings by executing a target to programmatically
+			 update the property values. These values set in this way will take precedence over
+			 any values passed on the MSBuild command line or in <PropertyGroups>.
+			 -->
+	
+	
+  <!-- The FxCop targets are conditionally imported so we need to make sure the required condition
+       is true early enough. -->
+  <PropertyGroup Condition=" $(SonarOutputPath) != '' ">
+    <SonarRulesetFileName Condition=" $(SonarRulesetFileName) == ''">SonarAnalysis.ruleset</SonarRulesetFileName>
+    <SonarRulesetFullName>$(SonarConfigPath)\$(SonarRulesetFileName)</SonarRulesetFullName>
 
-    <!-- Record the FxCop output file as an analysis result -->
+    <!-- If the config path hasn't been specified then don't run code analysis-->
+    <SonarRulesetExists Condition=" $(SonarConfigPath) == '' ">false</SonarRulesetExists>
+    <SonarRulesetExists Condition=" $(SonarConfigPath) != '' ">$([System.IO.File]::Exists($(SonarRulesetFullName)))</SonarRulesetExists>
+
+    <!-- If we are running a Sonar analysis build then whether or not FxCop is run depends entirely on whether
+         the Sonar ruleset exists. -->
+    <RunCodeAnalysisOnce>$(SonarRulesetExists)</RunCodeAnalysisOnce>
+  </PropertyGroup>
+
+  <!-- We want to override any properties that have been set declaratively in the project -->
+  <Target Name="OverrideCodeAnalysisProperties" Condition=" $(SonarOutputPath) != '' "
+              BeforeTargets="RunCodeAnalysis" >
+
+    <Message Condition="!$(SonarRulesetExists)"
+             Importance="normal"
+             Text="Skipping FxCop analysis because the Sonar ruleset does not exist. Ruleset: $(SonarRulesetFullName)" />
+
+    <Message Condition="$(SonarRulesetExists)"
+             Importance="normal"
+             Text="Running FxCop analsyis using the Sonar ruleset. Ruleset: $(SonarRulesetFullName)" />
+
+    <PropertyGroup>
+		  <!-- By the time this target is evaluated, the FxCop targets have evaluated the
+			     $(RunCodeAnalysis) and $(RunCodeAnalysisOnce) properties and used them to 
+					 set $(RunCodeAnalysisOnThisProject). If we want to stop code analysis from
+					 running at this point, we need to set $(RunCodeAnalysisOnThisProject). -->
+			<RunCodeAnalysisOnThisProject>$(SonarRulesetExists)</RunCodeAnalysisOnThisProject>
+
+			<CodeAnalysisRuleSet>$(SonarRulesetFullName)</CodeAnalysisRuleSet>
+      <CodeAnalysisForceOutput>true</CodeAnalysisForceOutput>
+      <CodeAnalysisGenerateSuccessFile>true</CodeAnalysisGenerateSuccessFile>
+      <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+    </PropertyGroup>
+
+  </Target>
+
+  <!-- If FxCop is being run then record the FxCop output file as an analysis result -->
+  <Target Name="SetFxCopAnalysisResult" Condition=" $(SonarRulesetExists) "
+                AfterTargets="RunCodeAnalysis" BeforeTargets="WriteSonarProjectData" >
     <ItemGroup>
       <AnalysisResults Include="$(CodeAnalysisLogFile)">
         <Id>FxCop</Id>
       </AnalysisResults>
     </ItemGroup>
-
   </Target>
+
+  <!-- **************************************************************************** -->
+  <!-- End of FxCop section-->
+  <!-- **************************************************************************** -->
 
 </Project>
