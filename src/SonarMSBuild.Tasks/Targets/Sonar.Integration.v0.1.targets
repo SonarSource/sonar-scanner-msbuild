@@ -146,7 +146,7 @@
 
     <Message Condition="$(SonarRulesetExists)"
              Importance="normal"
-             Text="Running FxCop analsyis using the Sonar ruleset. Ruleset: $(SonarRulesetFullName)" />
+             Text="Running FxCop analysis using the Sonar ruleset. Ruleset: $(SonarRulesetFullName)" />
 
     <PropertyGroup>
 		  <!-- By the time this target is evaluated, the FxCop targets have evaluated the
