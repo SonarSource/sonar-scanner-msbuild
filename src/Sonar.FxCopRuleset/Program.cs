@@ -33,6 +33,7 @@ namespace Sonar.FxCopRuleset
                 return 1;
             }
 
+            // TODO Should support trailing slash, see http://jira.codehaus.org/browse/SONARUNNER-57
             var server = args[0];
             var username = args[1];
             var password = args[2];
@@ -51,7 +52,7 @@ namespace Sonar.FxCopRuleset
                 try
                 {
                     projectProfileJsonContents = client.DownloadString(projectProfileUrl);
-                } 
+                }
                 catch (WebException)
                 {
                     // TODO Better 404 handling
