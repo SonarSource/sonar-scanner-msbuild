@@ -28,6 +28,16 @@ namespace TestUtilities
 
         #region ISonarPropertyProvider interface
 
+        string ISonarPropertyProvider.GetProperty(string propertyName)
+        {
+            string value;
+            if (!this.PropertyBag.TryGetValue(propertyName, out value))
+            {
+                throw new ArgumentException(propertyName);
+            }
+            return value;
+        }
+
         string ISonarPropertyProvider.GetProperty(string propertyName, string defaultValue)
         {
             string value;

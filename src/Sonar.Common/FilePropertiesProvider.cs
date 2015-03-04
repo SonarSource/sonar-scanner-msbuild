@@ -28,6 +28,8 @@ namespace Sonar.Common
         /// </summary>
         private static StringComparer PropertyKeyComparer = StringComparer.InvariantCulture;
 
+        private string propertyFilePath;
+
         #region Public methods
 
         /// <summary>
@@ -47,12 +49,24 @@ namespace Sonar.Common
                 throw new FileNotFoundException(Resources.MissingSonarPropertiesFileError, fullPath);
             }
 
+            this.propertyFilePath = fullPath;
             this.ExtractProperties(fullPath);
         }
 
         #endregion
 
         #region ISonarPropertyProvider interface
+
+        public string GetProperty(string propertyName)
+        {
+            string value;
+            if (!this.properties.TryGetValue(propertyName, out value))
+            {
+                string message = string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.PropertyNotFoundInFileError, this.propertyFilePath, propertyName);
+                throw new ArgumentOutOfRangeException(propertyName, message);
+            }
+            return value;
+        }
 
         public string GetProperty(string propertyName, string defaultValue)
         {

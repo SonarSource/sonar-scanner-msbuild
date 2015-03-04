@@ -182,6 +182,26 @@ sonar.password=adminpwd";
             AssertExpectedValueReturned(provider, SonarProperties.SonarPassword, "adminpwd");
         }
 
+        [TestMethod]
+        [Description("Tests that the property method that does not accept a default value throws if the property is not available")]
+        public void FilePropertiesProvider_GetProperty_Throws()
+        {
+            // Arrange
+            string contents = @"
+a.b.c.=exists
+";
+            string fullName = CreatePropertiesFile("GetProperty_Throws.properties", contents);
+
+            // Act
+            FilePropertiesProvider provider = new FilePropertiesProvider(fullName);
+
+            // Assert
+            AssertExpectedValueReturned(provider, "a.b.c.", "exists");
+            Exception ex = AssertException.Expects<ArgumentException>(() => provider.GetProperty("missing.property"));
+
+            Assert.IsTrue(ex.Message.Contains(fullName), "Expecting the error message to contain the file name");
+            Assert.IsTrue(ex.Message.Contains("missing.property"), "Expecting the error message to contain the name of the requested property");
+        }
 
         #endregion
 
@@ -214,7 +234,11 @@ sonar.password=adminpwd";
 
         private static void AssertExpectedValueReturned(FilePropertiesProvider provider, string propertyName, string expectedValue)
         {
-            string actualValue = provider.GetProperty(propertyName, Guid.NewGuid().ToString() /* supply a unique default - not expecting it to be returned*/);
+            // Both "GetProperty" methods should return the same expected value
+            string actualValue = provider.GetProperty(propertyName);
+            Assert.AreEqual(expectedValue, actualValue, "Provider did not return the expected value for property '{0}'", propertyName);
+
+            actualValue = provider.GetProperty(propertyName, Guid.NewGuid().ToString() /* supply a unique default - not expecting it to be returned*/);
             Assert.AreEqual(expectedValue, actualValue, "Provider did not return the expected value for property '{0}'", propertyName);
         }
 

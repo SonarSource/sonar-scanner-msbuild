@@ -120,4 +120,7 @@
   <data name="MissingSonarPropertiesFileError" xml:space="preserve">
     <value>The specfied properties file could not be found</value>
   </data>
+  <data name="PropertyNotFoundInFileError" xml:space="preserve">
+    <value>The settings file '{0}' does not contain a value for the property '{1}'</value>
+  </data>
 </root>

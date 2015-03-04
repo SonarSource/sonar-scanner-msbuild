@@ -12,6 +12,12 @@ namespace Sonar.Common
     public interface ISonarPropertyProvider
     {
         /// <summary>
+        /// Returns the value for the supplied property.
+        /// Throws if the property does not have a value.
+        /// </summary>
+        string GetProperty(string propertyName);
+
+        /// <summary>
         /// Returns the property value to use for the specified property
         /// </summary>
         /// <param name="propertyName">The name of the property. Required.</param>
