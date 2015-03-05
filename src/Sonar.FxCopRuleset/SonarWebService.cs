@@ -92,7 +92,7 @@ namespace Sonar.FxCopRuleset
         /// </summary>
         public IDictionary<string, string> GetInternalKeys()
         {
-            var ws = GetUrl("/api/rules/search?activation=true&f=internalKey&ps={0}&repositories={1}", int.MaxValue.ToString(), Repository);
+            var ws = GetUrl("/api/rules/search?f=internalKey&ps={0}&repositories={1}", int.MaxValue.ToString(), Repository);
             var contents = Download(ws);
 
             var rules = JObject.Parse(contents);
