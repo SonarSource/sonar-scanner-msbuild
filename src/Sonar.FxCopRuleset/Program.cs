@@ -46,7 +46,13 @@ namespace Sonar.FxCopRuleset
                 if (activeRuleKeys.Any())
                 {
                     var internalKeys = ws.GetInternalKeys();
-                    var ids = activeRuleKeys.Select(k => internalKeys[Repository + ':' + k]);
+                    var ids = activeRuleKeys.Select(
+                        k =>
+                        {
+                            var fullKey = Repository + ':' + k;
+                            return internalKeys.ContainsKey(fullKey) ? internalKeys[fullKey] : k;
+                        });
+
                     File.WriteAllText(dumpPath, RulesetWriter.ToString(ids));
                 }
                 else

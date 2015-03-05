@@ -82,9 +82,18 @@ namespace Sonar.FxCopRuleset
 
             var profiles = JArray.Parse(contents);
             var rules = profiles.Single()["rules"];
-            var keys = rules == null ? Enumerable.Empty<string>() : rules.Where(r => Repository.Equals(r["repo"].ToString())).Select(r => r["key"].ToString());
-
-            return keys;
+            if (rules == null) {
+                return Enumerable.Empty<string>();
+            }
+            
+            return rules
+                .Where(r => Repository.Equals(r["repo"].ToString()))
+                .Select(
+                r =>
+                {
+                    var checkIdParameter = r["params"] == null ? null : r["params"].Where(p => "CheckId".Equals(p["key"].ToString())).SingleOrDefault();
+                    return checkIdParameter == null ? r["key"].ToString() : checkIdParameter["value"].ToString();
+                });
         }
 
         /// <summary>
