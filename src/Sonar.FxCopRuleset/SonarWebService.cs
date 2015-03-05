@@ -25,7 +25,7 @@ namespace Sonar.FxCopRuleset
 
         public SonarWebService(string server, string username, string password, string language, string repository)
         {
-            Server = server;
+            Server = server.EndsWith("/") ? server.Substring(0, server.Length - 1) : server;
             Username = username;
             Password = password;
             Language = language;
@@ -106,8 +106,12 @@ namespace Sonar.FxCopRuleset
 
         private string GetUrl(string format, params string[] args)
         {
-            // TODO Should support trailing slash, see http://jira.codehaus.org/browse/SONARUNNER-57
-            return Server + string.Format(format, args.Select(a => Uri.EscapeUriString(a)).ToArray());
+            var queryString = string.Format(format, args.Select(a => Uri.EscapeUriString(a)).ToArray());
+            if (!queryString.StartsWith("/"))
+            {
+                queryString = '/' + queryString;
+            }
+            return Server + queryString;
         }
 
         private bool TryDownloadIfExists(string url, out string contents)
