@@ -140,11 +140,11 @@
   <Target Name="OverrideCodeAnalysisProperties" Condition=" $(SonarOutputPath) != '' "
               BeforeTargets="RunCodeAnalysis" >
 
-    <Message Condition="!$(SonarRulesetExists)"
+    <Message Condition="$(SonarRulesetExists) != 'true' "
              Importance="normal"
              Text="Skipping FxCop analysis because the Sonar ruleset does not exist. Ruleset: $(SonarRulesetFullName)" />
 
-    <Message Condition="$(SonarRulesetExists)"
+    <Message Condition="$(SonarRulesetExists) == 'true' "
              Importance="normal"
              Text="Running FxCop analysis using the Sonar ruleset. Ruleset: $(SonarRulesetFullName)" />
 
@@ -164,7 +164,7 @@
   </Target>
 
   <!-- If FxCop is being run then record the FxCop output file as an analysis result -->
-  <Target Name="SetFxCopAnalysisResult" Condition=" $(SonarRulesetExists) "
+  <Target Name="SetFxCopAnalysisResult" Condition=" $(SonarRulesetExists) == 'true' "
                 AfterTargets="RunCodeAnalysis" BeforeTargets="WriteSonarProjectData" >
     <ItemGroup>
       <AnalysisResults Include="$(CodeAnalysisLogFile)">
