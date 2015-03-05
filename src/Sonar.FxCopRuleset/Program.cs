@@ -12,6 +12,7 @@ using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using Sonar.Common;
 
 namespace Sonar.FxCopRuleset
 {
@@ -22,23 +23,21 @@ namespace Sonar.FxCopRuleset
 
         public static int Main(string[] args)
         {
-            if (args.Length != 5)
+            if (args.Length != 3)
             {
-                Console.WriteLine("Expected to be called with exactly 5 arguments:");
-                Console.WriteLine("  1) SonarQube Server URL");
-                Console.WriteLine("  2) SonarQube Username");
-                Console.WriteLine("  3) SonarQube Password");
-                Console.WriteLine("  4) SonarQube Project Key");
-                Console.WriteLine("  5) Dump path");
+                Console.WriteLine("Expected to be called with exactly 3 arguments:");
+                Console.WriteLine("  1) Path to sonar-runner.properties");
+                Console.WriteLine("  2) SonarQube Project Key");
+                Console.WriteLine("  3) Dump path");
                 return 1;
             }
 
-            // TODO Should support trailing slash, see http://jira.codehaus.org/browse/SONARUNNER-57
-            var server = args[0];
-            var username = args[1];
-            var password = args[2];
-            var projectKey = args[3];
-            var dumpPath = args[4];
+            var sonarRunnerProperties = new FilePropertiesProvider(args[0]);
+            var server = sonarRunnerProperties.GetProperty(SonarProperties.HostUrl, "http://localhost:9000");
+            var username = sonarRunnerProperties.GetProperty(SonarProperties.SonarUserName, null);
+            var password = sonarRunnerProperties.GetProperty(SonarProperties.SonarPassword, null);
+            var projectKey = args[1];
+            var dumpPath = args[2];
 
             using (SonarWebService ws = new SonarWebService(server, username, password, Language, Repository))
             {

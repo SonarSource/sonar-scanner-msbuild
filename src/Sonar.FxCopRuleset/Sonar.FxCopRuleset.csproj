@@ -55,6 +55,12 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Sonar.Common\Sonar.Common.csproj">
+      <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
+      <Name>Sonar.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
