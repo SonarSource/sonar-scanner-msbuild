@@ -67,6 +67,7 @@ namespace Sonar.FxCopRuleset
                 contents = Download(ws);
             }
             var profiles = JArray.Parse(contents);
+            // TODO What is profiles is empty?
             var profile = profiles.Count > 1 ? profiles.Where(p => "True".Equals(p["default"].ToString())).Single() : profiles[0];
             return profile["name"].ToString();
         }
@@ -74,23 +75,24 @@ namespace Sonar.FxCopRuleset
         /// <summary>
         /// Get all the active rules (of the given language and repository) in the given quality profile name
         /// </summary>
-        public List<string> GetActiveRuleKeys(string qualityProfile)
+        public IEnumerable<string> GetActiveRuleKeys(string qualityProfile)
         {
             var ws = GetUrl("/api/profiles/index?language={0}&name={1}", Language, qualityProfile);
             var contents = Download(ws);
 
             var profiles = JArray.Parse(contents);
-            var keys = profiles.Single()["rules"].Where(r => Repository.Equals(r["repo"].ToString())).Select(r => r["key"].ToString()).ToList();
+            var rules = profiles.Single()["rules"];
+            var keys = rules == null ? Enumerable.Empty<string>() : rules.Where(r => Repository.Equals(r["repo"].ToString())).Select(r => r["key"].ToString());
 
             return keys;
         }
 
         /// <summary>
-        /// Get the internal keys corresponding to the given keys
+        /// Get the key -> internal keys mapping (of the given language and repository)
         /// </summary>
-        public IDictionary<string, string> GetInternalKeys(List<string> keys)
+        public IDictionary<string, string> GetInternalKeys()
         {
-            var ws = GetUrl("/api/rules/search?f=internalKey&ps={0}&repositories={1}", int.MaxValue.ToString(), Repository);
+            var ws = GetUrl("/api/rules/search?activation=true&f=internalKey&ps={0}&repositories={1}", int.MaxValue.ToString(), Repository);
             var contents = Download(ws);
 
             var rules = JObject.Parse(contents);
