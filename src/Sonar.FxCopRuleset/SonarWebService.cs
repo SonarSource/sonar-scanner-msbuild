@@ -34,11 +34,24 @@ namespace Sonar.FxCopRuleset
             Client = new WebClient();
             if (username != null && password != null)
             {
-                // TODO What if username/password contains ':' or accents?
+                if (username.Contains(':'))
+                {
+                    throw new ArgumentException("username cannot contain the ':' character due to basic authentication limitations");
+                }
+                if (!IsAscii(username) || !IsAscii(password))
+                {
+                    throw new ArgumentException("username and password should contain only ASCII characters due to basic authentication limitations");
+                }
+
                 var credentials = string.Format("{0}:{1}", username, password);
                 credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(credentials));
                 Client.Headers[HttpRequestHeader.Authorization] = "Basic " + credentials;
             }
+        }
+
+        private static bool IsAscii(string s)
+        {
+            return !s.Any(c => c > sbyte.MaxValue);
         }
 
         /// <summary>

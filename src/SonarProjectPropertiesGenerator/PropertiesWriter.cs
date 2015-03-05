@@ -109,7 +109,7 @@ namespace SonarProjectPropertiesGenerator
 
         private static bool IsAscii(char c)
         {
-            return c < sbyte.MaxValue;
+            return c <= sbyte.MaxValue;
         }
     }
 }
