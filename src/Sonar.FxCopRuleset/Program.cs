@@ -43,11 +43,16 @@ namespace Sonar.FxCopRuleset
             {
                 var qualityProfile = ws.GetQualityProfile(projectKey);
                 var activeRuleKeys = ws.GetActiveRuleKeys(qualityProfile);
-                var internalKeys = ws.GetInternalKeys(activeRuleKeys);
-
-                var ids = activeRuleKeys.Select(k => internalKeys[Repository + ':' + k]);
-
-                File.WriteAllText(dumpPath, RulesetWriter.ToString(ids));
+                if (activeRuleKeys.Any())
+                {
+                    var internalKeys = ws.GetInternalKeys(activeRuleKeys);
+                    var ids = activeRuleKeys.Select(k => internalKeys[Repository + ':' + k]);
+                    File.WriteAllText(dumpPath, RulesetWriter.ToString(ids));
+                }
+                else
+                {
+                    File.Delete(dumpPath);
+                }
             }
 
             return 0;
