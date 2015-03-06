@@ -41,7 +41,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests
             this.eventSource = eventSource;
             this.executedTargets = new List<TargetStartedEventArgs>();
             this.executedTasks = new List<TaskStartedEventArgs>();
-            this.RegisterEvents(eventSource);
+            this.RegisterEvents(this.eventSource);
         }
 
         void ILogger.Shutdown()
@@ -55,9 +55,15 @@ namespace SonarMSBuild.Tasks.IntegrationTests
 
         private void RegisterEvents(IEventSource source)
         {
-            source.AnyEventRaised += Source_AnyEventRaised;
+            source.AnyEventRaised += source_AnyEventRaised;
             source.TargetStarted += source_TargetStarted;
             source.TaskStarted += source_TaskStarted;
+        }
+        private void UnregisterEvents(IEventSource source)
+        {
+            source.AnyEventRaised -= source_AnyEventRaised;
+            source.TargetStarted -= source_TargetStarted;
+            source.TaskStarted -= source_TaskStarted;
         }
 
         void source_TargetStarted(object sender, TargetStartedEventArgs e)
@@ -70,14 +76,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests
             this.executedTasks.Add(e);
         }
 
-        private void UnregisterEvents(IEventSource source)
-        {
-            source.AnyEventRaised -= Source_AnyEventRaised;
-            source.TargetStarted -= source_TargetStarted;
-            source.TaskStarted -= source_TaskStarted;
-        }
-
-        private void Source_AnyEventRaised(object sender, BuildEventArgs e)
+        private void source_AnyEventRaised(object sender, BuildEventArgs e)
         {
             Log("{0}: {1}: {2}", e.Timestamp, e.SenderName, e.Message);
         }

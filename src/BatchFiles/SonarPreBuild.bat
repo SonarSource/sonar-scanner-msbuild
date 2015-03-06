@@ -5,7 +5,12 @@
 
 @REM Set the config folder to the command line parameter, if supplied
 @set ConfigFolder=%3
-@if "%ConfigFolder%"=="" set ConfigFolder=%TF_BUILD_BUILDDIRECTORY%\Sonar\Config\
+@if "%ConfigFolder%"=="" ( 
+	set ConfigFolder=%TF_BUILD_BUILDDIRECTORY%\SonarTemp\Config
+	@echo Creating the root SonarTemp directory...
+	if EXIST %TF_BUILD_BUILDDIRECTORY%\SonarTemp rmdir %TF_BUILD_BUILDDIRECTORY%\SonarTemp /S /Q
+	mkdir %TF_BUILD_BUILDDIRECTORY%\SonarTemp
+)
 @echo ConfigFolder = %ConfigFolder%
 
 @echo Sonar runner properties location: %SonarRunnerProperties%
@@ -13,7 +18,7 @@
 @echo Sonar config location: %ConfigFolder%
 
 @echo Creating the Sonar config folder...
-@rmdir %ConfigFolder% /S /Q
+@if EXIST %ConfigFolder% rmdir %ConfigFolder% /S /Q
 @mkdir %ConfigFolder%
 
 @echo Generating Sonar FxCop file...

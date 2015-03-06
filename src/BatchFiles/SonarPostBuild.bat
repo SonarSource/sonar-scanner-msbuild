@@ -6,7 +6,7 @@
 
 @REM Set the output folder to the command line parameter, if supplied
 @set OutputFolder=%4
-@if "%OutputFolder%"=="" set OutputFolder=%TF_BUILD_BUILDDIRECTORY%\Sonar\Output\
+@if "%OutputFolder%"=="" set OutputFolder=%TF_BUILD_BUILDDIRECTORY%\SonarTemp\Output\
 @echo Sonar output folder = %OutputFolder%
 
 @echo Generating Sonar properties file to %OutputFolder% ...
