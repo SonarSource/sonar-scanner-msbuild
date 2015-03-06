@@ -39,7 +39,7 @@ namespace Sonar.FxCopRuleset
             var projectKey = args[1];
             var dumpPath = args[2];
 
-            using (SonarWebService ws = new SonarWebService(server, username, password, Language, Repository))
+            using (SonarWebService ws = new SonarWebService(new WebClientDownloader(new WebClient(), username, password), server, Language, Repository))
             {
                 var qualityProfile = ws.GetQualityProfile(projectKey);
                 var activeRuleKeys = ws.GetActiveRuleKeys(qualityProfile);
