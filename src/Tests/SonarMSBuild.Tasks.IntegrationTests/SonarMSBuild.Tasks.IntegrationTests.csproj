@@ -61,6 +61,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="E2ETests\E2EFxCopTests.cs" />
     <Compile Include="Infrastructure\BuildAssertions.cs" />
     <Compile Include="Infrastructure\BuildUtilities.cs" />
     <Compile Include="E2ETests\E2EAnalysisTests.cs" />
@@ -69,7 +70,6 @@
     <Compile Include="Infrastructure\WellKnownProjectProperties.cs" />
     <Compile Include="TargetsTests\ImportBeforeTargetsTests.cs" />
     <Compile Include="TargetsTests\SonarIntegrationTargetsTests.cs" />
-    <Compile Include="TaskTests\WriteProjectInfoTaskTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

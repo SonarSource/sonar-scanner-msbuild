@@ -4,13 +4,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.IO;
-using TestUtilities;
 using Sonar.Common;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using TestUtilities;
 
 namespace SonarProjectPropertiesGenerator.Tests
 {

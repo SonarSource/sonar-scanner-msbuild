@@ -109,7 +109,6 @@
       </AnalysisResults>
     </ItemGroup>
     
-
     <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
        FullProjectPath="$(MSBuildProjectFullPath)"
        ProjectGuid="$(ProjectGuid)"

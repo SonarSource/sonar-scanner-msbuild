@@ -98,6 +98,34 @@ namespace SonarMSBuild.Tasks.UnitTests
             AssertExpectedAnalysisResultCount(2, createdProjectInfo);
         }
 
+        [TestMethod]
+        [Description("Tests that the project info file is not created if a project guid is not supplied")]
+        [WorkItem(50)] // Regression test for Bug 50:MSBuild projects with missing ProjectGuids cause the build to fail
+        public void WriteProjectInfoFile_MissingProjectGuid()
+        {
+            // Arrange
+            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            WriteProjectInfoFile task = new WriteProjectInfoFile();
+            task.FullProjectPath = "c:\\fullPath\\project.proj";
+            task.IsTest = true;
+            task.OutputFolder = testFolder;
+            task.ProjectName = "ProjectWithoutProjectGuid";
+            // No analysis results are supplied
+
+            // Act
+            DummyBuildEngine engine = new DummyBuildEngine();
+            task.BuildEngine = engine;
+            bool success = task.Execute();
+
+            Assert.IsTrue(success, "Not expecting the task to fail as this would fail the build");
+            engine.AssertNoErrors();
+            Assert.AreEqual(1, engine.Warnings.Count, "Expecting a build warning as the ProjectGuid is missing");
+
+            BuildWarningEventArgs firstWarning = engine.Warnings[0];
+            Assert.IsNotNull(firstWarning.Message, "Warning message should not be null");   
+        }
+
         #endregion
 
         #region Helper methods

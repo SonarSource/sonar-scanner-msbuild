@@ -18,11 +18,21 @@ namespace SonarMSBuild.Tasks.IntegrationTests
     /// </summary>
     internal class BuildLogger : ILogger
     {
-
         private IEventSource eventSource;
 
         private List<TargetStartedEventArgs> executedTargets;
         private List<TaskStartedEventArgs> executedTasks;
+        private List<BuildErrorEventArgs> errors;
+        private List<BuildWarningEventArgs> warnings;
+
+
+        #region Public properties
+
+        public IReadOnlyList<BuildWarningEventArgs> Warnings { get { return this.warnings.AsReadOnly(); } }
+
+        public IReadOnlyList<BuildErrorEventArgs> Errors { get { return this.errors.AsReadOnly(); } }
+
+        #endregion
 
         #region ILogger interface
 
@@ -41,8 +51,13 @@ namespace SonarMSBuild.Tasks.IntegrationTests
             this.eventSource = eventSource;
             this.executedTargets = new List<TargetStartedEventArgs>();
             this.executedTasks = new List<TaskStartedEventArgs>();
+
+            this.warnings = new List<BuildWarningEventArgs>();
+            this.errors = new List<BuildErrorEventArgs>();
+            
             this.RegisterEvents(this.eventSource);
         }
+
 
         void ILogger.Shutdown()
         {
@@ -58,12 +73,17 @@ namespace SonarMSBuild.Tasks.IntegrationTests
             source.AnyEventRaised += source_AnyEventRaised;
             source.TargetStarted += source_TargetStarted;
             source.TaskStarted += source_TaskStarted;
+            source.ErrorRaised += source_ErrorRaised;
+            source.WarningRaised += source_WarningRaised;
         }
+
         private void UnregisterEvents(IEventSource source)
         {
             source.AnyEventRaised -= source_AnyEventRaised;
             source.TargetStarted -= source_TargetStarted;
             source.TaskStarted -= source_TaskStarted;
+            source.ErrorRaised -= source_ErrorRaised;
+            source.WarningRaised -= source_WarningRaised;
         }
 
         void source_TargetStarted(object sender, TargetStartedEventArgs e)
@@ -74,6 +94,16 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         void source_TaskStarted(object sender, TaskStartedEventArgs e)
         {
             this.executedTasks.Add(e);
+        }
+
+        void source_ErrorRaised(object sender, BuildErrorEventArgs e)
+        {
+            this.errors.Add(e);
+        }
+
+        void source_WarningRaised(object sender, BuildWarningEventArgs e)
+        {
+            this.warnings.Add(e);
         }
 
         private void source_AnyEventRaised(object sender, BuildEventArgs e)
@@ -114,6 +144,22 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         {
             TaskStartedEventArgs found = this.executedTasks.FirstOrDefault(t => t.TaskName.Equals(taskName, StringComparison.InvariantCulture));
             Assert.IsNull(found, "Not expecting the task to have been executed: {0}", taskName);
+        }
+
+        public void AssertNoWarningsOrErrors()
+        {
+            AssertExpectedErrorCount(0);
+            AssertExpectedWarningCount(0);
+        }
+
+        public void AssertExpectedErrorCount(int expected)
+        {
+            Assert.AreEqual(expected, this.errors.Count, "Unexpected number of errors raised");
+        }
+
+        public void AssertExpectedWarningCount(int expected)
+        {
+            Assert.AreEqual(expected, this.warnings.Count, "Unexpected number of warnings raised");
         }
 
         #endregion
