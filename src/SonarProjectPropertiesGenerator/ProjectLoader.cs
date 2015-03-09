@@ -36,8 +36,9 @@ namespace SonarProjectPropertiesGenerator
                 bool isTest = projectInfo.ProjectType == ProjectType.Test;
                 List<String> files = File.ReadAllLines(compileListPath, Encoding.UTF8).ToList();
                 string fxCopReport = TryGetAnalysisFileLocation(projectInfo, AnalysisType.FxCop);
+                string visualStudioCodeCoverageReport = TryGetAnalysisFileLocation(projectInfo, AnalysisType.VisualStudioCodeCoverage);
 
-                result.Add(new Project(projectInfo.ProjectName, projectInfo.ProjectGuid, projectInfo.FullPath, isTest, files, fxCopReport));
+                result.Add(new Project(projectInfo.ProjectName, projectInfo.ProjectGuid, projectInfo.FullPath, isTest, files, fxCopReport, visualStudioCodeCoverageReport));
             }
 
             return result;

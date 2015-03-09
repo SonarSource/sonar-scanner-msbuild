@@ -30,11 +30,11 @@ namespace SonarProjectPropertiesGenerator.Tests
             productFiles.Add(@"C:\MyProduct\File1.cs");
             productFiles.Add(@"C:\MyProduct\你好.cs");
             productFiles.Add(@"C:\Somewhere\Foo.cs");
-            Project product = new Project("你好", Guid.Parse("DB2E5521-3172-47B9-BA50-864F12E6DFFF"), @"C:\MyProduct\MyProduct.csproj", false, productFiles, @"C:\fxcop-report.xml");
+            Project product = new Project("你好", Guid.Parse("DB2E5521-3172-47B9-BA50-864F12E6DFFF"), @"C:\MyProduct\MyProduct.csproj", false, productFiles, @"C:\fxcop-report.xml", @"C:\visualstudio-coverage.xml");
 
             List<string> testFiles = new List<string>();
             testFiles.Add(@"C:\MyTest\File1.cs");
-            Project test = new Project("my_test_project", Guid.Parse("DA0FCD82-9C5C-4666-9370-C7388281D49B"), @"C:\MyTest\MyTest.csproj", true, testFiles, null);
+            Project test = new Project("my_test_project", Guid.Parse("DA0FCD82-9C5C-4666-9370-C7388281D49B"), @"C:\MyTest\MyTest.csproj", true, testFiles, null, null);
 
             List<Project> projects = new List<Project>();
             projects.Add(product);
@@ -57,6 +57,7 @@ namespace SonarProjectPropertiesGenerator.Tests
             expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName=\u4F60\u597D");
             expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir=C:\\MyProduct");
             expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.fxcop.reportPath=C:\\fxcop-report.xml");
+            expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.cs.vscoveragexml.reportsPaths=C:\\visualstudio-coverage.xml");
             expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources=\");
             expected.AppendLine(@"C:\\MyProduct\\File1.cs,\");
             expected.AppendLine(@"C:\\MyProduct\\\u4F60\u597D.cs");

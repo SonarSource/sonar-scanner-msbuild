@@ -42,7 +42,7 @@ namespace SonarProjectPropertiesGenerator.Tests
                 IsTestProject = true,
                 ManagedSourceFiles = new string[] { "TestFile1.cs", "TestFile2.cs" },
             };
-            CreateFilesFromDescriptor(validTestProject, "testCompileListFile", "testFxCopReport");
+            CreateFilesFromDescriptor(validTestProject, "testCompileListFile", "testFxCopReport", "testVisualStudioCodeCoverageReport");
 
             ProjectDescriptor validNonTestProject = new ProjectDescriptor()
             {
@@ -54,19 +54,34 @@ namespace SonarProjectPropertiesGenerator.Tests
                 IsTestProject = false,
                 ManagedSourceFiles = new string[] { "ASourceFile.vb", "AnotherSourceFile.vb" }
             };
-            CreateFilesFromDescriptor(validNonTestProject, "list.txt", "fxcop.xml");
+            CreateFilesFromDescriptor(validNonTestProject, "list.txt", "fxcop.xml", "visualstudio-codecoverage.xml");
+
+            ProjectDescriptor validNonTestNoReportsProject = new ProjectDescriptor()
+            {
+                ProjectName = "validNonTestNoReportsProject",
+                ParentDirectoryPath = testSourcePath,
+                ProjectFolderName = "validNonTestNoReportsProjectDir",
+                ProjectFileName = "validNonTestNoReportsProject.proj",
+                ProjectGuid = Guid.NewGuid(),
+                IsTestProject = false,
+                ManagedSourceFiles = new string[] { "SomeFile.cs" }
+            };
+            CreateFilesFromDescriptor(validNonTestNoReportsProject, "SomeList.txt", null, null);
 
             // Act
             List<Project> projects = SonarProjectPropertiesGenerator.ProjectLoader.LoadFrom(testSourcePath);
 
             // Assert
-            Assert.AreEqual(2, projects.Count);
+            Assert.AreEqual(3, projects.Count);
 
             Project actualTestProject = AssertProjectResultExists(validTestProject.ProjectName, projects);
             AssertProjectMatchesDescriptor(validTestProject, actualTestProject);
 
             Project actualNonTestProject = AssertProjectResultExists(validNonTestProject.ProjectName, projects);
             AssertProjectMatchesDescriptor(validNonTestProject, actualNonTestProject);
+
+            Project actualNonTestNoReportsProject = AssertProjectResultExists(validNonTestNoReportsProject.ProjectName, projects);
+            AssertProjectMatchesDescriptor(validNonTestNoReportsProject, actualNonTestNoReportsProject);
         }
 
         [TestMethod]
@@ -88,7 +103,7 @@ namespace SonarProjectPropertiesGenerator.Tests
                 IsTestProject = false,
                 ManagedSourceFiles = new string[] { "ASourceFile.vb", "AnotherSourceFile.vb" }
             };
-            CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt", null);
+            CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt", null, null);
 
             // 1. Run against the root dir -> not expecting the project to be found
             List<Project> projects = SonarProjectPropertiesGenerator.ProjectLoader.LoadFrom(rootTestDir);
@@ -107,7 +122,7 @@ namespace SonarProjectPropertiesGenerator.Tests
         /// Creates a folder containing a ProjectInfo.xml and compiled file list as
         /// specified in the supplied descriptor
         /// </summary>
-        private static void CreateFilesFromDescriptor(ProjectDescriptor descriptor, string compileListFileName, string fxcopReportFileName)
+        private static void CreateFilesFromDescriptor(ProjectDescriptor descriptor, string compileListFileName, string fxcopReportFileName, string visualStudioCodeCoverageReportFileName)
         {
             if (!Directory.Exists(descriptor.FullDirectoryPath))
             {
@@ -134,6 +149,18 @@ namespace SonarProjectPropertiesGenerator.Tests
 
                 // Add the FxCop report as an analysis result
                 var analysisResult = new AnalysisResult() { Id = AnalysisType.FxCop.ToString(), Location = fullFxCopName };
+                descriptor.AnalysisResults.Add(analysisResult);
+                projectInfo.AnalysisResults.Add(analysisResult);
+            }
+
+            // Create the Visual Studio Code Coverage report file
+            if (visualStudioCodeCoverageReportFileName != null)
+            {
+                string fullVisualStudioCodeCoverageName = Path.Combine(descriptor.FullDirectoryPath, visualStudioCodeCoverageReportFileName);
+                File.Create(fullVisualStudioCodeCoverageName);
+
+                // Add the Visual Studio Code Coverage report as an analysis result
+                var analysisResult = new AnalysisResult() { Id = AnalysisType.VisualStudioCodeCoverage.ToString(), Location = fullVisualStudioCodeCoverageName };
                 descriptor.AnalysisResults.Add(analysisResult);
                 projectInfo.AnalysisResults.Add(analysisResult);
             }

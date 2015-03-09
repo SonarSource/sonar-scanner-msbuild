@@ -18,6 +18,7 @@ namespace Sonar.Common
     public enum AnalysisType
     {
         ManagedCompilerInputs,
-        FxCop
+        FxCop,
+        VisualStudioCodeCoverage
     }
 }
