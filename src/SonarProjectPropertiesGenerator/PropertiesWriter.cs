@@ -44,6 +44,10 @@ namespace SonarProjectPropertiesGenerator
                 {
                     AppendKeyValue(sb, guid, "sonar.fxcop.reportPath", project.FxCopReport);
                 }
+                if (project.VisualStudioCodeCoverageReport != null)
+                {
+                    AppendKeyValue(sb, guid, "sonar.cs.vscoveragexml.reportsPaths", project.VisualStudioCodeCoverageReport);
+                }
                 if (!project.IsTest)
                 {
                     sb.AppendLine(guid + @".sonar.sources=\");

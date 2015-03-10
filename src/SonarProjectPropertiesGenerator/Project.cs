@@ -22,8 +22,9 @@ namespace SonarProjectPropertiesGenerator
         public bool IsTest { get; private set; }
         public List<string> Files { get; private set; }
         public string FxCopReport { get; private set; }
+        public string VisualStudioCodeCoverageReport { get; private set; }
 
-        public Project(String name, Guid guid, String msBuildProject, bool isTest, List<string> files, string fxCopReport)
+        public Project(String name, Guid guid, String msBuildProject, bool isTest, List<string> files, string fxCopReport, string visualStudioCodeCoverageReport)
         {
             Name = name;
             Guid = guid;
@@ -31,6 +32,7 @@ namespace SonarProjectPropertiesGenerator
             IsTest = isTest;
             Files = files;
             FxCopReport = fxCopReport;
+            VisualStudioCodeCoverageReport = visualStudioCodeCoverageReport;
         }
 
         public string GuidAsString()

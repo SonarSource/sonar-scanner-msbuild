@@ -21,13 +21,14 @@ namespace SonarMSBuild.Tasks
     {
         #region Input properties
 
+        // TODO: we can get this from this.BuildEngine.ProjectFileOfTaskNode; we don't need the caller to supply it. Same for the full path
         [Required]
         public string ProjectName { get; set; }
 
+        
         [Required]
         public string FullProjectPath { get; set; }
 
-        [Required]
         public string ProjectGuid { get; set; }
 
         [Required]
@@ -55,14 +56,19 @@ namespace SonarMSBuild.Tasks
             pi.FullPath = this.FullProjectPath;
 
             // TODO: handle failures and missing values.
-            Guid projectId = Guid.Parse(this.ProjectGuid);
-            pi.ProjectGuid = projectId;
+            Guid projectId;
+            if (Guid.TryParse(this.ProjectGuid, out projectId))
+            {
+                pi.ProjectGuid = projectId;
+                pi.AnalysisResults = TryCreateAnalysisResults(this.AnalysisResults);
 
-            pi.AnalysisResults = TryCreateAnalysisResults(this.AnalysisResults);
-
-            string outputFileName = Path.Combine(this.OutputFolder, FileConstants.ProjectInfoFileName);
-            pi.Save(outputFileName);
-
+                string outputFileName = Path.Combine(this.OutputFolder, FileConstants.ProjectInfoFileName);
+                pi.Save(outputFileName);
+            }
+            else
+            {
+                this.Log.LogWarning(Resources.WriteProjectInfoFile_MissingOrInvalidProjectGuid, this.FullProjectPath);
+            }
             return true;
         }
 

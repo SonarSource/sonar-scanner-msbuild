@@ -23,7 +23,7 @@ namespace Sonar.FxCopRuleset
             sb.AppendLine("  <Rules AnalyzerId=\"Microsoft.Analyzers.ManagedCodeAnalysis\" RuleNamespace=\"Microsoft.Rules.Managed\">");
             foreach (string id in ids)
             {
-                sb.AppendLine("    <Rule Id=\"" + id + "\" Action=\"Error\" />");
+                sb.AppendLine("    <Rule Id=\"" + id + "\" Action=\"Warning\" />");
             }
             sb.AppendLine("  </Rules>");
 

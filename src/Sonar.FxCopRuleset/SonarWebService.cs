@@ -17,41 +17,16 @@ namespace Sonar.FxCopRuleset
     public class SonarWebService : IDisposable
     {
         private readonly string Server;
-        private readonly string Username;
-        private readonly string Password;
         private readonly string Language;
         private readonly string Repository;
-        private readonly WebClient Client;
+        private readonly IDownloader Downloader;
 
-        public SonarWebService(string server, string username, string password, string language, string repository)
+        public SonarWebService(IDownloader downloader, string server, string language, string repository)
         {
+            Downloader = downloader;
             Server = server.EndsWith("/") ? server.Substring(0, server.Length - 1) : server;
-            Username = username;
-            Password = password;
             Language = language;
             Repository = repository;
-
-            Client = new WebClient();
-            if (username != null && password != null)
-            {
-                if (username.Contains(':'))
-                {
-                    throw new ArgumentException("username cannot contain the ':' character due to basic authentication limitations");
-                }
-                if (!IsAscii(username) || !IsAscii(password))
-                {
-                    throw new ArgumentException("username and password should contain only ASCII characters due to basic authentication limitations");
-                }
-
-                var credentials = string.Format("{0}:{1}", username, password);
-                credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(credentials));
-                Client.Headers[HttpRequestHeader.Authorization] = "Basic " + credentials;
-            }
-        }
-
-        private static bool IsAscii(string s)
-        {
-            return !s.Any(c => c > sbyte.MaxValue);
         }
 
         /// <summary>
@@ -61,10 +36,10 @@ namespace Sonar.FxCopRuleset
         {
             string contents;
             var ws = GetUrl("/api/profiles/list?language={0}&project={1}", Language, projectKey);
-            if (!TryDownloadIfExists(ws, out contents))
+            if (!Downloader.TryDownloadIfExists(ws, out contents))
             {
                 ws = GetUrl("/api/profiles/list?language={0}", Language);
-                contents = Download(ws);
+                contents = Downloader.Download(ws);
             }
             var profiles = JArray.Parse(contents);
             // TODO What is profiles is empty?
@@ -78,7 +53,7 @@ namespace Sonar.FxCopRuleset
         public IEnumerable<string> GetActiveRuleKeys(string qualityProfile)
         {
             var ws = GetUrl("/api/profiles/index?language={0}&name={1}", Language, qualityProfile);
-            var contents = Download(ws);
+            var contents = Downloader.Download(ws);
 
             var profiles = JArray.Parse(contents);
             var rules = profiles.Single()["rules"];
@@ -102,7 +77,7 @@ namespace Sonar.FxCopRuleset
         public IDictionary<string, string> GetInternalKeys()
         {
             var ws = GetUrl("/api/rules/search?f=internalKey&ps={0}&repositories={1}", int.MaxValue.ToString(), Repository);
-            var contents = Download(ws);
+            var contents = Downloader.Download(ws);
 
             var rules = JObject.Parse(contents);
             var keysToIds = rules["rules"].ToDictionary(r => r["key"].ToString(), r => r["internalKey"] != null ? r["internalKey"].ToString() : null);
@@ -112,7 +87,7 @@ namespace Sonar.FxCopRuleset
 
         public void Dispose()
         {
-            Client.Dispose();
+            Downloader.Dispose();
         }
 
         private string GetUrl(string format, params string[] args)
@@ -123,31 +98,6 @@ namespace Sonar.FxCopRuleset
                 queryString = '/' + queryString;
             }
             return Server + queryString;
-        }
-
-        private bool TryDownloadIfExists(string url, out string contents)
-        {
-            try
-            {
-                contents = Client.DownloadString(url);
-                return true;
-            }
-            catch (WebException e)
-            {
-                var response = e.Response as HttpWebResponse;
-                if (response != null && response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    contents = null;
-                    return false;
-                }
-
-                throw;
-            }
-        }
-
-        private string Download(string url)
-        {
-            return Client.DownloadString(url);
         }
     }
 }
