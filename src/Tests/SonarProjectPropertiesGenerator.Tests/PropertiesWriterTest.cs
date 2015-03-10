@@ -36,9 +36,14 @@ namespace SonarProjectPropertiesGenerator.Tests
             testFiles.Add(@"C:\MyTest\File1.cs");
             Project test = new Project("my_test_project", Guid.Parse("DA0FCD82-9C5C-4666-9370-C7388281D49B"), @"C:\MyTest\MyTest.csproj", true, testFiles, null, null);
 
+            Project duplicatedProject1 = new Project("duplicated_project_1", Guid.Parse("C53C92C0-0A5A-4F89-A857-2BBD41CB4410"), @"C:\DuplicatedProject1.csproj", false, new List<string>(), null, null);
+            Project duplicatedProject2 = new Project("duplicated_project_2", Guid.Parse("C53C92C0-0A5A-4F89-A857-2BBD41CB4410"), @"C:\DuplicatedProject2.csproj", false, new List<string>(), null, null);
+
             List<Project> projects = new List<Project>();
             projects.Add(product);
             projects.Add(test);
+            projects.Add(duplicatedProject1);
+            projects.Add(duplicatedProject2);
 
             string actual = SonarProjectPropertiesGenerator.PropertiesWriter.ToString("my_project_key", "my_project_name", "1.0", projects);
 

@@ -19,6 +19,9 @@ namespace SonarProjectPropertiesGenerator
     {
         public static string ToString(string projectKey, string projectName, string projectVersion, List<Project> projects)
         {
+            // TODO Show warning?
+            var uniqueProjects = projects.GroupBy(p => p.GuidAsString()).Where(g => g.Count() == 1).Select(g => g.First());
+
             StringBuilder sb = new StringBuilder();
 
             AppendKeyValue(sb, "sonar.projectKey", projectKey);
@@ -29,14 +32,14 @@ namespace SonarProjectPropertiesGenerator
             sb.AppendLine("# FIXME: Encoding is hardcoded");
             AppendKeyValue(sb, "sonar.sourceEncoding", "UTF-8");
             sb.AppendLine();
-            
-            AppendKeyValue(sb, "sonar.modules", string.Join(",", projects.Select(p => p.GuidAsString())));
+
+            AppendKeyValue(sb, "sonar.modules", string.Join(",", uniqueProjects.Select(p => p.GuidAsString())));
             sb.AppendLine();
 
-            foreach (var project in projects)
+            foreach (var project in uniqueProjects)
             {
                 string guid = project.GuidAsString();
-
+                
                 AppendKeyValue(sb, guid, "sonar.projectKey", projectKey + ":" + guid);
                 AppendKeyValue(sb, guid, "sonar.projectName", project.Name);
                 AppendKeyValue(sb, guid, "sonar.projectBaseDir", project.BaseDir());
