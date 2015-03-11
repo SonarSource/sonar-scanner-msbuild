@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace SonarTeamBuildPostProcessor
 {
@@ -35,7 +36,21 @@ namespace SonarTeamBuildPostProcessor
                 IEnumerable<string> xmlReports = coverageProcesser.DownloadCoverageReports(context.TfsUri, context.BuildUri, context.SonarOutputDir, logger);
 
                 // TODO: update the project info files with the information
-
+                
+                if (xmlReports != null)
+                {
+                    if (xmlReports.Count() == 1)
+                    {
+                        logger.LogMessage("Updating project info files with code coverage information...");
+                        InsertCoverageAnalysisResults(context.SonarOutputDir, xmlReports.First());
+                    }
+                    else
+                    {
+                        logger.LogError("More than one code coverage result file was created. Only one report can be uploaded to Sonar. Please modify the build definition so either Sonar analysis is disabled or the only platform/flavor is built");
+                        return 1;
+                    }
+                }
+                
             }
 
             return 0;
@@ -76,6 +91,26 @@ namespace SonarTeamBuildPostProcessor
             }
 
             return allFound;
+        }
+
+        /// <summary>
+        /// Insert code coverage results information into each projectinfo file
+        /// </summary>
+        private static void InsertCoverageAnalysisResults(string sonarOutputDir, string coverageFilePath)
+        {
+            foreach (string projectFolderPath in Directory.GetDirectories(sonarOutputDir))
+            {
+                ProjectInfo projectInfo = null;
+
+                string projectInfoPath = Path.Combine(projectFolderPath, FileConstants.ProjectInfoFileName);
+
+                if (File.Exists(projectInfoPath))
+                {
+                    projectInfo = ProjectInfo.Load(projectInfoPath);
+                    projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisType.VisualStudioCodeCoverage.ToString(), Location = coverageFilePath });
+                    projectInfo.Save(projectInfoPath);
+                }
+            }
         }
     }
 }
