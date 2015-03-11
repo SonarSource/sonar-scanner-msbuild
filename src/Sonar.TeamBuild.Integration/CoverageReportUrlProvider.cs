@@ -49,7 +49,14 @@ namespace Sonar.TeamBuild.Integration
                 logger.LogMessage("Fetching coverage information...");
                 ITestManagementService tcm = collection.GetService<ITestManagementService>();
                 ITestManagementTeamProject testProject = tcm.GetTeamProject(projectName);
-                IBuildCoverage[] coverages = testProject.CoverageAnalysisManager.QueryBuildCoverage(buildUri, CoverageQueryFlags.Modules);
+
+                // TODO: investigate further. It looks as if we might be requesting the coverage reports
+                // before the service is able to provide them.
+                // For the time being, we're retrying with a time out.
+                int timeoutInMs = 10000;
+                int retryPeriodinMs = 2000;
+                IBuildCoverage[] coverages = null;
+                Retry(timeoutInMs, retryPeriodinMs, logger, () => { return TryGetCoverageInfo(testProject, buildUri, out coverages); });
 
                 foreach (IBuildCoverage coverage in coverages)
                 {
@@ -63,6 +70,36 @@ namespace Sonar.TeamBuild.Integration
 
             logger.LogMessage("...done.");
             return urls;
+        }
+
+        private static bool TryGetCoverageInfo(ITestManagementTeamProject testProject, string buildUri, out IBuildCoverage[] coverageInfo)
+        {
+            coverageInfo = testProject.CoverageAnalysisManager.QueryBuildCoverage(buildUri, CoverageQueryFlags.Modules);
+
+            return coverageInfo != null && coverageInfo.Length > 0;
+        }
+
+        private static void Retry(int maxDelayMs, int pauseBetweenTriesMs, ILogger logger, Func<bool> op)
+        {
+            Stopwatch timer = Stopwatch.StartNew();
+            bool succeeded = op();
+
+            while (!succeeded && timer.ElapsedMilliseconds < maxDelayMs)
+            {
+                System.Threading.Thread.Sleep(pauseBetweenTriesMs);
+                succeeded = op();
+            }
+
+            timer.Stop();
+
+            if (succeeded)
+            {
+                logger.LogMessage("Operation succeeded. Elapsed time (ms): {0}", timer.ElapsedMilliseconds);
+            }
+            else
+            {
+                logger.LogMessage("Operation timed out, Elapsed time (ms): {0}", timer.ElapsedMilliseconds);
+            }
         }
 
         private static string GetCoverageUri(IBuildDetail buildDetail, IBuildCoverage buildCoverage)

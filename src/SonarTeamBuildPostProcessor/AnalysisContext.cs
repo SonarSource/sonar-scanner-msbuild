@@ -24,5 +24,17 @@ namespace SonarTeamBuildPostProcessor
         public string SonarOutputDir { get; set; }
 
         public ILogger Logger { get; set; }
+
+        #region Sonar project properties
+
+        public string SonarProjectKey { get; set; }
+
+        public string SonarProjectVersion { get; set; }
+
+        public string SonarProjectName { get; set; }
+
+        public string SonarRunnerPropertiesPath { get; set; }
+
+        #endregion
     }
 }

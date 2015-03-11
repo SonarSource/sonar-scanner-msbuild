@@ -9,6 +9,9 @@
 @if "%OutputFolder%"=="" set OutputFolder=%TF_BUILD_BUILDDIRECTORY%\SonarTemp\Output\
 @echo Sonar output folder = %OutputFolder%
 
+@echo Performing Sonar post-processing...
+@%~dp0\SonarTeamBuildPostProcessor.exe
+
 @echo Generating Sonar properties file to %OutputFolder% ...
 @%~dp0\SonarProjectPropertiesGenerator.exe %ProjectKey% %ProjectName% %ProjectVersion% %OutputFolder%
 @echo ...done.
