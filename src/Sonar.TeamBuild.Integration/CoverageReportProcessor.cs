@@ -10,8 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
-
+// TODO replace success codes with exceptions
 namespace Sonar.TeamBuild.Integration
 {
     public class CoverageReportProcessor
@@ -20,26 +19,14 @@ namespace Sonar.TeamBuild.Integration
 
         private ICoverageUrlProvider urlProvider;
         private ICoverageReportConverter converter;
+        private ICoverageReportDownloader downloader;
 
-        public static CoverageReportProcessor CreateHandler(ILogger logger)
+        public CoverageReportProcessor()
+            : this(new CoverageReportUrlProvider(), new CoverageReportDownloader(), new CoverageReportConverter())
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
-
-            ICoverageReportConverter converter = new CoverageReportConverter();
-            if (!converter.Initialize(logger))
-            {
-                // If we can't initialize the converter (e.g. we can't find the exe required to do the
-                // conversion) there in there isn't any point in downloading the binary reports
-                return null;
-            }
-
-            return new CoverageReportProcessor(new CoverageReportUrlProvider(), converter);
         }
 
-        private CoverageReportProcessor(ICoverageUrlProvider urlProvider, ICoverageReportConverter converter)
+        internal CoverageReportProcessor(ICoverageUrlProvider urlProvider, ICoverageReportDownloader downloader, ICoverageReportConverter converter)
         {
             if (urlProvider == null)
             {
@@ -49,116 +36,100 @@ namespace Sonar.TeamBuild.Integration
             {
                 throw new ArgumentNullException("converter");
             }
+            if (downloader == null)
+            {
+                throw new ArgumentNullException("downloader");
+            }
 
             this.urlProvider = urlProvider;
             this.converter = converter;
+            this.downloader = downloader;
         }
 
         #region Public methods
 
-        public IEnumerable<string> DownloadCoverageReports(string tfsUri, string buildUri, string downloadToDir, ILogger logger)
+        public bool ProcessCoverageReports(AnalysisContext context)
         {
-            if (string.IsNullOrWhiteSpace(tfsUri))
+            if (context == null)
             {
-                throw new ArgumentNullException("tfsUri");
+                throw new ArgumentNullException("context");
             }
-            if (string.IsNullOrWhiteSpace(buildUri))
+
+            ILogger logger = context.Logger;
+            Debug.Assert(logger != null, "Not expecting the logger to be null");
+
+            if (!this.converter.Initialize(context.Logger))
             {
-                throw new ArgumentNullException("buildUri");
+                // If we can't initialize the converter (e.g. we can't find the exe required to do the
+                // conversion) there in there isn't any point in downloading the binary reports
+                return false;
             }
-            if (string.IsNullOrWhiteSpace(downloadToDir))
-            {
-                throw new ArgumentNullException("downloadToDir");
-            }
-            
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
-            
+
             // Fetch all of the report URLs
             logger.LogMessage("Fetching code coverage report URLs...");
-            IEnumerable<string> urls = this.urlProvider.GetCodeCoverageReportUrls(tfsUri, buildUri, logger);
+            IEnumerable<string> urls = this.urlProvider.GetCodeCoverageReportUrls(context.TfsUri, context.BuildUri, logger);
+            Debug.Assert(urls != null, "Not expecting the returned list of urls to be null");
 
-            IList<CoverageReportInfo> reportInfo = null;
+            bool result = true; // assume the best
 
-            if (urls.Any())
+            switch (urls.Count())
             {
-                logger.LogMessage("Downloading coverage reports...");
-                reportInfo = this.DownloadReports(downloadToDir, urls, logger);
+                case 0:
+                    logger.LogMessage("No code coverage reports were found for the current build.");
+                    break;
 
-                logger.LogMessage("Converting coverage reports to XML...");
-                ConvertReportsToXml(reportInfo, logger);
-                logger.LogMessage("...done.");
-            }
-            else
-            {
-                logger.LogMessage("No code coverage reports were found for this build. BuildUri: {0}", buildUri);
-            }
-            logger.LogMessage("Finished processing code coverage reports.");
+                case 1:
+                    string url = urls.First();
+                    result = ProcessCodeCoverageReport(url, context);
+                    break;
 
-            if (reportInfo == null)
-            {
-                return null;
+                default: // More than one
+                    logger.LogError("More than one code coverage result file was created. Only one report can be uploaded to Sonar. Please modify the build definition so either Sonar analysis is disabled or the only platform/flavor is built");
+                    result = false;
+                    break;
             }
-            else
-            {
-                return reportInfo.Select(r => r.FullXmlFilePath).Where(s => !string.IsNullOrWhiteSpace(s));
-            }
+
+            return result;
         }
 
         #endregion
 
         #region Private methods
 
-        private IList<CoverageReportInfo> DownloadReports(string downloadDir, IEnumerable<string> urls, ILogger logger)
+        private bool ProcessCodeCoverageReport(string reportUrl, AnalysisContext context)
         {
-            if (!Directory.Exists(downloadDir))
+            string targetFileName = Path.Combine(context.SonarOutputDir, "CoverageReport.coverage");
+            bool success = this.downloader.DownloadReport(context.SonarOutputDir, targetFileName, context.Logger);
+         
+            if (success)
             {
-                Directory.CreateDirectory(downloadDir);
+                string xmlFileName = Path.ChangeExtension(targetFileName, "coveragexml");
+                Debug.Assert(!File.Exists(xmlFileName), "Not expecting a file with the name of the binary-to-XML conversion output to already exist: " + xmlFileName);
+                this.converter.ConvertToXml(targetFileName, xmlFileName, context.Logger);
+
+                context.Logger.LogMessage("Updating project info files with code coverage information...");
+                InsertCoverageAnalysisResults(context.SonarOutputDir, xmlFileName);
             }
-
-            WebClient myWebClient = new WebClient();
-            myWebClient.UseDefaultCredentials = true;
-
-            string fileRoot = downloadDir + @"\build_{0}_{1}.coverage";
-            DateTime downloadTime = DateTime.Now;
-            int counter = 1;
-
-            IList<CoverageReportInfo> reports = new List<CoverageReportInfo>();
-
-            foreach (string url in urls)
-            {
-                string localFilePath = string.Format(System.Globalization.CultureInfo.CurrentCulture,
-                    fileRoot, downloadTime.ToString("hh.mm.ss"), counter);
-
-                logger.LogMessage("Download url: {0}", url);
-                logger.LogMessage("Downloading file to : {0}", localFilePath);
-
-                myWebClient.DownloadFile(url, localFilePath);
-                counter++;
-
-                CoverageReportInfo report = new CoverageReportInfo()
-                {
-                    ReportUrl = url, FullBinaryFilePath = localFilePath
-                };
-                reports.Add(report);
-            }
-
-            return reports;
+            return success;
         }
-        
-        private void ConvertReportsToXml(IList<CoverageReportInfo> reports, ILogger logger)
+
+        /// <summary>
+        /// Insert code coverage results information into each projectinfo file
+        /// </summary>
+        private static void InsertCoverageAnalysisResults(string sonarOutputDir, string coverageFilePath)
         {
-            foreach(CoverageReportInfo report in reports)
+            foreach (string projectFolderPath in Directory.GetDirectories(sonarOutputDir))
             {
-                Debug.Assert(File.Exists(report.FullBinaryFilePath), "Binary report file does not exist: " + report.FullBinaryFilePath);
-            
-                string xmlFileName = Path.ChangeExtension(report.FullBinaryFilePath, XmlReportFileExtension);
+                ProjectInfo projectInfo = null;
 
-                this.converter.ConvertToXml(report.FullBinaryFilePath, xmlFileName, logger);
+                string projectInfoPath = Path.Combine(projectFolderPath, FileConstants.ProjectInfoFileName);
 
-                report.FullXmlFilePath = xmlFileName;
+                if (File.Exists(projectInfoPath))
+                {
+                    projectInfo = ProjectInfo.Load(projectInfoPath);
+                    projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisType.VisualStudioCodeCoverage.ToString(), Location = coverageFilePath });
+                    projectInfo.Save(projectInfoPath);
+                }
             }
         }
 

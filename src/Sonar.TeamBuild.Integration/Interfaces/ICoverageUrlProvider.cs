@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Sonar.TeamBuild.Integration
 {
-    public interface ICoverageUrlProvider
+    internal interface ICoverageUrlProvider
     {
         /// <summary>
         /// Builds and returns the download URLs for all code coverage reports for the specified build

@@ -5,15 +5,10 @@
 //-----------------------------------------------------------------------
 
 using Sonar.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace SonarTeamBuildPostProcessor
+namespace Sonar.TeamBuild.Integration
 {
-    internal class AnalysisContext
+    public class AnalysisContext
     {
         public string TfsUri { get; set; }
 
