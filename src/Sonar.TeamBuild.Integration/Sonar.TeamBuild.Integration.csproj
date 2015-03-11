@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E312FDBB-BC13-4559-8F21-76CA5B88EBC5}</ProjectGuid>
+    <ProjectGuid>{66CE9491-1C14-45D2-BEB6-A0695C63EBB2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sonar.Common</RootNamespace>
-    <AssemblyName>Sonar.Common</AssemblyName>
+    <RootNamespace>Sonar.TeamBuild.Integration</RootNamespace>
+    <AssemblyName>Sonar.TeamBuild.Integration</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,6 +30,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.TeamFoundation.Build.Client, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.TeamFoundation.Client, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.TeamFoundation.TestManagement.Client, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.TeamFoundation.WorkItemTracking.Client, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -39,30 +43,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnalysisResult.cs" />
-    <Compile Include="AnalysisType.cs" />
-    <Compile Include="ConsoleLogger.cs" />
-    <Compile Include="FileConstants.cs" />
-    <Compile Include="FilePropertiesProvider.cs" />
-    <Compile Include="Interfaces\ILogger.cs" />
-    <Compile Include="Interfaces\ISonarPropertyProvider.cs" />
-    <Compile Include="ProjectInfo.cs" />
-    <Compile Include="ProjectInfoExtensions.cs" />
-    <Compile Include="ProjectType.cs" />
+    <Compile Include="CoveageReportInfo.cs" />
+    <Compile Include="CoverageReportConverter.cs" />
+    <Compile Include="CoverageReportProcessor.cs" />
+    <Compile Include="CoverageReportUrlProvider.cs" />
+    <Compile Include="Interfaces\ICoverageUrlProvider.cs" />
+    <Compile Include="Interfaces\ICoverageReportConverter.cs" />
+    <Compile Include="Interfaces\ICoverageReportDownloader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Serializer.cs" />
-    <Compile Include="SonarProperties.cs" />
+    <Compile Include="TeamBuildEnvironmentVariables.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <ProjectReference Include="..\Sonar.Common\Sonar.Common.csproj">
+      <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
+      <Name>Sonar.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

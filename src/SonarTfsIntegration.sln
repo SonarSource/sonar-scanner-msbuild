@@ -31,6 +31,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.FxCopRuleset", "Sonar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.FxCopRuleset.UnitTests", "Tests\Sonar.FxCopRuleset.UnitTests\Sonar.FxCopRuleset.UnitTests.csproj", "{067CCA0B-6CE8-4791-9A3C-85F7E0F6E471}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.TeamBuild.Integration", "Sonar.TeamBuild.Integration\Sonar.TeamBuild.Integration.csproj", "{66CE9491-1C14-45D2-BEB6-A0695C63EBB2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarTeamBuildPostProcessor", "SonarTeamBuildPostProcessor\SonarTeamBuildPostProcessor.csproj", "{80F02FAD-FE7E-41B6-9151-BB650FDD6103}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +81,14 @@ Global
 		{067CCA0B-6CE8-4791-9A3C-85F7E0F6E471}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{067CCA0B-6CE8-4791-9A3C-85F7E0F6E471}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{067CCA0B-6CE8-4791-9A3C-85F7E0F6E471}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66CE9491-1C14-45D2-BEB6-A0695C63EBB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66CE9491-1C14-45D2-BEB6-A0695C63EBB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66CE9491-1C14-45D2-BEB6-A0695C63EBB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66CE9491-1C14-45D2-BEB6-A0695C63EBB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80F02FAD-FE7E-41B6-9151-BB650FDD6103}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80F02FAD-FE7E-41B6-9151-BB650FDD6103}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80F02FAD-FE7E-41B6-9151-BB650FDD6103}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80F02FAD-FE7E-41B6-9151-BB650FDD6103}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
