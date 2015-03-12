@@ -45,21 +45,32 @@ namespace SonarProjectPropertiesGenerator
             return Path.GetDirectoryName(MsBuildProject);
         }
 
-        public List<string> FilesInBaseDir()
+        public List<string> FilesToAnalyze()
         {
             var result = new List<string>();
             var baseDir = BaseDir();
 
             foreach (string file in Files)
             {
-                // FIXME This test is not sufficient...
-                if (file.StartsWith(baseDir + Path.DirectorySeparatorChar))
+                if (IsInFolder(file, baseDir) && !IsTooLarge(file))
                 {
                     result.Add(file);
                 }
             }
 
             return result;
+        }
+
+        private static bool IsInFolder(string filePath, string folder)
+        {
+            // FIXME This test is not sufficient...
+            return filePath.StartsWith(folder + Path.DirectorySeparatorChar);
+        }
+
+        private static bool IsTooLarge(string filePath)
+        {
+            // TODO This should perhaps not be hardcoded
+            return new FileInfo(filePath).Length > 1000000L;
         }
     }
 }
