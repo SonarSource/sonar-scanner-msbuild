@@ -9,6 +9,7 @@ using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TestUtilities;
 
 namespace SonarProjectPropertiesGenerator.Tests
 {
@@ -45,7 +46,12 @@ namespace SonarProjectPropertiesGenerator.Tests
             projects.Add(duplicatedProject1);
             projects.Add(duplicatedProject2);
 
-            string actual = SonarProjectPropertiesGenerator.PropertiesWriter.ToString("my_project_key", "my_project_name", "1.0", projects);
+            var logger = new TestLogger();
+            string actual = SonarProjectPropertiesGenerator.PropertiesWriter.ToString(logger, "my_project_key", "my_project_name", "1.0", projects);
+
+            Assert.AreEqual(2, logger.Warnings.Count);
+            Assert.AreEqual(@"The project has a non-unique GUID ""C53C92C0-0A5A-4F89-A857-2BBD41CB4410"". Analysis results for this project will not be uploaded to SonarQube. Project file: C:\DuplicatedProject1.csproj", logger.Warnings[0]);
+            Assert.AreEqual(@"The project has a non-unique GUID ""C53C92C0-0A5A-4F89-A857-2BBD41CB4410"". Analysis results for this project will not be uploaded to SonarQube. Project file: C:\DuplicatedProject2.csproj", logger.Warnings[1]);
 
             StringBuilder expected = new StringBuilder();
             expected.AppendLine("sonar.projectKey=my_project_key");

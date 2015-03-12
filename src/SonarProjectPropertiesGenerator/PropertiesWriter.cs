@@ -12,15 +12,18 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Xml.Linq;
 using System.Globalization;
+using Sonar.Common;
 
 namespace SonarProjectPropertiesGenerator
 {
     public static class PropertiesWriter
     {
-        public static string ToString(string projectKey, string projectName, string projectVersion, List<Project> projects)
+        public static string ToString(ILogger logger, string projectKey, string projectName, string projectVersion, List<Project> projects)
         {
-            // TODO Show warning?
             var uniqueProjects = projects.GroupBy(p => p.GuidAsString()).Where(g => g.Count() == 1).Select(g => g.First());
+            foreach (var duplicatedProject in projects.Where(p => !uniqueProjects.Any(p2 => p.GuidAsString().Equals(p2.GuidAsString())))) {
+                logger.LogWarning("The project has a non-unique GUID \"{0}\". Analysis results for this project will not be uploaded to SonarQube. Project file: {1}", duplicatedProject.GuidAsString(), duplicatedProject.MsBuildProject);
+            }
 
             StringBuilder sb = new StringBuilder();
 

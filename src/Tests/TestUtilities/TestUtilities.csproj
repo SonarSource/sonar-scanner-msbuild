@@ -49,6 +49,7 @@
     <Compile Include="ProjectDescriptor.cs" />
     <Compile Include="ProjectInfoAssertions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestLogger.cs" />
     <Compile Include="TestUtils.cs" />
   </ItemGroup>
   <ItemGroup>
