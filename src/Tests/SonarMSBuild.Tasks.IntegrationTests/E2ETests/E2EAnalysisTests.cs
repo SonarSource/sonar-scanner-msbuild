@@ -31,13 +31,15 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
     [DeploymentItem("LinkedFiles\\Sonar.Integration.v0.1.targets")]
     public class E2EAnalysisTests
     {
-        private const string ExpectedCompileListFileName = "CompileList.txt";
+        private const string ExpectedManagedInputsListFileName = "ManagedSourceFiles.txt";
+        private const string ExpectedContentsListFileName = "ContentFiles.txt";
 
         public TestContext TestContext { get; set; }
 
         #region Tests
 
         [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_OutputFolderStructure()
         {
             // Checks the output folder structure is correct for a simple solution
@@ -50,39 +52,15 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
 
             AddEmptyCodeFile(descriptor, rootInputFolder);
 
-            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarAnalysis = "TruE";
-            preImportProperties.SonarOutputPath = rootOutputFolder;
-            ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties); 
-
-            BuildLogger logger = new BuildLogger();
-
             // Act
-            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
+            string projectSpecificOutputDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder);
 
             // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
-            logger.AssertNoWarningsOrErrors();
-
-            logger.AssertTargetExecuted(TargetConstants.WriteSonarProjectDataTarget);
-
-            // Check expected folder structure exists
-            CheckRootOutputFolder(rootOutputFolder);
-
-            // Check expected project outputs
-            Assert.AreEqual(1, Directory.EnumerateDirectories(rootOutputFolder).Count(), "Only expecting one child directory to exist under the root analysis output folder");
-            ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
-
-            string projectDir = Directory.EnumerateDirectories(rootOutputFolder).FirstOrDefault();
-            Assert.IsFalse(string.IsNullOrEmpty(projectDir), "No project directories were created");
-
-            // Specify the expected analysis results
-            descriptor.AddAnalysisResult(AnalysisType.ManagedCompilerInputs.ToString(), Path.Combine(projectDir, ExpectedCompileListFileName));
-
-            CheckProjectOutputFolder(descriptor, projectDir);
+            CheckProjectOutputFolder(descriptor, projectSpecificOutputDir);
         }
 
         [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
         [Description("Tests that projects with missing project guids are handled correctly")]
         public void E2E_MissingProjectGuid()
         {
@@ -130,6 +108,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
         }
 
         [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
         [Description("Tests that projects with invalid project guids are handled correctly")]
         public void E2E_MissingInvalidGuid()
         {
@@ -177,6 +156,96 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
                 "Expecting the warning to contain the full path to the bad project file");
         }
 
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_NoManagedFiles()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
+
+            AddEmptyContentFile(descriptor, rootInputFolder);
+            AddEmptyContentFile(descriptor, rootInputFolder);
+            AddEmptyContentFile(descriptor, rootInputFolder);
+
+            // Act
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder);
+
+            AssertFileDoesNotExist(projectDir, ExpectedManagedInputsListFileName);
+            AssertFileExists(projectDir, ExpectedContentsListFileName);
+
+            CheckProjectOutputFolder(descriptor, projectDir);
+        }
+
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_NoContentFiles()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
+
+            AddEmptyCodeFile(descriptor, rootInputFolder);
+            AddEmptyCodeFile(descriptor, rootInputFolder);
+            AddEmptyCodeFile(descriptor, rootInputFolder);
+
+            // Act
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder);
+
+            AssertFileExists(projectDir, ExpectedManagedInputsListFileName);
+            AssertFileDoesNotExist(projectDir, ExpectedContentsListFileName);
+
+            CheckProjectOutputFolder(descriptor, projectDir);
+        }
+
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_NoContentOrManagedFiles()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
+
+            // Act
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder);
+
+            AssertFileDoesNotExist(projectDir, ExpectedManagedInputsListFileName);
+            AssertFileDoesNotExist(projectDir, ExpectedContentsListFileName);
+
+            // Specify the expected analysis results
+            CheckProjectOutputFolder(descriptor, projectDir);
+        }
+
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_HasManagedAndContentFiles()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
+
+            AddEmptyCodeFile(descriptor, rootInputFolder);
+            AddEmptyCodeFile(descriptor, rootInputFolder);
+
+            AddEmptyContentFile(descriptor, rootInputFolder);
+            AddEmptyContentFile(descriptor, rootInputFolder);
+
+            // Act
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder);
+
+            AssertFileExists(projectDir, ExpectedManagedInputsListFileName);
+            AssertFileExists(projectDir, ExpectedContentsListFileName);
+
+            CheckProjectOutputFolder(descriptor, projectDir);
+        }
 
         #endregion
 
@@ -186,7 +255,62 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
         {
             string emptyCodeFilePath = Path.Combine(projectFolder, "empty_" + Guid.NewGuid().ToString() + ".cs");
             File.WriteAllText(emptyCodeFilePath, string.Empty);
-            descriptor.ManagedSourceFiles = new string[] { emptyCodeFilePath };
+            
+            if (descriptor.ManagedSourceFiles == null)
+            {
+                descriptor.ManagedSourceFiles = new List<string>();
+            }
+            descriptor.ManagedSourceFiles.Add(emptyCodeFilePath);
+        }
+
+        private void AddEmptyContentFile(ProjectDescriptor descriptor, string projectFolder)
+        {
+            string emptyFilePath = Path.Combine(projectFolder, "emptyContent_" + Guid.NewGuid().ToString() + ".txt");
+            File.WriteAllText(emptyFilePath, string.Empty);
+
+            if (descriptor.ContentFiles == null)
+            {
+                descriptor.ContentFiles = new List<string>();
+            }
+            descriptor.ContentFiles.Add(emptyFilePath);
+        }
+
+        /// <summary>
+        /// Creates and builds a new Sonar-enabled project using the
+        /// supplied descriptor. The method will check the build succeeded
+        /// and that a single project output file was created.
+        /// </summary>
+        /// <returns>The full path of the project-specific directory that was created during the build</returns>
+        private string CreateAndBuildSonarProject(ProjectDescriptor descriptor, string rootOutputFolder)
+        {
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            preImportProperties.RunSonarAnalysis = "true";
+            preImportProperties.SonarOutputPath = rootOutputFolder;
+            ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
+
+            // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            // We expect the compiler to warn if there are no compiler inputs
+            int expectedWarnings = (descriptor.ManagedSourceFiles == null || !descriptor.ManagedSourceFiles.Any()) ? 1 : 0;
+            logger.AssertExpectedErrorCount(0);
+            logger.AssertExpectedWarningCount(expectedWarnings);
+
+            logger.AssertTargetExecuted(TargetConstants.WriteSonarProjectDataTarget);
+
+            // Check expected folder structure exists
+            CheckRootOutputFolder(rootOutputFolder);
+
+            // Check expected project outputs
+            Assert.AreEqual(1, Directory.EnumerateDirectories(rootOutputFolder).Count(), "Only expecting one child directory to exist under the root analysis output folder");
+            ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+
+            return Directory.EnumerateDirectories(rootOutputFolder).Single();
         }
 
         #endregion
@@ -212,34 +336,85 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
                 expected.ProjectFolderName, folderName);
 
             // Check specific files
-            CheckProjectInfo(expected, projectOutputFolder);
-            CheckCompileList(expected, projectOutputFolder);
+            ProjectInfo expectedProjectInfo = CreateExpectedProjectInfo(expected, projectOutputFolder);
+            CheckProjectInfo(expectedProjectInfo, projectOutputFolder);
+            CheckManagedFileList(expected, projectOutputFolder);
+            CheckContentFileList(expected, projectOutputFolder);
 
             // Check there are no other files
-            List<string> allowedFiles = new List<string>(expected.AnalysisResults.Select(ar => ar.Location));
+            List<string> allowedFiles = new List<string>(expectedProjectInfo.AnalysisResults.Select(ar => ar.Location));
             allowedFiles.Add(Path.Combine(projectOutputFolder, FileConstants.ProjectInfoFileName));
             AssertNoAdditionalFilesInFolder(projectOutputFolder, allowedFiles.ToArray());
         }
 
-        private void CheckCompileList(ProjectDescriptor expected, string projectOutputFolder)
+        private void CheckManagedFileList(ProjectDescriptor expected, string projectOutputFolder)
         {
-            string fullName = AssertFileExists(projectOutputFolder, ExpectedCompileListFileName);
+            if (expected.ManagedSourceFiles == null || !expected.ManagedSourceFiles.Any())
+            {
+                AssertFileDoesNotExist(projectOutputFolder, ExpectedManagedInputsListFileName);
+            }
+            else
+            {
+                string fullName = AssertFileExists(projectOutputFolder, ExpectedManagedInputsListFileName);
 
-            string[] actualFileNames = File.ReadAllLines(fullName);
+                string[] actualFileNames = File.ReadAllLines(fullName);
 
-            // The actual files might contain extra compiler generated files, so check the expected files
-            // we know about is a subset of the actual
-            CollectionAssert.IsSubsetOf(expected.ManagedSourceFiles ?? new string[] { }, actualFileNames, "Compile list file does not contain the expected entries");
+                // The actual files might contain extra compiler generated files, so check the expected files
+                // we know about is a subset of the actual
+                CollectionAssert.IsSubsetOf(expected.ManagedSourceFiles.ToArray(), actualFileNames, "Managed compile list file does not contain the expected entries");
+            }
         }
 
-        private void CheckProjectInfo(ProjectDescriptor expected, string projectOutputFolder)
+        private void CheckContentFileList(ProjectDescriptor expected, string projectOutputFolder)
+        {
+            if (expected.ContentFiles == null || !expected.ContentFiles.Any())
+            {
+                AssertFileDoesNotExist(projectOutputFolder, ExpectedContentsListFileName);
+            }
+            else
+            {
+                string fullName = AssertFileExists(projectOutputFolder, ExpectedContentsListFileName);
+
+                string[] actualFileNames = File.ReadAllLines(fullName);
+                CollectionAssert.AreEquivalent(expected.ContentFiles.ToArray(), actualFileNames, "Content list file does not contain the expected entries");
+            }
+        }
+
+        private void CheckProjectInfo(ProjectInfo expected, string projectOutputFolder)
         {
             string fullName = AssertFileExists(projectOutputFolder, FileConstants.ProjectInfoFileName); // should always exist
 
             ProjectInfo actualProjectInfo = ProjectInfo.Load(fullName);
 
+            TestUtilities.ProjectInfoAssertions.AssertExpectedValues(expected, actualProjectInfo);
+        }
+
+        private static ProjectInfo CreateExpectedProjectInfo (ProjectDescriptor expected, string projectOutputFolder)
+        {
             ProjectInfo expectedProjectInfo = expected.CreateProjectInfo();
-            TestUtilities.ProjectInfoAssertions.AssertExpectedValues(expectedProjectInfo, actualProjectInfo);
+
+            // Work out what the expected analysis results are
+            if (expected.ManagedSourceFiles != null && expected.ManagedSourceFiles.Any())
+            {
+                expectedProjectInfo.AnalysisResults.Add(
+                    new AnalysisResult()
+                    {
+                        Id = AnalysisType.ManagedCompilerInputs.ToString(),
+                        Location = Path.Combine(projectOutputFolder, ExpectedManagedInputsListFileName)
+                    });
+            }
+
+            if (expected.ContentFiles != null && expected.ContentFiles.Any())
+            {
+                expectedProjectInfo.AnalysisResults.Add(
+                    new AnalysisResult()
+                    {
+                        Id = AnalysisType.ContentFiles.ToString(),
+                        Location = Path.Combine(projectOutputFolder, ExpectedContentsListFileName)
+                    });
+            }
+
+            return expectedProjectInfo;
         }
 
         private string AssertFileExists(string projectOutputFolder, string fileName)

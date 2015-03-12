@@ -95,20 +95,44 @@
     <RemoveDir Directories="$(ProjectSpecificDir)" />
     <MakeDir Directories="$(ProjectSpecificDir)" />
 
+		<PropertyGroup>
+			<!-- Work out which types of input files exist-->
+			<ManagedFilesExist Condition=" @(Compile) != '' ">true</ManagedFilesExist>
+			<ContentFilesExist Condition=" @(Content) != '' ">true</ContentFilesExist>
+
+			<!-- Set the file names for the list files -->
+			<ManagedFileList>$(ProjectSpecificDir)\ManagedSourceFiles.txt</ManagedFileList>	
+		  <ContentFileList>$(ProjectSpecificDir)\ContentFiles.txt</ContentFileList>
+		</PropertyGroup>
+
     <!-- Write out a list of managed files that will be passed to the compiler -->
-    <WriteLinesToFile
-            File="$(ProjectSpecificDir)\CompileList.txt"
+    <WriteLinesToFile Condition=" $(ManagedFilesExist) == 'true' "
+            File="$(ManagedFileList)"
             Lines="%(Compile.FullPath)"
             Overwrite="false"
             Encoding="Unicode"/>
 
     <!-- Record the list of managed source files as an analysis result -->
-    <ItemGroup>
-      <AnalysisResults Include="$(ProjectSpecificDir)\CompileList.txt">
+    <ItemGroup Condition=" $(ManagedFilesExist) == 'true' ">
+      <AnalysisResults Include="$(ManagedFileList)">
         <Id>ManagedCompilerInputs</Id>
       </AnalysisResults>
     </ItemGroup>
-    
+
+		<!-- Write out a list of content files that will be passed to the compiler -->
+    <WriteLinesToFile Condition=" $(ContentFilesExist) == 'true' "
+            File="$(ContentFileList)"
+            Lines="%(Content.FullPath)"
+            Overwrite="false"
+            Encoding="Unicode"/>
+		
+    <!-- Record the list of content files as an analysis result -->
+    <ItemGroup Condition=" $(ContentFilesExist) == 'true' ">
+      <AnalysisResults Include="$(ContentFileList)">
+        <Id>ContentFiles</Id>
+      </AnalysisResults>
+    </ItemGroup>
+
     <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
        FullProjectPath="$(MSBuildProjectFullPath)"
        ProjectGuid="$(ProjectGuid)"

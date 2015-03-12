@@ -104,6 +104,14 @@ namespace SonarMSBuild.Tasks.IntegrationTests
                 }
             }
 
+            if (descriptor.ContentFiles != null)
+            {
+                foreach(string contentFile in descriptor.ContentFiles)
+                {
+                    root.AddItem("Content", contentFile);
+                }
+            }
+
             if (descriptor.IsTestProject)
             {
                 //TODO
