@@ -16,6 +16,7 @@ namespace Sonar.TeamBuild.Integration
     public class CoverageReportProcessor
     {
         private const string XmlReportFileExtension = "coveragexml";
+        internal const string DownloadFileName = "VSCodeCoverageReport.coverage";
 
         private ICoverageUrlProvider urlProvider;
         private ICoverageReportConverter converter;
@@ -98,8 +99,8 @@ namespace Sonar.TeamBuild.Integration
 
         private bool ProcessCodeCoverageReport(string reportUrl, AnalysisContext context)
         {
-            string targetFileName = Path.Combine(context.SonarOutputDir, "CoverageReport.coverage");
-            bool success = this.downloader.DownloadReport(context.SonarOutputDir, targetFileName, context.Logger);
+            string targetFileName = Path.Combine(context.SonarOutputDir, DownloadFileName);
+            bool success = this.downloader.DownloadReport(reportUrl, targetFileName, context.Logger);
          
             if (success)
             {

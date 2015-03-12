@@ -7,13 +7,17 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sonar.Common;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Sonar.TeamBuild.Integration.Tests.Infrastructure
 {
     internal class MockReportDownloader : ICoverageReportDownloader
     {
         private int callCount;
+        private IList<string> requestedUrls = new List<string>();
+        private IList<string> targetFileNames  = new List<string>();
 
         #region Test helpers
 
@@ -33,6 +37,16 @@ namespace Sonar.TeamBuild.Integration.Tests.Infrastructure
             Assert.AreEqual(0, this.callCount, "Not expecting DownloadReport to have been called");
         }
         
+        public void AssertExpectedUrlsRequested(params string[] urls)
+        {
+            CollectionAssert.AreEqual(urls, this.requestedUrls.ToArray(), "Unexpected urls requested");
+        }
+
+        public void AssertExpectedTargetFileNamesSupplied(params string[] urls)
+        {
+            CollectionAssert.AreEqual(urls, this.targetFileNames.ToArray(), "Unexpected target files names supplied");
+        }
+
         #endregion
 
         #region ICoverageReportDownloader interface
@@ -40,6 +54,8 @@ namespace Sonar.TeamBuild.Integration.Tests.Infrastructure
         bool ICoverageReportDownloader.DownloadReport(string reportUrl, string newFullFileName, ILogger logger)
         {
             this.callCount++;
+            this.requestedUrls.Add(reportUrl);
+            this.targetFileNames.Add(newFullFileName);
 
             if (this.CreateFileOnDownloadRequest)
             {

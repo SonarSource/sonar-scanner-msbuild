@@ -8,6 +8,7 @@ using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sonar.TeamBuild.Integration.Tests.Infrastructure;
 using Sonar.Common;
+using System.IO;
 
 namespace Sonar.TeamBuild.Integration.Tests
 {
@@ -124,6 +125,9 @@ namespace Sonar.TeamBuild.Integration.Tests
             urlProvider.AssertGetUrlsCalled();
             downloader.AssertExpectedDownloads(1);
             converter.AssertConvertNotCalled();
+
+            downloader.AssertExpectedUrlsRequested(ValidUrl1);
+
             Assert.IsFalse(result, "Expecting false: report could not be downloaded");
         }
 
@@ -132,7 +136,7 @@ namespace Sonar.TeamBuild.Integration.Tests
         public void ReportProcessor_SingleUrlFound_DownloadedOk()
         {
             // Arrange
-            MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1 } };
+            MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl2 } };
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
             AnalysisContext context = this.CreateValidContext();
@@ -148,6 +152,9 @@ namespace Sonar.TeamBuild.Integration.Tests
             urlProvider.AssertGetUrlsCalled();
             downloader.AssertExpectedDownloads(1);
             converter.AssertExpectedNumberOfConversions(1);
+
+            downloader.AssertExpectedUrlsRequested(ValidUrl2);
+            downloader.AssertExpectedTargetFileNamesSupplied(Path.Combine(context.SonarOutputDir, CoverageReportProcessor.DownloadFileName));
             Assert.IsTrue(result, "Expecting true: happy path");
         }
 
