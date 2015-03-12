@@ -52,7 +52,7 @@ namespace Sonar.Common
             }
 
             message = this.GetFormattedMessage("WARNING: " + message, args);
-            Console.WriteLine(message);
+            Console.Error.WriteLine(message);
         }
 
 
