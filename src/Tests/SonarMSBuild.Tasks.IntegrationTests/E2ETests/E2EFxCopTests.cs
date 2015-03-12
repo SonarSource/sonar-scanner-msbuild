@@ -18,8 +18,6 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
     [DeploymentItem("LinkedFiles\\Sonar.Integration.v0.1.targets")]
     public class E2EFxCopTests
     {
-        private const string ExpectedCompileListFileName = "CompileList.txt";
-
         public TestContext TestContext { get; set; }
 
         #region Tests

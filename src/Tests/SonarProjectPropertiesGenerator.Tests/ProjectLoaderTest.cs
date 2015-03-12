@@ -193,8 +193,8 @@ namespace SonarProjectPropertiesGenerator.Tests
             }
             else
             {
-                Assert.AreEqual(expected.ManagedSourceFiles.Length, actual.Files.Count);
-                CollectionAssert.AreEqual(expected.ManagedSourceFiles, actual.Files);
+                Assert.AreEqual(expected.ManagedSourceFiles.Count, actual.Files.Count);
+                CollectionAssert.AreEqual(expected.ManagedSourceFiles.ToArray(), actual.Files);
             }
 
             AnalysisResult fxCopResult = expected.AnalysisResults.FirstOrDefault(e => AnalysisType.FxCop.ToString().Equals(e.Id));

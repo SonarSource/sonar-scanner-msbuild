@@ -13,7 +13,7 @@ namespace TestUtilities
     /// <summary>
     /// Simple implementation of <see cref="ISonarPropertyProvider"/> for testing
     /// </summary>
-    public class ConfigurablePropertyProvider : ISonarPropertyProvider
+    public sealed class ConfigurablePropertyProvider : ISonarPropertyProvider
     {
         public ConfigurablePropertyProvider()
         {

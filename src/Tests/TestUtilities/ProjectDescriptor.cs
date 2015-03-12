@@ -28,7 +28,9 @@ namespace TestUtilities
 
         public Guid ProjectGuid { get; set; }
 
-        public string[] ManagedSourceFiles { get; set; }
+        public IList<string> ManagedSourceFiles { get; set; }
+
+        public IList<string> ContentFiles { get; set; }
 
         public bool IsTestProject { get; set; }
 
@@ -68,11 +70,6 @@ namespace TestUtilities
         #endregion
 
         #region Public methods
-
-        public void AddAnalysisResult(string id, string location)
-        {
-            this.AnalysisResults.Add(new AnalysisResult() { Id = id, Location = location });
-        }
 
         public ProjectInfo CreateProjectInfo()
         {

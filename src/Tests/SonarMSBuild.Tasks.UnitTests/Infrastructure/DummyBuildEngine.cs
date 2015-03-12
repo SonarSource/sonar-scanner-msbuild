@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace SonarMSBuild.Tasks.UnitTests
 {
-    public class DummyBuildEngine : IBuildEngine
+    public sealed class DummyBuildEngine : IBuildEngine
     {
         private List<BuildWarningEventArgs> warnings;
         private List<BuildErrorEventArgs> errors;
@@ -46,7 +46,7 @@ namespace SonarMSBuild.Tasks.UnitTests
 
         bool IBuildEngine.ContinueOnError
         {
-            get { throw new NotImplementedException(); }
+            get { return false; }
         }
 
         int IBuildEngine.LineNumberOfTaskNode
