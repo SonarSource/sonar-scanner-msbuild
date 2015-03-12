@@ -16,6 +16,32 @@ namespace Sonar.FxCopRuleset.UnitTests
     public class RulesetWriterTest
     {
         [TestMethod]
+        public void RulesetWriterShouldFailToTwiceSeveralTimesIdenticalCheckId()
+        {
+            List<string> ids = new List<string>();
+            ids.Add("CA1000");
+            ids.Add("CA1000");
+            ids.Add("CA1001");
+            ids.Add("CA1002");
+            ids.Add("CA1002");
+            ids.Add("CA1002");
+
+            try
+            {
+                RulesetWriter.ToString(ids);
+            }
+            catch (ArgumentException e)
+            {
+                if ("The following CheckId should not appear multiple times: CA1000, CA1002".Equals(e.Message))
+                {
+                    return;
+                }
+            }
+
+            Assert.Fail();
+        }
+
+        [TestMethod]
         public void RulesetWriterToString()
         {
             List<string> ids = new List<string>();

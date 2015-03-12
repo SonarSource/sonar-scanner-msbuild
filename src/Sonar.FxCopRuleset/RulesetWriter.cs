@@ -15,6 +15,12 @@ namespace Sonar.FxCopRuleset
     {
         public static string ToString(IEnumerable<string> ids)
         {
+            var duplicates = ids.ToList().GroupBy(id => id).Where(g => g.Count() >= 2).Select(g => g.Key);
+            if (duplicates.Any())
+            {
+                throw new ArgumentException("The following CheckId should not appear multiple times: " + string.Join(", ", duplicates));
+            }
+
             StringBuilder sb = new StringBuilder();
 
             sb.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
