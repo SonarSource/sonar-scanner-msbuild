@@ -31,7 +31,7 @@ namespace SonarProjectPropertiesGenerator
             var dumpFolderPath = args[3];
 
             var projects = ProjectLoader.LoadFrom(dumpFolderPath);
-            var contents = PropertiesWriter.ToString(new ConsoleLogger(), args[0], args[1], args[2], projects);
+            var contents = PropertiesWriter.ToString(new ConsoleLogger(includeTimestamp: true), args[0], args[1], args[2], projects);
 
             File.WriteAllText(Path.Combine(dumpFolderPath, "sonar-project.properties"), contents, Encoding.ASCII);
 
