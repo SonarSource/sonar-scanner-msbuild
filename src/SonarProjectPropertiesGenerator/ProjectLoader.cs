@@ -27,14 +27,24 @@ namespace SonarProjectPropertiesGenerator
                     continue;
                 }
 
-                string compileListPath = TryGetAnalysisFileLocation(projectInfo, AnalysisType.ManagedCompilerInputs);
-                if (compileListPath == null)
+                List<String> files = new List<string>();
+                var compiledFilesPath = TryGetAnalysisFileLocation(projectInfo, AnalysisType.ManagedCompilerInputs);
+                if (compiledFilesPath != null)
                 {
+                    files.AddRange(File.ReadAllLines(compiledFilesPath, Encoding.UTF8));
+                }
+                var contentFilesPath = TryGetAnalysisFileLocation(projectInfo, AnalysisType.ContentFiles);
+                if (contentFilesPath != null)
+                {
+                    files.AddRange(File.ReadAllLines(contentFilesPath, Encoding.UTF8));
+                }
+                if (!files.Any())
+                {
+                    // Skip projects without any source file
                     continue;
                 }
 
                 bool isTest = projectInfo.ProjectType == ProjectType.Test;
-                List<String> files = File.ReadAllLines(compileListPath, Encoding.UTF8).ToList();
                 string fxCopReport = TryGetAnalysisFileLocation(projectInfo, AnalysisType.FxCop);
                 string visualStudioCodeCoverageReport = TryGetAnalysisFileLocation(projectInfo, AnalysisType.VisualStudioCodeCoverage);
 
