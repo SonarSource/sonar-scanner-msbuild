@@ -26,17 +26,11 @@ namespace SonarProjectPropertiesGenerator.Tests
             var testProject = File.Create(Path.Combine(baseDir, "Test.csproj")).Name;
             var foo = File.Create(Path.Combine(baseDir, "Foo.cs")).Name;
             var bar = File.Create(Path.Combine(baseDir, "Bar.cs")).Name;
-            var largeFileButOk = Path.Combine(baseDir, "LargeFileButOk.cs");
-            File.WriteAllText(largeFileButOk, new string('a', 1000000));
-            var largeFileTooBig = Path.Combine(baseDir, "LargeFileTooBig.cs");
-            File.WriteAllText(largeFileTooBig, new string('a', 1000001));
             var baz = File.Create(Path.Combine(otherDir, "Baz.cs")).Name;
 
             List<string> files = new List<string>();
             files.Add(foo);
             files.Add(bar);
-            files.Add(largeFileButOk);
-            files.Add(largeFileTooBig);
             files.Add(baz);
             Project project = new Project("test", Guid.Parse("DB2E5521-3172-47B9-BA50-864F12E6DFFF"), testProject, true, files, @"C:\fxcop-report.xml", @"C:\visualstudio-coverage.xml");
 
@@ -52,10 +46,9 @@ namespace SonarProjectPropertiesGenerator.Tests
             Assert.AreEqual(baseDir, project.BaseDir());
 
             var filesInBaseDir = project.FilesToAnalyze();
-            Assert.AreEqual(3, filesInBaseDir.Count);
+            Assert.AreEqual(2, filesInBaseDir.Count);
             Assert.AreEqual(foo, filesInBaseDir[0]);
             Assert.AreEqual(bar, filesInBaseDir[1]);
-            Assert.AreEqual(largeFileButOk, filesInBaseDir[2]);
         }
     }
 }

@@ -52,7 +52,7 @@ namespace SonarProjectPropertiesGenerator
 
             foreach (string file in Files)
             {
-                if (IsInFolder(file, baseDir) && !IsTooLarge(file))
+                if (IsInFolder(file, baseDir))
                 {
                     result.Add(file);
                 }
@@ -65,12 +65,6 @@ namespace SonarProjectPropertiesGenerator
         {
             // FIXME This test is not sufficient...
             return filePath.StartsWith(folder + Path.DirectorySeparatorChar);
-        }
-
-        private static bool IsTooLarge(string filePath)
-        {
-            // TODO This should perhaps not be hardcoded
-            return new FileInfo(filePath).Length > 1000000L;
         }
     }
 }
