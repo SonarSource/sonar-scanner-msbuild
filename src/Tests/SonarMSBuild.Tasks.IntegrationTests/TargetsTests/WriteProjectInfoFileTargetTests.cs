@@ -108,7 +108,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
 
-            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "footestbar.proj");
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "foo.tests.proj");
 
             // Act
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
