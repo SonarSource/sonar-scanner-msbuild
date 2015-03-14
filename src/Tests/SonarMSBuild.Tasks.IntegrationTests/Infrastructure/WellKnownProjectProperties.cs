@@ -6,7 +6,7 @@
 
 using System.Collections.Generic;
 
-namespace SonarMSBuild.Tasks.IntegrationTests
+namespace Sonar.MSBuild.Tasks.IntegrationTests
 {
     /// <summary>
     /// Dictionary with strongly-typed accessors for some well-known properties
@@ -19,6 +19,12 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         {
             get { return this[TargetProperties.RunSonarAnalysis]; }
             set { this[TargetProperties.RunSonarAnalysis] = value; }
+        }
+
+        public string SonarExclude
+        {
+            get { return this[TargetProperties.SonarExclude]; }
+            set { this[TargetProperties.SonarExclude] = value; }
         }
 
         public string SonarBinPath

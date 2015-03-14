@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 
-namespace SonarMSBuild.Tasks.UnitTests
+namespace Sonar.MSBuild.Tasks.UnitTests
 {
     public sealed class DummyBuildEngine : IBuildEngine
     {

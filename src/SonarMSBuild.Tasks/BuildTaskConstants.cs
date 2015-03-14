@@ -4,7 +4,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace SonarMSBuild.Tasks
+namespace Sonar.MSBuild.Tasks
 {
     public static class BuildTaskConstants
     {

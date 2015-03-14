@@ -28,6 +28,49 @@
       - - - - - - - -
       msbuild MyProject.csproj /p:SonarOutputPath=C:\SonarOutput
 
+
+      Excluding projects and files from Sonar analysis
+      *************************************************
+      Individual projects can excluded from Sonary analysis by setting
+      the property $(SonarExclude) e.g.
+      
+        <SonarExclude>true</SonarExclude>
+
+      Individual files can be excluded from analysis by setting the 
+      <SonarExclude> metadata item e.g.
+      
+        <Compile Include="Logger.cs">
+          <SonarExclude>true</SonarExclude>
+        </Compile>
+  
+  
+      Test projects
+      *************
+      The analysis performed by SonarQube varies depending on whether a project
+      is a test project or not.
+
+      A project can be explicitly marked as being a test or product project by setting
+      the property $(SonarTestProject) e.g.
+      
+        <SonarTestProject>true</SonarTestProject>
+       
+      If the $(SonarTestProject) is not set then the targets will determine the project
+      type as follows:
+      
+      1) Projects whose full project file name matches the regular expression in the property
+          $(SonarTestProjectNameRegex) will be treated as test projects.
+          By default, any projects with:
+					* "test" (case-insensitive) in the project name, or
+					* that have a directory called "test" or "tests" in the path
+					will be treated as test projects
+					
+					Note that the regular expression uses the .Net Regex format i.e. "+" is the
+					single character wildcard and "*" is the multi-character wildcard (zero to many).
+          
+      2) MSTest projects will be treated as test projects.
+          The $(ProjectTypeGuid) of MS Test projects contains a specific guid
+          ("3AC096D0-A1C2-E12C-1390-A8335801FDAB")
+  
 -->
 
   <!-- Safeguard against importing this .targets file multiple times -->
@@ -55,7 +98,7 @@
   <PropertyGroup Condition="$(RunSonarAnalysis) == 'true' ">
     <!-- Assume that the tasks assembly is in the same location as this targets file unless 
          another location has already been specified. -->
-    <SonarBuildTasksAssemblyFile Condition=" $(SonarBuildTasksAssemblyFile) == '' ">$(MSBuildThisFileDirectory)\SonarMSBuild.Tasks.dll</SonarBuildTasksAssemblyFile>
+    <SonarBuildTasksAssemblyFile Condition=" $(SonarBuildTasksAssemblyFile) == '' ">$(MSBuildThisFileDirectory)\Sonar.MSBuild.Tasks.dll</SonarBuildTasksAssemblyFile>
   </PropertyGroup>
 
   <UsingTask TaskName="WriteProjectInfoFile" AssemblyFile="$(SonarBuildTasksAssemblyFile)" />
@@ -78,9 +121,20 @@
        otherwise those results will not appear in the project info file.
   -->
   <!-- **************************************************************************** -->
-  <Target Name="WriteSonarProjectData" AfterTargets="CoreCompile"
-          Condition="$(RunSonarAnalysis) == 'true' AND  $(SonarOutputPath) != '' ">
+  <Target Name="ExecuteSonarProcessing" AfterTargets="CoreCompile"
+        Condition="$(RunSonarAnalysis) == 'true' AND  $(SonarOutputPath) != '' ">
 
+    <Message Importance="normal" Condition=" $(SonarExclude) == 'true' "
+             Text="Skipping Sonar analysis: SonarExclude is set to true" />
+
+    <CallTarget Targets="WriteSonarProjectData" Condition=" $(SonarExclude) != 'true' " />
+
+  </Target>
+  
+  <Target Name="WriteSonarProjectData" >
+    
+    <Error Condition=" $(SonarExclude) == 'true' " Text="Should not be executing WriteSonarProjectData when (SonarExclude) is true" />
+    
     <!-- Calculate a project-specific folder name -->
     <PropertyGroup>
       <FolderDisambiguator>$(ProjectGuid)</FolderDisambiguator>
@@ -95,26 +149,26 @@
     <RemoveDir Directories="$(ProjectSpecificDir)" />
     <MakeDir Directories="$(ProjectSpecificDir)" />
 
-		<ItemGroup>
-			<!-- Calculate the sets of files to write out to the file lists.
-			     Exclude any that have the metadata 'SonarExclude' set. -->
-			<SonarManagedFiles Include="@(Compile)" Condition=" %(Compile.SonarExclude) != 'true' " />
-			<!-- Add any files that are in the gruop T4Transform -->
-			<SonarContentFiles Include="@(Content)" Condition=" %(Content.SonarExclude) != 'true' "/>
+    <ItemGroup>
+      <!-- Calculate the sets of files to write out to the file lists.
+           Exclude any that have the metadata 'SonarExclude' set. -->
+      <SonarManagedFiles Include="@(Compile)" Condition=" %(Compile.SonarExclude) != 'true' " />
+      <!-- Add any files that are in the gruop T4Transform -->
+      <SonarContentFiles Include="@(Content)" Condition=" %(Content.SonarExclude) != 'true' "/>
 
-		</ItemGroup>
+    </ItemGroup>
 
-		<PropertyGroup>
-			<!-- Work out which types of input files exist-->
-			<ManagedFilesExist Condition=" @(SonarManagedFiles) != '' ">true</ManagedFilesExist>
-			<ContentFilesExist Condition=" @(SonarContentFiles) != '' ">true</ContentFilesExist>
+    <PropertyGroup>
+      <!-- Work out which types of input files exist-->
+      <ManagedFilesExist Condition=" @(SonarManagedFiles) != '' ">true</ManagedFilesExist>
+      <ContentFilesExist Condition=" @(SonarContentFiles) != '' ">true</ContentFilesExist>
 
-			<!-- Set the file names for the list files -->
-			<ManagedFileList>$(ProjectSpecificDir)\ManagedSourceFiles.txt</ManagedFileList>	
-		  <ContentFileList>$(ProjectSpecificDir)\ContentFiles.txt</ContentFileList>
-		</PropertyGroup>
+      <!-- Set the file names for the list files -->
+      <ManagedFileList>$(ProjectSpecificDir)\ManagedSourceFiles.txt</ManagedFileList>	
+      <ContentFileList>$(ProjectSpecificDir)\ContentFiles.txt</ContentFileList>
+    </PropertyGroup>
 
-		<!-- Write out a list of managed files that will be passed to the compiler -->
+    <!-- Write out a list of managed files that will be passed to the compiler -->
     <WriteLinesToFile Condition=" $(ManagedFilesExist) == 'true' "
             File="$(ManagedFileList)"
             Lines="%(SonarManagedFiles.FullPath)"
@@ -128,13 +182,13 @@
       </AnalysisResults>
     </ItemGroup>
 
-		<!-- Write out a list of content files that will be passed to the compiler -->
+    <!-- Write out a list of content files that will be passed to the compiler -->
     <WriteLinesToFile Condition=" $(ContentFilesExist) == 'true' "
             File="$(ContentFileList)"
             Lines="%(SonarContentFiles.FullPath)"
             Overwrite="false"
             Encoding="Unicode"/>
-		
+    
     <!-- Record the list of content files as an analysis result -->
     <ItemGroup Condition=" $(ContentFilesExist) == 'true' ">
       <AnalysisResults Include="$(ContentFileList)">
@@ -142,32 +196,36 @@
       </AnalysisResults>
     </ItemGroup>
 
-		<PropertyGroup>
-		</PropertyGroup>
+    <PropertyGroup>
+    </PropertyGroup>
 
-		<!-- Work out if the project is a test project or not -->
-		<!-- If it is explicitly marked then use that value, otherwise:
-					* check if the name matches the regular expression, or
-					* check if it has one of the expected project types guids.
-				 If either is true then the project is a test project, otherwise
-				 it is a product project.
-		-->
-		<PropertyGroup Condition=" $(SonarTestProject) == '' ">
-			<!-- The MS Test project type guid-->
-			<SonarMsTestProjectTypeGuid>3AC096D0-A1C2-E12C-1390-A8335801FDAB</SonarMsTestProjectTypeGuid>
+    <!-- Work out if the project is a test project or not -->
+    <!-- If it is explicitly marked then use that value, otherwise:
+          * check if the name matches the regular expression, or
+          * check if it has one of the expected project types guids.
+         If either is true then the project is a test project, otherwise
+         it is a product project.
+    -->
+    <PropertyGroup Condition=" $(SonarTestProject) == '' ">
+      <!-- The MS Test project type guid-->
+      <SonarMsTestProjectTypeGuid>3AC096D0-A1C2-E12C-1390-A8335801FDAB</SonarMsTestProjectTypeGuid>
 
-			<!-- Default Sonar test project regular expression -->
-			<!-- NOTE: this uses .NET regular expression syntax -->
-			<SonarTestProjectNameRegex Condition=" $(SonarTestProjectNameRegex) == '' ">.*test.*</SonarTestProjectNameRegex>
+      <!-- Default Sonar test project regular expression -->
+      <!-- NOTE: this uses .NET regular expression syntax -->
+			<!-- Matches: any project under a "\test\" or "\tests" directory, or that has "test" in the file name" -->
+      <SonarTestProjectNameRegex Condition=" $(SonarTestProjectNameRegex) == '' ">(.*\\tests?\\.*)|(\.*test[^\\]*$)</SonarTestProjectNameRegex>
 
-			<SonarTestProject Condition=" $(SonarTestProjectNameRegex) != '' AND
-												$([System.Text.RegularExpressions.Regex]::IsMatch($(MsBuildProjectName), $(SonarTestProjectNameRegex), System.Text.RegularExpressions.RegexOptions.IgnoreCase)) ">true</SonarTestProject>
+      <SonarTestProject Condition=" $(SonarTestProjectNameRegex) != '' AND
+                        $([System.Text.RegularExpressions.Regex]::IsMatch($(MSBuildProjectFullPath), $(SonarTestProjectNameRegex), System.Text.RegularExpressions.RegexOptions.IgnoreCase)) ">true</SonarTestProject>
 
-			<SonarTestProject Condition=" $(SonarTestProject) == '' AND $(ProjectTypeGuid.ToUpperInvariant().Contains('$(SonarMsTestProjectTypeGuid)')) ">true</SonarTestProject>
-			
-			<SonarTestProject Condition=" $(SonarTestProject) == '' ">false</SonarTestProject>
-		</PropertyGroup>
-		
+      <SonarTestProject Condition=" $(SonarTestProject) == '' AND $(ProjectTypeGuid.ToUpperInvariant().Contains('$(SonarMsTestProjectTypeGuid)')) ">true</SonarTestProject>
+      
+      <SonarTestProject Condition=" $(SonarTestProject) == '' ">false</SonarTestProject>
+    </PropertyGroup>
+
+    <Message Importance="low" Condition=" $(SonarTestProject) == 'true' "
+             Text="Sonar: project will be treated as a test project : $(MSBuildProjectName)" />
+    
     <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
        FullProjectPath="$(MSBuildProjectFullPath)"
        ProjectGuid="$(ProjectGuid)"

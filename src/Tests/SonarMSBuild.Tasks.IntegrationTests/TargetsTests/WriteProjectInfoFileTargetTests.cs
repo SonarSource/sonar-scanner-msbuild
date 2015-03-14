@@ -14,7 +14,7 @@ using System.IO;
 using System.Linq;
 using TestUtilities;
 
-namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
+namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
 {
     [TestClass]
     [DeploymentItem("LinkedFiles\\Sonar.Integration.v0.1.targets")]
@@ -25,6 +25,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         #region Test project recognition tests
 
         [TestMethod]
+        [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
         public void WriteProjectInfo_TestProject_ExplicitMarking_True()
         {
@@ -48,6 +49,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
         public void WriteProjectInfo_TestProject_ExplicitMarking_False()
         {
@@ -72,6 +74,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
         public void WriteProjectInfo_TestProject_WildcardMatch_Default_NoMatch()
         {
@@ -93,6 +96,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
         public void WriteProjectInfo_TestProject_WildcardMatch_Default_Match()
         {
@@ -104,7 +108,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
 
-            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "footestbar.proj");
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "foo.tests.proj");
 
             // Act
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
@@ -114,6 +118,74 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
+        public void WriteProjectInfo_TestProject_WildcardMatchDirName1_Default()
+        {
+            // Check the default wildcard matching includes projects under a directory called "tests"
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs\\tests\\foo\\");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "foo.proj");
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+            // Assert
+            AssertIsTestProject(projectInfo);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
+        public void WriteProjectInfo_TestProject_WildcardMatchDirName2_Default()
+        {
+            // Check the default wildcard matching includes projects under a directory called "test"
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs\\TEst\\bar\\");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "bar.proj");
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+            // Assert
+            AssertIsTestProject(projectInfo);
+        }
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
+        public void WriteProjectInfo_TestProject_WildcardNoMatchDirName_Default()
+        {
+            // Check the default wildcard matching does not include projects where "tests"
+            // is part of the directory name, but not the whole name
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs\\XXtests\\foo\\");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "foo.proj");
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+            // Assert
+            AssertIsProductProject(projectInfo);
+        }
+
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
         public void WriteProjectInfo_TestProject_WildcardMatch_UserSpecified_Match()
         {
@@ -136,6 +208,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
         public void WriteProjectInfo_TestProject_WildcardMatch_UserSpecified_NoMatch()
         {
@@ -158,6 +231,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
         public void WriteProjectInfo_TestProject_HasTestGuid()
         {
@@ -181,6 +255,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
         public void WriteProjectInfo_TestProject_HasTestGuid_LowerCase()
         {
@@ -208,10 +283,11 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         #region File lists
 
         [TestMethod]
+        [TestCategory("ProjectInfo")]
         [TestCategory("Lists")]
         public void WriteProjectInfo_ManagedCompileList_NoFiles()
         {
-            // The managed file list should not be created if there are no files to compil
+            // The managed file list should not be created if there are no files to compile
 
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
@@ -228,6 +304,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        [TestCategory("ProjectInfo")]
         [TestCategory("Lists")]
         public void WriteProjectInfo_ManagedCompileList_HasFiles()
         {
@@ -254,6 +331,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        [TestCategory("ProjectInfo")]
         [TestCategory("Lists")]
         public void WriteProjectInfo_ContentFileList_NoFiles()
         {
@@ -274,6 +352,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        [TestCategory("ProjectInfo")]
         [TestCategory("Lists")]
         public void WriteProjectInfo_ContentFileList_HasFiles()
         {
@@ -299,6 +378,38 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
             AssertResultFileExists(projectInfo, AnalysisType.ContentFiles, file1, file2, file3);
         }
 
+        #endregion
+
+
+        #region Miscellaneous tests
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        public void WriteProjectInfo_ErrorIfProjectExcluded()
+        {
+            // The target should error if $(SonarExclude) is true
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "excludedProj.txt");
+
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            preImportProperties.SonarExclude = "true";
+            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, preImportProperties, rootOutputFolder);
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.WriteSonarProjectDataTarget);
+
+            // Assert
+            BuildAssertions.AssertTargetFailed(result, TargetConstants.WriteSonarProjectDataTarget);
+
+            logger.AssertExpectedErrorCount(1);
+            logger.AssertTargetExecuted(TargetConstants.WriteSonarProjectDataTarget);
+        }
 
         #endregion
 
@@ -345,7 +456,6 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.WriteSonarProjectDataTarget);
 
             logger.AssertNoWarningsOrErrors();
-
             logger.AssertTargetExecuted(TargetConstants.WriteSonarProjectDataTarget);
 
             // Check expected project outputs

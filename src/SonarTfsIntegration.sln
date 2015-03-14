@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarProjectPropertiesGener
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarProjectPropertiesGenerator.Tests", "Tests\SonarProjectPropertiesGenerator.Tests\SonarProjectPropertiesGenerator.Tests.csproj", "{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarMSBuild.Tasks", "SonarMSBuild.Tasks\SonarMSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.MSBuild.Tasks", "SonarMSBuild.Tasks\Sonar.MSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{E04A4D31-AC10-4F56-9678-5D538932578C}"
 EndProject
