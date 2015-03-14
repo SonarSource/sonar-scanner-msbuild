@@ -14,7 +14,7 @@ using System.IO;
 using System.Linq;
 using TestUtilities;
 
-namespace SonarMSBuild.Tasks.UnitTests
+namespace Sonar.MSBuild.Tasks.UnitTests
 {
     [TestClass]
     public class WriteProjectInfoFileTests

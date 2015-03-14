@@ -15,7 +15,7 @@ using System.IO;
 using System.Linq;
 using TestUtilities;
 
-namespace SonarMSBuild.Tasks.IntegrationTests.E2E
+namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
 {
 
     /* Tests:

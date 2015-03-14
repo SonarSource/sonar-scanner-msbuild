@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using TestUtilities;
 
-namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
+namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
 {
     [TestClass]
     [DeploymentItem("LinkedFiles\\Sonar.Integration.ImportBefore.targets")]

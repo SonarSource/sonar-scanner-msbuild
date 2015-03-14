@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SonarMSBuild.Tasks.IntegrationTests")]
+[assembly: AssemblyTitle("Sonar.MSBuild.Tasks.IntegrationTests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("SonarMSBuild.Tasks.IntegrationTests")]
+[assembly: AssemblyProduct("Sonar.MSBuild.Tasks.IntegrationTests")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

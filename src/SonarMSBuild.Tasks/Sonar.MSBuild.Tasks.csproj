@@ -7,8 +7,8 @@
     <ProjectGuid>{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarMSBuild.Tasks</RootNamespace>
-    <AssemblyName>SonarMSBuild.Tasks</AssemblyName>
+    <RootNamespace>Sonar.MSBuild.Tasks</RootNamespace>
+    <AssemblyName>Sonar.MSBuild.Tasks</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

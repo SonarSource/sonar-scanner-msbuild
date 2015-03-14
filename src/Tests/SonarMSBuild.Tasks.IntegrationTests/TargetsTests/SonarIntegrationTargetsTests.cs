@@ -9,7 +9,7 @@ using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
+namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
 {
     [TestClass]
     [DeploymentItem("LinkedFiles\\Sonar.Integration.v0.1.targets")]

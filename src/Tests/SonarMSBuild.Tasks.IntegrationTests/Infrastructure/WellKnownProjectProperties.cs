@@ -6,7 +6,7 @@
 
 using System.Collections.Generic;
 
-namespace SonarMSBuild.Tasks.IntegrationTests
+namespace Sonar.MSBuild.Tasks.IntegrationTests
 {
     /// <summary>
     /// Dictionary with strongly-typed accessors for some well-known properties

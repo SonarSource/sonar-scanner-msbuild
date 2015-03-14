@@ -78,9 +78,9 @@
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>Sonar.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SonarMSBuild.Tasks\SonarMSBuild.Tasks.csproj">
+    <ProjectReference Include="..\..\SonarMSBuild.Tasks\Sonar.MSBuild.Tasks.csproj">
       <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>
-      <Name>SonarMSBuild.Tasks</Name>
+      <Name>Sonar.MSBuild.Tasks</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj">
       <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>

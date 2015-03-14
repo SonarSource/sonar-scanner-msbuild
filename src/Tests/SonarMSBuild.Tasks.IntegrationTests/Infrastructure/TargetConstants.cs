@@ -4,7 +4,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace SonarMSBuild.Tasks.IntegrationTests
+namespace Sonar.MSBuild.Tasks.IntegrationTests
 {
     internal static class TargetConstants
     {
