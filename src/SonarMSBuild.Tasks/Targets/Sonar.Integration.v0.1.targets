@@ -28,6 +28,21 @@
       - - - - - - - -
       msbuild MyProject.csproj /p:SonarOutputPath=C:\SonarOutput
 
+
+	    Excluding projects and files from Sonar analysis
+			- - - - - - - - - - - - - - - - - - - - - - - - -
+			Individual projects can excluded from Sonary analysis by setting
+			the property $(SonarExclude) e.g.
+			
+				<SonarExclude>true</SonarExclude>
+
+			Individual files can be excluded from analysis by setting the 
+			<SonarExclude> metadata item e.g.
+			
+				<Compile Include="Logger.cs">
+					<SonarExclude>true</SonarExclude>
+				</Compile>
+				
 -->
 
   <!-- Safeguard against importing this .targets file multiple times -->
@@ -78,9 +93,20 @@
        otherwise those results will not appear in the project info file.
   -->
   <!-- **************************************************************************** -->
-  <Target Name="WriteSonarProjectData" AfterTargets="CoreCompile"
-          Condition="$(RunSonarAnalysis) == 'true' AND  $(SonarOutputPath) != '' ">
+	<Target Name="ExecuteSonarProcessing" AfterTargets="CoreCompile"
+				Condition="$(RunSonarAnalysis) == 'true' AND  $(SonarOutputPath) != '' ">
 
+		<Message Importance="normal" Condition=" $(SonarExclude) == 'true' "
+						 Text="Skipping Sonar analysis: SonarExclude is set to true" />
+
+		<CallTarget Targets="WriteSonarProjectData" Condition=" $(SonarExclude) != 'true' " />
+
+	</Target>
+	
+  <Target Name="WriteSonarProjectData" >
+		
+		<Error Condition=" $(SonarExclude) == 'true' " Text="Should not be executing WriteSonarProjectData when (SonarExclude) is true" />
+		
     <!-- Calculate a project-specific folder name -->
     <PropertyGroup>
       <FolderDisambiguator>$(ProjectGuid)</FolderDisambiguator>

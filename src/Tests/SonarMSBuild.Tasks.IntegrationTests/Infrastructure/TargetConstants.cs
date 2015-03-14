@@ -13,6 +13,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
         public const string SonarImportsBeforeFile = "Sonar.Integration.ImportBefore.targets";
 
         // Targets
+        public const string ExecuteSonarProcessing = "ExecuteSonarProcessing";
         public const string WriteSonarProjectDataTarget = "WriteSonarProjectData";
         public const string SonarOverrideFxCopSettingsTarget = "OverrideCodeAnalysisProperties";
         public const string SonarSetFxCopResultsTarget = "SetFxCopAnalysisResult";

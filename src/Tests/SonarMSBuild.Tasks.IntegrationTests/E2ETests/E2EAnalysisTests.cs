@@ -245,6 +245,36 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             CheckProjectOutputFolder(descriptor, projectDir);
         }
 
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_ExcludedProjects()
+        {
+            // Project info should not be written for files with $(SonarExclude) set to true
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
+
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            preImportProperties.RunSonarAnalysis = "true";
+            preImportProperties.SonarOutputPath = rootOutputFolder;
+            preImportProperties.SonarExclude = "tRUe";
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
+
+            // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertTargetExecuted(TargetConstants.ExecuteSonarProcessing);
+            logger.AssertTargetNotExecuted(TargetConstants.WriteSonarProjectDataTarget);
+        }
+
         #endregion
 
         #region Private methods
@@ -274,11 +304,10 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
         }
 
         /// <summary>
-        /// Creates and builds a new Sonar-enabled project using the
-        /// supplied descriptor. The method will check the build succeeded
-        /// and that a single project output file was created.
+        /// Creates and builds a new Sonar-enabled project using the supplied descriptor.
+        /// The method will check the build succeeded and that a single project output file was created.
         /// </summary>
-        /// <returns>The full path of the project-specific directory that was created during the build</returns>
+        /// <returns>The full path of the project-specsific directory that was created during the build</returns>
         private string CreateAndBuildSonarProject(ProjectDescriptor descriptor, string rootOutputFolder)
         {
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
@@ -299,6 +328,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             logger.AssertExpectedErrorCount(0);
             logger.AssertExpectedWarningCount(expectedWarnings);
 
+            logger.AssertTargetExecuted(TargetConstants.ExecuteSonarProcessing);
             logger.AssertTargetExecuted(TargetConstants.WriteSonarProjectDataTarget);
 
             // Check expected folder structure exists

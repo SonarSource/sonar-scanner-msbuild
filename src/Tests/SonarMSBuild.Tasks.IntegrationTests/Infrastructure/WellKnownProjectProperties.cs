@@ -21,6 +21,12 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
             set { this[TargetProperties.RunSonarAnalysis] = value; }
         }
 
+        public string SonarExclude
+        {
+            get { return this[TargetProperties.SonarExclude]; }
+            set { this[TargetProperties.SonarExclude] = value; }
+        }
+
         public string SonarBinPath
         {
             get { return this[TargetProperties.SonarBinPath]; }
