@@ -32,6 +32,8 @@ namespace SonarTeamBuildPostProcessor
             CoverageReportProcessor coverageProcessor = new CoverageReportProcessor();
             bool success = coverageProcessor.ProcessCoverageReports(context);
 
+            SummaryReportBuilder.WriteSummaryReport(context);
+
             if (!success)
             {
                 return ErrorCode;
