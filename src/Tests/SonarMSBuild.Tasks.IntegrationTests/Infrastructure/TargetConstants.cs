@@ -23,12 +23,13 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         public const string FxCopTarget = "RunCodeAnalysis";
         public const string FxCopTask = "CodeAnalysis";
 
+        public const string MsTestProjectTypeGuid = "3AC096D0-A1C2-E12C-1390-A8335801FDAB";
     }
 
     internal static class TargetProperties
     {
         public const string ProjectGuid = "ProjectGuid";
-        public const string ProjectName = "ProjectName";
+        public const string ProjectTypeGuid = "ProjectTypeGuid";
 
         public const string SonarTargets = "SonarTargets";
         public const string SonarBinPath = "SonarBinPath";
@@ -45,6 +46,11 @@ namespace SonarMSBuild.Tasks.IntegrationTests
 
         public const string TeamBuildBuildDirectory = "TF_BUILD_BUILDDIRECTORY";
         public const string MSBuildExtensionsPath = "MSBuildExtensionsPath";
+
+
+        public const string SonarTestProject = "SonarTestProject";
+        public const string SonarTestProjectNameRegex = "SonarTestProjectNameRegex";
+    
     }
 
 }

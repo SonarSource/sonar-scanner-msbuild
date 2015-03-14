@@ -133,10 +133,36 @@
       </AnalysisResults>
     </ItemGroup>
 
+		<PropertyGroup>
+		</PropertyGroup>
+
+		<!-- Work out if the project is a test project or not -->
+		<!-- If it is explicitly marked then use that value, otherwise:
+					* check if the name matches the regular expression, or
+					* does it have one of the expected project types guids?
+				 If either is true then the project is a test project, otherwise
+				 it is a product project.
+		-->
+		<PropertyGroup Condition=" $(SonarTestProject) == '' ">
+			<!-- The MS Test project type guid-->
+			<SonarMsTestProjectTypeGuid>3AC096D0-A1C2-E12C-1390-A8335801FDAB</SonarMsTestProjectTypeGuid>
+
+			<!-- Default Sonar test project regular expression -->
+			<!-- NOTE: this uses .NET regular expression syntax -->
+			<SonarTestProjectNameRegex Condition=" $(SonarTestProjectNameRegex) == '' ">.*test.*</SonarTestProjectNameRegex>
+
+			<SonarTestProject Condition=" $(SonarTestProjectNameRegex) != '' AND
+												$([System.Text.RegularExpressions.Regex]::IsMatch($(MsBuildProjectName), $(SonarTestProjectNameRegex), System.Text.RegularExpressions.RegexOptions.IgnoreCase)) ">true</SonarTestProject>
+
+			<SonarTestProject Condition=" $(SonarTestProject) == '' AND $(ProjectTypeGuid.ToUpperInvariant().Contains('$(SonarMsTestProjectTypeGuid)')) ">true</SonarTestProject>
+			
+			<SonarTestProject Condition=" $(SonarTestProject) == '' ">false</SonarTestProject>
+		</PropertyGroup>
+		
     <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
        FullProjectPath="$(MSBuildProjectFullPath)"
        ProjectGuid="$(ProjectGuid)"
-       IsTest="false"
+       IsTest="$(SonarTestProject)"
        AnalysisResults="@(AnalysisResults)"
        OutputFolder="$(ProjectSpecificDir)" />
   </Target>

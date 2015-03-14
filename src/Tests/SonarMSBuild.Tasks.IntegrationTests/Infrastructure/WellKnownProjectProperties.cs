@@ -13,7 +13,6 @@ namespace SonarMSBuild.Tasks.IntegrationTests
     /// </summary>
     internal class WellKnownProjectProperties : Dictionary<string, string>
     {
-
         #region Public properties
 
         public string RunSonarAnalysis
@@ -74,6 +73,24 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         {
             get { return this[TargetProperties.MSBuildExtensionsPath]; }
             set { this[TargetProperties.MSBuildExtensionsPath] = value; }
+        }
+
+        public string SonarTestProject
+        {
+            get { return this[TargetProperties.SonarTestProject]; }
+            set { this[TargetProperties.SonarTestProject] = value; }
+        }
+
+        public string SonarTestProjectNameRegex
+        {
+            get { return this[TargetProperties.SonarTestProjectNameRegex]; }
+            set { this[TargetProperties.SonarTestProjectNameRegex] = value; }
+        }
+
+        public string ProjectTypeGuids
+        {
+            get { return this[TargetProperties.ProjectTypeGuid]; }
+            set { this[TargetProperties.ProjectTypeGuid] = value; }
         }
 
         #endregion

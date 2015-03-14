@@ -39,21 +39,44 @@ namespace SonarMSBuild.Tasks.IntegrationTests
         }
 
         /// <summary>
+        /// Creates and returns a valid, initialized MSBuild ProjectRootElement for a new project in the
+        /// specified parent folder with the specified project file name
+        /// </summary>
+        /// <param name="projectDirectory">The folder in which the project should be created</param>
+        /// <param name="projectFileName">The name of the project file</param>
+        /// <param name="preImportProperties">Any MSBuild properties that should be set before any targets are imported</param>
+        /// <returns></returns>
+        public static ProjectRootElement CreateValidNamedProjectRoot(TestContext testContext, string projectFileName, string projectDirectory, IDictionary<string, string> preImportProperties)
+        {
+            ProjectDescriptor descriptor = CreateValidNamedProjectDescriptor(projectDirectory, projectFileName);
+            ProjectRootElement projectRoot = CreateInitializedProjectRoot(testContext, descriptor, preImportProperties);
+            return projectRoot;
+        }
+
+        /// <summary>
         /// Creates and returns a valid project descriptor for a project in the supplied folders
         /// </summary>
         public static ProjectDescriptor CreateValidProjectDescriptor(string parentDirectory)
         {
+            return CreateValidNamedProjectDescriptor(parentDirectory, "MyProject.xproj");
+        }
+
+        /// <summary>
+        /// Creates and returns a valid project descriptor for a project in the supplied folders
+        /// </summary>
+        public static ProjectDescriptor CreateValidNamedProjectDescriptor(string parentDirectory, string projectFileName)
+        {
             ProjectDescriptor descriptor = new ProjectDescriptor()
             {
-                ProjectName = "MyProject",
                 ProjectGuid = Guid.NewGuid(),
                 IsTestProject = false,
                 ParentDirectoryPath = parentDirectory,
                 ProjectFolderName = "MyProjectDir",
-                ProjectFileName = "MyProject.csproj"
+                ProjectFileName = projectFileName
             };
             return descriptor;
         }
+
 
         /// <summary>
         /// Creates a project file on disk from the specified descriptor.
@@ -85,11 +108,6 @@ namespace SonarMSBuild.Tasks.IntegrationTests
 
             // Set the location of the task assembly
             root.AddProperty(TargetProperties.SonarBuildTasksAssemblyFile, typeof(WriteProjectInfoFile).Assembly.Location);
-
-            if (!string.IsNullOrEmpty(descriptor.ProjectName))
-            {
-                root.AddProperty(TargetProperties.ProjectName, descriptor.ProjectName);
-            }
 
             if (descriptor.ProjectGuid != Guid.Empty)
             {

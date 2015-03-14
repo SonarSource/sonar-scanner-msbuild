@@ -42,7 +42,7 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
 
             // Assert
-            BuildAssertions.AssertPropertyInstanceDoesNotExist(projectInstance, TargetProperties.SonarTargets);
+            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarTargets);
             AssertAnalysisTargetsAreNotImported(projectInstance);
         }
 
@@ -59,8 +59,8 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
 
             // Assert
-            BuildAssertions.AssertPropertyInstanceExists(projectInstance, TargetProperties.SonarBinPath);
-            BuildAssertions.AssertPropertyInstanceExists(projectInstance, TargetProperties.SonarTargets);
+            BuildAssertions.AssertPropertyExists(projectInstance, TargetProperties.SonarBinPath);
+            BuildAssertions.AssertPropertyExists(projectInstance, TargetProperties.SonarTargets);
 
             BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarBinPath, @"nonExistentPath\SonarQube");
             AssertAnalysisTargetsAreNotImported(projectInstance); // Targets do not exist at that location so they should not be imported
@@ -129,7 +129,6 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
             string fullProjectPath = Path.Combine(testSpecificFolder, projectName);
 
             ProjectRootElement root = BuildUtilities.CreateMinimalBuildableProject(preImportProperties, importsBeforeTargets);
-            root.AddProperty(TargetProperties.ProjectName, projectName);
             root.AddProperty(TargetProperties.ProjectGuid, Guid.NewGuid().ToString("D"));
 
             root.Save(fullProjectPath);

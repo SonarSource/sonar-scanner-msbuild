@@ -80,7 +80,6 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
             ProjectDescriptor descriptor = new ProjectDescriptor()
             {
                 // No guid property
-                ProjectName = "MissingProjectGuidProject",
                 IsTestProject = false,
                 ParentDirectoryPath = rootInputFolder,
                 ProjectFolderName = "MyProjectDir",
@@ -128,7 +127,6 @@ namespace SonarMSBuild.Tasks.IntegrationTests.E2E
             ProjectDescriptor descriptor = new ProjectDescriptor()
             {
                 // No guid property
-                ProjectName = "MissingProjectGuidProject",
                 IsTestProject = false,
                 ParentDirectoryPath = rootInputFolder,
                 ProjectFolderName = "MyProjectDir",

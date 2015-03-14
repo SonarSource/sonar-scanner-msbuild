@@ -34,11 +34,6 @@ namespace TestUtilities
 
         public bool IsTestProject { get; set; }
 
-        /// <summary>
-        /// The user-friendly name for the project
-        /// </summary>
-        public string ProjectName { get; set; }
-
         public List<AnalysisResult> AnalysisResults { get; private set; }
 
 
@@ -65,6 +60,18 @@ namespace TestUtilities
         public string FullFilePath
         {
             get { return Path.Combine(this.FullDirectoryPath, this.ProjectFileName); }
+        }
+
+        /// <summary>
+        /// The user-friendly name for the project
+        /// </summary>
+        public string ProjectName
+        {
+
+            get
+            {
+                return Path.GetFileNameWithoutExtension(this.ProjectFileName);
+            }
         }
 
         #endregion

@@ -65,24 +65,35 @@ namespace SonarMSBuild.Tasks.IntegrationTests
 
         public static void AssertExpectedPropertyValue(ProjectInstance projectInstance, string propertyName, string expectedValue)
         {
-            ProjectPropertyInstance propertyInstance = AssertPropertyInstanceExists(projectInstance, propertyName);
+            ProjectPropertyInstance propertyInstance = AssertPropertyExists(projectInstance, propertyName);
             Assert.AreEqual(expectedValue, propertyInstance.EvaluatedValue, "Property '{0}' does not have the expected value", propertyName);
         }
 
-        public static ProjectPropertyInstance AssertPropertyInstanceExists(ProjectInstance projectInstance, string propertyName)
+        public static ProjectPropertyInstance AssertPropertyExists(ProjectInstance projectInstance, string propertyName)
         {
             ProjectPropertyInstance propertyInstance = projectInstance.GetProperty(propertyName);
             Assert.IsNotNull(propertyInstance, "The expected property does not exist: {0}", propertyName);
             return propertyInstance;
         }
 
-        public static void AssertPropertyInstanceDoesNotExist(ProjectInstance projectInstance, string propertyName)
+        public static void AssertPropertyDoesNotExist(ProjectInstance projectInstance, string propertyName)
         {
             ProjectPropertyInstance propertyInstance = projectInstance.GetProperty(propertyName);
 
             string value = propertyInstance == null ? null : propertyInstance.EvaluatedValue;
 
             Assert.IsNull(propertyInstance, "Not expecting the property to exist. Property: {0}, Value: {1}", propertyName, value);
+        }
+
+        public static bool AssertBooleanPropertyExists(ProjectInstance projectInstance, string propertyName)
+        {
+            ProjectPropertyInstance propertyInstance = BuildAssertions.AssertPropertyExists(projectInstance, TargetProperties.SonarTestProject);
+
+            bool result;
+            bool parsedOk = bool.TryParse(propertyInstance.EvaluatedValue, out result);
+            Assert.IsTrue(parsedOk, "Failed to convert the property value to a boolean. Property: {0}, Evaluated value: {1}", propertyInstance.Name, propertyInstance.EvaluatedValue);
+
+            return result;
         }
 
         #endregion

@@ -31,9 +31,9 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectInstance projectInstance = new ProjectInstance(projectRoot.FullPath);
             
             // Assert
-            BuildAssertions.AssertPropertyInstanceDoesNotExist(projectInstance, TargetProperties.TeamBuildBuildDirectory);
-            BuildAssertions.AssertPropertyInstanceDoesNotExist(projectInstance, TargetProperties.SonarOutputPath);
-            BuildAssertions.AssertPropertyInstanceDoesNotExist(projectInstance, TargetProperties.SonarConfigPath);
+            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.TeamBuildBuildDirectory);
+            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarOutputPath);
+            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarConfigPath);
         }
 
         [TestMethod]
@@ -50,9 +50,9 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectInstance projectInstance = new ProjectInstance(projectRoot.FullPath);
 
             // Assert
-            BuildAssertions.AssertPropertyInstanceDoesNotExist(projectInstance, TargetProperties.TeamBuildBuildDirectory);
-            BuildAssertions.AssertPropertyInstanceDoesNotExist(projectInstance, TargetProperties.SonarOutputPath);
-            BuildAssertions.AssertPropertyInstanceDoesNotExist(projectInstance, TargetProperties.SonarConfigPath);
+            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.TeamBuildBuildDirectory);
+            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarOutputPath);
+            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarConfigPath);
         }
 
         [TestMethod]
@@ -69,9 +69,9 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectInstance projectInstance = new ProjectInstance(projectRoot.FullPath);
 
             // Assert
-            BuildAssertions.AssertPropertyInstanceDoesNotExist(projectInstance, TargetProperties.TeamBuildBuildDirectory);
-            BuildAssertions.AssertPropertyInstanceDoesNotExist(projectInstance, TargetProperties.SonarOutputPath);
-            BuildAssertions.AssertPropertyInstanceDoesNotExist(projectInstance, TargetProperties.SonarConfigPath);            
+            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.TeamBuildBuildDirectory);
+            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarOutputPath);
+            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarConfigPath);            
         }
 
         [TestMethod]
@@ -143,6 +143,5 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         #endregion
-
     }
 }

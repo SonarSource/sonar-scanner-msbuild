@@ -34,7 +34,6 @@ namespace SonarProjectPropertiesGenerator.Tests
             // embedded in the ProjectInfo.xml).
             ProjectDescriptor validTestProject = new ProjectDescriptor()
             {
-                ProjectName = "validTestProject",
                 ParentDirectoryPath = testSourcePath,
                 ProjectFolderName = "validTestProjectDir",
                 ProjectFileName = "validTestProject.csproj",
@@ -47,7 +46,6 @@ namespace SonarProjectPropertiesGenerator.Tests
 
             ProjectDescriptor validNonTestProject = new ProjectDescriptor()
             {
-                ProjectName = "validNonTestProject",
                 ParentDirectoryPath = testSourcePath,
                 ProjectFolderName = "validNonTestProjectDir",
                 ProjectFileName = "validNonTestproject.proj",
@@ -59,7 +57,6 @@ namespace SonarProjectPropertiesGenerator.Tests
 
             ProjectDescriptor validNonTestNoReportsProject = new ProjectDescriptor()
             {
-                ProjectName = "validNonTestNoReportsProject",
                 ParentDirectoryPath = testSourcePath,
                 ProjectFolderName = "validNonTestNoReportsProjectDir",
                 ProjectFileName = "validNonTestNoReportsProject.proj",
@@ -96,7 +93,6 @@ namespace SonarProjectPropertiesGenerator.Tests
             // Create a valid project in the child directory
             ProjectDescriptor validNonTestProject = new ProjectDescriptor()
             {
-                ProjectName = "validNonTestProject",
                 ParentDirectoryPath = childDir,
                 ProjectFolderName = "validNonTestProjectDir",
                 ProjectFileName = "validNonTestproject.proj",
