@@ -95,20 +95,29 @@
     <RemoveDir Directories="$(ProjectSpecificDir)" />
     <MakeDir Directories="$(ProjectSpecificDir)" />
 
+		<ItemGroup>
+			<!-- Calculate the sets of files to write out to the file lists.
+			     Exclude any that have the metadata 'SonarExclude' set. -->
+			<SonarManagedFiles Include="@(Compile)" Condition=" %(Compile.SonarExclude) != 'true' " />
+			<!-- Add any files that are in the gruop T4Transform -->
+			<SonarContentFiles Include="@(Content)" Condition=" %(Content.SonarExclude) != 'true' "/>
+
+		</ItemGroup>
+
 		<PropertyGroup>
 			<!-- Work out which types of input files exist-->
-			<ManagedFilesExist Condition=" @(Compile) != '' ">true</ManagedFilesExist>
-			<ContentFilesExist Condition=" @(Content) != '' ">true</ContentFilesExist>
+			<ManagedFilesExist Condition=" @(SonarManagedFiles) != '' ">true</ManagedFilesExist>
+			<ContentFilesExist Condition=" @(SonarContentFiles) != '' ">true</ContentFilesExist>
 
 			<!-- Set the file names for the list files -->
 			<ManagedFileList>$(ProjectSpecificDir)\ManagedSourceFiles.txt</ManagedFileList>	
 		  <ContentFileList>$(ProjectSpecificDir)\ContentFiles.txt</ContentFileList>
 		</PropertyGroup>
 
-    <!-- Write out a list of managed files that will be passed to the compiler -->
+		<!-- Write out a list of managed files that will be passed to the compiler -->
     <WriteLinesToFile Condition=" $(ManagedFilesExist) == 'true' "
             File="$(ManagedFileList)"
-            Lines="%(Compile.FullPath)"
+            Lines="%(SonarManagedFiles.FullPath)"
             Overwrite="false"
             Encoding="Unicode"/>
 
@@ -122,7 +131,7 @@
 		<!-- Write out a list of content files that will be passed to the compiler -->
     <WriteLinesToFile Condition=" $(ContentFilesExist) == 'true' "
             File="$(ContentFileList)"
-            Lines="%(Content.FullPath)"
+            Lines="%(SonarContentFiles.FullPath)"
             Overwrite="false"
             Encoding="Unicode"/>
 		
@@ -139,7 +148,7 @@
 		<!-- Work out if the project is a test project or not -->
 		<!-- If it is explicitly marked then use that value, otherwise:
 					* check if the name matches the regular expression, or
-					* does it have one of the expected project types guids?
+					* check if it has one of the expected project types guids.
 				 If either is true then the project is a test project, otherwise
 				 it is a product project.
 		-->

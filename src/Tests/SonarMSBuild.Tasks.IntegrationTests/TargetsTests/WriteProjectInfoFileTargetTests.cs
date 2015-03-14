@@ -8,6 +8,8 @@ using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sonar.Common;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TestUtilities;
@@ -203,6 +205,103 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
 
         #endregion
 
+        #region File lists
+
+        [TestMethod]
+        [TestCategory("Lists")]
+        public void WriteProjectInfo_ManagedCompileList_NoFiles()
+        {
+            // The managed file list should not be created if there are no files to compil
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "a.b.proj.txt");
+            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+
+            // Assert
+            AssertResultFileDoesNotExist(projectInfo, AnalysisType.ManagedCompilerInputs);
+        }
+
+        [TestMethod]
+        [TestCategory("Lists")]
+        public void WriteProjectInfo_ManagedCompileList_HasFiles()
+        {
+            // The managed file list should be created with the expected files
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "a.proj.txt");
+            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+
+            string file1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false");
+            string excludedFile1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "true");
+            string file2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "FALSE");
+            string excludedFile2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "TRUE");
+            string file3 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null); // no metadata
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+
+            // Assert
+            AssertResultFileExists(projectInfo, AnalysisType.ManagedCompilerInputs, file1, file2, file3);
+        }
+
+        [TestMethod]
+        [TestCategory("Lists")]
+        public void WriteProjectInfo_ContentFileList_NoFiles()
+        {
+            // The content file list should not be created if there are no files
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "content.proj.txt");
+            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+
+            // Assert
+            AssertResultFileDoesNotExist(projectInfo, AnalysisType.ContentFiles);
+        }
+
+        [TestMethod]
+        [TestCategory("Lists")]
+        public void WriteProjectInfo_ContentFileList_HasFiles()
+        {
+            // The content file list should be created with the expected files
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "content.X.proj.txt");
+            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+
+            string file1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false");
+            string excludedFile1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "true");
+            string file2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "FALSE");
+            string excludedFile2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "TRUE");
+            string file3 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null); // no metadata
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+
+            // Assert
+            AssertResultFileExists(projectInfo, AnalysisType.ContentFiles, file1, file2, file3);
+        }
+
+
+        #endregion
+
         #region Private methods
 
         /// <summary>
@@ -213,11 +312,30 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         /// <returns>The project info file that was created during the build</returns>
         private ProjectInfo ExecuteWriteProjectInfo(ProjectDescriptor descriptor, WellKnownProjectProperties preImportProperties, string rootOutputFolder)
         {
+            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, preImportProperties, rootOutputFolder);
+
+            return this.ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+        }
+
+        private ProjectRootElement CreateInitializedProject(ProjectDescriptor descriptor, WellKnownProjectProperties preImportProperties, string rootOutputFolder)
+        {
             // Still need to set the conditions so the target is invoked
             preImportProperties.RunSonarAnalysis = "true";
             preImportProperties.SonarOutputPath = rootOutputFolder;
             ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
 
+            return projectRoot;
+        }
+
+        /// <summary>
+        /// Executes the WriteProjectInfoFile target in the the supplied project.
+        /// The method will check the build succeeded and that a single project
+        /// output file was created.
+        /// </summary>
+        /// <returns>The project info file that was created during the build</returns>
+        private ProjectInfo ExecuteWriteProjectInfo(ProjectRootElement projectRoot, string rootOutputFolder)
+        {
+            projectRoot.Save();
             BuildLogger logger = new BuildLogger();
 
             // Act
@@ -237,6 +355,33 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
             return projectInfo;
         }
 
+        /// <summary>
+        /// Creates an empty file on disc and adds it to the project as an
+        /// item with the specified ItemGroup include name.
+        /// The SonarExclude metadata item is set to the specified value.
+        /// </summary>
+        /// <param name="projectRoot"></param>
+        /// <param name="includeName">The name of the item type e.g. Compile, Content</param>
+        /// <param name="sonarExclude">The value to assign to the SonarExclude metadata item</param>
+        /// <returns></returns>
+        private string AddFileToProject(ProjectRootElement projectRoot, string includeName, string sonarExclude)
+        {
+            string projectPath = Path.GetDirectoryName(projectRoot.DirectoryPath); // project needs to have been saved for this to work
+            string fileName = System.Guid.NewGuid().ToString();
+            string fullPath = Path.Combine(projectPath, fileName);
+            File.WriteAllText(fullPath, "");
+
+            IList<KeyValuePair<string, string>> metadata = new List<KeyValuePair<string, string>>();
+
+            if (sonarExclude != null)
+            {
+                metadata.Add(new KeyValuePair<string, string>(TargetProperties.SonarExclude, sonarExclude));
+            }
+
+            projectRoot.AddItem(includeName, fullPath, metadata);
+            return fullPath;
+        }
+
         #endregion
 
         #region Assertions
@@ -249,6 +394,33 @@ namespace SonarMSBuild.Tasks.IntegrationTests.TargetsTests
         private static void AssertIsTestProject(ProjectInfo projectInfo)
         {
             Assert.AreEqual(ProjectType.Test, projectInfo.ProjectType, "Should be a test project");
+        }
+
+        private void AssertResultFileDoesNotExist(ProjectInfo projectInfo, AnalysisType resultType)
+        {
+            AnalysisResult result;
+            bool found = projectInfo.TryGetAnalyzerResult(resultType, out result);
+
+            if (found)
+            {
+                this.TestContext.AddResultFile(result.Location);
+            }
+
+            Assert.IsFalse(found, "Analysis result found unexpectedly. Result type: {0}", resultType);
+        }
+
+        private void AssertResultFileExists(ProjectInfo projectInfo, AnalysisType resultType, params string[] expected)
+        {
+            AnalysisResult result;
+            bool found = projectInfo.TryGetAnalyzerResult(resultType, out result);
+
+            Assert.IsTrue(found, "Analysis result not found: {0}", resultType);
+            Assert.IsTrue(File.Exists(result.Location), "Analysis result file not found");
+
+            this.TestContext.AddResultFile(result.Location);
+
+            string[] actualFiles = File.ReadAllLines(result.Location);
+            CollectionAssert.AreEquivalent(expected, actualFiles, "The analysis result file does not contain the expected entries");
         }
 
         #endregion

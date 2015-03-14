@@ -50,7 +50,10 @@ namespace SonarMSBuild.Tasks.IntegrationTests
 
         public const string SonarTestProject = "SonarTestProject";
         public const string SonarTestProjectNameRegex = "SonarTestProjectNameRegex";
-    
+        public const string SonarExclude = "SonarExclude";
+
+        public const string ItemType_Compile = "Compile";
+        public const string ItemType_Content = "Content";
     }
 
 }
