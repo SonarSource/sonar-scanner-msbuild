@@ -57,10 +57,12 @@
       If the $(SonarTestProject) is not set then the targets will determine the project
       type as follows:
       
-      1) Projects whose file name matches the regular expression in the property
+      1) Projects whose full project file name matches the regular expression in the property
           $(SonarTestProjectNameRegex) will be treated as test projects.
-          By default, any projects with "test" (case-insensitive) in the project name
-          will be treated as test projects.
+          By default, any projects with:
+					* "test" (case-insensitive) in the project name, or
+					* that have a directory called "test" or "tests" in the path
+					will be treated as test projects
 					
 					Note that the regular expression uses the .Net Regex format i.e. "+" is the
 					single character wildcard and "*" is the multi-character wildcard (zero to many).
@@ -210,10 +212,11 @@
 
       <!-- Default Sonar test project regular expression -->
       <!-- NOTE: this uses .NET regular expression syntax -->
-      <SonarTestProjectNameRegex Condition=" $(SonarTestProjectNameRegex) == '' ">.*test.*</SonarTestProjectNameRegex>
+			<!-- Matches: any project under a "\test\" or "\tests" directory, or that has "test" in the file name" -->
+      <SonarTestProjectNameRegex Condition=" $(SonarTestProjectNameRegex) == '' ">(.*\\tests?\\.*)|(\.*test[^\\]*$)</SonarTestProjectNameRegex>
 
       <SonarTestProject Condition=" $(SonarTestProjectNameRegex) != '' AND
-                        $([System.Text.RegularExpressions.Regex]::IsMatch($(MSBuildProjectName), $(SonarTestProjectNameRegex), System.Text.RegularExpressions.RegexOptions.IgnoreCase)) ">true</SonarTestProject>
+                        $([System.Text.RegularExpressions.Regex]::IsMatch($(MSBuildProjectFullPath), $(SonarTestProjectNameRegex), System.Text.RegularExpressions.RegexOptions.IgnoreCase)) ">true</SonarTestProject>
 
       <SonarTestProject Condition=" $(SonarTestProject) == '' AND $(ProjectTypeGuid.ToUpperInvariant().Contains('$(SonarMsTestProjectTypeGuid)')) ">true</SonarTestProject>
       

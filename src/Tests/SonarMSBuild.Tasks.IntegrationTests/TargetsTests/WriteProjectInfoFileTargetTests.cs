@@ -120,6 +120,73 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
         [TestMethod]
         [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
+        public void WriteProjectInfo_TestProject_WildcardMatchDirName1_Default()
+        {
+            // Check the default wildcard matching includes projects under a directory called "tests"
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs\\tests\\foo\\");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "foo.proj");
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+            // Assert
+            AssertIsTestProject(projectInfo);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
+        public void WriteProjectInfo_TestProject_WildcardMatchDirName2_Default()
+        {
+            // Check the default wildcard matching includes projects under a directory called "test"
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs\\TEst\\bar\\");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "bar.proj");
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+            // Assert
+            AssertIsTestProject(projectInfo);
+        }
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
+        public void WriteProjectInfo_TestProject_WildcardNoMatchDirName_Default()
+        {
+            // Check the default wildcard matching does not include projects where "tests"
+            // is part of the directory name, but not the whole name
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs\\XXtests\\foo\\");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "foo.proj");
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+            // Assert
+            AssertIsProductProject(projectInfo);
+        }
+
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
         public void WriteProjectInfo_TestProject_WildcardMatch_UserSpecified_Match()
         {
             // Check user-specified wildcard matching
@@ -220,7 +287,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
         [TestCategory("Lists")]
         public void WriteProjectInfo_ManagedCompileList_NoFiles()
         {
-            // The managed file list should not be created if there are no files to compil
+            // The managed file list should not be created if there are no files to compile
 
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
