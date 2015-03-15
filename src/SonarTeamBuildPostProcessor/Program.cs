@@ -34,6 +34,19 @@ namespace SonarTeamBuildPostProcessor
 
             SummaryReportBuilder.WriteSummaryReport(context);
 
+            using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(context.TfsUri, context.BuildUri))
+            {
+                // TODO: pass in required info
+                string sonarUrl = "www.sonarsource.com";
+                if (context.SonarRunnerPropertiesPath != null)
+                {
+                    ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(context.SonarRunnerPropertiesPath);
+                    propertyProvider.GetProperty(SonarProperties.HostUrl);
+                }
+                summaryLogger.WriteMessage("Sonar project: {0}", context.SonarProjectName);
+                summaryLogger.WriteMessage("[Analysis results] ({0})", sonarUrl);
+            }
+
             if (!success)
             {
                 return ErrorCode;
