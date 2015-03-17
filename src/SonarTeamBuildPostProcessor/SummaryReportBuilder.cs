@@ -60,7 +60,7 @@ namespace Sonar.TeamBuild.PostProcessor
             AppendFileList(testProjects, sb);
 
             string reportFileName = Path.Combine(context.SonarOutputDir, ReportFileName);
-            logger.LogMessage("Writing post-processing summary to {0}", reportFileName);
+            logger.LogMessage(Resources.DIAG_WritingSummary, reportFileName);
             File.WriteAllText(reportFileName, sb.ToString());
         }
 

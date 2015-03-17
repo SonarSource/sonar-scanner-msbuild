@@ -117,10 +117,46 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CONV_DIAG_CommandLineToolInfo" xml:space="preserve">
+    <value>Code coverage command line tool: {0}</value>
+  </data>
+  <data name="CONV_ERROR_FailToFindConversionTool" xml:space="preserve">
+    <value>Failed to locate the code coverage command line tool</value>
+  </data>
+  <data name="DOWN_DIAG_DownloadCoverageReportFromTo" xml:space="preserve">
+    <value>Downloading coverage file from {0} t0 {1}</value>
+  </data>
   <data name="MissingEnvironmentVariable" xml:space="preserve">
     <value>Required environment variable could not be found: {0}</value>
   </data>
+  <data name="PROC_DIAG_FetchingCoverageReportInfoFromServer" xml:space="preserve">
+    <value>Fetching code coverage report information from TFS...</value>
+  </data>
+  <data name="PROC_DIAG_NoCodeCoverageReportsFound" xml:space="preserve">
+    <value>No code coverage reports were found for the current build.</value>
+  </data>
+  <data name="PROC_DIAG_UpdatingProjectInfoFiles" xml:space="preserve">
+    <value>Updating project info files with code coverage information...</value>
+  </data>
+  <data name="PROC_ERROR_MultipleCodeCoverageReportsFound" xml:space="preserve">
+    <value>More than one code coverage result file was created. Only one report can be uploaded to Sonar. Please modify the build definition so either Sonar analysis is disabled or the only platform/flavor is built</value>
+  </data>
   <data name="SonarSummarySectionHeader" xml:space="preserve">
     <value>Sonar Analysis Summary</value>
+  </data>
+  <data name="URL_DIAG_ConnectingToTfs" xml:space="preserve">
+    <value>Connecting to TFS...</value>
+  </data>
+  <data name="URL_DIAG_CoverageReportInfo" xml:space="preserve">
+    <value>Coverage Id: {0}, Platform {1}, Flavor {2}</value>
+  </data>
+  <data name="URL_DIAG_FetchingBuildInfo" xml:space="preserve">
+    <value>Fetching build information...</value>
+  </data>
+  <data name="URL_DIAG_FetchingCoverageReportInfo" xml:space="preserve">
+    <value>Fetch code coverage report info...</value>
+  </data>
+  <data name="URL_DIAG_Finished" xml:space="preserve">
+    <value>...done.</value>
   </data>
 </root>

@@ -61,6 +61,33 @@ namespace Sonar.TeamBuild.Integration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code coverage command line tool: {0}.
+        /// </summary>
+        internal static string CONV_DIAG_CommandLineToolInfo {
+            get {
+                return ResourceManager.GetString("CONV_DIAG_CommandLineToolInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to locate the code coverage command line tool.
+        /// </summary>
+        internal static string CONV_ERROR_FailToFindConversionTool {
+            get {
+                return ResourceManager.GetString("CONV_ERROR_FailToFindConversionTool", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading coverage file from {0} t0 {1}.
+        /// </summary>
+        internal static string DOWN_DIAG_DownloadCoverageReportFromTo {
+            get {
+                return ResourceManager.GetString("DOWN_DIAG_DownloadCoverageReportFromTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Required environment variable could not be found: {0}.
         /// </summary>
         internal static string MissingEnvironmentVariable {
@@ -70,11 +97,92 @@ namespace Sonar.TeamBuild.Integration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fetching code coverage report information from TFS....
+        /// </summary>
+        internal static string PROC_DIAG_FetchingCoverageReportInfoFromServer {
+            get {
+                return ResourceManager.GetString("PROC_DIAG_FetchingCoverageReportInfoFromServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No code coverage reports were found for the current build..
+        /// </summary>
+        internal static string PROC_DIAG_NoCodeCoverageReportsFound {
+            get {
+                return ResourceManager.GetString("PROC_DIAG_NoCodeCoverageReportsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating project info files with code coverage information....
+        /// </summary>
+        internal static string PROC_DIAG_UpdatingProjectInfoFiles {
+            get {
+                return ResourceManager.GetString("PROC_DIAG_UpdatingProjectInfoFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to More than one code coverage result file was created. Only one report can be uploaded to Sonar. Please modify the build definition so either Sonar analysis is disabled or the only platform/flavor is built.
+        /// </summary>
+        internal static string PROC_ERROR_MultipleCodeCoverageReportsFound {
+            get {
+                return ResourceManager.GetString("PROC_ERROR_MultipleCodeCoverageReportsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sonar Analysis Summary.
         /// </summary>
         internal static string SonarSummarySectionHeader {
             get {
                 return ResourceManager.GetString("SonarSummarySectionHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connecting to TFS....
+        /// </summary>
+        internal static string URL_DIAG_ConnectingToTfs {
+            get {
+                return ResourceManager.GetString("URL_DIAG_ConnectingToTfs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Coverage Id: {0}, Platform {1}, Flavor {2}.
+        /// </summary>
+        internal static string URL_DIAG_CoverageReportInfo {
+            get {
+                return ResourceManager.GetString("URL_DIAG_CoverageReportInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetching build information....
+        /// </summary>
+        internal static string URL_DIAG_FetchingBuildInfo {
+            get {
+                return ResourceManager.GetString("URL_DIAG_FetchingBuildInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetch code coverage report info....
+        /// </summary>
+        internal static string URL_DIAG_FetchingCoverageReportInfo {
+            get {
+                return ResourceManager.GetString("URL_DIAG_FetchingCoverageReportInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ...done..
+        /// </summary>
+        internal static string URL_DIAG_Finished {
+            get {
+                return ResourceManager.GetString("URL_DIAG_Finished", resourceCulture);
             }
         }
     }

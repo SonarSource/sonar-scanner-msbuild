@@ -70,6 +70,15 @@ namespace Sonar.TeamBuild.PostProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Writing post-processing summary to {0}.
+        /// </summary>
+        internal static string DIAG_WritingSummary {
+            get {
+                return ResourceManager.GetString("DIAG_WritingSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sonar analysis could not be completed because the analysis configuration file could not be found.
         ///Expected location: {0}.
         /// </summary>

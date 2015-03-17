@@ -120,6 +120,9 @@
   <data name="DIAG_LoadingConfig" xml:space="preserve">
     <value>Loading the Sonar analysis config from {0}</value>
   </data>
+  <data name="DIAG_WritingSummary" xml:space="preserve">
+    <value>Writing post-processing summary to {0}</value>
+  </data>
   <data name="ERROR_ConfigFileNotFound" xml:space="preserve">
     <value>Sonar analysis could not be completed because the analysis configuration file could not be found.
 Expected location: {0}</value>

@@ -130,10 +130,10 @@
     <value>Generating the FxCop ruleset...</value>
   </data>
   <data name="DIAG_ProcessingCommandLine" xml:space="preserve">
-    <value>Processing command line and environment variables...</value>
+    <value>Processing command line and environment variables</value>
   </data>
   <data name="DIAG_SavingConfigFile" xml:space="preserve">
-    <value>Saving the config file to {0}...</value>
+    <value>Saving the config file to {0}</value>
   </data>
   <data name="ERROR_CannotPerformProcessing" xml:space="preserve">
     <value>Sonar pre-processing cannot be performed - required settings are missing</value>

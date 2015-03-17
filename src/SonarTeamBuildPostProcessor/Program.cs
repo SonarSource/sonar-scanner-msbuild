@@ -31,25 +31,12 @@ namespace Sonar.TeamBuild.PostProcessor
             CoverageReportProcessor coverageProcessor = new CoverageReportProcessor();
             bool success = coverageProcessor.ProcessCoverageReports(config, logger);
 
-            SummaryReportBuilder.WriteSummaryReport(config, logger);
+            // TODO: Generate the properties file
 
-            using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
-            {
-                summaryLogger.WriteMessage("Sonar project: {0} ({1}), version: {2}", config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
+            // TODO: Execute the sonar-runner
 
-                // Add a link to SonarQube dashboard
-                Debug.Assert(config.SonarRunnerPropertiesPath != null, "Not expecting the sonar runner properties path to be null");
-                if (config.SonarRunnerPropertiesPath != null)
-                {
-                    ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
-                    string sonarUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                        "{0}/dashboard/index/{1}",
-                        propertyProvider.GetProperty(SonarProperties.HostUrl),
-                        config.SonarProjectKey);
-
-                    summaryLogger.WriteMessage("[Analysis results] ({0})", sonarUrl);
-                }
-            }
+            // Write summary report
+            WriteSummaryReport(config, logger);
 
             if (!success)
             {
@@ -87,5 +74,28 @@ namespace Sonar.TeamBuild.PostProcessor
             return config;
         }
 
+        private static void WriteSummaryReport(AnalysisConfig config, ILogger logger)
+        {
+            SummaryReportBuilder.WriteSummaryReport(config, logger);
+
+            using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
+            {
+                summaryLogger.WriteMessage("Sonar project: {0} ({1}), version: {2}", config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
+
+                // Add a link to SonarQube dashboard
+                Debug.Assert(config.SonarRunnerPropertiesPath != null, "Not expecting the sonar runner properties path to be null");
+                if (config.SonarRunnerPropertiesPath != null)
+                {
+                    ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
+                    string sonarUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "{0}/dashboard/index/{1}",
+                        propertyProvider.GetProperty(SonarProperties.HostUrl),
+                        config.SonarProjectKey);
+
+                    summaryLogger.WriteMessage("[Analysis results] ({0})", sonarUrl);
+                }
+            }
+
+        }
     }
 }

@@ -10,9 +10,21 @@ using System;
 
 namespace Sonar.TeamBuild.Integration
 {
+    /// <summary>
+    /// Wrapper to help write custom build summary messages
+    /// </summary>
+    /// <remarks>The class will connect to TFS when the first message is written, and
+    /// save all of the written messages to the server when the class is disposed</remarks>
     public class BuildSummaryLogger : IDisposable
     {
+        /// <summary>
+        /// The priority specifies where this summary section appears in the list of summary sections.
+        /// </summary>
         private const int SectionPriority = 200;
+
+        /// <summary>
+        /// Unique id for the section
+        /// </summary>
         private const string SectionName = "SonarTeamBuildSummary";
 
         bool disposed;
@@ -40,6 +52,9 @@ namespace Sonar.TeamBuild.Integration
             this.buildUri = buildUri;
         }
 
+        /// <summary>
+        /// Writes the custom build summary message
+        /// </summary>
         public void WriteMessage(string message, params object[] args)
         {
             if (string.IsNullOrWhiteSpace(message))

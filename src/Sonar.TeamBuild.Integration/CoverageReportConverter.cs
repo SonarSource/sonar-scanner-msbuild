@@ -45,13 +45,13 @@ namespace Sonar.TeamBuild.Integration
 
             if (this.conversionToolPath == null)
             {
-                logger.LogMessage("Failed to locate the code coverage command line tool");
+                logger.LogError(Resources.CONV_ERROR_FailToFindConversionTool);
                 success = false;
             }
             else
             {
-                Debug.Assert(File.Exists(this.conversionToolPath), "Expecting the exe to exist. Full name: " + this.conversionToolPath);
-                logger.LogMessage("Code coverage command line tool: {0}", this.conversionToolPath);
+                Debug.Assert(File.Exists(this.conversionToolPath), "Expecting the code coverage exe to exist. Full name: " + this.conversionToolPath);
+                logger.LogMessage(Resources.CONV_DIAG_CommandLineToolInfo, this.conversionToolPath);
                 success = true;
             }
             return success;

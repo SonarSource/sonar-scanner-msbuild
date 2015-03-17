@@ -18,6 +18,16 @@ namespace Sonar.TeamBuild.Integration
     internal class CoverageReportUrlProvider : ICoverageUrlProvider
     {
         /// <summary>
+        /// Length of time to spend trying to locate code coverage reports in TFS
+        /// </summary>
+        private const int TimeoutInMs = 20000;
+
+        /// <summary>
+        /// The time to wait between retry attempts
+        /// </summary>
+        private const int RetryPeriodInMs = 2000;
+
+        /// <summary>
         /// Builds and returns the download URLs for all code coverage reports for the specified build
         /// </summary>
         public IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri, ILogger logger)
@@ -37,30 +47,28 @@ namespace Sonar.TeamBuild.Integration
 
             List<string> urls = new List<string>();
 
-            logger.LogMessage("Connecting to TFS...");
+            logger.LogMessage(Resources.URL_DIAG_ConnectingToTfs);
             using (TfsTeamProjectCollection collection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(tfsUri)))
             {
                 IBuildServer buildServer = collection.GetService<IBuildServer>();
 
-                logger.LogMessage("Fetching build information ...");
+                logger.LogMessage(Resources.URL_DIAG_FetchingBuildInfo);
                 IBuildDetail build = buildServer.GetMinimalBuildDetails(new Uri(buildUri));
                 string projectName = build.TeamProject;
 
-                logger.LogMessage("Fetching coverage information...");
+                logger.LogMessage(Resources.URL_DIAG_FetchingCoverageReportInfo);
                 ITestManagementService tcm = collection.GetService<ITestManagementService>();
                 ITestManagementTeamProject testProject = tcm.GetTeamProject(projectName);
 
                 // TODO: investigate further. It looks as if we might be requesting the coverage reports
                 // before the service is able to provide them.
                 // For the time being, we're retrying with a time out.
-                int timeoutInMs = 10000;
-                int retryPeriodinMs = 2000;
                 IBuildCoverage[] coverages = null;
-                Retry(timeoutInMs, retryPeriodinMs, logger, () => { return TryGetCoverageInfo(testProject, buildUri, out coverages); });
+                Retry(TimeoutInMs, RetryPeriodInMs, logger, () => { return TryGetCoverageInfo(testProject, buildUri, out coverages); });
 
                 foreach (IBuildCoverage coverage in coverages)
                 {
-                    logger.LogMessage("Coverage Id: {0}, Platform {1}, Flavor {2}", coverage.Configuration.Id, coverage.Configuration.BuildPlatform, coverage.Configuration.BuildPlatform);
+                    logger.LogMessage(Resources.URL_DIAG_CoverageReportInfo, coverage.Configuration.Id, coverage.Configuration.BuildPlatform, coverage.Configuration.BuildPlatform);
 
                     string coverageFileUrl = CoverageReportUrlProvider.GetCoverageUri(build, coverage);
                     Debug.WriteLine(coverageFileUrl);
@@ -68,7 +76,7 @@ namespace Sonar.TeamBuild.Integration
                 }
             }
 
-            logger.LogMessage("...done.");
+            logger.LogMessage(Resources.URL_DIAG_Finished);
             return urls;
         }
 

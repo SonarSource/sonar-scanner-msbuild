@@ -37,8 +37,7 @@ namespace Sonar.TeamBuild.Integration
             WebClient myWebClient = new WebClient();
             myWebClient.UseDefaultCredentials = true;
 
-            logger.LogMessage("Download url: {0}", reportUrl);
-            logger.LogMessage("Downloading file to : {0}", newFullFileName);
+            logger.LogMessage(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, newFullFileName);
 
             myWebClient.DownloadFile(reportUrl, newFullFileName);
 

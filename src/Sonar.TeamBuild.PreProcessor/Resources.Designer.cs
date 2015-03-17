@@ -97,7 +97,7 @@ namespace Sonar.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Processing command line and environment variables....
+        ///   Looks up a localized string similar to Processing command line and environment variables.
         /// </summary>
         internal static string DIAG_ProcessingCommandLine {
             get {
@@ -106,7 +106,7 @@ namespace Sonar.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Saving the config file to {0}....
+        ///   Looks up a localized string similar to Saving the config file to {0}.
         /// </summary>
         internal static string DIAG_SavingConfigFile {
             get {

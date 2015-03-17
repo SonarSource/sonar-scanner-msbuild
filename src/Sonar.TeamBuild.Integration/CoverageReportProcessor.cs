@@ -68,7 +68,7 @@ namespace Sonar.TeamBuild.Integration
             }
 
             // Fetch all of the report URLs
-            logger.LogMessage("Fetching code coverage report URLs...");
+            logger.LogMessage(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
             IEnumerable<string> urls = this.urlProvider.GetCodeCoverageReportUrls(context.GetTfsUri(), context.GetBuildUri(), logger);
             Debug.Assert(urls != null, "Not expecting the returned list of urls to be null");
 
@@ -77,7 +77,7 @@ namespace Sonar.TeamBuild.Integration
             switch (urls.Count())
             {
                 case 0:
-                    logger.LogMessage("No code coverage reports were found for the current build.");
+                    logger.LogMessage(Resources.PROC_DIAG_NoCodeCoverageReportsFound);
                     break;
 
                 case 1:
@@ -86,7 +86,7 @@ namespace Sonar.TeamBuild.Integration
                     break;
 
                 default: // More than one
-                    logger.LogError("More than one code coverage result file was created. Only one report can be uploaded to Sonar. Please modify the build definition so either Sonar analysis is disabled or the only platform/flavor is built");
+                    logger.LogError(Resources.PROC_ERROR_MultipleCodeCoverageReportsFound);
                     result = false;
                     break;
             }
@@ -105,11 +105,11 @@ namespace Sonar.TeamBuild.Integration
          
             if (success)
             {
-                string xmlFileName = Path.ChangeExtension(targetFileName, "coveragexml");
+                string xmlFileName = Path.ChangeExtension(targetFileName, XmlReportFileExtension);
                 Debug.Assert(!File.Exists(xmlFileName), "Not expecting a file with the name of the binary-to-XML conversion output to already exist: " + xmlFileName);
                 this.converter.ConvertToXml(targetFileName, xmlFileName, logger);
 
-                logger.LogMessage("Updating project info files with code coverage information...");
+                logger.LogMessage(Resources.PROC_DIAG_UpdatingProjectInfoFiles);
                 InsertCoverageAnalysisResults(context.SonarOutputDir, xmlFileName);
             }
             return success;
