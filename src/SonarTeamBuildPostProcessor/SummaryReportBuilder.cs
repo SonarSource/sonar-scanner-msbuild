@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace SonarTeamBuildPostProcessor
+namespace Sonar.TeamBuild.PostProcessor
 {
     /// <summary>
     /// Outputs a summary report of the post-processing activities.

@@ -33,7 +33,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.FxCopRuleset.UnitTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.TeamBuild.Integration", "Sonar.TeamBuild.Integration\Sonar.TeamBuild.Integration.csproj", "{66CE9491-1C14-45D2-BEB6-A0695C63EBB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarTeamBuildPostProcessor", "SonarTeamBuildPostProcessor\SonarTeamBuildPostProcessor.csproj", "{80F02FAD-FE7E-41B6-9151-BB650FDD6103}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.TeamBuild.PostProcessor", "SonarTeamBuildPostProcessor\Sonar.TeamBuild.PostProcessor.csproj", "{80F02FAD-FE7E-41B6-9151-BB650FDD6103}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.TeamBuild.Integration.Tests", "Tests\Sonar.TeamBuild.Integration.Tests\Sonar.TeamBuild.Integration.Tests.csproj", "{D46E5A94-A9DD-4337-ADD7-2D79CB9D640A}"
 EndProject

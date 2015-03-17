@@ -10,7 +10,7 @@ using System;
 using System.Collections;
 using System.IO;
 
-namespace SonarTeamBuildPostProcessor
+namespace Sonar.TeamBuild.PostProcessor
 {
     class Program
     {

@@ -10,7 +10,7 @@
 @echo Sonar output folder = %OutputFolder%
 
 @echo Performing Sonar post-processing...
-@%~dp0\SonarTeamBuildPostProcessor.exe
+@%~dp0\Sonar.TeamBuild.PostProcessor.exe
 
 @echo Generating Sonar properties file to %OutputFolder% ...
 @%~dp0\SonarProjectPropertiesGenerator.exe %ProjectKey% %ProjectName% %ProjectVersion% %OutputFolder%
