@@ -1,15 +1,23 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="AnalysisContext.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="SonarAnalysisConfig.cs" company="SonarSource SA and Microsoft Corporation">
 //   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 // </copyright>
 //-----------------------------------------------------------------------
 
 using Sonar.Common;
+using System.Xml.Serialization;
 
 namespace Sonar.TeamBuild.Integration
 {
-    public class AnalysisContext
+    /// <summary>
+    /// Data class to describe the analysis settings for a single Sonar project
+    /// </summary>
+    /// <remarks>The class is XML-serializable</remarks>
+    [XmlRoot(Namespace = XmlNamespace)]
+    public class SonarAnalysisConfig
     {
+        public const string XmlNamespace = Sonar.Common.ProjectInfo.XmlNamespace;
+
         public string TfsUri { get; set; }
 
         public string BuildUri { get; set; }
@@ -17,8 +25,6 @@ namespace Sonar.TeamBuild.Integration
         public string SonarConfigDir { get; set; }
 
         public string SonarOutputDir { get; set; }
-
-        public ILogger Logger { get; set; }
 
         #region Sonar project properties
 

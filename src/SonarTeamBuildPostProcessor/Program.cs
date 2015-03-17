@@ -21,7 +21,7 @@ namespace SonarTeamBuildPostProcessor
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
 
             // TODO: consider using command line arguments if supplied
-            AnalysisContext context = CreateAnalysisContext(logger);
+            SonarAnalysisConfig context = CreateAnalysisContext(logger);
             if (context == null)
             {
                 logger.LogError("Sonar post-processing cannot be performed - required settings are missing");
@@ -30,9 +30,9 @@ namespace SonarTeamBuildPostProcessor
 
             // Handle code coverage reports
             CoverageReportProcessor coverageProcessor = new CoverageReportProcessor();
-            bool success = coverageProcessor.ProcessCoverageReports(context);
+            bool success = coverageProcessor.ProcessCoverageReports(context, logger);
 
-            SummaryReportBuilder.WriteSummaryReport(context);
+            SummaryReportBuilder.WriteSummaryReport(context, logger);
 
             using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(context.TfsUri, context.BuildUri))
             {
@@ -55,9 +55,9 @@ namespace SonarTeamBuildPostProcessor
             return 0;
         }
 
-        private static AnalysisContext CreateAnalysisContext(ILogger logger)
+        private static SonarAnalysisConfig CreateAnalysisContext(ILogger logger)
         {
-            AnalysisContext context = new AnalysisContext();
+            SonarAnalysisConfig context = new SonarAnalysisConfig();
 
             CheckRequiredEnvironmentVariablesExist(logger,
                 TeamBuildEnvironmentVariables.TfsCollectionUri,
@@ -72,7 +72,6 @@ namespace SonarTeamBuildPostProcessor
             context.SonarConfigDir = Path.Combine(rootBuildDir, "SonarTemp", "Config");
             context.SonarOutputDir = Path.Combine(rootBuildDir, "SonarTemp", "Output");
 
-            context.Logger = logger;
             return context;
         }
 

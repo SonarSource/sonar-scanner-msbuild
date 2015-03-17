@@ -13,7 +13,7 @@ namespace Sonar.TeamBuild.Integration
     public class BuildSummaryLogger : IDisposable
     {
         private const int SectionPriority = 200;
-        private const string SectionName = "SonarBuildSummary";
+        private const string SectionName = "SonarTeamBuildSummary";
 
         bool disposed;
 

@@ -6,6 +6,7 @@
 
 using Sonar.Common;
 using Sonar.TeamBuild.Integration;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -20,8 +21,17 @@ namespace SonarTeamBuildPostProcessor
     {
         private const string ReportFileName = "PostProcessingSummary.log";
 
-        public static void WriteSummaryReport(AnalysisContext context)
+        public static void WriteSummaryReport(SonarAnalysisConfig context, ILogger logger)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException("context");
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+            
             StringBuilder sb = new StringBuilder();
 
             List<string> testProjects = new List<string>();
@@ -50,7 +60,7 @@ namespace SonarTeamBuildPostProcessor
             AppendFileList(testProjects, sb);
 
             string reportFileName = Path.Combine(context.SonarOutputDir, ReportFileName);
-            context.Logger.LogMessage("Writing post-processing summary to {0}", reportFileName);
+            logger.LogMessage("Writing post-processing summary to {0}", reportFileName);
             File.WriteAllText(reportFileName, sb.ToString());
         }
 

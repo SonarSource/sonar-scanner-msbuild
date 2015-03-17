@@ -43,12 +43,12 @@ namespace Sonar.TeamBuild.Integration.Tests
             MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1 } };
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = false };
-            AnalysisContext context = this.CreateValidContext();
+            SonarAnalysisConfig context = this.CreateValidContext();
 
             CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context);
+            bool result = processor.ProcessCoverageReports(context, new ConsoleLogger());
 
             // Assert
             urlProvider.AssertGetUrlsNotCalled();
@@ -65,12 +65,12 @@ namespace Sonar.TeamBuild.Integration.Tests
             MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { } };
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
-            AnalysisContext context = this.CreateValidContext();
+            SonarAnalysisConfig context = this.CreateValidContext();
 
             CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context);
+            bool result = processor.ProcessCoverageReports(context, new ConsoleLogger());
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -88,12 +88,12 @@ namespace Sonar.TeamBuild.Integration.Tests
             MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1, ValidUrl2 } };
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
-            AnalysisContext context = this.CreateValidContext();
+            SonarAnalysisConfig context = this.CreateValidContext();
 
             CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context);
+            bool result = processor.ProcessCoverageReports(context, new ConsoleLogger());
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -112,14 +112,14 @@ namespace Sonar.TeamBuild.Integration.Tests
             MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1} };
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
-            AnalysisContext context = this.CreateValidContext();
+            SonarAnalysisConfig context = this.CreateValidContext();
 
             CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
 
             // TODO - download failure should raise an exception
 
             // Act
-            bool result = processor.ProcessCoverageReports(context);
+            bool result = processor.ProcessCoverageReports(context, new ConsoleLogger());
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -139,14 +139,14 @@ namespace Sonar.TeamBuild.Integration.Tests
             MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl2 } };
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
-            AnalysisContext context = this.CreateValidContext();
+            SonarAnalysisConfig context = this.CreateValidContext();
 
             downloader.CreateFileOnDownloadRequest = true;
 
             CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context);
+            bool result = processor.ProcessCoverageReports(context, new ConsoleLogger());
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -162,11 +162,10 @@ namespace Sonar.TeamBuild.Integration.Tests
 
         #region Private methods
 
-        private AnalysisContext CreateValidContext()
+        private SonarAnalysisConfig CreateValidContext()
         {
-            AnalysisContext context = new AnalysisContext()
+            SonarAnalysisConfig context = new SonarAnalysisConfig()
             {
-                Logger = new ConsoleLogger(),
                 SonarOutputDir = this.TestContext.DeploymentDirectory, // tests can write to this directory
                 SonarConfigDir = this.TestContext.TestRunResultsDirectory, // we don't read anything from this directory, we just want it to be different from the output directory
             };

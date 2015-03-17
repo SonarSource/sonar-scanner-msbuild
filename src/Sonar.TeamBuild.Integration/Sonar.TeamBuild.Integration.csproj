@@ -43,7 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnalysisContext.cs" />
+    <Compile Include="SonarAnalysisConfig.cs" />
     <Compile Include="AssemblyFriends.cs" />
     <Compile Include="BuildSummaryLogger.cs" />
     <Compile Include="CoverageReportConverter.cs" />

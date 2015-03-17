@@ -49,17 +49,18 @@ namespace Sonar.TeamBuild.Integration
 
         #region Public methods
 
-        public bool ProcessCoverageReports(AnalysisContext context)
+        public bool ProcessCoverageReports(SonarAnalysisConfig context, ILogger logger)
         {
             if (context == null)
             {
                 throw new ArgumentNullException("context");
             }
-
-            ILogger logger = context.Logger;
-            Debug.Assert(logger != null, "Not expecting the logger to be null");
-
-            if (!this.converter.Initialize(context.Logger))
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+            
+            if (!this.converter.Initialize(logger))
             {
                 // If we can't initialize the converter (e.g. we can't find the exe required to do the
                 // conversion) there in there isn't any point in downloading the binary reports
@@ -81,7 +82,7 @@ namespace Sonar.TeamBuild.Integration
 
                 case 1:
                     string url = urls.First();
-                    result = ProcessCodeCoverageReport(url, context);
+                    result = ProcessCodeCoverageReport(url, context, logger);
                     break;
 
                 default: // More than one
@@ -97,18 +98,18 @@ namespace Sonar.TeamBuild.Integration
 
         #region Private methods
 
-        private bool ProcessCodeCoverageReport(string reportUrl, AnalysisContext context)
+        private bool ProcessCodeCoverageReport(string reportUrl, SonarAnalysisConfig context, ILogger logger)
         {
             string targetFileName = Path.Combine(context.SonarOutputDir, DownloadFileName);
-            bool success = this.downloader.DownloadReport(reportUrl, targetFileName, context.Logger);
+            bool success = this.downloader.DownloadReport(reportUrl, targetFileName, logger);
          
             if (success)
             {
                 string xmlFileName = Path.ChangeExtension(targetFileName, "coveragexml");
                 Debug.Assert(!File.Exists(xmlFileName), "Not expecting a file with the name of the binary-to-XML conversion output to already exist: " + xmlFileName);
-                this.converter.ConvertToXml(targetFileName, xmlFileName, context.Logger);
+                this.converter.ConvertToXml(targetFileName, xmlFileName, logger);
 
-                context.Logger.LogMessage("Updating project info files with code coverage information...");
+                logger.LogMessage("Updating project info files with code coverage information...");
                 InsertCoverageAnalysisResults(context.SonarOutputDir, xmlFileName);
             }
             return success;
