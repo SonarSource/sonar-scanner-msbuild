@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.TeamBuild.PostProcess
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.TeamBuild.Integration.Tests", "Tests\Sonar.TeamBuild.Integration.Tests\Sonar.TeamBuild.Integration.Tests.csproj", "{D46E5A94-A9DD-4337-ADD7-2D79CB9D640A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.TeamBuild.PreProcessor", "Sonar.TeamBuild.PreProcessor\Sonar.TeamBuild.PreProcessor.csproj", "{F43364BB-E460-4AC4-87E9-DE460A9F55F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,6 +97,10 @@ Global
 		{D46E5A94-A9DD-4337-ADD7-2D79CB9D640A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D46E5A94-A9DD-4337-ADD7-2D79CB9D640A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D46E5A94-A9DD-4337-ADD7-2D79CB9D640A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F43364BB-E460-4AC4-87E9-DE460A9F55F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F43364BB-E460-4AC4-87E9-DE460A9F55F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F43364BB-E460-4AC4-87E9-DE460A9F55F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F43364BB-E460-4AC4-87E9-DE460A9F55F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
