@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D46E5A94-A9DD-4337-ADD7-2D79CB9D640A}</ProjectGuid>
+    <ProjectGuid>{81E8D103-270F-4363-87D1-72BE7FC4F94A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sonar.TeamBuild.Integration.Tests</RootNamespace>
-    <AssemblyName>Sonar.TeamBuild.Integration.Tests</AssemblyName>
+    <RootNamespace>Sonar.TeamBuild.PreProcessor.Tests</RootNamespace>
+    <AssemblyName>Sonar.TeamBuild.PreProcessor.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -50,12 +50,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="CoverageReportProcessorTests.cs" />
-    <Compile Include="Infrastructure\MockReportDownloader.cs" />
-    <Compile Include="Infrastructure\MockReportConverter.cs" />
-    <Compile Include="Infrastructure\MockReportUrlProvider.cs" />
+    <Compile Include="PreProcessorExecutionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TeamBuildSettingsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Sonar.Common\Sonar.Common.csproj">
@@ -65,6 +61,10 @@
     <ProjectReference Include="..\..\Sonar.TeamBuild.Integration\Sonar.TeamBuild.Integration.csproj">
       <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>
       <Name>Sonar.TeamBuild.Integration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Sonar.TeamBuild.PreProcessor\Sonar.TeamBuild.PreProcessor.csproj">
+      <Project>{f43364bb-e460-4ac4-87e9-de460a9f55f5}</Project>
+      <Name>Sonar.TeamBuild.PreProcessor</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj">
       <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>

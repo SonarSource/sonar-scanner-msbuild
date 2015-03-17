@@ -4,12 +4,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sonar.Common;
+using System.Collections.Generic;
 
 namespace TestUtilities
 {
@@ -26,6 +23,22 @@ namespace TestUtilities
             Errors = new List<string>();
         }
 
+        #region Public methods
+
+        public void AssertErrorsLogged(int expectedCount)
+        {
+            Assert.AreEqual(expectedCount, this.Errors.Count, "Unexpected number of errors logged");
+        }
+
+        public void AssertWarningsLogged(int expectedCount)
+        {
+            Assert.AreEqual(expectedCount, this.Warnings.Count, "Unexpected number of warnings logged");
+        }
+
+        #endregion
+
+        #region ILogger interface
+
         public void LogMessage(string message, params object[] args)
         {
             Messages.Add(GetFormattedMessage(message, args));
@@ -40,6 +53,8 @@ namespace TestUtilities
         {
             Errors.Add(GetFormattedMessage(message, args));
         }
+
+        #endregion
 
         private string GetFormattedMessage(string message, params object[] args)
         {

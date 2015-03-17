@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="TeamBuildConfigSettings.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="TeamBuildAnalysisSettings.cs" company="SonarSource SA and Microsoft Corporation">
 //   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 // </copyright>
 //-----------------------------------------------------------------------
@@ -11,7 +11,7 @@ namespace Sonar.TeamBuild.Integration
     /// <summary>
     /// Helper class to provide strongly-typed extension methods to access TFS-specific analysis settings
     /// </summary>
-    public static class TeamBuildConfigSettings
+    public static class TeamBuildAnalysisSettings
     {
         internal const string TfsUriSettingId = "TfsUri";
         internal const string BuildUriSettingId = "BuildUri";

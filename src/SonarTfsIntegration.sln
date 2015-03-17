@@ -39,6 +39,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.TeamBuild.Integration
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.TeamBuild.PreProcessor", "Sonar.TeamBuild.PreProcessor\Sonar.TeamBuild.PreProcessor.csproj", "{F43364BB-E460-4AC4-87E9-DE460A9F55F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.TeamBuild.PreProcessor.Tests", "Tests\Sonar.TeamBuild.PreProcessor.Tests\Sonar.TeamBuild.PreProcessor.Tests.csproj", "{81E8D103-270F-4363-87D1-72BE7FC4F94A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +103,10 @@ Global
 		{F43364BB-E460-4AC4-87E9-DE460A9F55F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F43364BB-E460-4AC4-87E9-DE460A9F55F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F43364BB-E460-4AC4-87E9-DE460A9F55F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81E8D103-270F-4363-87D1-72BE7FC4F94A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81E8D103-270F-4363-87D1-72BE7FC4F94A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81E8D103-270F-4363-87D1-72BE7FC4F94A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81E8D103-270F-4363-87D1-72BE7FC4F94A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -113,5 +119,6 @@ Global
 		{A74AA08B-58D3-4B52-BC40-3A4F9A997705} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{067CCA0B-6CE8-4791-9A3C-85F7E0F6E471} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{D46E5A94-A9DD-4337-ADD7-2D79CB9D640A} = {E04A4D31-AC10-4F56-9678-5D538932578C}
+		{81E8D103-270F-4363-87D1-72BE7FC4F94A} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 	EndGlobalSection
 EndGlobal

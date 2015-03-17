@@ -6,17 +6,13 @@
 
 using Sonar.Common;
 using Sonar.TeamBuild.Integration;
-using System;
-using System.Collections;
 using System.IO;
 
 namespace Sonar.TeamBuild.PreProcessor
 {
-    class Program
+    internal class Program
     {
         private const int ErrorCode = 1;
-
-        private const string ConfigFileName = "SonarAnalysisConfig.xml";
 
         static int Main(string[] args)
         {
@@ -24,12 +20,24 @@ namespace Sonar.TeamBuild.PreProcessor
 
             // Process the input args
             logger.LogMessage(Resources.Diag_ProcessingCommandLine);
-            AnalysisConfig config = CreateAnalysisContext(logger, args);
-            if (config == null)
+
+            AnalysisConfig config = new AnalysisConfig();
+            bool validArgs = ProcessCommandLineArgs(logger, config, args);
+
+            TeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+
+            // We're checking the args and environment variables so we can report all
+            // config errors to the user at once
+            if (teamBuildSettings == null || !validArgs)
             {
                 logger.LogError(Resources.Error_CannotPerformProcessing);
                 return ErrorCode;
             }
+
+            config.SetBuildUri(teamBuildSettings.BuildUri);
+            config.SetTfsUri(teamBuildSettings.TfsUri);
+            config.SonarConfigDir = teamBuildSettings.SonarConfigDir;
+            config.SonarOutputDir = teamBuildSettings.SonarOutputDir;
 
             // Create the directories
             logger.LogMessage(Resources.Diag_CreatingFolders);
@@ -37,55 +45,10 @@ namespace Sonar.TeamBuild.PreProcessor
             EnsureEmptyDirectory(logger, config.SonarOutputDir);
 
             // Save the config file
-            string configFile = Path.Combine(config.SonarConfigDir, ConfigFileName);
-            logger.LogMessage(Resources.Diag_SavingConfigFile, configFile);
-            config.Save(configFile);
+            logger.LogMessage(Resources.Diag_SavingConfigFile, teamBuildSettings.AnalysisConfigFilePath);
+            config.Save(teamBuildSettings.AnalysisConfigFilePath);
 
             return 0;
-        }
-
-        private static AnalysisConfig CreateAnalysisContext(ILogger logger, string[] args)
-        {
-            AnalysisConfig context = new AnalysisConfig();
-
-            CheckRequiredEnvironmentVariablesExist(logger,
-                TeamBuildEnvironmentVariables.TfsCollectionUri,
-                TeamBuildEnvironmentVariables.BuildDirectory,
-                TeamBuildEnvironmentVariables.BuildUri);
-
-            bool commandLineOk = ProcessCommandLineArgs(logger, context, args);
-            if (!commandLineOk)
-            {
-                return null;
-            }
-
-            // TODO: validate environment variables
-            context.SetBuildUri(Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri));
-            context.SetTfsUri(Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.TfsCollectionUri));
-            string rootBuildDir = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildDirectory);
-
-            context.SonarConfigDir = Path.Combine(rootBuildDir, "SonarTemp", "Config");
-            context.SonarOutputDir = Path.Combine(rootBuildDir, "SonarTemp", "Output");
-
-            return context;
-        }
-
-        private static bool CheckRequiredEnvironmentVariablesExist(ILogger logger, params string[] required)
-        {
-            IDictionary allVars = Environment.GetEnvironmentVariables();
-
-            bool allFound = true;
-            foreach (string requiredVar in required)
-            {
-                string value = allVars[requiredVar] as string;
-                if (value == null || string.IsNullOrEmpty(value))
-                {
-                    logger.LogError("Required environment variable could not be found: {0}", requiredVar);
-                    allFound = false;
-                }
-            }
-
-            return allFound;
         }
 
         private static bool ProcessCommandLineArgs(ILogger logger, AnalysisConfig config, string[] args)

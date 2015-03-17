@@ -6,8 +6,7 @@
 
 using Sonar.Common;
 using Sonar.TeamBuild.Integration;
-using System;
-using System.Collections;
+using System.Diagnostics;
 using System.IO;
 
 namespace Sonar.TeamBuild.PostProcessor
@@ -21,10 +20,10 @@ namespace Sonar.TeamBuild.PostProcessor
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
 
             // TODO: consider using command line arguments if supplied
-            AnalysisConfig config = CreateAnalysisContext(logger);
+            AnalysisConfig config = GetAnalysisConfig(logger);
             if (config == null)
             {
-                logger.LogError("Sonar post-processing cannot be performed - required settings are missing");
+                logger.LogError(Resources.ERROR_MissingSettings);
                 return ErrorCode;
             }
 
@@ -36,15 +35,20 @@ namespace Sonar.TeamBuild.PostProcessor
 
             using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
             {
-                // TODO: pass in required info
-                string sonarUrl = "www.sonarsource.com";
+                summaryLogger.WriteMessage("Sonar project: {0} ({1}), version: {2}", config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
+
+                // Add a link to SonarQube dashboard
+                Debug.Assert(config.SonarRunnerPropertiesPath != null, "Not expecting the sonar runner properties path to be null");
                 if (config.SonarRunnerPropertiesPath != null)
                 {
                     ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
-                    propertyProvider.GetProperty(SonarProperties.HostUrl);
+                    string sonarUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "{0}/dashboard/index/{1}",
+                        propertyProvider.GetProperty(SonarProperties.HostUrl),
+                        config.SonarProjectKey);
+
+                    summaryLogger.WriteMessage("[Analysis results] ({0})", sonarUrl);
                 }
-                summaryLogger.WriteMessage("Sonar project: {0}", config.SonarProjectName);
-                summaryLogger.WriteMessage("[Analysis results] ({0})", sonarUrl);
             }
 
             if (!success)
@@ -55,42 +59,32 @@ namespace Sonar.TeamBuild.PostProcessor
             return 0;
         }
 
-        private static AnalysisConfig CreateAnalysisContext(ILogger logger)
+        /// <summary>
+        /// Attempts to load the analysis config file. The location of the file is
+        /// calculated from TeamBuild-specific environment variables.
+        /// Returns null if the required environment variables are not available.
+        /// </summary>
+        private static AnalysisConfig GetAnalysisConfig(ILogger logger)
         {
-            AnalysisConfig context = new AnalysisConfig();
+            AnalysisConfig config = null;
 
-            CheckRequiredEnvironmentVariablesExist(logger,
-                TeamBuildEnvironmentVariables.TfsCollectionUri,
-                TeamBuildEnvironmentVariables.BuildDirectory,
-                TeamBuildEnvironmentVariables.BuildUri);
-
-            // TODO: validate environment variables
-            context.SetBuildUri(Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri));
-            context.SetTfsUri(Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.TfsCollectionUri));
-            string rootBuildDir = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildDirectory);
-
-            context.SonarConfigDir = Path.Combine(rootBuildDir, "SonarTemp", "Config");
-            context.SonarOutputDir = Path.Combine(rootBuildDir, "SonarTemp", "Output");
-
-            return context;
-        }
-
-        private static bool CheckRequiredEnvironmentVariablesExist(ILogger logger, params string[] required)
-        {
-            IDictionary allVars = Environment.GetEnvironmentVariables();
-
-            bool allFound = true;
-            foreach (string requiredVar in required)
+            TeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+            if (teamBuildSettings != null)
             {
-                string value = allVars[requiredVar] as string;
-                if (value == null || string.IsNullOrEmpty(value))
+                string configFilePath = teamBuildSettings.AnalysisConfigFilePath;
+                Debug.Assert(!string.IsNullOrWhiteSpace(configFilePath), "Expecting the analysis config file path to be set");
+
+                if (File.Exists(configFilePath))
                 {
-                    logger.LogError("Required environment variable could not be found: {0}", requiredVar);
-                    allFound = false;
+                    logger.LogMessage(Resources.DIAG_LoadingConfig, configFilePath);
+                    config = AnalysisConfig.Load(teamBuildSettings.AnalysisConfigFilePath);
+                }
+                else
+                {
+                    logger.LogError(Resources.ERROR_ConfigFileNotFound, configFilePath);
                 }
             }
-
-            return allFound;
+            return config;
         }
 
     }

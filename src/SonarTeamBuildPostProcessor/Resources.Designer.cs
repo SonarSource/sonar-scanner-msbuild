@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Sonar.TeamBuild.Integration {
+namespace Sonar.TeamBuild.PostProcessor {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Sonar.TeamBuild.Integration {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Sonar.TeamBuild.Integration.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Sonar.TeamBuild.PostProcessor.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,20 +61,30 @@ namespace Sonar.TeamBuild.Integration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Required environment variable could not be found: {0}.
+        ///   Looks up a localized string similar to Loading the Sonar analysis config from {0}.
         /// </summary>
-        internal static string MissingEnvironmentVariable {
+        internal static string DIAG_LoadingConfig {
             get {
-                return ResourceManager.GetString("MissingEnvironmentVariable", resourceCulture);
+                return ResourceManager.GetString("DIAG_LoadingConfig", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sonar Analysis Summary.
+        ///   Looks up a localized string similar to Sonar analysis could not be completed because the analysis configuration file could not be found.
+        ///Expected location: {0}.
         /// </summary>
-        internal static string SonarSummarySectionHeader {
+        internal static string ERROR_ConfigFileNotFound {
             get {
-                return ResourceManager.GetString("SonarSummarySectionHeader", resourceCulture);
+                return ResourceManager.GetString("ERROR_ConfigFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sonar post-processing cannot be performed - required settings are missing.
+        /// </summary>
+        internal static string ERROR_MissingSettings {
+            get {
+                return ResourceManager.GetString("ERROR_MissingSettings", resourceCulture);
             }
         }
     }
