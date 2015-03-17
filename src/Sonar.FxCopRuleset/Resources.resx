@@ -117,32 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="DIAG_CreatingDirectory" xml:space="preserve">
-    <value>Creating directory: {0}</value>
-  </data>
-  <data name="DIAG_CreatingFolders" xml:space="preserve">
-    <value>Creating config and output folders...</value>
-  </data>
-  <data name="DIAG_DeletingDirectory" xml:space="preserve">
-    <value>Removing the existing directory: {0}</value>
-  </data>
-  <data name="DIAG_GeneratingRuleset" xml:space="preserve">
-    <value>Generating the FxCop ruleset...</value>
-  </data>
-  <data name="DIAG_ProcessingCommandLine" xml:space="preserve">
-    <value>Processing command line and environment variables...</value>
-  </data>
-  <data name="DIAG_SavingConfigFile" xml:space="preserve">
-    <value>Saving the config file to {0}...</value>
-  </data>
-  <data name="ERROR_CannotPerformProcessing" xml:space="preserve">
-    <value>Sonar pre-processing cannot be performed - required settings are missing</value>
+  <data name="ERROR_DuplicateCheckId" xml:space="preserve">
+    <value>The following CheckId should not appear multiple times: {0}</value>
   </data>
   <data name="ERROR_InvalidCommandLineArgs" xml:space="preserve">
-    <value>Expecting four command line arguments:
-- Sonar project key
-- Sonar project name
-- Sonar project version
-- full path the sonar-runner.properties file</value>
+    <value>Invalid command line arguments. Expecting to be called with exactly 3 arguments:
+  1) Path to sonar-runner.properties
+  2) SonarQube Project Key
+  3) Dump path</value>
   </data>
 </root>

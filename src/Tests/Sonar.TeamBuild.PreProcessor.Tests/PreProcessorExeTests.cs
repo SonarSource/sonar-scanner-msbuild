@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PreProcessorExecutionTests.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="PreProcessorExeTests.cs" company="SonarSource SA and Microsoft Corporation">
 //   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 // </copyright>
 //-----------------------------------------------------------------------
@@ -15,9 +15,8 @@ using TestUtilities;
 namespace Sonar.TeamBuild.PreProcessor.Tests
 {
     [TestClass]
-    public class PreProcessorExecutionTests
+    public class PreProcessorExeTests
     {
-
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -27,7 +26,7 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
         {
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            using (CreateValidScope("tfs uri", "build uri", testDir))
+            using (PreprocessTestUtils.CreateValidScope("tfs uri", "build uri", testDir))
             {
                 // Act and assert
                 CheckExecutionFails();
@@ -44,70 +43,26 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             
             // 1. Missing tfs uri
-            using (CreateValidScope(null, "build uri", testDir))
+            using (PreprocessTestUtils.CreateValidScope(null, "build uri", testDir))
             {
                 // Act and assert
                 CheckExecutionFails("key", "name", "version", "properties");
             }
 
             // 2. Missing build uri
-            using (CreateValidScope("tfs uri", null, testDir))
+            using (PreprocessTestUtils.CreateValidScope("tfs uri", null, testDir))
             {
                 // Act and assert
                 CheckExecutionFails("key", "name", "version", "properties");
             }
 
             // 3. Missing build directory
-            using (CreateValidScope("tfs uri", "build uri", null))
+            using (PreprocessTestUtils.CreateValidScope("tfs uri", "build uri", null))
             {
                 // Act and assert
                 CheckExecutionFails("key", "name", "version", "properties");
             }
 
-        }
-
-        [TestMethod]
-        public void PreProc_ConfigFileCreated()
-        {
-            // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string expectedConfigFileName;
-            using (CreateValidScope("tfs uri", "build uri", testDir))
-            {
-                TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(new ConsoleLogger());
-                Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
-                expectedConfigFileName = settings.AnalysisConfigFilePath;
-
-                // Act
-                CheckExecutionSucceeds("key", "name", "version", "properties");
-            }
-
-            // Assert
-            Assert.IsTrue(File.Exists(expectedConfigFileName), "Config file does not exist: {0}", expectedConfigFileName);
-            AnalysisConfig config = AnalysisConfig.Load(expectedConfigFileName);
-            Assert.IsTrue(Directory.Exists(config.SonarOutputDir), "Output directory was not created: {0}", config.SonarOutputDir);
-            Assert.IsTrue(Directory.Exists(config.SonarConfigDir), "Config directory was not created: {0}", config.SonarConfigDir);
-            Assert.AreEqual("key", config.SonarProjectKey);
-            Assert.AreEqual("name", config.SonarProjectName);
-            Assert.AreEqual("version", config.SonarProjectVersion);
-            Assert.AreEqual("properties", config.SonarRunnerPropertiesPath);
-        }
-
-        #endregion
-
-        #region Private methods
-
-        /// <summary>
-        /// Creates and returns an environment scope that contains all of the required
-        /// TeamBuild environment variables
-        /// </summary>
-        private static EnvironmentVariableScope CreateValidScope(string tfsUri, string buildUri, string buildDir)
-        {
-            EnvironmentVariableScope scope = new EnvironmentVariableScope();
-            scope.AddVariable(TeamBuildSettings.TeamBuildEnvironmentVariables.TfsCollectionUri, tfsUri);
-            scope.AddVariable(TeamBuildSettings.TeamBuildEnvironmentVariables.BuildUri, buildUri);
-            scope.AddVariable(TeamBuildSettings.TeamBuildEnvironmentVariables.BuildDirectory, buildDir);
-            return scope;
         }
 
         #endregion

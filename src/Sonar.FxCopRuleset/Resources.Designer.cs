@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Sonar.TeamBuild.PreProcessor {
+namespace Sonar.FxCopRuleset {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Sonar.TeamBuild.PreProcessor {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Sonar.TeamBuild.PreProcessor.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Sonar.FxCopRuleset.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,74 +61,19 @@ namespace Sonar.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Creating directory: {0}.
+        ///   Looks up a localized string similar to The following CheckId should not appear multiple times: {0}.
         /// </summary>
-        internal static string DIAG_CreatingDirectory {
+        internal static string ERROR_DuplicateCheckId {
             get {
-                return ResourceManager.GetString("DIAG_CreatingDirectory", resourceCulture);
+                return ResourceManager.GetString("ERROR_DuplicateCheckId", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Creating config and output folders....
-        /// </summary>
-        internal static string DIAG_CreatingFolders {
-            get {
-                return ResourceManager.GetString("DIAG_CreatingFolders", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Removing the existing directory: {0}.
-        /// </summary>
-        internal static string DIAG_DeletingDirectory {
-            get {
-                return ResourceManager.GetString("DIAG_DeletingDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generating the FxCop ruleset....
-        /// </summary>
-        internal static string DIAG_GeneratingRuleset {
-            get {
-                return ResourceManager.GetString("DIAG_GeneratingRuleset", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Processing command line and environment variables....
-        /// </summary>
-        internal static string DIAG_ProcessingCommandLine {
-            get {
-                return ResourceManager.GetString("DIAG_ProcessingCommandLine", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Saving the config file to {0}....
-        /// </summary>
-        internal static string DIAG_SavingConfigFile {
-            get {
-                return ResourceManager.GetString("DIAG_SavingConfigFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Sonar pre-processing cannot be performed - required settings are missing.
-        /// </summary>
-        internal static string ERROR_CannotPerformProcessing {
-            get {
-                return ResourceManager.GetString("ERROR_CannotPerformProcessing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Expecting four command line arguments:
-        ///- Sonar project key
-        ///- Sonar project name
-        ///- Sonar project version
-        ///- full path the sonar-runner.properties file.
+        ///   Looks up a localized string similar to Invalid command line arguments. Expecting to be called with exactly 3 arguments:
+        ///  1) Path to sonar-runner.properties
+        ///  2) SonarQube Project Key
+        ///  3) Dump path.
         /// </summary>
         internal static string ERROR_InvalidCommandLineArgs {
             get {

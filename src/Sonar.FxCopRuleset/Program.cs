@@ -4,31 +4,18 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.IO;
 using Sonar.Common;
+using System;
 
 namespace Sonar.FxCopRuleset
 {
     static class Program
     {
-        private const string Language = "cs";
-        private const string Repository = "fxcop";
-
         public static int Main(string[] args)
         {
             if (args.Length != 3)
             {
-                Console.WriteLine("Expected to be called with exactly 3 arguments:");
-                Console.WriteLine("  1) Path to sonar-runner.properties");
-                Console.WriteLine("  2) SonarQube Project Key");
-                Console.WriteLine("  3) Dump path");
+                Console.WriteLine(Resources.ERROR_InvalidCommandLineArgs);
                 return 1;
             }
 
@@ -39,27 +26,8 @@ namespace Sonar.FxCopRuleset
             var projectKey = args[1];
             var dumpPath = args[2];
 
-            using (SonarWebService ws = new SonarWebService(new WebClientDownloader(new WebClient(), username, password), server, Language, Repository))
-            {
-                var qualityProfile = ws.GetQualityProfile(projectKey);
-                var activeRuleKeys = ws.GetActiveRuleKeys(qualityProfile);
-                if (activeRuleKeys.Any())
-                {
-                    var internalKeys = ws.GetInternalKeys();
-                    var ids = activeRuleKeys.Select(
-                        k =>
-                        {
-                            var fullKey = Repository + ':' + k;
-                            return internalKeys.ContainsKey(fullKey) ? internalKeys[fullKey] : k;
-                        });
-
-                    File.WriteAllText(dumpPath, RulesetWriter.ToString(ids));
-                }
-                else
-                {
-                    File.Delete(dumpPath);
-                }
-            }
+            RulesetGenerator generator = new RulesetGenerator();
+            generator.Generate(projectKey, dumpPath, server, username, password);
 
             return 0;
         }

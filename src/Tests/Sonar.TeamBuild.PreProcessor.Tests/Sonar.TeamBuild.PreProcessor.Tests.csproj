@@ -50,13 +50,20 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="PreProcessorExecutionTests.cs" />
+    <Compile Include="Infrastructure\MockRulesetGenerator.cs" />
+    <Compile Include="PreProcessorExeTests.cs" />
+    <Compile Include="PreProcessorTests.cs" />
+    <Compile Include="Infrastructure\PreprocessTestUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Sonar.Common\Sonar.Common.csproj">
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>Sonar.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Sonar.FxCopRuleset\Sonar.FxCopRuleset.csproj">
+      <Project>{8d291c7a-180b-4adb-86a7-b23596517b83}</Project>
+      <Name>Sonar.FxCopRuleset</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Sonar.TeamBuild.Integration\Sonar.TeamBuild.Integration.csproj">
       <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>

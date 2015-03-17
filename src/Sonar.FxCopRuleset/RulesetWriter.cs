@@ -18,7 +18,9 @@ namespace Sonar.FxCopRuleset
             var duplicates = ids.ToList().GroupBy(id => id).Where(g => g.Count() >= 2).Select(g => g.Key);
             if (duplicates.Any())
             {
-                throw new ArgumentException("The following CheckId should not appear multiple times: " + string.Join(", ", duplicates));
+                string message = string.Format(System.Globalization.CultureInfo.CurrentCulture, 
+                    Resources.ERROR_DuplicateCheckId, string.Join(", ", duplicates));
+                throw new ArgumentException(message);
             }
 
             StringBuilder sb = new StringBuilder();
