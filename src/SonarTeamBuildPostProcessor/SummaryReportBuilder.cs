@@ -21,7 +21,7 @@ namespace Sonar.TeamBuild.PostProcessor
     {
         private const string ReportFileName = "PostProcessingSummary.log";
 
-        public static void WriteSummaryReport(SonarAnalysisConfig context, ILogger logger)
+        public static void WriteSummaryReport(AnalysisConfig context, ILogger logger)
         {
             if (context == null)
             {

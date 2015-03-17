@@ -24,7 +24,7 @@ namespace Sonar.TeamBuild.PreProcessor
 
             // Process the input args
             logger.LogMessage(Resources.Diag_ProcessingCommandLine);
-            SonarAnalysisConfig config = CreateAnalysisContext(logger, args);
+            AnalysisConfig config = CreateAnalysisContext(logger, args);
             if (config == null)
             {
                 logger.LogError(Resources.Error_CannotPerformProcessing);
@@ -44,9 +44,9 @@ namespace Sonar.TeamBuild.PreProcessor
             return 0;
         }
 
-        private static SonarAnalysisConfig CreateAnalysisContext(ILogger logger, string[] args)
+        private static AnalysisConfig CreateAnalysisContext(ILogger logger, string[] args)
         {
-            SonarAnalysisConfig context = new SonarAnalysisConfig();
+            AnalysisConfig context = new AnalysisConfig();
 
             CheckRequiredEnvironmentVariablesExist(logger,
                 TeamBuildEnvironmentVariables.TfsCollectionUri,
@@ -60,8 +60,8 @@ namespace Sonar.TeamBuild.PreProcessor
             }
 
             // TODO: validate environment variables
-            context.BuildUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri);
-            context.TfsUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.TfsCollectionUri);
+            context.SetBuildUri(Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri));
+            context.SetTfsUri(Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.TfsCollectionUri));
             string rootBuildDir = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildDirectory);
 
             context.SonarConfigDir = Path.Combine(rootBuildDir, "SonarTemp", "Config");
@@ -88,7 +88,7 @@ namespace Sonar.TeamBuild.PreProcessor
             return allFound;
         }
 
-        private static bool ProcessCommandLineArgs(ILogger logger, SonarAnalysisConfig config, string[] args)
+        private static bool ProcessCommandLineArgs(ILogger logger, AnalysisConfig config, string[] args)
         {
             if (args.Length != 4)
             {

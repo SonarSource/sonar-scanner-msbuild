@@ -102,8 +102,5 @@ namespace Sonar.Common.UnitTests
         }
 
         #endregion
-
     }
-
-
 }

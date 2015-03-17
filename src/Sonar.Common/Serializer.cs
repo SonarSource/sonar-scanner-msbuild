@@ -14,7 +14,7 @@ namespace Sonar.Common
     /// <summary>
     /// Helper class to serialize objects to and from XML
     /// </summary>
-    public static class Serializer
+    internal static class Serializer
     {
         #region Serialisation methods
 

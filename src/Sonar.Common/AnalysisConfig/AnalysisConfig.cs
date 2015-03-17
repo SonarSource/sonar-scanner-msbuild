@@ -1,27 +1,23 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SonarAnalysisConfig.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="AnalysisConfig.cs" company="SonarSource SA and Microsoft Corporation">
 //   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.Common;
 using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace Sonar.TeamBuild.Integration
+namespace Sonar.Common
 {
     /// <summary>
     /// Data class to describe the analysis settings for a single Sonar project
     /// </summary>
     /// <remarks>The class is XML-serializable</remarks>
     [XmlRoot(Namespace = XmlNamespace)]
-    public class SonarAnalysisConfig
+    public class AnalysisConfig
     {
         public const string XmlNamespace = Sonar.Common.ProjectInfo.XmlNamespace;
-
-        public string TfsUri { get; set; }
-
-        public string BuildUri { get; set; }
 
         public string SonarConfigDir { get; set; }
 
@@ -36,6 +32,11 @@ namespace Sonar.TeamBuild.Integration
         public string SonarProjectName { get; set; }
 
         public string SonarRunnerPropertiesPath { get; set; }
+
+        /// <summary>
+        /// List of additional analysis settings
+        /// </summary>
+        public List<AnalysisSetting> AdditionalSettings { get; set; }
 
         #endregion
 
@@ -54,18 +55,17 @@ namespace Sonar.TeamBuild.Integration
             Serializer.SaveModel(this, fileName);
         }
 
-
         /// <summary>
         /// Loads and returns project info from the specified XML file
         /// </summary>
-        public static SonarAnalysisConfig Load(string fileName)
+        public static AnalysisConfig Load(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException("fileName");
             }
 
-            SonarAnalysisConfig model = Serializer.LoadModel<SonarAnalysisConfig>(fileName);
+            AnalysisConfig model = Serializer.LoadModel<AnalysisConfig>(fileName);
             return model;
         }
 

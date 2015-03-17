@@ -43,7 +43,7 @@ namespace Sonar.TeamBuild.Integration.Tests
             MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1 } };
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = false };
-            SonarAnalysisConfig context = this.CreateValidContext();
+            AnalysisConfig context = this.CreateValidContext();
 
             CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
 
@@ -65,7 +65,7 @@ namespace Sonar.TeamBuild.Integration.Tests
             MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { } };
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
-            SonarAnalysisConfig context = this.CreateValidContext();
+            AnalysisConfig context = this.CreateValidContext();
 
             CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
 
@@ -88,7 +88,7 @@ namespace Sonar.TeamBuild.Integration.Tests
             MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1, ValidUrl2 } };
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
-            SonarAnalysisConfig context = this.CreateValidContext();
+            AnalysisConfig context = this.CreateValidContext();
 
             CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
 
@@ -112,7 +112,7 @@ namespace Sonar.TeamBuild.Integration.Tests
             MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1} };
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
-            SonarAnalysisConfig context = this.CreateValidContext();
+            AnalysisConfig context = this.CreateValidContext();
 
             CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
 
@@ -139,7 +139,7 @@ namespace Sonar.TeamBuild.Integration.Tests
             MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl2 } };
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
-            SonarAnalysisConfig context = this.CreateValidContext();
+            AnalysisConfig context = this.CreateValidContext();
 
             downloader.CreateFileOnDownloadRequest = true;
 
@@ -162,9 +162,9 @@ namespace Sonar.TeamBuild.Integration.Tests
 
         #region Private methods
 
-        private SonarAnalysisConfig CreateValidContext()
+        private AnalysisConfig CreateValidContext()
         {
-            SonarAnalysisConfig context = new SonarAnalysisConfig()
+            AnalysisConfig context = new AnalysisConfig()
             {
                 SonarOutputDir = this.TestContext.DeploymentDirectory, // tests can write to this directory
                 SonarConfigDir = this.TestContext.TestRunResultsDirectory, // we don't read anything from this directory, we just want it to be different from the output directory

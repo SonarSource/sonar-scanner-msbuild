@@ -49,7 +49,7 @@ namespace Sonar.TeamBuild.Integration
 
         #region Public methods
 
-        public bool ProcessCoverageReports(SonarAnalysisConfig context, ILogger logger)
+        public bool ProcessCoverageReports(AnalysisConfig context, ILogger logger)
         {
             if (context == null)
             {
@@ -69,7 +69,7 @@ namespace Sonar.TeamBuild.Integration
 
             // Fetch all of the report URLs
             logger.LogMessage("Fetching code coverage report URLs...");
-            IEnumerable<string> urls = this.urlProvider.GetCodeCoverageReportUrls(context.TfsUri, context.BuildUri, logger);
+            IEnumerable<string> urls = this.urlProvider.GetCodeCoverageReportUrls(context.GetTfsUri(), context.GetBuildUri(), logger);
             Debug.Assert(urls != null, "Not expecting the returned list of urls to be null");
 
             bool result = true; // assume the best
@@ -98,7 +98,7 @@ namespace Sonar.TeamBuild.Integration
 
         #region Private methods
 
-        private bool ProcessCodeCoverageReport(string reportUrl, SonarAnalysisConfig context, ILogger logger)
+        private bool ProcessCodeCoverageReport(string reportUrl, AnalysisConfig context, ILogger logger)
         {
             string targetFileName = Path.Combine(context.SonarOutputDir, DownloadFileName);
             bool success = this.downloader.DownloadReport(reportUrl, targetFileName, logger);

@@ -21,8 +21,8 @@ namespace Sonar.TeamBuild.PostProcessor
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
 
             // TODO: consider using command line arguments if supplied
-            SonarAnalysisConfig context = CreateAnalysisContext(logger);
-            if (context == null)
+            AnalysisConfig config = CreateAnalysisContext(logger);
+            if (config == null)
             {
                 logger.LogError("Sonar post-processing cannot be performed - required settings are missing");
                 return ErrorCode;
@@ -30,20 +30,20 @@ namespace Sonar.TeamBuild.PostProcessor
 
             // Handle code coverage reports
             CoverageReportProcessor coverageProcessor = new CoverageReportProcessor();
-            bool success = coverageProcessor.ProcessCoverageReports(context, logger);
+            bool success = coverageProcessor.ProcessCoverageReports(config, logger);
 
-            SummaryReportBuilder.WriteSummaryReport(context, logger);
+            SummaryReportBuilder.WriteSummaryReport(config, logger);
 
-            using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(context.TfsUri, context.BuildUri))
+            using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
             {
                 // TODO: pass in required info
                 string sonarUrl = "www.sonarsource.com";
-                if (context.SonarRunnerPropertiesPath != null)
+                if (config.SonarRunnerPropertiesPath != null)
                 {
-                    ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(context.SonarRunnerPropertiesPath);
+                    ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
                     propertyProvider.GetProperty(SonarProperties.HostUrl);
                 }
-                summaryLogger.WriteMessage("Sonar project: {0}", context.SonarProjectName);
+                summaryLogger.WriteMessage("Sonar project: {0}", config.SonarProjectName);
                 summaryLogger.WriteMessage("[Analysis results] ({0})", sonarUrl);
             }
 
@@ -55,9 +55,9 @@ namespace Sonar.TeamBuild.PostProcessor
             return 0;
         }
 
-        private static SonarAnalysisConfig CreateAnalysisContext(ILogger logger)
+        private static AnalysisConfig CreateAnalysisContext(ILogger logger)
         {
-            SonarAnalysisConfig context = new SonarAnalysisConfig();
+            AnalysisConfig context = new AnalysisConfig();
 
             CheckRequiredEnvironmentVariablesExist(logger,
                 TeamBuildEnvironmentVariables.TfsCollectionUri,
@@ -65,8 +65,8 @@ namespace Sonar.TeamBuild.PostProcessor
                 TeamBuildEnvironmentVariables.BuildUri);
 
             // TODO: validate environment variables
-            context.BuildUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri);
-            context.TfsUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.TfsCollectionUri);
+            context.SetBuildUri(Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri));
+            context.SetTfsUri(Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.TfsCollectionUri));
             string rootBuildDir = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildDirectory);
 
             context.SonarConfigDir = Path.Combine(rootBuildDir, "SonarTemp", "Config");
