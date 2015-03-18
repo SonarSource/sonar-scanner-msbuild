@@ -13,7 +13,8 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
     {
         private bool generateCalled;
 
-        private string actualKey, actualFilePath, actualUrl, actualUserName, actualPassword;
+        private string actualKey, actualFilePath;
+        private SonarWebService actualWs;
 
         #region Assertions
 
@@ -22,12 +23,10 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
             Assert.IsTrue(this.generateCalled, "Expecting Generate to have been called");
         }
 
-        public void CheckGeneratorArguments(string expectedKey, string expectedUrl, string expectedUserName, string expectedPassword)
+        public void CheckGeneratorArguments(string expectedWsServer, string expectedKey)
         {
             Assert.AreEqual(expectedKey, this.actualKey);
-            Assert.AreEqual(expectedUrl, this.actualUrl);
-            Assert.AreEqual(expectedUserName, this.actualUserName);
-            Assert.AreEqual(expectedPassword, this.actualPassword);
+            Assert.AreEqual(expectedWsServer, this.actualWs.Server);
 
             // The path should be a valid path to an existing file
             Assert.IsNotNull(this.actualFilePath, "Supplied file path should not be null");
@@ -37,19 +36,16 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
 
         #region IRulesetGenerator interface
 
-        void IRulesetGenerator.Generate(string sonarProjectKey, string outputFilePath, string sonarUrl, string userName, string password)
+        void IRulesetGenerator.Generate(SonarWebService ws, string sonarProjectKey, string outputFilePath)
         {
             Assert.IsFalse(string.IsNullOrWhiteSpace(sonarProjectKey), "Supplied project key should not be null");
             Assert.IsFalse(string.IsNullOrWhiteSpace(outputFilePath), "Supplied output file path should not be null");
-            Assert.IsFalse(string.IsNullOrWhiteSpace(sonarUrl), "Supplied sonar url should not be null");
 
             this.generateCalled = true;
 
             this.actualKey = sonarProjectKey;
             this.actualFilePath = outputFilePath;
-            this.actualUrl = sonarUrl;
-            this.actualUserName = userName;
-            this.actualPassword = password;
+            this.actualWs = ws;
         }
 
         #endregion
