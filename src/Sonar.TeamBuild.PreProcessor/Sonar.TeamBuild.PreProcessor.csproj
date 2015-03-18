@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="AssemblyFriends.cs" />
     <Compile Include="IDownloader.cs" />
+    <Compile Include="IPropertiesFetcher.cs" />
     <Compile Include="IRulesetGenerator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -55,6 +56,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="PropertiesFetcher.cs" />
     <Compile Include="RulesetGenerator.cs" />
     <Compile Include="RulesetWriter.cs" />
     <Compile Include="SonarWebService.cs" />

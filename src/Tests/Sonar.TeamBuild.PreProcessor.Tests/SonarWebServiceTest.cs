@@ -93,6 +93,19 @@ namespace Sonar.TeamBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
+        public void GetProperties()
+        {
+            downloader.Pages["http://localhost:9000/api/properties?resource=foo%20bar"] = "[{\"key\": \"sonar.property1\",\"value\": \"value1\"},{\"key\": \"sonar.property2\",\"value\": \"value2\"}]";
+            var expected = new Dictionary<string, string>();
+            expected["sonar.property1"] = "value1";
+            expected["sonar.property2"] = "value2";
+            var actual = ws.GetProperties("foo bar");
+
+            Assert.AreEqual(true, expected.Count == actual.Count && !expected.Except(actual).Any());
+        }
+
+        // TODO Rewrite this as a data driven unit test to not duplicate the test contents?
+        [TestMethod]
         public void ServerUrlWithTrailingSlash()
         {
             ws = new SonarWebService(downloader, "http://localhost:9000/", "cs", "fxcop");
@@ -109,9 +122,17 @@ namespace Sonar.TeamBuild.PreProcessor.UnitTests
             var expected2 = new Dictionary<string, string>();
             expected2["fxcop:My_Own_FxCop_Rule"] = null;
             expected2["fxcop:UriParametersShouldNotBeStrings"] = "CA1054";
-            var actual = ws.GetInternalKeys();
+            var actual2 = ws.GetInternalKeys();
 
-            Assert.AreEqual(true, expected2.Count == actual.Count && !expected2.Except(actual).Any());
+            Assert.AreEqual(true, expected2.Count == actual2.Count && !expected2.Except(actual2).Any());
+
+            downloader.Pages["http://localhost:9000/api/properties?resource=foo%20bar"] = "[{\"key\": \"sonar.property1\",\"value\": \"value1\"},{\"key\": \"sonar.property2\",\"value\": \"value2\"}]";
+            var expected3 = new Dictionary<string, string>();
+            expected3["sonar.property1"] = "value1";
+            expected3["sonar.property2"] = "value2";
+            var actual3 = ws.GetProperties("foo bar");
+
+            Assert.AreEqual(true, expected3.Count == actual3.Count && !expected3.Except(actual3).Any());
         }
 
         [TestMethod]

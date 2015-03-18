@@ -21,7 +21,7 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
         #region Tests
 
         [TestMethod]
-        public void PreProc_ConfigFileCreated()
+        public void PreProc_EmptySonarRunnerProperties()
         {
             // Checks the pre-processor creates a valid config file
 
@@ -30,6 +30,7 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
 
             string propertiesFile = CreateEmptyPropertiesFile(testDir);
 
+            MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
             MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
             TestLogger logger = new TestLogger();
 
@@ -41,7 +42,7 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 expectedConfigFileName = settings.AnalysisConfigFilePath;
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(logger, mockRulesetGenerator);
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(logger, mockPropertiesFetcher, mockRulesetGenerator);
 
                 // Act
                 preProcessor.Execute(logger, "key", "name", "ver", propertiesFile);
@@ -59,11 +60,15 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
             Assert.AreEqual("tfs uri", config.GetTfsUri());
             Assert.AreEqual(propertiesFile, config.SonarRunnerPropertiesPath);
 
+            mockPropertiesFetcher.AssertFetchPropertiesCalled();
+            mockPropertiesFetcher.CheckFetcherArguments("key", "http://localhost:9000", null, null);
+
             mockRulesetGenerator.AssertGenerateCalled();
+            mockRulesetGenerator.CheckGeneratorArguments("key", "http://localhost:9000", null, null);
         }
 
         [TestMethod]
-        public void PreProc_RulesetGeneratorArgs()
+        public void PreProc_NonEmptySonarRunnerProperties()
         {
             // Checks the ruleset generator is called with the expected arguments
             // Arrange
@@ -71,6 +76,7 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
 
             string propertiesFile = CreatePropertiesFile(testDir, "my url", "my user name", "my password");
 
+            MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
             MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
             TestLogger logger = new TestLogger();
 
@@ -82,13 +88,16 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 expectedConfigFileName = settings.AnalysisConfigFilePath;
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(logger, mockRulesetGenerator);
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(logger, mockPropertiesFetcher, mockRulesetGenerator);
 
                 // Act
                 preProcessor.Execute(logger, "key", "name", "ver", propertiesFile);
             }
 
             // Assert
+            mockPropertiesFetcher.AssertFetchPropertiesCalled();
+            mockPropertiesFetcher.CheckFetcherArguments("key", "my url", "my user name", "my password");
+
             mockRulesetGenerator.AssertGenerateCalled();
             mockRulesetGenerator.CheckGeneratorArguments("key", "my url", "my user name", "my password");
             logger.AssertErrorsLogged(0);
@@ -96,7 +105,6 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
         }
 
         #endregion
-
 
         #region Private methods
 

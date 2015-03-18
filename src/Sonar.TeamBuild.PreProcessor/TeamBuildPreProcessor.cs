@@ -15,24 +15,29 @@ namespace Sonar.TeamBuild.PreProcessor
     {
         public const string FxCopRulesetFileName = "SonarAnalysis.ruleset";
 
-        private ILogger logger;
-        private IRulesetGenerator rulesetGenerator;
+        private readonly ILogger logger;
+        private readonly IPropertiesFetcher propertiesFetcher;
+        private readonly IRulesetGenerator rulesetGenerator;
 
         #region Constructor(s)
 
         public TeamBuildPreProcessor()
-            : this(new ConsoleLogger(), new RulesetGenerator())
+            : this(new ConsoleLogger(), new PropertiesFetcher(), new RulesetGenerator())
         {
         }
 
         /// <summary>
         /// Internal constructor for testing
         /// </summary>
-        internal TeamBuildPreProcessor(ILogger logger, IRulesetGenerator rulesetGenerator)
+        internal TeamBuildPreProcessor(ILogger logger, IPropertiesFetcher propertiesFetcher, IRulesetGenerator rulesetGenerator)
         {
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
+            }
+            if (propertiesFetcher == null)
+            {
+                throw new ArgumentNullException("propertiesFetcher");
             }
             if (rulesetGenerator == null)
             {
@@ -40,6 +45,7 @@ namespace Sonar.TeamBuild.PreProcessor
             }
 
             this.logger = logger;
+            this.propertiesFetcher = propertiesFetcher;
             this.rulesetGenerator = rulesetGenerator;
         }
 
@@ -92,11 +98,15 @@ namespace Sonar.TeamBuild.PreProcessor
             EnsureEmptyDirectory(logger, config.SonarConfigDir);
             EnsureEmptyDirectory(logger, config.SonarOutputDir);
 
+            // Fetch the SonarQube project properties
+            FetchSonarQubeProperties(logger, config);
+
+            // Generate the FxCop ruleset
+            GenerateFxCopRuleset(logger, config);
+
             // Save the config file
             logger.LogMessage(Resources.DIAG_SavingConfigFile, teamBuildSettings.AnalysisConfigFilePath);
             config.Save(teamBuildSettings.AnalysisConfigFilePath);
-
-            GenerateFxCopRuleset(logger, config);
 
             return true;
         }
@@ -116,8 +126,26 @@ namespace Sonar.TeamBuild.PreProcessor
             Directory.CreateDirectory(directory);
         }
 
+        private void FetchSonarQubeProperties(ILogger logger, AnalysisConfig config)
+        {
+            // TODO Factor this out and reuse the same web service in properties and FxCop ruleset
+            FilePropertiesProvider sonarRunnerProperties = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
+
+            string server = sonarRunnerProperties.GetProperty(SonarProperties.HostUrl, "http://localhost:9000");
+            string username = sonarRunnerProperties.GetProperty(SonarProperties.SonarUserName, null);
+            string password = sonarRunnerProperties.GetProperty(SonarProperties.SonarPassword, null);
+
+            var properties = this.propertiesFetcher.FetchProperties(config.SonarProjectKey, server, username, password);
+
+            foreach (var property in properties)
+            {
+                config.SetValue(property.Key, property.Value);
+            }
+        }
+
         private void GenerateFxCopRuleset(ILogger logger, AnalysisConfig config)
         {
+            // TODO Factor this out and reuse the same web service in properties and FxCop ruleset
             FilePropertiesProvider sonarRunnerProperties = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
 
             string server = sonarRunnerProperties.GetProperty(SonarProperties.HostUrl, "http://localhost:9000");

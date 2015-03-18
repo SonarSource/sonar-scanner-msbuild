@@ -1,55 +1,53 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MockRulesetGenerator.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="MockPropertiesFetcher.cs" company="SonarSource SA and Microsoft Corporation">
 //   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 // </copyright>
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using System.Collections.Generic;
 
 namespace Sonar.TeamBuild.PreProcessor.Tests
 {
-    internal class MockRulesetGenerator : IRulesetGenerator
+    internal class MockPropertiesFetcher : IPropertiesFetcher
     {
-        private bool generateCalled;
+        private bool fetchPropertiesCalled;
 
-        private string actualKey, actualFilePath, actualUrl, actualUserName, actualPassword;
+        private string actualKey, actualUrl, actualUserName, actualPassword;
 
         #region Assertions
 
-        public void AssertGenerateCalled()
+        public void AssertFetchPropertiesCalled()
         {
-            Assert.IsTrue(this.generateCalled, "Expecting Generate to have been called");
+            Assert.IsTrue(this.fetchPropertiesCalled, "Expecting FetchProperties to have been called");
         }
 
-        public void CheckGeneratorArguments(string expectedKey, string expectedUrl, string expectedUserName, string expectedPassword)
+        public void CheckFetcherArguments(string expectedKey, string expectedUrl, string expectedUserName, string expectedPassword)
         {
             Assert.AreEqual(expectedKey, this.actualKey);
             Assert.AreEqual(expectedUrl, this.actualUrl);
             Assert.AreEqual(expectedUserName, this.actualUserName);
             Assert.AreEqual(expectedPassword, this.actualPassword);
-
-            // The path should be a valid path to an existing file
-            Assert.IsNotNull(this.actualFilePath, "Supplied file path should not be null");
         }
 
         #endregion
 
-        #region IRulesetGenerator interface
+        #region IPropertiesFetcher interface
 
-        void IRulesetGenerator.Generate(string sonarProjectKey, string outputFilePath, string sonarUrl, string userName, string password)
+        IDictionary<string, string> IPropertiesFetcher.FetchProperties(string sonarProjectKey, string sonarUrl, string userName, string password)
         {
             Assert.IsFalse(string.IsNullOrWhiteSpace(sonarProjectKey), "Supplied project key should not be null");
-            Assert.IsFalse(string.IsNullOrWhiteSpace(outputFilePath), "Supplied output file path should not be null");
             Assert.IsFalse(string.IsNullOrWhiteSpace(sonarUrl), "Supplied sonar url should not be null");
 
-            this.generateCalled = true;
+            this.fetchPropertiesCalled = true;
 
             this.actualKey = sonarProjectKey;
-            this.actualFilePath = outputFilePath;
             this.actualUrl = sonarUrl;
             this.actualUserName = userName;
             this.actualPassword = password;
+
+            return new Dictionary<string, string>();
         }
 
         #endregion
