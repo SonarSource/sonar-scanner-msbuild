@@ -8,6 +8,7 @@ using Sonar.Common;
 using Sonar.TeamBuild.Integration;
 using System;
 using System.IO;
+using System.Net;
 
 namespace Sonar.TeamBuild.PreProcessor
 {
@@ -98,11 +99,14 @@ namespace Sonar.TeamBuild.PreProcessor
             EnsureEmptyDirectory(logger, config.SonarConfigDir);
             EnsureEmptyDirectory(logger, config.SonarOutputDir);
 
-            // Fetch the SonarQube project properties
-            FetchSonarQubeProperties(logger, config);
+            using (SonarWebService ws = GetSonarWebService(config))
+            {
+                // Fetch the SonarQube project properties
+                FetchSonarQubeProperties(logger, config, ws);
 
-            // Generate the FxCop ruleset
-            GenerateFxCopRuleset(logger, config);
+                // Generate the FxCop ruleset
+                GenerateFxCopRuleset(logger, config, ws);
+            }
 
             // Save the config file
             logger.LogMessage(Resources.DIAG_SavingConfigFile, teamBuildSettings.AnalysisConfigFilePath);
@@ -126,37 +130,32 @@ namespace Sonar.TeamBuild.PreProcessor
             Directory.CreateDirectory(directory);
         }
 
-        private void FetchSonarQubeProperties(ILogger logger, AnalysisConfig config)
+        private SonarWebService GetSonarWebService(AnalysisConfig config)
         {
-            // TODO Factor this out and reuse the same web service in properties and FxCop ruleset
             FilePropertiesProvider sonarRunnerProperties = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
 
             string server = sonarRunnerProperties.GetProperty(SonarProperties.HostUrl, "http://localhost:9000");
             string username = sonarRunnerProperties.GetProperty(SonarProperties.SonarUserName, null);
             string password = sonarRunnerProperties.GetProperty(SonarProperties.SonarPassword, null);
 
-            var properties = this.propertiesFetcher.FetchProperties(config.SonarProjectKey, server, username, password);
+            return new SonarWebService(new WebClientDownloader(new WebClient(), username, password), server, "cs", "fxcop");
+        }
 
+        private void FetchSonarQubeProperties(ILogger logger, AnalysisConfig config, SonarWebService ws)
+        {
+            var properties = this.propertiesFetcher.FetchProperties(ws, config.SonarProjectKey);
             foreach (var property in properties)
             {
                 config.SetValue(property.Key, property.Value);
             }
         }
 
-        private void GenerateFxCopRuleset(ILogger logger, AnalysisConfig config)
+        private void GenerateFxCopRuleset(ILogger logger, AnalysisConfig config, SonarWebService ws)
         {
-            // TODO Factor this out and reuse the same web service in properties and FxCop ruleset
-            FilePropertiesProvider sonarRunnerProperties = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
-
-            string server = sonarRunnerProperties.GetProperty(SonarProperties.HostUrl, "http://localhost:9000");
-            string username = sonarRunnerProperties.GetProperty(SonarProperties.SonarUserName, null);
-            string password = sonarRunnerProperties.GetProperty(SonarProperties.SonarPassword, null);
-
-            string rulesetPath = Path.Combine(config.SonarConfigDir, FxCopRulesetFileName);
-
-            this.rulesetGenerator.Generate(config.SonarProjectKey, rulesetPath, server, username, password);
+            this.rulesetGenerator.Generate(ws, config.SonarProjectKey, Path.Combine(config.SonarConfigDir, FxCopRulesetFileName));
         }
 
         #endregion
     }
 }
+

@@ -18,7 +18,7 @@ namespace SonarProjectPropertiesGenerator
 {
     public static class PropertiesWriter
     {
-        public static string ToString(ILogger logger, string projectKey, string projectName, string projectVersion, List<Project> projects)
+        public static string ToString(ILogger logger, string projectKey, string projectName, string projectVersion, string projectBaseDir, List<Project> projects)
         {
             var uniqueProjects = projects.GroupBy(p => p.GuidAsString()).Where(g => g.Count() == 1).Select(g => g.First());
             foreach (var duplicatedProject in projects.Where(p => !uniqueProjects.Any(p2 => p.GuidAsString().Equals(p2.GuidAsString())))) {
@@ -30,6 +30,7 @@ namespace SonarProjectPropertiesGenerator
             AppendKeyValue(sb, "sonar.projectKey", projectKey);
             AppendKeyValue(sb, "sonar.projectName", projectName);
             AppendKeyValue(sb, "sonar.projectVersion", projectVersion);
+            AppendKeyValue(sb, "sonar.projectBaseDir", projectBaseDir);
             sb.AppendLine();
 
             sb.AppendLine("# FIXME: Encoding is hardcoded");

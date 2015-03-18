@@ -61,10 +61,10 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
             Assert.AreEqual(propertiesFile, config.SonarRunnerPropertiesPath);
 
             mockPropertiesFetcher.AssertFetchPropertiesCalled();
-            mockPropertiesFetcher.CheckFetcherArguments("key", "http://localhost:9000", null, null);
+            mockPropertiesFetcher.CheckFetcherArguments("http://localhost:9000", "key");
 
             mockRulesetGenerator.AssertGenerateCalled();
-            mockRulesetGenerator.CheckGeneratorArguments("key", "http://localhost:9000", null, null);
+            mockRulesetGenerator.CheckGeneratorArguments("http://localhost:9000", "key");
         }
 
         [TestMethod]
@@ -96,10 +96,10 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
 
             // Assert
             mockPropertiesFetcher.AssertFetchPropertiesCalled();
-            mockPropertiesFetcher.CheckFetcherArguments("key", "my url", "my user name", "my password");
+            mockPropertiesFetcher.CheckFetcherArguments("my url", "key");
 
             mockRulesetGenerator.AssertGenerateCalled();
-            mockRulesetGenerator.CheckGeneratorArguments("key", "my url", "my user name", "my password");
+            mockRulesetGenerator.CheckGeneratorArguments("my url", "key");
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
         }
