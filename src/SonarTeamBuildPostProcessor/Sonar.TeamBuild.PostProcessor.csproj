@@ -62,6 +62,10 @@
       <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>
       <Name>Sonar.TeamBuild.Integration</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SonarProjectPropertiesGenerator\SonarProjectPropertiesGenerator.csproj">
+      <Project>{6f9d11ed-51e2-47cf-be36-10fb3ccd50d1}</Project>
+      <Name>SonarProjectPropertiesGenerator</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">

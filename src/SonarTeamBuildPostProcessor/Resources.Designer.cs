@@ -96,5 +96,23 @@ namespace Sonar.TeamBuild.PostProcessor {
                 return ResourceManager.GetString("ERROR_MissingSettings", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sonar analysis failed.
+        /// </summary>
+        internal static string Report_AnalysisFailed {
+            get {
+                return ResourceManager.GetString("Report_AnalysisFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sonar analysis succeeded.
+        /// </summary>
+        internal static string Report_AnalysisSucceeded {
+            get {
+                return ResourceManager.GetString("Report_AnalysisSucceeded", resourceCulture);
+            }
+        }
     }
 }

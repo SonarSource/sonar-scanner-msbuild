@@ -6,6 +6,7 @@
 
 using Sonar.Common;
 using Sonar.TeamBuild.Integration;
+using SonarRunner.Shim;
 using System.Diagnostics;
 using System.IO;
 
@@ -31,12 +32,10 @@ namespace Sonar.TeamBuild.PostProcessor
             CoverageReportProcessor coverageProcessor = new CoverageReportProcessor();
             bool success = coverageProcessor.ProcessCoverageReports(config, logger);
 
-            // TODO: Generate the properties file
-
-            // TODO: Execute the sonar-runner
-
+            bool runnerSucceeded = InvokeSonarRunner(config, logger);
+            
             // Write summary report
-            WriteSummaryReport(config, logger);
+            WriteSummaryReport(config, logger, runnerSucceeded);
 
             if (!success)
             {
@@ -74,7 +73,15 @@ namespace Sonar.TeamBuild.PostProcessor
             return config;
         }
 
-        private static void WriteSummaryReport(AnalysisConfig config, ILogger logger)
+
+        private static bool InvokeSonarRunner(AnalysisConfig config, ILogger logger)
+        {
+            ISonarRunner runner = new SonarRunnerWrapper();
+            bool success = runner.Execute(config, logger);
+            return success;
+        }
+
+        private static void WriteSummaryReport(AnalysisConfig config, ILogger logger, bool analysisSucceded)
         {
             SummaryReportBuilder.WriteSummaryReport(config, logger);
 
@@ -94,6 +101,10 @@ namespace Sonar.TeamBuild.PostProcessor
 
                     summaryLogger.WriteMessage("[Analysis results] ({0})", sonarUrl);
                 }
+
+
+                string resultMessage = analysisSucceded ? Resources.Report_AnalysisSucceeded : Resources.Report_AnalysisFailed;
+                summaryLogger.WriteMessage(resultMessage);
             }
 
         }

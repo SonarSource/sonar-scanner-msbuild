@@ -130,4 +130,10 @@ Expected location: {0}</value>
   <data name="ERROR_MissingSettings" xml:space="preserve">
     <value>Sonar post-processing cannot be performed - required settings are missing</value>
   </data>
+  <data name="Report_AnalysisFailed" xml:space="preserve">
+    <value>Sonar analysis failed</value>
+  </data>
+  <data name="Report_AnalysisSucceeded" xml:space="preserve">
+    <value>Sonar analysis succeeded</value>
+  </data>
 </root>

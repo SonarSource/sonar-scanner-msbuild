@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ISonarRunner.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="PropertiesWriter.cs" />
     <Compile Include="ProjectLoader.cs" />
@@ -49,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Compile Include="SonarRunner.Wrapper.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sonar.Common\Sonar.Common.csproj">
