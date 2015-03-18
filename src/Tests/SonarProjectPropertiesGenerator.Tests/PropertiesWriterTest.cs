@@ -64,7 +64,7 @@ namespace SonarProjectPropertiesGenerator.Tests
             projects.Add(duplicatedProject2);
 
             var logger = new TestLogger();
-            string actual = SonarProjectPropertiesGenerator.PropertiesWriter.ToString(logger, "my_project_key", "my_project_name", "1.0", projects);
+            string actual = SonarProjectPropertiesGenerator.PropertiesWriter.ToString(logger, "my_project_key", "my_project_name", "1.0", @"C:\my_folder", projects);
 
             Assert.AreEqual(2, logger.Warnings.Count);
             Assert.AreEqual(@"The project has a non-unique GUID ""C53C92C0-0A5A-4F89-A857-2BBD41CB4410"". Analysis results for this project will not be uploaded to SonarQube. Project file: C:\DuplicatedProject1.csproj", logger.Warnings[0]);
@@ -74,6 +74,7 @@ namespace SonarProjectPropertiesGenerator.Tests
             expected.AppendLine("sonar.projectKey=my_project_key");
             expected.AppendLine("sonar.projectName=my_project_name");
             expected.AppendLine("sonar.projectVersion=1.0");
+            expected.AppendLine(@"sonar.projectBaseDir=C:\\my_folder");
             expected.AppendLine();
             expected.AppendLine("# FIXME: Encoding is hardcoded");
             expected.AppendLine("sonar.sourceEncoding=UTF-8");
