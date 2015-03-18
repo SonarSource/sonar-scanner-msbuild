@@ -96,9 +96,9 @@
   <!-- Using tasks -->
   <!-- **************************************************************************** -->
   <PropertyGroup Condition="$(RunSonarAnalysis) == 'true' ">
-    <!-- Assume that the tasks assembly is in the same location as this targets file unless 
-         another location has already been specified. -->
-    <SonarBuildTasksAssemblyFile Condition=" $(SonarBuildTasksAssemblyFile) == '' ">$(MSBuildThisFileDirectory)\Sonar.MSBuild.Tasks.dll</SonarBuildTasksAssemblyFile>
+    <!-- Assume that the tasks assembly is in the same location as this targets file 
+				 or in a parent directory unless another location has already been specified. -->
+    <SonarBuildTasksAssemblyFile Condition=" $(SonarBuildTasksAssemblyFile) == '' ">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Sonar.MSBuild.Tasks.dll))\Sonar.MSBuild.Tasks.dll</SonarBuildTasksAssemblyFile>
   </PropertyGroup>
 
   <UsingTask TaskName="WriteProjectInfoFile" AssemblyFile="$(SonarBuildTasksAssemblyFile)" />
