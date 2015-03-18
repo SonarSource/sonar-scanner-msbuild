@@ -5,7 +5,6 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sonar.FxCopRuleset;
 using System.IO;
 
 namespace Sonar.TeamBuild.PreProcessor.Tests

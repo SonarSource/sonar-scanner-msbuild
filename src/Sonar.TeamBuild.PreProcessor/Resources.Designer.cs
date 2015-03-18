@@ -124,6 +124,15 @@ namespace Sonar.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The following CheckId should not appear multiple times: {0}.
+        /// </summary>
+        internal static string ERROR_DuplicateCheckId {
+            get {
+                return ResourceManager.GetString("ERROR_DuplicateCheckId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expecting four command line arguments:
         ///- Sonar project key
         ///- Sonar project name

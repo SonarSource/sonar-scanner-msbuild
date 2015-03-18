@@ -5,7 +5,6 @@
 //-----------------------------------------------------------------------
 
 using Sonar.Common;
-using Sonar.FxCopRuleset;
 using Sonar.TeamBuild.Integration;
 using System;
 using System.IO;

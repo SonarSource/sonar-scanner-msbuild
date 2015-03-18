@@ -138,6 +138,9 @@
   <data name="ERROR_CannotPerformProcessing" xml:space="preserve">
     <value>Sonar pre-processing cannot be performed - required settings are missing</value>
   </data>
+  <data name="ERROR_DuplicateCheckId" xml:space="preserve">
+    <value>The following CheckId should not appear multiple times: {0}</value>
+  </data>
   <data name="ERROR_InvalidCommandLineArgs" xml:space="preserve">
     <value>Expecting four command line arguments:
 - Sonar project key
