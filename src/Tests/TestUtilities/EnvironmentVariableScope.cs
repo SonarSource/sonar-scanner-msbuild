@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace TestUtilities
 {
@@ -17,6 +18,8 @@ namespace TestUtilities
     /// </summary>
     public class EnvironmentVariableScope : IDisposable
     {
+        private string originalPath;
+
         private IList<string> addedVars = new List<string>();
 
         public void AddVariable(string name, string value)
@@ -24,6 +27,17 @@ namespace TestUtilities
             AssertEnvironmentVariableDoesNotExist(name);
             Environment.SetEnvironmentVariable(name, value, EnvironmentVariableTarget.Process);
             addedVars.Add(name);
+        }
+
+        public void SetPath(string value)
+        {
+            if (originalPath == null)
+            {
+                this.originalPath = Environment.GetEnvironmentVariable("PATH");
+                Debug.Assert(this.originalPath != null, "Not expecting the path variable to be null");
+            }
+
+            Environment.SetEnvironmentVariable("PATH", value, EnvironmentVariableTarget.Process);
         }
 
         private static void AssertEnvironmentVariableDoesNotExist(string name)
@@ -47,6 +61,13 @@ namespace TestUtilities
                     AssertEnvironmentVariableDoesNotExist(name);
                 }
                 this.addedVars = null;
+            }
+
+            // Restore the original path
+            if (this.originalPath != null)
+            {
+                this.SetPath(this.originalPath);
+                this.originalPath = null;
             }
         }
     }

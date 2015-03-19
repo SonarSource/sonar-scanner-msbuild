@@ -19,8 +19,6 @@ namespace SonarRunner.Shim
 
         private const string ProjectPropertiesFileName = "sonar-project.properties";
 
-        private const string SonarRunnerFileName = "sonar-runner.bat";
-
         #region ISonarRunner interface
 
         public bool Execute(AnalysisConfig config, ILogger logger)
@@ -42,14 +40,12 @@ namespace SonarRunner.Shim
                 return false;
             }
 
-			bool ranToCompletion = ExecuteJavaRunner(config, logger, propertiesFileName);
+            string exeFileName = FindRunnerExe(logger);
+
+			bool ranToCompletion = ExecuteJavaRunner(config, logger, exeFileName, propertiesFileName);
             if (ranToCompletion)
             {
                 // TODO: Report the results
-            }
-            else
-            {
-                logger.LogError("Sonar runner did not run to completion");
             }
             return ranToCompletion;
         }
@@ -60,115 +56,56 @@ namespace SonarRunner.Shim
 
 		private static string GenerateProjectProperties(AnalysisConfig config, ILogger logger)
         {
+            string fullName = Path.Combine(config.SonarOutputDir, ProjectPropertiesFileName);
+            logger.LogMessage(Resources.DIAG_GeneratingProjectProperties, fullName);
+            
             var projects = ProjectLoader.LoadFrom(config.SonarOutputDir);
             var contents = PropertiesWriter.ToString(new ConsoleLogger(includeTimestamp: true), config.SonarProjectKey, config.SonarProjectName, config.SonarProjectVersion, config.SonarOutputDir, projects);
 
-            string fullName = Path.Combine(config.SonarOutputDir, ProjectPropertiesFileName);
             File.WriteAllText(fullName, contents, Encoding.ASCII);
             return fullName;
         }
 
-        private static bool ExecuteJavaRunner(AnalysisConfig config, ILogger logger, string propertiesFileName)
+        private static string FindRunnerExe(ILogger logger)
         {
-            string args = string.Format(System.Globalization.CultureInfo.CurrentCulture,
-                "-Dproject.settings=\"{0}\"", propertiesFileName);
-
-            // TODO: need a reliable way to set the working directory
-            string workingDir = Path.GetDirectoryName(config.SonarRunnerPropertiesPath);
-            workingDir = Path.Combine(workingDir, "..\\bin");
-            workingDir = Path.GetFullPath(workingDir);
-
-            bool success = Execute(SonarRunnerFileName, args, workingDir, logger);
-            return success;
+            string exeFileName = FileLocator.FindDefaultSonarRunnerExecutable();
+            if (exeFileName == null)
+            {
+                logger.LogError(Resources.ERR_FailedToLocateSonarRunner, FileLocator.SonarRunnerFileName);
+            }
+            else
+            {
+                logger.LogMessage(Resources.DIAG_LocatedSonarRunner, exeFileName);
+            }
+            return exeFileName;
         }
 
-        private static bool Execute(string fileName, string args, string workingDirectory, ILogger logger)
+        private static bool ExecuteJavaRunner(AnalysisConfig config, ILogger logger, string exeFileName, string propertiesFileName)
         {
-            Debug.Assert(File.Exists(fileName), "The specified file does not exist");
+            Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
+            Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
 
-            logger.LogMessage("Shelling out to the sonar-runner");
-            logger.LogMessage("Current directory: {0}", Directory.GetCurrentDirectory());
+            string args = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                "-Dproject.settings=\"{0}\"", propertiesFileName);
+            
+            logger.LogMessage(Resources.DIAG_CallingSonarRunner);
 
             ProcessRunner runner = new ProcessRunner();
-            bool success = runner.Execute(fileName, args, workingDirectory, logger);
-            success = success && !runner.ErrorsLogger;
+            bool success = runner.Execute(exeFileName, args, Path.GetDirectoryName(exeFileName), SonarRunnerTimeoutInMs, logger);
+            success = success && !runner.ErrorsLogged;
 
             if (success)
             {
-                logger.LogMessage("Sonar runner has finished");
+                logger.LogMessage(Resources.DIAG_SonarRunnerCompleted);
             }
 			else
             {
 				// TODO: should be kill the process or leave it? Could we corrupt the data on the server if we kill the process?
-                logger.LogMessage("Timed-out waiting for the sonar runner to complete");
+                logger.LogError(Resources.ERR_SonarRunnerExecutionFailed);
             }
             return success;
         }
 
         #endregion
-
-        private class ProcessRunner
-        {
-            private ILogger logger;
-
-            public bool ErrorsLogger { get; private set; }
-
-            public bool Execute(string fileName, string args, string workingDirectory, ILogger logger)
-            {
-                this.logger = logger;
-
-                logger.LogMessage("  File name: {0}", fileName);
-                logger.LogMessage("  Arguments: {0}", args);
-                logger.LogMessage("  Working directory: {0}", workingDirectory);
-
-                ProcessStartInfo psi = new ProcessStartInfo()
-                {
-                    FileName = fileName,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false, // required if we want to capture the error output
-                    ErrorDialog = false,
-                    Arguments = args,
-                    WorkingDirectory = workingDirectory
-                };
-
-                Process p = new Process();
-                p.StartInfo = psi;
-                p.ErrorDataReceived += p_ErrorDataReceived;
-                p.OutputDataReceived += p_OutputDataReceived;
-
-                bool succeeded;
-                try
-                {
-                    p.Start();
-                    p.BeginErrorReadLine();
-                    p.BeginOutputReadLine();
-                    succeeded = p.WaitForExit(SonarRunnerTimeoutInMs);
-                }
-                finally
-                {
-                    p.ErrorDataReceived -= p_ErrorDataReceived;
-                    p.OutputDataReceived -= p_OutputDataReceived;
-                }
-                return succeeded;
-            }
-
-            void p_OutputDataReceived(object sender, DataReceivedEventArgs e)
-            {
-                if (e.Data != null)
-                {
-                    this.logger.LogMessage(e.Data);
-                }
-            }
-
-            void p_ErrorDataReceived(object sender, DataReceivedEventArgs e)
-            {
-                if (e.Data != null)
-                {
-                    this.ErrorsLogger = true;
-                    this.logger.LogError(e.Data);
-                }
-            }
-        }
     }
 }

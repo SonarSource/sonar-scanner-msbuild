@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Sonar.Common {
+namespace SonarProjectPropertiesGenerator {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Sonar.Common {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Sonar.Common.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarProjectPropertiesGenerator.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,51 +61,56 @@ namespace Sonar.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Executing file {0}
-        ///  Args: {1}
-        ///  Working directory: {2}
-        ///  Timeout (ms):{3}
-        ///  Process id: {4}.
+        ///   Looks up a localized string similar to Calling the sonar runner....
         /// </summary>
-        internal static string DIAG_ExecutingFile {
+        internal static string DIAG_CallingSonarRunner {
             get {
-                return ResourceManager.GetString("DIAG_ExecutingFile", resourceCulture);
+                return ResourceManager.GetString("DIAG_CallingSonarRunner", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Process returned exit code {0}.
+        ///   Looks up a localized string similar to Generating sonar project properties file to {0}.
         /// </summary>
-        internal static string DIAG_ExecutionExitCode {
+        internal static string DIAG_GeneratingProjectProperties {
             get {
-                return ResourceManager.GetString("DIAG_ExecutionExitCode", resourceCulture);
+                return ResourceManager.GetString("DIAG_GeneratingProjectProperties", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Timed out waiting for the process to complete.
+        ///   Looks up a localized string similar to Located the sonar-runner: {0}.
         /// </summary>
-        internal static string DIAG_ExecutionTimedOut {
+        internal static string DIAG_LocatedSonarRunner {
             get {
-                return ResourceManager.GetString("DIAG_ExecutionTimedOut", resourceCulture);
+                return ResourceManager.GetString("DIAG_LocatedSonarRunner", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specfied properties file could not be found.
+        ///   Looks up a localized string similar to Sonar runner has finished.
         /// </summary>
-        internal static string MissingSonarPropertiesFileError {
+        internal static string DIAG_SonarRunnerCompleted {
             get {
-                return ResourceManager.GetString("MissingSonarPropertiesFileError", resourceCulture);
+                return ResourceManager.GetString("DIAG_SonarRunnerCompleted", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The settings file &apos;{0}&apos; does not contain a value for the property &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Failed to locate the sonar-runner ({0}). Ensure that the containing directory is on the system PATH and try again..
         /// </summary>
-        internal static string PropertyNotFoundInFileError {
+        internal static string ERR_FailedToLocateSonarRunner {
             get {
-                return ResourceManager.GetString("PropertyNotFoundInFileError", resourceCulture);
+                return ResourceManager.GetString("ERR_FailedToLocateSonarRunner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sonar runner did not complete successfully.
+        /// </summary>
+        internal static string ERR_SonarRunnerExecutionFailed {
+            get {
+                return ResourceManager.GetString("ERR_SonarRunnerExecutionFailed", resourceCulture);
             }
         }
     }

@@ -117,23 +117,22 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="DIAG_ExecutingFile" xml:space="preserve">
-    <value>Executing file {0}
-  Args: {1}
-  Working directory: {2}
-  Timeout (ms):{3}
-  Process id: {4}</value>
+  <data name="DIAG_CallingSonarRunner" xml:space="preserve">
+    <value>Calling the sonar runner...</value>
   </data>
-  <data name="DIAG_ExecutionExitCode" xml:space="preserve">
-    <value>Process returned exit code {0}</value>
+  <data name="DIAG_GeneratingProjectProperties" xml:space="preserve">
+    <value>Generating sonar project properties file to {0}</value>
   </data>
-  <data name="DIAG_ExecutionTimedOut" xml:space="preserve">
-    <value>Timed out waiting for the process to complete</value>
+  <data name="DIAG_LocatedSonarRunner" xml:space="preserve">
+    <value>Located the sonar-runner: {0}</value>
   </data>
-  <data name="MissingSonarPropertiesFileError" xml:space="preserve">
-    <value>The specfied properties file could not be found</value>
+  <data name="DIAG_SonarRunnerCompleted" xml:space="preserve">
+    <value>Sonar runner has finished</value>
   </data>
-  <data name="PropertyNotFoundInFileError" xml:space="preserve">
-    <value>The settings file '{0}' does not contain a value for the property '{1}'</value>
+  <data name="ERR_FailedToLocateSonarRunner" xml:space="preserve">
+    <value>Failed to locate the sonar-runner ({0}). Ensure that the containing directory is on the system PATH and try again.</value>
+  </data>
+  <data name="ERR_SonarRunnerExecutionFailed" xml:space="preserve">
+    <value>Sonar runner did not complete successfully</value>
   </data>
 </root>

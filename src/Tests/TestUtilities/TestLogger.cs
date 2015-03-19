@@ -7,6 +7,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sonar.Common;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TestUtilities
 {
@@ -33,6 +34,24 @@ namespace TestUtilities
         public void AssertWarningsLogged(int expectedCount)
         {
             Assert.AreEqual(expectedCount, this.Warnings.Count, "Unexpected number of warnings logged");
+        }
+
+        public void AssertMessageLogged(string expected)
+        {
+            bool found = this.Messages.Any(s => expected.Equals(s, System.StringComparison.InvariantCulture));
+            Assert.IsTrue(found, "Expected message was not found: '{0}'", expected);
+        }
+
+        public void AssertErrorLogged(string expected)
+        {
+            bool found = this.Errors.Any(s => expected.Equals(s, System.StringComparison.InvariantCulture));
+            Assert.IsTrue(found, "Expected error was not found: '{0}'", expected);
+        }
+
+        public void AssertMessageNotLogged(string message)
+        {
+            bool found = this.Messages.Any(s => message.Equals(s, System.StringComparison.InvariantCulture));
+            Assert.IsFalse(found, "Not expecting the message to have been logged: '{0}'", message);
         }
 
         #endregion
