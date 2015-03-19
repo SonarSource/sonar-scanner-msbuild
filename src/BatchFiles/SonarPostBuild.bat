@@ -13,6 +13,6 @@
 @echo ...done.
 
 @echo Calling SonarRunner...
-cd "%OutputFolder"
+cd "%OutputFolder%"
 @sonar-runner
 @echo ...done.
