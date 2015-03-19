@@ -42,7 +42,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
 
             // Assert
-            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarTargets);
+            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarTargetFilePath);
             AssertAnalysisTargetsAreNotImported(projectInstance);
         }
 
@@ -59,10 +59,10 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
 
             // Assert
-            BuildAssertions.AssertPropertyExists(projectInstance, TargetProperties.SonarBinPath);
-            BuildAssertions.AssertPropertyExists(projectInstance, TargetProperties.SonarTargets);
+            BuildAssertions.AssertPropertyExists(projectInstance, TargetProperties.SonarTargetsPath);
+            BuildAssertions.AssertPropertyExists(projectInstance, TargetProperties.SonarTargetFilePath);
 
-            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarBinPath, @"nonExistentPath\SonarQube");
+            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarTargetsPath, @"nonExistentPath\SonarQube");
             AssertAnalysisTargetsAreNotImported(projectInstance); // Targets do not exist at that location so they should not be imported
         }
 
@@ -82,7 +82,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
 
             // Assert
-            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarTargets, dummySonarTargetsDir);
+            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarTargetFilePath, dummySonarTargetsDir);
             AssertAnalysisTargetsAreImported(projectInstance);
         }
 

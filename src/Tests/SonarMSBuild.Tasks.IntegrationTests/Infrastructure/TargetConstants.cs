@@ -32,8 +32,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
         public const string ProjectGuid = "ProjectGuid";
         public const string ProjectTypeGuid = "ProjectTypeGuid";
 
-        public const string SonarTargets = "SonarTargets";
-        public const string SonarBinPath = "SonarBinPath";
+        public const string SonarTargetFilePath = "SonarTargetFilePath";
+        public const string SonarTargetsPath = "SonarTargetsPath";
 
         public const string RunSonarAnalysis = "RunSonarAnalysis";
         public const string SonarConfigPath = "SonarConfigPath";

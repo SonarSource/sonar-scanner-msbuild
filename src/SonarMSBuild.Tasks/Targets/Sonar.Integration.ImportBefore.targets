@@ -1,7 +1,7 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="$(SonarImported) != 'true' AND $(RunSonarAnalysis) == 'true' ">
-		<SonarTargetPath Condition="$(SonarTargetPath) == ''">$(MSBuildExtensionsPath)\SonarQube</SonarTargetPath>
-    <SonarTargets>$(SonarTargetPath)\Sonar.Integration.v0.1.targets</SonarTargets>
+    <SonarTargetsPath Condition="$(SonarTargetsPath) == ''">$(MSBuildExtensionsPath)\SonarQube</SonarTargetsPath>
+    <SonarTargetFilePath>$(SonarTargetsPath)\Sonar.Integration.v0.1.targets</SonarTargetFilePath>
   </PropertyGroup>
-  <Import Condition="$(RunSonarAnalysis) == 'true' AND $(SonarImported) != 'true' AND Exists('$(SonarTargets)')" Project="$(SonarTargets)" />
+  <Import Condition="$(RunSonarAnalysis) == 'true' AND $(SonarImported) != 'true' AND Exists('$(SonarTargetFilePath)')" Project="$(SonarTargetFilePath)" />
 </Project>

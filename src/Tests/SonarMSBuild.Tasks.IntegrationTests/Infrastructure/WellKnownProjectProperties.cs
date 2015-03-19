@@ -29,8 +29,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
 
         public string SonarBinPath
         {
-            get { return this[TargetProperties.SonarBinPath]; }
-            set { this[TargetProperties.SonarBinPath] = value; }
+            get { return this[TargetProperties.SonarTargetsPath]; }
+            set { this[TargetProperties.SonarTargetsPath] = value; }
         }
 
         public string SonarOutputPath
