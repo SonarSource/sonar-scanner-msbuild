@@ -35,34 +35,18 @@ namespace Sonar.Common
 
         public void LogMessage(string message, params object[] args)
         {
-            if (string.IsNullOrWhiteSpace(message))
-            {
-                throw new ArgumentNullException("message");
-            }
-
             message = this.GetFormattedMessage(message, args);
             Console.WriteLine(message);
         }
 
         public void LogWarning(string message, params object[] args)
         {
-            if (string.IsNullOrWhiteSpace(message))
-            {
-                throw new ArgumentNullException("message");
-            }
-
             message = this.GetFormattedMessage("WARNING: " + message, args);
             Console.Error.WriteLine(message);
         }
 
-
         public void LogError(string message, params object[] args)
         {
-            if (string.IsNullOrWhiteSpace(message))
-            {
-                throw new ArgumentNullException("message");
-            }
-
             message = this.GetFormattedMessage(message, args);
             Console.Error.WriteLine(message);
         }
@@ -73,7 +57,7 @@ namespace Sonar.Common
 
         private string GetFormattedMessage(string message, params object[] args)
         {
-            message = string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args);
+            message = string.Format(System.Globalization.CultureInfo.CurrentCulture, message ?? string.Empty, args ?? new object[] {});
 
             if (this.IncludeTimestamp)
             {
