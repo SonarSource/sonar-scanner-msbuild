@@ -21,7 +21,7 @@ namespace Sonar.TeamBuild.Integration
 
         internal static class TeamBuildEnvironmentVariables
         {
-            //public const string IsInTeamBuild = "TF_Build";
+            public const string IsInTeamBuild = "TF_Build";
             public const string TfsCollectionUri = "TF_BUILD_COLLECTIONURI";
             public const string BuildUri = "TF_BUILD_BUILDURI";
             public const string BuildDirectory = "TF_BUILD_BUILDDIRECTORY";
@@ -67,6 +67,21 @@ namespace Sonar.TeamBuild.Integration
             };
 
             return settings;
+        }
+
+        public static bool IsInTeamBuild
+        {
+            get
+            {
+                string value = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.IsInTeamBuild);
+                
+                bool result;
+                if (value != null && bool.TryParse(value, out result))
+                {
+                    return result;
+                }
+                return false;
+            }
         }
 
         public string TfsUri

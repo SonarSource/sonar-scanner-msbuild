@@ -85,6 +85,45 @@ namespace Sonar.TeamBuild.Integration.Tests
             Assert.AreEqual("build dir\\SonarTemp\\Config\\" + TeamBuildSettings.ConfigFileName, settings.AnalysisConfigFilePath, "Unexpected analysis file path");
         }
 
+        [TestMethod]
+        public void TBSettings_IsInTeamBuild()
+        {
+            // 0. Setup
+            bool result;
+
+            // 1. Env var not set
+            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            {
+                scope.AddVariable(TeamBuildSettings.TeamBuildEnvironmentVariables.IsInTeamBuild, null);
+                result = TeamBuildSettings.IsInTeamBuild;
+                Assert.IsFalse(result);
+            }
+
+            // 2. Env var set to a non-boolean -> false
+            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            {
+                scope.AddVariable(TeamBuildSettings.TeamBuildEnvironmentVariables.IsInTeamBuild, "wibble");
+                result = TeamBuildSettings.IsInTeamBuild;
+                Assert.IsFalse(result);
+            }
+
+            // 3. Env var set to false -> false
+            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            {
+                scope.AddVariable(TeamBuildSettings.TeamBuildEnvironmentVariables.IsInTeamBuild, "false");
+                result = TeamBuildSettings.IsInTeamBuild;
+                Assert.IsFalse(result);
+            }
+
+            // 4. Env var set to true -> true
+            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            {
+                scope.AddVariable(TeamBuildSettings.TeamBuildEnvironmentVariables.IsInTeamBuild, "TRUE");
+                result = TeamBuildSettings.IsInTeamBuild;
+                Assert.IsTrue(result);
+            }
+        }
+
         #endregion
 
     }
