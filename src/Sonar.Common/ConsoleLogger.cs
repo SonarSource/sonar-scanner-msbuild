@@ -57,7 +57,10 @@ namespace Sonar.Common
 
         private string GetFormattedMessage(string message, params object[] args)
         {
-            message = string.Format(System.Globalization.CultureInfo.CurrentCulture, message ?? string.Empty, args ?? new object[] {});
+            if (args != null && args.Length > 0)
+            {
+                message = string.Format(System.Globalization.CultureInfo.CurrentCulture, message ?? string.Empty, args);
+            }
 
             if (this.IncludeTimestamp)
             {

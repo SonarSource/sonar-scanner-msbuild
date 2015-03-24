@@ -177,6 +177,50 @@ namespace Sonar.Common.UnitTests
             AssertLastMessageEndsWith("simple error6 xxxyyy", writer);
         }
 
+        [TestMethod]
+        [Description("Checks that formatted strings and special formatting characters are handled correctly")]
+        public void CLogger_FormattedStrings()
+        {
+            StringWriter writer = new StringWriter();
+            Console.SetOut(writer);
+
+            // 1. Logger without timestamps
+            ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
+
+            logger.LogMessage("{ }");
+            AssertExpectedLastMessage("{ }", writer);
+
+            logger.LogMessage("}{");
+            AssertExpectedLastMessage("}{", writer);
+
+            logger.LogMessage("a{1}2", null);
+            AssertExpectedLastMessage("a{1}2", writer);
+
+            logger.LogMessage("{0}", "123");
+            AssertExpectedLastMessage("123", writer);
+
+            logger.LogMessage("a{0}{{{1}}}", "11", "22");
+            AssertExpectedLastMessage("a11{22}", writer);
+
+            // 2. Logger with timestamps
+            logger = new ConsoleLogger(includeTimestamp: true);
+
+            logger.LogMessage("{ }");
+            AssertLastMessageEndsWith("{ }", writer);
+
+            logger.LogMessage("}{");
+            AssertLastMessageEndsWith("}{", writer);
+
+            logger.LogMessage("a{1}2", null);
+            AssertLastMessageEndsWith("a{1}2", writer);
+
+            logger.LogMessage("{0}", "123");
+            AssertLastMessageEndsWith("123", writer);
+
+            logger.LogMessage("a{0}{{{1}}}", "11", "22");
+            AssertLastMessageEndsWith("a11{22}", writer);
+        }
+
         #endregion
 
         #region Assertions
