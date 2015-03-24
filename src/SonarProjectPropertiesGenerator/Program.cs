@@ -4,38 +4,57 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
 using Sonar.Common;
+using System;
+using System.IO;
 
-namespace SonarProjectPropertiesGenerator
+namespace SonarRunner.Shim
 {
     public class Program
     {
         public static int Main(string[] args)
         {
-            if (args.Length != 4)
+            ConsoleLogger logger = new ConsoleLogger();
+
+            if (args.Length != 1)
             {
-                Console.WriteLine("Expected to be called with exactly 4 arguments:");
-                Console.WriteLine("  1) SonarQube Project Key");
-                Console.WriteLine("  2) SonarQube Project Name");
-                Console.WriteLine("  3) SonarQube Project Version");
-                Console.WriteLine("  4) Dump folder path");
+                logger.LogError(Resources.ERR_InvalidCommandLineArgs);
                 return 1;
             }
 
-            var dumpFolderPath = args[3];
+            AnalysisConfig config = TryGetAnalysisConfig(args[0], logger);
+            if (config == null)
+            {
+                return 1;
+            }
 
-            var projects = ProjectLoader.LoadFrom(dumpFolderPath);
-            var contents = PropertiesWriter.ToString(new ConsoleLogger(includeTimestamp: true), args[0], args[1], args[2], dumpFolderPath, projects);
+            ISonarRunner runnerShim = new SonarRunnerWrapper();
+            bool success = runnerShim.Execute(config, logger);
 
-            File.WriteAllText(Path.Combine(dumpFolderPath, "sonar-project.properties"), contents, Encoding.ASCII);
-
-            return 0;
+            return success ? 0 : 1;
         }
+
+        private static AnalysisConfig TryGetAnalysisConfig(string suppliedPath, ILogger logger)
+        {
+            suppliedPath = Path.GetFullPath(suppliedPath); // turn relative into absolute paths
+
+            if (!File.Exists(suppliedPath))
+            {
+                logger.LogError(Resources.ERR_InvalidAnalysisConfigFilePath, suppliedPath);
+                return null;
+            }
+
+            AnalysisConfig config = null;
+            try
+            {
+                config = AnalysisConfig.Load(suppliedPath);
+            }
+            catch (InvalidOperationException ex)
+            {
+                logger.LogError(Resources.ERR_ErrorLoadingConfigFile, ex.Message);
+            }
+            return config;
+        }
+
     }
 }

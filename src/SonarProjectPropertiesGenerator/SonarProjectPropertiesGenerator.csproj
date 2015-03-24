@@ -7,8 +7,8 @@
     <ProjectGuid>{6F9D11ED-51E2-47CF-BE36-10FB3CCD50D1}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarProjectPropertiesGenerator</RootNamespace>
-    <AssemblyName>SonarProjectPropertiesGenerator</AssemblyName>
+    <RootNamespace>SonarRunner.Shim</RootNamespace>
+    <AssemblyName>SonarRunner.Shim</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

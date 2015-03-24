@@ -129,8 +129,18 @@
   <data name="DIAG_SonarRunnerCompleted" xml:space="preserve">
     <value>Sonar runner has finished</value>
   </data>
+  <data name="ERR_ErrorLoadingConfigFile" xml:space="preserve">
+    <value>Could not load the analysis config file. Please check that it is a valid file and try again.
+Error: {0}</value>
+  </data>
   <data name="ERR_FailedToLocateSonarRunner" xml:space="preserve">
     <value>Failed to locate the sonar-runner ({0}). Ensure that the containing directory is on the system PATH and try again.</value>
+  </data>
+  <data name="ERR_InvalidAnalysisConfigFilePath" xml:space="preserve">
+    <value>The specified analysis config file does not exist: {0}</value>
+  </data>
+  <data name="ERR_InvalidCommandLineArgs" xml:space="preserve">
+    <value>Expected to be called with one argument: the full path to the analysis config file</value>
   </data>
   <data name="ERR_SonarRunnerExecutionFailed" xml:space="preserve">
     <value>Sonar runner did not complete successfully</value>

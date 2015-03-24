@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SonarProjectPropertiesGenerator {
+namespace SonarRunner.Shim {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace SonarProjectPropertiesGenerator {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarProjectPropertiesGenerator.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarRunner.Shim.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -97,11 +97,39 @@ namespace SonarProjectPropertiesGenerator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not load the analysis config file. Please check that it is a valid file and try again.
+        ///Error: {0}.
+        /// </summary>
+        internal static string ERR_ErrorLoadingConfigFile {
+            get {
+                return ResourceManager.GetString("ERR_ErrorLoadingConfigFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to locate the sonar-runner ({0}). Ensure that the containing directory is on the system PATH and try again..
         /// </summary>
         internal static string ERR_FailedToLocateSonarRunner {
             get {
                 return ResourceManager.GetString("ERR_FailedToLocateSonarRunner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified analysis config file does not exist: {0}.
+        /// </summary>
+        internal static string ERR_InvalidAnalysisConfigFilePath {
+            get {
+                return ResourceManager.GetString("ERR_InvalidAnalysisConfigFilePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected to be called with one argument: the full path to the analysis config file.
+        /// </summary>
+        internal static string ERR_InvalidCommandLineArgs {
+            get {
+                return ResourceManager.GetString("ERR_InvalidCommandLineArgs", resourceCulture);
             }
         }
         
