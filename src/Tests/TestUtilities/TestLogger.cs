@@ -26,6 +26,16 @@ namespace TestUtilities
 
         #region Public methods
 
+        public void AssertErrorsLogged()
+        {
+            Assert.IsTrue(this.Errors.Count > 0, "Expecting at least one error to be logged");
+        }
+
+        public void AssertMessagesLogged()
+        {
+            Assert.IsTrue(this.Messages.Count > 0, "Expecting at least one message to be logged");
+        }
+
         public void AssertErrorsLogged(int expectedCount)
         {
             Assert.AreEqual(expectedCount, this.Errors.Count, "Unexpected number of errors logged");

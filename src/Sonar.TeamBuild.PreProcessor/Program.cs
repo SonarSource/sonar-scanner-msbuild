@@ -5,6 +5,8 @@
 //-----------------------------------------------------------------------
 
 using Sonar.Common;
+using System.Diagnostics;
+using System.IO;
 
 namespace Sonar.TeamBuild.PreProcessor
 {
@@ -21,23 +23,24 @@ namespace Sonar.TeamBuild.PreProcessor
         {
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
 
-            if (args.Length != 4)
+            bool success;
+
+            ProcessedArgs processedArgs = ArgumentProcessor.TryProcessArgs(args, logger);
+
+            if (processedArgs == null)
             {
+                success = false;
                 logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
-                return ErrorCode;
             }
-
-            string projectKey = args[0];
-            string projectName = args[1];
-            string projectVersion = args[2];
-            string propertiesPath = args[3];
-
-            TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor();
-            bool success = preProcessor.Execute(logger, projectKey, projectName, projectVersion, propertiesPath);
+            else
+            {
+                Debug.Assert(File.Exists(processedArgs.RunnerPropertiesPath), "Expecting the properties file to exist: " + processedArgs.RunnerPropertiesPath);
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor();
+                success = preProcessor.Execute(logger, processedArgs.ProjectKey, processedArgs.ProjectName, processedArgs.ProjectVersion, processedArgs.RunnerPropertiesPath);
+            }
 
             return success ? 0 : ErrorCode;
         }
 
-    
     }
 }

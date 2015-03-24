@@ -14,7 +14,6 @@ namespace Sonar.Common.UnitTests
     [TestClass]
     public class ProcessRunnerTests
     {
-
         public TestContext TestContext { get; set; }
 
         #region Tests

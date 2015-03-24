@@ -129,6 +129,12 @@
   <data name="DIAG_GeneratingRuleset" xml:space="preserve">
     <value>Generating the FxCop ruleset...</value>
   </data>
+  <data name="DIAG_LocatedRunnerProperties" xml:space="preserve">
+    <value>Located the runner properties file: {0}</value>
+  </data>
+  <data name="DIAG_LocatingRunnerProperties" xml:space="preserve">
+    <value>The path to the sonar-runner.properties file was not supplied on the command line. Attempting to locate the file...</value>
+  </data>
   <data name="DIAG_ProcessingCommandLine" xml:space="preserve">
     <value>Processing command line and environment variables</value>
   </data>
@@ -141,11 +147,17 @@
   <data name="ERROR_DuplicateCheckId" xml:space="preserve">
     <value>The following CheckId should not appear multiple times: {0}</value>
   </data>
+  <data name="ERROR_FailedToLocateRunnerProperties" xml:space="preserve">
+    <value>Failed to locate the sonar-runner.properties file. Unable to proceed.</value>
+  </data>
   <data name="ERROR_InvalidCommandLineArgs" xml:space="preserve">
-    <value>Expecting four command line arguments:
+    <value>Expecting at least three command line arguments:
 - Sonar project key
 - Sonar project name
 - Sonar project version
-- full path the sonar-runner.properties file</value>
+The full path to the sonar-runner.properties file can also be supplied as a fourth parameter. If it is not supplied, the exe will attempt to locate the file on the path.</value>
+  </data>
+  <data name="ERROR_InvalidRunnerPropertiesLocationSupplied" xml:space="preserve">
+    <value>The specified file does not exist: {0}</value>
   </data>
 </root>

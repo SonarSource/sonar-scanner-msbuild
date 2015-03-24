@@ -50,6 +50,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="ArgumentProcessorTests.cs" />
     <Compile Include="Infrastructure\MockPropertiesFetcher.cs" />
     <Compile Include="Infrastructure\MockRulesetGenerator.cs" />
     <Compile Include="PreProcessorExeTests.cs" />

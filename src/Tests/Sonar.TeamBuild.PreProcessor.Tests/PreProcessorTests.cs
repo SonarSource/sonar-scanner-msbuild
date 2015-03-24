@@ -36,7 +36,7 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
 
             string expectedConfigFileName;
 
-            using (PreprocessTestUtils.CreateValidScope("tfs uri", "build uri", testDir))
+            using (PreprocessTestUtils.CreateValidTeamBuildScope("tfs uri", "build uri", testDir))
             {
                 TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(new ConsoleLogger());
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
@@ -82,7 +82,7 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
 
             string expectedConfigFileName;
 
-            using (PreprocessTestUtils.CreateValidScope("tfs uri", "build uri", testDir))
+            using (PreprocessTestUtils.CreateValidTeamBuildScope("tfs uri", "build uri", testDir))
             {
                 TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(new ConsoleLogger());
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
