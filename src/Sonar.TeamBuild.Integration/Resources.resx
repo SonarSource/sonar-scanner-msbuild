@@ -120,8 +120,18 @@
   <data name="CONV_DIAG_CommandLineToolInfo" xml:space="preserve">
     <value>Code coverage command line tool: {0}</value>
   </data>
+  <data name="CONV_DIAG_LocatingCodeCoverageTool" xml:space="preserve">
+    <value>Attempting to locate the CodeCoverage.exe tool...</value>
+  </data>
+  <data name="CONV_DIAG_MultipleVsVersionsInstalled" xml:space="preserve">
+    <value>Multiple versions of VS are installed: {0}</value>
+    <comment>First parameter: a list of VS versions</comment>
+  </data>
   <data name="CONV_ERROR_FailToFindConversionTool" xml:space="preserve">
     <value>Failed to locate the code coverage command line tool</value>
+  </data>
+  <data name="CONV_ERROR_OutputFileNotFound" xml:space="preserve">
+    <value>Failed to convert the binary coverage file to XML. The expected output file was not found: {0}</value>
   </data>
   <data name="DOWN_DIAG_DownloadCoverageReportFromTo" xml:space="preserve">
     <value>Downloading coverage file from {0} t0 {1}</value>

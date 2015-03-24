@@ -17,6 +17,8 @@ namespace Sonar.TeamBuild.Integration
 {
     public class CoverageReportConverter : ICoverageReportConverter
     {
+        private const int ConversionTimeoutInMs = 30000;
+
         /// <summary>
         /// Registry containing information about installed VS versions
         /// </summary>
@@ -72,7 +74,7 @@ namespace Sonar.TeamBuild.Integration
                 throw new ArgumentNullException("logger");
             }
             
-            return this.Execute(inputFullBinaryFileName, outputFullXmlFileName, logger);
+            return ConvertBinaryToXml(this.conversionToolPath, inputFullBinaryFileName, outputFullXmlFileName, logger);
         }
 
         #endregion
@@ -83,7 +85,7 @@ namespace Sonar.TeamBuild.Integration
         {
             string toolPath = null;
 
-            logger.LogMessage("Attempting to locate the CodeCoverage.exe tool...");
+            logger.LogMessage(Resources.CONV_DIAG_LocatingCodeCoverageTool);
             using (RegistryKey key = Registry.LocalMachine.OpenSubKey(VisualStudioRegistryPath, false))
             {
                 string[] keys = key.GetSubKeyNames();
@@ -98,7 +100,7 @@ namespace Sonar.TeamBuild.Integration
 
                 if (versionToolMap.Count > 1)
                 {
-                    logger.LogMessage("Multiple versions of VS are installed: {0}", string.Join(", ", versionToolMap.Keys));
+                    logger.LogMessage(Resources.CONV_DIAG_MultipleVsVersionsInstalled, string.Join(", ", versionToolMap.Keys));
                 }
 
                 if (versionToolMap.Count > 0)
@@ -144,20 +146,31 @@ namespace Sonar.TeamBuild.Integration
             return versionPathMap;
         }
 
-        private bool Execute(string inputfullBinaryFileName, string outputFullXmlFileName, ILogger logger)
+        internal static bool ConvertBinaryToXml(string converterExeFilePath, string inputfullBinaryFilePath, string outputFullXmlFilePath, ILogger logger)
         {
-            Debug.Assert(!string.IsNullOrEmpty(this.conversionToolPath), "Expecting the conversion tool path to have been set");
+            Debug.Assert(!string.IsNullOrEmpty(converterExeFilePath), "Expecting the conversion tool path to have been set");
+            Debug.Assert(File.Exists(converterExeFilePath), "Expecting the converter exe to exist: " + converterExeFilePath);
+            Debug.Assert(Path.IsPathRooted(inputfullBinaryFilePath), "Expecting the input file name to be a full absolute path");
+            Debug.Assert(File.Exists(inputfullBinaryFilePath), "Expecting the input file to exist: " + inputfullBinaryFilePath);
+            Debug.Assert(Path.IsPathRooted(outputFullXmlFilePath), "Expecting the output file name to be a full absolute path");
 
             string args = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                @"analyze /output:""{0}"" {1}",
-                outputFullXmlFileName, inputfullBinaryFileName);
+                @"analyze /output:""{0}"" ""{1}""",
+                outputFullXmlFilePath, inputfullBinaryFilePath);
 
-            // TODO: capture errors from the remote process
-            ProcessStartInfo psi = new ProcessStartInfo(this.conversionToolPath, args);
-            psi.CreateNoWindow = true;
-            
-            Process process = Process.Start(psi);
-            bool success = process.WaitForExit(ConversionTimeoutMs);
+            ProcessRunner runner = new ProcessRunner();
+            bool success = runner.Execute(converterExeFilePath, args, Path.GetDirectoryName(outputFullXmlFilePath), ConversionTimeoutInMs, logger);
+
+            // Check the output file actually exists
+            if (success)
+            {
+                if (!File.Exists(outputFullXmlFilePath))
+                {
+                    logger.LogError(Resources.CONV_ERROR_OutputFileNotFound, outputFullXmlFilePath);
+                    success = false;
+                }
+            }
+
             return success;
         }
 

@@ -50,6 +50,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="CoverageReportConverterTests.cs" />
     <Compile Include="CoverageReportProcessorTests.cs" />
     <Compile Include="Infrastructure\MockReportDownloader.cs" />
     <Compile Include="Infrastructure\MockReportConverter.cs" />
