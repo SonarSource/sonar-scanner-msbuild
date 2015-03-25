@@ -12,7 +12,7 @@ using System.IO;
 using System.Linq;
 using TestUtilities;
 
-namespace SonarProjectPropertiesGenerator.Tests
+namespace SonarRunner.Shim.Tests
 {
     [TestClass]
     public class ProjectLoaderTest
@@ -67,7 +67,7 @@ namespace SonarProjectPropertiesGenerator.Tests
             CreateFilesFromDescriptor(validNonTestNoReportsProject, "SomeList.txt", null, null, null);
 
             // Act
-            List<Project> projects = SonarProjectPropertiesGenerator.ProjectLoader.LoadFrom(testSourcePath);
+            List<Project> projects = SonarRunner.Shim.ProjectLoader.LoadFrom(testSourcePath);
 
             // Assert
             Assert.AreEqual(3, projects.Count);
@@ -103,11 +103,11 @@ namespace SonarProjectPropertiesGenerator.Tests
             CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt", null, null, null);
 
             // 1. Run against the root dir -> not expecting the project to be found
-            List<Project> projects = SonarProjectPropertiesGenerator.ProjectLoader.LoadFrom(rootTestDir);
+            List<Project> projects = SonarRunner.Shim.ProjectLoader.LoadFrom(rootTestDir);
             Assert.AreEqual(0, projects.Count);
 
             // 2. Run against the child dir -> project should be found
-            projects = SonarProjectPropertiesGenerator.ProjectLoader.LoadFrom(childDir);
+            projects = SonarRunner.Shim.ProjectLoader.LoadFrom(childDir);
             Assert.AreEqual(1, projects.Count);
         }
 

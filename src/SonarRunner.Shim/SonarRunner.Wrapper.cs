@@ -5,7 +5,6 @@
 //-----------------------------------------------------------------------
 
 using Sonar.Common;
-using SonarProjectPropertiesGenerator;
 using System;
 using System.Diagnostics;
 using System.IO;

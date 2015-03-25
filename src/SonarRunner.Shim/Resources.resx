@@ -145,4 +145,7 @@ Error: {0}</value>
   <data name="ERR_SonarRunnerExecutionFailed" xml:space="preserve">
     <value>Sonar runner did not complete successfully</value>
   </data>
+  <data name="WARN_DuplicateProjectGuid" xml:space="preserve">
+    <value>The project has a non-unique GUID "{0}". Analysis results for this project will not be uploaded to SonarQube. Project file: {1}</value>
+  </data>
 </root>

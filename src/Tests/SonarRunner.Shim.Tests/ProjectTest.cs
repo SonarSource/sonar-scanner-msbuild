@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarProjectPropertiesGenerator.Tests
+namespace SonarRunner.Shim.Tests
 {
     [TestClass]
     public class ProjectTest

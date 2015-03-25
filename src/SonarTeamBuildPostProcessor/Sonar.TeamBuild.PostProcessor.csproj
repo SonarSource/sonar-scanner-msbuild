@@ -62,9 +62,9 @@
       <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>
       <Name>Sonar.TeamBuild.Integration</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SonarProjectPropertiesGenerator\SonarProjectPropertiesGenerator.csproj">
-      <Project>{6f9d11ed-51e2-47cf-be36-10fb3ccd50d1}</Project>
-      <Name>SonarProjectPropertiesGenerator</Name>
+    <ProjectReference Include="..\SonarRunner.Shim\SonarRunner.Shim.csproj">
+      <Project>{c28a09bf-6025-4ea1-90d7-4d5ec0af815d}</Project>
+      <Name>SonarRunner.Shim</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

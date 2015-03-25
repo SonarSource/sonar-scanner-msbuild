@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarProjectPropertiesGenerator.Tests
+namespace SonarRunner.Shim.Tests
 {
     [TestClass]
     public class PropertiesWriterTest
@@ -22,9 +22,9 @@ namespace SonarProjectPropertiesGenerator.Tests
         [TestMethod]
         public void PropertiesWriterEscape()
         {
-            Assert.AreEqual("foo", SonarProjectPropertiesGenerator.PropertiesWriter.Escape("foo"));
-            Assert.AreEqual(@"C:\\File.cs", SonarProjectPropertiesGenerator.PropertiesWriter.Escape(@"C:\File.cs"));
-            Assert.AreEqual(@"\u4F60\u597D", SonarProjectPropertiesGenerator.PropertiesWriter.Escape("你好"));
+            Assert.AreEqual("foo", SonarRunner.Shim.PropertiesWriter.Escape("foo"));
+            Assert.AreEqual(@"C:\\File.cs", SonarRunner.Shim.PropertiesWriter.Escape(@"C:\File.cs"));
+            Assert.AreEqual(@"\u4F60\u597D", SonarRunner.Shim.PropertiesWriter.Escape("你好"));
         }
 
         [TestMethod]
@@ -64,7 +64,7 @@ namespace SonarProjectPropertiesGenerator.Tests
             projects.Add(duplicatedProject2);
 
             var logger = new TestLogger();
-            string actual = SonarProjectPropertiesGenerator.PropertiesWriter.ToString(logger, "my_project_key", "my_project_name", "1.0", @"C:\my_folder", projects);
+            string actual = SonarRunner.Shim.PropertiesWriter.ToString(logger, "my_project_key", "my_project_name", "1.0", @"C:\my_folder", projects);
 
             Assert.AreEqual(2, logger.Warnings.Count);
             Assert.AreEqual(@"The project has a non-unique GUID ""C53C92C0-0A5A-4F89-A857-2BBD41CB4410"". Analysis results for this project will not be uploaded to SonarQube. Project file: C:\DuplicatedProject1.csproj", logger.Warnings[0]);

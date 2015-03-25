@@ -6,8 +6,8 @@
     <ProjectGuid>{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarProjectPropertiesGenerator.Tests</RootNamespace>
-    <AssemblyName>SonarProjectPropertiesGenerator.Tests</AssemblyName>
+    <RootNamespace>SonarRunner.Shim.Tests</RootNamespace>
+    <AssemblyName>SonarRunner.Shim.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -60,9 +60,9 @@
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>Sonar.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SonarProjectPropertiesGenerator\SonarProjectPropertiesGenerator.csproj">
-      <Project>{6f9d11ed-51e2-47cf-be36-10fb3ccd50d1}</Project>
-      <Name>SonarProjectPropertiesGenerator</Name>
+    <ProjectReference Include="..\..\SonarRunner.Shim\SonarRunner.Shim.csproj">
+      <Project>{c28a09bf-6025-4ea1-90d7-4d5ec0af815d}</Project>
+      <Name>SonarRunner.Shim</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj">
       <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>
