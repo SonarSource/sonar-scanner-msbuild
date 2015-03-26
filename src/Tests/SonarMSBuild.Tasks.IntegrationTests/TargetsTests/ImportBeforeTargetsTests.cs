@@ -1,6 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ImportBeforeTargetsTests.cs" company="SonarSource SA and Microsoft Corporation">
-//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -98,7 +99,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
             // See the Microsoft Common targets for more info e.g. C:\Program Files (x86)\MSBuild\12.0\Bin\Microsoft.Common.CurrentVersion.targets
             // TODO: consider changing these tests to redirect where the common targets look for ImportBefore assemblies.
             // That would allow us to test the actual ImportBefore behaviour (we're currently creating a project that
-            // explicitly imports our Sonar "ImportBefore" project).
+            // explicitly imports our SonarQube "ImportBefore" project).
             preImportProperties.Add("ImportByWildcardBeforeMicrosoftCommonTargets", "false");
             preImportProperties.Add("ImportByWildcardAfterMicrosoftCommonTargets", "false");
 
@@ -117,12 +118,12 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// <param name="preImportProperties">Any properties that need to be set before the C# targets are imported. Can be null.</param>
         private ProjectRootElement CreateImportsBeforeTestProject(IDictionary<string, string> preImportProperties)
         {
-            // Create a dummy Sonar analysis targets file
+            // Create a dummy SonarQube analysis targets file
             string dummyAnalysisTargets = EnsureDummySonarIntegrationTargetsFileExists();
 
             // Locate the real "ImportsBefore" target file
             string importsBeforeTargets = Path.Combine(this.TestContext.TestDeploymentDir, TargetConstants.SonarImportsBeforeFile);
-            Assert.IsTrue(File.Exists(importsBeforeTargets), "Test error: the Sonar imports before target file does not exist. Path: {0}", importsBeforeTargets);
+            Assert.IsTrue(File.Exists(importsBeforeTargets), "Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
 
             string projectName = this.TestContext.TestName + ".proj";
             string testSpecificFolder = TestUtils.EnsureTestSpecificFolder(this.TestContext);
@@ -148,7 +149,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         /// <summary>
-        /// Ensures that a dummy targets file with the name of the Sonar analysis targets file exists.
+        /// Ensures that a dummy targets file with the name of the SonarQube analysis targets file exists.
         /// Return the full path to the targets file.
         /// </summary>
         private string EnsureDummySonarIntegrationTargetsFileExists()
@@ -183,13 +184,13 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
         private static void AssertAnalysisTargetsAreNotImported(ProjectInstance projectInstance)
         {
             ProjectPropertyInstance propertyInstance = projectInstance.GetProperty(DummyAnalysisTargetsMarkerProperty);
-            Assert.IsNull(propertyInstance, "Sonar Analysis targets should not have been imported");
+            Assert.IsNull(propertyInstance, "SonarQube Analysis targets should not have been imported");
         }
 
         private static void AssertAnalysisTargetsAreImported(ProjectInstance projectInstance)
         {
             ProjectPropertyInstance propertyInstance = projectInstance.GetProperty(DummyAnalysisTargetsMarkerProperty);
-            Assert.IsNotNull(propertyInstance, "Failed to import the Sonar Analysis targets");
+            Assert.IsNotNull(propertyInstance, "Failed to import the SonarQube Analysis targets");
         }
 
         #endregion

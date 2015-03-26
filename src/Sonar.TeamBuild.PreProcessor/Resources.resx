@@ -142,7 +142,7 @@
     <value>Saving the config file to {0}</value>
   </data>
   <data name="ERROR_CannotPerformProcessing" xml:space="preserve">
-    <value>Sonar pre-processing cannot be performed - required settings are missing</value>
+    <value>SonarQube pre-processing cannot be performed - required settings are missing</value>
   </data>
   <data name="ERROR_DuplicateCheckId" xml:space="preserve">
     <value>The following CheckId should not appear multiple times: {0}</value>
@@ -152,9 +152,9 @@
   </data>
   <data name="ERROR_InvalidCommandLineArgs" xml:space="preserve">
     <value>Expecting at least three command line arguments:
-- Sonar project key
-- Sonar project name
-- Sonar project version
+- SonarQube project key
+- SonarQube project name
+- SonarQube project version
 The full path to the sonar-runner.properties file can also be supplied as a fourth parameter. If it is not supplied, the exe will attempt to locate the file on the path.</value>
   </data>
   <data name="ERROR_InvalidRunnerPropertiesLocationSupplied" xml:space="preserve">

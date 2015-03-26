@@ -1,13 +1,14 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ISonarPropertyProvider.cs" company="SonarSource SA and Microsoft Corporation">
-//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
 namespace Sonar.Common
 {
     /// <summary>
-    /// Provides Sonar property settings
+    /// Provides SonarQube property settings
     /// </summary>
     public interface ISonarPropertyProvider
     {

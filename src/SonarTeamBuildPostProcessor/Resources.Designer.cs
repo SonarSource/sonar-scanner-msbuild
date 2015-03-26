@@ -61,7 +61,7 @@ namespace Sonar.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Loading the Sonar analysis config from {0}.
+        ///   Looks up a localized string similar to Loading the SonarQube analysis config from {0}.
         /// </summary>
         internal static string DIAG_LoadingConfig {
             get {
@@ -79,7 +79,7 @@ namespace Sonar.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sonar analysis could not be completed because the analysis configuration file could not be found.
+        ///   Looks up a localized string similar to SonarQube analysis could not be completed because the analysis configuration file could not be found.
         ///Expected location: {0}.
         /// </summary>
         internal static string ERROR_ConfigFileNotFound {
@@ -89,7 +89,7 @@ namespace Sonar.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sonar post-processing cannot be performed - required settings are missing.
+        ///   Looks up a localized string similar to SonarQube post-processing cannot be performed - required settings are missing.
         /// </summary>
         internal static string ERROR_MissingSettings {
             get {
@@ -98,7 +98,7 @@ namespace Sonar.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sonar analysis failed.
+        ///   Looks up a localized string similar to SonarQube analysis failed.
         /// </summary>
         internal static string Report_AnalysisFailed {
             get {
@@ -107,11 +107,20 @@ namespace Sonar.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sonar analysis succeeded.
+        ///   Looks up a localized string similar to SonarQube analysis succeeded.
         /// </summary>
         internal static string Report_AnalysisSucceeded {
             get {
                 return ResourceManager.GetString("Report_AnalysisSucceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube project: {0} ({1}), version: {2}.
+        /// </summary>
+        internal static string Report_ProjectInfoSummary {
+            get {
+                return ResourceManager.GetString("Report_ProjectInfoSummary", resourceCulture);
             }
         }
     }

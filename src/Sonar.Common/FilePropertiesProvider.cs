@@ -1,6 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="FilePropertiesProvider.cs" company="SonarSource SA and Microsoft Corporation">
-//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -14,7 +15,7 @@ namespace Sonar.Common
 {
     /// <summary>
     /// Implementation of <see cref="ISonarPropertyProvider"/> that reads properties from
-    /// a standard format Sonar properties file (e.g. sonar-runner.properties)
+    /// a standard format SonarQube properties file (e.g. sonar-runner.properties)
     /// </summary>
     public class FilePropertiesProvider : ISonarPropertyProvider
     {
@@ -36,7 +37,7 @@ namespace Sonar.Common
         /// Creates a new provider that reads properties from the
         /// specified properties file
         /// </summary>
-        /// <param name="fullPath">The full path to the sonar properties file. The file must exist.</param>
+        /// <param name="fullPath">The full path to the SonarQube properties file. The file must exist.</param>
         public FilePropertiesProvider(string fullPath)
         {
             if (string.IsNullOrWhiteSpace(fullPath))

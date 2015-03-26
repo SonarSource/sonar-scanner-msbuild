@@ -87,7 +87,9 @@
       <Name>TestUtilities</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="License.txt" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="..\..\SonarMSBuild.Tasks\Targets\Sonar.Integration.ImportBefore.targets">
       <Link>LinkedFiles\Sonar.Integration.ImportBefore.targets</Link>

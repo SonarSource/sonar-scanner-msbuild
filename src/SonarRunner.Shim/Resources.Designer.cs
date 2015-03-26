@@ -61,7 +61,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Calling the sonar runner....
+        ///   Looks up a localized string similar to Calling the sonar-runner....
         /// </summary>
         internal static string DIAG_CallingSonarRunner {
             get {
@@ -70,7 +70,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generating sonar project properties file to {0}.
+        ///   Looks up a localized string similar to Generating SonarQube project properties file to {0}.
         /// </summary>
         internal static string DIAG_GeneratingProjectProperties {
             get {
@@ -88,7 +88,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sonar runner has finished.
+        ///   Looks up a localized string similar to The sonar-runner has finished.
         /// </summary>
         internal static string DIAG_SonarRunnerCompleted {
             get {
@@ -134,7 +134,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sonar runner did not complete successfully.
+        ///   Looks up a localized string similar to The sonar-runner did not complete successfully.
         /// </summary>
         internal static string ERR_SonarRunnerExecutionFailed {
             get {

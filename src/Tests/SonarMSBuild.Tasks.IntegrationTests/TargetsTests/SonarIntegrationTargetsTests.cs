@@ -1,6 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="SonarIntegrationTargetsTests.cs" company="SonarSource SA and Microsoft Corporation">
-//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -56,7 +57,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [Description("Checks the sonar paths are set correctly when the TeamBuild property is missing")]
+        [Description("Checks the SonarQube paths are set correctly when the TeamBuild property is missing")]
         public void IntTargets_SonarPaths_TeamBuildPropertyNotSet()
         {
             // Arrange
@@ -75,7 +76,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [Description("Checks the sonar paths are set correctly when the TeamBuild property is provided")]
+        [Description("Checks the SonarQube paths are set correctly when the TeamBuild property is provided")]
         public void IntTargets_SonarPaths_TeamBuildPropertySet()
         {
             // Arrange
@@ -95,7 +96,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [Description("Checks the sonar paths are set correctly when the SonarTemp property is provided")]
+        [Description("Checks the SonarQube paths are set correctly when the SonarTemp property is provided")]
         public void IntTargets_SonarPaths_SonarTempSet()
         {
             // Arrange

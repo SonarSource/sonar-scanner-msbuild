@@ -7,9 +7,11 @@
       The targets will produce an output folder structure containing information required
       by SonarQube.
       
-      A subdirectory will be created for each MSBuild project. 
-      The list of compiled files for that project will be written to the output file "CompileList.txt".
-      Information about project will be written to a file "ProjectInfo.xml".
+      A subdirectory will be created for each MSBuild project. Information about the project 
+	  will be written to a file called "ProjectInfo.xml". Additional files may also be written
+	  containing information required by different analysers e.g. if there are managed code files
+	  then a file called "ManagedFileList" will be written containing the list of managed code
+	  files that was passed to the compiler.
       
       The output will only be produced if the property $(SonarOutputPath) is specified. $(SonarOutputPath) is
       the output directory in which the output file should be dropped and can be relative or
@@ -20,7 +22,7 @@
       To use these targets with a single project, import the targets into that project.
 
       To use these targets with all projects, put the file in:
-          C:\Program Files (x86)\MSBuild\12.0\Microsoft.Common.Targets\ImportAfter
+          C:\Program Files (x86)\MSBuild\12.0\Microsoft.Common.Targets\ImportBefore
       ... adjusting the MSBuild version as necessary.
 
 
@@ -29,8 +31,8 @@
       msbuild MyProject.csproj /p:SonarOutputPath=C:\SonarOutput
 
 
-      Excluding projects and files from Sonar analysis
-      *************************************************
+      Excluding projects and files from SonarQube analysis
+      ****************************************************
       Individual projects can excluded from Sonary analysis by setting
       the property $(SonarExclude) e.g.
       
@@ -78,7 +80,7 @@
     <SonarImported>true</SonarImported>
   </PropertyGroup>
 
-  <!-- Set defaults for the Sonar paths if explicit values have not been provided -->
+  <!-- Set defaults for the SonarQube paths if explicit values have not been provided -->
   <PropertyGroup Condition="$(RunSonarAnalysis) == 'true' ">
     <!-- Use the TeamBuild per-build base directory as a root -->
     <SonarTempPath Condition=" $(SonarTempPath) == '' AND $(TF_BUILD_BUILDDIRECTORY) != '' "
@@ -125,7 +127,7 @@
         Condition="$(RunSonarAnalysis) == 'true' AND  $(SonarOutputPath) != '' ">
 
     <Message Importance="normal" Condition=" $(SonarExclude) == 'true' "
-             Text="Skipping Sonar analysis: SonarExclude is set to true" />
+             Text="Skipping SonarQube analysis: SonarExclude is set to true" />
 
     <CallTarget Targets="WriteSonarProjectData" Condition=" $(SonarExclude) != 'true' " />
 
@@ -210,7 +212,7 @@
       <!-- The MS Test project type guid-->
       <SonarMsTestProjectTypeGuid>3AC096D0-A1C2-E12C-1390-A8335801FDAB</SonarMsTestProjectTypeGuid>
 
-      <!-- Default Sonar test project regular expression -->
+      <!-- Default SonarQube test project regular expression -->
       <!-- NOTE: this uses .NET regular expression syntax -->
 			<!-- Matches: any project under a "\test\" or "\tests" directory, or that has "test" in the file name" -->
       <SonarTestProjectNameRegex Condition=" $(SonarTestProjectNameRegex) == '' ">(.*\\tests?\\.*)|(\.*test[^\\]*$)</SonarTestProjectNameRegex>
@@ -224,7 +226,7 @@
     </PropertyGroup>
 
     <Message Importance="low" Condition=" $(SonarTestProject) == 'true' "
-             Text="Sonar: project will be treated as a test project : $(MSBuildProjectName)" />
+             Text="SonarQube: project will be treated as a test project : $(MSBuildProjectName)" />
     
     <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
        FullProjectPath="$(MSBuildProjectFullPath)"
@@ -265,8 +267,8 @@
     <SonarRulesetExists Condition=" $(SonarConfigPath) == '' ">false</SonarRulesetExists>
     <SonarRulesetExists Condition=" $(SonarConfigPath) != '' ">$([System.IO.File]::Exists($(SonarRulesetFullName)))</SonarRulesetExists>
 
-    <!-- If we are running a Sonar analysis build then whether or not FxCop is run depends entirely on whether
-         the Sonar ruleset exists. -->
+    <!-- If we are running a SonarQube analysis build then whether or not FxCop is run depends entirely on whether
+         the SonarQube ruleset exists. -->
     <RunCodeAnalysisOnce>$(SonarRulesetExists)</RunCodeAnalysisOnce>
   </PropertyGroup>
 
@@ -276,11 +278,11 @@
 
     <Message Condition="$(SonarRulesetExists) != 'true' "
              Importance="normal"
-             Text="Skipping FxCop analysis because the Sonar ruleset does not exist. Ruleset: $(SonarRulesetFullName)" />
+             Text="Skipping FxCop analysis because the SonarQube ruleset does not exist. Ruleset: $(SonarRulesetFullName)" />
 
     <Message Condition="$(SonarRulesetExists) == 'true' "
              Importance="normal"
-             Text="Running FxCop analysis using the Sonar ruleset. Ruleset: $(SonarRulesetFullName)" />
+             Text="Running FxCop analysis using the SonarQube ruleset. Ruleset: $(SonarRulesetFullName)" />
 
     <PropertyGroup>
       <!-- By the time this target is evaluated, the FxCop targets have evaluated the

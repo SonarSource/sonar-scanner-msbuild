@@ -1,6 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="BuildSummaryLogger.cs" company="SonarSource SA and Microsoft Corporation">
-//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -68,7 +69,7 @@ namespace Sonar.TeamBuild.Integration
             }
 
             this.EnsureConnected();
-            this.build.Information.AddCustomSummaryInformation(message, SectionName, Resources.SonarSummarySectionHeader, SectionPriority).Save();
+            this.build.Information.AddCustomSummaryInformation(message, SectionName, Resources.SonarQubeSummarySectionHeader, SectionPriority).Save();
         }
 
         #endregion

@@ -149,10 +149,10 @@
     <value>Updating project info files with code coverage information...</value>
   </data>
   <data name="PROC_ERROR_MultipleCodeCoverageReportsFound" xml:space="preserve">
-    <value>More than one code coverage result file was created. Only one report can be uploaded to Sonar. Please modify the build definition so either Sonar analysis is disabled or the only platform/flavor is built</value>
+    <value>More than one code coverage result file was created. Only one report can be uploaded to SonarQube. Please modify the build definition so either SonarQube analysis is disabled or the only platform/flavor is built</value>
   </data>
-  <data name="SonarSummarySectionHeader" xml:space="preserve">
-    <value>Sonar Analysis Summary</value>
+  <data name="SonarQubeSummarySectionHeader" xml:space="preserve">
+    <value>SonarQube Analysis Summary</value>
   </data>
   <data name="URL_DIAG_ConnectingToTfs" xml:space="preserve">
     <value>Connecting to TFS...</value>

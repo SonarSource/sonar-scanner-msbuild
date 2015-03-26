@@ -1,6 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="FileLocator.cs" company="SonarSource SA and Microsoft Corporation">
-//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -27,7 +28,7 @@ namespace Sonar.Common
             string configPath = null;
 
             // Try to find the properties file relative to the runner executable.
-            // We're expecting the sonar runner installation to be installed in a known set of directories
+            // We're expecting the sonar-runner installation to be installed in a known set of directories
             // i.e.
             // [root]\lib - contains the jar files
             // [root]\bin - contains the executable

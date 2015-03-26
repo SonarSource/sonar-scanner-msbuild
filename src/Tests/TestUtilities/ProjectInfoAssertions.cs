@@ -1,6 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ProjectInfoAssertions.cs" company="SonarSource SA and Microsoft Corporation">
-//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -74,7 +75,7 @@ namespace TestUtilities
         /// <summary>
         /// Checks that not project info files exist under the output folder
         /// </summary>
-        /// <param name="rootOutputFolder">The root Sonar analysis output folder i.e. the folder that contains the per-project folders</param>
+        /// <param name="rootOutputFolder">The root SonarQube analysis output folder i.e. the folder that contains the per-project folders</param>
         public static void AssertNoProjectInfoFilesExists(string rootOutputFolder)
         {
             IList<ProjectInfo> items = GetProjectInfosFromOutputFolder(rootOutputFolder);
@@ -84,7 +85,7 @@ namespace TestUtilities
         /// <summary>
         /// Checks that a project info file exists for the specified project
         /// </summary>
-        /// <param name="rootOutputFolder">The root Sonar analysis output folder i.e. the folder that contains the per-project folders</param>
+        /// <param name="rootOutputFolder">The root SonarQube analysis output folder i.e. the folder that contains the per-project folders</param>
         /// <param name="fullProjectFileName">The full path and file name of the project file to which the project info file relates</param>
         public static ProjectInfo AssertProjectInfoExists(string rootOutputFolder, string fullProjectFileName)
         {

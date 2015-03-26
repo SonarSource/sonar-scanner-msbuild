@@ -1,6 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="BuildUtilities.cs" company="SonarSource SA and Microsoft Corporation">
-//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -80,7 +81,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
 
         /// <summary>
         /// Creates a project file on disk from the specified descriptor.
-        /// Sets the Sonar output folder property, if specified.
+        /// Sets the SonarQube output folder property, if specified.
         /// </summary>
         public static ProjectRootElement CreateInitializedProjectRoot(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
         {
@@ -96,13 +97,13 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
 
         /// <summary>
         /// Creates and returns an empty MSBuild project using the data in the supplied descriptor.
-        /// The project will import the Sonar analysis targets file and the standard C# targets file.
+        /// The project will import the SonarQube analysis targets file and the standard C# targets file.
         /// The project name and GUID will be set if the values are supplied in the descriptor.
         /// </summary>
         public static ProjectRootElement CreateSonarAnalysisProject(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
         {
             string sonarTargetFile = Path.Combine(testContext.DeploymentDirectory, TargetConstants.AnalysisTargetFile);
-            Assert.IsTrue(File.Exists(sonarTargetFile), "Test error: the Sonar analysis targets file could not be found. Full path: {0}", sonarTargetFile);
+            Assert.IsTrue(File.Exists(sonarTargetFile), "Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sonarTargetFile);
 
             ProjectRootElement root = CreateMinimalBuildableProject(preImportProperties, sonarTargetFile);
 

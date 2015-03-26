@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Content Include="License.txt" />
     <Content Include="ProjectLoaderTest\EmptyFolder\README.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

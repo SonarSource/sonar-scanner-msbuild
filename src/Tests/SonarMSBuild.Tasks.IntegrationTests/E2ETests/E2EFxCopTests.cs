@@ -1,6 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="E2EFxCopTests.cs" company="SonarSource SA and Microsoft Corporation">
-//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -226,7 +227,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             logger.AssertTargetExecuted(TargetConstants.SonarOverrideFxCopSettingsTarget);
             logger.AssertTargetExecuted(TargetConstants.SonarSetFxCopResultsTarget);
 
-            // If the sonar FxCop targets are executed then we expect the FxCop
+            // If the SonarQube FxCop targets are executed then we expect the FxCop
             // target and task to be executed too
             AssertFxCopExecuted(logger);
         }

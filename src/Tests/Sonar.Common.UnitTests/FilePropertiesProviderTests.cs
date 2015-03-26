@@ -1,6 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="FilePropertiesProviderTests.cs" company="SonarSource SA and Microsoft Corporation">
-//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -88,7 +89,7 @@ invalidname2 =abc
         }
 
         [TestMethod]
-        [Description("Tests retrieving settings from an example sonar project properties file")]
+        [Description("Tests retrieving settings from an example SonarQube project properties file")]
         public void FilePropertiesProvider_SonarProjectProperties()
         {
             // Arrange
@@ -133,7 +134,7 @@ sonar.language=cs
         }
 
         [TestMethod]
-        [Description("Tests retrieving settings from an example sonar runner property file")]
+        [Description("Tests retrieving settings from an example SonarQube runner property file")]
         public void FilePropertiesProvider_SonarRunnerProperties()
         {
             // Arrange

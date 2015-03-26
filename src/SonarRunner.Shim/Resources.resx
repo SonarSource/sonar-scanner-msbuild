@@ -118,16 +118,16 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="DIAG_CallingSonarRunner" xml:space="preserve">
-    <value>Calling the sonar runner...</value>
+    <value>Calling the sonar-runner...</value>
   </data>
   <data name="DIAG_GeneratingProjectProperties" xml:space="preserve">
-    <value>Generating sonar project properties file to {0}</value>
+    <value>Generating SonarQube project properties file to {0}</value>
   </data>
   <data name="DIAG_LocatedSonarRunner" xml:space="preserve">
     <value>Located the sonar-runner: {0}</value>
   </data>
   <data name="DIAG_SonarRunnerCompleted" xml:space="preserve">
-    <value>Sonar runner has finished</value>
+    <value>The sonar-runner has finished</value>
   </data>
   <data name="ERR_ErrorLoadingConfigFile" xml:space="preserve">
     <value>Could not load the analysis config file. Please check that it is a valid file and try again.
@@ -143,7 +143,7 @@ Error: {0}</value>
     <value>Expected to be called with one argument: the full path to the analysis config file</value>
   </data>
   <data name="ERR_SonarRunnerExecutionFailed" xml:space="preserve">
-    <value>Sonar runner did not complete successfully</value>
+    <value>The sonar-runner did not complete successfully</value>
   </data>
   <data name="WARN_DuplicateProjectGuid" xml:space="preserve">
     <value>The project has a non-unique GUID "{0}". Analysis results for this project will not be uploaded to SonarQube. Project file: {1}</value>

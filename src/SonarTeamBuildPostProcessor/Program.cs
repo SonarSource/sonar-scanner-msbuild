@@ -1,6 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="Program.cs" company="SonarSource SA and Microsoft Corporation">
-//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -87,10 +88,10 @@ namespace Sonar.TeamBuild.PostProcessor
 
             using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
             {
-                summaryLogger.WriteMessage("Sonar project: {0} ({1}), version: {2}", config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
+                summaryLogger.WriteMessage(Resources.Report_ProjectInfoSummary, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
 
                 // Add a link to SonarQube dashboard
-                Debug.Assert(config.SonarRunnerPropertiesPath != null, "Not expecting the sonar runner properties path to be null");
+                Debug.Assert(config.SonarRunnerPropertiesPath != null, "Not expecting the sonar-runner properties path to be null");
                 if (config.SonarRunnerPropertiesPath != null)
                 {
                     ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);

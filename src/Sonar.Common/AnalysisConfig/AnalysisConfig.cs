@@ -1,6 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="AnalysisConfig.cs" company="SonarSource SA and Microsoft Corporation">
-//   (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All Rights Reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -11,7 +12,7 @@ using System.Xml.Serialization;
 namespace Sonar.Common
 {
     /// <summary>
-    /// Data class to describe the analysis settings for a single Sonar project
+    /// Data class to describe the analysis settings for a single SonarQube project
     /// </summary>
     /// <remarks>The class is XML-serializable</remarks>
     [XmlRoot(Namespace = XmlNamespace)]
@@ -23,7 +24,7 @@ namespace Sonar.Common
 
         public string SonarOutputDir { get; set; }
 
-        #region Sonar project properties
+        #region SonarQube project properties
 
         public string SonarProjectKey { get; set; }
 
