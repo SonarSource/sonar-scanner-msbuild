@@ -183,11 +183,20 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
         /// <param name="project">The project to build</param>
         /// <param name="logger">The build logger to use. If null then a default logger will be used that dumps the build output to the console.</param>
         /// <param name="targets">Optional list of targets to execute</param>
-        /// <returns></returns>
         public static BuildResult BuildTargets(ProjectRootElement projectRoot, ILogger logger, params string[] targets)
         {
             ProjectInstance projectInstance = new ProjectInstance(projectRoot);
+            return BuildTargets(projectInstance, logger, targets);
+        }
 
+        /// <summary>
+        /// Builds the specified target and returns the build result.
+        /// </summary>
+        /// <param name="project">The project to build</param>
+        /// <param name="logger">The build logger to use. If null then a default logger will be used that dumps the build output to the console.</param>
+        /// <param name="targets">Optional list of targets to execute</param>
+        public static BuildResult BuildTargets(ProjectInstance projectInstance, ILogger logger, params string[] targets)
+        {
             BuildParameters parameters = new BuildParameters();
             parameters.Loggers = new ILogger[] { logger ?? new BuildLogger() };
             parameters.UseSynchronousLogging = true; 

@@ -272,7 +272,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
-            logger.AssertTargetExecuted(TargetConstants.ExecuteSonarProcessing);
+            logger.AssertTargetExecuted(TargetConstants.ExecuteSonarProcessingTarget);
             logger.AssertTargetNotExecuted(TargetConstants.WriteSonarProjectDataTarget);
         }
 
@@ -329,7 +329,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             logger.AssertExpectedErrorCount(0);
             logger.AssertExpectedWarningCount(expectedWarnings);
 
-            logger.AssertTargetExecuted(TargetConstants.ExecuteSonarProcessing);
+            logger.AssertTargetExecuted(TargetConstants.ExecuteSonarProcessingTarget);
             logger.AssertTargetExecuted(TargetConstants.WriteSonarProjectDataTarget);
 
             // Check expected folder structure exists
