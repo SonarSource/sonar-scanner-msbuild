@@ -11,7 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Sonar.MSBuild.Tasks.IntegrationTests
+namespace SonarQube.MSBuild.Tasks.IntegrationTests
 {
     /// <summary>
     /// Simple implementation of <see cref="ILogger"/> that writes all

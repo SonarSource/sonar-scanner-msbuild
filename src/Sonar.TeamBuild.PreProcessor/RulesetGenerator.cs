@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 
-namespace Sonar.TeamBuild.PreProcessor
+namespace SonarQube.TeamBuild.PreProcessor
 {
     public class RulesetGenerator : IRulesetGenerator
     {

@@ -9,7 +9,7 @@ using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 
-namespace Sonar.MSBuild.Tasks.IntegrationTests
+namespace SonarQube.MSBuild.Tasks.IntegrationTests
 {
     public static class BuildAssertions
     {
@@ -88,7 +88,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
 
         public static bool AssertBooleanPropertyExists(ProjectInstance projectInstance, string propertyName)
         {
-            ProjectPropertyInstance propertyInstance = BuildAssertions.AssertPropertyExists(projectInstance, TargetProperties.SonarTestProject);
+            ProjectPropertyInstance propertyInstance = BuildAssertions.AssertPropertyExists(projectInstance, TargetProperties.SonarQubeTestProject);
 
             bool result;
             bool parsedOk = bool.TryParse(propertyInstance.EvaluatedValue, out result);

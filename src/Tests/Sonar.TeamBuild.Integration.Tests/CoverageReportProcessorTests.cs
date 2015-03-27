@@ -7,11 +7,11 @@
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sonar.TeamBuild.Integration.Tests.Infrastructure;
-using Sonar.Common;
+using SonarQube.TeamBuild.Integration.Tests.Infrastructure;
+using SonarQube.Common;
 using System.IO;
 
-namespace Sonar.TeamBuild.Integration.Tests
+namespace SonarQube.TeamBuild.Integration.Tests
 {
     /*
      * Scenarios:

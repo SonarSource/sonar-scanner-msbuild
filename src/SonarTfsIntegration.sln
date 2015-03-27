@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.Common.UnitTests", "T
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BatchFiles", "BatchFiles", "{E5506C78-82DD-46FA-A82C-C203C522A05D}"
 	ProjectSection(SolutionItems) = preProject
-		BatchFiles\SonarPostBuild.bat = BatchFiles\SonarPostBuild.bat
+		BatchFiles\SonarQubePostBuild.bat = BatchFiles\SonarQubePostBuild.bat
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.TeamBuild.Integration", "Sonar.TeamBuild.Integration\Sonar.TeamBuild.Integration.csproj", "{66CE9491-1C14-45D2-BEB6-A0695C63EBB2}"

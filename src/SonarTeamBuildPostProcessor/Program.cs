@@ -5,13 +5,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.Common;
-using Sonar.TeamBuild.Integration;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
 using SonarRunner.Shim;
 using System.Diagnostics;
 using System.IO;
 
-namespace Sonar.TeamBuild.PostProcessor
+namespace SonarQube.TeamBuild.PostProcessor
 {
     class Program
     {

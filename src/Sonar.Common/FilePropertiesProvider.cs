@@ -11,7 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace Sonar.Common
+namespace SonarQube.Common
 {
     /// <summary>
     /// Implementation of <see cref="ISonarPropertyProvider"/> that reads properties from

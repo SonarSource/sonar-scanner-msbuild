@@ -8,7 +8,7 @@
 
 using System.Collections.Generic;
 
-namespace Sonar.TeamBuild.PreProcessor
+namespace SonarQube.TeamBuild.PreProcessor
 {
     public interface IPropertiesFetcher
     {

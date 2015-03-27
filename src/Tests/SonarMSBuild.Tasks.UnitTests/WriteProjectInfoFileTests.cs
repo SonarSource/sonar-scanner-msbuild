@@ -8,14 +8,14 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sonar.Common;
+using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TestUtilities;
 
-namespace Sonar.MSBuild.Tasks.UnitTests
+namespace SonarQube.MSBuild.Tasks.UnitTests
 {
     [TestClass]
     public class WriteProjectInfoFileTests

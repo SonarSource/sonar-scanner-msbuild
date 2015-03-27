@@ -7,5 +7,5 @@
 
 using System.Runtime.CompilerServices;
 // TODO: will need to be updated when the assemblies are signed
-[assembly: InternalsVisibleTo("Sonar.TeamBuild.Integration.Tests")]
-[assembly: InternalsVisibleTo("Sonar.TeamBuild.PreProcessor.Tests")]
+[assembly: InternalsVisibleTo("SonarQube.TeamBuild.Integration.Tests")]
+[assembly: InternalsVisibleTo("SonarQube.TeamBuild.PreProcessor.Tests")]

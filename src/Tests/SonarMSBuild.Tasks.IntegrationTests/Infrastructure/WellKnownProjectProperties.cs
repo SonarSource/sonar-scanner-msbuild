@@ -7,7 +7,7 @@
 
 using System.Collections.Generic;
 
-namespace Sonar.MSBuild.Tasks.IntegrationTests
+namespace SonarQube.MSBuild.Tasks.IntegrationTests
 {
     /// <summary>
     /// Dictionary with strongly-typed accessors for some well-known properties
@@ -16,40 +16,40 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
     {
         #region Public properties
 
-        public string RunSonarAnalysis
+        public string RunSonarQubeAnalysis
         {
-            get { return this[TargetProperties.RunSonarAnalysis]; }
-            set { this[TargetProperties.RunSonarAnalysis] = value; }
+            get { return this[TargetProperties.RunSonarQubeAnalysis]; }
+            set { this[TargetProperties.RunSonarQubeAnalysis] = value; }
         }
 
-        public string SonarExclude
+        public string SonarQubeExclude
         {
-            get { return this[TargetProperties.SonarExclude]; }
-            set { this[TargetProperties.SonarExclude] = value; }
+            get { return this[TargetProperties.SonarQubeExclude]; }
+            set { this[TargetProperties.SonarQubeExclude] = value; }
         }
 
-        public string SonarBinPath
+        public string SonarQubeTargetsPath
         {
-            get { return this[TargetProperties.SonarTargetsPath]; }
-            set { this[TargetProperties.SonarTargetsPath] = value; }
+            get { return this[TargetProperties.SonarQubeTargetsPath]; }
+            set { this[TargetProperties.SonarQubeTargetsPath] = value; }
         }
 
-        public string SonarOutputPath
+        public string SonarQubeOutputPath
         {
-            get { return this[TargetProperties.SonarOutputPath]; }
-            set { this[TargetProperties.SonarOutputPath] = value; }
+            get { return this[TargetProperties.SonarQubeOutputPath]; }
+            set { this[TargetProperties.SonarQubeOutputPath] = value; }
         }
 
-        public string SonarConfigPath
+        public string SonarQubeConfigPath
         {
-            get { return this[TargetProperties.SonarConfigPath]; }
-            set { this[TargetProperties.SonarConfigPath] = value; }
+            get { return this[TargetProperties.SonarQubeConfigPath]; }
+            set { this[TargetProperties.SonarQubeConfigPath] = value; }
         }
 
-        public string SonarTempPath
+        public string SonarQubeTempPath
         {
-            get { return this[TargetProperties.SonarTempPath]; }
-            set { this[TargetProperties.SonarTempPath] = value; }
+            get { return this[TargetProperties.SonarQubeTempPath]; }
+            set { this[TargetProperties.SonarQubeTempPath] = value; }
         }
 
         public string RunCodeAnalysis
@@ -84,14 +84,14 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
 
         public string SonarTestProject
         {
-            get { return this[TargetProperties.SonarTestProject]; }
-            set { this[TargetProperties.SonarTestProject] = value; }
+            get { return this[TargetProperties.SonarQubeTestProject]; }
+            set { this[TargetProperties.SonarQubeTestProject] = value; }
         }
 
-        public string SonarTestProjectNameRegex
+        public string TestProjectNameRegex
         {
-            get { return this[TargetProperties.SonarTestProjectNameRegex]; }
-            set { this[TargetProperties.SonarTestProjectNameRegex] = value; }
+            get { return this[TargetProperties.SonarQubeTestProjectNameRegex]; }
+            set { this[TargetProperties.SonarQubeTestProjectNameRegex] = value; }
         }
 
         public string ProjectTypeGuids

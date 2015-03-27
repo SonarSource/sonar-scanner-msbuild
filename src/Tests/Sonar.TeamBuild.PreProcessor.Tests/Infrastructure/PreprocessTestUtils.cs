@@ -5,10 +5,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.TeamBuild.Integration;
+using SonarQube.TeamBuild.Integration;
 using TestUtilities;
 
-namespace Sonar.TeamBuild.PreProcessor.Tests
+namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
     internal static class PreprocessTestUtils
     {

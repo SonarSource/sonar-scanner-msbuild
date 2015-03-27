@@ -15,7 +15,7 @@ using System.IO;
 using System.Linq;
 using TestUtilities;
 
-namespace Sonar.MSBuild.Tasks.IntegrationTests
+namespace SonarQube.MSBuild.Tasks.IntegrationTests
 {
     internal static class BuildUtilities
     {
@@ -85,7 +85,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public static ProjectRootElement CreateInitializedProjectRoot(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
         {
-            ProjectRootElement projectRoot = BuildUtilities.CreateSonarAnalysisProject(testContext, descriptor, preImportProperties);
+            ProjectRootElement projectRoot = BuildUtilities.CreateAnalysisProject(testContext, descriptor, preImportProperties);
 
             projectRoot.ToolsVersion = MSBuildToolsVersionForTestProjects;
 
@@ -100,7 +100,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
         /// The project will import the SonarQube analysis targets file and the standard C# targets file.
         /// The project name and GUID will be set if the values are supplied in the descriptor.
         /// </summary>
-        public static ProjectRootElement CreateSonarAnalysisProject(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
+        public static ProjectRootElement CreateAnalysisProject(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
         {
             string sonarTargetFile = Path.Combine(testContext.DeploymentDirectory, TargetConstants.AnalysisTargetFile);
             Assert.IsTrue(File.Exists(sonarTargetFile), "Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sonarTargetFile);

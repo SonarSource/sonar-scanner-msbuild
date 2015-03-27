@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace Sonar.Common
+namespace SonarQube.Common
 {
     /// <summary>
     /// Data class to describe the analysis settings for a single SonarQube project
@@ -18,7 +18,7 @@ namespace Sonar.Common
     [XmlRoot(Namespace = XmlNamespace)]
     public class AnalysisConfig
     {
-        public const string XmlNamespace = Sonar.Common.ProjectInfo.XmlNamespace;
+        public const string XmlNamespace = ProjectInfo.XmlNamespace;
 
         public string SonarConfigDir { get; set; }
 

@@ -13,7 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 
-namespace Sonar.TeamBuild.PreProcessor
+namespace SonarQube.TeamBuild.PreProcessor
 {
     public class WebClientDownloader : IDownloader
     {

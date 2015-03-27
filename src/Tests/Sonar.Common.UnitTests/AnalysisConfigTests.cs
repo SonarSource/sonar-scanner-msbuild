@@ -12,7 +12,7 @@ using System.IO;
 using System.Linq;
 using TestUtilities;
 
-namespace Sonar.Common.UnitTests
+namespace SonarQube.Common.UnitTests
 {
     [TestClass]
     public class AnalysisConfigTests

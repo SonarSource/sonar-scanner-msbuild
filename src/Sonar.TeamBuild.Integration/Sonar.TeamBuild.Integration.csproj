@@ -7,8 +7,8 @@
     <ProjectGuid>{66CE9491-1C14-45D2-BEB6-A0695C63EBB2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sonar.TeamBuild.Integration</RootNamespace>
-    <AssemblyName>Sonar.TeamBuild.Integration</AssemblyName>
+    <RootNamespace>SonarQube.TeamBuild.Integration</RootNamespace>
+    <AssemblyName>SonarQube.TeamBuild.Integration</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

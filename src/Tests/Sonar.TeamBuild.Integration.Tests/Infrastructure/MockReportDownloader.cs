@@ -6,13 +6,13 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sonar.Common;
+using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Sonar.TeamBuild.Integration.Tests.Infrastructure
+namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
 {
     internal class MockReportDownloader : ICoverageReportDownloader
     {

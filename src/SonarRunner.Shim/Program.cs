@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.Common;
+using SonarQube.Common;
 using System;
 using System.IO;
 

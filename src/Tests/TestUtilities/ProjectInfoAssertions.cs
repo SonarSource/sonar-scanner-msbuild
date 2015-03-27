@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sonar.Common;
+using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -107,7 +107,7 @@ namespace TestUtilities
         {
             Assert.IsNotNull(projectInfo.AnalysisResults, "AnalysisResults should not be null");
             AnalysisResult result;
-            bool found = Sonar.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out result);
+            bool found = SonarQube.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out result);
             Assert.IsFalse(found, "Not expecting to find an analysis result for id. Id: {0}", resultId);
         }
 
@@ -115,7 +115,7 @@ namespace TestUtilities
         {
             Assert.IsNotNull(projectInfo.AnalysisResults, "AnalysisResults should not be null");
             AnalysisResult result;
-            bool found = Sonar.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out result);
+            bool found = SonarQube.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out result);
             Assert.IsTrue(found, "Failed to find an analysis result with the expected id. Id: {0}", resultId);
             Assert.IsNotNull(result, "Returned analysis result should not be null. Id: {0}", resultId);
             return result;

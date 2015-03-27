@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Sonar.Common
+namespace SonarQube.Common
 {
     /// <summary>
     /// Simple logger implementation that logs output to the console

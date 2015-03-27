@@ -5,9 +5,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.Common;
+using SonarQube.Common;
 
-namespace Sonar.TeamBuild.Integration
+namespace SonarQube.TeamBuild.Integration
 {
     /// <summary>
     /// Helper class to provide strongly-typed extension methods to access TFS-specific analysis settings

@@ -5,10 +5,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.Common;
+using SonarQube.Common;
 using System.Collections.Generic;
 
-namespace Sonar.TeamBuild.Integration
+namespace SonarQube.TeamBuild.Integration
 {
     internal interface ICoverageReportDownloader
     {

@@ -14,7 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TestUtilities;
 
-namespace Sonar.Common.UnitTests
+namespace SonarQube.Common.UnitTests
 {
     [TestClass]
     public class FileLocatorTests

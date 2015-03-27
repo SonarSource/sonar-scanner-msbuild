@@ -11,7 +11,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Sonar.Common
+namespace SonarQube.Common
 {
     /// <summary>
     /// Container for all native dll definitions and calls

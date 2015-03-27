@@ -7,8 +7,8 @@
     <ProjectGuid>{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sonar.MSBuild.Tasks</RootNamespace>
-    <AssemblyName>Sonar.MSBuild.Tasks</AssemblyName>
+    <RootNamespace>SonarQube.MSBuild.Tasks</RootNamespace>
+    <AssemblyName>SonarQube.MSBuild.Tasks</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -55,10 +55,10 @@
   <ItemGroup>
     <None Include="Targets\Prototypes\DumpCompileArguments_ImportsAfter v0.2.targets" />
     <None Include="Targets\Prototypes\DumpCompileArguments_ImportsBefore v0.2.targets" />
-    <None Include="Targets\Sonar.Integration.v0.1.targets">
+    <None Include="Targets\SonarQube.Integration.v0.1.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Targets\Sonar.Integration.ImportBefore.targets">
+    <None Include="Targets\SonarQube.Integration.ImportBefore.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

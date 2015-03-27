@@ -6,14 +6,14 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sonar.Common;
-using Sonar.TeamBuild.Integration;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
 using System;
 using System.Diagnostics;
 using System.IO;
 using TestUtilities;
 
-namespace Sonar.TeamBuild.PreProcessor.Tests
+namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
     [TestClass]
     public class PreProcessorExeTests
@@ -96,7 +96,7 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
         {
             ProcessStartInfo psi = new ProcessStartInfo()
             {
-                FileName = typeof(Sonar.TeamBuild.PreProcessor.Program).Assembly.Location,
+                FileName = typeof(SonarQube.TeamBuild.PreProcessor.Program).Assembly.Location,
                 RedirectStandardError = true,
                 UseShellExecute = false, // required if we want to capture the error output
                 ErrorDialog = false,

@@ -8,7 +8,7 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace Sonar.Common
+namespace SonarQube.Common
 {
     /// <summary>
     /// Provides methods to locate installed SonarQube files and directories

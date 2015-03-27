@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sonar.Common;
+using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;

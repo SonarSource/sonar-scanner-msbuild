@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Sonar.MSBuild.Tasks
+namespace SonarQube.MSBuild.Tasks
 {
     public static class BuildTaskConstants
     {

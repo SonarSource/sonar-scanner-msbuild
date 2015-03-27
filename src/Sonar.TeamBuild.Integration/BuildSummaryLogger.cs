@@ -9,7 +9,7 @@ using Microsoft.TeamFoundation.Build.Client;
 using Microsoft.TeamFoundation.Client;
 using System;
 
-namespace Sonar.TeamBuild.Integration
+namespace SonarQube.TeamBuild.Integration
 {
     /// <summary>
     /// Wrapper to help write custom build summary messages

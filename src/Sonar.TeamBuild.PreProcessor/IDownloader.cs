@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Sonar.TeamBuild.PreProcessor
+namespace SonarQube.TeamBuild.PreProcessor
 {
     public interface IDownloader : IDisposable
     {

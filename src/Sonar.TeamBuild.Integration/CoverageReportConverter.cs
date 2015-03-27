@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.Win32;
-using Sonar.Common;
+using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,7 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Sonar.TeamBuild.Integration
+namespace SonarQube.TeamBuild.Integration
 {
     public class CoverageReportConverter : ICoverageReportConverter
     {

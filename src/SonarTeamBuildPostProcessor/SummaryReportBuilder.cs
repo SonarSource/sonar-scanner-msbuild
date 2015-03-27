@@ -5,14 +5,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.Common;
-using Sonar.TeamBuild.Integration;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Sonar.TeamBuild.PostProcessor
+namespace SonarQube.TeamBuild.PostProcessor
 {
     /// <summary>
     /// Outputs a summary report of the post-processing activities.

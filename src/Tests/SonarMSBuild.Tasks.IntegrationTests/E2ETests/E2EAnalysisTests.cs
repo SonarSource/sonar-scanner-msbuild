@@ -9,14 +9,14 @@ using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sonar.Common;
+using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TestUtilities;
 
-namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
+namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 {
 
     /* Tests:
@@ -29,7 +29,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
     */
 
     [TestClass]
-    [DeploymentItem("LinkedFiles\\Sonar.Integration.v0.1.targets")]
+    [DeploymentItem("LinkedFiles\\SonarQube.Integration.v0.1.targets")]
     public class E2EAnalysisTests
     {
         private const string ExpectedManagedInputsListFileName = "ManagedSourceFiles.txt";
@@ -73,8 +73,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarAnalysis = "true";
-            preImportProperties.SonarOutputPath = rootOutputFolder;
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
 
             preImportProperties["SonarConfigPath"] = rootInputFolder;
 
@@ -120,8 +120,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarAnalysis = "true";
-            preImportProperties.SonarOutputPath = rootOutputFolder;
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
 
             preImportProperties["SonarConfigPath"] = rootInputFolder;
 
@@ -258,9 +258,9 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarAnalysis = "true";
-            preImportProperties.SonarOutputPath = rootOutputFolder;
-            preImportProperties.SonarExclude = "tRUe";
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
+            preImportProperties.SonarQubeExclude = "tRUe";
 
             ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
 
@@ -272,8 +272,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
-            logger.AssertTargetExecuted(TargetConstants.ExecuteSonarProcessingTarget);
-            logger.AssertTargetNotExecuted(TargetConstants.WriteSonarProjectDataTarget);
+            logger.AssertTargetExecuted(TargetConstants.ExecuteProcessingTarget);
+            logger.AssertTargetNotExecuted(TargetConstants.WriteProjectDataTarget);
         }
 
         #endregion
@@ -312,8 +312,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
         private string CreateAndBuildSonarProject(ProjectDescriptor descriptor, string rootOutputFolder)
         {
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarAnalysis = "true";
-            preImportProperties.SonarOutputPath = rootOutputFolder;
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
 
             BuildLogger logger = new BuildLogger();
@@ -329,8 +329,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             logger.AssertExpectedErrorCount(0);
             logger.AssertExpectedWarningCount(expectedWarnings);
 
-            logger.AssertTargetExecuted(TargetConstants.ExecuteSonarProcessingTarget);
-            logger.AssertTargetExecuted(TargetConstants.WriteSonarProjectDataTarget);
+            logger.AssertTargetExecuted(TargetConstants.ExecuteProcessingTarget);
+            logger.AssertTargetExecuted(TargetConstants.WriteProjectDataTarget);
 
             // Check expected folder structure exists
             CheckRootOutputFolder(rootOutputFolder);

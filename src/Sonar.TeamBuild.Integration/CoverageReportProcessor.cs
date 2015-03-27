@@ -5,14 +5,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.Common;
+using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 // TODO replace success codes with exceptions
-namespace Sonar.TeamBuild.Integration
+namespace SonarQube.TeamBuild.Integration
 {
     public class CoverageReportProcessor
     {

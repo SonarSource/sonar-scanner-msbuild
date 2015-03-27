@@ -8,15 +8,15 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sonar.Common;
+using SonarQube.Common;
 using System.IO;
 using TestUtilities;
 
-namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
+namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 {
 
     [TestClass]
-    [DeploymentItem("LinkedFiles\\Sonar.Integration.v0.1.targets")]
+    [DeploymentItem("LinkedFiles\\SonarQube.Integration.v0.1.targets")]
     public class E2EFxCopTests
     {
         public TestContext TestContext { get; set; }
@@ -33,7 +33,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
 
             // Don't set the output folder
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarAnalysis = "true";
+            preImportProperties.RunSonarQubeAnalysis = "true";
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
             BuildLogger logger = new BuildLogger();
@@ -42,8 +42,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
-            logger.AssertTargetNotExecuted(TargetConstants.SonarOverrideFxCopSettingsTarget);
-            logger.AssertTargetNotExecuted(TargetConstants.SonarSetFxCopResultsTarget);
+            logger.AssertTargetNotExecuted(TargetConstants.OverrideFxCopSettingsTarget);
+            logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
 
             AssertFxCopNotExecuted(logger);
 
@@ -51,15 +51,15 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
         }
 
         [TestMethod]
-        [Description("If the RunSonarAnalysis is not set our custom targets should not be executed")]
-        public void E2E_FxCop_RunSonarAnalysisNotSet()
+        [Description("If the RunSonarQubeAnalysis is not set our custom targets should not be executed")]
+        public void E2E_FxCop_RunSonarQubeAnalysisNotSet()
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.SonarOutputPath = rootOutputFolder;
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
@@ -69,8 +69,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
-            logger.AssertTargetNotExecuted(TargetConstants.SonarOverrideFxCopSettingsTarget);
-            logger.AssertTargetNotExecuted(TargetConstants.SonarSetFxCopResultsTarget);
+            logger.AssertTargetNotExecuted(TargetConstants.OverrideFxCopSettingsTarget);
+            logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
 
             AssertFxCopNotExecuted(logger);
 
@@ -88,8 +88,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             // Set the output folder but not the config folder
             string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarAnalysis = "true";
-            preImportProperties.SonarOutputPath = rootOutputFolder;
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             preImportProperties.RunCodeAnalysis = "TRUE";
             preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
@@ -102,8 +102,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
-            logger.AssertTargetExecuted(TargetConstants.SonarOverrideFxCopSettingsTarget); // output folder is set so this should be executed
-            logger.AssertTargetNotExecuted(TargetConstants.SonarSetFxCopResultsTarget);
+            logger.AssertTargetExecuted(TargetConstants.OverrideFxCopSettingsTarget); // output folder is set so this should be executed
+            logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
 
             AssertFxCopNotExecuted(logger);
             Assert.IsFalse(File.Exists(fxCopLogFile), "FxCop log file should not have been produced");
@@ -124,11 +124,11 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             // Don't create a ruleset file on disc
             string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarAnalysis = "true";
-            preImportProperties.SonarOutputPath = rootOutputFolder;
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             preImportProperties.RunCodeAnalysis = "true"; // our targets should override this value
             preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
-            preImportProperties.SonarConfigPath = rootInputFolder;
+            preImportProperties.SonarQubeConfigPath = rootInputFolder;
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
             BuildLogger logger = new BuildLogger();
@@ -139,8 +139,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
-            logger.AssertTargetExecuted(TargetConstants.SonarOverrideFxCopSettingsTarget);  // output folder is set so this should be executed
-            logger.AssertTargetNotExecuted(TargetConstants.SonarSetFxCopResultsTarget);
+            logger.AssertTargetExecuted(TargetConstants.OverrideFxCopSettingsTarget);  // output folder is set so this should be executed
+            logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
 
             // We expect the core FxCop *target* to have been started, but it should then be skipped
             // executing the FxCop *task* because the condition on the target is false
@@ -163,14 +163,14 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
 
             string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarAnalysis = "true";
-            preImportProperties.SonarOutputPath = rootOutputFolder;
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             preImportProperties.RunCodeAnalysis = "false";
             preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
             preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
 
-            preImportProperties["SonarConfigPath"] = rootInputFolder;
-            CreateValidFxCopRuleset(rootInputFolder, "SonarAnalysis.ruleset");
+            preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
+            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
@@ -224,8 +224,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.E2E
 
         private void AssertAllFxCopTargetsExecuted(BuildLogger logger)
         {
-            logger.AssertTargetExecuted(TargetConstants.SonarOverrideFxCopSettingsTarget);
-            logger.AssertTargetExecuted(TargetConstants.SonarSetFxCopResultsTarget);
+            logger.AssertTargetExecuted(TargetConstants.OverrideFxCopSettingsTarget);
+            logger.AssertTargetExecuted(TargetConstants.SetFxCopResultsTarget);
 
             // If the SonarQube FxCop targets are executed then we expect the FxCop
             // target and task to be executed too

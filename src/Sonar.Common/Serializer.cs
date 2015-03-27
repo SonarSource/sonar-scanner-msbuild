@@ -10,7 +10,7 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace Sonar.Common
+namespace SonarQube.Common
 {
     /// <summary>
     /// Helper class to serialize objects to and from XML

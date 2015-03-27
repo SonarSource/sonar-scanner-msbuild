@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 
-namespace Sonar.Common.UnitTests
+namespace SonarQube.Common.UnitTests
 {
     [TestClass]
     public class ConsoleLoggerTests

@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace Sonar.Common
+namespace SonarQube.Common
 {
     /// <summary>
     /// Data class to describe a single project

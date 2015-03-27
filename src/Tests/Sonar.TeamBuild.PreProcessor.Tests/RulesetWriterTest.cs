@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Text;
 
-namespace Sonar.TeamBuild.PreProcessor.UnitTests
+namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 {
     [TestClass]
     public class RulesetWriterTest

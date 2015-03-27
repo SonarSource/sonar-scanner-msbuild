@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Sonar.TeamBuild.PreProcessor
+namespace SonarQube.TeamBuild.PreProcessor
 {
     public static class RulesetWriter
     {

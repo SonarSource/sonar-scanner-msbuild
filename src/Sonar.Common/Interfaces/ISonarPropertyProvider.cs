@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Sonar.Common
+namespace SonarQube.Common
 {
     /// <summary>
     /// Provides SonarQube property settings

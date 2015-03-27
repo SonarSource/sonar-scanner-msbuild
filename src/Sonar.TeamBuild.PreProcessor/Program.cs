@@ -5,11 +5,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.Common;
+using SonarQube.Common;
 using System.Diagnostics;
 using System.IO;
 
-namespace Sonar.TeamBuild.PreProcessor
+namespace SonarQube.TeamBuild.PreProcessor
 {
     /// <summary>
     /// Wrapper around the pre-processor class. This class is responsible for

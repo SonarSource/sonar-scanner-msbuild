@@ -5,8 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.Common;
-namespace Sonar.TeamBuild.Integration
+using SonarQube.Common;
+namespace SonarQube.TeamBuild.Integration
 {
     internal interface ICoverageReportConverter
     {

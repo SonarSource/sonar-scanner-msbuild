@@ -5,12 +5,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.Common;
+using SonarQube.Common;
 using System;
 using System.IO;
 using System.Net;
 
-namespace Sonar.TeamBuild.Integration
+namespace SonarQube.TeamBuild.Integration
 {
     internal class CoverageReportDownloader : ICoverageReportDownloader
     {

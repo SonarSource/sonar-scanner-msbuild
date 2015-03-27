@@ -7,8 +7,8 @@
     <ProjectGuid>{80F02FAD-FE7E-41B6-9151-BB650FDD6103}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sonar.TeamBuild.PostProcessor</RootNamespace>
-    <AssemblyName>Sonar.TeamBuild.PostProcessor</AssemblyName>
+    <RootNamespace>SonarQube.TeamBuild.PostProcessor</RootNamespace>
+    <AssemblyName>SonarQube.TeamBuild.PostProcessor</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

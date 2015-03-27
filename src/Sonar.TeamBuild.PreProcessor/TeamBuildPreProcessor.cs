@@ -5,17 +5,17 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.Common;
-using Sonar.TeamBuild.Integration;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
 using System;
 using System.IO;
 using System.Net;
 
-namespace Sonar.TeamBuild.PreProcessor
+namespace SonarQube.TeamBuild.PreProcessor
 {
     internal class TeamBuildPreProcessor
     {
-        public const string FxCopRulesetFileName = "SonarAnalysis.ruleset";
+        public const string FxCopRulesetFileName = "SonarQubeAnalysis.ruleset";
 
         private readonly ILogger logger;
         private readonly IPropertiesFetcher propertiesFetcher;

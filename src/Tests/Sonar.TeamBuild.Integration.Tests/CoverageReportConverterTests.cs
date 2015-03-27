@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using TestUtilities;
 
-namespace Sonar.TeamBuild.Integration.Tests
+namespace SonarQube.TeamBuild.Integration.Tests
 {
     [TestClass]
     public class CoverageReportConverterTests

@@ -8,17 +8,17 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sonar.Common;
+using SonarQube.Common;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TestUtilities;
 
-namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
+namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 {
     [TestClass]
-    [DeploymentItem("LinkedFiles\\Sonar.Integration.v0.1.targets")]
+    [DeploymentItem("LinkedFiles\\SonarQube.Integration.v0.1.targets")]
     public class WriteProjectInfoFileTargetTests
     {
         public TestContext TestContext { get; set; }
@@ -38,7 +38,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.SonarTestProject = "true";
-            preImportProperties.SonarTestProjectNameRegex = "pattern that won't match anything";
+            preImportProperties.TestProjectNameRegex = "pattern that won't match anything";
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "test.proj");
 
@@ -62,7 +62,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.SonarTestProject = "false";
-            preImportProperties.SonarTestProjectNameRegex = "*.*";
+            preImportProperties.TestProjectNameRegex = "*.*";
             preImportProperties.ProjectTypeGuids = "X" + TargetConstants.MsTestProjectTypeGuid.ToUpperInvariant() + "Y";
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "foo.proj");
@@ -197,7 +197,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.SonarTestProjectNameRegex = ".*foo.*";
+            preImportProperties.TestProjectNameRegex = ".*foo.*";
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "fOO.proj");
 
@@ -220,7 +220,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.SonarTestProjectNameRegex = @".*foo.*";
+            preImportProperties.TestProjectNameRegex = @".*foo.*";
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "afoXB.proj");
 
@@ -243,7 +243,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.SonarTestProjectNameRegex = @"pattern that won't match anything";
+            preImportProperties.TestProjectNameRegex = @"pattern that won't match anything";
             preImportProperties.ProjectTypeGuids = "X" + TargetConstants.MsTestProjectTypeGuid.ToUpperInvariant() + "Y";
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "a.b");
@@ -267,7 +267,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.SonarTestProjectNameRegex = @"pattern that won't match anything";
+            preImportProperties.TestProjectNameRegex = @"pattern that won't match anything";
             preImportProperties.ProjectTypeGuids = "X" + TargetConstants.MsTestProjectTypeGuid.ToLowerInvariant() + "Y";
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "a.b");
@@ -397,19 +397,19 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "excludedProj.txt");
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.SonarExclude = "true";
+            preImportProperties.SonarQubeExclude = "true";
             ProjectRootElement projectRoot = CreateInitializedProject(descriptor, preImportProperties, rootOutputFolder);
 
             BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.WriteSonarProjectDataTarget);
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.WriteProjectDataTarget);
 
             // Assert
-            BuildAssertions.AssertTargetFailed(result, TargetConstants.WriteSonarProjectDataTarget);
+            BuildAssertions.AssertTargetFailed(result, TargetConstants.WriteProjectDataTarget);
 
             logger.AssertExpectedErrorCount(1);
-            logger.AssertTargetExecuted(TargetConstants.WriteSonarProjectDataTarget);
+            logger.AssertTargetExecuted(TargetConstants.WriteProjectDataTarget);
         }
 
         #endregion
@@ -432,8 +432,8 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
         private ProjectRootElement CreateInitializedProject(ProjectDescriptor descriptor, WellKnownProjectProperties preImportProperties, string rootOutputFolder)
         {
             // Still need to set the conditions so the target is invoked
-            preImportProperties.RunSonarAnalysis = "true";
-            preImportProperties.SonarOutputPath = rootOutputFolder;
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
 
             return projectRoot;
@@ -451,13 +451,13 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.WriteSonarProjectDataTarget);
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.WriteProjectDataTarget);
 
             // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.WriteSonarProjectDataTarget);
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.WriteProjectDataTarget);
 
             logger.AssertNoWarningsOrErrors();
-            logger.AssertTargetExecuted(TargetConstants.WriteSonarProjectDataTarget);
+            logger.AssertTargetExecuted(TargetConstants.WriteProjectDataTarget);
 
             // Check expected project outputs
             Assert.AreEqual(1, Directory.EnumerateDirectories(rootOutputFolder).Count(), "Only expecting one child directory to exist under the root analysis output folder");
@@ -486,7 +486,7 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             if (sonarExclude != null)
             {
-                metadata.Add(new KeyValuePair<string, string>(TargetProperties.SonarExclude, sonarExclude));
+                metadata.Add(new KeyValuePair<string, string>(TargetProperties.SonarQubeExclude, sonarExclude));
             }
 
             projectRoot.AddItem(includeName, fullPath, metadata);

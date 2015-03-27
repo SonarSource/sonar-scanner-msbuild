@@ -5,12 +5,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.Common;
+using SonarQube.Common;
 using System;
 using System.Collections;
 using System.IO;
 
-namespace Sonar.TeamBuild.Integration
+namespace SonarQube.TeamBuild.Integration
 {
     /// <summary>
     /// Provides access to TeamBuild-specific settings and settings calculated
@@ -18,7 +18,7 @@ namespace Sonar.TeamBuild.Integration
     /// </summary>
     public class TeamBuildSettings
     {
-        internal const string ConfigFileName = "SonarAnalysisConfig.xml";
+        internal const string ConfigFileName = "SonarQubeAnalysisConfig.xml";
 
         internal static class TeamBuildEnvironmentVariables
         {
@@ -111,7 +111,7 @@ namespace Sonar.TeamBuild.Integration
         {
             get
             {
-                return Path.Combine(this.BuildDirectory, "SonarTemp", "Config");
+                return Path.Combine(this.BuildDirectory, "SQTemp", "Config");
             }
         }
 
@@ -119,7 +119,7 @@ namespace Sonar.TeamBuild.Integration
         {
             get
             {
-                return Path.Combine(this.BuildDirectory, "SonarTemp", "Output");
+                return Path.Combine(this.BuildDirectory, "SQTemp", "Output");
             }
         }
 

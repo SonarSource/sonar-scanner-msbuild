@@ -5,11 +5,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sonar.Common;
+using SonarQube.Common;
 using System;
 using System.Diagnostics;
 
-namespace Sonar.Common
+namespace SonarQube.Common
 {
     /// <summary>
     /// Helper class to run an executable and capture the output

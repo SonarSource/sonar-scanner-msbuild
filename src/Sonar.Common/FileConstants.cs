@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Sonar.Common
+namespace SonarQube.Common
 {
     public static class FileConstants
     {

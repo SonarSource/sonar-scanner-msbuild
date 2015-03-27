@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using System.Net;
 using Newtonsoft.Json.Linq;
 
-namespace Sonar.TeamBuild.PreProcessor
+namespace SonarQube.TeamBuild.PreProcessor
 {
     public class SonarWebService : IDisposable
     {

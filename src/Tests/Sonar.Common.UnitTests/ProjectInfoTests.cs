@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using TestUtilities;
 
-namespace Sonar.Common.UnitTests
+namespace SonarQube.Common.UnitTests
 {
     [TestClass]
     public class ProjectInfoTests

@@ -7,8 +7,8 @@
     <ProjectGuid>{E312FDBB-BC13-4559-8F21-76CA5B88EBC5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sonar.Common</RootNamespace>
-    <AssemblyName>Sonar.Common</AssemblyName>
+    <RootNamespace>SonarQube.Common</RootNamespace>
+    <AssemblyName>SonarQube.Common</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

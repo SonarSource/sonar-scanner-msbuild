@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Sonar.TeamBuild.PreProcessor.UnitTests
+namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 {
     [TestClass]
     public class WebClientDownloaderTest

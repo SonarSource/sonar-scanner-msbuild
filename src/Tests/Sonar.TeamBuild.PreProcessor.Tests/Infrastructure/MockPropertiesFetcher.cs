@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Collections.Generic;
 
-namespace Sonar.TeamBuild.PreProcessor.Tests
+namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
     internal class MockPropertiesFetcher : IPropertiesFetcher
     {

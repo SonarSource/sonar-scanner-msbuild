@@ -6,12 +6,12 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sonar.Common;
+using SonarQube.Common;
 using System;
 using System.IO;
 using TestUtilities;
 
-namespace Sonar.TeamBuild.PreProcessor.Tests
+namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
     [TestClass]
     public class ArgumentProcessorTests
@@ -89,7 +89,7 @@ namespace Sonar.TeamBuild.PreProcessor.Tests
             string runnerBinDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "runnerDir\\lib");
 
             // Create an exe and properties file within that directory structure
-            string exeFilePath = Path.Combine(runnerBinDir, Sonar.Common.FileLocator.SonarRunnerFileName);
+            string exeFilePath = Path.Combine(runnerBinDir, SonarQube.Common.FileLocator.SonarRunnerFileName);
             File.WriteAllText(exeFilePath, "dummy executable file"); // the exe file needs to exist, but it doesn't matter what it contains
 
             string envPropertiesFilePath = Path.Combine(confDir, ActualRunnerPropertiesFileName);

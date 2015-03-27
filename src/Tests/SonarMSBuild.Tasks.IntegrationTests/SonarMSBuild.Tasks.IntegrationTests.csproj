@@ -7,8 +7,8 @@
     <ProjectGuid>{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarMSBuild.Tasks.IntegrationTests</RootNamespace>
-    <AssemblyName>SonarMSBuild.Tasks.IntegrationTests</AssemblyName>
+    <RootNamespace>SonarQube.MSBuild.Tasks.IntegrationTests</RootNamespace>
+    <AssemblyName>SonarQube.MSBuild.Tasks.IntegrationTests</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -91,13 +91,13 @@
     <Content Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\SonarMSBuild.Tasks\Targets\Sonar.Integration.ImportBefore.targets">
-      <Link>LinkedFiles\Sonar.Integration.ImportBefore.targets</Link>
+    <None Include="..\..\SonarMSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets">
+      <Link>LinkedFiles\SonarQube.Integration.ImportBefore.targets</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
-    <None Include="..\..\SonarMSBuild.Tasks\Targets\Sonar.Integration.v0.1.targets">
-      <Link>LinkedFiles\Sonar.Integration.v0.1.targets</Link>
+    <None Include="..\..\SonarMSBuild.Tasks\Targets\SonarQube.Integration.v0.1.targets">
+      <Link>LinkedFiles\SonarQube.Integration.v0.1.targets</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>

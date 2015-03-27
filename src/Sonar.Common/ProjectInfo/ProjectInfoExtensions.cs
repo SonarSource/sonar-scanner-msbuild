@@ -8,7 +8,7 @@
 using System;
 using System.Linq;
 
-namespace Sonar.Common
+namespace SonarQube.Common
 {
     /// <summary>
     /// Extension methods for <see cref="ProjectInfo"/>

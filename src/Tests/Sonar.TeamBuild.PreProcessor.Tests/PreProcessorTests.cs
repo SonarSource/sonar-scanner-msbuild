@@ -6,13 +6,13 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sonar.Common;
-using Sonar.TeamBuild.Integration;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
 using System.IO;
 using System.Text;
 using TestUtilities;
 
-namespace Sonar.TeamBuild.PreProcessor.Tests
+namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
     [TestClass]
     public class PreProcessorTests

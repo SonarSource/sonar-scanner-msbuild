@@ -7,7 +7,7 @@
 
 using System.Xml.Serialization;
 
-namespace Sonar.Common
+namespace SonarQube.Common
 {
     /// <summary>
     /// Data class to describe the output of a single type of analyzer

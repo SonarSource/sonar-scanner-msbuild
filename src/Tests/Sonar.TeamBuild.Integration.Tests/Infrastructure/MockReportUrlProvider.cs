@@ -6,10 +6,10 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sonar.Common;
+using SonarQube.Common;
 using System.Collections.Generic;
 
-namespace Sonar.TeamBuild.Integration.Tests.Infrastructure
+namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
 {
     internal class MockReportUrlProvider : ICoverageUrlProvider
     {

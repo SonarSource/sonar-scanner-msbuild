@@ -6,8 +6,8 @@
     <ProjectGuid>{81E8D103-270F-4363-87D1-72BE7FC4F94A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sonar.TeamBuild.PreProcessor.Tests</RootNamespace>
-    <AssemblyName>Sonar.TeamBuild.PreProcessor.Tests</AssemblyName>
+    <RootNamespace>SonarQube.TeamBuild.PreProcessor.Tests</RootNamespace>
+    <AssemblyName>SonarQube.TeamBuild.PreProcessor.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>

@@ -5,21 +5,21 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Sonar.MSBuild.Tasks.IntegrationTests
+namespace SonarQube.MSBuild.Tasks.IntegrationTests
 {
     internal static class TargetConstants
     {
         // Target file names
-        public const string AnalysisTargetFile = "Sonar.Integration.v0.1.targets";
-        public const string SonarImportsBeforeFile = "Sonar.Integration.ImportBefore.targets";
+        public const string AnalysisTargetFile = "SonarQube.Integration.v0.1.targets";
+        public const string ImportsBeforeFile = "SonarQube.Integration.ImportBefore.targets";
 
         // Targets
-        public const string SonarQubeImportBeforeInfoTarget = "SonarQubeImportBeforeInfo";
+        public const string ImportBeforeInfoTarget = "SonarQubeImportBeforeInfo";
         
-        public const string ExecuteSonarProcessingTarget = "ExecuteSonarProcessing";
-        public const string WriteSonarProjectDataTarget = "WriteSonarProjectData";
-        public const string SonarOverrideFxCopSettingsTarget = "OverrideCodeAnalysisProperties";
-        public const string SonarSetFxCopResultsTarget = "SetFxCopAnalysisResult";
+        public const string ExecuteProcessingTarget = "ExecuteSonarQubeProcessing";
+        public const string WriteProjectDataTarget = "WriteSonarQubeProjectData";
+        public const string OverrideFxCopSettingsTarget = "OverrideCodeAnalysisProperties";
+        public const string SetFxCopResultsTarget = "SetFxCopAnalysisResult";
 
         public const string DefaultBuildTarget = "Build";
         
@@ -32,17 +32,24 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
 
     internal static class TargetProperties
     {
+        // SonarQube Integration constants
+        public const string SonarQubeTargetFilePath = "SonarQubeTargetFilePath";
+        public const string SonarQubeTargetsPath = "SonarQubeTargetsPath";
+
+        public const string RunSonarQubeAnalysis = "RunSonarQubeAnalysis";
+        public const string SonarQubeConfigPath = "SonarQubeConfigPath";
+        public const string SonarQubeOutputPath = "SonarQubeOutputPath";
+        public const string SonarQubeTempPath = "SonarQubeTempPath";
+        public const string SonarBuildTasksAssemblyFile = "SonarQubeBuildTasksAssemblyFile";
+
+        public const string SonarQubeTestProject = "SonarQubeTestProject";
+        public const string SonarQubeTestProjectNameRegex = "SonarQubeTestProjectNameRegex";
+        public const string SonarQubeExclude = "SonarQubeExclude";
+        public const string SonarQubeRulesetName = "SonarQubeAnalysis.ruleset";
+
+        // Non-SonarQube constants
         public const string ProjectGuid = "ProjectGuid";
         public const string ProjectTypeGuid = "ProjectTypeGuid";
-
-        public const string SonarTargetFilePath = "SonarTargetFilePath";
-        public const string SonarTargetsPath = "SonarTargetsPath";
-
-        public const string RunSonarAnalysis = "RunSonarAnalysis";
-        public const string SonarConfigPath = "SonarConfigPath";
-        public const string SonarOutputPath = "SonarOutputPath";
-        public const string SonarTempPath = "SonarTempPath";
-        public const string SonarBuildTasksAssemblyFile = "SonarBuildTasksAssemblyFile";
 
         public const string RunCodeAnalysis = "RunCodeAnalysis";
         public const string CodeAnalysisRuleset = "CodeAnalysisRuleSet";
@@ -50,11 +57,6 @@ namespace Sonar.MSBuild.Tasks.IntegrationTests
 
         public const string TeamBuildBuildDirectory = "TF_BUILD_BUILDDIRECTORY";
         public const string MSBuildExtensionsPath = "MSBuildExtensionsPath";
-
-
-        public const string SonarTestProject = "SonarTestProject";
-        public const string SonarTestProjectNameRegex = "SonarTestProjectNameRegex";
-        public const string SonarExclude = "SonarExclude";
 
         public const string ItemType_Compile = "Compile";
         public const string ItemType_Content = "Content";

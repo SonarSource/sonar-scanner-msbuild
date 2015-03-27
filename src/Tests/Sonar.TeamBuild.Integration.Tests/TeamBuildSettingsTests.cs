@@ -8,7 +8,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace Sonar.TeamBuild.Integration.Tests
+namespace SonarQube.TeamBuild.Integration.Tests
 {
     [TestClass]
     public class TeamBuildSettingsTests
@@ -81,9 +81,9 @@ namespace Sonar.TeamBuild.Integration.Tests
             Assert.AreEqual("collection uri", settings.TfsUri, "Unexpected tfs uri returned");
 
             // Check the calculated values
-            Assert.AreEqual("build dir\\SonarTemp\\Config", settings.SonarConfigDir, "Unexpected config dir");
-            Assert.AreEqual("build dir\\SonarTemp\\Output", settings.SonarOutputDir, "Unexpected outpu dir");
-            Assert.AreEqual("build dir\\SonarTemp\\Config\\" + TeamBuildSettings.ConfigFileName, settings.AnalysisConfigFilePath, "Unexpected analysis file path");
+            Assert.AreEqual("build dir\\SQTemp\\Config", settings.SonarConfigDir, "Unexpected config dir");
+            Assert.AreEqual("build dir\\SQTemp\\Output", settings.SonarOutputDir, "Unexpected outpu dir");
+            Assert.AreEqual("build dir\\SQTemp\\Config\\" + TeamBuildSettings.ConfigFileName, settings.AnalysisConfigFilePath, "Unexpected analysis file path");
         }
 
         [TestMethod]

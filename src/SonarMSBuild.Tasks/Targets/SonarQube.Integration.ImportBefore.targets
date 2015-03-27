@@ -3,10 +3,10 @@
   <!-- **************************************************************************** -->
   <!-- Import the analysis targets if appropriate -->
   <!-- **************************************************************************** -->
-  <PropertyGroup Condition="$(SonarImported) != 'true' AND $(RunSonarAnalysis) == 'true' ">
-    <SonarTargetFilePath>$(SonarTargetsPath)\Sonar.Integration.v0.1.targets</SonarTargetFilePath>
+  <PropertyGroup Condition="$(SonarQubeTargetsImported) != 'true' AND $(RunSonarQubeAnalysis) == 'true' ">
+    <SonarQubeTargetFilePath>$(SonarQubeTargetsPath)\SonarQube.Integration.v0.1.targets</SonarQubeTargetFilePath>
   </PropertyGroup>
-  <Import Condition="$(RunSonarAnalysis) == 'true' AND $(SonarImported) != 'true' AND Exists('$(SonarTargetFilePath)')" Project="$(SonarTargetFilePath)" />
+  <Import Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeTargetsImported) != 'true' AND Exists('$(SonarQubeTargetFilePath)')" Project="$(SonarQubeTargetFilePath)" />
 
   
   <!-- **************************************************************************** -->
@@ -18,22 +18,22 @@
         
         Writes out diagnostic information to help with troubleshooting.  -->
   <!-- **************************************************************************** -->
-  <Target Name="SonarQubeImportBeforeInfo" Condition="$(RunSonarAnalysis) == 'true' " BeforeTargets="Compile">
+  <Target Name="SonarQubeImportBeforeInfo" Condition="$(RunSonarQubeAnalysis) == 'true' " BeforeTargets="Compile">
 
     <PropertyGroup>
-      <AnalysisTargetsFileFound Condition=" Exists('$(SonarTargetFilePath)') " >true</AnalysisTargetsFileFound>
-      <ReportAnalysisTargetsError Condition=" $(RunSonarAnalysis)=='true' AND $(AnalysisTargetsFileFound) != 'true'">true</ReportAnalysisTargetsError>
+      <AnalysisTargetsFileFound Condition=" Exists('$(SonarQubeTargetFilePath)') " >true</AnalysisTargetsFileFound>
+      <ReportAnalysisTargetsError Condition=" $(RunSonarQubeAnalysis)=='true' AND $(AnalysisTargetsFileFound) != 'true'">true</ReportAnalysisTargetsError>
     </PropertyGroup>
 
     <!-- Diagnostic messages for troubleshooting -->
-    <Message Importance="low" Text="Sonar.Integration.ImportBeforeImports.targets was loaded" />
+    <Message Importance="low" Text="SonarQube.Integration.ImportBefore.targets was loaded" />
     <Message Importance="low" Text="SonarQube analysis targets file found: $(AnalysisTargetsFileFound)" />
-    <Message Importance="low" Text="SonarQube analysis targets imported: $(SonarImported)" />
+    <Message Importance="low" Text="SonarQube analysis targets imported: $(SonarQubeTargetsImported)" />
 
     <!-- Conditionally raise an error that will fail the build -->
     <Message Condition=" $(ReportAnalysisTargetsError) == 'true'"
       Importance="high"
-      Text="Calculated location for the analysis targets file: $(SonarTargetFilePath)" />
+      Text="Calculated location for the analysis targets file: $(SonarQubeTargetFilePath)" />
     <Error Condition=" $(ReportAnalysisTargetsError) == 'true'"
       Text="The build is configured to run SonarQube analysis but the SonarQube analysis targets could not be located." />
 
