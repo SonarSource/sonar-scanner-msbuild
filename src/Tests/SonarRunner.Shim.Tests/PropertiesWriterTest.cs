@@ -85,7 +85,7 @@ namespace SonarRunner.Shim.Tests
             expected.AppendLine("DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectKey=my_project_key:DB2E5521-3172-47B9-BA50-864F12E6DFFF");
             expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName=\u4F60\u597D");
             expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir=" + escapedProductBaseDir);
-            expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.fxcop.reportPath=C:\\fxcop-report.xml");
+            expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.cs.fxcop.reportPath=C:\\fxcop-report.xml");
             expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.cs.vscoveragexml.reportsPaths=C:\\visualstudio-coverage.xml");
             expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources=\");
             expected.AppendLine(escapedProductBaseDir + @"\\File.cs,\");

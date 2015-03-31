@@ -46,7 +46,7 @@ namespace SonarRunner.Shim
                 AppendKeyValue(sb, guid, "sonar.projectBaseDir", project.BaseDir());
                 if (project.FxCopReport != null)
                 {
-                    AppendKeyValue(sb, guid, "sonar.fxcop.reportPath", project.FxCopReport);
+                    AppendKeyValue(sb, guid, "sonar.cs.fxcop.reportPath", project.FxCopReport);
                 }
                 if (project.VisualStudioCodeCoverageReport != null)
                 {
