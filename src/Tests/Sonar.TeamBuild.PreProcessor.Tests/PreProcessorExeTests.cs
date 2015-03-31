@@ -104,7 +104,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             };
 
             Process p = Process.Start(psi);
-            p.WaitForExit(1000);
+            p.WaitForExit(5000);
             Assert.IsTrue(p.HasExited, "Timed out waiting for the process to exit");
             return p;
         }
