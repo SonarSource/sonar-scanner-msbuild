@@ -250,7 +250,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_ExcludedProjects()
         {
-            // Project info should not be written for files with $(SonarExclude) set to true
+            // Project info should not be written for files with $(SonarQubeExclude) set to true
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");

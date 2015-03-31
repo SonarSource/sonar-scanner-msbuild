@@ -44,7 +44,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public const string SonarQubeTestProject = "SonarQubeTestProject";
         public const string SonarQubeTestProjectNameRegex = "SonarQubeTestProjectNameRegex";
-        public const string SonarQubeExclude = "SonarQubeExclude";
+        public const string SonarQubeExcludeMetadata = "SonarQubeExclude";
         public const string SonarQubeRulesetName = "SonarQubeAnalysis.ruleset";
 
         // Non-SonarQube constants
@@ -60,6 +60,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public const string ItemType_Compile = "Compile";
         public const string ItemType_Content = "Content";
+        public const string AutoGenMetadata = "AutoGen";
     }
 
 }

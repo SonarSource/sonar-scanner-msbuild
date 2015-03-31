@@ -153,10 +153,9 @@
 
     <ItemGroup>
       <!-- Calculate the sets of files to write out to the file lists.
-           Exclude any that have the metadata 'SonarQubeExclude' set. -->
-      <SonarQubeManagedFiles Include="@(Compile)" Condition=" %(Compile.SonarQubeExclude) != 'true' " />
-      <!-- Add any files that are in the gruop T4Transform -->
-      <SonarQubeContentFiles Include="@(Content)" Condition=" %(Content.SonarQubeExclude) != 'true' "/>
+           Exclude any that have the metadata 'SonarQubeExclude' set, or that are auto-generated -->
+      <SonarQubeManagedFiles Include="@(Compile)" Condition=" %(Compile.SonarQubeExclude) != 'true' AND %(Compile.AutoGen) != 'true' " />
+      <SonarQubeContentFiles Include="@(Content)" Condition=" %(Content.SonarQubeExclude) != 'true' AND %(Content.AutoGen) != 'true' " />
 
     </ItemGroup>
 
