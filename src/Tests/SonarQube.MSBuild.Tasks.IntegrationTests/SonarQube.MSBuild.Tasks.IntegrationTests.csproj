@@ -74,11 +74,11 @@
     <Compile Include="TargetsTests\WriteProjectInfoFileTargetTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Sonar.Common\SonarQube.Common.csproj">
+    <ProjectReference Include="..\..\SonarQube.Common\SonarQube.Common.csproj">
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>SonarQube.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SonarMSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj">
+    <ProjectReference Include="..\..\SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj">
       <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>
       <Name>SonarQube.MSBuild.Tasks</Name>
     </ProjectReference>
@@ -91,12 +91,12 @@
     <Content Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\SonarMSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets">
+    <None Include="..\..\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets">
       <Link>LinkedFiles\SonarQube.Integration.ImportBefore.targets</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
-    <None Include="..\..\SonarMSBuild.Tasks\Targets\SonarQube.Integration.v0.1.targets">
+    <None Include="..\..\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.v0.1.targets">
       <Link>LinkedFiles\SonarQube.Integration.v0.1.targets</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>

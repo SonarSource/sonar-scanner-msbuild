@@ -58,7 +58,7 @@
     <Compile Include="SonarRunner.Wrapper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Sonar.Common\SonarQube.Common.csproj">
+    <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj">
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>SonarQube.Common</Name>
     </ProjectReference>
