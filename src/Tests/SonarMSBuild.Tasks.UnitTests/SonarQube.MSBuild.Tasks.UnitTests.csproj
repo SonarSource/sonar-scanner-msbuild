@@ -57,13 +57,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Sonar.Common\Sonar.Common.csproj">
+    <ProjectReference Include="..\..\Sonar.Common\SonarQube.Common.csproj">
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
-      <Name>Sonar.Common</Name>
+      <Name>SonarQube.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SonarMSBuild.Tasks\Sonar.MSBuild.Tasks.csproj">
+    <ProjectReference Include="..\..\SonarMSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj">
       <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>
-      <Name>Sonar.MSBuild.Tasks</Name>
+      <Name>SonarQube.MSBuild.Tasks</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj">
       <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>

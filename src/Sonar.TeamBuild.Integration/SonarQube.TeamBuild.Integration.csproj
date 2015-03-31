@@ -46,11 +46,9 @@
       <HintPath>$(DevEnvDir)Extensions\Team Explorer\Microsoft.TeamFoundation.WorkItemTracking.Client.dll</HintPath>
     </Reference>
   </ItemGroup>
-
   <!-- ***************************************************************** -->
   <!-- End of Team Foundation references -->
   <!-- ***************************************************************** -->
-  
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -80,9 +78,9 @@
     <Compile Include="TeamBuildSettings.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Sonar.Common\Sonar.Common.csproj">
+    <ProjectReference Include="..\Sonar.Common\SonarQube.Common.csproj">
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
-      <Name>Sonar.Common</Name>
+      <Name>SonarQube.Common</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
