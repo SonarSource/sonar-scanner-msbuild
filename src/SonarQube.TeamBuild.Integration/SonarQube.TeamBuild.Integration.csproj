@@ -34,16 +34,16 @@
   <!-- ***************************************************************** -->
   <ItemGroup>
     <Reference Include="Microsoft.TeamFoundation.Client">
-      <HintPath>$(DevEnvDir)Extensions\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
+      <HintPath>$(DevEnvDir)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Client.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.TeamFoundation.Build.Client">
-      <HintPath>$(DevEnvDir)Extensions\Team Explorer\Microsoft.TeamFoundation.Build.Client.dll</HintPath>
+      <HintPath>$(DevEnvDir)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Build.Client.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.TeamFoundation.TestManagement.Client">
-      <HintPath>$(DevEnvDir)Extensions\Team Explorer\Microsoft.TeamFoundation.TestManagement.Client.dll</HintPath>
+      <HintPath>$(DevEnvDir)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.TestManagement.Client.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.TeamFoundation.WorkItemTracking.Client">
-      <HintPath>$(DevEnvDir)Extensions\Team Explorer\Microsoft.TeamFoundation.WorkItemTracking.Client.dll</HintPath>
+      <HintPath>$(DevEnvDir)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.WorkItemTracking.Client.dll</HintPath>
     </Reference>
   </ItemGroup>
   <!-- ***************************************************************** -->
