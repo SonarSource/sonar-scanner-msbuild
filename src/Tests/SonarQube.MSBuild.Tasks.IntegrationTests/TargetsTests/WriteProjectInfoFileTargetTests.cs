@@ -334,6 +334,35 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         [TestMethod]
         [TestCategory("ProjectInfo")]
         [TestCategory("Lists")]
+        public void WriteProjectInfo_ManagedCompileList_AutoGenFilesIgnored()
+        {
+            // The managed file list should not include items with <AutoGen>true</AutoGen> metadata
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "agM.proj.txt");
+            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+
+            string compile1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, null); // no metadata
+            string autogenTrue1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, "TRUE"); // only AutoGen, set to true
+            string autogenTrue2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false", "truE"); // exclude=false, autogen=true
+            string autogenFalseAndIncluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false", "FALSe"); // exclude=false, autogen=false
+            string autogenFalseButExcluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "true", "false"); // exclude=true, autogen=false
+            string nonCompileItem1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, "false"); // autogen=false, but wrong item type
+            string nonCompileItem2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, null); // wrong item type
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+
+            // Assert
+            AssertResultFileExists(projectInfo, AnalysisType.ManagedCompilerInputs, compile1, autogenFalseAndIncluded);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("Lists")]
         public void WriteProjectInfo_ContentFileList_NoFiles()
         {
             // The content file list should not be created if there are no files
@@ -379,6 +408,35 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertResultFileExists(projectInfo, AnalysisType.ContentFiles, file1, file2, file3);
         }
 
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("Lists")]
+        public void WriteProjectInfo_ContentFileList_AutoGenFilesIgnored()
+        {
+            // The content file list should not include items with <AutoGen>true</AutoGen> metadata
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "agC.proj.txt");
+            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+
+            string content1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, null); // no metadata
+            string autogenTrue1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, "TRUE"); // only AutoGen, set to true
+            string autogenTrue2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false", "truE"); // exclude=false, autogen=true
+            string autogenFalseAndIncluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false", "FALSe"); // exclude=false, autogen=false
+            string autogenFalseButExcluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "true", "false"); // exclude=true, autogen=false
+            string nonContentItem1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, "false"); // autogen=false, but wrong item type
+            string nonContentItem2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, null); // wrong item type
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+
+            // Assert
+            AssertResultFileExists(projectInfo, AnalysisType.ContentFiles, content1, autogenFalseAndIncluded);
+        }
+
         #endregion
 
 
@@ -388,7 +446,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         [TestCategory("ProjectInfo")]
         public void WriteProjectInfo_ErrorIfProjectExcluded()
         {
-            // The target should error if $(SonarExclude) is true
+            // The target should error if $(SonarQubeExclude) is true
 
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
@@ -469,28 +527,64 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// <summary>
         /// Creates an empty file on disc and adds it to the project as an
         /// item with the specified ItemGroup include name.
-        /// The SonarExclude metadata item is set to the specified value.
+        /// The SonarQubeExclude metadata item is set to the specified value.
         /// </summary>
         /// <param name="projectRoot"></param>
         /// <param name="includeName">The name of the item type e.g. Compile, Content</param>
-        /// <param name="sonarExclude">The value to assign to the SonarExclude metadata item</param>
-        /// <returns></returns>
-        private string AddFileToProject(ProjectRootElement projectRoot, string includeName, string sonarExclude)
+        /// <param name="sonarQubeExclude">The value to assign to the SonarExclude metadata item</param>
+        /// <returns>The full path to the new file</returns>
+        private string AddFileToProject(ProjectRootElement projectRoot, string includeName, string sonarQubeExclude)
+        {
+            ProjectItemElement newItem = AddFileToProject(projectRoot, includeName);
+            if (sonarQubeExclude != null)
+            {
+                newItem.AddMetadata(TargetProperties.SonarQubeExcludeMetadata, sonarQubeExclude);
+            }          
+            
+            return newItem.Include;
+        }
+
+        /// Creates an empty file on disc and adds it to the project as an
+        /// item with the specified ItemGroup include name.
+        /// The SonarQubeExclude metadata item is set to the specified value.
+        /// </summary>
+        /// <param name="projectRoot"></param>
+        /// <param name="includeName">The name of the item type e.g. Compile, Content</param>
+        /// <param name="sonarQubeExclude">The value to assign to the SonarExclude metadata item</param>
+        /// <returns>The full path to the new file</returns>
+        private string AddFileToProject(ProjectRootElement projectRoot, string includeName, string sonarQubeExclude, string autoGen)
+        {
+            ProjectItemElement newItem = AddFileToProject(projectRoot, includeName);
+            if (sonarQubeExclude != null)
+            {
+                newItem.AddMetadata(TargetProperties.SonarQubeExcludeMetadata, sonarQubeExclude);
+            }
+            if (autoGen != null)
+            {
+                newItem.AddMetadata(TargetProperties.AutoGenMetadata, autoGen);
+            }
+
+            return newItem.Include;
+        }
+
+
+        /// <summary>
+        /// Creates an empty file on disc and adds it to the project as an
+        /// item with the specified ItemGroup include name.
+        /// The SonarQubeExclude metadata item is set to the specified value.
+        /// </summary>
+        /// <param name="projectRoot"></param>
+        /// <param name="includeName">The name of the item type e.g. Compile, Content</param>
+        /// <returns>The new project item</returns>
+        private ProjectItemElement AddFileToProject(ProjectRootElement projectRoot, string includeName)
         {
             string projectPath = Path.GetDirectoryName(projectRoot.DirectoryPath); // project needs to have been saved for this to work
             string fileName = System.Guid.NewGuid().ToString();
             string fullPath = Path.Combine(projectPath, fileName);
             File.WriteAllText(fullPath, "");
 
-            IList<KeyValuePair<string, string>> metadata = new List<KeyValuePair<string, string>>();
-
-            if (sonarExclude != null)
-            {
-                metadata.Add(new KeyValuePair<string, string>(TargetProperties.SonarQubeExclude, sonarExclude));
-            }
-
-            projectRoot.AddItem(includeName, fullPath, metadata);
-            return fullPath;
+            ProjectItemElement element = projectRoot.AddItem(includeName, fullPath);
+            return element;
         }
 
         #endregion

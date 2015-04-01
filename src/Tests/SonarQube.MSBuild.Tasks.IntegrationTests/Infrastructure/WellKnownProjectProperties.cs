@@ -24,8 +24,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public string SonarQubeExclude
         {
-            get { return this[TargetProperties.SonarQubeExclude]; }
-            set { this[TargetProperties.SonarQubeExclude] = value; }
+            get { return this[TargetProperties.SonarQubeExcludeMetadata]; }
+            set { this[TargetProperties.SonarQubeExcludeMetadata] = value; }
         }
 
         public string SonarQubeTargetsPath

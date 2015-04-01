@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED}</ProjectGuid>
+    <ProjectGuid>{A74AA08B-58D3-4B52-BC40-3A4F9A997705}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarRunner.Shim.Tests</RootNamespace>
-    <AssemblyName>SonarRunner.Shim.Tests</AssemblyName>
+    <RootNamespace>SonarQube.Common.UnitTests</RootNamespace>
+    <AssemblyName>SonarQube.Common.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -50,9 +50,12 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="PropertiesWriterTest.cs" />
-    <Compile Include="ProjectLoaderTest.cs" />
-    <Compile Include="ProjectTest.cs" />
+    <Compile Include="ConsoleLoggerTests.cs" />
+    <Compile Include="FileLocatorTests.cs" />
+    <Compile Include="FilePropertiesProviderTests.cs" />
+    <Compile Include="AnalysisConfigTests.cs" />
+    <Compile Include="ProcessRunnerTests.cs" />
+    <Compile Include="ProjectInfoTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -60,39 +63,13 @@
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>SonarQube.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SonarRunner.Shim\SonarRunner.Shim.csproj">
-      <Project>{c28a09bf-6025-4ea1-90d7-4d5ec0af815d}</Project>
-      <Name>SonarRunner.Shim</Name>
-    </ProjectReference>
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj">
       <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>
       <Name>TestUtilities</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Content Include="License.txt" />
-    <Content Include="ProjectLoaderTest\EmptyFolder\README.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\NoCompileList\ProjectInfo.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\NoProjectInfo\CompileList.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\ProductProject_NoManagedAnalysisResult\CompileList.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\ProductProject_NoManagedAnalysisResult\ProjectInfo.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\TestProject_RelativeAnalysisResultPath\CompileList.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\TestProject_RelativeAnalysisResultPath\ProjectInfo.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
