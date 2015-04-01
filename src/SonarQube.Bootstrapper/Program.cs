@@ -5,61 +5,58 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 
-namespace Sonar.Bootstrapper
+namespace SonarQube.Bootstrapper
 {
     class Program
     {
         private const int preprocessorTimeoutInMs = 1000 * 60 * 5;
         private const int postprocessorTimeoutInMs = 1000 * 60 * 60;
 
-        private const string SonarIntegrationFilename = "Sonar.TeamBuild.Integration.zip";
-        private const string IntegrationUrlFormat = "{0}/static/csharp/" + SonarIntegrationFilename;
+        private const string SonarQubeIntegrationFilename = "SonarQube.TeamBuild.Integration.zip";
+        private const string IntegrationUrlFormat = "{0}/static/csharp/" + SonarQubeIntegrationFilename;
 
         private const string PostprocessingMarkerFilename = "PostprocessingMarker.txt";
-        private const string PreprocessorFilename = "Sonar.TeamBuild.PreProcessor.exe";
-        private const string PostprocessorFilename = "Sonar.TeamBuild.PostProcessor.exe";
+        private const string PreprocessorFilename = "SonarQube.TeamBuild.PreProcessor.exe";
+        private const string PostprocessorFilename = "SonarQube.TeamBuild.PostProcessor.exe";
 
         static void Main(string[] args)
         {
             var logger = new ConsoleLogger();
 
             var teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
-            var sonarBinPath = Path.Combine(teamBuildSettings.BuildDirectory, "SonarBin");
-            var postprocessingMarkerPath = Path.Combine(sonarBinPath, PostprocessingMarkerFilename);
+            var downloadBinPath = Path.Combine(teamBuildSettings.BuildDirectory, "SonarQubeBin");
+            var postprocessingMarkerPath = Path.Combine(downloadBinPath, PostprocessingMarkerFilename);
 
             logger.LogMessage("Locating the file: {0}", postprocessingMarkerPath);
             if (!File.Exists(postprocessingMarkerPath))
             {
                 logger.LogMessage("Not found -> Preprocessing");
-                preprocess(logger, sonarBinPath, args);
+                preprocess(logger, downloadBinPath, args);
                 File.Create(postprocessingMarkerPath);
             }
             else
             {
                 logger.LogMessage("Found -> Postprocessing");
-                postprocess(logger, sonarBinPath);
+                postprocess(logger, downloadBinPath);
                 File.Delete(postprocessingMarkerPath);
             }
         }
 
-        static void preprocess(ILogger logger, string sonarBinPath, string[] args)
+        static void preprocess(ILogger logger, string downloadBinPath, string[] args)
         {
-            if (Directory.Exists(sonarBinPath))
+            if (Directory.Exists(downloadBinPath))
             {
-                Directory.Delete(sonarBinPath, true);
+                Directory.Delete(downloadBinPath, true);
             }
-            Directory.CreateDirectory(sonarBinPath);
+            Directory.CreateDirectory(downloadBinPath);
 
             var sonarRunnerProperties = FileLocator.FindDefaultSonarRunnerProperties();
             if (sonarRunnerProperties == null)
@@ -77,26 +74,26 @@ namespace Sonar.Bootstrapper
 
             var integrationUrl = string.Format(IntegrationUrlFormat, server);
 
-            var sonarIntegrationFilePath = Path.Combine(sonarBinPath, SonarIntegrationFilename);
-            var preprocessorFilePath = Path.Combine(sonarBinPath, PreprocessorFilename);
+            var downloadedZipFilePath = Path.Combine(downloadBinPath, SonarQubeIntegrationFilename);
+            var preprocessorFilePath = Path.Combine(downloadBinPath, PreprocessorFilename);
 
             using (WebClient client = new WebClient())
             {
-                logger.LogMessage("Downloading {0} from {1} to {2}", SonarIntegrationFilename, integrationUrl, sonarIntegrationFilePath);
-                client.DownloadFile(integrationUrl, sonarIntegrationFilePath);
-                ZipFile.ExtractToDirectory(sonarIntegrationFilePath, sonarBinPath);
+                logger.LogMessage("Downloading {0} from {1} to {2}", SonarQubeIntegrationFilename, integrationUrl, downloadedZipFilePath);
+                client.DownloadFile(integrationUrl, downloadedZipFilePath);
+                ZipFile.ExtractToDirectory(downloadedZipFilePath, downloadBinPath);
 
                 var processRunner = new ProcessRunner();
-                processRunner.Execute(preprocessorFilePath, string.Join(" ", args.Select(a => "\"" + a + "\"")), sonarBinPath, preprocessorTimeoutInMs, logger);
+                processRunner.Execute(preprocessorFilePath, string.Join(" ", args.Select(a => "\"" + a + "\"")), downloadBinPath, preprocessorTimeoutInMs, logger);
             }
         }
 
-        static void postprocess(ILogger logger, string sonarBinPath)
+        static void postprocess(ILogger logger, string downloadBinPath)
         {
-            var postprocessorFilePath = Path.Combine(sonarBinPath, PostprocessorFilename);
+            var postprocessorFilePath = Path.Combine(downloadBinPath, PostprocessorFilename);
 
             var processRunner = new ProcessRunner();
-            processRunner.Execute(postprocessorFilePath, "", sonarBinPath, postprocessorTimeoutInMs, logger);
+            processRunner.Execute(postprocessorFilePath, "", downloadBinPath, postprocessorTimeoutInMs, logger);
         }
     }
 }

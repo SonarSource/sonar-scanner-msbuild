@@ -36,7 +36,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarRunner.Shim", "SonarRu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarRunner.Shim.Tests", "Tests\SonarRunner.Shim.Tests\SonarRunner.Shim.Tests.csproj", "{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sonar.Bootstrapper", "Sonar.Bootstrapper\Sonar.Bootstrapper.csproj", "{60AACBB4-1661-4EEB-A029-91289C1D3F7E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Bootstrapper", "SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj", "{60AACBB4-1661-4EEB-A029-91289C1D3F7E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
