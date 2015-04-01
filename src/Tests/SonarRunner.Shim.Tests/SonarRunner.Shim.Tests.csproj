@@ -52,7 +52,6 @@
   <ItemGroup>
     <Compile Include="PropertiesWriterTest.cs" />
     <Compile Include="ProjectLoaderTest.cs" />
-    <Compile Include="ProjectTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -72,27 +71,6 @@
   <ItemGroup />
   <ItemGroup>
     <Content Include="License.txt" />
-    <Content Include="ProjectLoaderTest\EmptyFolder\README.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\NoCompileList\ProjectInfo.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\NoProjectInfo\CompileList.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\ProductProject_NoManagedAnalysisResult\CompileList.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\ProductProject_NoManagedAnalysisResult\ProjectInfo.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\TestProject_RelativeAnalysisResultPath\CompileList.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ProjectLoaderTest\TestProject_RelativeAnalysisResultPath\ProjectInfo.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

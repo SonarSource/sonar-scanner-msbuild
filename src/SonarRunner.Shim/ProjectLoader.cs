@@ -16,40 +16,17 @@ namespace SonarRunner.Shim
 {
     public static class ProjectLoader
     {
-        public static List<Project> LoadFrom(string dumpFolderPath)
+        public static List<ProjectInfo> LoadFrom(string dumpFolderPath)
         {
-            List<Project> result = new List<Project>();
+            List<ProjectInfo> result = new List<ProjectInfo>();
 
             foreach (string projectFolderPath in Directory.GetDirectories(dumpFolderPath))
             {
                 var projectInfo = TryGetProjectInfo(projectFolderPath);
-                if (projectInfo == null)
+                if (projectInfo != null)
                 {
-                    continue;
+                    result.Add(projectInfo);
                 }
-
-                List<String> files = new List<string>();
-                var compiledFilesPath = TryGetAnalysisFileLocation(projectInfo, AnalysisType.ManagedCompilerInputs);
-                if (compiledFilesPath != null)
-                {
-                    files.AddRange(File.ReadAllLines(compiledFilesPath, Encoding.UTF8));
-                }
-                var contentFilesPath = TryGetAnalysisFileLocation(projectInfo, AnalysisType.ContentFiles);
-                if (contentFilesPath != null)
-                {
-                    files.AddRange(File.ReadAllLines(contentFilesPath, Encoding.UTF8));
-                }
-                if (!files.Any())
-                {
-                    // Skip projects without any source file
-                    continue;
-                }
-
-                bool isTest = projectInfo.ProjectType == ProjectType.Test;
-                string fxCopReport = TryGetAnalysisFileLocation(projectInfo, AnalysisType.FxCop);
-                string visualStudioCodeCoverageReport = TryGetAnalysisFileLocation(projectInfo, AnalysisType.VisualStudioCodeCoverage);
-
-                result.Add(new Project(projectInfo.ProjectName, projectInfo.ProjectGuid, projectInfo.FullPath, isTest, files, fxCopReport, visualStudioCodeCoverageReport));
             }
 
             return result;

@@ -6,6 +6,8 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 
 namespace SonarQube.Common
@@ -44,6 +46,95 @@ namespace SonarQube.Common
                 result = projectInfo.AnalysisResults.FirstOrDefault(ar => id.Equals(ar.Id, StringComparison.InvariantCulture));
             }
             return result != null;
+        }
+
+        /// <summary>
+        /// Adds an analysis result of the specified type
+        /// </summary>
+        /// <remarks>The method does not check whether an analysis result with the same id already exists i.e. duplicate results are allowed</remarks>
+        public static void AddAnalyzerResult(this ProjectInfo projectInfo, AnalysisType analyzerType, string location)
+        {
+            AddAnalyzerResult(projectInfo, analyzerType.ToString(), location);
+        }
+
+        /// <summary>
+        /// Adds an analysis result of the specified kind
+        /// </summary>
+        /// <remarks>The method does not check whether an analysis result with the same id already exists i.e. duplicate results are allowed</remarks>
+        public static void AddAnalyzerResult(this ProjectInfo projectInfo, string id, string location)
+        {
+            if (projectInfo == null)
+            {
+                throw new ArgumentNullException("projectInfo");
+            }
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException("id");
+            }
+            if (string.IsNullOrWhiteSpace(location))
+            {
+                throw new ArgumentNullException("location");
+            }
+            
+
+            if (projectInfo.AnalysisResults == null)
+            {
+                projectInfo.AnalysisResults = new System.Collections.Generic.List<AnalysisResult>();
+            }
+
+            AnalysisResult result = new AnalysisResult() { Id = id, Location = location };
+            projectInfo.AnalysisResults.Add(result);
+        }
+
+        /// <summary>
+        /// Returns the full path of the directory containing the project file
+        /// </summary>
+        public static string GetProjectDir(this ProjectInfo projectInfo)
+        {
+            if (projectInfo == null)
+            {
+                throw new ArgumentNullException("projectInfo");
+            }
+
+            string dir = null;
+            if (projectInfo.FullPath != null)
+            {
+                dir = Path.GetDirectoryName(projectInfo.FullPath);
+            }
+            return dir;
+        }
+
+        /// <summary>
+        /// Returns the ProjectGuid formatted as a string
+        /// </summary>
+        public static string GetProjectGuidAsString(this ProjectInfo projectInfo)
+        {
+            if (projectInfo == null)
+            {
+                throw new ArgumentNullException("projectInfo");
+            }
+
+            return projectInfo.ProjectGuid.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant();
+        }
+
+        /// <summary>
+        /// Attempts to return the file location for the specified type of analysis result.
+        /// Returns null if there is not a result for the specified type, or if the
+        /// file does not exist.
+        /// </summary>
+        public static string TryGetAnalysisFileLocation(this ProjectInfo projectInfo, AnalysisType analysisType)
+        {
+            string location = null;
+
+            AnalysisResult result = null;
+            if (projectInfo.TryGetAnalyzerResult(analysisType, out result))
+            {
+                if (File.Exists(result.Location))
+                {
+                    location = result.Location;
+                }
+            }
+            return location;
         }
 
         #endregion

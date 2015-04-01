@@ -60,7 +60,7 @@ namespace SonarRunner.Shim
             logger.LogMessage(Resources.DIAG_GeneratingProjectProperties, fullName);
             
             var projects = ProjectLoader.LoadFrom(config.SonarOutputDir);
-            var contents = PropertiesWriter.ToString(new ConsoleLogger(includeTimestamp: true), config.SonarProjectKey, config.SonarProjectName, config.SonarProjectVersion, config.SonarOutputDir, projects);
+            var contents = PropertiesWriter.ToString(logger, config, projects);
 
             File.WriteAllText(fullName, contents, Encoding.ASCII);
             return fullName;

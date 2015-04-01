@@ -1,2 +1,0 @@
-﻿C:\TestProject\File1.cs
-C:\TestProject\File2.cs

@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,6 +15,8 @@ using TestUtilities;
 
 namespace SonarRunner.Shim.Tests
 {
+    //TODO: test that projects with no files are skipped
+
     [TestClass]
     public class PropertiesWriterTest
     {
@@ -31,76 +34,151 @@ namespace SonarRunner.Shim.Tests
         public void PropertiesWriterToString()
         {
             var productBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_ProductBaseDir");
-            var escapedProductBaseDir = productBaseDir.Replace(@"\", @"\\");
-            var productProject = File.Create(Path.Combine(productBaseDir, "MyProduct.csproj")).Name;
-            var productFile = File.Create(Path.Combine(productBaseDir, "File.cs")).Name;
-            var productChineseFile = File.Create(Path.Combine(productBaseDir, "你好.cs")).Name;
+            string productProject = CreateEmptyFile(productBaseDir, "MyProduct.csproj");
+            string productFile = CreateEmptyFile(productBaseDir, "File.cs");
+            string productChineseFile = CreateEmptyFile(productBaseDir, "你好.cs");
+
+            string productFxCopFilePath = CreateEmptyFile(productBaseDir, "productFxCopReport.txt");
+            string productCoverageFilePath = CreateEmptyFile(productBaseDir, "productCoverageReport.txt");
+            string productFileListFilePath = Path.Combine(productBaseDir, "productManagedFiles.txt");
 
             string otherDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_OtherDir");
-            var somewhere = File.Create(Path.Combine(otherDir, "Somewhere.cs")).Name;
+            string somewhere = CreateEmptyFile(otherDir, "Somewhere.cs");
 
             List<string> productFiles = new List<string>();
             productFiles.Add(productFile);
             productFiles.Add(productChineseFile);
             productFiles.Add(somewhere);
-            Project product = new Project("你好", Guid.Parse("DB2E5521-3172-47B9-BA50-864F12E6DFFF"), productProject, false, productFiles, @"C:\fxcop-report.xml", @"C:\visualstudio-coverage.xml");
+            ProjectInfo product = CreateProjectInfo("你好", "DB2E5521-3172-47B9-BA50-864F12E6DFFF", productProject, false, productFiles, productFileListFilePath, productFxCopFilePath, productCoverageFilePath);
 
-            var testBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_TestBaseDir");
-            var escapedTestBaseDir = testBaseDir.Replace(@"\", @"\\");
-            var testProject = File.Create(Path.Combine(testBaseDir, "MyTest.csproj")).Name;
-            var testFile = File.Create(Path.Combine(testBaseDir, "File.cs")).Name;
+            string testBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_TestBaseDir");
+            string testProject = CreateEmptyFile(testBaseDir, "MyTest.csproj");
+            string testFile = CreateEmptyFile(testBaseDir, "File.cs");
+            string testFileListFilePath = Path.Combine(testBaseDir, "testManagedFiles.txt");
 
             List<string> testFiles = new List<string>();
             testFiles.Add(testFile);
-            Project test = new Project("my_test_project", Guid.Parse("DA0FCD82-9C5C-4666-9370-C7388281D49B"), testProject, true, testFiles, null, null);
+            ProjectInfo test = CreateProjectInfo("my_test_project", "DA0FCD82-9C5C-4666-9370-C7388281D49B", testProject, true, testFiles, testFileListFilePath, null, null);
 
-            Project duplicatedProject1 = new Project("duplicated_project_1", Guid.Parse("C53C92C0-0A5A-4F89-A857-2BBD41CB4410"), @"C:\DuplicatedProject1.csproj", false, new List<string>(), null, null);
-            Project duplicatedProject2 = new Project("duplicated_project_2", Guid.Parse("C53C92C0-0A5A-4F89-A857-2BBD41CB4410"), @"C:\DuplicatedProject2.csproj", false, new List<string>(), null, null);
+            ProjectInfo duplicatedProject1 = CreateProjectInfo("duplicated_project_1", "C53C92C0-0A5A-4F89-A857-2BBD41CB4410", @"C:\DuplicatedProject1.csproj", false, null, null, null, null);
+            ProjectInfo duplicatedProject2 = CreateProjectInfo("duplicated_project_2", "C53C92C0-0A5A-4F89-A857-2BBD41CB4410", @"C:\DuplicatedProject2.csproj", false, null, null, null, null);
 
-            List<Project> projects = new List<Project>();
+            List<ProjectInfo> projects = new List<ProjectInfo>();
             projects.Add(product);
             projects.Add(test);
             projects.Add(duplicatedProject1);
             projects.Add(duplicatedProject2);
 
             var logger = new TestLogger();
-            string actual = SonarRunner.Shim.PropertiesWriter.ToString(logger, "my_project_key", "my_project_name", "1.0", @"C:\my_folder", projects);
+            AnalysisConfig config = new AnalysisConfig()
+            {
+                SonarProjectKey = "my_project_key",
+                SonarProjectName = "my_project_name",
+                SonarProjectVersion = "1.0",
+                SonarOutputDir = @"C:\my_folder"
+            };
+            string actual = SonarRunner.Shim.PropertiesWriter.ToString(logger, config, projects);
 
             Assert.AreEqual(2, logger.Warnings.Count);
             Assert.AreEqual(@"The project has a non-unique GUID ""C53C92C0-0A5A-4F89-A857-2BBD41CB4410"". Analysis results for this project will not be uploaded to SonarQube. Project file: C:\DuplicatedProject1.csproj", logger.Warnings[0]);
             Assert.AreEqual(@"The project has a non-unique GUID ""C53C92C0-0A5A-4F89-A857-2BBD41CB4410"". Analysis results for this project will not be uploaded to SonarQube. Project file: C:\DuplicatedProject2.csproj", logger.Warnings[1]);
 
-            StringBuilder expected = new StringBuilder();
-            expected.AppendLine("sonar.projectKey=my_project_key");
-            expected.AppendLine("sonar.projectName=my_project_name");
-            expected.AppendLine("sonar.projectVersion=1.0");
-            expected.AppendLine(@"sonar.projectBaseDir=C:\\my_folder");
-            expected.AppendLine();
-            expected.AppendLine("# FIXME: Encoding is hardcoded");
-            expected.AppendLine("sonar.sourceEncoding=UTF-8");
-            expected.AppendLine();
-            expected.AppendLine("sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388281D49B");
-            expected.AppendLine();
+            string expected = string.Format(System.Globalization.CultureInfo.CurrentCulture,
+@"sonar.projectKey=my_project_key
+sonar.projectName=my_project_name
+sonar.projectVersion=1.0
+sonar.projectBaseDir=C:\\my_folder
 
-            expected.AppendLine("DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectKey=my_project_key:DB2E5521-3172-47B9-BA50-864F12E6DFFF");
-            expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName=\u4F60\u597D");
-            expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir=" + escapedProductBaseDir);
-            expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.cs.fxcop.reportPath=C:\\fxcop-report.xml");
-            expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.cs.vscoveragexml.reportsPaths=C:\\visualstudio-coverage.xml");
-            expected.AppendLine(@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources=\");
-            expected.AppendLine(escapedProductBaseDir + @"\\File.cs,\");
-            expected.AppendLine(escapedProductBaseDir + @"\\\u4F60\u597D.cs");
-            expected.AppendLine();
+# FIXME: Encoding is hardcoded
+sonar.sourceEncoding=UTF-8
 
-            expected.AppendLine("DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey=my_project_key:DA0FCD82-9C5C-4666-9370-C7388281D49B");
-            expected.AppendLine("DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectName=my_test_project");
-            expected.AppendLine(@"DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectBaseDir=" + escapedTestBaseDir);
-            expected.AppendLine("DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources=");
-            expected.AppendLine(@"DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\");
-            expected.AppendLine(escapedTestBaseDir + @"\\File.cs");
-            expected.AppendLine();
+sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388281D49B
 
-            Assert.AreEqual(expected.ToString(), actual);
+DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectKey=my_project_key:DB2E5521-3172-47B9-BA50-864F12E6DFFF
+DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName=\u4F60\u597D
+DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir={0}
+DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.cs.fxcop.reportPath={1}
+DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.cs.vscoveragexml.reportsPaths={2}
+DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources=\
+{0}\\File.cs,\
+{0}\\\u4F60\u597D.cs
+
+DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey=my_project_key:DA0FCD82-9C5C-4666-9370-C7388281D49B
+DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectName=my_test_project
+DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectBaseDir={3}
+DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources=
+DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
+{3}\\File.cs
+
+",
+ GetEscapedPath(productBaseDir),
+ GetEscapedPath(productFxCopFilePath),
+ GetEscapedPath(productCoverageFilePath),
+ GetEscapedPath(testBaseDir));
+
+
+            SaveToResultFile(productBaseDir, "Expected.txt", expected.ToString());
+            SaveToResultFile(productBaseDir, "Actual.txt", actual);
+
+            Assert.AreEqual(expected, actual);
         }
+
+        #region Private methods
+
+        private static ProjectInfo CreateProjectInfo(string name, string projectId, string fullFilePath, bool isTest, IList<string> files, string fileListFilePath, string fxCopReportPath, string coverageReportPath)
+        {
+            ProjectInfo projectInfo = new ProjectInfo()
+            {
+                ProjectName = name,
+                ProjectGuid = Guid.Parse(projectId),
+                FullPath = fullFilePath,
+                ProjectType = isTest ? ProjectType.Test : ProjectType.Product,
+                AnalysisResults = new List<AnalysisResult>()
+            };
+
+            if (fxCopReportPath != null)
+            {
+                projectInfo.AddAnalyzerResult(AnalysisType.FxCop, fxCopReportPath);
+            }
+            if (coverageReportPath != null)
+            {
+                projectInfo.AddAnalyzerResult(AnalysisType.VisualStudioCodeCoverage, coverageReportPath);
+            }
+
+            if (files != null && files.Count > 0)
+            {
+                Assert.IsTrue(!string.IsNullOrWhiteSpace(fileListFilePath), "Test setup error: must supply the managedFileListFilePath as a list of files has been supplied");
+                File.WriteAllLines(fileListFilePath, files);
+
+                projectInfo.AddAnalyzerResult(AnalysisType.ManagedCompilerInputs, fileListFilePath);
+            }
+
+            return projectInfo;
+        }
+
+        private static string CreateEmptyFile(string parentDir, string fileName)
+        {
+            return CreateFile(parentDir, fileName, string.Empty);
+        }
+
+        private static string CreateFile(string parentDir, string fileName, string content)
+        {
+            string fullPath = Path.Combine(parentDir, fileName);
+            File.WriteAllText(fullPath, content);
+            return fullPath;
+        }
+
+        private void SaveToResultFile(string testDir, string fileName, string content)
+        {
+            string fullPath = CreateFile(testDir, fileName, content);
+            this.TestContext.AddResultFile(fullPath);
+        }
+
+        private static string GetEscapedPath(string path)
+        {
+            return path.Replace(@"\", @"\\");
+        }
+
+        #endregion
     }
 }
