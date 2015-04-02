@@ -17,11 +17,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Common", "SonarQu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Common.UnitTests", "Tests\SonarQube.Common.UnitTests\SonarQube.Common.UnitTests.csproj", "{A74AA08B-58D3-4B52-BC40-3A4F9A997705}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BatchFiles", "BatchFiles", "{E5506C78-82DD-46FA-A82C-C203C522A05D}"
-	ProjectSection(SolutionItems) = preProject
-		BatchFiles\SonarQubePostBuild.bat = BatchFiles\SonarQubePostBuild.bat
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.Integration", "SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj", "{66CE9491-1C14-45D2-BEB6-A0695C63EBB2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.PostProcessor", "SonarQube.TeamBuild.PostProcessor\SonarQube.TeamBuild.PostProcessor.csproj", "{80F02FAD-FE7E-41B6-9151-BB650FDD6103}"

@@ -1,6 +1,13 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- **************************************************************************** -->
+  <!-- Compute the path to the targets if appropriate -->
+  <!-- **************************************************************************** -->
+  <PropertyGroup Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeTargetsPath) == '' AND $(TF_BUILD_BUILDDIRECTORY) != ''">
+    <SonarQubeTargetsPath>$(TF_BUILD_BUILDDIRECTORY)\SQTemp\Bin\Targets</SonarQubeTargetsPath>
+  </PropertyGroup>
+
+  <!-- **************************************************************************** -->
   <!-- Import the analysis targets if appropriate -->
   <!-- **************************************************************************** -->
   <PropertyGroup Condition="$(SonarQubeTargetsImported) != 'true' AND $(RunSonarQubeAnalysis) == 'true' ">
@@ -8,7 +15,7 @@
   </PropertyGroup>
   <Import Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeTargetsImported) != 'true' AND Exists('$(SonarQubeTargetFilePath)')" Project="$(SonarQubeTargetFilePath)" />
 
-  
+
   <!-- **************************************************************************** -->
   <!-- Diagnostic/error-checking target
 

@@ -39,11 +39,18 @@
     <Reference Include="Microsoft.TeamFoundation.Build.Client">
       <HintPath>$(DevEnvDir)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.Build.Client.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.TeamFoundation.WorkItemTracking.Client">
+      <HintPath>$(DevEnvDir)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.WorkItemTracking.Client.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(VisualStudioVersion)' &gt;= '14.0'">
     <Reference Include="Microsoft.TeamFoundation.TestManagement.Client">
       <HintPath>$(DevEnvDir)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.TestManagement.Client.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.TeamFoundation.WorkItemTracking.Client">
-      <HintPath>$(DevEnvDir)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.WorkItemTracking.Client.dll</HintPath>
+  </ItemGroup>
+  <ItemGroup Condition="'$(VisualStudioVersion)' &lt; '14.0'">
+    <Reference Include="Microsoft.TeamFoundation.TestManagement.Client">
+      <HintPath>$(DevEnvDir)ReferenceAssemblies\v2.0\Microsoft.TeamFoundation.TestManagement.Client.dll</HintPath>
     </Reference>
   </ItemGroup>
   <!-- ***************************************************************** -->
