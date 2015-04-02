@@ -23,7 +23,6 @@ namespace SonarQube.Bootstrapper
         private const string SonarQubeIntegrationFilename = "SonarQube.TeamBuild.Integration.zip";
         private const string IntegrationUrlFormat = "{0}/static/csharp/" + SonarQubeIntegrationFilename;
 
-        private const string PostprocessingMarkerFilename = "PostprocessingMarker.txt";
         private const string PreprocessorFilename = "SonarQube.TeamBuild.PreProcessor.exe";
         private const string PostprocessorFilename = "SonarQube.TeamBuild.PostProcessor.exe";
 
@@ -32,21 +31,17 @@ namespace SonarQube.Bootstrapper
             var logger = new ConsoleLogger();
 
             var teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
-            var downloadBinPath = Path.Combine(teamBuildSettings.BuildDirectory, "SonarQubeBin");
-            var postprocessingMarkerPath = Path.Combine(downloadBinPath, PostprocessingMarkerFilename);
+            var downloadBinPath = Path.Combine(teamBuildSettings.BuildDirectory, @"SQTemp\Bin");
 
-            logger.LogMessage("Locating the file: {0}", postprocessingMarkerPath);
-            if (!File.Exists(postprocessingMarkerPath))
+            if (args.Any())
             {
-                logger.LogMessage("Not found -> Preprocessing");
+                logger.LogMessage("Preprocessing ({0} arguments passed)", args.Length);
                 preprocess(logger, downloadBinPath, args);
-                File.Create(postprocessingMarkerPath);
             }
             else
             {
-                logger.LogMessage("Found -> Postprocessing");
+                logger.LogMessage("Postprocessing (no arguments passed)");
                 postprocess(logger, downloadBinPath);
-                File.Delete(postprocessingMarkerPath);
             }
         }
 
