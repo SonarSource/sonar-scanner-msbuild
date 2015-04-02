@@ -6,10 +6,9 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -19,7 +18,7 @@ namespace SonarRunner.Shim
     {
         #region Public methods
 
-        public static string ToString(ILogger logger, AnalysisConfig config, List<ProjectInfo> projects)
+        public static string ToString(ILogger logger, AnalysisConfig config, IEnumerable<ProjectInfo> projects)
         {
             var uniqueProjects = projects.GroupBy(p => p.ProjectGuid).Where(g => g.Count() == 1).Select(g => g.First());
             foreach (var duplicatedProject in projects.Where(p => !uniqueProjects.Any(p2 => p.ProjectGuid.Equals(p2.ProjectGuid))))
@@ -44,49 +43,7 @@ namespace SonarRunner.Shim
 
             foreach (var project in uniqueProjects)
             {
-                IList<string> files = GetFilesToAnalyze(project);
-                if (files.Count == 0)
-                {
-                    continue; // skip projects that don't have any files
-                }
-
-                string guid = project.GetProjectGuidAsString();
-
-                AppendKeyValue(sb, guid, "sonar.projectKey", config.SonarProjectKey + ":" + guid);
-                AppendKeyValue(sb, guid, "sonar.projectName", project.ProjectName);
-                AppendKeyValue(sb, guid, "sonar.projectBaseDir", project.GetProjectDir());
-                string fxCopReport = project.TryGetAnalysisFileLocation(AnalysisType.FxCop);
-                if (fxCopReport != null)
-                {
-                    AppendKeyValue(sb, guid, "sonar.cs.fxcop.reportPath", fxCopReport);
-                }
-                string vsCoverageReport = project.TryGetAnalysisFileLocation(AnalysisType.VisualStudioCodeCoverage);
-                if (vsCoverageReport != null)
-                {
-                    AppendKeyValue(sb, guid, "sonar.cs.vscoveragexml.reportsPaths", vsCoverageReport);
-                }
-                if (project.ProjectType == ProjectType.Product)
-                {
-                    sb.AppendLine(guid + @".sonar.sources=\");
-                }
-                else
-                {
-                    AppendKeyValue(sb, guid, "sonar.sources", "");
-                    sb.AppendLine(guid + @".sonar.tests=\");
-                }
-
-                for (int i = 0; i < files.Count(); i++)
-                {
-                    var file = files[i];
-                    sb.Append(Escape(file));
-                    if (i != files.Count() - 1)
-                    {
-                        sb.Append(@",\");
-                    }
-                    sb.AppendLine();
-                }
-
-                sb.AppendLine();
+                WriteSettingsForProject(config, sb, project);
             }
 
             return sb.ToString();
@@ -137,51 +94,48 @@ namespace SonarRunner.Shim
             return c <= sbyte.MaxValue;
         }
 
-        /// <summary>
-        /// Returns the files that should be analyzed. Files outside the project
-        /// path should be ignored (currently the SonarQube server expects all
-        /// files to be under the root project directory)
-        /// </summary>
-        private static IList<string> GetFilesToAnalyze(ProjectInfo projectInfo)
+        private static void WriteSettingsForProject(AnalysisConfig config, StringBuilder sb, ProjectInfo project)
         {
-            var result = new List<string>();
-            var baseDir = projectInfo.GetProjectDir();
+            IList<string> files = project.GetFilesToAnalyze();
+            Debug.Assert(files.Count > 0, "Expecting files to have a project to have files to analyze");
 
-            foreach (string file in GetAllFiles(projectInfo))
+            string guid = project.GetProjectGuidAsString();
+
+            AppendKeyValue(sb, guid, "sonar.projectKey", config.SonarProjectKey + ":" + guid);
+            AppendKeyValue(sb, guid, "sonar.projectName", project.ProjectName);
+            AppendKeyValue(sb, guid, "sonar.projectBaseDir", project.GetProjectDir());
+            string fxCopReport = project.TryGetAnalysisFileLocation(AnalysisType.FxCop);
+            if (fxCopReport != null)
             {
-                if (IsInFolder(file, baseDir))
+                AppendKeyValue(sb, guid, "sonar.cs.fxcop.reportPath", fxCopReport);
+            }
+            string vsCoverageReport = project.TryGetAnalysisFileLocation(AnalysisType.VisualStudioCodeCoverage);
+            if (vsCoverageReport != null)
+            {
+                AppendKeyValue(sb, guid, "sonar.cs.vscoveragexml.reportsPaths", vsCoverageReport);
+            }
+            if (project.ProjectType == ProjectType.Product)
+            {
+                sb.AppendLine(guid + @".sonar.sources=\");
+            }
+            else
+            {
+                AppendKeyValue(sb, guid, "sonar.sources", "");
+                sb.AppendLine(guid + @".sonar.tests=\");
+            }
+
+            for (int i = 0; i < files.Count(); i++)
+            {
+                var file = files[i];
+                sb.Append(Escape(file));
+                if (i != files.Count() - 1)
                 {
-                    result.Add(file);
+                    sb.Append(@",\");
                 }
+                sb.AppendLine();
             }
 
-            return result;
-        }
-
-        /// <summary>
-        /// Aggregates together all of the files listed in the analysis results
-        /// and returns the aggregated list
-        /// </summary>
-        private static IList<string> GetAllFiles(ProjectInfo projectInfo)
-        {
-            List<String> files = new List<string>();
-            var compiledFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisType.ManagedCompilerInputs);
-            if (compiledFilesPath != null)
-            {
-                files.AddRange(File.ReadAllLines(compiledFilesPath));
-            }
-            var contentFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisType.ContentFiles);
-            if (contentFilesPath != null)
-            {
-                files.AddRange(File.ReadAllLines(contentFilesPath));
-            }
-            return files;
-        }
-
-        private static bool IsInFolder(string filePath, string folder)
-        {
-            // FIXME This test is not sufficient...
-            return filePath.StartsWith(folder + Path.DirectorySeparatorChar);
+            sb.AppendLine();
         }
 
         #endregion

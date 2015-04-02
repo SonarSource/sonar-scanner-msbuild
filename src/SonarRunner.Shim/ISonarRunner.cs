@@ -17,24 +17,6 @@ namespace SonarRunner.Shim
     /// file from them, then executes the Java sonar-runnerr.</remarks>
     public interface ISonarRunner
     {
-        bool Execute(AnalysisConfig config, ILogger logger);
-    }
-
-    public class AnalysisRunResult
-    {
-        public bool Succeeded { get; private set; }
-
-        public IEnumerable<string> ProductProjects { get; private set; }
-
-        public IEnumerable<string> TestProjects { get; private set; }
-
-        public IEnumerable<string> ExcludedProjects { get; private set; }
-
-        /// <summary>
-        /// A project will be skipped if it cannot be mapped to a module in Sonar
-        /// i.e. if it has a missing or duplicate ProjectGuid
-        /// </summary>
-        public IEnumerable<string> SkippedProjects { get; private set; }
-
+        AnalysisRunResult Execute(AnalysisConfig config, ILogger logger);
     }
 }

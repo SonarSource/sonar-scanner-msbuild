@@ -120,9 +120,6 @@
   <data name="DIAG_LoadingConfig" xml:space="preserve">
     <value>Loading the SonarQube analysis config from {0}</value>
   </data>
-  <data name="DIAG_WritingSummary" xml:space="preserve">
-    <value>Writing post-processing summary to {0}</value>
-  </data>
   <data name="ERROR_ConfigFileNotFound" xml:space="preserve">
     <value>SonarQube analysis could not be completed because the analysis configuration file could not be found.
 Expected location: {0}</value>
@@ -134,7 +131,13 @@ Expected location: {0}</value>
     <value>SonarQube analysis failed</value>
   </data>
   <data name="Report_AnalysisSucceeded" xml:space="preserve">
-    <value>SonarQube analysis succeeded</value>
+    <value>SonarQube analysis succeeded. [Analysis results] ({0})</value>
+  </data>
+  <data name="Report_InvalidSkippedAndExcludedMessage" xml:space="preserve">
+    <value>Invalid projects: {0}, skipped projects: {1}, excluded projects: {2}</value>
+  </data>
+  <data name="Report_ProductAndTestMessage" xml:space="preserve">
+    <value>Product projects: {0}, test projects: {1}</value>
   </data>
   <data name="Report_ProjectInfoSummary" xml:space="preserve">
     <value>SonarQube project: {0} ({1}), version: {2}</value>

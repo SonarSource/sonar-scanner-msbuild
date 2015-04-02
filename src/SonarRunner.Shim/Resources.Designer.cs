@@ -97,6 +97,15 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Writing processing summary to {0}.
+        /// </summary>
+        internal static string DIAG_WritingSummary {
+            get {
+                return ResourceManager.GetString("DIAG_WritingSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not load the analysis config file. Please check that it is a valid file and try again.
         ///Error: {0}.
         /// </summary>
@@ -134,11 +143,74 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generation of the sonar-properties file failed. Unable to complete SonarQube analysis..
+        /// </summary>
+        internal static string ERR_PropertiesGenerationFailed {
+            get {
+                return ResourceManager.GetString("ERR_PropertiesGenerationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The sonar-runner did not complete successfully.
         /// </summary>
         internal static string ERR_SonarRunnerExecutionFailed {
             get {
                 return ResourceManager.GetString("ERR_SonarRunnerExecutionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excluded projects.
+        /// </summary>
+        internal static string REPORT_ExcludedProjectsTitle {
+            get {
+                return ResourceManager.GetString("REPORT_ExcludedProjectsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid projects.
+        /// </summary>
+        internal static string REPORT_InvalidProjectsTitle {
+            get {
+                return ResourceManager.GetString("REPORT_InvalidProjectsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {none}.
+        /// </summary>
+        internal static string REPORT_NoProjectsOfType {
+            get {
+                return ResourceManager.GetString("REPORT_NoProjectsOfType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Product projects.
+        /// </summary>
+        internal static string REPORT_ProductProjectsTitle {
+            get {
+                return ResourceManager.GetString("REPORT_ProductProjectsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Skipped projects.
+        /// </summary>
+        internal static string REPORT_SkippedProjectsTitle {
+            get {
+                return ResourceManager.GetString("REPORT_SkippedProjectsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test projects.
+        /// </summary>
+        internal static string REPORT_TestProjectsTitle {
+            get {
+                return ResourceManager.GetString("REPORT_TestProjectsTitle", resourceCulture);
             }
         }
         

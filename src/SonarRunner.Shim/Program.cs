@@ -30,9 +30,9 @@ namespace SonarRunner.Shim
             }
 
             ISonarRunner runnerShim = new SonarRunnerWrapper();
-            bool success = runnerShim.Execute(config, logger);
+            AnalysisRunResult result = runnerShim.Execute(config, logger);
 
-            return success ? 0 : 1;
+            return result.RanToCompletion ? 0 : 1;
         }
 
         private static AnalysisConfig TryGetAnalysisConfig(string suppliedPath, ILogger logger)

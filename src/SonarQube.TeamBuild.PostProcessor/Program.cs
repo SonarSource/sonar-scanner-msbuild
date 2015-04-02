@@ -8,12 +8,14 @@
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarRunner.Shim;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
-    class Program
+    internal class Program
     {
         private const int ErrorCode = 1;
 
@@ -33,10 +35,10 @@ namespace SonarQube.TeamBuild.PostProcessor
             CoverageReportProcessor coverageProcessor = new CoverageReportProcessor();
             bool success = coverageProcessor.ProcessCoverageReports(config, logger);
 
-            bool runnerSucceeded = InvokeSonarRunner(config, logger);
+            AnalysisRunResult result = InvokeSonarRunner(config, logger);
             
             // Write summary report
-            WriteSummaryReport(config, logger, runnerSucceeded);
+            WriteSummaryReport(config, result, logger);
 
             if (!success)
             {
@@ -74,40 +76,56 @@ namespace SonarQube.TeamBuild.PostProcessor
             return config;
         }
 
-
-        private static bool InvokeSonarRunner(AnalysisConfig config, ILogger logger)
+        private static AnalysisRunResult InvokeSonarRunner(AnalysisConfig config, ILogger logger)
         {
             ISonarRunner runner = new SonarRunnerWrapper();
-            bool success = runner.Execute(config, logger);
-            return success;
+            AnalysisRunResult result = runner.Execute(config, logger);
+            return result;
         }
 
-        private static void WriteSummaryReport(AnalysisConfig config, ILogger logger, bool analysisSucceded)
+        private static void WriteSummaryReport(AnalysisConfig config, AnalysisRunResult result, ILogger logger)
         {
-            SummaryReportBuilder.WriteSummaryReport(config, logger);
+
+            int skippedProjectCount = GetProjectsByStatus(result, ProcessingStatus.NoFilesToAnalyze).Count();
+            int invalidProjectCount = GetProjectsByStatus(result, ProcessingStatus.InvalidGuid).Count();
+            invalidProjectCount += GetProjectsByStatus(result, ProcessingStatus.DuplicateGuid).Count();
+
+            int excludedProjectCount = GetProjectsByStatus(result, ProcessingStatus.ExcludeFlagSet).Count();
+
+            IEnumerable<ProjectInfo> validProjects = GetProjectsByStatus(result, ProcessingStatus.Valid);
+            int productProjectCount = validProjects.Count(p => p.ProjectType == ProjectType.Product);
+            int testProjectCount = validProjects.Count(p => p.ProjectType == ProjectType.Test);
 
             using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
             {
                 summaryLogger.WriteMessage(Resources.Report_ProjectInfoSummary, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
+                summaryLogger.WriteMessage(Resources.Report_ProductAndTestMessage, productProjectCount, testProjectCount);
+                summaryLogger.WriteMessage(Resources.Report_InvalidSkippedAndExcludedMessage, invalidProjectCount, skippedProjectCount, excludedProjectCount);
 
-                // Add a link to SonarQube dashboard
+                // Add a link to SonarQube dashboard if analysis succeeded
                 Debug.Assert(config.SonarRunnerPropertiesPath != null, "Not expecting the sonar-runner properties path to be null");
-                if (config.SonarRunnerPropertiesPath != null)
+                if (config.SonarRunnerPropertiesPath != null && result.RanToCompletion)
                 {
                     ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
-                    string sonarUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                        "{0}/dashboard/index/{1}",
-                        propertyProvider.GetProperty(SonarProperties.HostUrl),
-                        config.SonarProjectKey);
+                    string hostUrl = propertyProvider.GetProperty(SonarProperties.HostUrl).TrimEnd('/');
 
-                    summaryLogger.WriteMessage("[Analysis results] ({0})", sonarUrl);
+                    string sonarUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "{0}/dashboard/index/{1}", hostUrl, config.SonarProjectKey);
+
+                    summaryLogger.WriteMessage(Resources.Report_AnalysisSucceeded, sonarUrl);
                 }
 
-
-                string resultMessage = analysisSucceded ? Resources.Report_AnalysisSucceeded : Resources.Report_AnalysisFailed;
-                summaryLogger.WriteMessage(resultMessage);
+                if (!result.RanToCompletion)
+                {
+                    summaryLogger.WriteMessage(Resources.Report_AnalysisFailed);
+                }                
             }
 
+        }
+
+        private static IEnumerable<ProjectInfo> GetProjectsByStatus(AnalysisRunResult result, ProcessingStatus status)
+        {
+            return result.Projects.Where(p => p.Value == status).Select(p => p.Key);
         }
     }
 }

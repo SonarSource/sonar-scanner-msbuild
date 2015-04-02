@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -137,6 +138,58 @@ namespace SonarQube.Common
             return location;
         }
 
+        /// <summary>
+        /// Returns the files that should be analyzed. Files outside the project
+        /// path should be ignored (currently the SonarQube server expects all
+        /// files to be under the root project directory)
+        /// </summary>
+        public static IList<string> GetFilesToAnalyze(this ProjectInfo projectInfo)
+        {
+            var result = new List<string>();
+            var baseDir = projectInfo.GetProjectDir();
+
+            foreach (string file in GetAllFiles(projectInfo))
+            {
+                if (IsInFolder(file, baseDir))
+                {
+                    result.Add(file);
+                }
+            }
+
+            return result;
+        }
+
         #endregion
+
+        #region Private methods
+
+        /// <summary>
+        /// Aggregates together all of the files listed in the analysis results
+        /// and returns the aggregated list
+        /// </summary>
+        private static IList<string> GetAllFiles(ProjectInfo projectInfo)
+        {
+            List<String> files = new List<string>();
+            var compiledFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisType.ManagedCompilerInputs);
+            if (compiledFilesPath != null)
+            {
+                files.AddRange(File.ReadAllLines(compiledFilesPath));
+            }
+            var contentFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisType.ContentFiles);
+            if (contentFilesPath != null)
+            {
+                files.AddRange(File.ReadAllLines(contentFilesPath));
+            }
+            return files;
+        }
+
+        private static bool IsInFolder(string filePath, string folder)
+        {
+            // FIXME This test is not sufficient...
+            return filePath.StartsWith(folder + Path.DirectorySeparatorChar);
+        }
+
+        #endregion
+
     }
 }

@@ -59,6 +59,15 @@ namespace SonarQube.Common
         }
 
         /// <summary>
+        /// Flag indicating whether the project should be excluded from processing
+        /// </summary>
+        public bool IsExcluded
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// List of analysis results for the project
         /// </summary>
         public List<AnalysisResult> AnalysisResults { get; set; }

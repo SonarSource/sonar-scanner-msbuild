@@ -70,15 +70,6 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Writing post-processing summary to {0}.
-        /// </summary>
-        internal static string DIAG_WritingSummary {
-            get {
-                return ResourceManager.GetString("DIAG_WritingSummary", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarQube analysis could not be completed because the analysis configuration file could not be found.
         ///Expected location: {0}.
         /// </summary>
@@ -107,11 +98,29 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube analysis succeeded.
+        ///   Looks up a localized string similar to SonarQube analysis succeeded. [Analysis results] ({0}).
         /// </summary>
         internal static string Report_AnalysisSucceeded {
             get {
                 return ResourceManager.GetString("Report_AnalysisSucceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid projects: {0}, skipped projects: {1}, excluded projects: {2}.
+        /// </summary>
+        internal static string Report_InvalidSkippedAndExcludedMessage {
+            get {
+                return ResourceManager.GetString("Report_InvalidSkippedAndExcludedMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Product projects: {0}, test projects: {1}.
+        /// </summary>
+        internal static string Report_ProductAndTestMessage {
+            get {
+                return ResourceManager.GetString("Report_ProductAndTestMessage", resourceCulture);
             }
         }
         

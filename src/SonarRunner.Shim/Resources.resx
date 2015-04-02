@@ -129,6 +129,9 @@
   <data name="DIAG_SonarRunnerCompleted" xml:space="preserve">
     <value>The sonar-runner has finished</value>
   </data>
+  <data name="DIAG_WritingSummary" xml:space="preserve">
+    <value>Writing processing summary to {0}</value>
+  </data>
   <data name="ERR_ErrorLoadingConfigFile" xml:space="preserve">
     <value>Could not load the analysis config file. Please check that it is a valid file and try again.
 Error: {0}</value>
@@ -142,8 +145,29 @@ Error: {0}</value>
   <data name="ERR_InvalidCommandLineArgs" xml:space="preserve">
     <value>Expected to be called with one argument: the full path to the analysis config file</value>
   </data>
+  <data name="ERR_PropertiesGenerationFailed" xml:space="preserve">
+    <value>Generation of the sonar-properties file failed. Unable to complete SonarQube analysis.</value>
+  </data>
   <data name="ERR_SonarRunnerExecutionFailed" xml:space="preserve">
     <value>The sonar-runner did not complete successfully</value>
+  </data>
+  <data name="REPORT_ExcludedProjectsTitle" xml:space="preserve">
+    <value>Excluded projects</value>
+  </data>
+  <data name="REPORT_InvalidProjectsTitle" xml:space="preserve">
+    <value>Invalid projects</value>
+  </data>
+  <data name="REPORT_NoProjectsOfType" xml:space="preserve">
+    <value>{none}</value>
+  </data>
+  <data name="REPORT_ProductProjectsTitle" xml:space="preserve">
+    <value>Product projects</value>
+  </data>
+  <data name="REPORT_SkippedProjectsTitle" xml:space="preserve">
+    <value>Skipped projects</value>
+  </data>
+  <data name="REPORT_TestProjectsTitle" xml:space="preserve">
+    <value>Test projects</value>
   </data>
   <data name="WARN_DuplicateProjectGuid" xml:space="preserve">
     <value>The project has a non-unique GUID "{0}". Analysis results for this project will not be uploaded to SonarQube. Project file: {1}</value>

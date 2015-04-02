@@ -7,9 +7,16 @@
 
 using SonarQube.Common;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
+
+
+//TODO: fail the build if there are no projects to analyse 
+//TODO: logging for skipped, excluded, invalid projects
+//TODO: unit tests
 
 namespace SonarRunner.Shim
 {
@@ -21,7 +28,7 @@ namespace SonarRunner.Shim
 
         #region ISonarRunner interface
 
-        public bool Execute(AnalysisConfig config, ILogger logger)
+        public AnalysisRunResult Execute(AnalysisConfig config, ILogger logger)
         {
             if (config == null)
             {
@@ -32,38 +39,45 @@ namespace SonarRunner.Shim
                 throw new ArgumentNullException("logger");
             }
         
-            string propertiesFileName = GenerateProjectProperties(config, logger);
-		
-            if (propertiesFileName == null)
+            AnalysisRunResult result = GenerateProjectProperties(config, logger);
+
+            if (result.FullPropertiesFilePath == null)
             {
-                logger.LogError("Generation of the sonar-properties file failed. Unable to complete SonarQube analysis.");
-                return false;
+                logger.LogError(Resources.ERR_PropertiesGenerationFailed);
+                result.RanToCompletion = false;
+            }
+            else
+            {
+                string exeFileName = FindRunnerExe(logger);
+                result.RanToCompletion = ExecuteJavaRunner(config, logger, exeFileName, result.FullPropertiesFilePath);
             }
 
-            string exeFileName = FindRunnerExe(logger);
+            SummaryReportBuilder.WriteSummaryReport(config, result, logger);
 
-			bool ranToCompletion = ExecuteJavaRunner(config, logger, exeFileName, propertiesFileName);
-            if (ranToCompletion)
-            {
-                // TODO: Report the results
-            }
-            return ranToCompletion;
+            return result;
         }
 
         #endregion
 
         #region Private methods
 
-		private static string GenerateProjectProperties(AnalysisConfig config, ILogger logger)
+		private static AnalysisRunResult GenerateProjectProperties(AnalysisConfig config, ILogger logger)
         {
             string fullName = Path.Combine(config.SonarOutputDir, ProjectPropertiesFileName);
             logger.LogMessage(Resources.DIAG_GeneratingProjectProperties, fullName);
             
             var projects = ProjectLoader.LoadFrom(config.SonarOutputDir);
-            var contents = PropertiesWriter.ToString(logger, config, projects);
 
+            AnalysisRunResult result = new AnalysisRunResult();
+            result.Projects = new ProjectClassifier().Process(projects, logger);
+            result.FullPropertiesFilePath = fullName;
+
+            IEnumerable<ProjectInfo> validProjects = result.Projects.Where(p => p.Value == ProcessingStatus.Valid).Select(p => p.Key);
+
+            var contents = PropertiesWriter.ToString(logger, config, validProjects);
             File.WriteAllText(fullName, contents, Encoding.ASCII);
-            return fullName;
+
+            return result;
         }
 
         private static string FindRunnerExe(ILogger logger)
