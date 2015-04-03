@@ -87,6 +87,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertTargetFailed(result, TargetConstants.DefaultBuildTarget);
             logger.AssertTargetExecuted(TargetConstants.ImportBeforeInfoTarget);
             logger.AssertExpectedErrorCount(1);
+
+            string projectName = Path.GetFileName(projectInstance.FullPath);
+            Assert.IsTrue(logger.Errors[0].Message.Contains(projectName), "Expecting the error message to contain the project file name");
         }
 
         [TestMethod]

@@ -41,8 +41,12 @@
     <Message Condition=" $(ReportAnalysisTargetsError) == 'true'"
       Importance="high"
       Text="Calculated location for the analysis targets file: $(SonarQubeTargetFilePath)" />
-    <Error Condition=" $(ReportAnalysisTargetsError) == 'true'"
-      Text="The build is configured to run SonarQube analysis but the SonarQube analysis targets could not be located." />
+    
+	  <!-- We include name of the project being built in the error message as
+		  it helps provide some context in TeamBuild scenarios when the error message
+			appears on the build summary page. -->
+		<Error Condition=" $(ReportAnalysisTargetsError) == 'true'"
+      Text="The build is configured to run SonarQube analysis but the SonarQube analysis targets could not be located. Project: $(MSBuildProjectFile)" />
 
   </Target>
 </Project>
