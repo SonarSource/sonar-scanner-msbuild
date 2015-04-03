@@ -24,11 +24,9 @@ namespace SonarRunner.Shim
     {
         private const int SonarRunnerTimeoutInMs = 1000 * 60 * 30; // twenty minutes
 
-        private const string ProjectPropertiesFileName = "sonar-project.properties";
-
         #region ISonarRunner interface
 
-        public AnalysisRunResult Execute(AnalysisConfig config, ILogger logger)
+        public ProjectInfoAnalysisResult Execute(AnalysisConfig config, ILogger logger)
         {
             if (config == null)
             {
@@ -38,21 +36,28 @@ namespace SonarRunner.Shim
             {
                 throw new ArgumentNullException("logger");
             }
-        
-            AnalysisRunResult result = GenerateProjectProperties(config, logger);
+
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            Debug.Assert(result != null, "Not expecting the file generator to return null");
+
+            ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
+
+            result.RanToCompletion = false;
 
             if (result.FullPropertiesFilePath == null)
             {
-                logger.LogError(Resources.ERR_PropertiesGenerationFailed);
-                result.RanToCompletion = false;
+                // We expect a detailed error message to have been logged explaining
+                // why the properties file generation could not be performed
+                logger.LogMessage(Resources.DIAG_PropertiesGenerationFailed);
             }
             else
             {
                 string exeFileName = FindRunnerExe(logger);
-                result.RanToCompletion = ExecuteJavaRunner(config, logger, exeFileName, result.FullPropertiesFilePath);
+                if (exeFileName != null)
+                {
+                    result.RanToCompletion = ExecuteJavaRunner(config, logger, exeFileName, result.FullPropertiesFilePath);
+                }
             }
-
-            SummaryReportBuilder.WriteSummaryReport(config, result, logger);
 
             return result;
         }
@@ -60,25 +65,6 @@ namespace SonarRunner.Shim
         #endregion
 
         #region Private methods
-
-		private static AnalysisRunResult GenerateProjectProperties(AnalysisConfig config, ILogger logger)
-        {
-            string fullName = Path.Combine(config.SonarOutputDir, ProjectPropertiesFileName);
-            logger.LogMessage(Resources.DIAG_GeneratingProjectProperties, fullName);
-            
-            var projects = ProjectLoader.LoadFrom(config.SonarOutputDir);
-
-            AnalysisRunResult result = new AnalysisRunResult();
-            result.Projects = new ProjectClassifier().Process(projects, logger);
-            result.FullPropertiesFilePath = fullName;
-
-            IEnumerable<ProjectInfo> validProjects = result.Projects.Where(p => p.Value == ProcessingStatus.Valid).Select(p => p.Key);
-
-            var contents = PropertiesWriter.ToString(logger, config, validProjects);
-            File.WriteAllText(fullName, contents, Encoding.ASCII);
-
-            return result;
-        }
 
         private static string FindRunnerExe(ILogger logger)
         {

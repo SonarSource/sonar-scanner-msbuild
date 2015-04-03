@@ -38,6 +38,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             WriteProjectInfoFile task = new WriteProjectInfoFile();
             task.FullProjectPath = "c:\\fullPath\\project.proj";
             task.IsTest = true;
+            task.IsExcluded = false;
             task.OutputFolder = testFolder;
             task.ProjectGuid = projectGuid.ToString("B");
             task.ProjectName = "MyProject";
@@ -52,6 +53,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 ProjectType.Test,
                 projectGuid,
                 "MyProject",
+                false, // IsExcluded
                 reloadedProjectInfo);
         }
 

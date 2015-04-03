@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SummaryReportBuilder.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="ProjectInfoReportBuilder.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -15,22 +15,22 @@ using System.Text;
 namespace SonarRunner.Shim
 {
     /// <summary>
-    /// Outputs a summary report of the post-processing activities.
+    /// Outputs a report summarising the project info files that were found.
     /// This is not used by SonarQube: it is only for debugging purposes.
     /// </summary>
-    internal class SummaryReportBuilder
+    internal class ProjectInfoReportBuilder
     {
-        private const string ReportFileName = "AnalysisSummary.log";
+        private const string ReportFileName = "ProjectInfo.log";
 
         private AnalysisConfig config;
-        private AnalysisRunResult analysisResult;
+        private ProjectInfoAnalysisResult analysisResult;
         private ILogger logger;
 
         private StringBuilder sb;
 
         #region Public methods
 
-        public static void WriteSummaryReport(AnalysisConfig config, AnalysisRunResult result, ILogger logger)
+        public static void WriteSummaryReport(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
             if (config == null)
             {
@@ -45,7 +45,7 @@ namespace SonarRunner.Shim
                 throw new ArgumentNullException("logger");
             }
 
-            SummaryReportBuilder builder = new SummaryReportBuilder(config, result, logger);
+            ProjectInfoReportBuilder builder = new ProjectInfoReportBuilder(config, result, logger);
             builder.Generate();
         }
 
@@ -53,7 +53,7 @@ namespace SonarRunner.Shim
 
         #region Private methods
 
-        private SummaryReportBuilder(AnalysisConfig config, AnalysisRunResult result, ILogger logger)
+        private ProjectInfoReportBuilder(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
             this.config = config;
             this.analysisResult = result;
@@ -63,7 +63,7 @@ namespace SonarRunner.Shim
 
         private void Generate()
         {
-            IEnumerable<ProjectInfo> validProjects = GetProjectsByStatus(ProcessingStatus.Valid);
+            IEnumerable<ProjectInfo> validProjects = GetProjectsByStatus(ProjectInfoValidity.Valid);
 
             WriteTitle(Resources.REPORT_ProductProjectsTitle);
             WriteFileList(validProjects.Where(p => p.ProjectType == ProjectType.Product));
@@ -74,16 +74,16 @@ namespace SonarRunner.Shim
             WriteGroupSpacer();
 
             WriteTitle(Resources.REPORT_InvalidProjectsTitle);
-            WriteFilesByStatus(ProcessingStatus.DuplicateGuid);
-            WriteFilesByStatus(ProcessingStatus.InvalidGuid);
+            WriteFilesByStatus(ProjectInfoValidity.DuplicateGuid);
+            WriteFilesByStatus(ProjectInfoValidity.InvalidGuid);
             WriteGroupSpacer();
 
             WriteTitle(Resources.REPORT_SkippedProjectsTitle);
-            WriteFilesByStatus(ProcessingStatus.NoFilesToAnalyze);
+            WriteFilesByStatus(ProjectInfoValidity.NoFilesToAnalyze);
             WriteGroupSpacer();
 
             WriteTitle(Resources.REPORT_ExcludedProjectsTitle);
-            WriteFilesByStatus(ProcessingStatus.ExcludeFlagSet);
+            WriteFilesByStatus(ProjectInfoValidity.ExcludeFlagSet);
             WriteGroupSpacer();
 
             string reportFileName = Path.Combine(config.SonarOutputDir, ReportFileName);
@@ -91,7 +91,7 @@ namespace SonarRunner.Shim
             File.WriteAllText(reportFileName, sb.ToString());
         }
 
-        private IEnumerable<ProjectInfo> GetProjectsByStatus(ProcessingStatus status)
+        private IEnumerable<ProjectInfo> GetProjectsByStatus(ProjectInfoValidity status)
         {
             return this.analysisResult.Projects.Where(p => p.Value == status).Select(p => p.Key);
         }
@@ -108,11 +108,11 @@ namespace SonarRunner.Shim
             this.sb.AppendLine();
         }
 
-        private void WriteFilesByStatus(params ProcessingStatus[] statuses)
+        private void WriteFilesByStatus(params ProjectInfoValidity[] statuses)
         {
             IEnumerable<ProjectInfo> projects = Enumerable.Empty<ProjectInfo>();
 
-            foreach (ProcessingStatus status in statuses)
+            foreach (ProjectInfoValidity status in statuses)
             {
                 projects = projects.Concat(GetProjectsByStatus(status));
             }

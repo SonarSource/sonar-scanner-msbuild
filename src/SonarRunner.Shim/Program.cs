@@ -30,7 +30,7 @@ namespace SonarRunner.Shim
             }
 
             ISonarRunner runnerShim = new SonarRunnerWrapper();
-            AnalysisRunResult result = runnerShim.Execute(config, logger);
+            ProjectInfoAnalysisResult result = runnerShim.Execute(config, logger);
 
             return result.RanToCompletion ? 0 : 1;
         }

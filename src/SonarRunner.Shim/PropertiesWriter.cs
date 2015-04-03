@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -20,6 +21,19 @@ namespace SonarRunner.Shim
 
         public static string ToString(ILogger logger, AnalysisConfig config, IEnumerable<ProjectInfo> projects)
         {
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+            if (config == null)
+            {
+                throw new ArgumentNullException("config");
+            }
+            if (projects == null)
+            {
+                throw new ArgumentNullException("projects");
+            }
+            
             var uniqueProjects = projects.GroupBy(p => p.ProjectGuid).Where(g => g.Count() == 1).Select(g => g.First());
             foreach (var duplicatedProject in projects.Where(p => !uniqueProjects.Any(p2 => p.ProjectGuid.Equals(p2.ProjectGuid))))
             {

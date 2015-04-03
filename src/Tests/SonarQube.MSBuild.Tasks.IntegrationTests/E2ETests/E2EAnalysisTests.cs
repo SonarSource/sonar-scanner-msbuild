@@ -250,7 +250,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_ExcludedProjects()
         {
-            // Project info should not be written for files with $(SonarQubeExclude) set to true
+            // Project info should still be written for files with $(SonarQubeExclude) set to true
+
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
@@ -267,13 +268,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder);
 
-            // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
-
-            logger.AssertTargetExecuted(TargetConstants.ExecuteProcessingTarget);
-            logger.AssertTargetNotExecuted(TargetConstants.WriteProjectDataTarget);
+            CheckProjectOutputFolder(descriptor, projectDir);
         }
 
         #endregion

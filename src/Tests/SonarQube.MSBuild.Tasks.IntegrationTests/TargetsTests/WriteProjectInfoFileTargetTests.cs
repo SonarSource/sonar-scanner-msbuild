@@ -439,39 +439,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #endregion
 
-
-        #region Miscellaneous tests
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        public void WriteProjectInfo_ErrorIfProjectExcluded()
-        {
-            // The target should error if $(SonarQubeExclude) is true
-
-            // Arrange
-            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
-            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
-
-            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "excludedProj.txt");
-
-            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.SonarQubeExclude = "true";
-            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, preImportProperties, rootOutputFolder);
-
-            BuildLogger logger = new BuildLogger();
-
-            // Act
-            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.WriteProjectDataTarget);
-
-            // Assert
-            BuildAssertions.AssertTargetFailed(result, TargetConstants.WriteProjectDataTarget);
-
-            logger.AssertExpectedErrorCount(1);
-            logger.AssertTargetExecuted(TargetConstants.WriteProjectDataTarget);
-        }
-
-        #endregion
-
         #region Private methods
 
         /// <summary>

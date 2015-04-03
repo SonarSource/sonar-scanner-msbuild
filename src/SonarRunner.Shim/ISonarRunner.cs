@@ -17,6 +17,6 @@ namespace SonarRunner.Shim
     /// file from them, then executes the Java sonar-runnerr.</remarks>
     public interface ISonarRunner
     {
-        AnalysisRunResult Execute(AnalysisConfig config, ILogger logger);
+        ProjectInfoAnalysisResult Execute(AnalysisConfig config, ILogger logger);
     }
 }

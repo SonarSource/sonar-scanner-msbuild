@@ -48,7 +48,7 @@ namespace TestUtilities
         /// </summary>
         public static void AssertExpectedValues(ProjectInfo expected, ProjectInfo actual)
         {
-            AssertExpectedValues(expected.FullPath, expected.ProjectType, expected.ProjectGuid, expected.ProjectName, actual);
+            AssertExpectedValues(expected.FullPath, expected.ProjectType, expected.ProjectGuid, expected.ProjectName, expected.IsExcluded, actual);
 
             CompareAnalysisResults(expected, actual);
         }
@@ -61,6 +61,7 @@ namespace TestUtilities
             ProjectType expectedProjectType,
             Guid expectedProjectGuid,
             string expectedProjectName,
+            bool expectedIsExcluded,
             ProjectInfo actualProjectInfo)
         {
             Assert.IsNotNull(actualProjectInfo, "Supplied ProjectInfo should not be null");
@@ -69,7 +70,7 @@ namespace TestUtilities
             Assert.AreEqual(expectedProjectType, actualProjectInfo.ProjectType, "Unexpected ProjectType");
             Assert.AreEqual(expectedProjectGuid, actualProjectInfo.ProjectGuid, "Unexpected ProjectGuid");
             Assert.AreEqual(expectedProjectName, actualProjectInfo.ProjectName, "Unexpected ProjectName");
-
+            Assert.AreEqual(expectedIsExcluded, actualProjectInfo.IsExcluded, "Unexpected IsExcluded");
         }
 
         /// <summary>

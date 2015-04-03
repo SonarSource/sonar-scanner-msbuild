@@ -126,16 +126,17 @@
   <Target Name="ExecuteSonarQubeProcessing" AfterTargets="CoreCompile"
         Condition="$(RunSonarQubeAnalysis) == 'true' AND  $(SonarQubeOutputPath) != '' ">
 
-    <Message Importance="normal" Condition=" $(SonarQubeExclude) == 'true' "
-             Text="Skipping SonarQube analysis: SonarQubeExclude is set to true" />
+    <!--<Message Importance="normal" Condition=" $(SonarQubeExclude) == 'true' "
+             Text="Skipping SonarQube analysis: SonarQubeExclude is set to true" />-->
 
-    <CallTarget Targets="WriteSonarQubeProjectData" Condition=" $(SonarQubeExclude) != 'true' " />
+    <!--<CallTarget Targets="WriteSonarQubeProjectData" Condition=" $(SonarQubeExclude) != 'true' " />-->
+		<CallTarget Targets="WriteSonarQubeProjectData" />
 
-  </Target>
+	</Target>
   
   <Target Name="WriteSonarQubeProjectData" >
     
-    <Error Condition=" $(SonarQubeExclude) == 'true' " Text="Should not be executing WriteSonarQubeProjectData when (SonarQubeExclude) is true" />
+    <!--<Error Condition=" $(SonarQubeExclude) == 'true' " Text="Should not be executing WriteSonarQubeProjectData when (SonarQubeExclude) is true" />-->
     
     <!-- Calculate a project-specific folder name -->
     <PropertyGroup>
@@ -197,9 +198,6 @@
       </AnalysisResults>
     </ItemGroup>
 
-    <PropertyGroup>
-    </PropertyGroup>
-
     <!-- Work out if the project is a test project or not -->
     <!-- If it is explicitly marked then use that value, otherwise:
           * check if the name matches the regular expression, or
@@ -226,11 +224,17 @@
 
     <Message Importance="low" Condition=" $(SonarQubeTestProject) == 'true' "
              Text="SonarQube: project will be treated as a test project : $(MSBuildProjectName)" />
-    
-    <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
+
+		<PropertyGroup >
+			<!-- Ensure SonarQubeExclude has a value -->
+		  <SonarQubeExclude Condition=" $(SonarQubeExclude) == '' ">false</SonarQubeExclude>	
+		</PropertyGroup>
+
+		<WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
        FullProjectPath="$(MSBuildProjectFullPath)"
        ProjectGuid="$(ProjectGuid)"
        IsTest="$(SonarQubeTestProject)"
+			 IsExcluded="$(SonarQubeExclude)"
        AnalysisResults="@(AnalysisResults)"
        OutputFolder="$(ProjectSpecificDir)" />
   </Target>

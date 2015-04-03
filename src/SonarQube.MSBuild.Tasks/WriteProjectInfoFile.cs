@@ -25,7 +25,6 @@ namespace SonarQube.MSBuild.Tasks
         // TODO: we can get this from this.BuildEngine.ProjectFileOfTaskNode; we don't need the caller to supply it. Same for the full path
         [Required]
         public string ProjectName { get; set; }
-
         
         [Required]
         public string FullProjectPath { get; set; }
@@ -34,6 +33,10 @@ namespace SonarQube.MSBuild.Tasks
 
         [Required]
         public bool IsTest { get; set; }
+
+        [Required]
+        public bool IsExcluded { get; set; }
+
 
         [Required]
         public ITaskItem[] AnalysisResults { get; set; }
@@ -52,6 +55,7 @@ namespace SonarQube.MSBuild.Tasks
         {
             ProjectInfo pi = new ProjectInfo();
             pi.ProjectType = this.IsTest ? ProjectType.Test : ProjectType.Product;
+            pi.IsExcluded = this.IsExcluded;
 
             pi.ProjectName = this.ProjectName;
             pi.FullPath = this.FullProjectPath;

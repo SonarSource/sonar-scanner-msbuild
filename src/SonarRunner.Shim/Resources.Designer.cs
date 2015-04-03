@@ -88,6 +88,15 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generation of the sonar-properties file failed. Unable to complete SonarQube analysis..
+        /// </summary>
+        internal static string DIAG_PropertiesGenerationFailed {
+            get {
+                return ResourceManager.GetString("DIAG_PropertiesGenerationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The sonar-runner has finished.
         /// </summary>
         internal static string DIAG_SonarRunnerCompleted {
@@ -143,11 +152,20 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generation of the sonar-properties file failed. Unable to complete SonarQube analysis..
+        ///   Looks up a localized string similar to No ProjectInfo.xml files were found. Check that the analysis targets is referenced by the MSBuild projects being built..
         /// </summary>
-        internal static string ERR_PropertiesGenerationFailed {
+        internal static string ERR_NoProjectInfoFilesFound {
             get {
-                return ResourceManager.GetString("ERR_PropertiesGenerationFailed", resourceCulture);
+                return ResourceManager.GetString("ERR_NoProjectInfoFilesFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No valid projectInfo.xml were found. SonarQube analysis will not be performed..
+        /// </summary>
+        internal static string ERR_NoValidProjectInfoFiles {
+            get {
+                return ResourceManager.GetString("ERR_NoValidProjectInfoFiles", resourceCulture);
             }
         }
         

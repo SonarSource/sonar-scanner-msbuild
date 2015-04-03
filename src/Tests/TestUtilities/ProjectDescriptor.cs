@@ -35,6 +35,8 @@ namespace TestUtilities
 
         public bool IsTestProject { get; set; }
 
+        public bool IsExcluded { get; set; }
+
         public List<AnalysisResult> AnalysisResults { get; private set; }
 
 
@@ -87,6 +89,7 @@ namespace TestUtilities
                 ProjectGuid = this.ProjectGuid,
                 ProjectName = this.ProjectName,
                 ProjectType = this.IsTestProject ? ProjectType.Test : ProjectType.Product,
+                IsExcluded = this.IsExcluded,
                 AnalysisResults = new List<AnalysisResult>(this.AnalysisResults)
             };
 
