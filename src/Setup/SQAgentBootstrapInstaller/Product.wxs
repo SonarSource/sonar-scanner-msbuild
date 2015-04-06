@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*"
+					 Name="SonarQube TeamBuild Build Agent Bootstrapper"
+					 Language="1033"
+					 Version="0.1.0.0"
+					 Manufacturer="SonarSource SA and Microsoft Corporation"
+					 UpgradeCode="c20e7617-7dd8-4899-bf9f-31cb040c8f2a">
+		
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		<MediaTemplate EmbedCab="yes" />
+
+		<!-- **************************** -->
+		<!-- Features -->
+		<!-- **************************** -->
+		<Feature Id="ProductFeature" Title="Build Agent Bootstrapper" Level="1"
+						 Description="The minimal set of components required to set up a TeamBuild agent machine to work with SonarQube"
+						 ConfigurableDirectory="INSTALLDIR">
+			<ComponentGroupRef Id="Bootstrapper"/>
+			<ComponentGroupRef Id="BeforeImportTargetGroup"/>
+		</Feature>
+		<!-- **************************** -->
+
+		<!-- **************************** -->
+		<!-- UI -->
+		<!-- **************************** -->
+		<UIRef Id="WixUI_InstallDir"	/>
+		<!--<UIRef Id="WixUI_Mondo" />
+		<UIRef Id="WixUI_ErrorProgressText" />-->
+
+		<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR">
+			<!--<Icon Id="BootstrapperIcon" SourceFile=".\SourceDir\SonarQube.Bootstrapper.exe" />-->
+		</Property>
+		<WixVariable Id="WixUILicenseRtf" Value="License.rtf"/>
+		<!-- **************************** -->
+
+	</Product>
+
+</Wix>

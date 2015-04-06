@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Fragment>
+
+		<Property Id="MSBUILD12EXISTS">
+			<DirectorySearch Id="CheckMSBuild12Dir" Path="[ProgramFilesFolder]\MsBuild\12.0" Depth="0">
+				<!--<FileSearch Id="CheckFile" Name="Lookfor.txt" />-->
+			</DirectorySearch>
+		</Property>
+
+		<Condition Message="MSBuild 12.0 is not installed on the target machine">MSBUILD12EXISTS</Condition>
+		
+		<DirectoryRef Id="ProgramFilesFolder">
+				<Directory Id="MSBuild" Name="MSBuild">
+					<Directory Id="MSBuild.12.0" Name="12.0">
+						<Directory Id="MSBuild.12.0.MS.Common.Targets" Name="Microsoft.Common.Targets">
+							<Directory Id="MSBuild.12.0.ImportBefore" Name="ImportBefore">
+							</Directory>
+						</Directory>
+					</Directory>
+				</Directory>
+			</DirectoryRef>
+	</Fragment>
+
+	<Fragment>
+		<ComponentGroup Id="BeforeImportTargetGroup">
+			<Component Id="BeforeImportTarget.Component" Directory="MSBuild.12.0.ImportBefore" Guid="128547B9-6E86-4007-809F-867DE8EBCAD4">
+				<File Id="BeforeImportTarget.Targets" KeyPath="yes" Source="..\..\SonarQube.Bootstrapper\bin\DEBUG\LinkedFiles\SonarQube.Integration.ImportBefore.targets" />
+			</Component>
+		</ComponentGroup>
+	</Fragment>
+	
+</Wix>
