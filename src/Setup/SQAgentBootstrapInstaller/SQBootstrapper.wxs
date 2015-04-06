@@ -1,45 +1,54 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Fragment>
-			
-				<Directory Id="TARGETDIR" Name="SourceDir">
-					<Directory Id="ProgramFilesFolder">
-						<Directory Id="SonarQube" Name="SonarQube">
-							<Directory Id="INSTALLDIR" Name="TeamBuild" />
-						</Directory>
-					</Directory>
-				</Directory>
 
-        <ComponentGroup Id="Bootstrapper">
-					<!--<Component Id="cmp1EA75742196A10FF30F14DEE49B96795" Directory="INSTALLDIR" Guid="41594941-AC0D-451A-8EDA-A9C16284B000">
-							<File Id="filA73AF48DE5075796F2DCBECBA256DB1F" KeyPath="yes" Source=".\SourceDir\Newtonsoft.Json.dll" />
-          </Component>-->
-          <Component Id="cmp45E4DDA0FE523A23856E65E6DD93B87E" Directory="INSTALLDIR" Guid="C6AEAF73-B3F6-4824-B8E6-5418B9B83B50">
-              <File Id="fil67F8D8F7A25D2BF34EF5733585764F39" KeyPath="yes" Source="..\..\SonarQube.Bootstrapper\bin\DEBUG\SonarQube.Bootstrapper.exe" />
-          </Component>
-          <Component Id="cmpC62AEB4EFFA4C3523F2AE31A88532628" Directory="INSTALLDIR" Guid="E8CA58A1-A683-4385-8E20-9BA7BC021866">
-              <File Id="filEA94DB14B50F8700A57C180717BD9F7E" KeyPath="yes" Source="..\..\SonarQube.Bootstrapper\bin\DEBUG\SonarQube.Bootstrapper.exe.config" />
-          </Component>
-          <Component Id="cmpB6F54756ADA5CAF7FAE6DAD0C3BEA03A" Directory="INSTALLDIR" Guid="18CB028A-B8C2-4B68-BEC7-12BDC03346C6">
-              <File Id="fil5DA390DCD993C5362DB2DA1139BB5524" KeyPath="yes" Source="..\..\SonarQube.Bootstrapper\bin\DEBUG\SonarQube.Common.dll" />
-          </Component>
-          <Component Id="cmp07DCDC471EEF8CE48541469AFAD00186" Directory="INSTALLDIR" Guid="391BC74A-87C3-459E-871F-F84AA7E65B20">
-              <File Id="filACFFCDA5791938BE188A43000519716A" KeyPath="yes" Source="..\..\SonarQube.Bootstrapper\bin\DEBUG\SonarQube.TeamBuild.Integration.dll" />
-          </Component>
+			<!-- **************************************************** -->
+			<!-- Wix for the SonarQube TeamBuild agent bootstrapper -->
+			<!-- **************************************************** -->
 
-					<Component Id="EnvTest1" Guid="0BF68B52-5F4D-49DE-9429-CE2480269A18"
-										 Directory="INSTALLDIR">
-						<CreateFolder />
-						<Environment 
-							Id="BootstrapperDirEnvVar"
-							Action="set"
-							Part="last"
-							Name="Path"
-							Permanent="no"
-							System="yes"
-							Value="[INSTALLDIR]"
-												 />
-					</Component>
-        </ComponentGroup>
-    </Fragment>
+			<Feature Id="BuildAgentFeature" Title="Build Agent Bootstrapper" Level="1"
+				 Description="The minimal set of components required to set up a TeamBuild agent machine to work with SonarQube"
+				 ConfigurableDirectory="INSTALLDIR">
+				<ComponentGroupRef Id="Bootstrapper"/>
+				<ComponentGroupRef Id="BeforeImportTargetGroup"/>
+			</Feature>
+
+			<DirectoryRef Id="INSTALLDIR" >
+				<Directory Id="BootstrapBinDir" Name="TeamBuild" />
+			</DirectoryRef>
+
+			<!-- TODO: paths to binaries are hard-coded -->
+			<ComponentGroup Id="Bootstrapper">
+				<!--<Component Id="cmp1EA75742196A10FF30F14DEE49B96795" Directory="INSTALLDIR" Guid="41594941-AC0D-451A-8EDA-A9C16284B000">
+						<File Id="filA73AF48DE5075796F2DCBECBA256DB1F" KeyPath="yes" Source=".\SourceDir\Newtonsoft.Json.dll" />
+        </Component>-->
+        <Component Id="cmp45E4DDA0FE523A23856E65E6DD93B87E" Directory="BootstrapBinDir" Guid="C6AEAF73-B3F6-4824-B8E6-5418B9B83B50">
+            <File Id="fil67F8D8F7A25D2BF34EF5733585764F39" KeyPath="yes" Source="..\..\SonarQube.Bootstrapper\bin\DEBUG\SonarQube.Bootstrapper.exe" />
+        </Component>
+        <Component Id="cmpC62AEB4EFFA4C3523F2AE31A88532628" Directory="BootstrapBinDir" Guid="E8CA58A1-A683-4385-8E20-9BA7BC021866">
+            <File Id="filEA94DB14B50F8700A57C180717BD9F7E" KeyPath="yes" Source="..\..\SonarQube.Bootstrapper\bin\DEBUG\SonarQube.Bootstrapper.exe.config" />
+        </Component>
+        <Component Id="cmpB6F54756ADA5CAF7FAE6DAD0C3BEA03A" Directory="BootstrapBinDir" Guid="18CB028A-B8C2-4B68-BEC7-12BDC03346C6">
+            <File Id="fil5DA390DCD993C5362DB2DA1139BB5524" KeyPath="yes" Source="..\..\SonarQube.Bootstrapper\bin\DEBUG\SonarQube.Common.dll" />
+        </Component>
+        <Component Id="cmp07DCDC471EEF8CE48541469AFAD00186" Directory="BootstrapBinDir" Guid="391BC74A-87C3-459E-871F-F84AA7E65B20">
+            <File Id="filACFFCDA5791938BE188A43000519716A" KeyPath="yes" Source="..\..\SonarQube.Bootstrapper\bin\DEBUG\SonarQube.TeamBuild.Integration.dll" />
+        </Component>
+
+				<Component Id="BootstrapperDirEnvVarComp" Guid="0BF68B52-5F4D-49DE-9429-CE2480269A18"
+										Directory="BootstrapBinDir">
+					<CreateFolder />
+					<Environment 
+						Id="BootstrapperDirEnvVar"
+						Action="set"
+						Part="last"
+						Name="Path"
+						Permanent="no"
+						System="yes"
+						Value="[INSTALLDIR]"
+												/>
+				</Component>
+      </ComponentGroup>
+    
+		</Fragment>
 </Wix>

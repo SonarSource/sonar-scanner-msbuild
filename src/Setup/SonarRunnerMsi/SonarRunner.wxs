@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Fragment>
+
+			<!-- **************************************************** -->
+			<!-- Wix for the SonarQube sonar-runner -->
+			<!-- **************************************************** -->
+
+			<Feature Id="SonarRunnerFeature"
+							 Title="sonar-runner"
+							 Description="The SonarQube sonar-runner"
+							 ConfigurableDirectory="INSTALLDIR"
+							 Level="1">
+				
+				<ComponentGroupRef Id="SonarRunner" />			
+			</Feature>
+
+			<!-- Directory structure for the sonar-runner -->
+			<DirectoryRef Id="INSTALLDIR">
+				<Directory Id="dirD79234417F120B212B823F6C71912CF0" Name="sonar-runner-2.4">
+						<Directory Id="dir05226E1DF1531AB976A709EFCA57C66B" Name="lib" />
+						<Directory Id="dir438A80C12441BD5C6ADD3DD51E557FB8" Name="conf" />
+						<Directory Id="dirE8910DE8922BB735958E2CA9E4C7891B" Name="bin" />
+				</Directory>
+			</DirectoryRef>
+
+			<ComponentGroup Id="SonarRunner">
+				<!-- sonar-runner files -->
+				<Component Id="cmp169EB281EE43D289AB1C6FD6F2B53D22" Directory="dirE8910DE8922BB735958E2CA9E4C7891B" Guid="DB574158-B0D7-46E2-9BA5-0A8280182BAB">
+						<File Id="fil143EA565F286E1C69A6DA80C8FBEBAAE" KeyPath="yes" Source=".\SourceDir\bin\sonar-runner" />
+				</Component>
+				<Component Id="cmp836A6E255A0E5573A433F578D5830CB7" Directory="dirE8910DE8922BB735958E2CA9E4C7891B" Guid="5BFC15C7-0190-4EE2-B36F-F013258E0239">
+						<File Id="filA7BC0E4680C097CBF97BAC40E0F32548" KeyPath="yes" Source=".\SourceDir\bin\sonar-runner.bat" />
+				</Component>
+				<Component Id="cmpE6837CB5539EB72F266C80E097FF800C" Directory="dir438A80C12441BD5C6ADD3DD51E557FB8" Guid="16F5FA09-9E98-48E6-9577-3B3308319521">
+						<File Id="fil808F95FD2DBF7F30807E39AD72D2BBA2" KeyPath="yes" Source=".\SourceDir\conf\sonar-runner.properties" />
+				</Component>
+				<Component Id="cmpFC95972C8AB0680F5C1759B8FA00C209" Directory="dir05226E1DF1531AB976A709EFCA57C66B" Guid="7F080089-9BC6-4516-80DF-B0894DFF55C2">
+						<File Id="fil779B48DA80DB6B07B1DE3423C4034583" KeyPath="yes" Source=".\SourceDir\lib\sonar-runner-dist-2.4.jar" />
+				</Component>
+
+				<!-- add the sonar runner bin dir to the PATH -->
+				<Component Id="SonarRunnerPathEnvVarComp" Guid="8B2C52ED-C37D-4FDA-891C-90A76567DAD4"
+						Directory="dirE8910DE8922BB735958E2CA9E4C7891B">
+					<CreateFolder />
+					<Environment
+						Id="SonarRunnerPathEnvVar"
+						Action="set"
+						Part="last"
+						Name="Path"
+						Permanent="no"
+						System="yes"
+						Value="[dirE8910DE8922BB735958E2CA9E4C7891B]"
+												/>
+				</Component>
+
+
+			</ComponentGroup>
+    </Fragment>
+
+</Wix>

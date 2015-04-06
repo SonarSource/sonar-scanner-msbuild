@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 	<Product Id="*"
-					 Name="SonarQube TeamBuild Build Agent Bootstrapper"
+					 Name="SonarQube sonar-runner"
 					 Language="1033"
 					 Version="0.1.0.0"
-					 Manufacturer="SonarSource SA and Microsoft Corporation"
-					 UpgradeCode="c20e7617-7dd8-4899-bf9f-31cb040c8f2a">
+					 Manufacturer="SonarSource SA"
+					 UpgradeCode="21a4a165-60b8-4fa3-b2ed-3c808185a131">
 		
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 		<MediaTemplate EmbedCab="yes" />
 
+		<FeatureRef Id="SonarRunnerFeature" />
 		<FeatureRef Id="BuildAgentFeature" />
-		
+
 		<!-- Path to the root SonarQube directory. This can be configured by the user. -->
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="ProgramFilesFolder">
@@ -24,13 +25,13 @@
 		<!-- **************************** -->
 		<!-- UI -->
 		<!-- **************************** -->
-		<UIRef Id="WixUI_InstallDir"	/>
-		<!--<UIRef Id="WixUI_Mondo" />
-		<UIRef Id="WixUI_ErrorProgressText" />-->
+		<UIRef Id="WixUI_Mondo" />
+	  <UIRef Id="WixUI_ErrorProgressText" />
 
+		<!--<UIRef Id="WixUI_InstallDir"	/>
 		<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR">
-			<!--<Icon Id="BootstrapperIcon" SourceFile=".\SourceDir\SonarQube.Bootstrapper.exe" />-->
-		</Property>
+			--><!--<Icon Id="BootstrapperIcon" SourceFile=".\SourceDir\SonarQube.Bootstrapper.exe" />--><!--
+		</Property>-->
 		<WixVariable Id="WixUILicenseRtf" Value="License.rtf"/>
 		<!-- **************************** -->
 
