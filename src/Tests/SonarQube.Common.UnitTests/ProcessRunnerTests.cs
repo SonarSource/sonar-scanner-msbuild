@@ -29,7 +29,7 @@ namespace SonarQube.Common.UnitTests
             ProcessRunner runner = new ProcessRunner();
 
             // Act
-            bool success = runner.Execute(exeName, null, null, 1000, logger);
+            bool success = runner.Execute(exeName, null, null, 5000, logger);
 
             // Assert
             Assert.IsFalse(success, "Expecting the process to have failed");
