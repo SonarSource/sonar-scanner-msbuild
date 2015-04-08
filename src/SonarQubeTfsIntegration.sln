@@ -33,15 +33,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarRunner.Shim.Tests", "T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Bootstrapper", "SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj", "{60AACBB4-1661-4EEB-A029-91289C1D3F7E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Setup", "Setup", "{A502AF16-B835-4ABD-9C81-FCFC525C4C07}"
-	ProjectSection(SolutionItems) = preProject
-		Readme.txt = Readme.txt
-	EndProjectSection
-EndProject
-Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "SQAgentBootstrapInstaller", "Setup\SQAgentBootstrapInstaller\SQAgentBootstrapInstaller.wixproj", "{8783A238-25A2-4B42-897E-14AACCF73B8C}"
-EndProject
-Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "SonarRunnerMsi", "Setup\SonarRunnerMsi\SonarRunnerMsi.wixproj", "{16D19329-CBC3-4D9D-B900-86955C5F4D8C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -192,26 +183,6 @@ Global
 		{60AACBB4-1661-4EEB-A029-91289C1D3F7E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{60AACBB4-1661-4EEB-A029-91289C1D3F7E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{60AACBB4-1661-4EEB-A029-91289C1D3F7E}.Release|x86.ActiveCfg = Release|Any CPU
-		{8783A238-25A2-4B42-897E-14AACCF73B8C}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{8783A238-25A2-4B42-897E-14AACCF73B8C}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{8783A238-25A2-4B42-897E-14AACCF73B8C}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{8783A238-25A2-4B42-897E-14AACCF73B8C}.Debug|x86.ActiveCfg = Debug|x86
-		{8783A238-25A2-4B42-897E-14AACCF73B8C}.Debug|x86.Build.0 = Debug|x86
-		{8783A238-25A2-4B42-897E-14AACCF73B8C}.Release|Any CPU.ActiveCfg = Release|x86
-		{8783A238-25A2-4B42-897E-14AACCF73B8C}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{8783A238-25A2-4B42-897E-14AACCF73B8C}.Release|Mixed Platforms.Build.0 = Release|x86
-		{8783A238-25A2-4B42-897E-14AACCF73B8C}.Release|x86.ActiveCfg = Release|x86
-		{8783A238-25A2-4B42-897E-14AACCF73B8C}.Release|x86.Build.0 = Release|x86
-		{16D19329-CBC3-4D9D-B900-86955C5F4D8C}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{16D19329-CBC3-4D9D-B900-86955C5F4D8C}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{16D19329-CBC3-4D9D-B900-86955C5F4D8C}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{16D19329-CBC3-4D9D-B900-86955C5F4D8C}.Debug|x86.ActiveCfg = Debug|x86
-		{16D19329-CBC3-4D9D-B900-86955C5F4D8C}.Debug|x86.Build.0 = Debug|x86
-		{16D19329-CBC3-4D9D-B900-86955C5F4D8C}.Release|Any CPU.ActiveCfg = Release|x86
-		{16D19329-CBC3-4D9D-B900-86955C5F4D8C}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{16D19329-CBC3-4D9D-B900-86955C5F4D8C}.Release|Mixed Platforms.Build.0 = Release|x86
-		{16D19329-CBC3-4D9D-B900-86955C5F4D8C}.Release|x86.ActiveCfg = Release|x86
-		{16D19329-CBC3-4D9D-B900-86955C5F4D8C}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -224,7 +195,5 @@ Global
 		{D46E5A94-A9DD-4337-ADD7-2D79CB9D640A} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{81E8D103-270F-4363-87D1-72BE7FC4F94A} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED} = {E04A4D31-AC10-4F56-9678-5D538932578C}
-		{8783A238-25A2-4B42-897E-14AACCF73B8C} = {A502AF16-B835-4ABD-9C81-FCFC525C4C07}
-		{16D19329-CBC3-4D9D-B900-86955C5F4D8C} = {A502AF16-B835-4ABD-9C81-FCFC525C4C07}
 	EndGlobalSection
 EndGlobal
