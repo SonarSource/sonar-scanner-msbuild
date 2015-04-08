@@ -33,7 +33,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 CheckExecutionFails();
                 CheckExecutionFails("key");
                 CheckExecutionFails("key", "name");
-                CheckExecutionFails("key", "name", "version");
             }
         }
 
