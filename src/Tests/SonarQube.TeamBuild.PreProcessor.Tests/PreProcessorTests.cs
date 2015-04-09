@@ -37,7 +37,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             string expectedConfigFileName;
 
-            using (PreprocessTestUtils.CreateValidTeamBuildScope("tfs uri", "build uri", testDir))
+            using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", "http://builduri", testDir))
             {
                 TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(new ConsoleLogger());
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
@@ -57,7 +57,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual("key", config.SonarProjectKey);
             Assert.AreEqual("name", config.SonarProjectName);
             Assert.AreEqual("ver", config.SonarProjectVersion);
-            Assert.AreEqual("build uri", config.GetBuildUri());
+            Assert.AreEqual("http://builduri", config.GetBuildUri());
             Assert.AreEqual("tfs uri", config.GetTfsUri());
             Assert.AreEqual(propertiesFile, config.SonarRunnerPropertiesPath);
 
@@ -83,7 +83,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             string expectedConfigFileName;
 
-            using (PreprocessTestUtils.CreateValidTeamBuildScope("tfs uri", "build uri", testDir))
+            using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", "build uri", testDir))
             {
                 TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(new ConsoleLogger());
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");

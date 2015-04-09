@@ -36,7 +36,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertException.Expects<ArgumentNullException>(() => ArgumentProcessor.TryProcessArgs(null, null));
 
             // 2. Insufficient or too many command line arguments
-            using (PreprocessTestUtils.CreateValidTeamBuildScope(ValidTfsUri, ValidBuildUri, this.TestContext.TestDeploymentDir))
+            using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope(ValidTfsUri, ValidBuildUri, this.TestContext.TestDeploymentDir))
             {
                 // Too few
                 CheckProcessingFails(/* no command line args */);

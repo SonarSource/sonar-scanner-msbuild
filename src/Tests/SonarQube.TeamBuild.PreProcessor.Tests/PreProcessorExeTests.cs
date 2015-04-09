@@ -27,7 +27,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            using (PreprocessTestUtils.CreateValidTeamBuildScope("tfs uri", "build uri", testDir))
+            using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", "build uri", testDir))
             {
                 // Act and assert
                 CheckExecutionFails();
@@ -43,21 +43,21 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             
             // 1. Missing tfs uri
-            using (PreprocessTestUtils.CreateValidTeamBuildScope(null, "build uri", testDir))
+            using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope(null, "build uri", testDir))
             {
                 // Act and assert
                 CheckExecutionFails("key", "name", "version", "properties");
             }
 
             // 2. Missing build uri
-            using (PreprocessTestUtils.CreateValidTeamBuildScope("tfs uri", null, testDir))
+            using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", null, testDir))
             {
                 // Act and assert
                 CheckExecutionFails("key", "name", "version", "properties");
             }
 
             // 3. Missing build directory
-            using (PreprocessTestUtils.CreateValidTeamBuildScope("tfs uri", "build uri", null))
+            using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", "build uri", null))
             {
                 // Act and assert
                 CheckExecutionFails("key", "name", "version", "properties");

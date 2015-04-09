@@ -151,6 +151,15 @@
   <data name="PROC_ERROR_MultipleCodeCoverageReportsFound" xml:space="preserve">
     <value>More than one code coverage result file was created. Only one report can be uploaded to SonarQube. Please modify the build definition so either SonarQube analysis is disabled or the only platform/flavor is built</value>
   </data>
+  <data name="SETTINGS_InLegacyTeamBuild" xml:space="preserve">
+    <value>Legacy TeamBuild environment detected</value>
+  </data>
+  <data name="SETTINGS_InTeamBuild" xml:space="preserve">
+    <value>TeamBuild environment detected</value>
+  </data>
+  <data name="SETTINGS_NotInTeamBuild" xml:space="preserve">
+    <value>Not running under TeamBuild</value>
+  </data>
   <data name="SonarQubeSummarySectionHeader" xml:space="preserve">
     <value>SonarQube Analysis Summary</value>
   </data>

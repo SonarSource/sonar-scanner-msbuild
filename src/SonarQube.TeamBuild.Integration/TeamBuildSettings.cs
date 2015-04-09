@@ -22,10 +22,16 @@ namespace SonarQube.TeamBuild.Integration
 
         internal static class TeamBuildEnvironmentVariables
         {
+            /// <summary>
+            /// Environment variable that specifies the directory to use as the 
+            /// analysis root in non-TFS cases
+            /// </summary>
+            public const string SQAnalysisRootPath = "SQ_BUILDDIRECTORY";
+
             public const string IsInTeamBuild = "TF_Build";
-            public const string TfsCollectionUri = "TF_BUILD_COLLECTIONURI";
-            public const string BuildUri = "TF_BUILD_BUILDURI";
-            public const string BuildDirectory = "TF_BUILD_BUILDDIRECTORY";
+            public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
+            public const string BuildUri_Legacy = "TF_BUILD_BUILDURI";
+            public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
             //        public const string BinariesDirectory = "TF_BUILD_BINARIESDIRECTORY";
 
             // Other available environment variables:
@@ -36,6 +42,11 @@ namespace SonarQube.TeamBuild.Integration
             //TF_BUILD_SOURCEGETVERSION: C14
             //TF_BUILD_SOURCESDIRECTORY: C:\Builds\1\Demos\SimpleBuild1\src
             //TF_BUILD_TESTRESULTSDIRECTORY: C:\Builds\1\Demos\SimpleBuild1\tst
+
+            // TFS 2015 Environment variables
+            public const string TfsCollectionUri_TFS2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
+            public const string BuildUri_TFS2015 = "BUILD_BUILDURI";
+            public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
         }
 
         #region Public methods
@@ -45,29 +56,81 @@ namespace SonarQube.TeamBuild.Integration
         /// calculated from environment variables.
         /// Returns null if all of the required environment variables are not present.
         /// </summary>
-        /// <param name="logger"></param>
-        /// <returns></returns>
         public static TeamBuildSettings GetSettingsFromEnvironment(ILogger logger)
         {
             TeamBuildSettings settings = null;
 
-            bool environmentIsValid = CheckRequiredEnvironmentVariablesExist(logger,
-                TeamBuildEnvironmentVariables.TfsCollectionUri,
-                TeamBuildEnvironmentVariables.BuildDirectory,
-                TeamBuildEnvironmentVariables.BuildUri);
-
-            if (environmentIsValid)
+            BuildEnvironment env = GetBuildEnvironemnt();
+            switch (env)
             {
-                // TODO: validate environment variables
-                settings = new TeamBuildSettings()
-                {
-                    BuildUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri),
-                    TfsUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.TfsCollectionUri),
-                    BuildDirectory = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildDirectory)
-                };
-            };
+                case BuildEnvironment.LegacyTeamBuild:
+
+                    logger.LogMessage(Resources.SETTINGS_InLegacyTeamBuild);
+                    settings = new TeamBuildSettings()
+                    {
+                        BuildEnvironment = env,
+                        BuildUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri_Legacy),
+                        TfsUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.TfsCollectionUri_Legacy),
+                        BuildDirectory = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildDirectory_Legacy)
+                    };
+
+                    break;
+
+                case BuildEnvironment.TeamBuild:
+                    logger.LogMessage(Resources.SETTINGS_InTeamBuild);
+                    settings = new TeamBuildSettings()
+                    {
+                        BuildEnvironment = env,
+                        BuildUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri_TFS2015),
+                        TfsUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.TfsCollectionUri_TFS2015),
+                        BuildDirectory = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildDirectory_TFS2015)
+                    };
+                    
+                    break;
+
+                default:
+                    logger.LogMessage(Resources.SETTINGS_NotInTeamBuild);
+
+                    string buildDir = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.SQAnalysisRootPath);
+                    if (string.IsNullOrEmpty(buildDir))
+                    {
+                        buildDir = Path.GetTempPath();
+                    }
+
+                    settings = new TeamBuildSettings()
+                    {
+                        BuildEnvironment = env,
+                        BuildDirectory = buildDir
+                    };
+
+                    break;
+            }
 
             return settings;
+        }
+
+        public static BuildEnvironment GetBuildEnvironemnt()
+        {
+            BuildEnvironment env = BuildEnvironment.NotTeamBuild;
+
+            if (IsInTeamBuild)
+            {
+                // Work out which flavour of TeamBuild
+                string buildUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri_Legacy);
+                if (string.IsNullOrEmpty(buildUri))
+                {
+                    buildUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri_TFS2015);
+                    if (!string.IsNullOrEmpty(buildUri))
+                    {
+                        env = BuildEnvironment.TeamBuild;
+                    }
+                }
+                else
+                {
+                    env = BuildEnvironment.LegacyTeamBuild;
+                }
+            }
+            return env;
         }
 
         public static bool IsInTeamBuild
@@ -83,6 +146,12 @@ namespace SonarQube.TeamBuild.Integration
                 }
                 return false;
             }
+        }
+
+        public BuildEnvironment BuildEnvironment
+        {
+            get;
+            private set;
         }
 
         public string TfsUri
@@ -130,28 +199,5 @@ namespace SonarQube.TeamBuild.Integration
 
         #endregion
         
-        #region Private methods
-
-        private static bool CheckRequiredEnvironmentVariablesExist(ILogger logger, params string[] required)
-        {
-            IDictionary allVars = Environment.GetEnvironmentVariables();
-
-            bool allFound = true;
-            foreach (string requiredVar in required)
-            {
-                string value = allVars[requiredVar] as string;
-                if (value == null || string.IsNullOrEmpty(value))
-                {
-                    if (logger != null)
-                    {
-                        logger.LogError(Resources.MissingEnvironmentVariable, requiredVar);
-                    }
-                    allFound = false;
-                }
-            }
-            return allFound;
-        }
-
-        #endregion
     }
 }

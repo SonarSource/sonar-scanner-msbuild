@@ -67,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyFriends.cs" />
+    <Compile Include="BuildEnvironment.cs" />
     <Compile Include="BuildSummaryLogger.cs" />
     <Compile Include="CoverageReportConverter.cs" />
     <Compile Include="CoverageReportDownloader.cs" />
