@@ -2,8 +2,6 @@
 * text=crlf
 
 # Text files
-*.gitattributes text
-*.gitignore text
 *.txt text
 *.cs text
 *.sln text
