@@ -2,12 +2,13 @@
 * text=crlf
 
 # Text files
-.gitattributes text
-.gitignore text
+*.gitattributes text
+*.gitignore text
 *.txt text
 *.cs text
 *.sln text
 *.xml text
+*.config text
 *.targets text
 *.resx text
 *.csproj text
