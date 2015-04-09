@@ -1,0 +1,10 @@
+# Text files should have CRLF line endings, even on non-Windows machines
+* text=crlf
+
+# Text files
+*.txt text
+*.cs text
+*.sln text
+*.targets text
+*.resx text
+*.csproj text
