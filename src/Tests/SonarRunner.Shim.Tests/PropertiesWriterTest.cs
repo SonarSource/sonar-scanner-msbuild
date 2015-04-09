@@ -83,7 +83,7 @@ namespace SonarRunner.Shim.Tests
             Assert.AreEqual(@"The project has a non-unique GUID ""C53C92C0-0A5A-4F89-A857-2BBD41CB4410"". Analysis results for this project will not be uploaded to SonarQube. Project file: C:\DuplicatedProject1.csproj", logger.Warnings[0]);
             Assert.AreEqual(@"The project has a non-unique GUID ""C53C92C0-0A5A-4F89-A857-2BBD41CB4410"". Analysis results for this project will not be uploaded to SonarQube. Project file: C:\DuplicatedProject2.csproj", logger.Warnings[1]);
 
-            string expected = string.Format(System.Globalization.CultureInfo.CurrentCulture,
+            string expected = string.Format(System.Globalization.CultureInfo.InvariantCulture,
 @"sonar.projectKey=my_project_key
 sonar.projectName=my_project_name
 sonar.projectVersion=1.0
