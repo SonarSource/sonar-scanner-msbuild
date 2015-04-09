@@ -13,16 +13,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-
-//TODO: fail the build if there are no projects to analyse 
-//TODO: logging for skipped, excluded, invalid projects
-//TODO: unit tests
-
 namespace SonarRunner.Shim
 {
     public class SonarRunnerWrapper : ISonarRunner
     {
-        private const int SonarRunnerTimeoutInMs = 1000 * 60 * 30; // twenty minutes
+        private const int SonarRunnerTimeoutInMs = System.Threading.Timeout.Infinite;
 
         #region ISonarRunner interface
 

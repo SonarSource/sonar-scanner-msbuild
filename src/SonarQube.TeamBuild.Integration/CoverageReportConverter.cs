@@ -95,10 +95,9 @@ namespace SonarQube.TeamBuild.Integration
                 IDictionary<string, string> versionFolderMap = GetVsShellFolders(key, keys);
 
                 // Attempt to locate the code coverage tool for each installed version
-                IDictionary<string, string> versionToolMap = GetCoverageToolsPaths(versionFolderMap);
-
-                string maxVersion = versionFolderMap.Keys.Max(k => double.Parse(k, System.Globalization.NumberStyles.AllowDecimalPoint)).ToString();
-
+                IDictionary<double, string> versionToolMap = GetCoverageToolsPaths(versionFolderMap);
+                Debug.Assert(!versionToolMap.Keys.Any(k => double.IsNaN(k)), "Version key should be a number");
+                
                 if (versionToolMap.Count > 1)
                 {
                     logger.LogMessage(Resources.CONV_DIAG_MultipleVsVersionsInstalled, string.Join(", ", versionToolMap.Keys));
@@ -106,13 +105,18 @@ namespace SonarQube.TeamBuild.Integration
 
                 if (versionToolMap.Count > 0)
                 {
-                    toolPath = versionToolMap.Last().Value;
+                    // Use the latest version of the tool
+                    double maxVersion = versionToolMap.Keys.Max();
+                    toolPath = versionToolMap[maxVersion];
                 }
             }   
 
             return toolPath;
         }
 
+        /// <summary>
+        /// Returns a mapping of VS version (as a string e.g. "12.0") to the install directory for that version
+        /// </summary>
         private static IDictionary<string, string> GetVsShellFolders(RegistryKey vsKey, string[] keys)
         {
             Dictionary<string, string> versionFolderMap = new Dictionary<string, string>();
@@ -133,18 +137,43 @@ namespace SonarQube.TeamBuild.Integration
             return versionFolderMap;
         }
 
-        private static IDictionary<string, string> GetCoverageToolsPaths(IDictionary<string, string> versionFolderMap)
+        /// <summary>
+        /// Returns a mapping of VS version (as a double) to the full path to the code coverage
+        /// tool for that version.
+        /// </summary>
+        /// <remarks>VS versions that cannot be converted successfully to a double will be ignored.
+        /// The returned map will only have entries for VS version for which the code coverage tool could be found.</remarks>
+        private static IDictionary<double, string> GetCoverageToolsPaths(IDictionary<string, string> versionFolderMap)
         {
-            Dictionary<string, string> versionPathMap = new Dictionary<string, string>();
+            Dictionary<double, string> versionPathMap = new Dictionary<double, string>();
             foreach (KeyValuePair<string, string> kvp in versionFolderMap)
             {
                 string toolPath = Path.Combine(kvp.Value, TeamToolPathandExeName);
                 if (File.Exists(toolPath))
                 {
-                    versionPathMap[kvp.Key] = toolPath;
+                    double version = TryGetVersionAsDouble(kvp.Key);
+
+                    if (version != double.NaN)
+                    {
+                        versionPathMap[version] = toolPath;
+                    }
                 }
             }
             return versionPathMap;
+        }
+
+        /// <summary>
+        /// Attempts to convert the supplied version to a double.
+        /// Returns NaN if the value could not be converted
+        /// </summary>
+        private static double TryGetVersionAsDouble(string versionKey)
+        {
+            double result;
+            if (!double.TryParse(versionKey, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out result))
+            {
+                result = double.NaN;
+            }
+            return result;
         }
 
         internal static bool ConvertBinaryToXml(string converterExeFilePath, string inputfullBinaryFilePath, string outputFullXmlFilePath, ILogger logger)
