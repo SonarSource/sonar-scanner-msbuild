@@ -326,7 +326,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             logger.AssertExpectedErrorCount(0);
             logger.AssertExpectedWarningCount(expectedWarnings);
 
-            logger.AssertTargetExecuted(TargetConstants.ExecuteProcessingTarget);
             logger.AssertTargetExecuted(TargetConstants.WriteProjectDataTarget);
 
             // Check expected folder structure exists

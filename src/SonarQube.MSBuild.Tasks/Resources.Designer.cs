@@ -61,11 +61,38 @@ namespace SonarQube.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to resolve path relative to project file. Path: {0}.
+        /// </summary>
+        internal static string WPIF_FailedToResolvePath {
+            get {
+                return ResourceManager.GetString("WPIF_FailedToResolvePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded to SonarQube. Project file: {0}.
         /// </summary>
-        internal static string WriteProjectInfoFile_MissingOrInvalidProjectGuid {
+        internal static string WPIF_MissingOrInvalidProjectGuid {
             get {
-                return ResourceManager.GetString("WriteProjectInfoFile_MissingOrInvalidProjectGuid", resourceCulture);
+                return ResourceManager.GetString("WPIF_MissingOrInvalidProjectGuid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resolved relative path. Path: {0}.
+        /// </summary>
+        internal static string WPIF_ResolvedPath {
+            get {
+                return ResourceManager.GetString("WPIF_ResolvedPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attempting to resolve the file result path. Analysis type: {0}, path: {1}.
+        /// </summary>
+        internal static string WPIF_ResolvingRelativePath {
+            get {
+                return ResourceManager.GetString("WPIF_ResolvingRelativePath", resourceCulture);
             }
         }
     }

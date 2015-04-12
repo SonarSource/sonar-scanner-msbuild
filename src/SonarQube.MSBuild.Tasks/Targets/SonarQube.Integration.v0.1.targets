@@ -83,10 +83,15 @@
   <!-- Set defaults for the SonarQube paths if explicit values have not been provided -->
   <PropertyGroup Condition="$(RunSonarQubeAnalysis) == 'true' ">
     <!-- Use the TeamBuild per-build base directory as a root -->
+    <!-- Legacy TeamBuild system i.e. XAML Builds (pre-2015) -->
     <SonarQubeTempPath Condition=" $(SonarQubeTempPath) == '' AND $(TF_BUILD_BUILDDIRECTORY) != '' "
                    >$(TF_BUILD_BUILDDIRECTORY)\SQTemp</SonarQubeTempPath>
 
-    <SonarQubeConfigPath Condition="$(SonarQubeConfigPath) == '' AND $(SonarQubeTempPath) !='' "
+    <!-- New TeamBuild system (2015 onwards) -->
+		<SonarQubeTempPath Condition=" $(SonarQubeTempPath) == '' AND $(AGENT_BUILDDIRECTORY) != '' "
+                   >$(AGENT_BUILDDIRECTORY)\SQTemp</SonarQubeTempPath>
+
+		<SonarQubeConfigPath Condition="$(SonarQubeConfigPath) == '' AND $(SonarQubeTempPath) !='' "
                      >$(SonarQubeTempPath)\Config\</SonarQubeConfigPath>
 
     <SonarQubeOutputPath Condition="$(SonarQubeOutputPath) == '' AND $(SonarQubeTempPath) !='' "
@@ -123,21 +128,9 @@
        otherwise those results will not appear in the project info file.
   -->
   <!-- **************************************************************************** -->
-  <Target Name="ExecuteSonarQubeProcessing" AfterTargets="CoreCompile"
+  <Target Name="WriteSonarQubeProjectData" AfterTargets="CoreCompile"
         Condition="$(RunSonarQubeAnalysis) == 'true' AND  $(SonarQubeOutputPath) != '' ">
-
-    <!--<Message Importance="normal" Condition=" $(SonarQubeExclude) == 'true' "
-             Text="Skipping SonarQube analysis: SonarQubeExclude is set to true" />-->
-
-    <!--<CallTarget Targets="WriteSonarQubeProjectData" Condition=" $(SonarQubeExclude) != 'true' " />-->
-		<CallTarget Targets="WriteSonarQubeProjectData" />
-
-	</Target>
-  
-  <Target Name="WriteSonarQubeProjectData" >
-    
-    <!--<Error Condition=" $(SonarQubeExclude) == 'true' " Text="Should not be executing WriteSonarQubeProjectData when (SonarQubeExclude) is true" />-->
-    
+		
     <!-- Calculate a project-specific folder name -->
     <PropertyGroup>
       <FolderDisambiguator>$(ProjectGuid)</FolderDisambiguator>
@@ -304,7 +297,7 @@
 
   <!-- If FxCop is being run then record the FxCop output file as an analysis result -->
   <Target Name="SetFxCopAnalysisResult" Condition=" $(SonarQubeRulesetExists) == 'true' "
-                AfterTargets="RunCodeAnalysis" BeforeTargets="WriteSonarQubeProjectData" >
+                AfterTargets="OverrideCodeAnalysisProperties;RunCodeAnalysis" BeforeTargets="WriteSonarQubeProjectData" >
     <ItemGroup>
       <AnalysisResults Include="$(CodeAnalysisLogFile)">
         <Id>FxCop</Id>

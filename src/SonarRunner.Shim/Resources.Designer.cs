@@ -88,6 +88,24 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The project does not contain any files that can analyzed by SonarQube. Project file: {0}.
+        /// </summary>
+        internal static string DIAG_NoFilesToAnalyze {
+            get {
+                return ResourceManager.GetString("DIAG_NoFilesToAnalyze", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The exclude flag has been set so the project will not be analyzed by SonarQube. Project file: {0}.
+        /// </summary>
+        internal static string DIAG_ProjectIsExcluded {
+            get {
+                return ResourceManager.GetString("DIAG_ProjectIsExcluded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generation of the sonar-properties file failed. Unable to complete SonarQube analysis..
         /// </summary>
         internal static string DIAG_PropertiesGenerationFailed {
@@ -233,11 +251,38 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The project has a non-unique GUID &quot;{0}&quot;. Analysis results for this project will not be uploaded to SonarQube. Project file: {1}.
+        ///   Looks up a localized string similar to Code coverage report does not exist at the specified locaation. Path: {0}.
+        /// </summary>
+        internal static string WARN_CodeCoverageReportNotFound {
+            get {
+                return ResourceManager.GetString("WARN_CodeCoverageReportNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The project has a non-unique GUID &quot;{0}&quot;. The project will not be analyzed by SonarQube. Project file: {1}.
         /// </summary>
         internal static string WARN_DuplicateProjectGuid {
             get {
                 return ResourceManager.GetString("WARN_DuplicateProjectGuid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FxCop analysis report does not exist at the specified location. Path: {0}.
+        /// </summary>
+        internal static string WARN_FxCopReportNotFound {
+            get {
+                return ResourceManager.GetString("WARN_FxCopReportNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The project has an invalid GUID &quot;{0}&quot;. The project will not be analyzed by SonarQube. Project file: {1}.
+        /// </summary>
+        internal static string WARN_InvalidProjectGuid {
+            get {
+                return ResourceManager.GetString("WARN_InvalidProjectGuid", resourceCulture);
             }
         }
     }

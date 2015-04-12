@@ -72,7 +72,7 @@ namespace SonarQube.MSBuild.Tasks
             }
             else
             {
-                this.Log.LogWarning(Resources.WriteProjectInfoFile_MissingOrInvalidProjectGuid, this.FullProjectPath);
+                this.Log.LogWarning(Resources.WPIF_MissingOrInvalidProjectGuid, this.FullProjectPath);
             }
             return true;
         }
@@ -84,7 +84,7 @@ namespace SonarQube.MSBuild.Tasks
         /// <summary>
         /// Attempts to convert the supplied task items into a list of <see cref="AnalysisResult"/> objects
         /// </summary>
-        private static List<AnalysisResult> TryCreateAnalysisResults(ITaskItem[] resultItems)
+        private List<AnalysisResult> TryCreateAnalysisResults(ITaskItem[] resultItems)
         {
             List<AnalysisResult> results = new List<AnalysisResult>();
 
@@ -106,7 +106,7 @@ namespace SonarQube.MSBuild.Tasks
         /// Attempts to create an <see cref="AnalysisResult"/> from the supplied task item.
         /// Returns null if the task item does not have the required metadata.
         /// </summary>
-        private static AnalysisResult TryCreateResultFromItem(ITaskItem taskItem)
+        private AnalysisResult TryCreateResultFromItem(ITaskItem taskItem)
         {
             Debug.Assert(taskItem != null, "Supplied task item should not be null");
             
@@ -116,10 +116,27 @@ namespace SonarQube.MSBuild.Tasks
 
             if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(taskItem.ItemSpec))
             {
+                string path = taskItem.ItemSpec;
+                if (!Path.IsPathRooted(path))
+                {
+                    this.Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvingRelativePath, id, path);
+                    string projectDir = Path.GetDirectoryName(this.FullProjectPath);
+                    string absPath = Path.Combine(projectDir, path);
+                    if (File.Exists(absPath))
+                    {
+                        this.Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvedPath, absPath);
+                        path = absPath;
+                    }
+                    else
+                    {
+                        this.Log.LogMessage(MessageImportance.Low, Resources.WPIF_FailedToResolvePath, taskItem.ItemSpec);
+                    }
+                }
+
                 result = new AnalysisResult()
                 {
                     Id = id,
-                    Location = taskItem.ItemSpec
+                    Location = path
                 };
             }
             return result;

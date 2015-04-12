@@ -126,6 +126,12 @@
   <data name="DIAG_LocatedSonarRunner" xml:space="preserve">
     <value>Located the sonar-runner: {0}</value>
   </data>
+  <data name="DIAG_NoFilesToAnalyze" xml:space="preserve">
+    <value>The project does not contain any files that can analyzed by SonarQube. Project file: {0}</value>
+  </data>
+  <data name="DIAG_ProjectIsExcluded" xml:space="preserve">
+    <value>The exclude flag has been set so the project will not be analyzed by SonarQube. Project file: {0}</value>
+  </data>
   <data name="DIAG_PropertiesGenerationFailed" xml:space="preserve">
     <value>Generation of the sonar-properties file failed. Unable to complete SonarQube analysis.</value>
   </data>
@@ -175,7 +181,16 @@ Error: {0}</value>
   <data name="REPORT_TestProjectsTitle" xml:space="preserve">
     <value>Test projects</value>
   </data>
+  <data name="WARN_CodeCoverageReportNotFound" xml:space="preserve">
+    <value>Code coverage report does not exist at the specified locaation. Path: {0}</value>
+  </data>
   <data name="WARN_DuplicateProjectGuid" xml:space="preserve">
-    <value>The project has a non-unique GUID "{0}". Analysis results for this project will not be uploaded to SonarQube. Project file: {1}</value>
+    <value>The project has a non-unique GUID "{0}". The project will not be analyzed by SonarQube. Project file: {1}</value>
+  </data>
+  <data name="WARN_FxCopReportNotFound" xml:space="preserve">
+    <value>FxCop analysis report does not exist at the specified location. Path: {0}</value>
+  </data>
+  <data name="WARN_InvalidProjectGuid" xml:space="preserve">
+    <value>The project has an invalid GUID "{0}". The project will not be analyzed by SonarQube. Project file: {1}</value>
   </data>
 </root>

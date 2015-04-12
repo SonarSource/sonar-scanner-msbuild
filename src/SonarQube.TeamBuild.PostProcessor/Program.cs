@@ -17,6 +17,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 {
     internal class Program
     {
+        private const int SuccessCode = 0;
         private const int ErrorCode = 1;
 
         static int Main(string[] args)
@@ -31,21 +32,29 @@ namespace SonarQube.TeamBuild.PostProcessor
                 return ErrorCode;
             }
 
-            // Handle code coverage reports
-            CoverageReportProcessor coverageProcessor = new CoverageReportProcessor();
-            bool success = coverageProcessor.ProcessCoverageReports(config, logger);
+            TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+
+            if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
+                && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
+            {
+                // Handle code coverage reports
+                CoverageReportProcessor coverageProcessor = new CoverageReportProcessor();
+                if (!coverageProcessor.ProcessCoverageReports(config, logger))
+                {
+                    return ErrorCode;
+                }
+            }
 
             ProjectInfoAnalysisResult result = InvokeSonarRunner(config, logger);
             
             // Write summary report
-            WriteSummaryReport(config, result, logger);
-
-            if (!success)
+            if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
+                && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
             {
-                return ErrorCode;
+                WriteTeamBuildSummaryReport(config, result, logger);
             }
 
-            return 0;
+            return result.RanToCompletion ? SuccessCode : ErrorCode;
         }
 
         /// <summary>
@@ -83,9 +92,8 @@ namespace SonarQube.TeamBuild.PostProcessor
             return result;
         }
 
-        private static void WriteSummaryReport(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+        private static void WriteTeamBuildSummaryReport(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
-
             int skippedProjectCount = GetProjectsByStatus(result, ProjectInfoValidity.NoFilesToAnalyze).Count();
             int invalidProjectCount = GetProjectsByStatus(result, ProjectInfoValidity.InvalidGuid).Count();
             invalidProjectCount += GetProjectsByStatus(result, ProjectInfoValidity.DuplicateGuid).Count();

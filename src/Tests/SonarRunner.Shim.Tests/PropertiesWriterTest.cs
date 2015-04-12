@@ -60,14 +60,9 @@ namespace SonarRunner.Shim.Tests
             testFiles.Add(testFile);
             ProjectInfo test = CreateProjectInfo("my_test_project", "DA0FCD82-9C5C-4666-9370-C7388281D49B", testProject, true, testFiles, testFileListFilePath, null, null);
 
-            ProjectInfo duplicatedProject1 = CreateProjectInfo("duplicated_project_1", "C53C92C0-0A5A-4F89-A857-2BBD41CB4410", @"C:\DuplicatedProject1.csproj", false, null, null, null, null);
-            ProjectInfo duplicatedProject2 = CreateProjectInfo("duplicated_project_2", "C53C92C0-0A5A-4F89-A857-2BBD41CB4410", @"C:\DuplicatedProject2.csproj", false, null, null, null, null);
-
             List<ProjectInfo> projects = new List<ProjectInfo>();
             projects.Add(product);
             projects.Add(test);
-            projects.Add(duplicatedProject1);
-            projects.Add(duplicatedProject2);
 
             var logger = new TestLogger();
             AnalysisConfig config = new AnalysisConfig()
@@ -77,11 +72,12 @@ namespace SonarRunner.Shim.Tests
                 SonarProjectVersion = "1.0",
                 SonarOutputDir = @"C:\my_folder"
             };
-            string actual = SonarRunner.Shim.PropertiesWriter.ToString(logger, config, projects);
 
-            Assert.AreEqual(2, logger.Warnings.Count);
-            Assert.AreEqual(@"The project has a non-unique GUID ""C53C92C0-0A5A-4F89-A857-2BBD41CB4410"". Analysis results for this project will not be uploaded to SonarQube. Project file: C:\DuplicatedProject1.csproj", logger.Warnings[0]);
-            Assert.AreEqual(@"The project has a non-unique GUID ""C53C92C0-0A5A-4F89-A857-2BBD41CB4410"". Analysis results for this project will not be uploaded to SonarQube. Project file: C:\DuplicatedProject2.csproj", logger.Warnings[1]);
+            string actual = null;
+            using (new AssertIgnoreScope()) // expecting the property writer to complain about the duplicate GUID
+            {
+                actual = SonarRunner.Shim.PropertiesWriter.ToString(logger, config, projects);
+            }
 
             string expected = string.Format(System.Globalization.CultureInfo.InvariantCulture,
 @"sonar.projectKey=my_project_key
@@ -115,7 +111,6 @@ DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
  GetEscapedPath(productFxCopFilePath),
  GetEscapedPath(productCoverageFilePath),
  GetEscapedPath(testBaseDir));
-
 
             SaveToResultFile(productBaseDir, "Expected.txt", expected.ToString());
             SaveToResultFile(productBaseDir, "Actual.txt", actual);

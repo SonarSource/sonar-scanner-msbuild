@@ -63,27 +63,28 @@ namespace SonarQube.TeamBuild.Integration
                 throw new ArgumentNullException("message");
             }
 
+            string finalMessage = message;
             if (args != null && args.Length > 0)
             {
-                message = string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args);
+                finalMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args);
             }
 
             this.EnsureConnected();
-            this.build.Information.AddCustomSummaryInformation(message, SectionName, Resources.SonarQubeSummarySectionHeader, SectionPriority).Save();
+            this.build.Information.AddCustomSummaryInformation(finalMessage, SectionName, Resources.SonarQubeSummarySectionHeader, SectionPriority).Save();
         }
 
         #endregion
 
         #region IDisposable interface
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             this.Dispose(true);
         }
 
         protected void Dispose(bool disposing)
         {
-            if (!disposed)
+            if (!disposed && disposing)
             {
                 if (this.teamProjectCollection != null)
                 {

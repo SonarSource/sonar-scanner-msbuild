@@ -20,28 +20,34 @@ namespace SonarQube.TeamBuild.Integration
     {
         internal const string ConfigFileName = "SonarQubeAnalysisConfig.xml";
 
-        internal static class TeamBuildEnvironmentVariables
+        internal const int DefaultLegacyCodeCoverageTimeout = 30000; // ms
+
+        internal static class EnvironmentVariables
         {
             /// <summary>
-            /// Environment variable that specifies the directory to use as the 
+            /// Name of the environment variable that specifies the directory to use as the 
             /// analysis root in non-TFS cases
             /// </summary>
             public const string SQAnalysisRootPath = "SQ_BUILDDIRECTORY";
 
-            public const string IsInTeamBuild = "TF_Build";
+            /// <summary>
+            /// Name of the environment variable that specifies whether the processing
+            /// of code coverage reports in legacy TeamBuild cases should be skipped
+            /// </summary>
+            public const string SkipLegacyCodeCoverage = "SQ_SkipLegacyCodeCoverage";
+
+            /// <summary>
+            /// Name of the environment variable that specifies how long to spend
+            /// attempting to retrieve code coverage reports in legacy TeamBuild cases
+            /// </summary>
+            public const string LegacyCodeCoverageTimeoutInMs = "SQ_LegacyCodeCoverageInMs";
+
+            public const string IsInTeamBuild = "TF_Build"; // Common to legacy and non-legacy TeamBuilds
+
+            // Legacy TeamBuild environment variables (XAML Builds)
             public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
             public const string BuildUri_Legacy = "TF_BUILD_BUILDURI";
             public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
-            //        public const string BinariesDirectory = "TF_BUILD_BINARIESDIRECTORY";
-
-            // Other available environment variables:
-            //TF_BUILD_BUILDDEFINITIONNAME: SimpleBuild1
-            //TF_BUILD_BUILDNUMBER: SimpleBuild1_20150310.4
-            //TF_BUILD_BUILDREASON: Manual
-            //TF_BUILD_DROPLOCATION: 
-            //TF_BUILD_SOURCEGETVERSION: C14
-            //TF_BUILD_SOURCESDIRECTORY: C:\Builds\1\Demos\SimpleBuild1\src
-            //TF_BUILD_TESTRESULTSDIRECTORY: C:\Builds\1\Demos\SimpleBuild1\tst
 
             // TFS 2015 Environment variables
             public const string TfsCollectionUri_TFS2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
@@ -49,7 +55,7 @@ namespace SonarQube.TeamBuild.Integration
             public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
         }
 
-        #region Public methods
+        #region Public static methods
 
         /// <summary>
         /// Factory method to create and return a new set of team build settings
@@ -69,9 +75,9 @@ namespace SonarQube.TeamBuild.Integration
                     settings = new TeamBuildSettings()
                     {
                         BuildEnvironment = env,
-                        BuildUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri_Legacy),
-                        TfsUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.TfsCollectionUri_Legacy),
-                        BuildDirectory = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildDirectory_Legacy)
+                        BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_Legacy),
+                        TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUri_Legacy),
+                        BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectory_Legacy)
                     };
 
                     break;
@@ -81,9 +87,9 @@ namespace SonarQube.TeamBuild.Integration
                     settings = new TeamBuildSettings()
                     {
                         BuildEnvironment = env,
-                        BuildUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri_TFS2015),
-                        TfsUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.TfsCollectionUri_TFS2015),
-                        BuildDirectory = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildDirectory_TFS2015)
+                        BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_TFS2015),
+                        TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUri_TFS2015),
+                        BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectory_TFS2015)
                     };
                     
                     break;
@@ -91,7 +97,7 @@ namespace SonarQube.TeamBuild.Integration
                 default:
                     logger.LogMessage(Resources.SETTINGS_NotInTeamBuild);
 
-                    string buildDir = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.SQAnalysisRootPath);
+                    string buildDir = Environment.GetEnvironmentVariable(EnvironmentVariables.SQAnalysisRootPath);
                     if (string.IsNullOrEmpty(buildDir))
                     {
                         buildDir = Path.GetTempPath();
@@ -109,6 +115,9 @@ namespace SonarQube.TeamBuild.Integration
             return settings;
         }
 
+        /// <summary>
+        /// Returns the type of the current build enviroment: not under TeamBuild, legacy TeamBuild, "new" TeamBuild
+        /// </summary>
         public static BuildEnvironment GetBuildEnvironemnt()
         {
             BuildEnvironment env = BuildEnvironment.NotTeamBuild;
@@ -116,10 +125,10 @@ namespace SonarQube.TeamBuild.Integration
             if (IsInTeamBuild)
             {
                 // Work out which flavour of TeamBuild
-                string buildUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri_Legacy);
+                string buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_Legacy);
                 if (string.IsNullOrEmpty(buildUri))
                 {
-                    buildUri = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.BuildUri_TFS2015);
+                    buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_TFS2015);
                     if (!string.IsNullOrEmpty(buildUri))
                     {
                         env = BuildEnvironment.TeamBuild;
@@ -136,17 +145,30 @@ namespace SonarQube.TeamBuild.Integration
         public static bool IsInTeamBuild
         {
             get
-            {
-                string value = Environment.GetEnvironmentVariable(TeamBuildEnvironmentVariables.IsInTeamBuild);
-                
-                bool result;
-                if (value != null && bool.TryParse(value, out result))
-                {
-                    return result;
-                }
-                return false;
+            {                
+                return TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamBuild, false);
             }
         }
+
+        public static bool SkipLegacyCodeCoverageProcessing
+        {
+            get
+            {
+                return TryGetBoolEnvironmentVariable(EnvironmentVariables.SkipLegacyCodeCoverage, false);
+            }
+        }
+
+        public static int LegacyCodeCoverageProcessingTimeout
+        {
+            get
+            {
+                return TryGetIntEnvironmentVariable(EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, DefaultLegacyCodeCoverageTimeout);
+            }
+        }
+
+        #endregion
+
+        #region Public properties
 
         public BuildEnvironment BuildEnvironment
         {
@@ -198,6 +220,37 @@ namespace SonarQube.TeamBuild.Integration
         }
 
         #endregion
-        
+
+        #region Private methods
+
+        private static bool TryGetBoolEnvironmentVariable(string envVar, bool defaultValue)
+        {
+            string value = Environment.GetEnvironmentVariable(envVar);
+
+            bool result;
+            if (value != null && bool.TryParse(value, out result))
+            {
+                return result;
+            }
+            return defaultValue;
+        }
+
+        private static int TryGetIntEnvironmentVariable(string envVar, int defaultValue)
+        {
+            string value = Environment.GetEnvironmentVariable(envVar);
+
+            int result;
+            if (value != null &&
+                int.TryParse(value,
+                    System.Globalization.NumberStyles.Integer, // don't allow hex, real etc
+                    System.Globalization.CultureInfo.InvariantCulture, out result))
+            {
+                return result;
+            }
+            return defaultValue;
+        }
+
+        #endregion
+
     }
 }

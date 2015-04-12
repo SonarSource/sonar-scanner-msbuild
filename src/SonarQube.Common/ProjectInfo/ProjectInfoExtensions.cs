@@ -130,10 +130,7 @@ namespace SonarQube.Common
             AnalysisResult result = null;
             if (projectInfo.TryGetAnalyzerResult(analysisType, out result))
             {
-                if (File.Exists(result.Location))
-                {
-                    location = result.Location;
-                }
+                location = result.Location;
             }
             return location;
         }

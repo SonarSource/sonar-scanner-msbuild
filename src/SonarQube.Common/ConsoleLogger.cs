@@ -14,6 +14,8 @@ namespace SonarQube.Common
     /// </summary>
     public class ConsoleLogger : ILogger
     {
+        public const string WarningPrefix = "WARNING: ";
+
         #region Public methods
 
         public ConsoleLogger() : this(includeTimestamp: false)
@@ -36,20 +38,20 @@ namespace SonarQube.Common
 
         public void LogMessage(string message, params object[] args)
         {
-            message = this.GetFormattedMessage(message, args);
-            Console.WriteLine(message);
+            string finalMessage = this.GetFormattedMessage(message, args);
+            Console.WriteLine(finalMessage);
         }
 
         public void LogWarning(string message, params object[] args)
         {
-            message = this.GetFormattedMessage("WARNING: " + message, args);
-            Console.Error.WriteLine(message);
+            string finalMessage = this.GetFormattedMessage(WarningPrefix + message, args);
+            Console.Error.WriteLine(finalMessage);
         }
 
         public void LogError(string message, params object[] args)
         {
-            message = this.GetFormattedMessage(message, args);
-            Console.Error.WriteLine(message);
+            string finalMessage = this.GetFormattedMessage(message, args);
+            Console.Error.WriteLine(finalMessage);
         }
 
         #endregion
@@ -58,16 +60,17 @@ namespace SonarQube.Common
 
         private string GetFormattedMessage(string message, params object[] args)
         {
+            string finalMessage = message;
             if (args != null && args.Length > 0)
             {
-                message = string.Format(System.Globalization.CultureInfo.CurrentCulture, message ?? string.Empty, args);
+                finalMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, finalMessage ?? string.Empty, args);
             }
 
             if (this.IncludeTimestamp)
             {
-                message = string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}: {1}", System.DateTime.Now.ToString("hh:mm:ss"), message);
+                finalMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}: {1}", System.DateTime.Now.ToString("hh:mm:ss"), finalMessage);
             }
-            return message;
+            return finalMessage;
         }
 
         #endregion

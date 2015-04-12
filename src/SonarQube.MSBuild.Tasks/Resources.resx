@@ -117,8 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="WriteProjectInfoFile_MissingOrInvalidProjectGuid" xml:space="preserve">
+  <data name="WPIF_FailedToResolvePath" xml:space="preserve">
+    <value>Failed to resolve path relative to project file. Path: {0}</value>
+  </data>
+  <data name="WPIF_MissingOrInvalidProjectGuid" xml:space="preserve">
     <value>The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded to SonarQube. Project file: {0}</value>
     <comment>We're including the project file name in the message as only the message appears in the TeamBuild summary.</comment>
+  </data>
+  <data name="WPIF_ResolvedPath" xml:space="preserve">
+    <value>Resolved relative path. Path: {0}</value>
+  </data>
+  <data name="WPIF_ResolvingRelativePath" xml:space="preserve">
+    <value>Attempting to resolve the file result path. Analysis type: {0}, path: {1}</value>
   </data>
 </root>

@@ -54,15 +54,19 @@ namespace SonarRunner.Shim.Tests
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
             Guid duplicateGuid = Guid.NewGuid();
-            CreateProjectInfoInSubDir(testDir, "duplicate1", duplicateGuid, ProjectType.Product, false, null); // not excluded
-            CreateProjectInfoInSubDir(testDir, "duplicate2", duplicateGuid, ProjectType.Test, false, null); // not excluded
+            CreateProjectInfoInSubDir(testDir, "duplicate1", duplicateGuid, ProjectType.Product, false, "c:\\abc\\duplicateProject1.proj"); // not excluded
+            CreateProjectInfoInSubDir(testDir, "duplicate2", duplicateGuid, ProjectType.Test, false, "S:\\duplicateProject2.proj"); // not excluded
             CreateProjectInfoInSubDir(testDir, "excluded", duplicateGuid, ProjectType.Product, true, null); // excluded
 
             TestLogger logger = new TestLogger();
             AnalysisConfig config = new AnalysisConfig() { SonarOutputDir = testDir };
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            ProjectInfoAnalysisResult result = null;
+            using (new AssertIgnoreScope()) // expecting the properties writer to assert
+            {
+                result = PropertiesFileGenerator.GenerateFile(config, logger);
+            }
 
             // Assert
             AssertExpectedStatus("duplicate1", ProjectInfoValidity.DuplicateGuid, result);
@@ -72,6 +76,10 @@ namespace SonarRunner.Shim.Tests
 
             // No valid project info files -> file not generated
             AssertFailedToCreatePropertiesFiles(result, logger);
+            logger.AssertWarningsLogged(2); // should be a warning for each project with a duplicate id
+        
+            logger.AssertWarningExists(duplicateGuid.ToString(), "c:\\abc\\duplicateProject1.proj");
+            logger.AssertWarningExists(duplicateGuid.ToString(), "S:\\duplicateProject2.proj");
         }
 
         [TestMethod]
@@ -101,6 +109,7 @@ namespace SonarRunner.Shim.Tests
 
             // One valid project info file -> file
             AssertFailedToCreatePropertiesFiles(result, logger);
+            logger.AssertWarningsLogged(0); // not expecting any warnings
         }
 
         [TestMethod]
@@ -220,6 +229,7 @@ namespace SonarRunner.Shim.Tests
         {
             Assert.AreEqual(expected, actual.Projects.Count, "Unexpected number of projects in the result");
         }
+
         #endregion
 
         #region Private methods
