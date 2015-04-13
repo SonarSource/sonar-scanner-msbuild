@@ -53,7 +53,7 @@
     <Compile Include="WriteProjectInfoFile.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Targets\SonarQube.Integration.v0.1.targets">
+    <None Include="Targets\SonarQube.Integration.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Targets\SonarQube.Integration.ImportBefore.targets">

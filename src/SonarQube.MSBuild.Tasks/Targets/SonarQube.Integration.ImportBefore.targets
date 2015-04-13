@@ -11,7 +11,7 @@
   <!-- Import the analysis targets if appropriate -->
   <!-- **************************************************************************** -->
   <PropertyGroup Condition="$(SonarQubeTargetsImported) != 'true' AND $(RunSonarQubeAnalysis) == 'true' ">
-    <SonarQubeTargetFilePath>$(SonarQubeTargetsPath)\SonarQube.Integration.v0.1.targets</SonarQubeTargetFilePath>
+    <SonarQubeTargetFilePath>$(SonarQubeTargetsPath)\SonarQube.Integration.targets</SonarQubeTargetFilePath>
   </PropertyGroup>
   <Import Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeTargetsImported) != 'true' AND Exists('$(SonarQubeTargetFilePath)')" Project="$(SonarQubeTargetFilePath)" />
 
