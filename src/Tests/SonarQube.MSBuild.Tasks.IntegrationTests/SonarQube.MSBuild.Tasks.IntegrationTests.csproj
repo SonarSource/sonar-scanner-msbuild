@@ -96,8 +96,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
-    <None Include="..\..\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.v0.1.targets">
-      <Link>LinkedFiles\SonarQube.Integration.v0.1.targets</Link>
+    <None Include="..\..\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.targets">
+      <Link>LinkedFiles\SonarQube.Integration.targets</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>

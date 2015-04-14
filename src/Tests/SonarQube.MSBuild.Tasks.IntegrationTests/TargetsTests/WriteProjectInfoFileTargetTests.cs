@@ -18,7 +18,7 @@ using TestUtilities;
 namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 {
     [TestClass]
-    [DeploymentItem("LinkedFiles\\SonarQube.Integration.v0.1.targets")]
+    [DeploymentItem("LinkedFiles\\SonarQube.Integration.targets")]
     public class WriteProjectInfoFileTargetTests
     {
         public TestContext TestContext { get; set; }
