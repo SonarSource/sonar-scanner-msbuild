@@ -6,89 +6,64 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using System;
+using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Net;
 
 namespace SonarQube.Bootstrapper
 {
-    class Program
+    static class Program
     {
-        private const int preprocessorTimeoutInMs = 1000 * 60 * 5;
-        private const int postprocessorTimeoutInMs = 1000 * 60 * 60;
-
-        private const string SonarQubeIntegrationFilename = "SonarQube.TeamBuild.Integration.zip";
-        private const string IntegrationUrlFormat = "{0}/static/csharp/" + SonarQubeIntegrationFilename;
-
-        private const string PreprocessorFilename = "SonarQube.TeamBuild.PreProcessor.exe";
-        private const string PostprocessorFilename = "SonarQube.TeamBuild.PostProcessor.exe";
-
         static void Main(string[] args)
         {
             var logger = new ConsoleLogger();
 
-            var teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
-            var downloadBinPath = Path.Combine(teamBuildSettings.BuildDirectory, @"SQTemp\Bin");
+            IBootstrapperSettings settings = new BootstrapperSettings(logger);
+            var downloadBinPath = settings.DownloadDirectory;
 
             if (args.Any())
             {
-                logger.LogMessage("Preprocessing ({0} arguments passed)", args.Length);
-                preprocess(logger, downloadBinPath, args);
+                logger.LogMessage(Resources.INFO_PreProcessing, args.Length);
+                preprocess(logger, settings, args);
             }
             else
             {
-                logger.LogMessage("Postprocessing (no arguments passed)");
-                postprocess(logger, downloadBinPath);
+                logger.LogMessage(Resources.INFO_PostProcessing);
+                postprocess(logger, settings);
             }
         }
 
-        static void preprocess(ILogger logger, string downloadBinPath, string[] args)
+        static void preprocess(ILogger logger, IBootstrapperSettings settings, string[] args)
         {
+            string downloadBinPath = settings.DownloadDirectory;
+
+            logger.LogMessage("Creating the analysis bin directory: {0}", downloadBinPath);
             if (Directory.Exists(downloadBinPath))
             {
                 Directory.Delete(downloadBinPath, true);
             }
             Directory.CreateDirectory(downloadBinPath);
 
-            var sonarRunnerProperties = FileLocator.FindDefaultSonarRunnerProperties();
-            if (sonarRunnerProperties == null)
-            {
-                throw new ArgumentException("Could not find the sonar-project.properties from the sonar-runner in %PATH%.");
-            }
+            string server = settings.SonarQubeUrl;
+            Debug.Assert(!string.IsNullOrWhiteSpace(server), "Not expecting the server url to be null/empty");
+            logger.LogMessage("SonarQube server url: {0}", server);
 
-            var propertiesProvider = new FilePropertiesProvider(sonarRunnerProperties);
+            IBuildAgentUpdater updater = new BuildAgentUpdater();
+            updater.Update(server, downloadBinPath, logger);
 
-            var server = propertiesProvider.GetProperty(SonarProperties.HostUrl);
-            if (server.EndsWith("/"))
-            {
-                server = server.Substring(0, server.Length - 1);
-            }
-
-            var integrationUrl = string.Format(IntegrationUrlFormat, server);
-
-            var downloadedZipFilePath = Path.Combine(downloadBinPath, SonarQubeIntegrationFilename);
-            var preprocessorFilePath = Path.Combine(downloadBinPath, PreprocessorFilename);
-
-            using (WebClient client = new WebClient())
-            {
-                logger.LogMessage("Downloading {0} from {1} to {2}", SonarQubeIntegrationFilename, integrationUrl, downloadedZipFilePath);
-                client.DownloadFile(integrationUrl, downloadedZipFilePath);
-                ZipFile.ExtractToDirectory(downloadedZipFilePath, downloadBinPath);
-
-                var processRunner = new ProcessRunner();
-                processRunner.Execute(preprocessorFilePath, string.Join(" ", args.Select(a => "\"" + a + "\"")), downloadBinPath, preprocessorTimeoutInMs, logger);
-            }
+            var preprocessorFilePath = settings.PreProcessorFilePath;
+            var processRunner = new ProcessRunner();
+            processRunner.Execute(preprocessorFilePath, string.Join(" ", args.Select(a => "\"" + a + "\"")), downloadBinPath, settings.PreProcessorTimeoutInMs, logger);
+            
         }
 
-        static void postprocess(ILogger logger, string downloadBinPath)
+        static void postprocess(ILogger logger, IBootstrapperSettings settings)
         {
-            var postprocessorFilePath = Path.Combine(downloadBinPath, PostprocessorFilename);
+            var postprocessorFilePath = settings.PostProcessorFilePath;
 
             var processRunner = new ProcessRunner();
-            processRunner.Execute(postprocessorFilePath, "", downloadBinPath, postprocessorTimeoutInMs, logger);
+            processRunner.Execute(postprocessorFilePath, "", settings.DownloadDirectory, settings.PostProcessorTimeoutInMs, logger);
         }
+
     }
 }
