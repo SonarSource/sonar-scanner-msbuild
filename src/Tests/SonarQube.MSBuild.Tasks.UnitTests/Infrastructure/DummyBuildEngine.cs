@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="WriteProjectInfoFileTests.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="DummyBuildEngine.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -9,6 +9,7 @@ using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SonarQube.MSBuild.Tasks.UnitTests
 {
@@ -89,12 +90,32 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
         public void AssertNoErrors()
         {
-            Assert.AreEqual(0, this.errors.Count, "Not expecting any errors to be logged");
+            Assert.AreEqual(0, this.errors.Count, "Not expecting any errors to have been logged");
         }
 
         public void AssertNoWarnings()
         {
-            Assert.AreEqual(0, this.warnings.Count, "Not expecting any warnings to be logged");
+            Assert.AreEqual(0, this.warnings.Count, "Not expecting any warnings to have been logged");
+        }
+
+        /// <summary>
+        /// Checks that an error exists that contains all of the specified strings
+        /// </summary>
+        public void AssertErrorExists(params string[] expected)
+        {
+            IEnumerable<BuildErrorEventArgs> matches = this.errors.Where(w => expected.All(e => w.Message.Contains(e)));
+            Assert.AreNotEqual(0, matches.Count(), "No error contains the expected strings: {0}", string.Join(",", expected));
+            Assert.AreEqual(1, matches.Count(), "More than one error contains the expected strings: {0}", string.Join(",", expected));
+        }
+
+        /// <summary>
+        /// Checks that an warning exists that contains all of the specified strings
+        /// </summary>
+        public void AssertWarningExists(params string[] expected)
+        {
+            IEnumerable<BuildWarningEventArgs> matches = this.warnings.Where(w => expected.All(e => w.Message.Contains(e)));
+            Assert.AreNotEqual(0, matches.Count(), "No warning contains the expected strings: {0}", string.Join(",", expected));
+            Assert.AreEqual(1, matches.Count(), "More than one warning contains the expected strings: {0}", string.Join(",", expected));
         }
 
         #endregion

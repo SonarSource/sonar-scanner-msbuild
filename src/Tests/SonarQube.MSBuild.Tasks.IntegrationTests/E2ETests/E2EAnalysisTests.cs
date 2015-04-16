@@ -53,8 +53,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             AddEmptyCodeFile(descriptor, rootInputFolder);
 
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+
             // Act
-            string projectSpecificOutputDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder);
+            string projectSpecificOutputDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
             // Assert
             CheckProjectOutputFolder(descriptor, projectSpecificOutputDir);
@@ -72,9 +74,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
-            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarQubeAnalysis = "true";
-            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
 
             preImportProperties["SonarConfigPath"] = rootInputFolder;
 
@@ -119,11 +119,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
-            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarQubeAnalysis = "true";
-            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
-
-            preImportProperties["SonarConfigPath"] = rootInputFolder;
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
 
             ProjectDescriptor descriptor = new ProjectDescriptor()
             {
@@ -169,8 +165,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             AddEmptyContentFile(descriptor, rootInputFolder);
             AddEmptyContentFile(descriptor, rootInputFolder);
 
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+
             // Act
-            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder);
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
             AssertFileDoesNotExist(projectDir, ExpectedManagedInputsListFileName);
             AssertFileExists(projectDir, ExpectedContentsListFileName);
@@ -192,8 +190,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             AddEmptyCodeFile(descriptor, rootInputFolder);
             AddEmptyCodeFile(descriptor, rootInputFolder);
 
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+
             // Act
-            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder);
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
             AssertFileExists(projectDir, ExpectedManagedInputsListFileName);
             AssertFileDoesNotExist(projectDir, ExpectedContentsListFileName);
@@ -211,8 +211,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
 
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+
             // Act
-            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder);
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
             AssertFileDoesNotExist(projectDir, ExpectedManagedInputsListFileName);
             AssertFileDoesNotExist(projectDir, ExpectedContentsListFileName);
@@ -237,8 +239,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             AddEmptyContentFile(descriptor, rootInputFolder);
             AddEmptyContentFile(descriptor, rootInputFolder);
 
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+
             // Act
-            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder);
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
             AssertFileExists(projectDir, ExpectedManagedInputsListFileName);
             AssertFileExists(projectDir, ExpectedContentsListFileName);
@@ -257,18 +261,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
+            descriptor.IsExcluded = true;
 
-            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarQubeAnalysis = "true";
-            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
             preImportProperties.SonarQubeExclude = "tRUe";
 
-            ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
-
-            BuildLogger logger = new BuildLogger();
-
             // Act
-            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder);
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
             CheckProjectOutputFolder(descriptor, projectDir);
         }
@@ -302,15 +301,27 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         }
 
         /// <summary>
+        /// Creates a default set of properties sufficient to trigger test analysis
+        /// </summary>
+        /// <param name="inputPath">The analysis config directory</param>
+        /// <param name="outputPath">The output path into which results should be written</param>
+        /// <returns></returns>
+        private static WellKnownProjectProperties CreateDefaultAnalysisProperties(string configPath, string outputPath)
+        {
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = outputPath;
+            preImportProperties.SonarQubeConfigPath = configPath;
+            return preImportProperties;
+        }
+
+        /// <summary>
         /// Creates and builds a new Sonar-enabled project using the supplied descriptor.
         /// The method will check the build succeeded and that a single project output file was created.
         /// </summary>
         /// <returns>The full path of the project-specsific directory that was created during the build</returns>
-        private string CreateAndBuildSonarProject(ProjectDescriptor descriptor, string rootOutputFolder)
+        private string CreateAndBuildSonarProject(ProjectDescriptor descriptor, string rootOutputFolder, WellKnownProjectProperties preImportProperties)
         {
-            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarQubeAnalysis = "true";
-            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
 
             BuildLogger logger = new BuildLogger();

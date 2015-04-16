@@ -59,8 +59,9 @@
       If the $(SonarQubeTestProject) is not set then the targets will determine the project
       type as follows:
       
-      1) Projects whose full project file name matches the regular expression in the property
-          $(SonarQubeTestProjectNameRegex) will be treated as test projects.
+      1) Projects whose full project file name matches the regular expression in the analysis
+			   config file will be treated as test projects. This is set via the SonarQube portal
+				 (the "Test project pattern" in the per-project settings for C#).
           By default, any projects with:
           * "test" (case-insensitive) in the project name, or
           * that have a directory called "test" or "tests" in the path
@@ -109,7 +110,7 @@
   </PropertyGroup>
 
   <UsingTask TaskName="WriteProjectInfoFile" AssemblyFile="$(SonarQubeBuildTasksAssemblyFile)" />
-
+  <UsingTask TaskName="IsTestFileByName" AssemblyFile="$(SonarQubeBuildTasksAssemblyFile)" />
 
   <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
@@ -131,7 +132,10 @@
   <Target Name="WriteSonarQubeProjectData" AfterTargets="CoreCompile"
         Condition="$(RunSonarQubeAnalysis) == 'true' AND  $(SonarQubeOutputPath) != '' ">
 		
-    <!-- Calculate a project-specific folder name -->
+		<!-- **************************************************************************** -->
+    <!-- Create the project-specific directory -->
+		
+    <!-- Calculate a project-specific directory name -->
     <PropertyGroup>
       <FolderDisambiguator>$(ProjectGuid)</FolderDisambiguator>
       <FolderDisambiguator Condition=" $(FolderDisambiguator)=='' ">$([System.Guid]::NewGuid())</FolderDisambiguator>
@@ -145,6 +149,9 @@
     <RemoveDir Directories="$(ProjectSpecificDir)" />
     <MakeDir Directories="$(ProjectSpecificDir)" />
 
+    <!-- **************************************************************************** -->
+    <!-- Write of file lists -->
+		
     <ItemGroup>
       <!-- Calculate the sets of files to write out to the file lists.
            Exclude any that have the metadata 'SonarQubeExclude' set, or that are auto-generated -->
@@ -191,9 +198,12 @@
       </AnalysisResults>
     </ItemGroup>
 
-    <!-- Work out if the project is a test project or not -->
+		<!-- **************************************************************************** -->
+    <!-- Categorise as a product or test project -->
+		
+	  <!-- Work out if the project is a test project or not -->
     <!-- If it is explicitly marked then use that value, otherwise:
-          * check if the name matches the regular expression, or
+          * check if the name matches the regular expression in the config file, or
           * check if it has one of the expected project types guids.
          If either is true then the project is a test project, otherwise
          it is a product project.
@@ -201,23 +211,20 @@
     <PropertyGroup Condition=" $(SonarQubeTestProject) == '' ">
       <!-- The MS Test project type guid-->
       <SonarMsTestProjectTypeGuid>3AC096D0-A1C2-E12C-1390-A8335801FDAB</SonarMsTestProjectTypeGuid>
-
-      <!-- Default SonarQube test project regular expression -->
-      <!-- NOTE: this uses .NET regular expression syntax -->
-      <!-- Matches: any project under a "\test\" or "\tests" directory, or that has "test" in the file name" -->
-      <SonarQubeTestProjectNameRegex Condition=" $(SonarQubeTestProjectNameRegex) == '' ">(.*\\tests?\\.*)|(\.*test[^\\]*$)</SonarQubeTestProjectNameRegex>
-
-      <SonarQubeTestProject Condition=" $(SonarQubeTestProjectNameRegex) != '' AND
-                        $([System.Text.RegularExpressions.Regex]::IsMatch($(MSBuildProjectFullPath), $(SonarQubeTestProjectNameRegex), System.Text.RegularExpressions.RegexOptions.IgnoreCase)) ">true</SonarQubeTestProject>
-
-      <SonarQubeTestProject Condition=" $(SonarQubeTestProject) == '' AND $(ProjectTypeGuid.ToUpperInvariant().Contains('$(SonarMsTestProjectTypeGuid)')) ">true</SonarQubeTestProject>
-      
-      <SonarQubeTestProject Condition=" $(SonarQubeTestProject) == '' ">false</SonarQubeTestProject>
+      <SonarQubeTestProject Condition=" $(ProjectTypeGuid.ToUpperInvariant().Contains('$(SonarMsTestProjectTypeGuid)')) ">true</SonarQubeTestProject>
     </PropertyGroup>
 
+		<!-- If we haven't already determined whether the project is a test project then check
+         its path/name against the regular expression in the config file -->
+		<IsTestFileByName Condition=" $(SonarQubeTestProject) == '' "
+				AnalysisConfigDir="$(SonarQubeConfigPath)"
+				FullFilePath="$(MSBuildProjectFullPath)">
+			<Output TaskParameter="IsTest" PropertyName="SonarQubeTestProject" />
+		</IsTestFileByName>
+		
     <Message Importance="low" Condition=" $(SonarQubeTestProject) == 'true' "
              Text="SonarQube: project will be treated as a test project : $(MSBuildProjectName)" />
-
+		
 		<PropertyGroup >
 			<!-- Ensure SonarQubeExclude has a value -->
 		  <SonarQubeExclude Condition=" $(SonarQubeExclude) == '' ">false</SonarQubeExclude>	
@@ -232,7 +239,7 @@
        OutputFolder="$(ProjectSpecificDir)" />
   </Target>
 
-
+	
   <!-- **************************************************************************** -->
   <!-- FxCop -->
   <!-- **************************************************************************** -->

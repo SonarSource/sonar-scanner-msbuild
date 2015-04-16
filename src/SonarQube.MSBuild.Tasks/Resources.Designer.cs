@@ -61,6 +61,36 @@ namespace SonarQube.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The configured regular expression for detecting test projects is invalid.
+        ///Check the &quot;{2}&quot; setting in the SonarQube portal.
+        ///Expression: {0}
+        ///Error: {1}.
+        /// </summary>
+        internal static string IsTest_InvalidRegularExpression {
+            get {
+                return ResourceManager.GetString("IsTest_InvalidRegularExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regular expression could not determined from the config file. Using the default: {0}.
+        /// </summary>
+        internal static string IsTest_UsingDefaultRegEx {
+            get {
+                return ResourceManager.GetString("IsTest_UsingDefaultRegEx", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using regular expression from analysis config file: {0}.
+        /// </summary>
+        internal static string IsTest_UsingRegExFromConfig {
+            get {
+                return ResourceManager.GetString("IsTest_UsingRegExFromConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to resolve path relative to project file. Path: {0}.
         /// </summary>
         internal static string WPIF_FailedToResolvePath {

@@ -18,86 +18,91 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public string RunSonarQubeAnalysis
         {
-            get { return this[TargetProperties.RunSonarQubeAnalysis]; }
+            get { return this.GetValueOrNull(TargetProperties.RunSonarQubeAnalysis); }
             set { this[TargetProperties.RunSonarQubeAnalysis] = value; }
         }
 
         public string SonarQubeExclude
         {
-            get { return this[TargetProperties.SonarQubeExcludeMetadata]; }
+            get { return this.GetValueOrNull(TargetProperties.SonarQubeExcludeMetadata); }
             set { this[TargetProperties.SonarQubeExcludeMetadata] = value; }
         }
 
         public string SonarQubeTargetsPath
         {
-            get { return this[TargetProperties.SonarQubeTargetsPath]; }
+            get { return this.GetValueOrNull(TargetProperties.SonarQubeTargetsPath); }
             set { this[TargetProperties.SonarQubeTargetsPath] = value; }
         }
 
         public string SonarQubeOutputPath
         {
-            get { return this[TargetProperties.SonarQubeOutputPath]; }
+            get { return this.GetValueOrNull(TargetProperties.SonarQubeOutputPath); }
             set { this[TargetProperties.SonarQubeOutputPath] = value; }
         }
 
         public string SonarQubeConfigPath
         {
-            get { return this[TargetProperties.SonarQubeConfigPath]; }
+            get { return this.GetValueOrNull(TargetProperties.SonarQubeConfigPath); }
             set { this[TargetProperties.SonarQubeConfigPath] = value; }
         }
 
         public string SonarQubeTempPath
         {
-            get { return this[TargetProperties.SonarQubeTempPath]; }
+            get { return this.GetValueOrNull(TargetProperties.SonarQubeTempPath); }
             set { this[TargetProperties.SonarQubeTempPath] = value; }
         }
 
         public string RunCodeAnalysis
         {
-            get { return this[TargetProperties.RunCodeAnalysis]; }
+            get { return this.GetValueOrNull(TargetProperties.RunCodeAnalysis); }
             set { this[TargetProperties.RunCodeAnalysis] = value; }
         }
 
         public string CodeAnalysisLogFile
         {
-            get { return this[TargetProperties.CodeAnalysisLogFile]; }
+            get { return this.GetValueOrNull(TargetProperties.CodeAnalysisLogFile); }
             set { this[TargetProperties.CodeAnalysisLogFile] = value; }
         }
 
         public string CodeAnalysisRuleset
         {
-            get { return this[TargetProperties.CodeAnalysisRuleset]; }
+            get { return this.GetValueOrNull(TargetProperties.CodeAnalysisRuleset); }
             set { this[TargetProperties.CodeAnalysisRuleset] = value; }
         }
 
         public string TeamBuildBuildDirectory
         {
-            get { return this[TargetProperties.TeamBuildBuildDirectory]; }
+            get { return this.GetValueOrNull(TargetProperties.TeamBuildBuildDirectory); }
             set { this[TargetProperties.TeamBuildBuildDirectory] = value; }
         }
 
         public string MSBuildExtensionsPath
         {
-            get { return this[TargetProperties.MSBuildExtensionsPath]; }
+            get { return this.GetValueOrNull(TargetProperties.MSBuildExtensionsPath); }
             set { this[TargetProperties.MSBuildExtensionsPath] = value; }
         }
 
         public string SonarTestProject
         {
-            get { return this[TargetProperties.SonarQubeTestProject]; }
+            get { return this.GetValueOrNull(TargetProperties.SonarQubeTestProject); }
             set { this[TargetProperties.SonarQubeTestProject] = value; }
-        }
-
-        public string TestProjectNameRegex
-        {
-            get { return this[TargetProperties.SonarQubeTestProjectNameRegex]; }
-            set { this[TargetProperties.SonarQubeTestProjectNameRegex] = value; }
         }
 
         public string ProjectTypeGuids
         {
-            get { return this[TargetProperties.ProjectTypeGuid]; }
+            get { return this.GetValueOrNull(TargetProperties.ProjectTypeGuid); }
             set { this[TargetProperties.ProjectTypeGuid] = value; }
+        }
+
+        #endregion
+
+        #region Private methods
+
+        private string GetValueOrNull(string key)
+        {
+            string value;
+            this.TryGetValue(key, out value);
+            return value;
         }
 
         #endregion

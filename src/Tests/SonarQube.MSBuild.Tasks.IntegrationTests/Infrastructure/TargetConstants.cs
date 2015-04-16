@@ -42,7 +42,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string SonarBuildTasksAssemblyFile = "SonarQubeBuildTasksAssemblyFile";
 
         public const string SonarQubeTestProject = "SonarQubeTestProject";
-        public const string SonarQubeTestProjectNameRegex = "SonarQubeTestProjectNameRegex";
         public const string SonarQubeExcludeMetadata = "SonarQubeExclude";
         public const string SonarQubeRulesetName = "SonarQubeAnalysis.ruleset";
 

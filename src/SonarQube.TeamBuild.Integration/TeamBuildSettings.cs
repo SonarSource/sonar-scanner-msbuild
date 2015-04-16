@@ -18,8 +18,6 @@ namespace SonarQube.TeamBuild.Integration
     /// </summary>
     public class TeamBuildSettings
     {
-        internal const string ConfigFileName = "SonarQubeAnalysisConfig.xml";
-
         internal const int DefaultLegacyCodeCoverageTimeout = 30000; // ms
 
         internal static class EnvironmentVariables
@@ -216,7 +214,7 @@ namespace SonarQube.TeamBuild.Integration
 
         public string AnalysisConfigFilePath
         {
-            get { return Path.Combine(this.SonarConfigDir, ConfigFileName); }
+            get { return Path.Combine(this.SonarConfigDir, FileConstants.ConfigFileName); }
         }
 
         #endregion

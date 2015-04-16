@@ -67,6 +67,16 @@ namespace TestUtilities
         }
 
         /// <summary>
+        /// Checks that an error exists that contains all of the specified strings
+        /// </summary>
+        public void AssertErrorExists(params string[] expected)
+        {
+            IEnumerable<string> matches = this.Errors.Where(w => expected.All(e => w.Contains(e)));
+            Assert.AreNotEqual(0, matches.Count(), "No error contains the expected strings: {0}", string.Join(",", expected));
+            Assert.AreEqual(1, matches.Count(), "More than one error contains the expected strings: {0}", string.Join(",", expected));
+        }
+
+        /// <summary>
         /// Checks that a warning exists that contains all of the specified strings
         /// </summary>
         public void AssertWarningExists(params string[] expected)

@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using System.IO;
 using TestUtilities;
 
@@ -236,7 +237,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // Check the calculated values
             Assert.AreEqual(Path.Combine(expectedDir,"SQTemp\\Config"), actual.SonarConfigDir, "Unexpected config dir");
             Assert.AreEqual(Path.Combine(expectedDir, "SQTemp\\Output"), actual.SonarOutputDir, "Unexpected output dir");
-            Assert.AreEqual(Path.Combine(expectedDir, "SQTemp\\Config", TeamBuildSettings.ConfigFileName), actual.AnalysisConfigFilePath, "Unexpected analysis file path");
+            Assert.AreEqual(Path.Combine(expectedDir, "SQTemp\\Config", FileConstants.ConfigFileName), actual.AnalysisConfigFilePath, "Unexpected analysis file path");
         }
 
         private static void CheckExpectedTimeoutReturned(string envValue, int expected)

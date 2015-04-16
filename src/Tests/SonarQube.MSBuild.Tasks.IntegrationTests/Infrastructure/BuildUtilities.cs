@@ -154,8 +154,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             ProjectRootElement root = ProjectRootElement.Create();
             
-            //root.AddImport(@"$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props");
-
             foreach(string importTarget in importsBeforeTargets)
             {
                 Assert.IsTrue(File.Exists(importTarget), "Test error: the specified target file does not exist. Path: {0}", importTarget);

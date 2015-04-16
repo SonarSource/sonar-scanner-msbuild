@@ -90,6 +90,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
             preImportProperties.SonarQubeOutputPath = rootOutputFolder;
+            preImportProperties.SonarQubeConfigPath = rootInputFolder;
             preImportProperties.RunCodeAnalysis = "TRUE";
             preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
