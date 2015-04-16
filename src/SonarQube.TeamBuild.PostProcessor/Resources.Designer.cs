@@ -132,5 +132,14 @@ namespace SonarQube.TeamBuild.PostProcessor {
                 return ResourceManager.GetString("Report_ProjectInfoSummary", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating the TeamBuild summary....
+        /// </summary>
+        internal static string Report_UpdatingTeamBuildSummary {
+            get {
+                return ResourceManager.GetString("Report_UpdatingTeamBuildSummary", resourceCulture);
+            }
+        }
     }
 }

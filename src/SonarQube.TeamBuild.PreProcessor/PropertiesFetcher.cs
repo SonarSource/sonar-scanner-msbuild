@@ -19,6 +19,10 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public IDictionary<string, string> FetchProperties(SonarWebService ws, string sonarProjectKey)
         {
+            if (ws == null)
+            {
+                throw new ArgumentNullException("ws");
+            }    
             if (string.IsNullOrWhiteSpace(sonarProjectKey))
             {
                 throw new ArgumentNullException("sonarProjectKey");

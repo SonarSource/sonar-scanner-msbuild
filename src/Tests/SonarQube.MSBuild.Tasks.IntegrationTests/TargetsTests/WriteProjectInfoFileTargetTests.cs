@@ -323,11 +323,14 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "a.proj.txt");
             ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
 
-            string file1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false");
-            string excludedFile1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "true");
-            string file2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "FALSE");
-            string excludedFile2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "TRUE");
-            string file3 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null); // no metadata
+            // Files we expect to be included
+            string file1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false"); // product file 1
+            string file2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "FALSE"); // product file 2
+            string file3 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null); // product file with no metadata
+
+            // Files we do not expect to be included
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "TRUE"); // excluded 2
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "true"); // excluded 1
 
             // Act
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
@@ -350,13 +353,16 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "agM.proj.txt");
             ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
 
+            // Files we expected to be included
             string compile1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, null); // no metadata
-            string autogenTrue1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, "TRUE"); // only AutoGen, set to true
-            string autogenTrue2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false", "truE"); // exclude=false, autogen=true
             string autogenFalseAndIncluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false", "FALSe"); // exclude=false, autogen=false
-            string autogenFalseButExcluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "true", "false"); // exclude=true, autogen=false
-            string nonCompileItem1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, "false"); // autogen=false, but wrong item type
-            string nonCompileItem2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, null); // wrong item type
+            
+            // Files we don't expect to be included
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, "TRUE"); // only AutoGen, set to true
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false", "truE"); // exclude=false, autogen=true
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "true", "false"); // exclude=true, autogen=false
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, "false"); // autogen=false, but wrong item type
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, null); // wrong item type
 
             // Act
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
@@ -400,11 +406,14 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "content.X.proj.txt");
             ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
 
+            // Files we expect to be included
             string file1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false");
-            string excludedFile1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "true");
             string file2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "FALSE");
-            string excludedFile2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "TRUE");
             string file3 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null); // no metadata
+
+            // Files we don't expect to be included
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "true");
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "TRUE");
 
             // Act
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
@@ -426,14 +435,17 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "agC.proj.txt");
             ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+            
+            // Files we don't expect to be included
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, "TRUE"); // only AutoGen, set to true
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false", "truE"); // exclude=false, autogen=true
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "true", "false"); // exclude=true, autogen=false
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, "false"); // autogen=false, but wrong item type
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, null); // wrong item type
 
+            // Files we expect to be included
             string content1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, null); // no metadata
-            string autogenTrue1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, "TRUE"); // only AutoGen, set to true
-            string autogenTrue2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false", "truE"); // exclude=false, autogen=true
             string autogenFalseAndIncluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false", "FALSe"); // exclude=false, autogen=false
-            string autogenFalseButExcluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "true", "false"); // exclude=true, autogen=false
-            string nonContentItem1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, "false"); // autogen=false, but wrong item type
-            string nonContentItem2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, null); // wrong item type
 
             // Act
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);

@@ -50,7 +50,7 @@ namespace SonarRunner.Shim
                 string exeFileName = FindRunnerExe(logger);
                 if (exeFileName != null)
                 {
-                    result.RanToCompletion = ExecuteJavaRunner(config, logger, exeFileName, result.FullPropertiesFilePath);
+                    result.RanToCompletion = ExecuteJavaRunner(logger, exeFileName, result.FullPropertiesFilePath);
                 }
             }
 
@@ -75,7 +75,7 @@ namespace SonarRunner.Shim
             return exeFileName;
         }
 
-        private static bool ExecuteJavaRunner(AnalysisConfig config, ILogger logger, string exeFileName, string propertiesFileName)
+        private static bool ExecuteJavaRunner(ILogger logger, string exeFileName, string propertiesFileName)
         {
             Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
             Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);

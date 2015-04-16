@@ -69,9 +69,29 @@ namespace SonarQube.TeamBuild.PreProcessor
             return Client.DownloadString(url);
         }
 
+        #region IDisposable implementation
+
+        private bool disposed;
+
         public void Dispose()
         {
-            Client.Dispose();
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposed && disposing)
+            {
+                if (this.Client != null)
+                {
+                    this.Client.Dispose();
+                }
+            }
+
+            this.disposed = true;
+        }
+
+        #endregion
     }
 }

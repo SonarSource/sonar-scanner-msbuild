@@ -15,7 +15,7 @@ using Newtonsoft.Json.Linq;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
-    public class SonarWebService : IDisposable
+    public sealed class SonarWebService : IDisposable
     {
         public string Server { get; private set; }
         private readonly string Language;
@@ -24,6 +24,23 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public SonarWebService(IDownloader downloader, string server, string language, string repository)
         {
+            if (downloader == null)
+            {
+                throw new ArgumentNullException("downloader");
+            }
+            if (string.IsNullOrWhiteSpace(server))
+            {
+                throw new ArgumentNullException("server");
+            }
+            if (string.IsNullOrWhiteSpace(language))
+            {
+                throw new ArgumentNullException("language");
+            }
+            if (string.IsNullOrWhiteSpace(repository))
+            {
+                throw new ArgumentNullException("repository");
+            }
+            
             Downloader = downloader;
             Server = server.EndsWith("/") ? server.Substring(0, server.Length - 1) : server;
             Language = language;
@@ -100,19 +117,39 @@ namespace SonarQube.TeamBuild.PreProcessor
             return properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
         }
 
-        public void Dispose()
-        {
-            Downloader.Dispose();
-        }
-
         private string GetUrl(string format, params string[] args)
         {
-            var queryString = string.Format(format, args.Select(a => Uri.EscapeUriString(a)).ToArray());
-            if (!queryString.StartsWith("/"))
+            var queryString = string.Format(System.Globalization.CultureInfo.InvariantCulture, format, args.Select(a => Uri.EscapeUriString(a)).ToArray());
+            if (!queryString.StartsWith("/", StringComparison.OrdinalIgnoreCase))
             {
                 queryString = '/' + queryString;
             }
             return Server + queryString;
         }
+
+        #region IDispose implementation
+
+        private bool disposed;
+
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (!this.disposed && disposing)
+            {
+                if (this.Downloader != null)
+                {
+                    this.Downloader.Dispose();
+                }
+            }
+
+            this.disposed = true;
+        }
+
+        #endregion
     }
 }

@@ -21,6 +21,19 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public void Generate(SonarWebService ws, string sonarProjectKey, string outputFilePath)
         {
+            if (ws == null)
+            {
+                throw new ArgumentNullException("ws");
+            }
+            if (string.IsNullOrWhiteSpace(sonarProjectKey))
+            {
+                throw new ArgumentNullException("sonarProjectKey");
+            }
+            if (string.IsNullOrWhiteSpace(outputFilePath))
+            {
+                throw new ArgumentNullException("outputFilePath");
+            }
+            
             var qualityProfile = ws.GetQualityProfile(sonarProjectKey);
             var activeRuleKeys = ws.GetActiveRuleKeys(qualityProfile);
             if (activeRuleKeys.Any())

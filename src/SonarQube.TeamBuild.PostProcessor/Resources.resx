@@ -142,4 +142,7 @@ Expected location: {0}</value>
   <data name="Report_ProjectInfoSummary" xml:space="preserve">
     <value>SonarQube project: {0} ({1}), version: {2}</value>
   </data>
+  <data name="Report_UpdatingTeamBuildSummary" xml:space="preserve">
+    <value>Updating the TeamBuild summary...</value>
+  </data>
 </root>

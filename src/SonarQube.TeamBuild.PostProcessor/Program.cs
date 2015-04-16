@@ -51,7 +51,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
                 && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
             {
-                WriteTeamBuildSummaryReport(config, result, logger);
+                UpdateTeamBuildSummary(config, result, logger);
             }
 
             return result.RanToCompletion ? SuccessCode : ErrorCode;
@@ -92,8 +92,10 @@ namespace SonarQube.TeamBuild.PostProcessor
             return result;
         }
 
-        private static void WriteTeamBuildSummaryReport(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+        private static void UpdateTeamBuildSummary(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
+            logger.LogMessage(Resources.Report_UpdatingTeamBuildSummary);
+
             int skippedProjectCount = GetProjectsByStatus(result, ProjectInfoValidity.NoFilesToAnalyze).Count();
             int invalidProjectCount = GetProjectsByStatus(result, ProjectInfoValidity.InvalidGuid).Count();
             invalidProjectCount += GetProjectsByStatus(result, ProjectInfoValidity.DuplicateGuid).Count();

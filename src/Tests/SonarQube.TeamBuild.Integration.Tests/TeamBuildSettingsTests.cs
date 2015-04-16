@@ -235,8 +235,8 @@ namespace SonarQube.TeamBuild.Integration.Tests
             Assert.AreEqual(expectedCollectionUri, actual.TfsUri, "Unexpected tfs uri returned");
 
             // Check the calculated values
-            Assert.AreEqual(Path.Combine(expectedDir,"SQTemp\\Config"), actual.SonarConfigDir, "Unexpected config dir");
-            Assert.AreEqual(Path.Combine(expectedDir, "SQTemp\\Output"), actual.SonarOutputDir, "Unexpected output dir");
+            Assert.AreEqual(Path.Combine(expectedDir,"SQTemp\\Config"), actual.SonarConfigDirectory, "Unexpected config dir");
+            Assert.AreEqual(Path.Combine(expectedDir, "SQTemp\\Output"), actual.SonarOutputDirectory, "Unexpected output dir");
             Assert.AreEqual(Path.Combine(expectedDir, "SQTemp\\Config", FileConstants.ConfigFileName), actual.AnalysisConfigFilePath, "Unexpected analysis file path");
         }
 

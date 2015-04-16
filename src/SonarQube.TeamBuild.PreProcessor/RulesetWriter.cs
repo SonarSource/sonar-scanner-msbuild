@@ -16,6 +16,11 @@ namespace SonarQube.TeamBuild.PreProcessor
     {
         public static string ToString(IEnumerable<string> ids)
         {
+            if (ids == null)
+            {
+                ids = Enumerable.Empty<string>();
+            }
+            
             var duplicates = ids.ToList().GroupBy(id => id).Where(g => g.Count() >= 2).Select(g => g.Key);
             if (duplicates.Any())
             {

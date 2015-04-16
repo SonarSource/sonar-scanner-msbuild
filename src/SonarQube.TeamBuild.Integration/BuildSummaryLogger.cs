@@ -77,12 +77,13 @@ namespace SonarQube.TeamBuild.Integration
 
         #region IDisposable interface
 
-        public virtual void Dispose()
+        public void Dispose()
         {
             this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (!disposed && disposing)
             {
@@ -94,8 +95,9 @@ namespace SonarQube.TeamBuild.Integration
                     this.teamProjectCollection = null;
                     this.build = null;
                 }
-                this.disposed = true;
             }
+        
+            this.disposed = true;
         }
 
         #endregion

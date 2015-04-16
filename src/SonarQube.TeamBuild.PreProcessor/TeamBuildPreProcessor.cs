@@ -92,8 +92,8 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             config.SetBuildUri(teamBuildSettings.BuildUri);
             config.SetTfsUri(teamBuildSettings.TfsUri);
-            config.SonarConfigDir = teamBuildSettings.SonarConfigDir;
-            config.SonarOutputDir = teamBuildSettings.SonarOutputDir;
+            config.SonarConfigDir = teamBuildSettings.SonarConfigDirectory;
+            config.SonarOutputDir = teamBuildSettings.SonarOutputDirectory;
 
             // Create the directories
             logger.LogMessage(Resources.DIAG_CreatingFolders);
@@ -103,10 +103,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             using (SonarWebService ws = GetSonarWebService(config))
             {
                 // Fetch the SonarQube project properties
-                FetchSonarQubeProperties(logger, config, ws);
+                FetchSonarQubeProperties(config, ws);
 
                 // Generate the FxCop ruleset
-                GenerateFxCopRuleset(logger, config, ws);
+                GenerateFxCopRuleset(config, ws);
             }
 
             // Save the config file
@@ -131,7 +131,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             Directory.CreateDirectory(directory);
         }
 
-        private SonarWebService GetSonarWebService(AnalysisConfig config)
+        private static SonarWebService GetSonarWebService(AnalysisConfig config)
         {
             FilePropertiesProvider sonarRunnerProperties = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
 
@@ -142,7 +142,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             return new SonarWebService(new WebClientDownloader(new WebClient(), username, password), server, "cs", "fxcop");
         }
 
-        private void FetchSonarQubeProperties(ILogger logger, AnalysisConfig config, SonarWebService ws)
+        private void FetchSonarQubeProperties(AnalysisConfig config, SonarWebService ws)
         {
             var properties = this.propertiesFetcher.FetchProperties(ws, config.SonarProjectKey);
             foreach (var property in properties)
@@ -151,7 +151,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
         }
 
-        private void GenerateFxCopRuleset(ILogger logger, AnalysisConfig config, SonarWebService ws)
+        private void GenerateFxCopRuleset(AnalysisConfig config, SonarWebService ws)
         {
             this.rulesetGenerator.Generate(ws, config.SonarProjectKey, Path.Combine(config.SonarConfigDir, FxCopRulesetFileName));
         }

@@ -16,7 +16,7 @@ namespace SonarQube.Common
     /// </summary>
     public sealed class ProcessRunner
     {
-        private ILogger logger;
+        private ILogger outputLogger;
         
         #region Public methods
 
@@ -33,14 +33,14 @@ namespace SonarQube.Common
         {
             if (string.IsNullOrWhiteSpace(exeName))
             {
-                throw new ArgumentNullException("exeFullName");
+                throw new ArgumentNullException("exeName");
             }
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
             }
             
-            this.logger = logger;
+            this.outputLogger = logger;
 
             ProcessStartInfo psi = new ProcessStartInfo()
             {
@@ -56,9 +56,11 @@ namespace SonarQube.Common
 
 
             bool succeeded;
-            Process process = new Process();
+            Process process = null;
             try
             {
+                process = new Process();
+
                 process.StartInfo = psi;
                 process.ErrorDataReceived += OnErrorDataReceived;
                 process.OutputDataReceived += OnOutputDataReceived;
@@ -106,7 +108,7 @@ namespace SonarQube.Common
         {
             if (e.Data != null)
             {
-                this.logger.LogMessage(e.Data);
+                this.outputLogger.LogMessage(e.Data);
             }
         }
 
@@ -115,7 +117,7 @@ namespace SonarQube.Common
             if (e.Data != null)
             {
                 this.ErrorsLogged = true;
-                this.logger.LogError(e.Data);
+                this.outputLogger.LogError(e.Data);
             }
         }
 

@@ -62,9 +62,14 @@ namespace SonarQube.TeamBuild.Integration
         /// </summary>
         public static TeamBuildSettings GetSettingsFromEnvironment(ILogger logger)
         {
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+            
             TeamBuildSettings settings = null;
 
-            BuildEnvironment env = GetBuildEnvironemnt();
+            BuildEnvironment env = GetBuildEnvironment();
             switch (env)
             {
                 case BuildEnvironment.LegacyTeamBuild:
@@ -116,7 +121,7 @@ namespace SonarQube.TeamBuild.Integration
         /// <summary>
         /// Returns the type of the current build enviroment: not under TeamBuild, legacy TeamBuild, "new" TeamBuild
         /// </summary>
-        public static BuildEnvironment GetBuildEnvironemnt()
+        public static BuildEnvironment GetBuildEnvironment()
         {
             BuildEnvironment env = BuildEnvironment.NotTeamBuild;
 
@@ -196,7 +201,7 @@ namespace SonarQube.TeamBuild.Integration
 
         #region Public calculated properties
 
-        public string SonarConfigDir
+        public string SonarConfigDirectory
         {
             get
             {
@@ -204,7 +209,7 @@ namespace SonarQube.TeamBuild.Integration
             }
         }
 
-        public string SonarOutputDir
+        public string SonarOutputDirectory
         {
             get
             {
@@ -214,7 +219,7 @@ namespace SonarQube.TeamBuild.Integration
 
         public string AnalysisConfigFilePath
         {
-            get { return Path.Combine(this.SonarConfigDir, FileConstants.ConfigFileName); }
+            get { return Path.Combine(this.SonarConfigDirectory, FileConstants.ConfigFileName); }
         }
 
         #endregion
