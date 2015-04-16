@@ -60,8 +60,8 @@
       type as follows:
       
       1) Projects whose full project file name matches the regular expression in the analysis
-			   config file will be treated as test projects. This is set via the SonarQube portal
-				 (the "Test project pattern" in the per-project settings for C#).
+         config file will be treated as test projects. This is set via the SonarQube portal
+         (the "Test project pattern" in the per-project settings for C#).
           By default, any projects with:
           * "test" (case-insensitive) in the project name, or
           * that have a directory called "test" or "tests" in the path
@@ -89,10 +89,10 @@
                    >$(TF_BUILD_BUILDDIRECTORY)\SQTemp</SonarQubeTempPath>
 
     <!-- New TeamBuild system (2015 onwards) -->
-		<SonarQubeTempPath Condition=" $(SonarQubeTempPath) == '' AND $(AGENT_BUILDDIRECTORY) != '' "
+    <SonarQubeTempPath Condition=" $(SonarQubeTempPath) == '' AND $(AGENT_BUILDDIRECTORY) != '' "
                    >$(AGENT_BUILDDIRECTORY)\SQTemp</SonarQubeTempPath>
 
-		<SonarQubeConfigPath Condition="$(SonarQubeConfigPath) == '' AND $(SonarQubeTempPath) !='' "
+    <SonarQubeConfigPath Condition="$(SonarQubeConfigPath) == '' AND $(SonarQubeTempPath) !='' "
                      >$(SonarQubeTempPath)\Config\</SonarQubeConfigPath>
 
     <SonarQubeOutputPath Condition="$(SonarQubeOutputPath) == '' AND $(SonarQubeTempPath) !='' "
@@ -131,10 +131,10 @@
   <!-- **************************************************************************** -->
   <Target Name="WriteSonarQubeProjectData" AfterTargets="CoreCompile"
         Condition="$(RunSonarQubeAnalysis) == 'true' AND  $(SonarQubeOutputPath) != '' ">
-		
-		<!-- **************************************************************************** -->
+    
+    <!-- **************************************************************************** -->
     <!-- Create the project-specific directory -->
-		
+    
     <!-- Calculate a project-specific directory name -->
     <PropertyGroup>
       <FolderDisambiguator>$(ProjectGuid)</FolderDisambiguator>
@@ -151,7 +151,7 @@
 
     <!-- **************************************************************************** -->
     <!-- Write of file lists -->
-		
+    
     <ItemGroup>
       <!-- Calculate the sets of files to write out to the file lists.
            Exclude any that have the metadata 'SonarQubeExclude' set, or that are auto-generated -->
@@ -198,10 +198,10 @@
       </AnalysisResults>
     </ItemGroup>
 
-		<!-- **************************************************************************** -->
+    <!-- **************************************************************************** -->
     <!-- Categorise as a product or test project -->
-		
-	  <!-- Work out if the project is a test project or not -->
+    
+    <!-- Work out if the project is a test project or not -->
     <!-- If it is explicitly marked then use that value, otherwise:
           * check if the name matches the regular expression in the config file, or
           * check if it has one of the expected project types guids.
@@ -214,32 +214,32 @@
       <SonarQubeTestProject Condition=" $(ProjectTypeGuid.ToUpperInvariant().Contains('$(SonarMsTestProjectTypeGuid)')) ">true</SonarQubeTestProject>
     </PropertyGroup>
 
-		<!-- If we haven't already determined whether the project is a test project then check
+    <!-- If we haven't already determined whether the project is a test project then check
          its path/name against the regular expression in the config file -->
-		<IsTestFileByName Condition=" $(SonarQubeTestProject) == '' "
-				AnalysisConfigDir="$(SonarQubeConfigPath)"
-				FullFilePath="$(MSBuildProjectFullPath)">
-			<Output TaskParameter="IsTest" PropertyName="SonarQubeTestProject" />
-		</IsTestFileByName>
-		
+    <IsTestFileByName Condition=" $(SonarQubeTestProject) == '' "
+        AnalysisConfigDir="$(SonarQubeConfigPath)"
+        FullFilePath="$(MSBuildProjectFullPath)">
+      <Output TaskParameter="IsTest" PropertyName="SonarQubeTestProject" />
+    </IsTestFileByName>
+    
     <Message Importance="low" Condition=" $(SonarQubeTestProject) == 'true' "
              Text="SonarQube: project will be treated as a test project : $(MSBuildProjectName)" />
-		
-		<PropertyGroup >
-			<!-- Ensure SonarQubeExclude has a value -->
-		  <SonarQubeExclude Condition=" $(SonarQubeExclude) == '' ">false</SonarQubeExclude>	
-		</PropertyGroup>
+    
+    <PropertyGroup >
+      <!-- Ensure SonarQubeExclude has a value -->
+      <SonarQubeExclude Condition=" $(SonarQubeExclude) == '' ">false</SonarQubeExclude>	
+    </PropertyGroup>
 
-		<WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
+    <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
        FullProjectPath="$(MSBuildProjectFullPath)"
        ProjectGuid="$(ProjectGuid)"
        IsTest="$(SonarQubeTestProject)"
-			 IsExcluded="$(SonarQubeExclude)"
+       IsExcluded="$(SonarQubeExclude)"
        AnalysisResults="@(AnalysisResults)"
        OutputFolder="$(ProjectSpecificDir)" />
   </Target>
 
-	
+  
   <!-- **************************************************************************** -->
   <!-- FxCop -->
   <!-- **************************************************************************** -->

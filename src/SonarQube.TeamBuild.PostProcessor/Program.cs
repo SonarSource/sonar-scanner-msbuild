@@ -108,9 +108,8 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
             {
-                summaryLogger.WriteMessage(Resources.Report_ProjectInfoSummary, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
-                summaryLogger.WriteMessage(Resources.Report_ProductAndTestMessage, productProjectCount, testProjectCount);
-                summaryLogger.WriteMessage(Resources.Report_InvalidSkippedAndExcludedMessage, invalidProjectCount, skippedProjectCount, excludedProjectCount);
+                string projectDescription = string.Format(System.Globalization.CultureInfo.CurrentCulture,
+                    Resources.Report_SonarQubeProjectDescription, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
 
                 // Add a link to SonarQube dashboard if analysis succeeded
                 Debug.Assert(config.SonarRunnerPropertiesPath != null, "Not expecting the sonar-runner properties path to be null");
@@ -122,13 +121,16 @@ namespace SonarQube.TeamBuild.PostProcessor
                     string sonarUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture,
                         "{0}/dashboard/index/{1}", hostUrl, config.SonarProjectKey);
 
-                    summaryLogger.WriteMessage(Resources.Report_AnalysisSucceeded, sonarUrl);
+                    summaryLogger.WriteMessage(Resources.Report_AnalysisSucceeded, projectDescription, sonarUrl);
                 }
 
                 if (!result.RanToCompletion)
                 {
-                    summaryLogger.WriteMessage(Resources.Report_AnalysisFailed);
-                }                
+                    summaryLogger.WriteMessage(Resources.Report_AnalysisFailed, projectDescription);
+                }
+
+                summaryLogger.WriteMessage(Resources.Report_ProductAndTestMessage, productProjectCount, testProjectCount);
+                summaryLogger.WriteMessage(Resources.Report_InvalidSkippedAndExcludedMessage, invalidProjectCount, skippedProjectCount, excludedProjectCount);
             }
 
         }

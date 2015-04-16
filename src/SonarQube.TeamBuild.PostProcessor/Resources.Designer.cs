@@ -89,7 +89,7 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube analysis failed.
+        ///   Looks up a localized string similar to Analysis failed for SonarQube project {0}.
         /// </summary>
         internal static string Report_AnalysisFailed {
             get {
@@ -98,7 +98,7 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube analysis succeeded. [Analysis results] ({0}).
+        ///   Looks up a localized string similar to Analysis succeeded for SonarQube project {0} [(Analysis results)] ({1}).
         /// </summary>
         internal static string Report_AnalysisSucceeded {
             get {
@@ -107,7 +107,7 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid projects: {0}, skipped projects: {1}, excluded projects: {2}.
+        ///   Looks up a localized string similar to   Invalid projects: {0}, skipped projects: {1}, excluded projects: {2}.
         /// </summary>
         internal static string Report_InvalidSkippedAndExcludedMessage {
             get {
@@ -116,7 +116,7 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Product projects: {0}, test projects: {1}.
+        ///   Looks up a localized string similar to   Product projects: {0}, test projects: {1}.
         /// </summary>
         internal static string Report_ProductAndTestMessage {
             get {
@@ -125,11 +125,11 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube project: {0} ({1}), version: {2}.
+        ///   Looks up a localized string similar to &quot;{0}&quot;, version {2}.
         /// </summary>
-        internal static string Report_ProjectInfoSummary {
+        internal static string Report_SonarQubeProjectDescription {
             get {
-                return ResourceManager.GetString("Report_ProjectInfoSummary", resourceCulture);
+                return ResourceManager.GetString("Report_SonarQubeProjectDescription", resourceCulture);
             }
         }
         
