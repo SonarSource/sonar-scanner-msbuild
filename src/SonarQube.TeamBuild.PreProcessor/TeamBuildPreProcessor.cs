@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Program.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="TeamBuildPreProcessor.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -16,6 +16,7 @@ namespace SonarQube.TeamBuild.PreProcessor
     internal class TeamBuildPreProcessor
     {
         public const string FxCopRulesetFileName = "SonarQubeAnalysis.ruleset";
+        private const string DefaultSonarServerUrl = "http://localhost:9000";
 
         private readonly ILogger logger;
         private readonly IPropertiesFetcher propertiesFetcher;
@@ -135,7 +136,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             FilePropertiesProvider sonarRunnerProperties = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
 
-            string server = sonarRunnerProperties.GetProperty(SonarProperties.HostUrl, "http://localhost:9000");
+            string server = sonarRunnerProperties.GetProperty(SonarProperties.HostUrl, DefaultSonarServerUrl);
             string username = sonarRunnerProperties.GetProperty(SonarProperties.SonarUserName, null);
             string password = sonarRunnerProperties.GetProperty(SonarProperties.SonarPassword, null);
 
@@ -153,6 +154,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private void GenerateFxCopRuleset(AnalysisConfig config, SonarWebService ws)
         {
+            this.logger.LogMessage(Resources.DIAG_GeneratingRuleset);
             this.rulesetGenerator.Generate(ws, config.SonarProjectKey, Path.Combine(config.SonarConfigDir, FxCopRulesetFileName));
         }
 

@@ -18,35 +18,74 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     {
         private const string ActualRunnerPropertiesFileName = "sonar-runner.properties";
 
-        private const string ValidTfsUri = "http://tfs";
-        private const string ValidBuildUri = "http://build";
-
         public TestContext TestContext { get; set; }
-
 
         #region Tests
 
         [TestMethod]
-        public void PreArgProc_WrongNumberOfArguments()
+        public void PreArgProc_MissingArguments()
         {
             // 0. Setup
-            TestLogger logger = new TestLogger();
+            TestLogger logger;
 
             // 1. Null logger
             AssertException.Expects<ArgumentNullException>(() => ArgumentProcessor.TryProcessArgs(null, null));
 
-            // 2. Insufficient or too many command line arguments
-            using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope(ValidTfsUri, ValidBuildUri, this.TestContext.TestDeploymentDir))
+            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                // Too few
-                CheckProcessingFails(/* no command line args */);
-                CheckProcessingFails("key");
-                CheckProcessingFails("key", "name");
+                string envPropertiesFilePath = CreateRunnerFilesInScope(scope);
 
+                // 2. All required arguments missing
+                logger = CheckProcessingFails(/* no command line args */);
+                logger.AssertErrorExists("/key"); // we expect errors with info about the missing required parameters, which should include the primary alias
+                logger.AssertErrorExists("/name");
+                logger.AssertErrorExists("/version");
+                logger.AssertErrorDoesNotExist("/runner");
+                logger.AssertErrorsLogged(3);
 
-                // Too many
-                CheckProcessingFails("key", "name", "version", "properties", "too many args");
-                CheckProcessingFails("key", "name", "version", "properties", "too many args", "yet more unexpected args");
+                // 3. Some required arguments missing
+                logger = CheckProcessingFails("/k=key", "/v=version");
+
+                logger.AssertErrorDoesNotExist("/key");
+                logger.AssertErrorDoesNotExist("/version");
+                logger.AssertErrorDoesNotExist("/runner");
+
+                logger.AssertErrorExists("/name");
+                logger.AssertErrorsLogged(1);
+
+                // 4. Argument is present but has no value
+                logger = CheckProcessingFails("/key=k1", "/name=n1", "/version=");
+
+                logger.AssertErrorDoesNotExist("/key");
+                logger.AssertErrorDoesNotExist("/name");
+                logger.AssertErrorDoesNotExist("/runner");
+
+                logger.AssertErrorExists("/version");
+                logger.AssertErrorsLogged(1);
+            }
+        }
+
+        [TestMethod]
+        public void PreArgProc_UnrecognisedArguments()
+        {
+            // 0. Setup
+            TestLogger logger;
+
+            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            {
+                string envPropertiesFilePath = CreateRunnerFilesInScope(scope);
+
+                // 1. Additional unrecognised arguments
+                logger = CheckProcessingFails("unrecog2", "/key=k1", "/name=n1", "/version=v1", "unrecog1", string.Empty);
+
+                logger.AssertErrorDoesNotExist("/key");
+                logger.AssertErrorDoesNotExist("/name");
+                logger.AssertErrorDoesNotExist("/version");
+                logger.AssertErrorDoesNotExist("/runner");
+
+                logger.AssertErrorExists("unrecog1");
+                logger.AssertErrorExists("unrecog2");
+                logger.AssertErrorsLogged(3); // unrecog1, unrecog2, and the empty string
             }
         }
 
@@ -54,22 +93,20 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void PreArgProc_PropertiesFileSpecifiedOnCommandLine()
         {
             // 0. Setup
-            TestLogger logger = new TestLogger();
-
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string propertiesFilePath = Path.Combine(testDir, "sonar-runner.properties");
+            string propertiesFilePath = Path.Combine(testDir, ActualRunnerPropertiesFileName);
 
-            // 1. File does not exist -> args not ok
-            CheckProcessingFails("key", "name", "version", propertiesFilePath);
-
-            // 2. File exists -> args ok
+            // 1. File exists -> args ok
             File.WriteAllText(propertiesFilePath, "# empty properties file");
-            ProcessedArgs result = CheckProcessingSucceeds("key", "name", "version", propertiesFilePath);
 
-            Assert.AreEqual("key", result.ProjectKey);
-            Assert.AreEqual("name", result.ProjectName);
-            Assert.AreEqual("version", result.ProjectVersion);
-            Assert.AreEqual(propertiesFilePath, result.RunnerPropertiesPath);
+            ProcessedArgs result = CheckProcessingSucceeds("/k=key", "/n=name", "/v=version", "/r=" + propertiesFilePath);
+            AssertExpectedValues("key", "name", "version", propertiesFilePath, result);
+
+            // 2. File does not exist -> args not ok
+            File.Delete(propertiesFilePath);
+            
+            TestLogger logger = CheckProcessingFails("/k=key", "/n=name", "/v=version", "/r=" + propertiesFilePath);
+            logger.AssertErrorsLogged(1);
         }
         
         [TestMethod]
@@ -81,50 +118,103 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // of the sonar-runner executable is set.
             
             // 0. Setup
-            TestLogger logger = new TestLogger();
-
-            // Create the expected sonar-runner directory structure
-            string sonarRootDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "runnerDir");
-            string confDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "runnerDir\\conf");
-            string runnerBinDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "runnerDir\\lib");
-
-            // Create an exe and properties file within that directory structure
-            string exeFilePath = Path.Combine(runnerBinDir, SonarQube.Common.FileLocator.SonarRunnerFileName);
-            File.WriteAllText(exeFilePath, "dummy executable file"); // the exe file needs to exist, but it doesn't matter what it contains
-
-            string envPropertiesFilePath = Path.Combine(confDir, ActualRunnerPropertiesFileName);
-
-            // Create another properties file in a different directory (will be referenced explicitly on the command line)
-            string cmdLinePropertiesDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "anotherDir");
-            string cmdLinePropertiesFilePath = Path.Combine(runnerBinDir, "dummy.properties.txt"); // should be able to specify any file name on the command line
+            // Create a properties file that will be referenced explicitly on the command line
+            string cmdLinePropertiesDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "configDir");
+            string cmdLinePropertiesFilePath = Path.Combine(cmdLinePropertiesDir, "dummy.properties.txt"); // should be able to specify any file name on the command line
             File.WriteAllText(cmdLinePropertiesFilePath, "# CMD LINE empty properties file");
 
             ProcessedArgs result;
 
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetPath(runnerBinDir);
-                Assert.IsFalse(string.IsNullOrWhiteSpace(FileLocator.FindDefaultSonarRunnerExecutable()), "Test setup error: failed to locate the created runner executable file");
-
-                // 1. Not found via path (file does not exist) -> args not ok
-                using (new AssertIgnoreScope()) // expecting an assert if the exe can be found but the properties can't
-                {
-                    CheckProcessingFails("key", "name", "version");
-                }
-
-                // 2. Found via path -> args ok
+                string envPropertiesFilePath = CreateRunnerFilesInScope(scope);
+                
+                // 1. Found via path -> args ok
                 File.WriteAllText(envPropertiesFilePath, "# ENV empty properties file"); // Create the expected file
 
-                result = CheckProcessingSucceeds("key 1", "name 2", "version 3");
+                result = CheckProcessingSucceeds("/k=key 1", "/n=name 2", "/v=version 3");
+                AssertExpectedValues("key 1", "name 2", "version 3", envPropertiesFilePath, result);
 
-                Assert.AreEqual(envPropertiesFilePath, result.RunnerPropertiesPath);
-                Assert.AreEqual("key 1", result.ProjectKey);
-                Assert.AreEqual("name 2", result.ProjectName);
-                Assert.AreEqual("version 3", result.ProjectVersion);
+                // 2. Not found via path (file does not exist) -> args not ok
+                File.Delete(envPropertiesFilePath);
+
+                using (new AssertIgnoreScope()) // expecting an assert if the exe can be found but the properties can't
+                {
+                    TestLogger logger = CheckProcessingFails("/k=key 1", "/n=name 2", "/v=version 3");
+                    logger.AssertErrorsLogged(1);
+                }
 
                 // 3. Command line arg should override path -> args ok
-                result = CheckProcessingSucceeds("key 1", "name 2", "version 3", cmdLinePropertiesFilePath);
-                Assert.AreEqual(cmdLinePropertiesFilePath, result.RunnerPropertiesPath);
+                result = CheckProcessingSucceeds("/k=key 1", "/n=name 2", "/v=version 3", "/r=" + cmdLinePropertiesFilePath);
+                AssertExpectedValues("key 1", "name 2", "version 3", cmdLinePropertiesFilePath, result);
+            }
+        }
+
+        [TestMethod]
+        public void PreArgProc_Aliases()
+        {
+            // 0. Setup
+            ProcessedArgs actual;
+
+            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            {
+                string envPropertiesFilePath = CreateRunnerFilesInScope(scope);
+
+                // Valid
+                // Full names, no path
+                actual = CheckProcessingSucceeds("/key=my.key", "/name=my name", "/version=1.0");
+                AssertExpectedValues("my.key", "my name", "1.0", envPropertiesFilePath, actual);
+
+                // Aliases, no path, different order
+                actual = CheckProcessingSucceeds("/v=2.0", "/k=my.key", "/n=my name");
+                AssertExpectedValues("my.key", "my name", "2.0", envPropertiesFilePath, actual);
+
+                // Full names with path, casing
+                actual = CheckProcessingSucceeds("/KEY=my.key", "/nAme=my name", "/version=1.0", @"/runnerProperties=" + envPropertiesFilePath);
+                AssertExpectedValues("my.key", "my name", "1.0", envPropertiesFilePath, actual);
+
+                // Aliases, no path, different order: /v:2.0 /n="my name" /k=my.key 
+                actual = CheckProcessingSucceeds(@"/r=" + envPropertiesFilePath, "/v=2:0", "/k=my.key", "/n=my name");
+                AssertExpectedValues("my.key", "my name", "2:0", envPropertiesFilePath, actual);
+            }
+        }
+
+        [TestMethod]
+        public void PreArgProc_Duplicates()
+        {
+            // 0. Setup
+            TestLogger logger = new TestLogger();
+
+            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            {
+                string envPropertiesFilePath = CreateRunnerFilesInScope(scope);
+
+                // 1. Duplicate key using alias
+                logger = CheckProcessingFails("/key=my.key", "/name=my name", "/version=1.2", "/k=key2");
+                logger.AssertErrorsLogged(1);
+                logger.AssertErrorExists("/k=key2", "my.key"); // we expect the error to include the first value and the duplicate argument
+
+                // 2. Duplicate name, not using alias
+                logger = CheckProcessingFails("/key=my.key", "/name=my name", "/version=1.2", "/NAME=dupName");
+                logger.AssertErrorsLogged(1);
+                logger.AssertErrorExists("/NAME=dupName", "my name");
+
+                // 3. Duplicate version, not using alias
+                logger = CheckProcessingFails("/key=my.key", "/name=my name", "/version=1.2", "/v=version2.0");
+                logger.AssertErrorsLogged(1);
+                logger.AssertErrorExists("/v=version2.0", "1.2");
+
+                // Duplicate key (specified three times)
+                logger = CheckProcessingFails("/key=my.key", "/k=k2", "/k=key3");
+
+                logger.AssertErrorExists("/k=k2", "my.key"); // Warning about key appears twice
+                logger.AssertErrorExists("/k=key3", "my.key");
+
+                // ... and there should be warnings about other missing args too
+                logger.AssertErrorExists("/version");
+                logger.AssertErrorExists("/name");
+
+                logger.AssertErrorsLogged(4);
             }
         }
 
@@ -132,7 +222,35 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region Private methods
 
-        private static void CheckProcessingFails(params string[] commandLineArgs)
+        /// <summary>
+        /// Creates the sonar runner file structure required for the
+        /// product "FileLocator" code to work and create a sonar-runner properties
+        /// file containing the specified host url setting
+        /// </summary>
+        /// <returns>Returns the path of the runner bin directory</returns>
+        private string CreateRunnerFilesInScope(EnvironmentVariableScope scope)
+        {
+            string runnerConfDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "conf");
+            string runnerBinDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "bin");
+
+            // Create a sonar-runner.properties file
+            string runnerExe = Path.Combine(runnerBinDir, "sonar-runner.bat");
+            File.WriteAllText(runnerExe, "dummy content - only the existence of the file matters");
+            string configFile = Path.Combine(runnerConfDir, ActualRunnerPropertiesFileName);
+            File.WriteAllText(configFile, "# dummy properties file content");
+
+            scope.SetPath(runnerBinDir);
+
+            Assert.IsFalse(string.IsNullOrWhiteSpace(FileLocator.FindDefaultSonarRunnerExecutable()), "Test setup error: failed to locate the created runner executable file");
+
+            return configFile;
+        }
+
+        #endregion
+
+        #region Checks
+
+        private static TestLogger CheckProcessingFails(params string[] commandLineArgs)
         {
             TestLogger logger = new TestLogger();
 
@@ -140,7 +258,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             Assert.IsNull(result, "Not expecting the arguments to be processed succesfully");
             logger.AssertErrorsLogged();
-
+            return logger;
         }
 
         private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs)
@@ -155,6 +273,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertErrorsLogged(0);
             
             return result;
+        }
+
+        private static void AssertExpectedValues(string key, string name, string version, string path, ProcessedArgs actual)
+        {
+            Assert.AreEqual(key, actual.ProjectKey, "Unexpected project key");
+            Assert.AreEqual(name, actual.ProjectName, "Unexpected project name");
+            Assert.AreEqual(version, actual.ProjectVersion, "Unexpected project version");
+            Assert.AreEqual(path, actual.RunnerPropertiesPath, "Unexpected runner properties path version");
         }
 
         #endregion

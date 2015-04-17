@@ -61,6 +61,42 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to /key= [SonarQube project key].
+        /// </summary>
+        internal static string CmdLine_ArgDescription_ProjectKey {
+            get {
+                return ResourceManager.GetString("CmdLine_ArgDescription_ProjectKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /name= [SonarQube project name].
+        /// </summary>
+        internal static string CmdLine_ArgDescription_ProjectName {
+            get {
+                return ResourceManager.GetString("CmdLine_ArgDescription_ProjectName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /version= [SonarQube project version].
+        /// </summary>
+        internal static string CmdLine_ArgDescription_ProjectVersion {
+            get {
+                return ResourceManager.GetString("CmdLine_ArgDescription_ProjectVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /runnerPath= [full path to the sonar-runner.properties file] (optional).
+        /// </summary>
+        internal static string CmdLine_ArgDescription_PropertiesPath {
+            get {
+                return ResourceManager.GetString("CmdLine_ArgDescription_PropertiesPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Creating directory: {0}.
         /// </summary>
         internal static string DIAG_CreatingDirectory {
@@ -115,15 +151,6 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Processing command line and environment variables.
-        /// </summary>
-        internal static string DIAG_ProcessingCommandLine {
-            get {
-                return ResourceManager.GetString("DIAG_ProcessingCommandLine", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Saving the config file to {0}.
         /// </summary>
         internal static string DIAG_SavingConfigFile {
@@ -138,6 +165,33 @@ namespace SonarQube.TeamBuild.PreProcessor {
         internal static string ERROR_CannotPerformProcessing {
             get {
                 return ResourceManager.GetString("ERROR_CannotPerformProcessing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A value has already been supplied for this argument:{0}. Existing: {1}.
+        /// </summary>
+        internal static string ERROR_CmdLine_DuplicateArg {
+            get {
+                return ResourceManager.GetString("ERROR_CmdLine_DuplicateArg", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A required argument is missing: {0}.
+        /// </summary>
+        internal static string ERROR_CmdLine_MissingRequiredArgument {
+            get {
+                return ResourceManager.GetString("ERROR_CmdLine_MissingRequiredArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unrecognised command line argument: {0}.
+        /// </summary>
+        internal static string ERROR_CmdLine_UnrecognisedArg {
+            get {
+                return ResourceManager.GetString("ERROR_CmdLine_UnrecognisedArg", resourceCulture);
             }
         }
         

@@ -117,6 +117,18 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CmdLine_ArgDescription_ProjectKey" xml:space="preserve">
+    <value>/key= [SonarQube project key]</value>
+  </data>
+  <data name="CmdLine_ArgDescription_ProjectName" xml:space="preserve">
+    <value>/name= [SonarQube project name]</value>
+  </data>
+  <data name="CmdLine_ArgDescription_ProjectVersion" xml:space="preserve">
+    <value>/version= [SonarQube project version]</value>
+  </data>
+  <data name="CmdLine_ArgDescription_PropertiesPath" xml:space="preserve">
+    <value>/runnerPath= [full path to the sonar-runner.properties file] (optional)</value>
+  </data>
   <data name="DIAG_CreatingDirectory" xml:space="preserve">
     <value>Creating directory: {0}</value>
   </data>
@@ -135,14 +147,20 @@
   <data name="DIAG_LocatingRunnerProperties" xml:space="preserve">
     <value>The path to the sonar-runner.properties file was not supplied on the command line. Attempting to locate the file...</value>
   </data>
-  <data name="DIAG_ProcessingCommandLine" xml:space="preserve">
-    <value>Processing command line and environment variables</value>
-  </data>
   <data name="DIAG_SavingConfigFile" xml:space="preserve">
     <value>Saving the config file to {0}</value>
   </data>
   <data name="ERROR_CannotPerformProcessing" xml:space="preserve">
     <value>SonarQube pre-processing cannot be performed - required settings are missing</value>
+  </data>
+  <data name="ERROR_CmdLine_DuplicateArg" xml:space="preserve">
+    <value>A value has already been supplied for this argument:{0}. Existing: {1}</value>
+  </data>
+  <data name="ERROR_CmdLine_MissingRequiredArgument" xml:space="preserve">
+    <value>A required argument is missing: {0}</value>
+  </data>
+  <data name="ERROR_CmdLine_UnrecognisedArg" xml:space="preserve">
+    <value>Unrecognised command line argument: {0}</value>
   </data>
   <data name="ERROR_DuplicateCheckId" xml:space="preserve">
     <value>The following CheckId should not appear multiple times: {0}</value>

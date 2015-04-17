@@ -21,6 +21,12 @@ namespace TestUtilities
 
         public TestLogger()
         {
+            // Write out a separator. Many tests create more than one TestLogger.
+            // This helps separate the results of the different cases.
+            Console.WriteLine();
+            Console.WriteLine("------------------------------------------------------------- (new TestLogger created)");
+            Console.WriteLine();
+            
             Messages = new List<string>();
             Warnings = new List<string>();
             Errors = new List<string>();
@@ -86,6 +92,15 @@ namespace TestUtilities
             Assert.AreEqual(1, matches.Count(), "More than one warning contains the expected strings: {0}", string.Join(",", expected));
         }
 
+        /// <summary>
+        /// Checks that an error that contains all of the specified strings does not exist
+        /// </summary>
+        public void AssertErrorDoesNotExist(params string[] expected)
+        {
+            IEnumerable<string> matches = this.Errors.Where(w => expected.All(e => w.Contains(e)));
+            Assert.AreEqual(0, matches.Count(), "Not expecting any errors to contain the specified strings: {0}", string.Join(",", expected));
+        }
+
 
         #endregion
 
@@ -94,19 +109,19 @@ namespace TestUtilities
         public void LogMessage(string message, params object[] args)
         {
             Messages.Add(GetFormattedMessage(message, args));
-            Console.WriteLine("MESSAGE: ", message, args);
+            Console.WriteLine("MESSAGE: " + message, args);
         }
 
         public void LogWarning(string message, params object[] args)
         {
             Warnings.Add(GetFormattedMessage(message, args));
-            Console.WriteLine("WARNING: ", message, args);
+            Console.WriteLine("WARNING: " + message, args);
         }
 
         public void LogError(string message, params object[] args)
         {
             Errors.Add(GetFormattedMessage(message, args));
-            Console.WriteLine("ERROR: ", message, args);
+            Console.WriteLine("ERROR: " + message, args);
         }
 
         #endregion
