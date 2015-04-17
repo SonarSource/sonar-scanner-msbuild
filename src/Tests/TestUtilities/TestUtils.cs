@@ -41,7 +41,7 @@ namespace TestUtilities
 
         private static string DoCreateTestSpecificFolder(TestContext testContext, string optionalSubDirName, bool throwIfExists)
         {
-            string fullPath = Path.Combine(testContext.TestDeploymentDir, testContext.TestName);
+            string fullPath = Path.Combine(testContext.DeploymentDirectory, testContext.TestName);
             if (!string.IsNullOrEmpty(optionalSubDirName))
             {
                 fullPath = Path.Combine(fullPath, optionalSubDirName);

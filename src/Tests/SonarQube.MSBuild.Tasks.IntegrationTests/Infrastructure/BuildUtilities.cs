@@ -102,10 +102,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public static ProjectRootElement CreateAnalysisProject(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
         {
-            string sonarTargetFile = Path.Combine(testContext.DeploymentDirectory, TargetConstants.AnalysisTargetFile);
-            Assert.IsTrue(File.Exists(sonarTargetFile), "Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sonarTargetFile);
+            string sqTargetFile = Path.Combine(testContext.DeploymentDirectory, TargetConstants.AnalysisTargetFile);
+            Assert.IsTrue(File.Exists(sqTargetFile), "Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
+            Console.WriteLine("SonarTargetsFile: {0}", sqTargetFile);
+            testContext.AddResultFile(sqTargetFile);
 
-            ProjectRootElement root = CreateMinimalBuildableProject(preImportProperties, sonarTargetFile);
+            ProjectRootElement root = CreateMinimalBuildableProject(preImportProperties, sqTargetFile);
 
             // Set the location of the task assembly
             root.AddProperty(TargetProperties.SonarBuildTasksAssemblyFile, typeof(WriteProjectInfoFile).Assembly.Location);

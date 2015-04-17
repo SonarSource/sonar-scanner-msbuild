@@ -158,7 +158,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string dummyAnalysisTargets = EnsureDummyIntegrationTargetsFileExists();
 
             // Locate the real "ImportsBefore" target file
-            string importsBeforeTargets = Path.Combine(this.TestContext.TestDeploymentDir, TargetConstants.ImportsBeforeFile);
+            string importsBeforeTargets = Path.Combine(this.TestContext.DeploymentDirectory, TargetConstants.ImportsBeforeFile);
             Assert.IsTrue(File.Exists(importsBeforeTargets), "Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
 
             string projectName = this.TestContext.TestName + ".proj";

@@ -93,7 +93,7 @@ xxx yyy
         /// <returns>Returns the full file name of the new file</returns>
         private string WriteBatchFileForTest(string content)
         {
-            string fileName = Path.Combine(this.TestContext.TestDeploymentDir, this.TestContext.TestName + ".bat");
+            string fileName = Path.Combine(this.TestContext.DeploymentDirectory, this.TestContext.TestName + ".bat");
             Assert.IsFalse(File.Exists(fileName), "Not expecting a batch file to already exist: {0}", fileName);
             File.WriteAllText(fileName, content);
             return fileName;
