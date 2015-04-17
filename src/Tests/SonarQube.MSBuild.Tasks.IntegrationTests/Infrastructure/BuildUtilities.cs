@@ -107,6 +107,21 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             Console.WriteLine("SonarTargetsFile: {0}", sqTargetFile);
             testContext.AddResultFile(sqTargetFile);
 
+            // Ensure the "ImportBefore" behaviour is turned off in case our integration targets
+            // are installed on the machine on which the test is running.
+            if (preImportProperties == null)
+            {
+                preImportProperties = new WellKnownProjectProperties();
+            }
+            if (!preImportProperties.ContainsKey("ImportByWildcardBeforeMicrosoftCommonTargets"))
+            {
+                preImportProperties.Add("ImportByWildcardBeforeMicrosoftCommonTargets", "false");
+            }
+            if (!preImportProperties.ContainsKey("ImportByWildcardAfterMicrosoftCommonTargets"))
+            {
+                preImportProperties.Add("ImportByWildcardAfterMicrosoftCommonTargets", "false");
+            }
+
             ProjectRootElement root = CreateMinimalBuildableProject(preImportProperties, sqTargetFile);
 
             // Set the location of the task assembly
