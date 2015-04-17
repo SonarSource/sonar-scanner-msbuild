@@ -16,7 +16,7 @@ namespace SonarRunner.Shim
 {
     public static class ProjectLoader
     {
-        public static List<ProjectInfo> LoadFrom(string dumpFolderPath)
+        public static IEnumerable<ProjectInfo> LoadFrom(string dumpFolderPath)
         {
             List<ProjectInfo> result = new List<ProjectInfo>();
 

@@ -117,7 +117,7 @@ namespace SonarRunner.Shim
 
             AppendKeyValue(sb, guid, "sonar.projectKey", config.SonarProjectKey + ":" + guid);
             AppendKeyValue(sb, guid, "sonar.projectName", project.ProjectName);
-            AppendKeyValue(sb, guid, "sonar.projectBaseDir", project.GetProjectDir());
+            AppendKeyValue(sb, guid, "sonar.projectBaseDir", project.GetProjectDirectory());
             string fxCopReport = project.TryGetAnalysisFileLocation(AnalysisType.FxCop);
             if (fxCopReport != null)
             {

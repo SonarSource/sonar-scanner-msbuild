@@ -239,5 +239,23 @@ namespace SonarQube.TeamBuild.Integration {
                 return ResourceManager.GetString("URL_DIAG_Finished", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation succeeded. Elapsed time (ms): {0}.
+        /// </summary>
+        internal static string URL_DIAG_OperationSucceeded {
+            get {
+                return ResourceManager.GetString("URL_DIAG_OperationSucceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation timed out, Elapsed time (ms): {0}.
+        /// </summary>
+        internal static string URL_DIAG_OperationTimeout {
+            get {
+                return ResourceManager.GetString("URL_DIAG_OperationTimeout", resourceCulture);
+            }
+        }
     }
 }

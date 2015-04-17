@@ -44,7 +44,7 @@ namespace SonarQube.Common
 
             if (projectInfo.AnalysisResults != null)
             {
-                result = projectInfo.AnalysisResults.FirstOrDefault(ar => id.Equals(ar.Id, StringComparison.InvariantCulture));
+                result = projectInfo.AnalysisResults.FirstOrDefault(ar => id.Equals(ar.Id, StringComparison.Ordinal));
             }
             return result != null;
         }
@@ -90,7 +90,7 @@ namespace SonarQube.Common
         /// <summary>
         /// Returns the full path of the directory containing the project file
         /// </summary>
-        public static string GetProjectDir(this ProjectInfo projectInfo)
+        public static string GetProjectDirectory(this ProjectInfo projectInfo)
         {
             if (projectInfo == null)
             {
@@ -143,7 +143,7 @@ namespace SonarQube.Common
         public static IList<string> GetFilesToAnalyze(this ProjectInfo projectInfo)
         {
             var result = new List<string>();
-            var baseDir = projectInfo.GetProjectDir();
+            var baseDir = projectInfo.GetProjectDirectory();
 
             foreach (string file in GetAllFiles(projectInfo))
             {
@@ -183,7 +183,7 @@ namespace SonarQube.Common
         private static bool IsInFolder(string filePath, string folder)
         {
             // FIXME This test is not sufficient...
-            return filePath.StartsWith(folder + Path.DirectorySeparatorChar);
+            return filePath.StartsWith(folder + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
         }
 
         #endregion

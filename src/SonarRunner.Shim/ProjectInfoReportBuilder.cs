@@ -127,11 +127,6 @@ namespace SonarRunner.Shim
             }
         }
 
-        private void WriteSeparator()
-        {
-            this.sb.AppendLine("*************************************");
-        }
-
         private void WriteFileList(IEnumerable<ProjectInfo> projects)
         {
             foreach(ProjectInfo project in projects)

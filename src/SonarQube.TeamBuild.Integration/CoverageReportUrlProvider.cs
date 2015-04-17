@@ -103,11 +103,11 @@ namespace SonarQube.TeamBuild.Integration
 
             if (succeeded)
             {
-                logger.LogMessage("Operation succeeded. Elapsed time (ms): {0}", timer.ElapsedMilliseconds);
+                logger.LogMessage(Resources.URL_DIAG_OperationSucceeded, timer.ElapsedMilliseconds);
             }
             else
             {
-                logger.LogMessage("Operation timed out, Elapsed time (ms): {0}", timer.ElapsedMilliseconds);
+                logger.LogMessage(Resources.URL_DIAG_OperationTimeout, timer.ElapsedMilliseconds);
             }
         }
 

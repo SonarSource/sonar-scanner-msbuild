@@ -60,13 +60,13 @@ namespace SonarQube.TeamBuild.Integration
             return success;
         }
 
-        public bool ConvertToXml(string inputFullBinaryFileName, string outputFullXmlFileName, ILogger logger)
+        public bool ConvertToXml(string inputFilePath, string outputFilePath, ILogger logger)
         {
-            if (string.IsNullOrWhiteSpace(inputFullBinaryFileName))
+            if (string.IsNullOrWhiteSpace(inputFilePath))
             {
                 throw new ArgumentNullException("inputFullBinaryFileName");
             }
-            if (string.IsNullOrWhiteSpace(outputFullXmlFileName))
+            if (string.IsNullOrWhiteSpace(outputFilePath))
             {
                 throw new ArgumentNullException("outputFullXmlFileName");
             }
@@ -75,7 +75,7 @@ namespace SonarQube.TeamBuild.Integration
                 throw new ArgumentNullException("logger");
             }
             
-            return ConvertBinaryToXml(this.conversionToolPath, inputFullBinaryFileName, outputFullXmlFileName, logger);
+            return ConvertBinaryToXml(this.conversionToolPath, inputFilePath, outputFilePath, logger);
         }
 
         #endregion
@@ -153,7 +153,7 @@ namespace SonarQube.TeamBuild.Integration
                 {
                     double version = TryGetVersionAsDouble(kvp.Key);
 
-                    if (version != double.NaN)
+                    if (!double.IsNaN(version))
                     {
                         versionPathMap[version] = toolPath;
                     }

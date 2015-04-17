@@ -19,9 +19,9 @@ namespace SonarQube.TeamBuild.Integration
         /// <summary>
         /// Converts the supplied binary code coverage report file to XML
         /// </summary>
-        /// <param name="fullBinaryFileName">The full path to the file to be converted</param>
-        /// <param name="fullXmlFileName">The name of the XML file to be created</param>
+        /// <param name="inputFilePath">The full path to the binary file to be converted</param>
+        /// <param name="outputFilePath">The name of the XML file to be created</param>
         /// <returns>True if the conversion was successful, otherwise false</returns>
-        bool ConvertToXml(string fullBinaryFileName, string fullXmlFileName, ILogger logger);
+        bool ConvertToXml(string inputFilePath, string outputFilePath, ILogger logger);
     }
 }

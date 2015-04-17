@@ -68,10 +68,10 @@ namespace SonarRunner.Shim.Tests
             CreateFilesFromDescriptor(validNonTestNoReportsProject, "SomeList.txt", null, null, null);
 
             // Act
-            List<ProjectInfo> projects = SonarRunner.Shim.ProjectLoader.LoadFrom(testSourcePath);
+            IEnumerable<ProjectInfo> projects = SonarRunner.Shim.ProjectLoader.LoadFrom(testSourcePath);
 
             // Assert
-            Assert.AreEqual(3, projects.Count);
+            Assert.AreEqual(3, projects.Count());
 
             AssertProjectResultExists(validTestProject.ProjectName, projects);
 
@@ -101,12 +101,12 @@ namespace SonarRunner.Shim.Tests
             CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt", null, null, null);
 
             // 1. Run against the root dir -> not expecting the project to be found
-            List<ProjectInfo> projects = SonarRunner.Shim.ProjectLoader.LoadFrom(rootTestDir);
-            Assert.AreEqual(0, projects.Count);
+            IEnumerable<ProjectInfo> projects = SonarRunner.Shim.ProjectLoader.LoadFrom(rootTestDir);
+            Assert.AreEqual(0, projects.Count());
 
             // 2. Run against the child dir -> project should be found
             projects = SonarRunner.Shim.ProjectLoader.LoadFrom(childDir);
-            Assert.AreEqual(1, projects.Count);
+            Assert.AreEqual(1, projects.Count());
         }
 
         #endregion
@@ -180,7 +180,7 @@ namespace SonarRunner.Shim.Tests
 
         #region Assertions
 
-        private static ProjectInfo AssertProjectResultExists(string expectedProjectName, List<ProjectInfo> actualProjects)
+        private static ProjectInfo AssertProjectResultExists(string expectedProjectName, IEnumerable<ProjectInfo> actualProjects)
         {
             ProjectInfo actual = actualProjects.FirstOrDefault(p => expectedProjectName.Equals(p.ProjectName));
             Assert.IsNotNull(actual, "Failed to find project with the expected name: {0}", expectedProjectName);
