@@ -13,21 +13,28 @@ using System.IO;
 
 namespace SonarQube.Bootstrapper
 {
-    class BootstrapperSettings : IBootstrapperSettings
+    public class BootstrapperSettings : IBootstrapperSettings
     {
-        private const string RelativePathToDownloadDir = @"SQTemp\bin";
+        // Note: these constant values must be kept in step with the values used 
+        // in the SonarQube.TeamBuild.Integration assembly, and also the targets files.
+        public const string SQAnalysisRootPath = "SQ_BUILDDIRECTORY";
+        public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
+        public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
 
         /// <summary>
         /// The list of environment variables that should be checked in order to find the
         /// root folder under which all analysis ouput will be written
         /// </summary>
         private static readonly string[] DirectoryEnvVarNames = {
-                "SQ_BUILDDIRECTORY",        // Variable to use in non-TFS cases, or to override the TFS settings
-                "TF_BUILD_BUILDDIRECTORY",  // Legacy TeamBuild directory (TFS2013 and earlier)
-                "AGENT_BUILDDIRECTORY"      // TeamBuild 2015 and later build directory
+                SQAnalysisRootPath,        // Variable to use in non-TFS cases, or to override the TFS settings
+                BuildDirectory_Legacy,  // Legacy TeamBuild directory (TFS2013 and earlier)
+                BuildDirectory_TFS2015      // TeamBuild 2015 and later build directory
                };
 
-        private Settings settings;
+        private const string RelativePathToDownloadDir = @"SQTemp\bin";
+
+
+        private Settings appConfig;
 
         private ILogger logger;
 
@@ -36,17 +43,28 @@ namespace SonarQube.Bootstrapper
         private string preProcFilePath;
         private string postProcFilePath;
 
-        #region Public methods
+        #region Constructor(s)
 
-        public BootstrapperSettings(ILogger logger)
+        public BootstrapperSettings(ILogger logger) : this(logger, Settings.Default)
+        {
+        }
+
+        /// <summary>
+        /// Internal constructor for testing
+        /// </summary>
+        internal BootstrapperSettings(ILogger logger, Properties.Settings appConfigSettings)
         {
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
             }
+            if (appConfigSettings == null)
+            {
+                throw new ArgumentNullException("appConfigSettings");
+            }
 
             this.logger = logger;
-            this.settings = Settings.Default;       
+            this.appConfig = appConfigSettings;
         }
 
         #endregion
@@ -60,7 +78,7 @@ namespace SonarQube.Bootstrapper
                 if (this.sonarQubeUrl == null)
                 {
                     // Use the value specified in the settings file first...
-                    string url = this.settings.SonarQubeUrl;
+                    string url = this.appConfig.SonarQubeUrl;
                     if (string.IsNullOrWhiteSpace(url))
                     {
                         // ...otherwise look for the value in the runner-properties file
@@ -79,7 +97,7 @@ namespace SonarQube.Bootstrapper
             {
                 if (this.downloadDir == null)
                 {
-                    this.downloadDir = CalculateDownloadDir(this.settings, this.logger);
+                    this.downloadDir = CalculateDownloadDir(this.appConfig, this.logger);
                 }
                 return this.downloadDir;
             }
@@ -91,15 +109,8 @@ namespace SonarQube.Bootstrapper
             {
                 if (this.preProcFilePath == null)
                 {
-                    string file = this.settings.PreProcessExe;
-                    Debug.Assert(file != null, "Not expecting the PreProcessExe setting to be null - it should have a default value");
-
-                    // If the path isn't rooted then assume it is in the download dir
-                    if (!Path.IsPathRooted(file))
-                    {
-                        file = Path.Combine(this.DownloadDirectory, file);
-                    }
-                    this.preProcFilePath = file;
+                    Debug.Assert(this.appConfig.PreProcessExe != null, "Not expecting the PreProcessExe setting to be null - it should have a default value");
+                    this.preProcFilePath = this.EnsurePathIsAbsolute(this.appConfig.PreProcessExe);
                 }
                 return this.preProcFilePath;
             }
@@ -111,17 +122,9 @@ namespace SonarQube.Bootstrapper
             {
                 if (this.postProcFilePath == null)
                 {
-                    string file = this.settings.PostProcessExe;
-                    Debug.Assert(file != null, "Not expecting the PostProcessExe setting to be null - it should have a default value");
-
-                    // If the path isn't rooted then assume it is in the download dir
-                    if (!Path.IsPathRooted(file))
-                    {
-                        file = Path.Combine(this.DownloadDirectory, file);
-                    }
-                    this.postProcFilePath = file;
-                }
-                
+                    Debug.Assert(this.appConfig.PostProcessExe != null, "Not expecting the PostProcessExe setting to be null - it should have a default value");
+                    this.postProcFilePath = this.EnsurePathIsAbsolute(this.appConfig.PostProcessExe);
+                }                
                 return this.postProcFilePath;
             }
         }
@@ -130,7 +133,7 @@ namespace SonarQube.Bootstrapper
         {
             get
             {
-                return this.settings.PreProcessorTimeoutInMs;
+                return this.appConfig.PreProcessorTimeoutInMs;
             }
         }
 
@@ -138,7 +141,7 @@ namespace SonarQube.Bootstrapper
         {
             get
             {
-                return this.settings.PostProcessorTimeoutInMs;
+                return this.appConfig.PostProcessorTimeoutInMs;
             }
         }
 
@@ -203,6 +206,17 @@ namespace SonarQube.Bootstrapper
             Debug.Assert(!string.IsNullOrWhiteSpace(server), "Not expecting the host url property in the sonar-runner.properties file to be null/empty");
 
             return server;
+        }
+
+        private string EnsurePathIsAbsolute(string file)
+        {
+            // If the path isn't rooted then assume it is in the download dir
+            if (!Path.IsPathRooted(file))
+            {
+                file = Path.Combine(this.DownloadDirectory, file);
+                file = Path.GetFullPath(file); // strip out relative elements
+            }
+            return file;
         }
 
         #endregion

@@ -10,7 +10,7 @@ namespace SonarQube.Bootstrapper
     /// <summary>
     /// Returns the settings required by the bootstrapper
     /// </summary>
-    interface IBootstrapperSettings
+    public interface IBootstrapperSettings
     {
         string SonarQubeUrl { get; }
 

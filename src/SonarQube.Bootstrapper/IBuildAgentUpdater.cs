@@ -9,7 +9,7 @@ using SonarQube.Common;
 
 namespace SonarQube.Bootstrapper
 {
-    interface IBuildAgentUpdater
+    public interface IBuildAgentUpdater
     {
         void Update(string hostUrl, string targetDir, ILogger logger);
     }
