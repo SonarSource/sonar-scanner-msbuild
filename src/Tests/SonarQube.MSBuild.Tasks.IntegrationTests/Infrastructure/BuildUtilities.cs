@@ -185,6 +185,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 }
             }
 
+            // Ensure the output path is set
+            if (preImportProperties == null || !preImportProperties.ContainsKey("OutputPath"))
+            {
+                root.AddProperty("OutputPath", @"bin\");
+            }
+
             // Import the standard Microsoft targets
             root.AddImport("$(MSBuildToolsPath)\\Microsoft.CSharp.targets");
             root.AddProperty("OutputType", "library"); // build a library so we don't need a Main method

@@ -20,7 +20,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
         [TestMethod]
         [WorkItem(72)] // Regression test for bug #72: CodeCoverage conversion - conversion errors should be detected and reported
-        public void Conv_OutputIsCapture()
+        public void Conv_OutputIsCaptured()
         {
             // Arrange
             TestLogger logger = new TestLogger();

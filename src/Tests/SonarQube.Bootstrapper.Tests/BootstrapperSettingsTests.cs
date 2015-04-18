@@ -28,7 +28,7 @@ namespace SonarQube.Bootstrapper.Tests
             {
                 AppConfigWrapper configScope = new AppConfigWrapper();
 
-                envScope.AddVariable(BootstrapperSettings.SQAnalysisRootPath, "env download dir");
+                envScope.SetVariable(BootstrapperSettings.SQAnalysisRootPath, "env download dir");
                 configScope.SetDownloadDir("config download dir");
 
                 // 1. Check the config scope takes precedence
@@ -51,8 +51,10 @@ namespace SonarQube.Bootstrapper.Tests
             // 1. Legacy TFS variable will be used if available
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.AddVariable(BootstrapperSettings.BuildDirectory_Legacy, "legacy tf build");
-
+                scope.SetVariable(BootstrapperSettings.SQAnalysisRootPath, null);
+                scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, "legacy tf build");
+                scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
+                
                 IBootstrapperSettings settings = new BootstrapperSettings(logger);
                 AssertExpectedDownloadDir(@"legacy tf build\SQTemp\bin", settings);
             }
@@ -60,8 +62,10 @@ namespace SonarQube.Bootstrapper.Tests
             // 2. TFS2015 variable will be used if available
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.AddVariable(BootstrapperSettings.BuildDirectory_TFS2015, "tfs build");
-
+                scope.SetVariable(BootstrapperSettings.SQAnalysisRootPath, null);
+                scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, null);
+                scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, "tfs build");
+                
                 IBootstrapperSettings settings = new BootstrapperSettings(logger);
                 AssertExpectedDownloadDir(@"tfs build\SQTemp\bin", settings);
             }
@@ -69,14 +73,13 @@ namespace SonarQube.Bootstrapper.Tests
             // 3. SQ variable takes precedence over the other variables
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.AddVariable(BootstrapperSettings.SQAnalysisRootPath, "sq build");
-                scope.AddVariable(BootstrapperSettings.BuildDirectory_Legacy, "legacy tf build");
-                scope.AddVariable(BootstrapperSettings.BuildDirectory_TFS2015, "tfs build");
+                scope.SetVariable(BootstrapperSettings.SQAnalysisRootPath, "sq build");
+                scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, "legacy tf build");
+                scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, "tfs build");
 
                 IBootstrapperSettings settings = new BootstrapperSettings(logger);
                 AssertExpectedDownloadDir(@"sq build\SQTemp\bin", settings);
             }
-
         }
 
         [TestMethod]
@@ -116,7 +119,7 @@ namespace SonarQube.Bootstrapper.Tests
             {
                 AppConfigWrapper configScope = new AppConfigWrapper();
 
-                envScope.AddVariable(BootstrapperSettings.SQAnalysisRootPath, @"c:\temp");
+                envScope.SetVariable(BootstrapperSettings.SQAnalysisRootPath, @"c:\temp");
 
                 // 1. Default value -> relative to download dir
                 IBootstrapperSettings settings = new BootstrapperSettings(logger, configScope.AppConfig);

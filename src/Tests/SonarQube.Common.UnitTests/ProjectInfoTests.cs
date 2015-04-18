@@ -61,7 +61,6 @@ namespace SonarQube.Common.UnitTests
         [Description("Checks analysis results can be serialized and deserialized")]
         public void ProjectInfo_Serialization_AnalysisResults()
         {
-
             // 0. Setup
             string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
