@@ -20,12 +20,6 @@ namespace TestUtilities
     {
         private IDictionary<string, string> originalValues = new Dictionary<string, string>();
 
-        public void AddVariable(string name, string value)
-        {
-            AssertEnvironmentVariableDoesNotExist(name);
-            SetVariable(name, value);
-        }
-
         public void SetVariable(string name, string value)
         {
             // Store the original value, or null if there isn't one
