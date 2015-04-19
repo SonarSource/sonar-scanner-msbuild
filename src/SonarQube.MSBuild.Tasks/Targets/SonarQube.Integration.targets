@@ -129,7 +129,7 @@
        otherwise those results will not appear in the project info file.
   -->
   <!-- **************************************************************************** -->
-  <Target Name="WriteSonarQubeProjectData" AfterTargets="CoreCompile"
+  <Target Name="WriteSonarQubeProjectData" AfterTargets="Build"
         Condition="$(RunSonarQubeAnalysis) == 'true' AND  $(SonarQubeOutputPath) != '' ">
     
     <!-- **************************************************************************** -->

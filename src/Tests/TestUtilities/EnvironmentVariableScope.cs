@@ -9,36 +9,30 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace TestUtilities
 {
     /// <summary>
     /// Defines a scope inside which new environment variables can be set.
-    /// The variables will be clear when the scope is disposed.
+    /// The variables will be cleared when the scope is disposed.
     /// </summary>
     public class EnvironmentVariableScope : IDisposable
     {
-        private string originalPath;
+        private IDictionary<string, string> originalValues = new Dictionary<string, string>();
 
-        private IList<string> addedVars = new List<string>();
-
-        public void AddVariable(string name, string value)
+        public void SetVariable(string name, string value)
         {
-            AssertEnvironmentVariableDoesNotExist(name);
+            // Store the original value, or null if there isn't one
+            if (!this.originalValues.ContainsKey(name))
+            {
+                originalValues.Add(name, Environment.GetEnvironmentVariable(name));
+            }
             Environment.SetEnvironmentVariable(name, value, EnvironmentVariableTarget.Process);
-            addedVars.Add(name);
         }
 
         public void SetPath(string value)
         {
-            if (originalPath == null)
-            {
-                this.originalPath = Environment.GetEnvironmentVariable("PATH");
-                Debug.Assert(this.originalPath != null, "Not expecting the path variable to be null");
-            }
-
-            Environment.SetEnvironmentVariable("PATH", value, EnvironmentVariableTarget.Process);
+            SetVariable("PATH", value);
         }
 
         private static void AssertEnvironmentVariableDoesNotExist(string name)
@@ -47,29 +41,37 @@ namespace TestUtilities
             Assert.IsFalse(vars.Contains(name), "Test setup error: environment variable already exists. Name: {0}", name);
         }
 
+        #region IDispose implementation
+
+        private bool disposed;
+
         public void Dispose()
         {
             this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         private void Dispose(bool disposing)
         {
-            if (disposing && this.addedVars != null)
+            if (this.disposed)
             {
-                foreach (string name in addedVars)
-                {
-                    Environment.SetEnvironmentVariable(name, null, EnvironmentVariableTarget.Process);
-                    AssertEnvironmentVariableDoesNotExist(name);
-                }
-                this.addedVars = null;
+                return;
             }
+            this.disposed = true;
 
-            // Restore the original path
-            if (this.originalPath != null)
+            if (disposing)
             {
-                this.SetPath(this.originalPath);
-                this.originalPath = null;
+                if (this.originalValues != null)
+                {
+                    foreach(KeyValuePair<string, string> kvp in this.originalValues)
+                    {
+                        Environment.SetEnvironmentVariable(kvp.Key, kvp.Value);
+                    }
+                    this.originalValues = null;
+                }
             }
         }
+
+        #endregion
     }
 }

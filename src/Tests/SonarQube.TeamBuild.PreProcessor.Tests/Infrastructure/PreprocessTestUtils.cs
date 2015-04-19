@@ -19,10 +19,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public static EnvironmentVariableScope CreateValidLegacyTeamBuildScope(string tfsUri, string buildUri, string buildDir)
         {
             EnvironmentVariableScope scope = new EnvironmentVariableScope();
-            scope.AddVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, "true");
-            scope.AddVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, tfsUri);
-            scope.AddVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, buildUri);
-            scope.AddVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_Legacy, buildDir);
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, "true");
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, tfsUri);
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, buildUri);
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_Legacy, buildDir);
+
+            // Make sure the other variables are not set
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, null);
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SQAnalysisRootPath, null);
             return scope;
         }
 
