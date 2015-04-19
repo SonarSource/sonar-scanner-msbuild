@@ -30,13 +30,8 @@ namespace SonarQube.Bootstrapper
             {
                 throw new ArgumentNullException("targetDir");
             }
-            
-            if (hostUrl.EndsWith("/"))
-            {
-                hostUrl = hostUrl.Substring(0, hostUrl.Length - 1);
-            }
 
-            string integrationUrl = string.Format(IntegrationUrlFormat, hostUrl);
+            string integrationUrl = GetDownloadZipUrl(hostUrl);
             string downloadedZipFilePath = Path.Combine(targetDir, SonarQubeIntegrationFilename);
 
             using (WebClient client = new WebClient())
@@ -46,6 +41,19 @@ namespace SonarQube.Bootstrapper
                 ZipFile.ExtractToDirectory(downloadedZipFilePath, targetDir);
             }
 
+        }
+
+        private static string GetDownloadZipUrl(string url)
+        {
+            string downloadZipUrl = url;
+            if (downloadZipUrl.EndsWith("/", StringComparison.OrdinalIgnoreCase))
+            {
+                downloadZipUrl = downloadZipUrl.Substring(0, downloadZipUrl.Length - 1);
+            }
+
+            downloadZipUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture, IntegrationUrlFormat, downloadZipUrl);
+
+            return downloadZipUrl;
         }
 
         #endregion

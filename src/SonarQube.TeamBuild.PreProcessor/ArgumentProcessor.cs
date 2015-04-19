@@ -76,10 +76,17 @@ namespace SonarQube.TeamBuild.PreProcessor
             // To add a new argument, just add it to the list.
             Descriptors = new List<ArgumentDescriptor>();
 
-            Descriptors.Add(new ArgumentDescriptor() { Id = KeywordIds.ProjectKey, Prefixes = new string[] { "/key=", "/k=" }, Required = true, Description = Resources.CmdLine_ArgDescription_ProjectKey });
-            Descriptors.Add(new ArgumentDescriptor() { Id = KeywordIds.ProjectName, Prefixes = new string[] { "/name=", "/n=" }, Required = true, Description = Resources.CmdLine_ArgDescription_ProjectName });
-            Descriptors.Add(new ArgumentDescriptor() { Id = KeywordIds.ProjectVersion, Prefixes = new string[] { "/version=", "/v=" }, Required = true, Description = Resources.CmdLine_ArgDescription_ProjectVersion });
-            Descriptors.Add(new ArgumentDescriptor() { Id = KeywordIds.RunnerPropertiesPath, Prefixes = new string[] { "/runnerProperties=", "/r=" }, Required = false, Description = Resources.CmdLine_ArgDescription_PropertiesPath });
+            Descriptors.Add(new ArgumentDescriptor()
+                { Id = KeywordIds.ProjectKey, Prefixes = new string[] { "/key=", "/k=" }, Required = true, Description = Resources.CmdLine_ArgDescription_ProjectKey });
+            
+            Descriptors.Add(new ArgumentDescriptor()
+                { Id = KeywordIds.ProjectName, Prefixes = new string[] { "/name=", "/n=" }, Required = true, Description = Resources.CmdLine_ArgDescription_ProjectName });
+            
+            Descriptors.Add(new ArgumentDescriptor()
+                { Id = KeywordIds.ProjectVersion, Prefixes = new string[] { "/version=", "/v=" }, Required = true, Description = Resources.CmdLine_ArgDescription_ProjectVersion });
+            
+            Descriptors.Add(new ArgumentDescriptor()
+                { Id = KeywordIds.RunnerPropertiesPath, Prefixes = new string[] { "/runnerProperties=", "/r=" }, Required = false, Description = Resources.CmdLine_ArgDescription_PropertiesPath });
 
 
             Debug.Assert(Descriptors.All(d => d.Prefixes != null && d.Prefixes.Any()), "All descriptors must provide at least one prefix");
@@ -223,30 +230,36 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private static string TryResolveRunnerPropertiesPath(string propertiesPath, ILogger logger)
         {
+            string resolvedPath;
+
             if (string.IsNullOrEmpty(propertiesPath))
             {
                 logger.LogMessage(Resources.DIAG_LocatingRunnerProperties);
-                propertiesPath = FileLocator.FindDefaultSonarRunnerProperties();
+                resolvedPath = FileLocator.FindDefaultSonarRunnerProperties();
 
-                if (string.IsNullOrWhiteSpace(propertiesPath))
+                if (string.IsNullOrWhiteSpace(resolvedPath))
                 {
                     logger.LogError(Resources.ERROR_FailedToLocateRunnerProperties);
                 }
                 else
                 {
-                    logger.LogMessage(Resources.DIAG_LocatedRunnerProperties, propertiesPath);
+                    logger.LogMessage(Resources.DIAG_LocatedRunnerProperties, resolvedPath);
                 }
             }
             else
             {
-                if (!File.Exists(propertiesPath))
+                if (File.Exists(propertiesPath))
+                {
+                    resolvedPath = propertiesPath;
+                }
+                else
                 {
                     logger.LogError(Resources.ERROR_InvalidRunnerPropertiesLocationSupplied, propertiesPath);
-                    propertiesPath = null;
+                    resolvedPath = null;
                 }
             }
 
-            return propertiesPath;
+            return resolvedPath;
         }
 
         #endregion

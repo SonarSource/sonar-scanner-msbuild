@@ -70,6 +70,15 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creating the analysis bin directory: {0}.
+        /// </summary>
+        internal static string INFO_CreatingBinDir {
+            get {
+                return ResourceManager.GetString("INFO_CreatingBinDir", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Downloading {0} from {1} to {2}.
         /// </summary>
         internal static string INFO_Downloading {
@@ -93,6 +102,33 @@ namespace SonarQube.Bootstrapper {
         internal static string INFO_PreProcessing {
             get {
                 return ResourceManager.GetString("INFO_PreProcessing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube server url: {0}.
+        /// </summary>
+        internal static string INFO_ServerUrl {
+            get {
+                return ResourceManager.GetString("INFO_ServerUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using environment variable &apos;{0}&apos;, value &apos;{1}&apos;.
+        /// </summary>
+        internal static string INFO_UsingBuildEnvironmentVariable {
+            get {
+                return ResourceManager.GetString("INFO_UsingBuildEnvironmentVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using environment variables to determine the download directory....
+        /// </summary>
+        internal static string INFO_UsingEnvVarToGetDirectory {
+            get {
+                return ResourceManager.GetString("INFO_UsingEnvVarToGetDirectory", resourceCulture);
             }
         }
     }

@@ -64,11 +64,11 @@ namespace SonarQube.TeamBuild.Integration
         {
             if (string.IsNullOrWhiteSpace(inputFilePath))
             {
-                throw new ArgumentNullException("inputFullBinaryFileName");
+                throw new ArgumentNullException("inputFilePath");
             }
             if (string.IsNullOrWhiteSpace(outputFilePath))
             {
-                throw new ArgumentNullException("outputFullXmlFileName");
+                throw new ArgumentNullException("outputFilePath");
             }
             if (logger == null)
             {

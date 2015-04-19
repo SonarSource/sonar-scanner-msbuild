@@ -120,6 +120,9 @@
   <data name="ERROR_CouldNotFindSonarRunnerProperties" xml:space="preserve">
     <value>Could not find the sonar-project.properties from the sonar-runner in %PATH%.</value>
   </data>
+  <data name="INFO_CreatingBinDir" xml:space="preserve">
+    <value>Creating the analysis bin directory: {0}</value>
+  </data>
   <data name="INFO_Downloading" xml:space="preserve">
     <value>Downloading {0} from {1} to {2}</value>
   </data>
@@ -128,5 +131,14 @@
   </data>
   <data name="INFO_PreProcessing" xml:space="preserve">
     <value>Pre-processing ({0} arguments passed)</value>
+  </data>
+  <data name="INFO_ServerUrl" xml:space="preserve">
+    <value>SonarQube server url: {0}</value>
+  </data>
+  <data name="INFO_UsingBuildEnvironmentVariable" xml:space="preserve">
+    <value>Using environment variable '{0}', value '{1}'</value>
+  </data>
+  <data name="INFO_UsingEnvVarToGetDirectory" xml:space="preserve">
+    <value>Using environment variables to determine the download directory...</value>
   </data>
 </root>

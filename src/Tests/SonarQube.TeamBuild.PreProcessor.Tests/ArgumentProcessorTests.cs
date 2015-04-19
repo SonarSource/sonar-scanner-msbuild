@@ -33,7 +33,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                string envPropertiesFilePath = CreateRunnerFilesInScope(scope);
+                CreateRunnerFilesInScope(scope);
 
                 // 2. All required arguments missing
                 logger = CheckProcessingFails(/* no command line args */);
@@ -73,7 +73,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                string envPropertiesFilePath = CreateRunnerFilesInScope(scope);
+                CreateRunnerFilesInScope(scope);
 
                 // 1. Additional unrecognised arguments
                 logger = CheckProcessingFails("unrecog2", "/key=k1", "/name=n1", "/version=v1", "unrecog1", string.Empty);
@@ -187,7 +187,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                string envPropertiesFilePath = CreateRunnerFilesInScope(scope);
+                CreateRunnerFilesInScope(scope);
 
                 // 1. Duplicate key using alias
                 logger = CheckProcessingFails("/key=my.key", "/name=my name", "/version=1.2", "/k=key2");

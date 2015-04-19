@@ -156,7 +156,7 @@ namespace SonarQube.Bootstrapper
             if (string.IsNullOrWhiteSpace(dir))
             {
                 // ... otherwise work it out from the environment variables
-                logger.LogMessage("Using environment variables to determine the download directory...");
+                logger.LogMessage(Resources.INFO_UsingEnvVarToGetDirectory);
                 string rootDir = GetFirstEnvironmentVariable(DirectoryEnvVarNames, logger);
 
                 if (!string.IsNullOrWhiteSpace(rootDir))
@@ -180,7 +180,7 @@ namespace SonarQube.Bootstrapper
                 string value = Environment.GetEnvironmentVariable(varName);
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    logger.LogMessage("Using environment variable '{0}', value '{1}'", varName, value);
+                    logger.LogMessage(Resources.INFO_UsingBuildEnvironmentVariable, varName, value);
                     result = value;
                     break;
                 }
@@ -210,13 +210,19 @@ namespace SonarQube.Bootstrapper
 
         private string EnsurePathIsAbsolute(string file)
         {
+            string absPath;
+
             // If the path isn't rooted then assume it is in the download dir
-            if (!Path.IsPathRooted(file))
+            if (Path.IsPathRooted(file))
             {
-                file = Path.Combine(this.DownloadDirectory, file);
-                file = Path.GetFullPath(file); // strip out relative elements
+                absPath = file;
             }
-            return file;
+            else
+            {
+                absPath = Path.Combine(this.DownloadDirectory, file);
+                absPath = Path.GetFullPath(absPath); // strip out relative elements
+            }
+            return absPath;
         }
 
         #endregion

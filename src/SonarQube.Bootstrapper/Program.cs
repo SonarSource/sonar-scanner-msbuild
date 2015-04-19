@@ -19,8 +19,7 @@ namespace SonarQube.Bootstrapper
             var logger = new ConsoleLogger();
 
             IBootstrapperSettings settings = new BootstrapperSettings(logger);
-            var downloadBinPath = settings.DownloadDirectory;
-
+            
             if (args.Any())
             {
                 logger.LogMessage(Resources.INFO_PreProcessing, args.Length);
@@ -37,7 +36,7 @@ namespace SonarQube.Bootstrapper
         {
             string downloadBinPath = settings.DownloadDirectory;
 
-            logger.LogMessage("Creating the analysis bin directory: {0}", downloadBinPath);
+            logger.LogMessage(Resources.INFO_CreatingBinDir, downloadBinPath);
             if (Directory.Exists(downloadBinPath))
             {
                 Directory.Delete(downloadBinPath, true);
@@ -46,7 +45,7 @@ namespace SonarQube.Bootstrapper
 
             string server = settings.SonarQubeUrl;
             Debug.Assert(!string.IsNullOrWhiteSpace(server), "Not expecting the server url to be null/empty");
-            logger.LogMessage("SonarQube server url: {0}", server);
+            logger.LogMessage(Resources.INFO_ServerUrl, server);
 
             IBuildAgentUpdater updater = new BuildAgentUpdater();
             updater.Update(server, downloadBinPath, logger);
