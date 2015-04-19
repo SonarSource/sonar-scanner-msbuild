@@ -29,7 +29,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
     */
 
     [TestClass]
-    [DeploymentItem("LinkedFiles\\SonarQube.Integration.targets")]
     public class E2EAnalysisTests
     {
         private const string ExpectedManagedInputsListFileName = "ManagedSourceFiles.txt";

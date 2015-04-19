@@ -102,9 +102,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public static ProjectRootElement CreateAnalysisProject(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
         {
-            string sqTargetFile = Path.Combine(testContext.DeploymentDirectory, TargetConstants.AnalysisTargetFile);
+            string sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(testContext);
             Assert.IsTrue(File.Exists(sqTargetFile), "Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
-            Console.WriteLine("SonarTargetsFile: {0}", sqTargetFile);
             testContext.AddResultFile(sqTargetFile);
 
             //// Ensure the "ImportBefore" behaviour is turned off in case our integration targets

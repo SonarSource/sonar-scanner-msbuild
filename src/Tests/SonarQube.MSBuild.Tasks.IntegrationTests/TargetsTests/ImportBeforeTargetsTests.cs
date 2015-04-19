@@ -16,7 +16,6 @@ using TestUtilities;
 namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 {
     [TestClass]
-    [DeploymentItem("LinkedFiles\\SonarQube.Integration.ImportBefore.targets")]
     public class ImportBeforeTargetsTests
     {
         public TestContext TestContext { get; set; }
@@ -26,6 +25,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// the targets have been imported or not
         /// </summary>
         private const string DummyAnalysisTargetsMarkerProperty = "DummyProperty";
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            TestUtils.EnsureImportBeforeTargetsExists(this.TestContext);
+        }
 
         #region Tests
 
@@ -59,8 +64,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [Description("Checks what happens if the targets cannot be located")]
-        public void ImportsBefore_MissingTargets()
+        [Description("Checks what happens if the analysis targets cannot be located")]
+        public void ImportsBefore_MissingAnalysisTargets()
         {
             // 1. Prebuild
             // Arrange
@@ -93,7 +98,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [DeploymentItem("LinkedFiles\\SonarQube.Integration.ImportBefore.targets")]
         [Description("Checks that the targets are imported if the properties are set correctly and the targets can be found")]
         public void ImportsBefore_TargetsExist()
         {
@@ -158,7 +162,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string dummyAnalysisTargets = EnsureDummyIntegrationTargetsFileExists();
 
             // Locate the real "ImportsBefore" target file
-            string importsBeforeTargets = Path.Combine(this.TestContext.DeploymentDirectory, TargetConstants.ImportsBeforeFile);
+            string importsBeforeTargets = Path.Combine(TestUtils.GetTestSpecificFolderName(this.TestContext), TargetConstants.ImportsBeforeFile);
             Assert.IsTrue(File.Exists(importsBeforeTargets), "Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
 
             string projectName = this.TestContext.TestName + ".proj";
