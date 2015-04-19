@@ -134,14 +134,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         private ProjectInstance CreateAndEvaluateProject(Dictionary<string, string> preImportProperties)
         {
-            // Disable the normal ImportAfter/Import before behaviour to prevent any additional
-            // targets from being picked up.
-            // See the Microsoft Common targets for more info e.g. C:\Program Files (x86)\MSBuild\12.0\Bin\Microsoft.Common.CurrentVersion.targets
             // TODO: consider changing these tests to redirect where the common targets look for ImportBefore assemblies.
             // That would allow us to test the actual ImportBefore behaviour (we're currently creating a project that
             // explicitly imports our SonarQube "ImportBefore" project).
-            preImportProperties.Add("ImportByWildcardBeforeMicrosoftCommonTargets", "false");
-            preImportProperties.Add("ImportByWildcardAfterMicrosoftCommonTargets", "false");
+            BuildUtilities.DisableStandardTargetsWildcardImporting(preImportProperties);
 
             ProjectRootElement projectRoot = CreateImportsBeforeTestProject(preImportProperties);
 
