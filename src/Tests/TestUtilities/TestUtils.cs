@@ -12,6 +12,10 @@ namespace TestUtilities
 {
     public static class TestUtils
     {
+        // Target file names
+        public const string AnalysisTargetFile = "SonarQube.Integration.targets";
+        public const string ImportsBeforeFile = "SonarQube.Integration.ImportBefore.targets";
+
         #region Public methods
 
         /// <summary>
@@ -35,13 +39,57 @@ namespace TestUtilities
             return fullPath;
         }
 
+        /// <summary>
+        /// Ensures that the ImportBefore targets exist in the specified folder
+        /// </summary>
+        public static string EnsureImportBeforeTargetsExists(TestContext testContext)
+        {
+            string filePath = Path.Combine(GetTestSpecificFolderName(testContext), ImportsBeforeFile);
+            if (File.Exists(filePath))
+            {
+                testContext.WriteLine("ImportBefore target file already exists: {0}", filePath);
+            }
+            else
+            {
+                testContext.WriteLine("Extracting ImportBefore target file to {0}", filePath);
+                EnsureTestSpecificFolder(testContext);
+                ExtractResourceToFile("TestUtilities.Embedded.SonarQube.Integration.ImportBefore.targets", filePath);
+            }
+            return filePath;
+        }
+
+        /// <summary>
+        /// Ensures the analysis targets exist in the specified folder
+        /// </summary>
+        public static string EnsureAnalysisTargetsExists(TestContext testContext)
+        {
+            string filePath = Path.Combine(GetTestSpecificFolderName(testContext), AnalysisTargetFile);
+            if (File.Exists(filePath))
+            {
+                testContext.WriteLine("Analysis target file already exists: {0}", filePath);
+            }
+            else
+            {
+                testContext.WriteLine("Extracting analysis target file to {0}", filePath);
+                EnsureTestSpecificFolder(testContext);
+                ExtractResourceToFile("TestUtilities.Embedded.SonarQube.Integration.targets", filePath);                
+            }
+            return filePath;
+        }
+
+        public static string GetTestSpecificFolderName(TestContext testContext)
+        {
+            string fullPath = Path.Combine(testContext.DeploymentDirectory, testContext.TestName);
+            return fullPath;
+        }
+
         #endregion
 
         #region Private methods
 
         private static string DoCreateTestSpecificFolder(TestContext testContext, string optionalSubDirName, bool throwIfExists)
         {
-            string fullPath = Path.Combine(testContext.DeploymentDirectory, testContext.TestName);
+            string fullPath = GetTestSpecificFolderName(testContext);
             if (!string.IsNullOrEmpty(optionalSubDirName))
             {
                 fullPath = Path.Combine(fullPath, optionalSubDirName);
@@ -62,6 +110,15 @@ namespace TestUtilities
             }
 
             return fullPath;
+        }
+
+        private static void ExtractResourceToFile(string resourceName, string filePath)
+        {
+            Stream stream = typeof(TestUtils).Assembly.GetManifestResourceStream(resourceName);
+            using(StreamReader reader =  new StreamReader(stream))
+            {
+                File.WriteAllText(filePath, reader.ReadToEnd());
+            }
         }
 
         #endregion

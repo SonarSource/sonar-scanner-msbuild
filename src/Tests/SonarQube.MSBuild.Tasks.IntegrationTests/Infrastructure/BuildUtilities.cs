@@ -102,27 +102,20 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public static ProjectRootElement CreateAnalysisProject(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
         {
-            string sqTargetFile = Path.Combine(testContext.DeploymentDirectory, TargetConstants.AnalysisTargetFile);
+            string sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(testContext);
             Assert.IsTrue(File.Exists(sqTargetFile), "Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
-            Console.WriteLine("SonarTargetsFile: {0}", sqTargetFile);
             testContext.AddResultFile(sqTargetFile);
 
-            // Ensure the "ImportBefore" behaviour is turned off in case our integration targets
-            // are installed on the machine on which the test is running.
-            if (preImportProperties == null)
+            IDictionary<string, string> properties = preImportProperties ?? new Dictionary<string, string>();
+
+            // Disable the standard "ImportBefore/ImportAfter" behaviour if the caller
+            // hasn't defined what they want to happen explicitly
+            if (!properties.ContainsKey("ImportByWildcardBeforeMicrosoftCommonTargets"))
             {
-                preImportProperties = new WellKnownProjectProperties();
-            }
-            if (!preImportProperties.ContainsKey("ImportByWildcardBeforeMicrosoftCommonTargets"))
-            {
-                preImportProperties.Add("ImportByWildcardBeforeMicrosoftCommonTargets", "false");
-            }
-            if (!preImportProperties.ContainsKey("ImportByWildcardAfterMicrosoftCommonTargets"))
-            {
-                preImportProperties.Add("ImportByWildcardAfterMicrosoftCommonTargets", "false");
+                DisableStandardTargetsWildcardImporting(properties);
             }
 
-            ProjectRootElement root = CreateMinimalBuildableProject(preImportProperties, sqTargetFile);
+            ProjectRootElement root = CreateMinimalBuildableProject(properties, sqTargetFile);
 
             // Set the location of the task assembly
             root.AddProperty(TargetProperties.SonarBuildTasksAssemblyFile, typeof(WriteProjectInfoFile).Assembly.Location);
@@ -158,6 +151,20 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             }
 
             return root;
+        }
+
+        /// <summary>
+        /// Sets properties to sisable the normal ImportAfter/Import before behaviour to 
+        /// prevent any additionaltargets from being picked up.
+        /// This is necessary so the tests run correctly on machines that have
+        /// the installation targets installed.
+        /// See the Microsoft Common targets for more info e.g. C:\Program Files (x86)\MSBuild\12.0\Bin\Microsoft.Common.CurrentVersion.targets
+        /// Any existing settings for those properties will be over-ridden.
+        /// </summary>
+        public static void DisableStandardTargetsWildcardImporting(IDictionary<string, string> properties)
+        {
+            properties["ImportByWildcardBeforeMicrosoftCommonTargets"] = "false";
+            properties["ImportByWildcardAfterMicrosoftCommonTargets"] = "false";
         }
 
         /// <summary>

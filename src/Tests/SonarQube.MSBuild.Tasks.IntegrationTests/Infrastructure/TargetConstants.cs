@@ -10,8 +10,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
     internal static class TargetConstants
     {
         // Target file names
-        public const string AnalysisTargetFile = "SonarQube.Integration.targets";
-        public const string ImportsBeforeFile = "SonarQube.Integration.ImportBefore.targets";
+        public const string AnalysisTargetFile = TestUtilities.TestUtils.AnalysisTargetFile;
+        public const string ImportsBeforeFile = TestUtilities.TestUtils.ImportsBeforeFile;
 
         // Targets
         public const string ImportBeforeInfoTarget = "SonarQubeImportBeforeInfo";

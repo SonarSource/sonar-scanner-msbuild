@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TestUtilities</RootNamespace>
-    <AssemblyName>TestUtilities</AssemblyName>
+    <AssemblyName>SonarQube.TestUtilities</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -61,6 +61,14 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="License.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets">
+      <Link>Embedded\SonarQube.Integration.ImportBefore.targets</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.targets">
+      <Link>Embedded\SonarQube.Integration.targets</Link>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
