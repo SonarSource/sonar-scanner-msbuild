@@ -37,30 +37,30 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
                 // 2. All required arguments missing
                 logger = CheckProcessingFails(/* no command line args */);
-                logger.AssertErrorExists("/key"); // we expect errors with info about the missing required parameters, which should include the primary alias
-                logger.AssertErrorExists("/name");
-                logger.AssertErrorExists("/version");
-                logger.AssertErrorDoesNotExist("/runner");
+                logger.AssertErrorExists("/key:"); // we expect errors with info about the missing required parameters, which should include the primary alias
+                logger.AssertErrorExists("/name:");
+                logger.AssertErrorExists("/version:");
+                logger.AssertErrorDoesNotExist("/runner:");
                 logger.AssertErrorsLogged(3);
 
                 // 3. Some required arguments missing
-                logger = CheckProcessingFails("/k=key", "/v=version");
+                logger = CheckProcessingFails("/k:key", "/v:version");
 
-                logger.AssertErrorDoesNotExist("/key");
-                logger.AssertErrorDoesNotExist("/version");
-                logger.AssertErrorDoesNotExist("/runner");
+                logger.AssertErrorDoesNotExist("/key:");
+                logger.AssertErrorDoesNotExist("/version:");
+                logger.AssertErrorDoesNotExist("/runner:");
 
-                logger.AssertErrorExists("/name");
+                logger.AssertErrorExists("/name:");
                 logger.AssertErrorsLogged(1);
 
                 // 4. Argument is present but has no value
-                logger = CheckProcessingFails("/key=k1", "/name=n1", "/version=");
+                logger = CheckProcessingFails("/key:k1", "/name:n1", "/version:");
 
-                logger.AssertErrorDoesNotExist("/key");
-                logger.AssertErrorDoesNotExist("/name");
-                logger.AssertErrorDoesNotExist("/runner");
+                logger.AssertErrorDoesNotExist("/key:");
+                logger.AssertErrorDoesNotExist("/name:");
+                logger.AssertErrorDoesNotExist("/runner:");
 
-                logger.AssertErrorExists("/version");
+                logger.AssertErrorExists("/version:");
                 logger.AssertErrorsLogged(1);
             }
         }
@@ -76,16 +76,30 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 CreateRunnerFilesInScope(scope);
 
                 // 1. Additional unrecognised arguments
-                logger = CheckProcessingFails("unrecog2", "/key=k1", "/name=n1", "/version=v1", "unrecog1", string.Empty);
+                logger = CheckProcessingFails("unrecog2", "/key:k1", "/name:n1", "/version:v1", "unrecog1", string.Empty);
 
-                logger.AssertErrorDoesNotExist("/key");
-                logger.AssertErrorDoesNotExist("/name");
-                logger.AssertErrorDoesNotExist("/version");
-                logger.AssertErrorDoesNotExist("/runner");
+                logger.AssertErrorDoesNotExist("/key:");
+                logger.AssertErrorDoesNotExist("/name:");
+                logger.AssertErrorDoesNotExist("/version:");
+                logger.AssertErrorDoesNotExist("/runner:");
 
                 logger.AssertErrorExists("unrecog1");
                 logger.AssertErrorExists("unrecog2");
                 logger.AssertErrorsLogged(3); // unrecog1, unrecog2, and the empty string
+
+                // 2. Arguments using the wrong separator i.e. /k=k1  instead of /k:k1
+                logger = CheckProcessingFails("/key=k1", "/name=n1", "/version=v1", "/runnerProperties=foo");
+
+                // Expecting errors for the unrecognised arguments...
+                logger.AssertErrorExists("/key=k1");
+                logger.AssertErrorExists("/name=n1");
+                logger.AssertErrorExists("/version=v1");
+                logger.AssertErrorExists("/runnerProperties=foo");
+                // ... and errors for the missing required arguments
+                logger.AssertErrorExists("/key:");
+                logger.AssertErrorExists("/name:");
+                logger.AssertErrorExists("/version:");
+                logger.AssertErrorsLogged(7);
             }
         }
 
@@ -99,13 +113,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // 1. File exists -> args ok
             File.WriteAllText(propertiesFilePath, "# empty properties file");
 
-            ProcessedArgs result = CheckProcessingSucceeds("/k=key", "/n=name", "/v=version", "/r=" + propertiesFilePath);
+            ProcessedArgs result = CheckProcessingSucceeds("/k:key", "/n:name", "/v:version", "/r:" + propertiesFilePath);
             AssertExpectedValues("key", "name", "version", propertiesFilePath, result);
 
             // 2. File does not exist -> args not ok
             File.Delete(propertiesFilePath);
             
-            TestLogger logger = CheckProcessingFails("/k=key", "/n=name", "/v=version", "/r=" + propertiesFilePath);
+            TestLogger logger = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/r:" + propertiesFilePath);
             logger.AssertErrorsLogged(1);
         }
         
@@ -132,7 +146,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 // 1. Found via path -> args ok
                 File.WriteAllText(envPropertiesFilePath, "# ENV empty properties file"); // Create the expected file
 
-                result = CheckProcessingSucceeds("/k=key 1", "/n=name 2", "/v=version 3");
+                result = CheckProcessingSucceeds("/k:key 1", "/n:name 2", "/v:version 3");
                 AssertExpectedValues("key 1", "name 2", "version 3", envPropertiesFilePath, result);
 
                 // 2. Not found via path (file does not exist) -> args not ok
@@ -140,12 +154,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
                 using (new AssertIgnoreScope()) // expecting an assert if the exe can be found but the properties can't
                 {
-                    TestLogger logger = CheckProcessingFails("/k=key 1", "/n=name 2", "/v=version 3");
+                    TestLogger logger = CheckProcessingFails("/k:key 1", "/n:name 2", "/v:version 3");
                     logger.AssertErrorsLogged(1);
                 }
 
                 // 3. Command line arg should override path -> args ok
-                result = CheckProcessingSucceeds("/k=key 1", "/n=name 2", "/v=version 3", "/r=" + cmdLinePropertiesFilePath);
+                result = CheckProcessingSucceeds("/k:key 1", "/n:name 2", "/v:version 3", "/r:" + cmdLinePropertiesFilePath);
                 AssertExpectedValues("key 1", "name 2", "version 3", cmdLinePropertiesFilePath, result);
             }
         }
@@ -162,19 +176,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
                 // Valid
                 // Full names, no path
-                actual = CheckProcessingSucceeds("/key=my.key", "/name=my name", "/version=1.0");
+                actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0");
                 AssertExpectedValues("my.key", "my name", "1.0", envPropertiesFilePath, actual);
 
                 // Aliases, no path, different order
-                actual = CheckProcessingSucceeds("/v=2.0", "/k=my.key", "/n=my name");
+                actual = CheckProcessingSucceeds("/v:2.0", "/k:my.key", "/n:my name");
                 AssertExpectedValues("my.key", "my name", "2.0", envPropertiesFilePath, actual);
 
                 // Full names with path, casing
-                actual = CheckProcessingSucceeds("/KEY=my.key", "/nAme=my name", "/version=1.0", @"/runnerProperties=" + envPropertiesFilePath);
+                actual = CheckProcessingSucceeds("/KEY:my.key", "/nAme:my name", "/version:1.0", @"/runnerProperties:" + envPropertiesFilePath);
                 AssertExpectedValues("my.key", "my name", "1.0", envPropertiesFilePath, actual);
 
-                // Aliases, no path, different order: /v:2.0 /n="my name" /k=my.key 
-                actual = CheckProcessingSucceeds(@"/r=" + envPropertiesFilePath, "/v=2:0", "/k=my.key", "/n=my name");
+                // Aliases, no path, different order
+                actual = CheckProcessingSucceeds(@"/r:" + envPropertiesFilePath, "/v:2:0", "/k:my.key", "/n:my name");
                 AssertExpectedValues("my.key", "my name", "2:0", envPropertiesFilePath, actual);
             }
         }
@@ -190,29 +204,29 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 CreateRunnerFilesInScope(scope);
 
                 // 1. Duplicate key using alias
-                logger = CheckProcessingFails("/key=my.key", "/name=my name", "/version=1.2", "/k=key2");
+                logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/k:key2");
                 logger.AssertErrorsLogged(1);
-                logger.AssertErrorExists("/k=key2", "my.key"); // we expect the error to include the first value and the duplicate argument
+                logger.AssertErrorExists("/k:key2", "my.key"); // we expect the error to include the first value and the duplicate argument
 
                 // 2. Duplicate name, not using alias
-                logger = CheckProcessingFails("/key=my.key", "/name=my name", "/version=1.2", "/NAME=dupName");
+                logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/NAME:dupName");
                 logger.AssertErrorsLogged(1);
-                logger.AssertErrorExists("/NAME=dupName", "my name");
+                logger.AssertErrorExists("/NAME:dupName", "my name");
 
                 // 3. Duplicate version, not using alias
-                logger = CheckProcessingFails("/key=my.key", "/name=my name", "/version=1.2", "/v=version2.0");
+                logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/v:version2.0");
                 logger.AssertErrorsLogged(1);
-                logger.AssertErrorExists("/v=version2.0", "1.2");
+                logger.AssertErrorExists("/v:version2.0", "1.2");
 
                 // Duplicate key (specified three times)
-                logger = CheckProcessingFails("/key=my.key", "/k=k2", "/k=key3");
+                logger = CheckProcessingFails("/key:my.key", "/k:k2", "/k:key3");
 
-                logger.AssertErrorExists("/k=k2", "my.key"); // Warning about key appears twice
-                logger.AssertErrorExists("/k=key3", "my.key");
+                logger.AssertErrorExists("/k:k2", "my.key"); // Warning about key appears twice
+                logger.AssertErrorExists("/k:key3", "my.key");
 
                 // ... and there should be warnings about other missing args too
-                logger.AssertErrorExists("/version");
-                logger.AssertErrorExists("/name");
+                logger.AssertErrorExists("/version:");
+                logger.AssertErrorExists("/name:");
 
                 logger.AssertErrorsLogged(4);
             }

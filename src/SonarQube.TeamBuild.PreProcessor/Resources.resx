@@ -118,16 +118,16 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CmdLine_ArgDescription_ProjectKey" xml:space="preserve">
-    <value>/key= [SonarQube project key]</value>
+    <value>/key:{SonarQube project key}</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectName" xml:space="preserve">
-    <value>/name= [SonarQube project name]</value>
+    <value>/name:{SonarQube project name}</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectVersion" xml:space="preserve">
-    <value>/version= [SonarQube project version]</value>
+    <value>/version:{SonarQube project version}</value>
   </data>
   <data name="CmdLine_ArgDescription_PropertiesPath" xml:space="preserve">
-    <value>/runnerPath= [full path to the sonar-runner.properties file] (optional)</value>
+    <value>[/runnerPath:{full path to the sonar-runner.properties file}]</value>
   </data>
   <data name="DIAG_CreatingDirectory" xml:space="preserve">
     <value>Creating directory: {0}</value>

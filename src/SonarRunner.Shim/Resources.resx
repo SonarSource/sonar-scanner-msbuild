@@ -155,7 +155,7 @@ Error: {0}</value>
     <value>Expected to be called with one argument: the full path to the analysis config file</value>
   </data>
   <data name="ERR_NoProjectInfoFilesFound" xml:space="preserve">
-    <value>No ProjectInfo.xml files were found. Check that the analysis targets is referenced by the MSBuild projects being built.</value>
+    <value>No ProjectInfo.xml files were found. Check that the analysis targets are referenced by the MSBuild projects being built.</value>
   </data>
   <data name="ERR_NoValidProjectInfoFiles" xml:space="preserve">
     <value>No valid projectInfo.xml were found. SonarQube analysis will not be performed.</value>
