@@ -44,6 +44,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.SonarQubeTargetsPath = Path.GetDirectoryName(dummyAnalysisTargetsDir);
+            preImportProperties.TeamBuild2105BuildDirectory = "";
+            preImportProperties.TeamBuildLegacyBuildDirectory = "";
 
             // Act
             ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
@@ -72,6 +74,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
             preImportProperties.MSBuildExtensionsPath = "nonExistentPath";
+            preImportProperties.TeamBuild2105BuildDirectory = "";
+            preImportProperties.TeamBuildLegacyBuildDirectory = "";
 
             // Act
             ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
@@ -108,6 +112,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
             preImportProperties.SonarQubeTargetsPath = Path.GetDirectoryName(dummySonarTargetsDir);
+            preImportProperties.TeamBuild2105BuildDirectory = "";
+            preImportProperties.TeamBuildLegacyBuildDirectory = "";
 
             // Act
             ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
@@ -126,7 +132,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             logger.AssertTargetExecuted(TargetConstants.ImportBeforeInfoTarget);
             logger.AssertExpectedErrorCount(0);
         }
-
 
         #endregion
 

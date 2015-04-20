@@ -85,6 +85,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public static ProjectRootElement CreateInitializedProjectRoot(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
         {
+            if (testContext == null)
+            {
+                throw new ArgumentNullException("testContext");
+            }
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException("descriptor");
+            }
+            
             ProjectRootElement projectRoot = BuildUtilities.CreateAnalysisProject(testContext, descriptor, preImportProperties);
 
             projectRoot.ToolsVersion = MSBuildToolsVersionForTestProjects;
@@ -102,6 +111,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public static ProjectRootElement CreateAnalysisProject(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
         {
+            if (testContext == null)
+            {
+                throw new ArgumentNullException("testContext");
+            }
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException("descriptor");
+            }
+            
             string sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(testContext);
             Assert.IsTrue(File.Exists(sqTargetFile), "Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
             testContext.AddResultFile(sqTargetFile);
@@ -163,6 +181,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public static void DisableStandardTargetsWildcardImporting(IDictionary<string, string> properties)
         {
+            if (properties == null)
+            {
+                throw new ArgumentNullException("properties");
+            }
+            
             properties["ImportByWildcardBeforeMicrosoftCommonTargets"] = "false";
             properties["ImportByWildcardAfterMicrosoftCommonTargets"] = "false";
         }
@@ -175,7 +198,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// <param name="preImportProperties">Any properties that need to be set before the C# targets are imported. Can be null.</param>
         /// <param name="importsBeforeTargets">Any targets that should be imported before the C# targets are imported. Optional.</param>
         public static ProjectRootElement CreateMinimalBuildableProject(IDictionary<string, string> preImportProperties, params string[] importsBeforeTargets)
-        {
+        {       
             ProjectRootElement root = ProjectRootElement.Create();
             
             foreach(string importTarget in importsBeforeTargets)
@@ -213,6 +236,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// <param name="targets">Optional list of targets to execute</param>
         public static BuildResult BuildTargets(ProjectRootElement projectRoot, ILogger logger, params string[] targets)
         {
+            if (projectRoot == null)
+            {
+                throw new ArgumentNullException("projectRoot");
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+            
             ProjectInstance projectInstance = new ProjectInstance(projectRoot);
             return BuildTargets(projectInstance, logger, targets);
         }
@@ -225,6 +257,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// <param name="targets">Optional list of targets to execute</param>
         public static BuildResult BuildTargets(ProjectInstance projectInstance, ILogger logger, params string[] targets)
         {
+            if (projectInstance == null)
+            {
+                throw new ArgumentNullException("projectInstance");
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+            
             BuildParameters parameters = new BuildParameters();
             parameters.Loggers = new ILogger[] { logger ?? new BuildLogger() };
             parameters.UseSynchronousLogging = true; 
@@ -281,6 +322,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public static void DumpTargetResult(BuildResult result, string target)
         {
+            if (result == null)
+            {
+                throw new ArgumentNullException("result");
+            }
+            
             Console.WriteLine("Overall build result: {0}", result.OverallResult.ToString());
 
             TargetResult targetResult;

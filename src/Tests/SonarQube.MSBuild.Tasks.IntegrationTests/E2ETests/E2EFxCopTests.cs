@@ -32,6 +32,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Don't set the output folder
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
+            // Clear all of the variables that could be used to look up the output path
+            // (necessary so the test works correctly when run under TeamBuild on a machine
+            // that has the integration targets installed)
+            preImportProperties.SonarQubeOutputPath = "";
+            preImportProperties.TeamBuild2105BuildDirectory = "";
+            preImportProperties.TeamBuildLegacyBuildDirectory = "";
+            
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
             BuildLogger logger = new BuildLogger();

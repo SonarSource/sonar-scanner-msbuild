@@ -70,10 +70,16 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             set { this[TargetProperties.CodeAnalysisRuleset] = value; }
         }
 
-        public string TeamBuildBuildDirectory
+        public string TeamBuildLegacyBuildDirectory
         {
-            get { return this.GetValueOrNull(TargetProperties.TeamBuildBuildDirectory); }
-            set { this[TargetProperties.TeamBuildBuildDirectory] = value; }
+            get { return this.GetValueOrNull(TargetProperties.BuildDirectory_Legacy); }
+            set { this[TargetProperties.BuildDirectory_Legacy] = value; }
+        }
+
+        public string TeamBuild2105BuildDirectory
+        {
+            get { return this.GetValueOrNull(TargetProperties.BuildDirectory_TFS2015); }
+            set { this[TargetProperties.BuildDirectory_TFS2015] = value; }
         }
 
         public string MSBuildExtensionsPath

@@ -309,8 +309,14 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         {
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
-            preImportProperties.SonarQubeOutputPath = outputPath;
+            
             preImportProperties.SonarQubeConfigPath = configPath;
+            preImportProperties.SonarQubeOutputPath = outputPath;
+            
+            // Ensure the project is isolated from environment variables
+            // that could be picked up when running on a TeamBuild build agent
+            preImportProperties.TeamBuildLegacyBuildDirectory = "";
+            preImportProperties.TeamBuild2105BuildDirectory = "";
             return preImportProperties;
         }
 

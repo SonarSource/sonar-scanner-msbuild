@@ -53,7 +53,18 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string CodeAnalysisRuleset = "CodeAnalysisRuleSet";
         public const string CodeAnalysisLogFile = "CodeAnalysisLogFile";
 
-        public const string TeamBuildBuildDirectory = "TF_BUILD_BUILDDIRECTORY";
+        public const string IsInTeamBuild = "TF_Build"; // Common to legacy and non-legacy TeamBuilds
+
+        // Legacy TeamBuild environment variables (XAML Builds)
+        public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
+        public const string BuildUri_Legacy = "TF_BUILD_BUILDURI";
+        public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
+
+        // TFS 2015 Environment variables
+        public const string TfsCollectionUri_TFS2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
+        public const string BuildUri_TFS2015 = "BUILD_BUILDURI";
+        public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
+        
         public const string MSBuildExtensionsPath = "MSBuildExtensionsPath";
 
         public const string ItemType_Compile = "Compile";
