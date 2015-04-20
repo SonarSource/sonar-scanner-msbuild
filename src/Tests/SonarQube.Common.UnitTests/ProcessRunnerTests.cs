@@ -66,7 +66,7 @@ xxx yyy
         {
             // Arrange
             string exeName = WriteBatchFileForTest(
-@"TIMEOUT 2
+@"TIMEOUT 1
 @echo Hello world
 ");
 
@@ -80,6 +80,14 @@ xxx yyy
             Assert.IsFalse(success, "Expecting the process to have failed");
             Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
             logger.AssertMessageNotLogged("Hello world");
+
+            // Give the spawned process a chance to terminate.
+            // This isn't essential (and having a Sleep in the test isn't ideal), but it stops
+            // the test framework outputting this warning which appears in the TeamBuild summary:
+            // "System.AppDomainUnloadedException: Attempted to access an unloaded AppDomain. This can happen 
+            // if the test(s) started a thread but did not stop it. Make sure that all the threads started by 
+            // the test(s) are stopped before completion."
+            System.Threading.Thread.Sleep(1100);
         }
 
         #endregion
