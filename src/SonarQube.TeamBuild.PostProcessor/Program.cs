@@ -34,6 +34,11 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
 
+            if (!CheckEnvironmentConsistency(config, settings, logger))
+            {
+                return ErrorCode;
+            }
+
             if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
                 && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
             {
@@ -83,6 +88,35 @@ namespace SonarQube.TeamBuild.PostProcessor
                 }
             }
             return config;
+        }
+
+        /// <summary>
+        /// Returns a boolean indicating whether the information in the environment variables
+        /// matches that in the analysis config file.
+        /// Used to detect invalid setups on the build agent.
+        /// </summary>
+        private static bool CheckEnvironmentConsistency(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
+        {
+            // Currently we're only checking that the build uris match as this is the most likely error
+            // - it probably means that an old analysis config file has been left behind somehow 
+            // e.g. a build definition used to include analysis but has changed so that it is no 
+            // longer an analysis build, but there is still an old analysis config on disc.
+
+            if (settings.BuildEnvironment == BuildEnvironment.NotTeamBuild)
+            {
+                return true;
+            }
+
+            string configUri = config.GetBuildUri();
+            string environmentUi = settings.BuildUri;
+
+            if (!string.Equals(configUri, environmentUi, System.StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogError(Resources.ERROR_BuildUrisDontMatch, environmentUi, configUri, settings.AnalysisConfigFilePath);
+                return false;
+            }
+
+            return true;
         }
 
         private static ProjectInfoAnalysisResult InvokeSonarRunner(AnalysisConfig config, ILogger logger)

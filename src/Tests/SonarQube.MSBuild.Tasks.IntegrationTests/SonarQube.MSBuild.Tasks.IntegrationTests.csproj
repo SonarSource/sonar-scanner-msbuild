@@ -91,16 +91,6 @@
     <Content Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets">
-      <Link>LinkedFiles\SonarQube.Integration.ImportBefore.targets</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="..\..\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.targets">
-      <Link>LinkedFiles\SonarQube.Integration.targets</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
     <None Include="App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>

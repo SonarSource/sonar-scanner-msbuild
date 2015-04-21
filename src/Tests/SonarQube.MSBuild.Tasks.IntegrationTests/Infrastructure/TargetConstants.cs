@@ -40,6 +40,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string SonarQubeOutputPath = "SonarQubeOutputPath";
         public const string SonarQubeTempPath = "SonarQubeTempPath";
         public const string SonarBuildTasksAssemblyFile = "SonarQubeBuildTasksAssemblyFile";
+        public const string AutoImportProperty = "AutoImportSonarQubeAnalysisTargets";
 
         public const string SonarQubeTestProject = "SonarQubeTestProject";
         public const string SonarQubeExcludeMetadata = "SonarQubeExclude";

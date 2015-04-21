@@ -1,7 +1,19 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- **************************************************************************** -->
-  <!-- Compute the path to the targets if appropriate -->
+  <!-- Auto-import the targets if we are running under TeamBuild and the analysis config file exists -->
+  <!-- **************************************************************************** -->
+  <PropertyGroup Condition="$(RunSonarQubeAnalysis) == '' ">
+    <TeamBuildDir>$(TF_BUILD_BUILDDIRECTORY)</TeamBuildDir>
+    <TeamBuildDir Condition=" $(TeamBuildDir) == '' ">$(AGENT_BUILDDIRECTORY)</TeamBuildDir>
+
+    <AutoImportSonarQubeAnalysisTargets Condition=" $(TeamBuildDir) != '' AND Exists('$(TeamBuildDir)\SQTemp\Config\SonarQubeAnalysisConfig.xml') ">true</AutoImportSonarQubeAnalysisTargets>
+
+    <RunSonarQubeAnalysis>$(AutoImportSonarQubeAnalysisTargets)</RunSonarQubeAnalysis>
+  </PropertyGroup>
+
+  <!-- **************************************************************************** -->
+  <!-- Compute the path to the targets if not specified -->
   <!-- **************************************************************************** -->
   <!-- TFS 2013 -->
   <PropertyGroup Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeTargetsPath) == '' AND $(TF_BUILD_BUILDDIRECTORY) != ''">
@@ -39,6 +51,7 @@
 
     <!-- Diagnostic messages for troubleshooting -->
     <Message Importance="low" Text="SonarQube.Integration.ImportBefore.targets was loaded" />
+    <Message Importance="normal" Text="SonarQube analysis targets were automatically imported" Condition="$(AutoImportSonarQubeAnalysisTargets) == 'true' " />
     <Message Importance="low" Text="SonarQube analysis targets file found: $(AnalysisTargetsFileFound)" />
     <Message Importance="low" Text="SonarQube analysis targets imported: $(SonarQubeTargetsImported)" />
 

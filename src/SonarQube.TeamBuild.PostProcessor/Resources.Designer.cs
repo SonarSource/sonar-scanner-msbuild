@@ -70,6 +70,19 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
+        ///Build Uri from environment: {0}
+        ///Build Uri from config: {1}
+        ///Analysis config file: {2}
+        ///Please delete the analysis config file and try the build again..
+        /// </summary>
+        internal static string ERROR_BuildUrisDontMatch {
+            get {
+                return ResourceManager.GetString("ERROR_BuildUrisDontMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube analysis could not be completed because the analysis configuration file could not be found.
         ///Expected location: {0}.
         /// </summary>

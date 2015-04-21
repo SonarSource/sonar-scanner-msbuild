@@ -120,6 +120,13 @@
   <data name="DIAG_LoadingConfig" xml:space="preserve">
     <value>Loading the SonarQube analysis config from {0}</value>
   </data>
+  <data name="ERROR_BuildUrisDontMatch" xml:space="preserve">
+    <value>Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
+Build Uri from environment: {0}
+Build Uri from config: {1}
+Analysis config file: {2}
+Please delete the analysis config file and try the build again.</value>
+  </data>
   <data name="ERROR_ConfigFileNotFound" xml:space="preserve">
     <value>SonarQube analysis could not be completed because the analysis configuration file could not be found.
 Expected location: {0}</value>
