@@ -12,27 +12,31 @@ using System.Linq;
 
 namespace SonarQube.Bootstrapper
 {
-    static class Program
+    internal static class Program
     {
-        static void Main(string[] args)
+        private static int Main(string[] args)
         {
             var logger = new ConsoleLogger();
 
             IBootstrapperSettings settings = new BootstrapperSettings(logger);
-            
+
+            int exitCode;
+
             if (args.Any())
             {
                 logger.LogMessage(Resources.INFO_PreProcessing, args.Length);
-                preprocess(logger, settings, args);
+                exitCode = preprocess(logger, settings, args);
             }
             else
             {
                 logger.LogMessage(Resources.INFO_PostProcessing);
-                postprocess(logger, settings);
+                exitCode = postprocess(logger, settings);
             }
+
+            return exitCode;
         }
 
-        static void preprocess(ILogger logger, IBootstrapperSettings settings, string[] args)
+        private static int preprocess(ILogger logger, IBootstrapperSettings settings, string[] args)
         {
             string downloadBinPath = settings.DownloadDirectory;
 
@@ -54,14 +58,16 @@ namespace SonarQube.Bootstrapper
             var processRunner = new ProcessRunner();
             processRunner.Execute(preprocessorFilePath, string.Join(" ", args.Select(a => "\"" + a + "\"")), downloadBinPath, settings.PreProcessorTimeoutInMs, logger);
             
+            return processRunner.ExitCode;
         }
 
-        static void postprocess(ILogger logger, IBootstrapperSettings settings)
+        private static int postprocess(ILogger logger, IBootstrapperSettings settings)
         {
             var postprocessorFilePath = settings.PostProcessorFilePath;
 
             var processRunner = new ProcessRunner();
             processRunner.Execute(postprocessorFilePath, "", settings.DownloadDirectory, settings.PostProcessorTimeoutInMs, logger);
+            return processRunner.ExitCode;
         }
 
     }
