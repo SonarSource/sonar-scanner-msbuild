@@ -88,6 +88,16 @@ namespace SonarQube.TeamBuild.Integration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to convert the downloaded code coverage tool to XML. No code coverage information will be uploaded to SonarQube.
+        ///Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine..
+        /// </summary>
+        internal static string CONV_ERROR_ConversionToolFailed {
+            get {
+                return ResourceManager.GetString("CONV_ERROR_ConversionToolFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to locate the code coverage command line tool.
         /// </summary>
         internal static string CONV_ERROR_FailToFindConversionTool {
@@ -106,7 +116,7 @@ namespace SonarQube.TeamBuild.Integration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Downloading coverage file from {0} t0 {1}.
+        ///   Looks up a localized string similar to Downloading coverage file from {0} to {1}.
         /// </summary>
         internal static string DOWN_DIAG_DownloadCoverageReportFromTo {
             get {

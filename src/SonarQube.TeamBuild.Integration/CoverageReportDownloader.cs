@@ -35,12 +35,14 @@ namespace SonarQube.TeamBuild.Integration
                 Directory.CreateDirectory(downloadDir);
             }
 
-            WebClient myWebClient = new WebClient();
-            myWebClient.UseDefaultCredentials = true;
+            using (WebClient myWebClient = new WebClient())
+            {
+                myWebClient.UseDefaultCredentials = true;
 
-            logger.LogMessage(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, newFullFileName);
+                logger.LogMessage(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, newFullFileName);
 
-            myWebClient.DownloadFile(reportUrl, newFullFileName);
+                myWebClient.DownloadFile(reportUrl, newFullFileName);
+            }
 
             return true;
         }

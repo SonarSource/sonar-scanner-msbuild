@@ -191,14 +191,18 @@ namespace SonarQube.TeamBuild.Integration
             ProcessRunner runner = new ProcessRunner();
             bool success = runner.Execute(converterExeFilePath, args, Path.GetDirectoryName(outputFullXmlFilePath), ConversionTimeoutInMs, logger);
 
-            // Check the output file actually exists
             if (success)
             {
+                // Check the output file actually exists
                 if (!File.Exists(outputFullXmlFilePath))
                 {
                     logger.LogError(Resources.CONV_ERROR_OutputFileNotFound, outputFullXmlFilePath);
                     success = false;
                 }
+            }
+            else
+            {
+                logger.LogError(Resources.CONV_ERROR_ConversionToolFailed, inputfullBinaryFilePath);
             }
 
             return success;

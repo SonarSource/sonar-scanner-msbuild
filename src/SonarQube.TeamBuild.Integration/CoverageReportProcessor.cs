@@ -103,15 +103,18 @@ namespace SonarQube.TeamBuild.Integration
         {
             string targetFileName = Path.Combine(context.SonarOutputDir, DownloadFileName);
             bool success = this.downloader.DownloadReport(reportUrl, targetFileName, logger);
-         
+
             if (success)
             {
                 string xmlFileName = Path.ChangeExtension(targetFileName, XmlReportFileExtension);
                 Debug.Assert(!File.Exists(xmlFileName), "Not expecting a file with the name of the binary-to-XML conversion output to already exist: " + xmlFileName);
-                this.converter.ConvertToXml(targetFileName, xmlFileName, logger);
+                success = this.converter.ConvertToXml(targetFileName, xmlFileName, logger);
 
-                logger.LogMessage(Resources.PROC_DIAG_UpdatingProjectInfoFiles);
-                InsertCoverageAnalysisResults(context.SonarOutputDir, xmlFileName);
+                if (success)
+                {
+                    logger.LogMessage(Resources.PROC_DIAG_UpdatingProjectInfoFiles);
+                    InsertCoverageAnalysisResults(context.SonarOutputDir, xmlFileName);
+                }
             }
             return success;
         }

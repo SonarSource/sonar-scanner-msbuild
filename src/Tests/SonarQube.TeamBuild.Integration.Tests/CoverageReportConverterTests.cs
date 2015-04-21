@@ -74,8 +74,36 @@ echo foo > """ + outputFilePath + @"""");
             // Assert
             Assert.IsFalse(success, "Expecting the process to fail");
             logger.AssertErrorsLogged();
+            logger.AssertErrorExists(outputFilePath); // error message should refer to the output file
 
-            Assert.IsFalse(File.Exists(outputFilePath), "Expecting the output file to exist");
+            Assert.IsFalse(File.Exists(outputFilePath), "Not expecting the output file to exist");
+        }
+
+        [TestMethod]
+        [WorkItem(145)] // Regression test for bug #145: Poor UX if the code coverage report could not be converted to XML
+        public void Conv_FailsIfFileConverterReturnsAnErrorCode()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string outputFilePath = Path.Combine(testDir, "output.txt");
+
+            string inputFilePath = Path.Combine(testDir, "input.txt");
+            File.WriteAllText(inputFilePath, "dummy input file");
+
+            string converterFilePath = Path.Combine(testDir, "converter.bat");
+            File.WriteAllText(converterFilePath, @"exit -1");
+
+            // Act
+            bool success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+
+            // Assert
+            Assert.IsFalse(success, "Expecting the process to fail");
+            logger.AssertErrorsLogged();
+            logger.AssertErrorExists(inputFilePath); // error message should refer to the input file
+
+            Assert.IsFalse(File.Exists(outputFilePath), "Not expecting the output file to exist");
         }
 
         #endregion
