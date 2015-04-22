@@ -93,7 +93,7 @@ namespace SonarQube.Bootstrapper.Tests
 
             // 1. Default value -> relative to download dir
             IBootstrapperSettings settings = new BootstrapperSettings(logger, configScope.AppConfig);
-            AssertExpectedPreProcessPath(@"c:\temp\SonarQube.TeamBuild.PreProcessor.exe", settings);
+            AssertExpectedPreProcessPath(@"c:\temp\SonarQube.MSBuild.PreProcessor.exe", settings);
 
             // 2. Relative exe set in config -> relative to download dir
             configScope.SetPreProcessExe(@"..\myCustomPreProcessor.exe");
@@ -123,7 +123,7 @@ namespace SonarQube.Bootstrapper.Tests
 
                 // 1. Default value -> relative to download dir
                 IBootstrapperSettings settings = new BootstrapperSettings(logger, configScope.AppConfig);
-                AssertExpectedPostProcessPath(@"c:\temp\SQTemp\bin\SonarQube.TeamBuild.PostProcessor.exe", settings);
+                AssertExpectedPostProcessPath(@"c:\temp\SQTemp\bin\SonarQube.MSBuild.PostProcessor.exe", settings);
 
                 // 2. Relative exe set in config -> relative to download dir
                 configScope.SetPostProcessExe(@"..\foo\myCustomPreProcessor.exe");

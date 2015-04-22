@@ -25,7 +25,7 @@ namespace SonarQube.Bootstrapper.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("SonarQube.TeamBuild.PreProcessor.exe")]
+        [global::System.Configuration.DefaultSettingValueAttribute("SonarQube.MSBuild.PreProcessor.exe")]
         public string PreProcessExe {
             get {
                 return ((string)(this["PreProcessExe"]));
@@ -34,7 +34,7 @@ namespace SonarQube.Bootstrapper.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("SonarQube.TeamBuild.PostProcessor.exe")]
+        [global::System.Configuration.DefaultSettingValueAttribute("SonarQube.MSBuild.PostProcessor.exe")]
         public string PostProcessExe {
             get {
                 return ((string)(this["PostProcessExe"]));
