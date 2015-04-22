@@ -28,7 +28,7 @@ namespace SonarQube.TeamBuild.PreProcessor
     ///   been partially processed so a command line of:
     ///        myApp.exe "quoted arg" /k="ab cd" ""
     ///   will be supplied as three args, [quoted arg] , [/k=ab cd] and String.Empty</remarks>
-    internal static class ArgumentProcessor
+    public static class ArgumentProcessor // was internal
     {
         /// <summary>
         /// Ids for supported arguments

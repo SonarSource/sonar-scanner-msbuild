@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace SonarQube.TeamBuild.Integration
 {
-    internal interface ICoverageUrlProvider
+    public interface ICoverageUrlProvider // was internal
     {
         /// <summary>
         /// Builds and returns the download URLs for all code coverage reports for the specified build

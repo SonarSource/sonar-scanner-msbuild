@@ -52,7 +52,7 @@ namespace SonarQube.Bootstrapper
         /// <summary>
         /// Internal constructor for testing
         /// </summary>
-        internal BootstrapperSettings(ILogger logger, Properties.Settings appConfigSettings)
+        public BootstrapperSettings(ILogger logger, Properties.Settings appConfigSettings) // was internal
         {
             if (logger == null)
             {

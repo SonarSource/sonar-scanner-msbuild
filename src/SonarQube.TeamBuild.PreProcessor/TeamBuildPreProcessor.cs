@@ -13,7 +13,8 @@ using System.Net;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
-    internal class TeamBuildPreProcessor
+    // was internal
+    public class TeamBuildPreProcessor
     {
         public const string FxCopRulesetFileName = "SonarQubeAnalysis.ruleset";
         private const string DefaultSonarServerUrl = "http://localhost:9000";
@@ -32,7 +33,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <summary>
         /// Internal constructor for testing
         /// </summary>
-        internal TeamBuildPreProcessor(ILogger logger, IPropertiesFetcher propertiesFetcher, IRulesetGenerator rulesetGenerator)
+        public TeamBuildPreProcessor(ILogger logger, IPropertiesFetcher propertiesFetcher, IRulesetGenerator rulesetGenerator) // was internal
         {
             if (logger == null)
             {

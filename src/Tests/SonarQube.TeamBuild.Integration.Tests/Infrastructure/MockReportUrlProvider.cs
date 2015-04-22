@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
 {
-    internal class MockReportUrlProvider : ICoverageUrlProvider
+    internal class MockReportUrlProvider : ICoverageUrlProvider // was internal
     {
         private bool getUrlsCalled;
 

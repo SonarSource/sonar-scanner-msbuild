@@ -32,11 +32,9 @@
   <!-- ***************************************************************** -->
   <!-- Team Foundation references -->
   <!-- ***************************************************************** -->
-
   <PropertyGroup>
     <TeamExplorerBinPath>$(DevEnvDir)CommonExtensions\Microsoft\TeamFoundation\Team Explorer\</TeamExplorerBinPath>
   </PropertyGroup>
-
   <ItemGroup>
     <Reference Include="Microsoft.TeamFoundation.Client">
       <HintPath>$(TeamExplorerBinPath)Microsoft.TeamFoundation.Client.dll</HintPath>
@@ -71,7 +69,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyFriends.cs" />
     <Compile Include="BuildEnvironment.cs" />
     <Compile Include="BuildSummaryLogger.cs" />
     <Compile Include="CoverageReportConverter.cs" />

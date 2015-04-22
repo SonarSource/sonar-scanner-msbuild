@@ -8,7 +8,7 @@
 using SonarQube.Common;
 namespace SonarQube.TeamBuild.Integration
 {
-    internal interface ICoverageReportConverter
+    public interface ICoverageReportConverter // was internal
     {
         /// <summary>
         /// Initialises the converter

@@ -176,7 +176,9 @@ namespace SonarQube.TeamBuild.Integration
             return result;
         }
 
-        internal static bool ConvertBinaryToXml(string converterExeFilePath, string inputfullBinaryFilePath, string outputFullXmlFilePath, ILogger logger)
+
+        // was internal
+        public static bool ConvertBinaryToXml(string converterExeFilePath, string inputfullBinaryFilePath, string outputFullXmlFilePath, ILogger logger)
         {
             Debug.Assert(!string.IsNullOrEmpty(converterExeFilePath), "Expecting the conversion tool path to have been set");
             Debug.Assert(File.Exists(converterExeFilePath), "Expecting the converter exe to exist: " + converterExeFilePath);

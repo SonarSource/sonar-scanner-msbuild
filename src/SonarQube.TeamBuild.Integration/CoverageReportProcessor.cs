@@ -11,13 +11,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-// TODO replace success codes with exceptions
+
 namespace SonarQube.TeamBuild.Integration
 {
     public class CoverageReportProcessor
     {
+        public const string DownloadFileName = "VSCodeCoverageReport.coverage"; // was internal
+
         private const string XmlReportFileExtension = "coveragexml";
-        internal const string DownloadFileName = "VSCodeCoverageReport.coverage";
 
         private ICoverageUrlProvider urlProvider;
         private ICoverageReportConverter converter;
@@ -28,7 +29,7 @@ namespace SonarQube.TeamBuild.Integration
         {
         }
 
-        internal CoverageReportProcessor(ICoverageUrlProvider urlProvider, ICoverageReportDownloader downloader, ICoverageReportConverter converter)
+        public CoverageReportProcessor(ICoverageUrlProvider urlProvider, ICoverageReportDownloader downloader, ICoverageReportConverter converter) // was internal
         {
             if (urlProvider == null)
             {

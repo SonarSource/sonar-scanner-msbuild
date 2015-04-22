@@ -42,7 +42,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyFriends.cs" />
     <Compile Include="BuildAgentUpdater.cs" />
     <Compile Include="BootstrapperSettings.cs" />
     <Compile Include="IBuildAgentUpdater.cs" />
@@ -67,7 +66,7 @@
     </None>
     <None Include="App.config" />
     <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>

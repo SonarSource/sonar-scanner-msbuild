@@ -16,7 +16,7 @@ namespace SonarQube.TeamBuild.PreProcessor
     /// checking the command line arguments and returning the appropriate exit
     /// code. The rest of the work is done by the pre-processor class.
     /// </summary>
-    internal class Program
+    public class Program // was internal
     {
         private const int ErrorCode = 1;
 

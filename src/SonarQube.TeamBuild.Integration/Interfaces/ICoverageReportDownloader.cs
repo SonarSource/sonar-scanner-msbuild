@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace SonarQube.TeamBuild.Integration
 {
-    internal interface ICoverageReportDownloader
+    public interface ICoverageReportDownloader // was internal
     {
         /// <summary>
         /// Downloads the specified files and returns a dictionary mapping the url to the name of the downloaded file

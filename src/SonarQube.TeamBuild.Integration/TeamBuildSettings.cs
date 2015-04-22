@@ -18,9 +18,9 @@ namespace SonarQube.TeamBuild.Integration
     /// </summary>
     public class TeamBuildSettings
     {
-        internal const int DefaultLegacyCodeCoverageTimeout = 30000; // ms
+        public const int DefaultLegacyCodeCoverageTimeout = 30000; // ms    ( // was internal )
 
-        internal static class EnvironmentVariables
+        public static class EnvironmentVariables // was internal
         {
             /// <summary>
             /// Name of the environment variable that specifies the directory to use as the 
