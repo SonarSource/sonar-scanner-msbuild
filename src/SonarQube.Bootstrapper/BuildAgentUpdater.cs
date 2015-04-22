@@ -36,6 +36,7 @@ namespace SonarQube.Bootstrapper
 
             using (WebClient client = new WebClient())
             {
+                client.UseDefaultCredentials = true;
                 logger.LogMessage(Resources.INFO_Downloading, SonarQubeIntegrationFilename, integrationUrl, downloadedZipFilePath);
                 client.DownloadFile(integrationUrl, downloadedZipFilePath);
                 ZipFile.ExtractToDirectory(downloadedZipFilePath, targetDir);
