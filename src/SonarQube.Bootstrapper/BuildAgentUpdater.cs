@@ -15,7 +15,7 @@ namespace SonarQube.Bootstrapper
 {
     public class BuildAgentUpdater : IBuildAgentUpdater
     {
-        private const string SonarQubeIntegrationFilename = "SonarQube.TeamBuild.Integration.zip";
+        private const string SonarQubeIntegrationFilename = "SonarQube.MSBuild.Runner.Implementation.zip";
         private const string IntegrationUrlFormat = "{0}/static/csharp/" + SonarQubeIntegrationFilename;
 
         #region IAgentUpdater interface
