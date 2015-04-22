@@ -38,7 +38,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // 2. Now clear the config scope and check the env var is used
                 configScope.Reset();
                 settings = new BootstrapperSettings(logger);
-                AssertExpectedDownloadDir(@"env download dir\SQTemp\bin", settings);
+                AssertExpectedDownloadDir(@"env download dir\sqtemp\bin", settings);
             }
         }
 
@@ -56,7 +56,7 @@ namespace SonarQube.Bootstrapper.Tests
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
                 
                 IBootstrapperSettings settings = new BootstrapperSettings(logger);
-                AssertExpectedDownloadDir(@"legacy tf build\SQTemp\bin", settings);
+                AssertExpectedDownloadDir(@"legacy tf build\sqtemp\bin", settings);
             }
 
             // 2. TFS2015 variable will be used if available
@@ -67,7 +67,7 @@ namespace SonarQube.Bootstrapper.Tests
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, "tfs build");
                 
                 IBootstrapperSettings settings = new BootstrapperSettings(logger);
-                AssertExpectedDownloadDir(@"tfs build\SQTemp\bin", settings);
+                AssertExpectedDownloadDir(@"tfs build\sqtemp\bin", settings);
             }
 
             // 3. SQ variable takes precedence over the other variables
@@ -78,7 +78,7 @@ namespace SonarQube.Bootstrapper.Tests
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, "tfs build");
 
                 IBootstrapperSettings settings = new BootstrapperSettings(logger);
-                AssertExpectedDownloadDir(@"sq build\SQTemp\bin", settings);
+                AssertExpectedDownloadDir(@"sq build\sqtemp\bin", settings);
             }
         }
 
@@ -123,12 +123,12 @@ namespace SonarQube.Bootstrapper.Tests
 
                 // 1. Default value -> relative to download dir
                 IBootstrapperSettings settings = new BootstrapperSettings(logger, configScope.AppConfig);
-                AssertExpectedPostProcessPath(@"c:\temp\SQTemp\bin\SonarQube.MSBuild.PostProcessor.exe", settings);
+                AssertExpectedPostProcessPath(@"c:\temp\sqtemp\bin\SonarQube.MSBuild.PostProcessor.exe", settings);
 
                 // 2. Relative exe set in config -> relative to download dir
                 configScope.SetPostProcessExe(@"..\foo\myCustomPreProcessor.exe");
                 settings = new BootstrapperSettings(logger, configScope.AppConfig);
-                AssertExpectedPostProcessPath(@"c:\temp\SQTemp\foo\myCustomPreProcessor.exe", settings);
+                AssertExpectedPostProcessPath(@"c:\temp\sqtemp\foo\myCustomPreProcessor.exe", settings);
 
                 // 3. Now set the config path to an absolute value
                 configScope.SetPostProcessExe(@"d:\myCustomPostProcessor.exe");
@@ -194,24 +194,24 @@ namespace SonarQube.Bootstrapper.Tests
         private static void AssertExpectedDownloadDir(string expected, IBootstrapperSettings settings)
         {
             string actual = settings.DownloadDirectory;
-            Assert.AreEqual(expected, actual, "Unexpected download dir");
+            Assert.AreEqual(expected, actual, "Unexpected download dir", true /* ignore case */);
         }
 
         private static void AssertExpectedPreProcessPath(string expected, IBootstrapperSettings settings)
         {
             string actual = settings.PreProcessorFilePath;
-            Assert.AreEqual(expected, actual, "Unexpected PreProcessFilePath");
+            Assert.AreEqual(expected, actual, true /* ignore case */, "Unexpected PreProcessFilePath");
         }
 
         private static void AssertExpectedPostProcessPath(string expected, IBootstrapperSettings settings)
         {
             string actual = settings.PostProcessorFilePath;
-            Assert.AreEqual(expected, actual, "Unexpected PostProcessFilePath");
+            Assert.AreEqual(expected, actual, true /* ignore case */, "Unexpected PostProcessFilePath");
         }
         private static void AssertExpectedServerUrl(string expected, IBootstrapperSettings settings)
         {
             string actual = settings.SonarQubeUrl;
-            Assert.AreEqual(expected, actual, "Unexpected server url");
+            Assert.AreEqual(expected, actual, true /* ignore case */, "Unexpected server url");
         }
 
         #endregion

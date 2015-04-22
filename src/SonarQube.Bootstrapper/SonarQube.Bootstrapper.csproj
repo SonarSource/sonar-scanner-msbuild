@@ -60,10 +60,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets">
-      <Link>LinkedFiles\SonarQube.Integration.ImportBefore.targets</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>

@@ -13,9 +13,10 @@
       then a file called "ManagedFileList" will be written containing the list of managed code
       files that was passed to the compiler.
       
-      The output will only be produced if the property $(SonarQubeOutputPath) is specified. $(SonarQubeOutputPath) is
-      the output directory in which the output file should be dropped and can be relative or
-      absolute (use an absolute path if you want a consolidated set of output for a single build).
+      The output will only be produced if the properties $(SonarQubeOutputPath) and 
+			$(RunSonarQubeAnalysis) are specified. $(SonarQubeOutputPath) is the output directory 
+      in which the output file should be dropped and can be relative or absolute 
+      (use an absolute path if you want a consolidated set of output for a single build).
 
       Using this targets file
       - - - - - - - - - - - -
@@ -28,7 +29,7 @@
 
       Example of use:
       - - - - - - - -
-      msbuild MyProject.csproj /p:SonarQubeOutputPath=C:\SonarOutput
+      msbuild MyProject.csproj /p:SonarQubeOutputPath=C:\SQOutput /p:RunSonarQubeAnalysis=true
 
 
       Excluding projects and files from SonarQube analysis
@@ -86,17 +87,17 @@
     <!-- Use the TeamBuild per-build base directory as a root -->
     <!-- Legacy TeamBuild system i.e. XAML Builds (pre-2015) -->
     <SonarQubeTempPath Condition=" $(SonarQubeTempPath) == '' AND $(TF_BUILD_BUILDDIRECTORY) != '' "
-                   >$(TF_BUILD_BUILDDIRECTORY)\SQTemp</SonarQubeTempPath>
+                   >$(TF_BUILD_BUILDDIRECTORY)\sqtemp</SonarQubeTempPath>
 
     <!-- New TeamBuild system (2015 onwards) -->
     <SonarQubeTempPath Condition=" $(SonarQubeTempPath) == '' AND $(AGENT_BUILDDIRECTORY) != '' "
-                   >$(AGENT_BUILDDIRECTORY)\SQTemp</SonarQubeTempPath>
+                   >$(AGENT_BUILDDIRECTORY)\sqtemp</SonarQubeTempPath>
 
     <SonarQubeConfigPath Condition="$(SonarQubeConfigPath) == '' AND $(SonarQubeTempPath) !='' "
-                     >$(SonarQubeTempPath)\Config\</SonarQubeConfigPath>
+                     >$(SonarQubeTempPath)\conf\</SonarQubeConfigPath>
 
     <SonarQubeOutputPath Condition="$(SonarQubeOutputPath) == '' AND $(SonarQubeTempPath) !='' "
-                     >$(SonarQubeTempPath)\Output\</SonarQubeOutputPath>
+                     >$(SonarQubeTempPath)\out\</SonarQubeOutputPath>
   
   </PropertyGroup>
   

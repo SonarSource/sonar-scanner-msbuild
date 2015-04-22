@@ -7,7 +7,7 @@
     <TeamBuildDir>$(TF_BUILD_BUILDDIRECTORY)</TeamBuildDir>
     <TeamBuildDir Condition=" $(TeamBuildDir) == '' ">$(AGENT_BUILDDIRECTORY)</TeamBuildDir>
 
-    <AutoImportSonarQubeAnalysisTargets Condition=" $(TeamBuildDir) != '' AND Exists('$(TeamBuildDir)\SQTemp\Config\SonarQubeAnalysisConfig.xml') ">true</AutoImportSonarQubeAnalysisTargets>
+    <AutoImportSonarQubeAnalysisTargets Condition=" $(TeamBuildDir) != '' AND Exists('$(TeamBuildDir)\sqtemp\conf\SonarQubeAnalysisConfig.xml') ">true</AutoImportSonarQubeAnalysisTargets>
 
     <RunSonarQubeAnalysis>$(AutoImportSonarQubeAnalysisTargets)</RunSonarQubeAnalysis>
   </PropertyGroup>
@@ -17,11 +17,11 @@
   <!-- **************************************************************************** -->
   <!-- TFS 2013 -->
   <PropertyGroup Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeTargetsPath) == '' AND $(TF_BUILD_BUILDDIRECTORY) != ''">
-    <SonarQubeTargetsPath>$(TF_BUILD_BUILDDIRECTORY)\SQTemp\Bin\Targets</SonarQubeTargetsPath>
+    <SonarQubeTargetsPath>$(TF_BUILD_BUILDDIRECTORY)\sqtemp\bin\targets</SonarQubeTargetsPath>
   </PropertyGroup>
   <!-- TFS 2015 -->
   <PropertyGroup Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeTargetsPath) == '' AND $(AGENT_BUILDDIRECTORY) != ''">
-    <SonarQubeTargetsPath>$(AGENT_BUILDDIRECTORY)\SQTemp\Bin\Targets</SonarQubeTargetsPath>
+    <SonarQubeTargetsPath>$(AGENT_BUILDDIRECTORY)\sqTemp\bin\targets</SonarQubeTargetsPath>
   </PropertyGroup>
 
   <!-- **************************************************************************** -->

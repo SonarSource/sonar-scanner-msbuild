@@ -322,7 +322,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// </summary>
         private string EnsureDummyAnalysisConfigFileExists(string rootBuildDir)
         {
-            string subDir = Path.Combine(rootBuildDir, "SQTemp", "Config");
+            string subDir = Path.Combine(rootBuildDir, "sqtemp", "conf");
             Directory.CreateDirectory(subDir);
 
             string fullPath = Path.Combine(subDir, FileConstants.ConfigFileName);
