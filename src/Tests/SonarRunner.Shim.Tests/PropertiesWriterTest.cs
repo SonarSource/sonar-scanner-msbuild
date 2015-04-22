@@ -10,13 +10,10 @@ using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using TestUtilities;
 
 namespace SonarRunner.Shim.Tests
 {
-    //TODO: test that projects with no files are skipped
-
     [TestClass]
     public class PropertiesWriterTest
     {

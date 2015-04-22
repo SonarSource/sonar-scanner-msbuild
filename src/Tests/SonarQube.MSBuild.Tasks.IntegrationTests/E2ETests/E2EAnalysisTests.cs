@@ -109,7 +109,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         [TestMethod]
         [TestCategory("E2E"), TestCategory("Targets")]
         [Description("Tests that projects with invalid project guids are handled correctly")]
-        public void E2E_MissingInvalidGuid()
+        public void E2E_InvalidGuid()
         {
             // Projects with invalid guids should have a warning emitted. The project info
             // should not be generated.

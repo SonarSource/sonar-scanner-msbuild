@@ -133,8 +133,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not load the analysis config file. Please check that it is a valid file and try again.
-        ///Error: {0}.
+        ///   Looks up a localized string similar to An error occurred loading the analysis config file. Please check that it is a valid file and try again. Error: {0}.
         /// </summary>
         internal static string ERR_ErrorLoadingConfigFile {
             get {
@@ -260,7 +259,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The project has a non-unique GUID &quot;{0}&quot;. The project will not be analyzed by SonarQube. Project file: {1}.
+        ///   Looks up a localized string similar to Duplicate project GUID: &quot;{0}&quot;. Check that the project is only being built for a single platform/configuration and that that the project guid is unique. The project will not be analyzed by SonarQube. Project file: {1}.
         /// </summary>
         internal static string WARN_DuplicateProjectGuid {
             get {

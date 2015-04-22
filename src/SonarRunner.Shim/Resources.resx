@@ -142,8 +142,7 @@
     <value>Writing processing summary to {0}</value>
   </data>
   <data name="ERR_ErrorLoadingConfigFile" xml:space="preserve">
-    <value>Could not load the analysis config file. Please check that it is a valid file and try again.
-Error: {0}</value>
+    <value>An error occurred loading the analysis config file. Please check that it is a valid file and try again. Error: {0}</value>
   </data>
   <data name="ERR_FailedToLocateSonarRunner" xml:space="preserve">
     <value>Failed to locate the sonar-runner ({0}). Ensure that the containing directory is on the system PATH and try again.</value>
@@ -185,7 +184,7 @@ Error: {0}</value>
     <value>Code coverage report does not exist at the specified location. Path: {0}</value>
   </data>
   <data name="WARN_DuplicateProjectGuid" xml:space="preserve">
-    <value>The project has a non-unique GUID "{0}". The project will not be analyzed by SonarQube. Project file: {1}</value>
+    <value>Duplicate project GUID: "{0}". Check that the project is only being built for a single platform/configuration and that that the project guid is unique. The project will not be analyzed by SonarQube. Project file: {1}</value>
   </data>
   <data name="WARN_FxCopReportNotFound" xml:space="preserve">
     <value>FxCop analysis report does not exist at the specified location. Path: {0}</value>

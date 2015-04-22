@@ -160,8 +160,7 @@
     
     <!-- Calculate a project-specific directory name -->
     <PropertyGroup>
-      <FolderDisambiguator>$(ProjectGuid)</FolderDisambiguator>
-      <FolderDisambiguator Condition=" $(FolderDisambiguator)=='' ">$([System.Guid]::NewGuid())</FolderDisambiguator>
+      <FolderDisambiguator Condition=" $(FolderDisambiguator)=='' ">_$(Platform)_$(Configuration)_$([System.DateTime]::Now.Ticks)</FolderDisambiguator>
       <ProjectSpecificDir>$(SonarQubeOutputPath)\$(MSBuildProjectName)_$(FolderDisambiguator)</ProjectSpecificDir>
     </PropertyGroup>
 
