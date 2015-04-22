@@ -180,6 +180,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
+            string itemPath = CreateTextFile(rootInputFolder, "my.cs", "class myclass{}");
+            projectRoot.AddItem("Compile", itemPath);
+            projectRoot.Save();
+
             BuildLogger logger = new BuildLogger();
 
             // Act
@@ -188,11 +192,69 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
+            logger.AssertExpectedTargetOrdering(TargetConstants.CoreCompileTarget,
+                TargetConstants.CalculateSonarQubeFileListsTarget,
+                TargetConstants.OverrideFxCopSettingsTarget,
+                TargetConstants.FxCopTarget,
+                TargetConstants.SetFxCopResultsTarget,
+                TargetConstants.DefaultBuildTarget);
+
             AssertAllFxCopTargetsExecuted(logger);
             Assert.IsTrue(File.Exists(fxCopLogFile), "FxCop log file should have been produced");
 
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
             ProjectInfoAssertions.AssertAnalysisResultExists(projectInfo, AnalysisType.FxCop.ToString(), fxCopLogFile);
+
+        }
+
+        [TestMethod]
+        [Description("The FxCop analysis result should not exist if there are not files to analyse")]
+        public void E2E_FxCop_NoFilesToAnalyse()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
+            preImportProperties.RunCodeAnalysis = "false";
+            preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
+            preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
+
+            preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
+            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
+
+            // Add some files to the project
+            string itemPath = CreateTextFile(rootInputFolder, "content1.txt", "aaaa");
+            projectRoot.AddItem("Content", itemPath);
+
+            itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{} // wrong item type");
+            projectRoot.AddItem("CompileXXX", itemPath);
+            
+            projectRoot.Save();
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
+
+            // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertExpectedTargetOrdering(TargetConstants.CoreCompileTarget,
+                TargetConstants.CalculateSonarQubeFileListsTarget,
+                TargetConstants.OverrideFxCopSettingsTarget,
+                TargetConstants.DefaultBuildTarget,
+                TargetConstants.WriteProjectDataTarget);
+
+            logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
+
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+            ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());
         }
 
         #endregion
@@ -224,14 +286,23 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             this.TestContext.AddResultFile(fullPath);
         }
 
+        private string CreateTextFile(string rootInputFolder, string fileName, string contents)
+        {
+            string fullPath = Path.Combine(rootInputFolder, fileName);
+            File.WriteAllText(fullPath, contents);
+            return fullPath;
+        }
+
         #endregion
 
         #region Assertions methods
 
         private void AssertAllFxCopTargetsExecuted(BuildLogger logger)
         {
-            logger.AssertTargetExecuted(TargetConstants.OverrideFxCopSettingsTarget);
-            logger.AssertTargetExecuted(TargetConstants.SetFxCopResultsTarget);
+            logger.AssertExpectedTargetOrdering(
+                TargetConstants.OverrideFxCopSettingsTarget,
+                TargetConstants.FxCopTarget,
+                TargetConstants.SetFxCopResultsTarget);
 
             // If the SonarQube FxCop targets are executed then we expect the FxCop
             // target and task to be executed too

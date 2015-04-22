@@ -42,7 +42,7 @@
         
         Writes out diagnostic information to help with troubleshooting.  -->
   <!-- **************************************************************************** -->
-  <Target Name="SonarQubeImportBeforeInfo" Condition="$(RunSonarQubeAnalysis) == 'true' " BeforeTargets="Compile">
+  <Target Name="SonarQubeImportBeforeInfo" Condition="$(RunSonarQubeAnalysis) == 'true' " BeforeTargets="CoreCompile">
 
     <PropertyGroup>
       <AnalysisTargetsFileFound Condition=" Exists('$(SonarQubeTargetFilePath)') " >true</AnalysisTargetsFileFound>

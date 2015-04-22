@@ -500,9 +500,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.WriteProjectDataTarget);
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.CalculateSonarQubeFileListsTarget, TargetConstants.WriteProjectDataTarget);
 
             // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.CalculateSonarQubeFileListsTarget);
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.WriteProjectDataTarget);
 
             logger.AssertNoWarningsOrErrors();

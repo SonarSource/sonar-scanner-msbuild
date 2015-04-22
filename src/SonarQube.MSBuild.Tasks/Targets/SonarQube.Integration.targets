@@ -118,10 +118,33 @@
   <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
 
-  <Target Name="SkippingSonarQubeAnalysis" AfterTargets="CoreCompile"
+  <Target Name="SkippingSonarQubeAnalysis" BeforeTargets="CoreCompile"
           Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeOutputPath) == '' ">
     <Message Importance="high" Text="Skipping dumping compile outputs because SonarQubeOutputPath has not been specified" />
   </Target>
+
+  
+  <!-- **************************************************************************** -->
+  <!-- Calculate the file contents of the file lists -->
+  <!-- **************************************************************************** -->
+  <Target Name="CalculateSonarQubeFileLists" AfterTargets="CoreCompile" BeforeTargets="RunCodeAnalysis"
+        Condition="$(RunSonarQubeAnalysis) == 'true' ">
+    <ItemGroup>
+      <!-- Calculate the sets of files to write out to the file lists.
+           Exclude any that have the metadata 'SonarQubeExclude' set, or that are auto-generated -->
+      <SonarQubeManagedFiles Include="@(Compile)" Condition=" %(Compile.SonarQubeExclude) != 'true' AND %(Compile.AutoGen) != 'true' " />
+      <SonarQubeContentFiles Include="@(Content)" Condition=" %(Content.SonarQubeExclude) != 'true' AND %(Content.AutoGen) != 'true' " />
+
+    </ItemGroup>
+    
+    <PropertyGroup>
+      <!-- Work out which types of input files exist-->
+      <ManagedFilesExist Condition=" @(SonarQubeManagedFiles) != '' ">true</ManagedFilesExist>
+      <ContentFilesExist Condition=" @(SonarQubeContentFiles) != '' ">true</ContentFilesExist>
+    </PropertyGroup>
+
+  </Target>
+
 
   <!-- **************************************************************************** -->
   <!-- Write the project info file for the current project.
@@ -151,22 +174,10 @@
 
     <!-- **************************************************************************** -->
     <!-- Write of file lists -->
-    
-    <ItemGroup>
-      <!-- Calculate the sets of files to write out to the file lists.
-           Exclude any that have the metadata 'SonarQubeExclude' set, or that are auto-generated -->
-      <SonarQubeManagedFiles Include="@(Compile)" Condition=" %(Compile.SonarQubeExclude) != 'true' AND %(Compile.AutoGen) != 'true' " />
-      <SonarQubeContentFiles Include="@(Content)" Condition=" %(Content.SonarQubeExclude) != 'true' AND %(Content.AutoGen) != 'true' " />
-
-    </ItemGroup>
-
     <PropertyGroup>
-      <!-- Work out which types of input files exist-->
-      <ManagedFilesExist Condition=" @(SonarQubeManagedFiles) != '' ">true</ManagedFilesExist>
-      <ContentFilesExist Condition=" @(SonarQubeContentFiles) != '' ">true</ContentFilesExist>
 
       <!-- Set the file names for the list files -->
-      <ManagedFileList>$(ProjectSpecificDir)\ManagedSourceFiles.txt</ManagedFileList>	
+      <ManagedFileList>$(ProjectSpecificDir)\ManagedSourceFiles.txt</ManagedFileList>
       <ContentFileList>$(ProjectSpecificDir)\ContentFiles.txt</ContentFileList>
     </PropertyGroup>
 
@@ -303,8 +314,9 @@
   </Target>
 
   <!-- If FxCop is being run then record the FxCop output file as an analysis result -->
-  <Target Name="SetFxCopAnalysisResult" Condition=" $(SonarQubeRulesetExists) == 'true' "
-                AfterTargets="OverrideCodeAnalysisProperties;RunCodeAnalysis" BeforeTargets="WriteSonarQubeProjectData" >
+  <Target Name="SetFxCopAnalysisResult"
+          Condition=" $(SonarQubeRulesetExists) == 'true' AND $(ManagedFilesExist) == 'true' "
+          AfterTargets="RunCodeAnalysis" BeforeTargets="WriteSonarQubeProjectData" >
     <ItemGroup>
       <AnalysisResults Include="$(CodeAnalysisLogFile)">
         <Id>FxCop</Id>

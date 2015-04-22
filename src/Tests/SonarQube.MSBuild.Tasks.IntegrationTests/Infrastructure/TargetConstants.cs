@@ -15,11 +15,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         // Targets
         public const string ImportBeforeInfoTarget = "SonarQubeImportBeforeInfo";
-        
+
+        public const string CalculateSonarQubeFileListsTarget = "CalculateSonarQubeFileLists";
         public const string WriteProjectDataTarget = "WriteSonarQubeProjectData";
         public const string OverrideFxCopSettingsTarget = "OverrideCodeAnalysisProperties";
         public const string SetFxCopResultsTarget = "SetFxCopAnalysisResult";
 
+        public const string CoreCompileTarget = "CoreCompile";
         public const string DefaultBuildTarget = "Build";
         
         // FxCop

@@ -147,6 +147,24 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             Assert.IsNull(found, "Not expecting the task to have been executed: {0}", taskName);
         }
 
+        /// <summary>
+        /// Checks that the expected tasks were executed in the specified order
+        /// </summary>
+        public void AssertExpectedTargetOrdering(params string[] expected)
+        {
+            foreach (string target in expected)
+            {
+                this.AssertTargetExecuted(target);
+            }
+
+            string[] actual = this.executedTargets.Select(t => t.TargetName).Where(t => expected.Contains(t, StringComparer.Ordinal)).ToArray();
+
+            Console.WriteLine("Expected target order: {0}", string.Join(", ", expected));
+            Console.WriteLine("Actual target order: {0}", string.Join(", ", actual));
+
+            CollectionAssert.AreEqual(expected, actual, "Targets were not executed in the expected order");
+        }
+
         public void AssertNoWarningsOrErrors()
         {
             AssertExpectedErrorCount(0);
