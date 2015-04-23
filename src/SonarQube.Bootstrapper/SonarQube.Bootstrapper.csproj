@@ -42,6 +42,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
+    </Compile>
     <Compile Include="BuildAgentUpdater.cs" />
     <Compile Include="BootstrapperSettings.cs" />
     <Compile Include="IBuildAgentUpdater.cs" />

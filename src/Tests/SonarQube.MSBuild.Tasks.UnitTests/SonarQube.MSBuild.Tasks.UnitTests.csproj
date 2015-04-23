@@ -52,6 +52,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="..\..\AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
+    </Compile>
     <Compile Include="Infrastructure\DummyBuildEngine.cs" />
     <Compile Include="IsTestFileByNameTests.cs" />
     <Compile Include="WriteProjectInfoFileTests.cs" />

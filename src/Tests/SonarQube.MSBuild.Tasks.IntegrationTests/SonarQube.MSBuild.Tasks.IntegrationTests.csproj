@@ -61,6 +61,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="..\..\AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
+    </Compile>
     <Compile Include="E2ETests\E2EFxCopTests.cs" />
     <Compile Include="Infrastructure\BuildAssertions.cs" />
     <Compile Include="Infrastructure\BuildUtilities.cs" />

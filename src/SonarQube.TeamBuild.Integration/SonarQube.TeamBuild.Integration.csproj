@@ -69,6 +69,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
+    </Compile>
     <Compile Include="BuildEnvironment.cs" />
     <Compile Include="BuildSummaryLogger.cs" />
     <Compile Include="CoverageReportConverter.cs" />

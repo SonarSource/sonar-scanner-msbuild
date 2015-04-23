@@ -45,6 +45,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
+    </Compile>
     <Compile Include="ArgumentProcessor.cs" />
     <Compile Include="IDownloader.cs" />
     <Compile Include="IPropertiesFetcher.cs" />

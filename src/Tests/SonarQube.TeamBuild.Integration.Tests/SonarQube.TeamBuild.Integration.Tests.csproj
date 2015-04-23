@@ -50,6 +50,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="..\..\AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
+    </Compile>
     <Compile Include="CoverageReportConverterTests.cs" />
     <Compile Include="CoverageReportProcessorTests.cs" />
     <Compile Include="Infrastructure\MockReportDownloader.cs" />
