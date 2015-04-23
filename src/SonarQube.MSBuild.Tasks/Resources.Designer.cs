@@ -73,16 +73,7 @@ namespace SonarQube.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regular expression could not determined from the config file. Using the default: {0}.
-        /// </summary>
-        internal static string IsTest_UsingDefaultRegEx {
-            get {
-                return ResourceManager.GetString("IsTest_UsingDefaultRegEx", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using regular expression from analysis config file: {0}.
+        ///   Looks up a localized string similar to Using regular expression for detecting test projects from analysis config file: {0}.
         /// </summary>
         internal static string IsTest_UsingRegExFromConfig {
             get {

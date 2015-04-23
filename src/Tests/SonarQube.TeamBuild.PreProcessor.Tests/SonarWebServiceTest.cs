@@ -100,6 +100,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             var expected = new Dictionary<string, string>();
             expected["sonar.property1"] = "value1";
             expected["sonar.property2"] = "value2";
+            expected["sonar.cs.msbuild.testProjectPattern"] = ".*test.*";
             var actual = ws.GetProperties("foo bar");
 
             Assert.AreEqual(true, expected.Count == actual.Count && !expected.Except(actual).Any());
@@ -131,6 +132,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             var expected3 = new Dictionary<string, string>();
             expected3["sonar.property1"] = "value1";
             expected3["sonar.property2"] = "value2";
+            expected3["sonar.cs.msbuild.testProjectPattern"] = ".*test.*";
             var actual3 = ws.GetProperties("foo bar");
 
             Assert.AreEqual(true, expected3.Count == actual3.Count && !expected3.Except(actual3).Any());

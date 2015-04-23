@@ -27,13 +27,7 @@ namespace SonarQube.MSBuild.Tasks
         /// Id of the SonarQube test setting that specifies the RegEx to use when determining
         /// if a project is a test project or not
         /// </summary>
-        public const string TestRegExSettingId = "sonar.cs.tfs.testProjectPattern";
-
-        /// <summary>
-        /// Default regular expression used to identify test projects.
-        /// Matches: any project under a "\test\" or "\tests" directory, or that has "test" in the file name"
-        /// </summary>
-        private const string DefaultRegExpression = @"(.*\\tests?\\.*)|(\.*test[^\\]*$)";
+        public const string TestRegExSettingId = "sonar.cs.msbuild.testProjectPattern";
 
         #region Input properties
 
@@ -63,11 +57,10 @@ namespace SonarQube.MSBuild.Tasks
         {
             bool taskSuccess = true;
             string regEx = GetRegularExpression();
-            Debug.Assert(!string.IsNullOrEmpty(regEx), "Not expecting the returned regular expression to be null or empty");
 
             try
             {
-                this.IsTest = Regex.IsMatch(this.FullFilePath, regEx, RegexOptions.IgnoreCase);
+                this.IsTest = !string.IsNullOrEmpty(regEx) && Regex.IsMatch(this.FullFilePath, regEx, RegexOptions.IgnoreCase);
             }
             catch(ArgumentException ex) // thrown for invalid regular expressions
             {
@@ -86,12 +79,7 @@ namespace SonarQube.MSBuild.Tasks
         private string GetRegularExpression()
         {
             string regEx = TryGetRegExFromConfig();
-            if (string.IsNullOrWhiteSpace(regEx))
-            {
-                this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingDefaultRegEx);
-                regEx = DefaultRegExpression;
-            }
-            else
+            if (!string.IsNullOrWhiteSpace(regEx))
             {
                 this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);
             }

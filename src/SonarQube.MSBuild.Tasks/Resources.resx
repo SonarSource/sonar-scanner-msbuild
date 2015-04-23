@@ -123,11 +123,8 @@ Check the "{2}" setting in the SonarQube portal.
 Expression: {0}
 Error: {1}</value>
   </data>
-  <data name="IsTest_UsingDefaultRegEx" xml:space="preserve">
-    <value>Regular expression could not determined from the config file. Using the default: {0}</value>
-  </data>
   <data name="IsTest_UsingRegExFromConfig" xml:space="preserve">
-    <value>Using regular expression from analysis config file: {0}</value>
+    <value>Using regular expression for detecting test projects from analysis config file: {0}</value>
   </data>
   <data name="WPIF_FailedToResolvePath" xml:space="preserve">
     <value>Failed to resolve path relative to project file. Path: {0}</value>

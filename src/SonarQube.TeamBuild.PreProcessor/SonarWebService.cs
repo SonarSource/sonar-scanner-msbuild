@@ -108,13 +108,19 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// </summary>
         public IDictionary<string, string> GetProperties(string projectKey)
         {
-            // TODO Add hardcoded default values as a workaround to SonarQube Web Services limitations?
             var ws = GetUrl("/api/properties?resource={0}", projectKey);
             var contents = Downloader.Download(ws);
 
             var properties = JArray.Parse(contents);
+            var result = properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
 
-            return properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
+            // http://jira.codehaus.org/browse/SONAR-5891
+            if (!result.ContainsKey("sonar.cs.msbuild.testProjectPattern"))
+            {
+                result["sonar.cs.msbuild.testProjectPattern"] = ".*test.*";
+            }
+
+            return result;
         }
 
         private string GetUrl(string format, params string[] args)

@@ -21,59 +21,47 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
         [TestMethod]
         [TestCategory("IsTest")]
-        public void IsTestFile_TestFilesAreRecognised_DefaultRegEx()
+        public void IsTestFile_NoRegex()
         {
             // Arrange
             string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
             // 1. Check file names
-            CheckFilePathIsTest(testFolder, "test"); // file name alone, no extension
-            CheckFilePathIsTest(testFolder, "test.csproj"); // file name alone
-            CheckFilePathIsTest(testFolder, "proj.test"); // ".test" extension
-            CheckFilePathIsTest(testFolder, "proj.AtestB"); // part of the extension
+            CheckFilePathIsNotTest(testFolder, "test"); // file name alone, no extension
+            CheckFilePathIsNotTest(testFolder, "test.csproj"); // file name alone
+            CheckFilePathIsNotTest(testFolder, "proj.test"); // ".test" extension
+            CheckFilePathIsNotTest(testFolder, "proj.AtestB"); // part of the extension
 
-            CheckFilePathIsTest(testFolder, "..\\..\\abc\\test.csproj"); // with relative path
-            CheckFilePathIsTest(testFolder, "f:\\abc\\test.csproj"); // with absolute path
-            CheckFilePathIsTest(testFolder, "d:\\abc\\TEST.csproj"); // case-sensitivity
-            CheckFilePathIsTest(testFolder, "d:\\abc\\Another.test.vbproj"); // training "test"
-            CheckFilePathIsTest(testFolder, "d:\\abc\\test.foo.proj"); // leading "test"
-            CheckFilePathIsTest(testFolder, "d:\\abc\\XXXTesTyyy.proj"); // contained "test"
+            CheckFilePathIsNotTest(testFolder, "..\\..\\abc\\test.csproj"); // with relative path
+            CheckFilePathIsNotTest(testFolder, "f:\\abc\\test.csproj"); // with absolute path
+            CheckFilePathIsNotTest(testFolder, "d:\\abc\\TEST.csproj"); // case-sensitivity
+            CheckFilePathIsNotTest(testFolder, "d:\\abc\\Another.test.vbproj"); // training "test"
+            CheckFilePathIsNotTest(testFolder, "d:\\abc\\test.foo.proj"); // leading "test"
+            CheckFilePathIsNotTest(testFolder, "d:\\abc\\XXXTesTyyy.proj"); // contained "test"
 
-            // 2. Check for directory called "test"
-            CheckFilePathIsTest(testFolder, "c:\\test\\my.csproj");
-            CheckFilePathIsTest(testFolder, "c:\\aaa\\test\\bbb\\my.csproj"); // embedded in path
-            CheckFilePathIsTest(testFolder, "..\\test\\bbb\\my.csproj"); // relative
-            CheckFilePathIsTest(testFolder, ".\\TesT\\bbb\\my.csproj"); // case-sensitivity
-
-            // 3. Check for directory called "tests"
-            CheckFilePathIsTest(testFolder, "c:\\tests\\my.csproj");
-            CheckFilePathIsTest(testFolder, "c:\\aaa\\tests\\bbb\\my.csproj"); // embedded in path
-            CheckFilePathIsTest(testFolder, "..\\tests\\bbb\\my.csproj"); // relative
-            CheckFilePathIsTest(testFolder, ".\\TesTs\\bbb\\my.csproj"); // case-sensitivity
-        }
-
-        [TestMethod]
-        [TestCategory("IsTest")]
-        public void IsTestFile_NonTestFilesAreRecognised_DefaultRegEx()
-        {
-            // Arrange
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
-
-            // 1. Check file names
             CheckFilePathIsNotTest(testFolder, "c:\\aFile.csproj"); // doesn't contain "test"
             CheckFilePathIsNotTest(testFolder, "c:\\notATesFile.csproj"); // doesn't contain "test"
 
-            // 2. Directory names are not "test"
+            // 2. Check for directory called "test"
+            CheckFilePathIsNotTest(testFolder, "c:\\test\\my.csproj");
+            CheckFilePathIsNotTest(testFolder, "c:\\aaa\\test\\bbb\\my.csproj"); // embedded in path
+            CheckFilePathIsNotTest(testFolder, "..\\test\\bbb\\my.csproj"); // relative
+            CheckFilePathIsNotTest(testFolder, ".\\TesT\\bbb\\my.csproj"); // case-sensitivity
+
             CheckFilePathIsNotTest(testFolder, "..\\Atest\\a.b"); // prefixed
             CheckFilePathIsNotTest(testFolder, "..\\testX\\a.b"); // suffixed
             CheckFilePathIsNotTest(testFolder, "..\\XXXtestYYY\\a.b"); // suffixed
 
-            // 3. Directory names are not "tests"
+            // 3. Check for directory called "tests"
+            CheckFilePathIsNotTest(testFolder, "c:\\tests\\my.csproj");
+            CheckFilePathIsNotTest(testFolder, "c:\\aaa\\tests\\bbb\\my.csproj"); // embedded in path
+            CheckFilePathIsNotTest(testFolder, "..\\tests\\bbb\\my.csproj"); // relative
+            CheckFilePathIsNotTest(testFolder, ".\\TesTs\\bbb\\my.csproj"); // case-sensitivity
+
             CheckFilePathIsNotTest(testFolder, "..\\Atests\\a.b"); // prefixed
             CheckFilePathIsNotTest(testFolder, "..\\testsX\\a.b"); // suffixed
             CheckFilePathIsNotTest(testFolder, "..\\XXXtestsYYY\\a.b"); // suffixed
         }
-
 
         [TestMethod]
         [TestCategory("IsTest")]
@@ -103,24 +91,29 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // 0. Setup
             string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
-            // 1. Check the config setting is used if valid
+            // 1a. Check the config setting is used if valid
             EnsureAnalysisConfig(testFolder, ".A.");
             CheckFilePathIsNotTest(testFolder, "c:\\test\\mytest.proj");
             CheckFilePathIsTest(testFolder, "c:\\aProject.proj");
 
+            // 1b. Check another config valid config setting
+            EnsureAnalysisConfig(testFolder, ".TEST.");
+            CheckFilePathIsTest(testFolder, "c:\\test\\mytest.proj");
+            CheckFilePathIsNotTest(testFolder, "c:\\aProject.proj");
+
             // 2. Check the default is used if the setting is missing
             EnsureAnalysisConfig(testFolder, null);
-            CheckFilePathIsTest(testFolder, "c:\\test\\mytest.proj");
+            CheckFilePathIsNotTest(testFolder, "c:\\test\\mytest.proj");
             CheckFilePathIsNotTest(testFolder, "c:\\aProject.proj");
 
             // 3a. Check the default is used if the setting is empty
             EnsureAnalysisConfig(testFolder, "");
-            CheckFilePathIsTest(testFolder, "c:\\test\\mytest.proj");
+            CheckFilePathIsNotTest(testFolder, "c:\\test\\mytest.proj");
             CheckFilePathIsNotTest(testFolder, "c:\\aProject.proj");
 
-            // 3b. Whitespace
+            // 3b. Check the default is used if the setting contains only whitespaces
             EnsureAnalysisConfig(testFolder, " ");
-            CheckFilePathIsTest(testFolder, "c:\\test\\mytest.proj");
+            CheckFilePathIsNotTest(testFolder, "c:\\test\\mytest.proj");
             CheckFilePathIsNotTest(testFolder, "c:\\aProject.proj");
         }
 
