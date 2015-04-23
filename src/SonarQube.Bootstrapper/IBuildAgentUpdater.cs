@@ -11,6 +11,6 @@ namespace SonarQube.Bootstrapper
 {
     public interface IBuildAgentUpdater
     {
-        void Update(string hostUrl, string targetDir, ILogger logger);
+        bool TryUpdate(string hostUrl, string targetDir, ILogger logger);
     }
 }

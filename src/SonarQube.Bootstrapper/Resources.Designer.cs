@@ -61,6 +61,15 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not find the MSBuild Runner implementation on the SonarQube server: Verify that the C# plugin is correctly installed and that the SonarQube server has been restarted..
+        /// </summary>
+        internal static string ERROR_CouldNotFindIntegrationZip {
+            get {
+                return ResourceManager.GetString("ERROR_CouldNotFindIntegrationZip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find the sonar-project.properties from the sonar-runner in %PATH%..
         /// </summary>
         internal static string ERROR_CouldNotFindSonarRunnerProperties {

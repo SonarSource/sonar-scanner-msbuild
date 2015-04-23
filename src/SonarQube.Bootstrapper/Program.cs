@@ -52,7 +52,11 @@ namespace SonarQube.Bootstrapper
             logger.LogMessage(Resources.INFO_ServerUrl, server);
 
             IBuildAgentUpdater updater = new BuildAgentUpdater();
-            updater.Update(server, downloadBinPath, logger);
+            if (!updater.TryUpdate(server, downloadBinPath, logger))
+            {
+                logger.LogError(Resources.ERROR_CouldNotFindIntegrationZip);
+                return 1;
+            }
 
             var preprocessorFilePath = settings.PreProcessorFilePath;
             var processRunner = new ProcessRunner();

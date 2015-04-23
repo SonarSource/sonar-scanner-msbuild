@@ -20,7 +20,7 @@ namespace SonarQube.Bootstrapper
 
         #region IAgentUpdater interface
 
-        public void Update(string hostUrl, string targetDir, ILogger logger)
+        public bool TryUpdate(string hostUrl, string targetDir, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(hostUrl))
             {
@@ -36,10 +36,24 @@ namespace SonarQube.Bootstrapper
 
             using (WebClient client = new WebClient())
             {
-                client.UseDefaultCredentials = true;
-                logger.LogMessage(Resources.INFO_Downloading, SonarQubeIntegrationFilename, integrationUrl, downloadedZipFilePath);
-                client.DownloadFile(integrationUrl, downloadedZipFilePath);
+                try
+                {
+                    logger.LogMessage(Resources.INFO_Downloading, SonarQubeIntegrationFilename, integrationUrl, downloadedZipFilePath);
+                    client.DownloadFile(integrationUrl, downloadedZipFilePath);
+                }
+                catch (WebException e)
+                {
+                    var response = e.Response as HttpWebResponse;
+                    if (response != null && response.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        return false;
+                    }
+
+                    throw;
+                }
+
                 ZipFile.ExtractToDirectory(downloadedZipFilePath, targetDir);
+                return true;
             }
 
         }
