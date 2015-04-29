@@ -66,6 +66,7 @@
     <Compile Include="Serializer.cs" />
     <Compile Include="AnalysisConfig\AnalysisConfig.cs" />
     <Compile Include="SonarProperties.cs" />
+    <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">

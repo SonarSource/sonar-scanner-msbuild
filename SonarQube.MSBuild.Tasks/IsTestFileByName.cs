@@ -21,13 +21,17 @@ namespace SonarQube.MSBuild.Tasks
     /// </summary>
     /// <remarks>The task applies a regular expression to the file name being tested to determine whether
     /// the file is test file or not. The regular expression used is read from the analysis config file.</remarks>
-    public class IsTestFileByName : Task
+    public class IsTestFileByName : Task, SonarQube.Common.ILogger
     {
         /// <summary>
         /// Id of the SonarQube test setting that specifies the RegEx to use when determining
         /// if a project is a test project or not
         /// </summary>
         public const string TestRegExSettingId = "sonar.cs.msbuild.testProjectPattern";
+
+        // Workaround for the file locking issue: retry after a short period.
+        public static int MaxConfigRetryPeriodInMilliseconds = 2500; // Maximum time to spend trying to access the config file
+        public static int DelayBetweenRetriesInMilliseconds = 499; // Period to wait between retries
 
         #region Input properties
 
@@ -56,29 +60,42 @@ namespace SonarQube.MSBuild.Tasks
         public override bool Execute()
         {
             bool taskSuccess = true;
-            string regEx = GetRegularExpression();
 
-            try
+            AnalysisConfig config = this.TryGetConfig(this.AnalysisConfigDir);
+
+            if (config != null)
             {
-                this.IsTest = !string.IsNullOrEmpty(regEx) && Regex.IsMatch(this.FullFilePath, regEx, RegexOptions.IgnoreCase);
+                string regEx = TryGetRegularExpression(config);
+
+                try
+                {
+                    this.IsTest = !string.IsNullOrEmpty(regEx) && Regex.IsMatch(this.FullFilePath, regEx, RegexOptions.IgnoreCase);
+                }
+                catch (ArgumentException ex) // thrown for invalid regular expressions
+                {
+                    taskSuccess = false;
+                    this.Log.LogError(Resources.IsTest_InvalidRegularExpression, regEx, ex.Message, TestRegExSettingId);
+                }
             }
-            catch(ArgumentException ex) // thrown for invalid regular expressions
-            {
-                taskSuccess = false;
-                this.Log.LogError(Resources.IsTest_InvalidRegularExpression, regEx, ex.Message, TestRegExSettingId);
-            }
-            
-            return taskSuccess;
+
+            return !this.Log.HasLoggedErrors && taskSuccess;
         }
 
         #endregion
 
-
         #region Private methods
 
-        private string GetRegularExpression()
+        private string TryGetRegularExpression(AnalysisConfig config)
         {
-            string regEx = TryGetRegExFromConfig();
+            Debug.Assert(config != null, "Not expecting the supplied config to be null");
+            
+            AnalysisSetting setting;
+            string regEx = null;
+            if (config.TryGetSetting(TestRegExSettingId, out setting))
+            {
+                regEx = setting.Value;
+            }
+
             if (!string.IsNullOrWhiteSpace(regEx))
             {
                 this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);
@@ -87,35 +104,76 @@ namespace SonarQube.MSBuild.Tasks
             return regEx;
         }
         
-        /// <summary>
-        /// Attempts to locate and return the regular expression to use from the analysis config file.
-        /// Returns null if the config file could not be found or if it does not contain the setting.
-        /// </summary>
-        private string TryGetRegExFromConfig()
+        private AnalysisConfig TryGetConfig(string filePath)
         {
+            AnalysisConfig config = null;
             if (string.IsNullOrEmpty(this.AnalysisConfigDir)) // not specified
             {
                 return null;
             }
 
             string fullAnalysisPath = Path.Combine(this.AnalysisConfigDir, FileConstants.ConfigFileName);
+            this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_ReadingConfigFile, fullAnalysisPath);
             if (!File.Exists(fullAnalysisPath))
             {
+                this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_ConfigFileNotFound);
                 return null;
             }
 
-            AnalysisConfig config = AnalysisConfig.Load(fullAnalysisPath);
-            AnalysisSetting setting;
-            string regEx = null;
-            if (config.TryGetSetting(TestRegExSettingId, out setting))
+            bool succeeded = Utilities.Retry(MaxConfigRetryPeriodInMilliseconds, DelayBetweenRetriesInMilliseconds, (SonarQube.Common.ILogger)this, () => DoLoadConfig(fullAnalysisPath, out config));
+            if (succeeded)
             {
-                regEx = setting.Value;
+                this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_ReadingConfigSucceeded, fullAnalysisPath);
             }
-
-            return regEx;
+            else
+            {
+                this.Log.LogError(Resources.IsTest_ReadingConfigFailed, fullAnalysisPath);
+            }
+            return config;
         }
+
+        /// <summary>
+        /// Attempts to load the config file, suppressing any IO errors that occur.
+        /// This method is expected to be called inside a "retry"
+        /// </summary>
+        private bool DoLoadConfig(string filePath, out AnalysisConfig config)
+        {
+            Debug.Assert(File.Exists(filePath), "Expecting the config file to exist: " + filePath);
+            config = null;
+
+            try
+            {
+                config = AnalysisConfig.Load(filePath);
+            }
+            catch (IOException e)
+            {
+                // Log this as a message for info. We'll log an error if all of the re-tries failed
+                this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_ErrorReadingConfigFile, e.Message);
+                return false;
+            }
+            return true;
+        }
+
 
         #endregion
 
+        #region ILogger interface
+
+        void Common.ILogger.LogMessage(string message, params object[] args)
+        {
+            this.Log.LogMessage(MessageImportance.Low, message, args);
+        }
+
+        void Common.ILogger.LogWarning(string message, params object[] args)
+        {
+            this.Log.LogWarning(message, args);
+        }
+
+        void Common.ILogger.LogError(string message, params object[] args)
+        {
+            this.Log.LogError(message, args);
+        }
+
+        #endregion
     }
 }

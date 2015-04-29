@@ -99,9 +99,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         }
 
         /// <summary>
-        /// Checks that an error exists that contains all of the specified strings
+        /// Checks that a single error exists that contains all of the specified strings
         /// </summary>
-        public void AssertErrorExists(params string[] expected)
+        public void AssertSingleErrorExists(params string[] expected)
         {
             IEnumerable<BuildErrorEventArgs> matches = this.errors.Where(w => expected.All(e => w.Message.Contains(e)));
             Assert.AreNotEqual(0, matches.Count(), "No error contains the expected strings: {0}", string.Join(",", expected));
@@ -109,13 +109,13 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         }
 
         /// <summary>
-        /// Checks that an warning exists that contains all of the specified strings
+        /// Checks that at least one message exists that contains all of the specified strings.
         /// </summary>
-        public void AssertWarningExists(params string[] expected)
+        public void AssertMessageExists(params string[] expected)
         {
-            IEnumerable<BuildWarningEventArgs> matches = this.warnings.Where(w => expected.All(e => w.Message.Contains(e)));
-            Assert.AreNotEqual(0, matches.Count(), "No warning contains the expected strings: {0}", string.Join(",", expected));
-            Assert.AreEqual(1, matches.Count(), "More than one warning contains the expected strings: {0}", string.Join(",", expected));
+            IEnumerable<BuildMessageEventArgs> matches = this.messages.Where(m => expected.All(e => m.Message.Contains(e)));
+            Assert.AreNotEqual(0, matches.Count(), "No message contains the expected strings: {0}", string.Join(",", expected));
+            Assert.AreEqual(1, matches.Count(), "More than one message contains the expected strings: {0}", string.Join(",", expected));
         }
 
         #endregion

@@ -7,6 +7,7 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
+using System.Diagnostics;
 using System.IO;
 using TestUtilities;
 
@@ -81,7 +82,90 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             bool result = task.Execute();
 
             Assert.IsFalse(result, "Expecting the task to fail");
-            dummyEngine.AssertErrorExists(invalidRegEx); // expecting the invalid expression to appear in the error
+            dummyEngine.AssertSingleErrorExists(invalidRegEx); // expecting the invalid expression to appear in the error
+        }
+
+        [TestMethod]
+        [TestCategory("IsTest")] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
+        public void IsTestFile_RetryIfConfigLocked()
+        {
+            // Arrange
+            // We'll lock the file and sleep for long enough for the retry period to occur, but 
+            // not so long that the task times out
+            int lockPeriodInMilliseconds = 1000;
+            Assert.IsTrue(lockPeriodInMilliseconds < IsTestFileByName.MaxConfigRetryPeriodInMilliseconds, "Test setup error: the test is sleeping for too long");
+
+            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string configFile = EnsureAnalysisConfig(testFolder, ".XX.");
+
+            DummyBuildEngine dummyEngine = new DummyBuildEngine();
+            IsTestFileByName task = new IsTestFileByName();
+            task.BuildEngine = dummyEngine;
+            task.FullFilePath = "XXX.proj";
+            task.AnalysisConfigDir = testFolder;
+
+            bool result;
+
+            Stopwatch testDuration = Stopwatch.StartNew();
+
+            using (FileStream lockingStream = File.OpenWrite(configFile))
+            {
+                System.Threading.Tasks.Task.Factory.StartNew(() =>
+                    {
+                        System.Threading.Thread.Sleep(lockPeriodInMilliseconds); // unlock the file after a short delay
+                        lockingStream.Close();
+                    });
+
+                result = task.Execute();
+            }
+
+            testDuration.Stop();
+            Assert.IsTrue(testDuration.ElapsedMilliseconds > 1000, "Test error: expecting the test to have taken at least {0} milliseconds to run. Actual: {1}",
+                lockPeriodInMilliseconds, testDuration.ElapsedMilliseconds);
+
+            Assert.IsTrue(result, "Expecting the task to succeed");
+            Assert.IsTrue(task.IsTest, "Expecting the file to be recognised as a test");
+
+            dummyEngine.AssertMessageExists(IsTestFileByName.MaxConfigRetryPeriodInMilliseconds.ToString(), IsTestFileByName.DelayBetweenRetriesInMilliseconds.ToString());
+            dummyEngine.AssertNoErrors();
+            dummyEngine.AssertNoWarnings();
+        }
+
+        [TestMethod]
+        [TestCategory("IsTest")] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
+        public void IsTestFile_TimeoutIfConfigLocked()
+        {
+            // Arrange
+            // We'll lock the file and sleep for long enough for the task to timeout
+            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string configFile = EnsureAnalysisConfig(testFolder, ".XX.");
+
+            DummyBuildEngine dummyEngine = new DummyBuildEngine();
+            IsTestFileByName task = new IsTestFileByName();
+            task.BuildEngine = dummyEngine;
+            task.FullFilePath = "XXX.proj";
+            task.AnalysisConfigDir = testFolder;
+
+            bool result;
+
+            using (FileStream lockingStream = File.OpenWrite(configFile))
+            {
+                System.Threading.Tasks.Task.Factory.StartNew(() =>
+                {
+                    System.Threading.Thread.Sleep(IsTestFileByName.MaxConfigRetryPeriodInMilliseconds + 600); // sleep for longer than the timeout period
+                    lockingStream.Close();
+                });
+
+                result = task.Execute();
+            }
+
+            Assert.IsFalse(result, "Expecting the task to fail");
+
+            dummyEngine.AssertMessageExists(IsTestFileByName.MaxConfigRetryPeriodInMilliseconds.ToString(), IsTestFileByName.DelayBetweenRetriesInMilliseconds.ToString());
+            dummyEngine.AssertNoWarnings();
+            dummyEngine.AssertSingleErrorExists();
         }
 
         [TestMethod]
@@ -127,7 +211,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         /// If the supplied "regExExpression" is not null then the appropriate setting
         /// entry will be created in the file
         /// </summary>
-        private static void EnsureAnalysisConfig(string parentDir, string regExExpression)
+        private static string EnsureAnalysisConfig(string parentDir, string regExExpression)
         {
             AnalysisConfig config = new AnalysisConfig();
             if (regExExpression != null)
@@ -141,6 +225,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 File.Delete(fullPath);
             }
             config.Save(fullPath);
+            return fullPath;
         }
 
         #endregion

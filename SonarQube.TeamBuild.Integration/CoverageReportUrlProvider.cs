@@ -65,7 +65,7 @@ namespace SonarQube.TeamBuild.Integration
                 // before the service is able to provide them.
                 // For the time being, we're retrying with a time out.
                 IBuildCoverage[] coverages = null;
-                Retry(TimeoutInMs, RetryPeriodInMs, logger, () => { return TryGetCoverageInfo(testProject, buildUri, out coverages); });
+                Utilities.Retry(TimeoutInMs, RetryPeriodInMs, logger, () => { return TryGetCoverageInfo(testProject, buildUri, out coverages); });
 
                 foreach (IBuildCoverage coverage in coverages)
                 {
@@ -86,29 +86,6 @@ namespace SonarQube.TeamBuild.Integration
             coverageInfo = testProject.CoverageAnalysisManager.QueryBuildCoverage(buildUri, CoverageQueryFlags.Modules);
 
             return coverageInfo != null && coverageInfo.Length > 0;
-        }
-
-        private static void Retry(int maxDelayMs, int pauseBetweenTriesMs, ILogger logger, Func<bool> op)
-        {
-            Stopwatch timer = Stopwatch.StartNew();
-            bool succeeded = op();
-
-            while (!succeeded && timer.ElapsedMilliseconds < maxDelayMs)
-            {
-                System.Threading.Thread.Sleep(pauseBetweenTriesMs);
-                succeeded = op();
-            }
-
-            timer.Stop();
-
-            if (succeeded)
-            {
-                logger.LogMessage(Resources.URL_DIAG_OperationSucceeded, timer.ElapsedMilliseconds);
-            }
-            else
-            {
-                logger.LogMessage(Resources.URL_DIAG_OperationTimeout, timer.ElapsedMilliseconds);
-            }
         }
 
         private static string GetCoverageUri(IBuildDetail buildDetail, IBuildCoverage buildCoverage)

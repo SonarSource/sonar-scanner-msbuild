@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="DIAG_BeginningRetry" xml:space="preserve">
+    <value>Commencing retry-able operation. Max wait (milliseconds): {0}, pause between tries (milliseconds): {1}</value>
+  </data>
   <data name="DIAG_ExecutingFile" xml:space="preserve">
     <value>Executing file {0}
   Args: {1}
@@ -129,6 +132,15 @@
   </data>
   <data name="DIAG_ExecutionTimedOut" xml:space="preserve">
     <value>Timed out waiting for the process to complete</value>
+  </data>
+  <data name="DIAG_RetryingOperation" xml:space="preserve">
+    <value>Retrying...</value>
+  </data>
+  <data name="DIAG_RetryOperationFailed" xml:space="preserve">
+    <value>Operation timed out, Elapsed time (ms): {0}</value>
+  </data>
+  <data name="DIAG_RetryOperationSucceeded" xml:space="preserve">
+    <value>Operation succeeded. Elapsed time (ms): {0}</value>
   </data>
   <data name="MissingSonarPropertiesFileError" xml:space="preserve">
     <value>The specfied properties file could not be found</value>

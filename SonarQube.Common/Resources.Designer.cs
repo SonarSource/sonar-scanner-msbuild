@@ -61,6 +61,15 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Commencing retry-able operation. Max wait (milliseconds): {0}, pause between tries (milliseconds): {1}.
+        /// </summary>
+        internal static string DIAG_BeginningRetry {
+            get {
+                return ResourceManager.GetString("DIAG_BeginningRetry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Executing file {0}
         ///  Args: {1}
         ///  Working directory: {2}
@@ -88,6 +97,33 @@ namespace SonarQube.Common {
         internal static string DIAG_ExecutionTimedOut {
             get {
                 return ResourceManager.GetString("DIAG_ExecutionTimedOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Retrying....
+        /// </summary>
+        internal static string DIAG_RetryingOperation {
+            get {
+                return ResourceManager.GetString("DIAG_RetryingOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation timed out, Elapsed time (ms): {0}.
+        /// </summary>
+        internal static string DIAG_RetryOperationFailed {
+            get {
+                return ResourceManager.GetString("DIAG_RetryOperationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation succeeded. Elapsed time (ms): {0}.
+        /// </summary>
+        internal static string DIAG_RetryOperationSucceeded {
+            get {
+                return ResourceManager.GetString("DIAG_RetryOperationSucceeded", resourceCulture);
             }
         }
         

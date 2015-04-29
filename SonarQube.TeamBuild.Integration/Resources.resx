@@ -182,10 +182,4 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   <data name="URL_DIAG_Finished" xml:space="preserve">
     <value>...done.</value>
   </data>
-  <data name="URL_DIAG_OperationSucceeded" xml:space="preserve">
-    <value>Operation succeeded. Elapsed time (ms): {0}</value>
-  </data>
-  <data name="URL_DIAG_OperationTimeout" xml:space="preserve">
-    <value>Operation timed out, Elapsed time (ms): {0}</value>
-  </data>
 </root>
