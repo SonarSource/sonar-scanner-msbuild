@@ -16,53 +16,18 @@ using System.Text;
 
 namespace SonarRunner.Shim
 {
-    public static class PropertiesWriter
+    public class PropertiesWriter
     {
+        private StringBuilder sb;
+
+        private AnalysisConfig config;
+
+        /// <summary>
+        /// List of projects that for which settings have been written
+        /// </summary>
+        private IList<ProjectInfo> projects;
+
         #region Public methods
-
-        public static string ToString(ILogger logger, AnalysisConfig config, IEnumerable<ProjectInfo> projects)
-        {
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
-            if (config == null)
-            {
-                throw new ArgumentNullException("config");
-            }
-            if (projects == null)
-            {
-                throw new ArgumentNullException("projects");
-            }
-            
-            Debug.Assert(projects.Select(p => p.ProjectGuid).Distinct().Count() == projects.Count(),
-                "Expecting the project guids to be unique");
-
-            var uniqueProjects = projects.GroupBy(p => p.ProjectGuid).Where(g => g.Count() == 1).Select(g => g.First());
-
-            StringBuilder sb = new StringBuilder();
-
-            AppendKeyValue(sb, "sonar.projectKey", config.SonarProjectKey);
-            AppendKeyValue(sb, "sonar.projectName", config.SonarProjectName);
-            AppendKeyValue(sb, "sonar.projectVersion", config.SonarProjectVersion);
-            AppendKeyValue(sb, "sonar.projectBaseDir", config.SonarOutputDir);
-            sb.AppendLine();
-
-            sb.AppendLine("# FIXME: Encoding is hardcoded");
-            AppendKeyValue(sb, "sonar.sourceEncoding", "UTF-8");
-            sb.AppendLine();
-
-            AppendKeyValue(sb, "sonar.modules", string.Join(",", uniqueProjects.Select(p => p.GetProjectGuidAsString())));
-            sb.AppendLine();
-
-            foreach (var project in uniqueProjects)
-            {
-                WriteSettingsForProject(config, sb, project, logger);
-            }
-
-            return sb.ToString();
-        }
-
         public static string Escape(string value)
         {
             StringBuilder sb = new StringBuilder();
@@ -87,6 +52,95 @@ namespace SonarRunner.Shim
             return sb.ToString();
         }
 
+        public PropertiesWriter(AnalysisConfig config)
+        {
+            if (config == null)
+            {
+                throw new ArgumentNullException("config");
+            }
+
+            this.config = config;
+            this.sb = new StringBuilder();
+            this.projects = new List<ProjectInfo>();
+
+            this.WriteSonarProjectInfo();
+        }
+
+        public bool FinishedWriting { get; private set; }
+
+        /// <summary>
+        /// Finishes writing out any additional data then returns the whole of the content
+        /// </summary>
+        public string Flush()
+        {
+            if (this.FinishedWriting)
+            {
+                throw new InvalidOperationException();
+            }
+
+            this.FinishedWriting = true;
+
+            Debug.Assert(this.projects.Select(p => p.ProjectGuid).Distinct().Count() == projects.Count(),
+                "Expecting the project guids to be unique");
+
+            AppendKeyValue(sb, "sonar.modules", string.Join(",", this.projects.Select(p => p.GetProjectGuidAsString())));
+            sb.AppendLine();
+            return sb.ToString();
+        }
+
+        public void WriteSettingsForProject(ProjectInfo project, IEnumerable<string> files, string fxCopReportFilePath, string codeCoverageFilePath)
+        {
+            if (this.FinishedWriting)
+            {
+                throw new InvalidOperationException();
+            };
+
+            if (project == null)
+            {
+                throw new ArgumentNullException("project");
+            }
+            if (files == null)
+            {
+                throw new ArgumentNullException("files");
+            }
+
+            Debug.Assert(files.Any(), "Expecting a project to have files to analyze");
+            Debug.Assert(files.All(f => File.Exists(f)), "Expecting all of the specified files to exiest");
+
+            this.projects.Add(project);
+
+            string guid = project.GetProjectGuidAsString();
+
+            AppendKeyValue(sb, guid, "sonar.projectKey", this.config.SonarProjectKey + ":" + guid);
+            AppendKeyValue(sb, guid, "sonar.projectName", project.ProjectName);
+            AppendKeyValue(sb, guid, "sonar.projectBaseDir", project.GetProjectDirectory());
+
+            if (fxCopReportFilePath != null)
+            {
+                AppendKeyValue(sb, guid, "sonar.cs.fxcop.reportPath", fxCopReportFilePath);
+            }
+
+            if (codeCoverageFilePath != null)
+            {
+                AppendKeyValue(sb, guid, "sonar.cs.vscoveragexml.reportsPaths", codeCoverageFilePath);
+            }
+
+            if (project.ProjectType == ProjectType.Product)
+            {
+                sb.AppendLine(guid + @".sonar.sources=\");
+            }
+            else
+            {
+                AppendKeyValue(sb, guid, "sonar.sources", "");
+                sb.AppendLine(guid + @".sonar.tests=\");
+            }
+
+            IEnumerable<string> escapedFiles = files.Select(f => Escape(f));
+            sb.AppendLine(string.Join(@",\" + Environment.NewLine, escapedFiles));
+
+            sb.AppendLine();
+        }
+
         #endregion
 
         #region Private methods
@@ -108,62 +162,16 @@ namespace SonarRunner.Shim
             return c <= sbyte.MaxValue;
         }
 
-        private static void WriteSettingsForProject(AnalysisConfig config, StringBuilder sb, ProjectInfo project, ILogger logger)
+        private void WriteSonarProjectInfo()
         {
-            IList<string> files = project.GetFilesToAnalyze();
-            Debug.Assert(files.Count > 0, "Expecting files to have a project to have files to analyze");
+            AppendKeyValue(sb, "sonar.projectKey", this.config.SonarProjectKey);
+            AppendKeyValue(sb, "sonar.projectName", this.config.SonarProjectName);
+            AppendKeyValue(sb, "sonar.projectVersion", this.config.SonarProjectVersion);
+            AppendKeyValue(sb, "sonar.projectBaseDir", this.config.SonarOutputDir);
+            sb.AppendLine();
 
-            string guid = project.GetProjectGuidAsString();
-
-            AppendKeyValue(sb, guid, "sonar.projectKey", config.SonarProjectKey + ":" + guid);
-            AppendKeyValue(sb, guid, "sonar.projectName", project.ProjectName);
-            AppendKeyValue(sb, guid, "sonar.projectBaseDir", project.GetProjectDirectory());
-            string fxCopReport = project.TryGetAnalysisFileLocation(AnalysisType.FxCop);
-            if (fxCopReport != null)
-            {
-                if (File.Exists(fxCopReport))
-                {
-                    AppendKeyValue(sb, guid, "sonar.cs.fxcop.reportPath", fxCopReport);
-                }
-                else
-                {
-                    logger.LogWarning(Resources.WARN_FxCopReportNotFound, fxCopReport);
-                }
-            }
-
-            string vsCoverageReport = project.TryGetAnalysisFileLocation(AnalysisType.VisualStudioCodeCoverage);
-            if (vsCoverageReport != null)
-            {
-                if (File.Exists(vsCoverageReport))
-                {
-                    AppendKeyValue(sb, guid, "sonar.cs.vscoveragexml.reportsPaths", vsCoverageReport);
-                }
-                else
-                {
-                    logger.LogWarning(Resources.WARN_CodeCoverageReportNotFound, vsCoverageReport);
-                }
-            }
-            if (project.ProjectType == ProjectType.Product)
-            {
-                sb.AppendLine(guid + @".sonar.sources=\");
-            }
-            else
-            {
-                AppendKeyValue(sb, guid, "sonar.sources", "");
-                sb.AppendLine(guid + @".sonar.tests=\");
-            }
-
-            for (int i = 0; i < files.Count(); i++)
-            {
-                var file = files[i];
-                sb.Append(Escape(file));
-                if (i != files.Count() - 1)
-                {
-                    sb.Append(@",\");
-                }
-                sb.AppendLine();
-            }
-
+            sb.AppendLine("# FIXME: Encoding is hardcoded");
+            AppendKeyValue(sb, "sonar.sourceEncoding", "UTF-8");
             sb.AppendLine();
         }
 

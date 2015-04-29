@@ -49,14 +49,17 @@ namespace SonarRunner.Shim
                 return new ProjectInfoAnalysisResult();
             }
 
-            ProjectInfoAnalysisResult result = ProcessProjectInfoFiles(projects, logger);
+            PropertiesWriter writer = new PropertiesWriter(config);
+
+            ProjectInfoAnalysisResult result = ProcessProjectInfoFiles(projects, writer, logger);
     
             IEnumerable<ProjectInfo> validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
 
             if (validProjects.Any())
             {
+                string contents = writer.Flush();
+
                 result.FullPropertiesFilePath = fileName;
-                string contents = PropertiesWriter.ToString(logger, config, validProjects);
                 File.WriteAllText(result.FullPropertiesFilePath, contents, Encoding.ASCII);
             }
             else
@@ -70,13 +73,29 @@ namespace SonarRunner.Shim
 
         #region Private methods
 
-        private static ProjectInfoAnalysisResult ProcessProjectInfoFiles(IEnumerable<ProjectInfo> projects, ILogger logger)
+        private static ProjectInfoAnalysisResult ProcessProjectInfoFiles(IEnumerable<ProjectInfo> projects, PropertiesWriter writer, ILogger logger)
         {
             ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult();
 
             foreach (ProjectInfo projectInfo in projects)
             {
                 ProjectInfoValidity status = ClassifyProject(projectInfo, projects, logger);
+
+                if (status == ProjectInfoValidity.Valid)
+                {
+                    IEnumerable<string> files = GetFilesToAnalyze(projectInfo, logger);
+                    if (files == null || !files.Any())
+                    {
+                        status = ProjectInfoValidity.NoFilesToAnalyze;
+                    }
+                    else
+                    {
+                        string fxCopReport = TryGetFxCopReport(projectInfo, logger);
+                        string vsCoverageReport = TryGetCodeCoverageReport(projectInfo, logger);
+                        writer.WriteSettingsForProject(projectInfo, files, fxCopReport, vsCoverageReport);
+                    }
+                }
+
                 result.Projects.Add(projectInfo, status);
             }
             return result;
@@ -102,12 +121,6 @@ namespace SonarRunner.Shim
                 return ProjectInfoValidity.DuplicateGuid;
             }
 
-            if (!projectInfo.GetFilesToAnalyze().Any())
-            {
-                logger.LogMessage(Resources.DIAG_NoFilesToAnalyze, projectInfo.FullPath);
-                return ProjectInfoValidity.NoFilesToAnalyze;
-            }
-
             return ProjectInfoValidity.Valid;
         }
 
@@ -119,6 +132,73 @@ namespace SonarRunner.Shim
         private static bool HasDuplicateGuid(ProjectInfo projectInfo, IEnumerable<ProjectInfo> projects)
         {
             return projects.Count(p => !p.IsExcluded && p.ProjectGuid == projectInfo.ProjectGuid) > 1;
+        }
+
+        /// <summary>
+        /// Returns all of the valid files that can be analyzed. Logs warnings/info about
+        /// files that cannot be analyzed.
+        /// </summary>
+        private static IEnumerable<string> GetFilesToAnalyze(ProjectInfo projectInfo, ILogger logger)
+        {
+            // We're only interested in files exist and that are under the project root
+            var result = new List<string>();
+            var baseDir = projectInfo.GetProjectDirectory();
+
+            foreach (string file in projectInfo.GetAllFiles())
+            {
+                if (File.Exists(file))
+                {
+                    if (IsInFolder(file, baseDir))
+                    {
+                        result.Add(file);
+                    }
+                    else
+                    {
+                        logger.LogWarning(Resources.DIAG_FileIsOutsideProjectDirectory, file, projectInfo.FullPath);
+                    }
+                }
+                else
+                {
+                    logger.LogWarning(Resources.WARN_FileDoesNotExist, file);
+                }
+            }
+            return result;
+
+        }
+
+        private static bool IsInFolder(string filePath, string folder)
+        {
+            string normalizedPath = Path.GetDirectoryName(Path.GetFullPath(filePath));
+            return normalizedPath.StartsWith(folder, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string TryGetFxCopReport(ProjectInfo project, ILogger logger)
+        {
+            string fxCopReport = project.TryGetAnalysisFileLocation(AnalysisType.FxCop);
+            if (fxCopReport != null)
+            {
+                if (!File.Exists(fxCopReport))
+                {
+                    fxCopReport = null;
+                    logger.LogWarning(Resources.WARN_FxCopReportNotFound, fxCopReport);
+                }
+            }
+
+            return fxCopReport;
+        }
+
+        private static string TryGetCodeCoverageReport(ProjectInfo project, ILogger logger)
+        {
+            string vsCoverageReport = project.TryGetAnalysisFileLocation(AnalysisType.VisualStudioCodeCoverage);
+            if (vsCoverageReport != null)
+            {
+                if (!File.Exists(vsCoverageReport))
+                {
+                    vsCoverageReport = null;
+                    logger.LogWarning(Resources.WARN_CodeCoverageReportNotFound, vsCoverageReport);
+                }
+            }
+            return vsCoverageReport;
         }
 
         #endregion

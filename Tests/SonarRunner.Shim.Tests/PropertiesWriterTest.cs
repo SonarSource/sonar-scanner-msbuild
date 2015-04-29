@@ -10,6 +10,7 @@ using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using TestUtilities;
 
 namespace SonarRunner.Shim.Tests
@@ -18,6 +19,8 @@ namespace SonarRunner.Shim.Tests
     public class PropertiesWriterTest
     {
         public TestContext TestContext { get; set; }
+
+        #region Tests
 
         [TestMethod]
         public void PropertiesWriterEscape()
@@ -40,12 +43,12 @@ namespace SonarRunner.Shim.Tests
             string productFileListFilePath = Path.Combine(productBaseDir, "productManagedFiles.txt");
 
             string otherDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_OtherDir");
-            string somewhere = CreateEmptyFile(otherDir, "Somewhere.cs");
+            string missingFileOutsideProjectDir = Path.Combine(otherDir, "missing.cs");
 
             List<string> productFiles = new List<string>();
             productFiles.Add(productFile);
             productFiles.Add(productChineseFile);
-            productFiles.Add(somewhere);
+            productFiles.Add(missingFileOutsideProjectDir);
             ProjectInfo product = CreateProjectInfo("你好", "DB2E5521-3172-47B9-BA50-864F12E6DFFF", productProject, false, productFiles, productFileListFilePath, productFxCopFilePath, productCoverageFilePath);
 
             string testBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_TestBaseDir");
@@ -71,9 +74,13 @@ namespace SonarRunner.Shim.Tests
             };
 
             string actual = null;
-            using (new AssertIgnoreScope()) // expecting the property writer to complain about the duplicate GUID
+            using (new AssertIgnoreScope()) // expecting the property writer to complain about the missing file
             {
-                actual = SonarRunner.Shim.PropertiesWriter.ToString(logger, config, projects);
+                PropertiesWriter writer = new PropertiesWriter(config);
+                writer.WriteSettingsForProject(product, new string[] { productFile, productChineseFile, missingFileOutsideProjectDir }, productFxCopFilePath, productCoverageFilePath);
+                writer.WriteSettingsForProject(test, new string[] { testFile }, null, null);
+
+                actual = writer.Flush();
             }
 
             string expected = string.Format(System.Globalization.CultureInfo.InvariantCulture,
@@ -85,8 +92,6 @@ sonar.projectBaseDir=C:\\my_folder
 # FIXME: Encoding is hardcoded
 sonar.sourceEncoding=UTF-8
 
-sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388281D49B
-
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectKey=my_project_key:DB2E5521-3172-47B9-BA50-864F12E6DFFF
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName=\u4F60\u597D
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir={0}
@@ -94,7 +99,8 @@ DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.cs.fxcop.reportPath={1}
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.cs.vscoveragexml.reportsPaths={2}
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources=\
 {0}\\File.cs,\
-{0}\\\u4F60\u597D.cs
+{0}\\\u4F60\u597D.cs,\
+{4}
 
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey=my_project_key:DA0FCD82-9C5C-4666-9370-C7388281D49B
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectName=my_test_project
@@ -103,11 +109,14 @@ DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources=
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
 {3}\\File.cs
 
+sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388281D49B
+
 ",
- GetEscapedPath(productBaseDir),
- GetEscapedPath(productFxCopFilePath),
- GetEscapedPath(productCoverageFilePath),
- GetEscapedPath(testBaseDir));
+ PropertiesWriter.Escape(productBaseDir),
+ PropertiesWriter.Escape(productFxCopFilePath),
+ PropertiesWriter.Escape(productCoverageFilePath),
+ PropertiesWriter.Escape(testBaseDir),
+ PropertiesWriter.Escape(missingFileOutsideProjectDir));
 
             SaveToResultFile(productBaseDir, "Expected.txt", expected.ToString());
             SaveToResultFile(productBaseDir, "Actual.txt", actual);
@@ -115,9 +124,40 @@ DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
             Assert.AreEqual(expected, actual);
         }
 
+        [TestMethod]
+        public void PropertiesWriter_InvalidOperations()
+        {
+            AnalysisConfig validConfig = new AnalysisConfig()
+            {
+                SonarProjectKey = "key",
+                SonarProjectName = "name",
+                SonarProjectVersion = "1.0",
+                SonarOutputDir = this.TestContext.DeploymentDirectory
+            };
+
+            // 1. Must supply an analysis config on construction
+            AssertException.Expects<ArgumentNullException>(() => new PropertiesWriter(null));
+
+
+            // 2. Can't call WriteSettingsForProject after Flush
+            PropertiesWriter writer = new PropertiesWriter(validConfig);
+            writer.Flush();
+            AssertException.Expects<InvalidOperationException>(() => writer.Flush());
+
+            // 3. Can't call Flush twice
+            writer = new PropertiesWriter(validConfig);
+            writer.Flush();
+            using (new AssertIgnoreScope())
+            {
+                AssertException.Expects<InvalidOperationException>(() => writer.WriteSettingsForProject(new ProjectInfo(), new string[] { "file" }, "fxCopReport", "code coverage report"));
+            }
+        }
+
+        #endregion
+
         #region Private methods
 
-        private static ProjectInfo CreateProjectInfo(string name, string projectId, string fullFilePath, bool isTest, IList<string> files, string fileListFilePath, string fxCopReportPath, string coverageReportPath)
+        private static ProjectInfo CreateProjectInfo(string name, string projectId, string fullFilePath, bool isTest, IEnumerable<string> files, string fileListFilePath, string fxCopReportPath, string coverageReportPath)
         {
             ProjectInfo projectInfo = new ProjectInfo()
             {
@@ -137,7 +177,7 @@ DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
                 projectInfo.AddAnalyzerResult(AnalysisType.VisualStudioCodeCoverage, coverageReportPath);
             }
 
-            if (files != null && files.Count > 0)
+            if (files != null && files.Any())
             {
                 Assert.IsTrue(!string.IsNullOrWhiteSpace(fileListFilePath), "Test setup error: must supply the managedFileListFilePath as a list of files has been supplied");
                 File.WriteAllLines(fileListFilePath, files);
@@ -165,12 +205,7 @@ DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
             string fullPath = CreateFile(testDir, fileName, content);
             this.TestContext.AddResultFile(fullPath);
         }
-
-        private static string GetEscapedPath(string path)
-        {
-            return path.Replace(@"\", @"\\");
-        }
-
+        
         #endregion
     }
 }

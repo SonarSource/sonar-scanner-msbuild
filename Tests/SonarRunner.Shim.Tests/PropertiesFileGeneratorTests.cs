@@ -59,8 +59,8 @@ namespace SonarRunner.Shim.Tests
             CreateProjectInfoInSubDir(testDir, "excluded", duplicateGuid, ProjectType.Product, true, null); // excluded
 
             TestLogger logger = new TestLogger();
-            AnalysisConfig config = new AnalysisConfig() { SonarOutputDir = testDir };
-
+            AnalysisConfig config = CreateValidConfig(testDir);
+            
             // Act
             ProjectInfoAnalysisResult result = null;
             using (new AssertIgnoreScope()) // expecting the properties writer to assert
@@ -96,7 +96,7 @@ namespace SonarRunner.Shim.Tests
             CreateProjectInfoInSubDir(testDir, "notExcl", duplicateGuid, ProjectType.Product, false, null); // not excluded
 
             TestLogger logger = new TestLogger();
-            AnalysisConfig config = new AnalysisConfig() { SonarOutputDir = testDir };
+            AnalysisConfig config = CreateValidConfig(testDir);
 
             // Act
             ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
@@ -131,10 +131,12 @@ namespace SonarRunner.Shim.Tests
             string managedProjectInfo = CreateProjectInfoInSubDir(testDir, "withManagedFiles", Guid.NewGuid(), ProjectType.Product, false, managedProjectPath); // not excluded
 
             // Create the content files under the relevant project directories
-            string contentFileList = CreateFile(projectWithContentDir, "contentList.txt", Path.Combine(projectWithContentDir, "contentFile1.txt"));
+            string contentFile = CreateEmptyFile(projectWithContentDir, "contentFile1.txt");
+            string contentFileList = CreateFile(projectWithContentDir, "contentList.txt", contentFile);
             AddAnalysisResult(contentProjectInfo, AnalysisType.ContentFiles, contentFileList);
 
-            string managedFileList = CreateFile(managedProjectDir, "managedList.txt", Path.Combine(managedProjectDir, "managedFile1.cs"));
+            string managedFile = CreateEmptyFile(managedProjectDir, "managedFile1.cs");
+            string managedFileList = CreateFile(managedProjectDir, "managedList.txt", managedFile);
             AddAnalysisResult(managedProjectInfo, AnalysisType.ManagedCompilerInputs, managedFileList);
 
             TestLogger logger = new TestLogger();
@@ -181,6 +183,70 @@ namespace SonarRunner.Shim.Tests
 
             // No files -> project file not created
             AssertFailedToCreatePropertiesFiles(result, logger);
+        }
+
+        [TestMethod] //https://jira.codehaus.org/browse/SONARMSBRU-13: Analysis fails if a content file referenced in the MSBuild project does not exist
+        public void FileGen_MissingFilesAreSkipped()
+        {
+            // Create project info with a managed file list and a content file list.
+            // Each list refers to a file that does not exist on disk.
+            // The missing files should not appear in the generated properties file.
+
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            string projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "Project1");
+            string projectFullPath = CreateEmptyFile(projectBaseDir, "project1.proj");
+
+
+            string existingManagedFile = CreateEmptyFile(projectBaseDir, "File1.cs");
+            string existingContentFile = CreateEmptyFile(projectBaseDir, "Content1.txt");
+
+            string missingManagedFile = Path.Combine(projectBaseDir, "MissingFile1.cs");
+            string missingContentFile = Path.Combine(projectBaseDir, "MissingContent1.txt");
+
+            ProjectInfo projectInfo = new ProjectInfo()
+            {
+                FullPath = projectFullPath,
+                AnalysisResults = new List<AnalysisResult>(),
+                IsExcluded = false,
+                ProjectGuid = Guid.NewGuid(),
+                ProjectName = "project1.proj",
+                ProjectType = ProjectType.Product
+            };
+
+            string managedFileList = CreateFileList(projectBaseDir, "managedList.txt", existingManagedFile, missingManagedFile);
+            projectInfo.AddAnalyzerResult(AnalysisType.ManagedCompilerInputs, managedFileList);
+
+            string contentFileLIst = CreateFileList(projectBaseDir, "contentList.txt", existingContentFile, missingContentFile);
+            projectInfo.AddAnalyzerResult(AnalysisType.ContentFiles, contentFileLIst);
+
+            string projectInfoDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "ProjectInfo1Dir");
+            string projectInfoFilePath = Path.Combine(projectInfoDir, FileConstants.ProjectInfoFileName);
+            projectInfo.Save(projectInfoFilePath);
+
+            TestLogger logger = new TestLogger();
+            AnalysisConfig config = new AnalysisConfig()
+            {
+                SonarProjectKey = "my_project_key",
+                SonarProjectName = "my_project_name",
+                SonarProjectVersion = "1.0",
+                SonarOutputDir = testDir
+            };
+
+            // Act
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+
+            string actual = File.ReadAllText(result.FullPropertiesFilePath);
+
+            // Assert
+            AssertFileIsReferenced(existingContentFile, actual);
+            AssertFileIsReferenced(existingManagedFile, actual);
+
+            AssertFileIsNotReferenced(missingContentFile, actual);
+            AssertFileIsNotReferenced(missingManagedFile, actual);
+
+            logger.AssertWarningExists(missingManagedFile);
+            logger.AssertWarningExists(missingContentFile);
         }
 
         #endregion
@@ -230,6 +296,17 @@ namespace SonarRunner.Shim.Tests
             Assert.AreEqual(expected, actual.Projects.Count, "Unexpected number of projects in the result");
         }
 
+        private static void AssertFileIsReferenced(string fullFilePath, string content)
+        {
+            string formattedPath = PropertiesWriter.Escape(fullFilePath);
+            Assert.IsTrue(content.Contains(formattedPath), "Files should be referenced: {0}", formattedPath);
+        }
+        private static void AssertFileIsNotReferenced(string fullFilePath, string content)
+        {
+            string formattedPath = PropertiesWriter.Escape(fullFilePath);
+            Assert.IsFalse(content.Contains(formattedPath), "File should not be referenced: {0}", formattedPath);
+        }
+ 
         #endregion
 
         #region Private methods
@@ -291,6 +368,13 @@ namespace SonarRunner.Shim.Tests
             ProjectInfo projectInfo = ProjectInfo.Load(projectInfoFile);
             projectInfo.AddAnalyzerResult(resultType, location);
             projectInfo.Save(projectInfoFile);
+        }
+
+        private static string CreateFileList(string parentDir, string fileName, params string[] files)
+        {
+            string fullPath = Path.Combine(parentDir, fileName);
+            File.WriteAllLines(fullPath, files);
+            return fullPath;
         }
 
         #endregion

@@ -120,6 +120,9 @@
   <data name="DIAG_CallingSonarRunner" xml:space="preserve">
     <value>Calling the sonar-runner...</value>
   </data>
+  <data name="DIAG_FileIsOutsideProjectDirectory" xml:space="preserve">
+    <value>File is not under the project directory and cannot currently be analysed by SonarQube. File: {0}, project: {1}</value>
+  </data>
   <data name="DIAG_GeneratingProjectProperties" xml:space="preserve">
     <value>Generating SonarQube project properties file to {0}</value>
   </data>
@@ -180,11 +183,17 @@
   <data name="REPORT_TestProjectsTitle" xml:space="preserve">
     <value>Test projects</value>
   </data>
+  <data name="String1" xml:space="preserve">
+    <value />
+  </data>
   <data name="WARN_CodeCoverageReportNotFound" xml:space="preserve">
     <value>Code coverage report does not exist at the specified location. Path: {0}</value>
   </data>
   <data name="WARN_DuplicateProjectGuid" xml:space="preserve">
     <value>Duplicate project GUID: "{0}". Check that the project is only being built for a single platform/configuration and that that the project guid is unique. The project will not be analyzed by SonarQube. Project file: {1}</value>
+  </data>
+  <data name="WARN_FileDoesNotExist" xml:space="preserve">
+    <value>File referenced in the project does not exist: {0}</value>
   </data>
   <data name="WARN_FxCopReportNotFound" xml:space="preserve">
     <value>FxCop analysis report does not exist at the specified location. Path: {0}</value>

@@ -100,7 +100,7 @@ namespace SonarQube.Common
             string dir = null;
             if (projectInfo.FullPath != null)
             {
-                dir = Path.GetDirectoryName(projectInfo.FullPath);
+                dir = Path.GetDirectoryName(Path.GetFullPath(projectInfo.FullPath));
             }
             return dir;
         }
@@ -135,27 +135,6 @@ namespace SonarQube.Common
             return location;
         }
 
-        /// <summary>
-        /// Returns the files that should be analyzed. Files outside the project
-        /// path should be ignored (currently the SonarQube server expects all
-        /// files to be under the root project directory)
-        /// </summary>
-        public static IList<string> GetFilesToAnalyze(this ProjectInfo projectInfo)
-        {
-            var result = new List<string>();
-            var baseDir = projectInfo.GetProjectDirectory();
-
-            foreach (string file in GetAllFiles(projectInfo))
-            {
-                if (IsInFolder(file, baseDir))
-                {
-                    result.Add(file);
-                }
-            }
-
-            return result;
-        }
-
         #endregion
 
         #region Private methods
@@ -164,7 +143,7 @@ namespace SonarQube.Common
         /// Aggregates together all of the files listed in the analysis results
         /// and returns the aggregated list
         /// </summary>
-        private static IList<string> GetAllFiles(ProjectInfo projectInfo)
+        public static IList<string> GetAllFiles(this ProjectInfo projectInfo)
         {
             List<String> files = new List<string>();
             var compiledFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisType.ManagedCompilerInputs);
@@ -178,12 +157,6 @@ namespace SonarQube.Common
                 files.AddRange(File.ReadAllLines(contentFilesPath));
             }
             return files;
-        }
-
-        private static bool IsInFolder(string filePath, string folder)
-        {
-            // FIXME This test is not sufficient...
-            return filePath.StartsWith(folder + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
         }
 
         #endregion

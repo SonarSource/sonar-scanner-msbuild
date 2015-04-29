@@ -70,6 +70,15 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File is not under the project directory and cannot currently be analysed by SonarQube. File: {0}, project: {1}.
+        /// </summary>
+        internal static string DIAG_FileIsOutsideProjectDirectory {
+            get {
+                return ResourceManager.GetString("DIAG_FileIsOutsideProjectDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generating SonarQube project properties file to {0}.
         /// </summary>
         internal static string DIAG_GeneratingProjectProperties {
@@ -250,6 +259,15 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string String1 {
+            get {
+                return ResourceManager.GetString("String1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code coverage report does not exist at the specified location. Path: {0}.
         /// </summary>
         internal static string WARN_CodeCoverageReportNotFound {
@@ -264,6 +282,15 @@ namespace SonarRunner.Shim {
         internal static string WARN_DuplicateProjectGuid {
             get {
                 return ResourceManager.GetString("WARN_DuplicateProjectGuid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File referenced in the project does not exist: {0}.
+        /// </summary>
+        internal static string WARN_FileDoesNotExist {
+            get {
+                return ResourceManager.GetString("WARN_FileDoesNotExist", resourceCulture);
             }
         }
         
