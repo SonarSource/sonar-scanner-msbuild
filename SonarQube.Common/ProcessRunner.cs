@@ -29,7 +29,7 @@ namespace SonarQube.Common
         /// </summary>
         /// <param name="exeName">Name of the file to execute. This can be a full name or just the file name (if the file is on the %PATH%).</param>
         /// <remarks>The standard and error output will be streamed to the logger</remarks>
-        public bool Execute(string exeName, string args, string workingDirectory, int timeoutInMs, ILogger logger)
+        public bool Execute(string exeName, string args, string workingDirectory, int timeoutInMilliseconds, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(exeName))
             {
@@ -69,9 +69,9 @@ namespace SonarQube.Common
                 process.BeginErrorReadLine();
                 process.BeginOutputReadLine();
 
-                logger.LogMessage(Resources.DIAG_ExecutingFile, exeName, args, workingDirectory, timeoutInMs, process.Id);
+                logger.LogMessage(Resources.DIAG_ExecutingFile, exeName, args, workingDirectory, timeoutInMilliseconds, process.Id);
 
-                succeeded = process.WaitForExit(timeoutInMs);
+                succeeded = process.WaitForExit(timeoutInMilliseconds);
                 if (succeeded)
                 {
                     process.WaitForExit(); // Give any asynchronous events the chance to complete

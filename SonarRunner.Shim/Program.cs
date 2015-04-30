@@ -17,7 +17,7 @@ namespace SonarRunner.Shim
         {
             ConsoleLogger logger = new ConsoleLogger();
 
-            if (args.Length != 1)
+            if (args == null || args.Length != 1)
             {
                 logger.LogError(Resources.ERR_InvalidCommandLineArgs);
                 return 1;

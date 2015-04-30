@@ -28,8 +28,14 @@ namespace SonarRunner.Shim
         private IList<ProjectInfo> projects;
 
         #region Public methods
+
         public static string Escape(string value)
         {
+            if (value == null)
+            {
+                return null;
+            }
+            
             StringBuilder sb = new StringBuilder();
 
             foreach (char c in value)
@@ -93,7 +99,7 @@ namespace SonarRunner.Shim
             if (this.FinishedWriting)
             {
                 throw new InvalidOperationException();
-            };
+            }
 
             if (project == null)
             {

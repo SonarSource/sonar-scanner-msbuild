@@ -19,26 +19,21 @@ namespace SonarQube.TeamBuild.PreProcessor
         public const string FxCopRulesetFileName = "SonarQubeAnalysis.ruleset";
         private const string DefaultSonarServerUrl = "http://localhost:9000";
 
-        private readonly ILogger logger;
         private readonly IPropertiesFetcher propertiesFetcher;
         private readonly IRulesetGenerator rulesetGenerator;
 
         #region Constructor(s)
 
         public TeamBuildPreProcessor()
-            : this(new ConsoleLogger(), new PropertiesFetcher(), new RulesetGenerator())
+            : this(new PropertiesFetcher(), new RulesetGenerator())
         {
         }
 
         /// <summary>
         /// Internal constructor for testing
         /// </summary>
-        public TeamBuildPreProcessor(ILogger logger, IPropertiesFetcher propertiesFetcher, IRulesetGenerator rulesetGenerator) // was internal
+        public TeamBuildPreProcessor(IPropertiesFetcher propertiesFetcher, IRulesetGenerator rulesetGenerator) // was internal
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
             if (propertiesFetcher == null)
             {
                 throw new ArgumentNullException("propertiesFetcher");
@@ -48,7 +43,6 @@ namespace SonarQube.TeamBuild.PreProcessor
                 throw new ArgumentNullException("rulesetGenerator");
             }
 
-            this.logger = logger;
             this.propertiesFetcher = propertiesFetcher;
             this.rulesetGenerator = rulesetGenerator;
         }
@@ -108,7 +102,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                 FetchSonarQubeProperties(config, ws);
 
                 // Generate the FxCop ruleset
-                GenerateFxCopRuleset(config, ws);
+                GenerateFxCopRuleset(config, ws, logger);
             }
 
             // Save the config file
@@ -153,9 +147,9 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
         }
 
-        private void GenerateFxCopRuleset(AnalysisConfig config, SonarWebService ws)
+        private void GenerateFxCopRuleset(AnalysisConfig config, SonarWebService ws, ILogger logger)
         {
-            this.logger.LogMessage(Resources.DIAG_GeneratingRuleset);
+            logger.LogMessage(Resources.DIAG_GeneratingRuleset);
             this.rulesetGenerator.Generate(ws, config.SonarProjectKey, Path.Combine(config.SonarConfigDir, FxCopRulesetFileName));
         }
 

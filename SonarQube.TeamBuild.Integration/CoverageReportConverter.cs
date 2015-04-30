@@ -125,8 +125,6 @@ namespace SonarQube.TeamBuild.Integration
                 if (Regex.IsMatch(key, @"\d+.\d+"))
                 {
                     // Check for the shell dir subkey
-                    string shellDir = vsKey.GetValue(key + "\\ShellFolder", null) as string;
-
                     string shellFolder = Registry.GetValue(vsKey.Name + "\\" + key, "ShellFolder", null) as string;
                     if (shellFolder != null)
                     {
@@ -178,33 +176,33 @@ namespace SonarQube.TeamBuild.Integration
 
 
         // was internal
-        public static bool ConvertBinaryToXml(string converterExeFilePath, string inputfullBinaryFilePath, string outputFullXmlFilePath, ILogger logger)
+        public static bool ConvertBinaryToXml(string converterExeFilePath, string inputBinaryFilePath, string outputXmlFilePath, ILogger logger)
         {
             Debug.Assert(!string.IsNullOrEmpty(converterExeFilePath), "Expecting the conversion tool path to have been set");
             Debug.Assert(File.Exists(converterExeFilePath), "Expecting the converter exe to exist: " + converterExeFilePath);
-            Debug.Assert(Path.IsPathRooted(inputfullBinaryFilePath), "Expecting the input file name to be a full absolute path");
-            Debug.Assert(File.Exists(inputfullBinaryFilePath), "Expecting the input file to exist: " + inputfullBinaryFilePath);
-            Debug.Assert(Path.IsPathRooted(outputFullXmlFilePath), "Expecting the output file name to be a full absolute path");
+            Debug.Assert(Path.IsPathRooted(inputBinaryFilePath), "Expecting the input file name to be a full absolute path");
+            Debug.Assert(File.Exists(inputBinaryFilePath), "Expecting the input file to exist: " + inputBinaryFilePath);
+            Debug.Assert(Path.IsPathRooted(outputXmlFilePath), "Expecting the output file name to be a full absolute path");
 
             string args = string.Format(System.Globalization.CultureInfo.InvariantCulture,
                 @"analyze /output:""{0}"" ""{1}""",
-                outputFullXmlFilePath, inputfullBinaryFilePath);
+                outputXmlFilePath, inputBinaryFilePath);
 
             ProcessRunner runner = new ProcessRunner();
-            bool success = runner.Execute(converterExeFilePath, args, Path.GetDirectoryName(outputFullXmlFilePath), ConversionTimeoutInMs, logger);
+            bool success = runner.Execute(converterExeFilePath, args, Path.GetDirectoryName(outputXmlFilePath), ConversionTimeoutInMs, logger);
 
             if (success)
             {
                 // Check the output file actually exists
-                if (!File.Exists(outputFullXmlFilePath))
+                if (!File.Exists(outputXmlFilePath))
                 {
-                    logger.LogError(Resources.CONV_ERROR_OutputFileNotFound, outputFullXmlFilePath);
+                    logger.LogError(Resources.CONV_ERROR_OutputFileNotFound, outputXmlFilePath);
                     success = false;
                 }
             }
             else
             {
-                logger.LogError(Resources.CONV_ERROR_ConversionToolFailed, inputfullBinaryFilePath);
+                logger.LogError(Resources.CONV_ERROR_ConversionToolFailed, inputBinaryFilePath);
             }
 
             return success;

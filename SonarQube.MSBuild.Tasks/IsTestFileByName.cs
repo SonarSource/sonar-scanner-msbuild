@@ -21,7 +21,7 @@ namespace SonarQube.MSBuild.Tasks
     /// </summary>
     /// <remarks>The task applies a regular expression to the file name being tested to determine whether
     /// the file is test file or not. The regular expression used is read from the analysis config file.</remarks>
-    public class IsTestFileByName : Task, SonarQube.Common.ILogger
+    public sealed class IsTestFileByName : Task, SonarQube.Common.ILogger
     {
         /// <summary>
         /// Id of the SonarQube test setting that specifies the RegEx to use when determining
@@ -61,7 +61,7 @@ namespace SonarQube.MSBuild.Tasks
         {
             bool taskSuccess = true;
 
-            AnalysisConfig config = this.TryGetConfig(this.AnalysisConfigDir);
+            AnalysisConfig config = this.TryGetConfig();
 
             if (config != null)
             {
@@ -104,7 +104,7 @@ namespace SonarQube.MSBuild.Tasks
             return regEx;
         }
         
-        private AnalysisConfig TryGetConfig(string filePath)
+        private AnalysisConfig TryGetConfig()
         {
             AnalysisConfig config = null;
             if (string.IsNullOrEmpty(this.AnalysisConfigDir)) // not specified

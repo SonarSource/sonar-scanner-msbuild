@@ -61,7 +61,7 @@ namespace SonarQube.Common
 
             if (config.AdditionalSettings != null)
             {
-                result = config.AdditionalSettings.FirstOrDefault(ar => settingId.Equals(ar.Id, StringComparison.InvariantCulture));
+                result = config.AdditionalSettings.FirstOrDefault(ar => settingId.Equals(ar.Id, StringComparison.Ordinal));
             }
             return result != null;
         }

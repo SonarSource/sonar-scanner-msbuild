@@ -43,7 +43,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 expectedConfigFileName = settings.AnalysisConfigFilePath;
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(logger, mockPropertiesFetcher, mockRulesetGenerator);
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
 
                 // Act
                 preProcessor.Execute(logger, "key", "name", "ver", propertiesFile);
@@ -89,7 +89,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 expectedConfigFileName = settings.AnalysisConfigFilePath;
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(logger, mockPropertiesFetcher, mockRulesetGenerator);
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
 
                 // Act
                 preProcessor.Execute(logger, "key", "name", "ver", propertiesFile);

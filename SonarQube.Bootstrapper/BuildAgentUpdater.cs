@@ -30,7 +30,11 @@ namespace SonarQube.Bootstrapper
             {
                 throw new ArgumentNullException("targetDir");
             }
-
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+            
             string integrationUrl = GetDownloadZipUrl(hostUrl);
             string downloadedZipFilePath = Path.Combine(targetDir, SonarQubeIntegrationFilename);
 

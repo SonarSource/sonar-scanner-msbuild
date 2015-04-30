@@ -57,6 +57,7 @@
     <Compile Include="FileLocatorTests.cs" />
     <Compile Include="FilePropertiesProviderTests.cs" />
     <Compile Include="AnalysisConfigTests.cs" />
+    <Compile Include="Infrastructure\OutputCaptureScope.cs" />
     <Compile Include="ProcessRunnerTests.cs" />
     <Compile Include="ProjectInfoTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

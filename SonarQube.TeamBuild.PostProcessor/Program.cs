@@ -20,11 +20,10 @@ namespace SonarQube.TeamBuild.PostProcessor
         private const int SuccessCode = 0;
         private const int ErrorCode = 1;
 
-        static int Main(string[] args)
+        static int Main()
         {
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
 
-            // TODO: consider using command line arguments if supplied
             AnalysisConfig config = GetAnalysisConfig(logger);
             if (config == null)
             {

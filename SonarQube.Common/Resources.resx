@@ -148,4 +148,7 @@
   <data name="PropertyNotFoundInFileError" xml:space="preserve">
     <value>The settings file '{0}' does not contain a value for the property '{1}'</value>
   </data>
+  <data name="Logger_WarningPrefix" xml:space="preserve">
+    <value>WARNING: </value>
+  </data>
 </root>
