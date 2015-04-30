@@ -42,7 +42,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             
             Downloader = downloader;
-            Server = server.EndsWith("/") ? server.Substring(0, server.Length - 1) : server;
+            Server = server.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? server.Substring(0, server.Length - 1) : server;
             Language = language;
             Repository = repository;
         }
@@ -94,7 +94,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// </summary>
         public IDictionary<string, string> GetInternalKeys()
         {
-            var ws = GetUrl("/api/rules/search?f=internalKey&ps={0}&repositories={1}", int.MaxValue.ToString(), Repository);
+            var ws = GetUrl("/api/rules/search?f=internalKey&ps={0}&repositories={1}", int.MaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture), Repository);
             var contents = Downloader.Download(ws);
 
             var rules = JObject.Parse(contents);

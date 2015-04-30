@@ -45,25 +45,5 @@ namespace SonarRunner.Shim
 
             return projectInfo;
         }
-
-        /// <summary>
-        /// Attempts to return the file location for the specified type of analysis result.
-        /// Returns null if the there is not a result for the specified type, or if the
-        /// file does not exist.
-        /// </summary>
-        private static string TryGetAnalysisFileLocation(ProjectInfo projectInfo, AnalysisType analysisType)
-        {
-            string location = null;
-
-            AnalysisResult result = null;
-            if (projectInfo.TryGetAnalyzerResult(analysisType, out result))
-            {
-                if (File.Exists(result.Location))
-                {
-                    location = result.Location;
-                }
-            }
-            return location;
-        }
     }
 }

@@ -53,6 +53,10 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public bool Execute(ILogger logger, string projectKey, string projectName, string projectVersion, string propertiesPath)
         {
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
             if (string.IsNullOrWhiteSpace(projectKey))
             {
                 throw new ArgumentNullException("projectKey");

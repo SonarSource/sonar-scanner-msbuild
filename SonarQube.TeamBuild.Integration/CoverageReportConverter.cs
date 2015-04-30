@@ -34,14 +34,15 @@ namespace SonarQube.TeamBuild.Integration
 
         private string conversionToolPath;
 
-        #region Public methods
-
-        #endregion
-
         #region IReportConverter interface
 
         public bool Initialize(ILogger logger)
         {
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+            
             bool success;
 
             this.conversionToolPath = GetExeToolPath(logger);

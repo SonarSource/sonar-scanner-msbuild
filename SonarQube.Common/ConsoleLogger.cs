@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 
 namespace SonarQube.Common
 {
@@ -61,12 +62,12 @@ namespace SonarQube.Common
             string finalMessage = message;
             if (args != null && args.Length > 0)
             {
-                finalMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, finalMessage ?? string.Empty, args);
+                finalMessage = string.Format(CultureInfo.CurrentCulture, finalMessage ?? string.Empty, args);
             }
 
             if (this.IncludeTimestamp)
             {
-                finalMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}  {1}", System.DateTime.Now.ToString("T"), finalMessage);
+                finalMessage = string.Format(CultureInfo.CurrentCulture, "{0}  {1}", System.DateTime.Now.ToString("T", CultureInfo.CurrentCulture), finalMessage);
             }
             return finalMessage;
         }

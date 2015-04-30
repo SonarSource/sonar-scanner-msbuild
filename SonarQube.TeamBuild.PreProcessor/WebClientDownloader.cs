@@ -33,7 +33,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                     throw new ArgumentException("username and password should contain only ASCII characters due to basic authentication limitations");
                 }
 
-                var credentials = string.Format("{0}:{1}", username, password);
+                var credentials = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}:{1}", username, password);
                 credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(credentials));
                 Client.Headers[HttpRequestHeader.Authorization] = "Basic " + credentials;
             }
