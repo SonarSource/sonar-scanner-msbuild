@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="CoverageReportProcessor.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="TfsLegacyCoverageReportProcessor.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -14,7 +14,7 @@ using System.Linq;
 
 namespace SonarQube.TeamBuild.Integration
 {
-    public class CoverageReportProcessor
+    public class TfsLegacyCoverageReportProcessor : ICoverageReportProcessor
     {
         public const string DownloadFileName = "VSCodeCoverageReport.coverage"; // was internal
 
@@ -24,12 +24,12 @@ namespace SonarQube.TeamBuild.Integration
         private ICoverageReportConverter converter;
         private ICoverageReportDownloader downloader;
 
-        public CoverageReportProcessor()
+        public TfsLegacyCoverageReportProcessor()
             : this(new CoverageReportUrlProvider(), new CoverageReportDownloader(), new CoverageReportConverter())
         {
         }
 
-        public CoverageReportProcessor(ICoverageUrlProvider urlProvider, ICoverageReportDownloader downloader, ICoverageReportConverter converter) // was internal
+        public TfsLegacyCoverageReportProcessor(ICoverageUrlProvider urlProvider, ICoverageReportDownloader downloader, ICoverageReportConverter converter) // was internal
         {
             if (urlProvider == null)
             {
@@ -49,9 +49,9 @@ namespace SonarQube.TeamBuild.Integration
             this.downloader = downloader;
         }
 
-        #region Public methods
+        #region ICoverageReportProcessor methods
 
-        public bool ProcessCoverageReports(AnalysisConfig context, ILogger logger)
+        public bool ProcessCoverageReports(AnalysisConfig context, TeamBuildSettings settings, ILogger logger)
         {
             if (context == null)
             {

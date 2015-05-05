@@ -42,8 +42,8 @@ namespace SonarQube.TeamBuild.PostProcessor
                 && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
             {
                 // Handle code coverage reports
-                CoverageReportProcessor coverageProcessor = new CoverageReportProcessor();
-                if (!coverageProcessor.ProcessCoverageReports(config, logger))
+                ICoverageReportProcessor coverageProcessor = new TfsLegacyCoverageReportProcessor();
+                if (!coverageProcessor.ProcessCoverageReports(config, settings, logger))
                 {
                     return ErrorCode;
                 }

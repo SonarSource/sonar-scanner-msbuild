@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="CoverageReportProcessorTests.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="TfsLegacyCoverageReportProcessorTests.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -26,7 +26,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
     /// Unit tests for the orchestration of the code coverage handling
     /// </summary>
     [TestClass]
-    public class CoverageReportProcessorTests
+    public class TfsLegacyCoverageReportProcessorTests
     {
         private const string ValidUrl1 = "vstsf:///foo";
         private const string ValidUrl2 = "vstsf:///foo2";
@@ -45,11 +45,12 @@ namespace SonarQube.TeamBuild.Integration.Tests
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = false };
             AnalysisConfig context = this.CreateValidContext();
+            TeamBuildSettings settings = this.CreateValidSettings();
 
-            CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
+            TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, new ConsoleLogger());
+            bool result = processor.ProcessCoverageReports(context, settings, new ConsoleLogger());
 
             // Assert
             urlProvider.AssertGetUrlsNotCalled();
@@ -67,11 +68,12 @@ namespace SonarQube.TeamBuild.Integration.Tests
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
             AnalysisConfig context = this.CreateValidContext();
+            TeamBuildSettings settings = this.CreateValidSettings();
 
-            CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
+            TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, new ConsoleLogger());
+            bool result = processor.ProcessCoverageReports(context, settings, new ConsoleLogger());
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -90,11 +92,12 @@ namespace SonarQube.TeamBuild.Integration.Tests
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
             AnalysisConfig context = this.CreateValidContext();
+            TeamBuildSettings settings = this.CreateValidSettings();
 
-            CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
+            TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, new ConsoleLogger());
+            bool result = processor.ProcessCoverageReports(context, settings, new ConsoleLogger());
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -114,13 +117,14 @@ namespace SonarQube.TeamBuild.Integration.Tests
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
             AnalysisConfig context = this.CreateValidContext();
+            TeamBuildSettings settings = this.CreateValidSettings();
 
-            CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
+            TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // TODO - download failure should raise an exception
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, new ConsoleLogger());
+            bool result = processor.ProcessCoverageReports(context, settings, new ConsoleLogger());
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -141,13 +145,14 @@ namespace SonarQube.TeamBuild.Integration.Tests
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
             AnalysisConfig context = this.CreateValidContext();
+            TeamBuildSettings settings = this.CreateValidSettings();
 
             downloader.CreateFileOnDownloadRequest = true;
 
-            CoverageReportProcessor processor = new CoverageReportProcessor(urlProvider, downloader, converter);
+            TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, new ConsoleLogger());
+            bool result = processor.ProcessCoverageReports(context, settings, new ConsoleLogger());
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -155,7 +160,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             converter.AssertExpectedNumberOfConversions(1);
 
             downloader.AssertExpectedUrlsRequested(ValidUrl2);
-            downloader.AssertExpectedTargetFileNamesSupplied(Path.Combine(context.SonarOutputDir, CoverageReportProcessor.DownloadFileName));
+            downloader.AssertExpectedTargetFileNamesSupplied(Path.Combine(context.SonarOutputDir, TfsLegacyCoverageReportProcessor.DownloadFileName));
             Assert.IsTrue(result, "Expecting true: happy path");
         }
 
@@ -171,6 +176,13 @@ namespace SonarQube.TeamBuild.Integration.Tests
                 SonarConfigDir = this.TestContext.TestRunResultsDirectory, // we don't read anything from this directory, we just want it to be different from the output directory
             };
             return context;
+        }
+
+        private TeamBuildSettings CreateValidSettings()
+        {
+            TeamBuildSettings settings = new TeamBuildSettings();
+            
+            return settings;
         }
 
         #endregion
