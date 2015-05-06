@@ -73,9 +73,9 @@ namespace TestUtilities
         }
 
         /// <summary>
-        /// Checks that an error exists that contains all of the specified strings
+        /// Checks that a single error exists that contains all of the specified strings
         /// </summary>
-        public void AssertErrorExists(params string[] expected)
+        public void AssertSingleErrorExists(params string[] expected)
         {
             IEnumerable<string> matches = this.Errors.Where(w => expected.All(e => w.Contains(e)));
             Assert.AreNotEqual(0, matches.Count(), "No error contains the expected strings: {0}", string.Join(",", expected));
@@ -83,13 +83,22 @@ namespace TestUtilities
         }
 
         /// <summary>
-        /// Checks that a warning exists that contains all of the specified strings
+        /// Checks that a single warning exists that contains all of the specified strings
         /// </summary>
-        public void AssertWarningExists(params string[] expected)
+        public void AssertSingleWarningExists(params string[] expected)
         {
             IEnumerable<string> matches = this.Warnings.Where(w => expected.All(e => w.Contains(e)));
             Assert.AreNotEqual(0, matches.Count(), "No warning contains the expected strings: {0}", string.Join(",", expected));
             Assert.AreEqual(1, matches.Count(), "More than one warning contains the expected strings: {0}", string.Join(",", expected));
+        }
+
+        /// <summary>
+        /// Checks that at least one message exists that contains all of the specified strings
+        /// </summary>
+        public void AssertMessageExists(params string[] expected)
+        {
+            IEnumerable<string> matches = this.Messages.Where(m => expected.All(e => m.Contains(e)));
+            Assert.AreNotEqual(0, matches.Count(), "No message contains the expected strings: {0}", string.Join(",", expected));
         }
 
         /// <summary>

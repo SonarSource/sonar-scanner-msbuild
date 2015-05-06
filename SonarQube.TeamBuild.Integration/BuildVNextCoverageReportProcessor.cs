@@ -7,14 +7,10 @@
 
 using SonarQube.Common;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SonarQube.TeamBuild.Integration
 {
+
     public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
     {
 
@@ -63,10 +59,20 @@ namespace SonarQube.TeamBuild.Integration
             }
 
             // TODO: check for the test results location
-            
-            return false;
 
+            string coverageFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger);
+            if (coverageFilePath != null)
+            {
+                logger.LogWarning("TODO: process the coverage file: {0}", coverageFilePath);
+            }
+
+            return true;
         }
+
+        #endregion
+
+        #region Private methods
+
 
         #endregion
 

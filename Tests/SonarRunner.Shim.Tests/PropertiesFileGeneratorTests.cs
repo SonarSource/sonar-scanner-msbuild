@@ -78,8 +78,8 @@ namespace SonarRunner.Shim.Tests
             AssertFailedToCreatePropertiesFiles(result, logger);
             logger.AssertWarningsLogged(2); // should be a warning for each project with a duplicate id
         
-            logger.AssertWarningExists(duplicateGuid.ToString(), "c:\\abc\\duplicateProject1.proj");
-            logger.AssertWarningExists(duplicateGuid.ToString(), "S:\\duplicateProject2.proj");
+            logger.AssertSingleWarningExists(duplicateGuid.ToString(), "c:\\abc\\duplicateProject1.proj");
+            logger.AssertSingleWarningExists(duplicateGuid.ToString(), "S:\\duplicateProject2.proj");
         }
 
         [TestMethod]
@@ -245,8 +245,8 @@ namespace SonarRunner.Shim.Tests
             AssertFileIsNotReferenced(missingContentFile, actual);
             AssertFileIsNotReferenced(missingManagedFile, actual);
 
-            logger.AssertWarningExists(missingManagedFile);
-            logger.AssertWarningExists(missingContentFile);
+            logger.AssertSingleWarningExists(missingManagedFile);
+            logger.AssertSingleWarningExists(missingContentFile);
         }
 
         #endregion

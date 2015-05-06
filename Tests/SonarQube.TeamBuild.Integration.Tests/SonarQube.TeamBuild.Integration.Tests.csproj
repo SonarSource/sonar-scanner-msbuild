@@ -60,6 +60,7 @@
     <Compile Include="Infrastructure\MockReportUrlProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TeamBuildSettingsTests.cs" />
+    <Compile Include="TrxFileReaderTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\SonarQube.Common\SonarQube.Common.csproj">

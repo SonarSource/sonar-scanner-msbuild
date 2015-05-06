@@ -91,6 +91,7 @@
     </Compile>
     <Compile Include="TeamBuildAnalysisSettings.cs" />
     <Compile Include="TeamBuildSettings.cs" />
+    <Compile Include="TrxFileReader.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj">

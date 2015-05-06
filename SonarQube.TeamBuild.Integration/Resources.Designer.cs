@@ -206,6 +206,96 @@ namespace SonarQube.TeamBuild.Integration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Absolute path to coverage file: {0}.
+        /// </summary>
+        internal static string TRX_DIAG_AbsoluteTrxPath {
+            get {
+                return ResourceManager.GetString("TRX_DIAG_AbsoluteTrxPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attempting to locate a test results (.trx) file....
+        /// </summary>
+        internal static string TRX_DIAG_LocatingTrx {
+            get {
+                return ResourceManager.GetString("TRX_DIAG_LocatingTrx", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No code coverage attachments were found in the trx file.
+        /// </summary>
+        internal static string TRX_DIAG_NoCodeCoverageInfo {
+            get {
+                return ResourceManager.GetString("TRX_DIAG_NoCodeCoverageInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No test results files found.
+        /// </summary>
+        internal static string TRX_DIAG_NoTestResultsFound {
+            get {
+                return ResourceManager.GetString("TRX_DIAG_NoTestResultsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One code coverage attachment was found in the trx file: {0}.
+        /// </summary>
+        internal static string TRX_DIAG_SingleCodeCoverageAttachmentFound {
+            get {
+                return ResourceManager.GetString("TRX_DIAG_SingleCodeCoverageAttachmentFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Located a test results file: {0}.
+        /// </summary>
+        internal static string TRX_DIAG_SingleTrxFileFound {
+            get {
+                return ResourceManager.GetString("TRX_DIAG_SingleTrxFileFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test results directory does not exist: {0}.
+        /// </summary>
+        internal static string TRX_DIAG_TestResultsDirectoryNotFound {
+            get {
+                return ResourceManager.GetString("TRX_DIAG_TestResultsDirectoryNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Located trx file is not a valid xml file. File: {0}. File load error: {1}.
+        /// </summary>
+        internal static string TRX_WARN_InvalidTrx {
+            get {
+                return ResourceManager.GetString("TRX_WARN_InvalidTrx", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expecting to find at most one code coverage attachment in the trx file, but multiple attachments were found. Code coverage information will not be uploaded to SonarQube. Attachments: {0}.
+        /// </summary>
+        internal static string TRX_WARN_MultipleCodeCoverageAttachmentsFound {
+            get {
+                return ResourceManager.GetString("TRX_WARN_MultipleCodeCoverageAttachmentsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to More than one test result file was found: expecting to find only one. Results files: {0}.
+        /// </summary>
+        internal static string TRX_WARN_MultipleTrxFilesFound {
+            get {
+                return ResourceManager.GetString("TRX_WARN_MultipleTrxFilesFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Connecting to TFS....
         /// </summary>
         internal static string URL_DIAG_ConnectingToTfs {

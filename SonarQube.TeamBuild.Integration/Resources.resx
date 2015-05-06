@@ -167,6 +167,36 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   <data name="SonarQubeSummarySectionHeader" xml:space="preserve">
     <value>SonarQube Analysis Summary</value>
   </data>
+  <data name="TRX_DIAG_AbsoluteTrxPath" xml:space="preserve">
+    <value>Absolute path to coverage file: {0}</value>
+  </data>
+  <data name="TRX_DIAG_LocatingTrx" xml:space="preserve">
+    <value>Attempting to locate a test results (.trx) file...</value>
+  </data>
+  <data name="TRX_DIAG_NoCodeCoverageInfo" xml:space="preserve">
+    <value>No code coverage attachments were found in the trx file</value>
+  </data>
+  <data name="TRX_DIAG_NoTestResultsFound" xml:space="preserve">
+    <value>No test results files found</value>
+  </data>
+  <data name="TRX_DIAG_SingleCodeCoverageAttachmentFound" xml:space="preserve">
+    <value>One code coverage attachment was found in the trx file: {0}</value>
+  </data>
+  <data name="TRX_DIAG_SingleTrxFileFound" xml:space="preserve">
+    <value>Located a test results file: {0}</value>
+  </data>
+  <data name="TRX_DIAG_TestResultsDirectoryNotFound" xml:space="preserve">
+    <value>Test results directory does not exist: {0}</value>
+  </data>
+  <data name="TRX_WARN_InvalidTrx" xml:space="preserve">
+    <value>Located trx file is not a valid xml file. File: {0}. File load error: {1}</value>
+  </data>
+  <data name="TRX_WARN_MultipleCodeCoverageAttachmentsFound" xml:space="preserve">
+    <value>Expecting to find at most one code coverage attachment in the trx file, but multiple attachments were found. Code coverage information will not be uploaded to SonarQube. Attachments: {0}</value>
+  </data>
+  <data name="TRX_WARN_MultipleTrxFilesFound" xml:space="preserve">
+    <value>More than one test result file was found: expecting to find only one. Results files: {0}</value>
+  </data>
   <data name="URL_DIAG_ConnectingToTfs" xml:space="preserve">
     <value>Connecting to TFS...</value>
   </data>

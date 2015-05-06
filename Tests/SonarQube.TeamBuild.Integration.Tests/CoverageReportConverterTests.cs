@@ -74,7 +74,7 @@ echo foo > """ + outputFilePath + @"""");
             // Assert
             Assert.IsFalse(success, "Expecting the process to fail");
             logger.AssertErrorsLogged();
-            logger.AssertErrorExists(outputFilePath); // error message should refer to the output file
+            logger.AssertSingleErrorExists(outputFilePath); // error message should refer to the output file
 
             Assert.IsFalse(File.Exists(outputFilePath), "Not expecting the output file to exist");
         }
@@ -101,7 +101,7 @@ echo foo > """ + outputFilePath + @"""");
             // Assert
             Assert.IsFalse(success, "Expecting the process to fail");
             logger.AssertErrorsLogged();
-            logger.AssertErrorExists(inputFilePath); // error message should refer to the input file
+            logger.AssertSingleErrorExists(inputFilePath); // error message should refer to the input file
 
             Assert.IsFalse(File.Exists(outputFilePath), "Not expecting the output file to exist");
         }
