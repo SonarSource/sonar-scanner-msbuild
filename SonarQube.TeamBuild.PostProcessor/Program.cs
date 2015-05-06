@@ -25,6 +25,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
 
             TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+            Debug.Assert(settings != null, "Settings should not be null");
 
             AnalysisConfig config = GetAnalysisConfig(settings, logger);
             if (config == null)
@@ -39,16 +40,12 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
 
             ICoverageReportProcessor coverageReportProcessor = TryCreateCoverageReportProcessor(settings);
-            if (settings != null)
-            {
-                // Handle code coverage reports
-                ICoverageReportProcessor coverageProcessor = new TfsLegacyCoverageReportProcessor();
-                if (!coverageProcessor.ProcessCoverageReports(config, settings, logger))
-                {
-                    return ErrorCode;
-                }
-            }
 
+            // Handle code coverage reports
+            if (!coverageReportProcessor.ProcessCoverageReports(config, settings, logger))
+            {
+                return ErrorCode;
+            }
             ProjectInfoAnalysisResult result = InvokeSonarRunner(config, logger);
 
             // Write summary report

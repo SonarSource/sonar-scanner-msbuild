@@ -84,7 +84,15 @@ namespace SonarQube.TeamBuild.Integration
 
                 case 1:
                     string url = urls.First();
-                    result = ProcessCodeCoverageReport(url, context, logger);
+
+                    string targetFileName = Path.Combine(context.SonarOutputDir, DownloadFileName);
+                    result = this.downloader.DownloadReport(url, targetFileName, logger);
+
+                    if (result)
+                    {
+                        result = ProcessCodeCoverageReport(url, context, this.converter, logger);
+                    }
+
                     break;
 
                 default: // More than one
@@ -100,23 +108,22 @@ namespace SonarQube.TeamBuild.Integration
 
         #region Private methods
 
-        private bool ProcessCodeCoverageReport(string reportUrl, AnalysisConfig context, ILogger logger)
+        //TODO: refactor the legacy and vNext code. The code to locate the code coverage file in each
+        // case is different, but the rest of the code is common.
+        internal static bool ProcessCodeCoverageReport(string binaryCoverageFilePath, AnalysisConfig context, ICoverageReportConverter converter, ILogger logger)
         {
-            string targetFileName = Path.Combine(context.SonarOutputDir, DownloadFileName);
-            bool success = this.downloader.DownloadReport(reportUrl, targetFileName, logger);
+            bool success = false;
+            string xmlFileName = Path.ChangeExtension(binaryCoverageFilePath, XmlReportFileExtension);
+
+            Debug.Assert(!File.Exists(xmlFileName), "Not expecting a file with the name of the binary-to-XML conversion output to already exist: " + xmlFileName);
+            success = converter.ConvertToXml(binaryCoverageFilePath, xmlFileName, logger);
 
             if (success)
             {
-                string xmlFileName = Path.ChangeExtension(targetFileName, XmlReportFileExtension);
-                Debug.Assert(!File.Exists(xmlFileName), "Not expecting a file with the name of the binary-to-XML conversion output to already exist: " + xmlFileName);
-                success = this.converter.ConvertToXml(targetFileName, xmlFileName, logger);
-
-                if (success)
-                {
-                    logger.LogMessage(Resources.PROC_DIAG_UpdatingProjectInfoFiles);
-                    InsertCoverageAnalysisResults(context.SonarOutputDir, xmlFileName);
-                }
+                logger.LogMessage(Resources.PROC_DIAG_UpdatingProjectInfoFiles);
+                InsertCoverageAnalysisResults(context.SonarOutputDir, xmlFileName);
             }
+
             return success;
         }
 

@@ -58,21 +58,16 @@ namespace SonarQube.TeamBuild.Integration
                 return false;
             }
 
-            // TODO: check for the test results location
+            bool success = true;
 
             string coverageFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger);
             if (coverageFilePath != null)
             {
-                logger.LogWarning("TODO: process the coverage file: {0}", coverageFilePath);
+                 success = TfsLegacyCoverageReportProcessor.ProcessCodeCoverageReport(coverageFilePath, context, this.converter, logger);
             }
 
-            return true;
+            return success;
         }
-
-        #endregion
-
-        #region Private methods
-
 
         #endregion
 
