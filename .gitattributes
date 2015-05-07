@@ -1,12 +1,9 @@
 # Text files should have CRLF line endings, even on non-Windows machines
-* text=crlf
-
-# Text files
-*.txt text
-*.cs text
-*.sln text
-*.xml text
-*.config text
-*.targets text
-*.resx text
-*.csproj text
+*.txt eol=crlf
+*.cs eol=crlf
+*.sln eol=crlf
+*.xml eol=crlf
+*.config eol=crlf
+*.targets eol=crlf
+*.resx eol=crlf
+*.csproj eol=crlf
