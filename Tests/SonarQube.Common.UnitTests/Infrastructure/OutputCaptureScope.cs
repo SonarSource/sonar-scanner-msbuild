@@ -113,6 +113,8 @@ namespace SonarQube.Common.UnitTests
             string allText = writer.GetStringBuilder().ToString();
             string[] lines = allText.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
 
+            Assert.IsTrue(lines.Length > 1, "No output written");
+
             // There will always be at least one entry in the array, even in an empty string.
             // The last line should be an empty string that follows the final new line character.
             Assert.AreEqual(string.Empty, lines[lines.Length - 1], "Test logic error: expecting the last array entry to be an empty string");

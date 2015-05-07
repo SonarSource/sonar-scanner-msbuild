@@ -44,7 +44,7 @@ namespace SonarQube.Common
         public void LogWarning(string message, params object[] args)
         {
             string finalMessage = this.GetFormattedMessage(Resources.Logger_WarningPrefix + message, args);
-            Console.Error.WriteLine(finalMessage);
+            Console.WriteLine(finalMessage);
         }
 
         public void LogError(string message, params object[] args)
