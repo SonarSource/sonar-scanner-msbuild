@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.TeamBuild.Integration.Tests.Infrastructure;
 using SonarQube.Common;
 using System.IO;
+using TestUtilities;
 
 namespace SonarQube.TeamBuild.Integration.Tests
 {
@@ -46,17 +47,21 @@ namespace SonarQube.TeamBuild.Integration.Tests
             MockReportConverter converter = new MockReportConverter() { CanConvert = false };
             AnalysisConfig context = this.CreateValidContext();
             TeamBuildSettings settings = this.CreateValidSettings();
+            TestLogger logger = new TestLogger();
 
             TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, settings, new ConsoleLogger());
+            bool result = processor.ProcessCoverageReports(context, settings, logger);
 
             // Assert
             urlProvider.AssertGetUrlsNotCalled();
             downloader.AssertDownloadNotCalled();
             converter.AssertConvertNotCalled();
             Assert.IsFalse(result, "Expecting result to be false as files could not be converted");
+
+            logger.AssertWarningsLogged(0);
+            logger.AssertErrorsLogged(0);
         }
 
         [TestMethod]
@@ -69,17 +74,21 @@ namespace SonarQube.TeamBuild.Integration.Tests
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
             AnalysisConfig context = this.CreateValidContext();
             TeamBuildSettings settings = this.CreateValidSettings();
+            TestLogger logger = new TestLogger();
 
             TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, settings, new ConsoleLogger());
+            bool result = processor.ProcessCoverageReports(context, settings, logger);
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
             downloader.AssertDownloadNotCalled(); // no urls returned, so should go any further
             converter.AssertConvertNotCalled();
             Assert.IsTrue(result, "Expecting true: no coverage reports is a valid scenario");
+
+            logger.AssertWarningsLogged(0);
+            logger.AssertErrorsLogged(0);
         }
 
         [TestMethod]
@@ -93,19 +102,21 @@ namespace SonarQube.TeamBuild.Integration.Tests
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
             AnalysisConfig context = this.CreateValidContext();
             TeamBuildSettings settings = this.CreateValidSettings();
+            TestLogger logger = new TestLogger();
 
             TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, settings, new ConsoleLogger());
+            bool result = processor.ProcessCoverageReports(context, settings, logger);
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
             downloader.AssertDownloadNotCalled(); // Multiple urls so should early out
             converter.AssertConvertNotCalled();
             Assert.IsFalse(result, "Expecting false: can't process multiple coverage reports");
-        
-            // TODO: check a warning is emitted
+
+            logger.AssertErrorsLogged(1);
+            logger.AssertWarningsLogged(0);
         }
 
         [TestMethod]
@@ -118,13 +129,12 @@ namespace SonarQube.TeamBuild.Integration.Tests
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
             AnalysisConfig context = this.CreateValidContext();
             TeamBuildSettings settings = this.CreateValidSettings();
+            TestLogger logger = new TestLogger();
 
             TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
-            // TODO - download failure should raise an exception
-
             // Act
-            bool result = processor.ProcessCoverageReports(context, settings, new ConsoleLogger());
+            bool result = processor.ProcessCoverageReports(context, settings, logger);
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -134,6 +144,8 @@ namespace SonarQube.TeamBuild.Integration.Tests
             downloader.AssertExpectedUrlsRequested(ValidUrl1);
 
             Assert.IsFalse(result, "Expecting false: report could not be downloaded");
+            logger.AssertErrorsLogged(1);
+            logger.AssertWarningsLogged(0);
         }
 
         [TestMethod]
@@ -146,13 +158,14 @@ namespace SonarQube.TeamBuild.Integration.Tests
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
             AnalysisConfig context = this.CreateValidContext();
             TeamBuildSettings settings = this.CreateValidSettings();
+            TestLogger logger = new TestLogger();
 
             downloader.CreateFileOnDownloadRequest = true;
 
             TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, settings, new ConsoleLogger());
+            bool result = processor.ProcessCoverageReports(context, settings, logger);
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -162,6 +175,9 @@ namespace SonarQube.TeamBuild.Integration.Tests
             downloader.AssertExpectedUrlsRequested(ValidUrl2);
             downloader.AssertExpectedTargetFileNamesSupplied(Path.Combine(context.SonarOutputDir, TfsLegacyCoverageReportProcessor.DownloadFileName));
             Assert.IsTrue(result, "Expecting true: happy path");
+
+            logger.AssertWarningsLogged(0);
+            logger.AssertErrorsLogged(0);
         }
 
         #endregion

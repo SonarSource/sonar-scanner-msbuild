@@ -11,11 +11,8 @@ using System;
 namespace SonarQube.TeamBuild.Integration
 {
 
-    public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
+    public class BuildVNextCoverageReportProcessor : CoverageReportProcessorBase
     {
-
-        private ICoverageReportConverter converter;
-
         #region Public methods
 
         public BuildVNextCoverageReportProcessor()
@@ -24,49 +21,19 @@ namespace SonarQube.TeamBuild.Integration
         }
 
         public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter)
+            : base(converter)
         {
-            if (converter == null)
-            {
-                throw new ArgumentNullException("converter");
-            }
-            this.converter = converter;
         }
 
         #endregion
 
-        #region ICoverageReportProcessor interface
-
-        public bool ProcessCoverageReports(AnalysisConfig context, TeamBuildSettings settings, ILogger logger)
+        #region Overrides
+        
+        protected override bool TryGetBinaryReportFile(AnalysisConfig config, TeamBuildSettings settings, ILogger logger, out string binaryFilePath)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException("context");
-            }
-            if (settings == null)
-            {
-                throw new ArgumentNullException("settings");
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
+            binaryFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger);
 
-            if (!this.converter.Initialize(logger))
-            {
-                // If we can't initialize the converter (e.g. we can't find the exe required to do the
-                // conversion) there in there isn't any point in downloading the binary reports
-                return false;
-            }
-
-            bool success = true;
-
-            string coverageFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger);
-            if (coverageFilePath != null)
-            {
-                 success = TfsLegacyCoverageReportProcessor.ProcessCodeCoverageReport(coverageFilePath, context, this.converter, logger);
-            }
-
-            return success;
+            return true; // there aren't currently any conditions under which we'd want to stop processing
         }
 
         #endregion

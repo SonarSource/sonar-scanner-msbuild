@@ -152,6 +152,9 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   <data name="PROC_DIAG_UpdatingProjectInfoFiles" xml:space="preserve">
     <value>Updating project info files with code coverage information...</value>
   </data>
+  <data name="PROC_ERROR_FailedToDownloadReport" xml:space="preserve">
+    <value>Failed to download the code coverage report.</value>
+  </data>
   <data name="PROC_ERROR_MultipleCodeCoverageReportsFound" xml:space="preserve">
     <value>More than one code coverage result file was created. Only one report can be uploaded to SonarQube. Please modify the build definition so either SonarQube analysis is disabled or the only platform/flavor is built</value>
   </data>
