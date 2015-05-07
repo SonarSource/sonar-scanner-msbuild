@@ -54,12 +54,13 @@
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
     <Compile Include="CoverageReportConverterTests.cs" />
-    <Compile Include="CoverageReportProcessorTests.cs" />
+    <Compile Include="TfsLegacyCoverageReportProcessorTests.cs" />
     <Compile Include="Infrastructure\MockReportDownloader.cs" />
     <Compile Include="Infrastructure\MockReportConverter.cs" />
     <Compile Include="Infrastructure\MockReportUrlProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TeamBuildSettingsTests.cs" />
+    <Compile Include="TrxFileReaderTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\SonarQube.Common\SonarQube.Common.csproj">

@@ -123,25 +123,25 @@ namespace SonarQube.Common.UnitTests
                 ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
 
                 logger.LogWarning("warn1");
-                output.AssertLastErrorEndsWith("warn1");
+                output.AssertLastMessageEndsWith("warn1");
 
                 logger.LogWarning("warn2", null);
-                output.AssertLastErrorEndsWith("warn2");
+                output.AssertLastMessageEndsWith("warn2");
 
                 logger.LogWarning("warn3 {0}", "xxx");
-                output.AssertLastErrorEndsWith("warn3 xxx");
+                output.AssertLastMessageEndsWith("warn3 xxx");
 
                 // 2. Logger with timestamps
                 logger = new ConsoleLogger(includeTimestamp: true);
 
                 logger.LogWarning("warn4");
-                output.AssertLastErrorEndsWith("warn4");
+                output.AssertLastMessageEndsWith("warn4");
 
                 logger.LogWarning("warn5{0}{1}", null, null);
-                output.AssertLastErrorEndsWith("warn5");
+                output.AssertLastMessageEndsWith("warn5");
 
                 logger.LogWarning("warn6 {0}{1}", "xxx", "yyy", "zzz");
-                output.AssertLastErrorEndsWith("warn6 xxxyyy");
+                output.AssertLastMessageEndsWith("warn6 xxxyyy");
             }
         }
 

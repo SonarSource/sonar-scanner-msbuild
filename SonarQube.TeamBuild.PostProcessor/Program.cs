@@ -24,33 +24,30 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
 
-            AnalysisConfig config = GetAnalysisConfig(logger);
+            TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+            Debug.Assert(settings != null, "Settings should not be null");
+
+            AnalysisConfig config = GetAnalysisConfig(settings, logger);
             if (config == null)
             {
                 logger.LogError(Resources.ERROR_MissingSettings);
                 return ErrorCode;
             }
 
-            TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
-
             if (!CheckEnvironmentConsistency(config, settings, logger))
             {
                 return ErrorCode;
             }
 
-            if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
-                && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
-            {
-                // Handle code coverage reports
-                CoverageReportProcessor coverageProcessor = new CoverageReportProcessor();
-                if (!coverageProcessor.ProcessCoverageReports(config, logger))
-                {
-                    return ErrorCode;
-                }
-            }
+            ICoverageReportProcessor coverageReportProcessor = TryCreateCoverageReportProcessor(settings);
 
+            // Handle code coverage reports
+            if (!coverageReportProcessor.ProcessCoverageReports(config, settings, logger))
+            {
+                return ErrorCode;
+            }
             ProjectInfoAnalysisResult result = InvokeSonarRunner(config, logger);
-            
+
             // Write summary report
             if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
                 && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
@@ -66,11 +63,10 @@ namespace SonarQube.TeamBuild.PostProcessor
         /// calculated from TeamBuild-specific environment variables.
         /// Returns null if the required environment variables are not available.
         /// </summary>
-        private static AnalysisConfig GetAnalysisConfig(ILogger logger)
+        private static AnalysisConfig GetAnalysisConfig(TeamBuildSettings teamBuildSettings, ILogger logger)
         {
             AnalysisConfig config = null;
 
-            TeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
             if (teamBuildSettings != null)
             {
                 string configFilePath = teamBuildSettings.AnalysisConfigFilePath;
@@ -171,6 +167,26 @@ namespace SonarQube.TeamBuild.PostProcessor
         private static IEnumerable<ProjectInfo> GetProjectsByStatus(ProjectInfoAnalysisResult result, ProjectInfoValidity status)
         {
             return result.Projects.Where(p => p.Value == status).Select(p => p.Key);
+        }
+
+        /// <summary>
+        /// Factory method to create a coverage report processor for the current build environment.
+        /// TODO: replace with a general purpose pre- and post- processing extension mechanism.
+        /// </summary>
+        private static ICoverageReportProcessor TryCreateCoverageReportProcessor(TeamBuildSettings settings)
+        {
+            ICoverageReportProcessor processor = null;
+
+            if (settings.BuildEnvironment == BuildEnvironment.TeamBuild)
+            {
+                processor = new BuildVNextCoverageReportProcessor();
+            }
+            else if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
+                && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
+            {
+                processor = new TfsLegacyCoverageReportProcessor();
+            }
+            return processor;
         }
     }
 }

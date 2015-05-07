@@ -37,9 +37,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
                 // 2. All required arguments missing
                 logger = CheckProcessingFails(/* no command line args */);
-                logger.AssertErrorExists("/key:"); // we expect errors with info about the missing required parameters, which should include the primary alias
-                logger.AssertErrorExists("/name:");
-                logger.AssertErrorExists("/version:");
+                logger.AssertSingleErrorExists("/key:"); // we expect errors with info about the missing required parameters, which should include the primary alias
+                logger.AssertSingleErrorExists("/name:");
+                logger.AssertSingleErrorExists("/version:");
                 logger.AssertErrorDoesNotExist("/runner:");
                 logger.AssertErrorsLogged(3);
 
@@ -50,7 +50,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 logger.AssertErrorDoesNotExist("/version:");
                 logger.AssertErrorDoesNotExist("/runner:");
 
-                logger.AssertErrorExists("/name:");
+                logger.AssertSingleErrorExists("/name:");
                 logger.AssertErrorsLogged(1);
 
                 // 4. Argument is present but has no value
@@ -60,7 +60,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 logger.AssertErrorDoesNotExist("/name:");
                 logger.AssertErrorDoesNotExist("/runner:");
 
-                logger.AssertErrorExists("/version:");
+                logger.AssertSingleErrorExists("/version:");
                 logger.AssertErrorsLogged(1);
             }
         }
@@ -83,22 +83,22 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 logger.AssertErrorDoesNotExist("/version:");
                 logger.AssertErrorDoesNotExist("/runner:");
 
-                logger.AssertErrorExists("unrecog1");
-                logger.AssertErrorExists("unrecog2");
+                logger.AssertSingleErrorExists("unrecog1");
+                logger.AssertSingleErrorExists("unrecog2");
                 logger.AssertErrorsLogged(3); // unrecog1, unrecog2, and the empty string
 
                 // 2. Arguments using the wrong separator i.e. /k=k1  instead of /k:k1
                 logger = CheckProcessingFails("/key=k1", "/name=n1", "/version=v1", "/runnerProperties=foo");
 
                 // Expecting errors for the unrecognised arguments...
-                logger.AssertErrorExists("/key=k1");
-                logger.AssertErrorExists("/name=n1");
-                logger.AssertErrorExists("/version=v1");
-                logger.AssertErrorExists("/runnerProperties=foo");
+                logger.AssertSingleErrorExists("/key=k1");
+                logger.AssertSingleErrorExists("/name=n1");
+                logger.AssertSingleErrorExists("/version=v1");
+                logger.AssertSingleErrorExists("/runnerProperties=foo");
                 // ... and errors for the missing required arguments
-                logger.AssertErrorExists("/key:");
-                logger.AssertErrorExists("/name:");
-                logger.AssertErrorExists("/version:");
+                logger.AssertSingleErrorExists("/key:");
+                logger.AssertSingleErrorExists("/name:");
+                logger.AssertSingleErrorExists("/version:");
                 logger.AssertErrorsLogged(7);
             }
         }
@@ -206,27 +206,27 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 // 1. Duplicate key using alias
                 logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/k:key2");
                 logger.AssertErrorsLogged(1);
-                logger.AssertErrorExists("/k:key2", "my.key"); // we expect the error to include the first value and the duplicate argument
+                logger.AssertSingleErrorExists("/k:key2", "my.key"); // we expect the error to include the first value and the duplicate argument
 
                 // 2. Duplicate name, not using alias
                 logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/NAME:dupName");
                 logger.AssertErrorsLogged(1);
-                logger.AssertErrorExists("/NAME:dupName", "my name");
+                logger.AssertSingleErrorExists("/NAME:dupName", "my name");
 
                 // 3. Duplicate version, not using alias
                 logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/v:version2.0");
                 logger.AssertErrorsLogged(1);
-                logger.AssertErrorExists("/v:version2.0", "1.2");
+                logger.AssertSingleErrorExists("/v:version2.0", "1.2");
 
                 // Duplicate key (specified three times)
                 logger = CheckProcessingFails("/key:my.key", "/k:k2", "/k:key3");
 
-                logger.AssertErrorExists("/k:k2", "my.key"); // Warning about key appears twice
-                logger.AssertErrorExists("/k:key3", "my.key");
+                logger.AssertSingleErrorExists("/k:k2", "my.key"); // Warning about key appears twice
+                logger.AssertSingleErrorExists("/k:key3", "my.key");
 
                 // ... and there should be warnings about other missing args too
-                logger.AssertErrorExists("/version:");
-                logger.AssertErrorExists("/name:");
+                logger.AssertSingleErrorExists("/version:");
+                logger.AssertSingleErrorExists("/name:");
 
                 logger.AssertErrorsLogged(4);
             }
