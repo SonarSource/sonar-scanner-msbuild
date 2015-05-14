@@ -1,0 +1,12 @@
+// *******************************************************
+// GENERATED FILE - DO NOT EDIT DIRECTLY
+// *******************************************************
+{
+  "loc.friendlyName": "SonarQube Install and Pre-Build",
+  "loc.description": "Install and Enable SonarQube",
+  "loc.group.displayName.advanced": "Advanced",
+  "loc.input.label.sonarProjectKey": "SonarQube Project Key",
+  "loc.input.label.sonarProjectName": "SonarQube Project Name",
+  "loc.input.label.sonarProjectVersion": "SonarQube Project Version",
+  "loc.input.label.sonarPropertiesFile": "Sonar-Runner Custom .properties File"
+}

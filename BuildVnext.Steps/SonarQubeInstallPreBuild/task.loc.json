@@ -1,0 +1,72 @@
+// *******************************************************
+// GENERATED FILE - DO NOT EDIT DIRECTLY
+// *******************************************************
+{
+  "id": "EAE5B2CC-AC5E-4CBA-B022-A06621F9C01F",
+  "name": "SonarQubeInstallPreBuild",
+  "friendlyName": "ms-resource:loc.friendlyName",
+  "description": "ms-resource:loc.description",
+  "category": "Build",
+  "visibility": [
+    "Build"
+  ],
+  "author": "Microsoft Corporation",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 5
+  },
+  "__demands": [
+    "SONAR_RUNNER_HOME"
+  ],
+  "groups": [
+    {
+      "name": "advanced",
+      "displayName": "ms-resource:loc.group.displayName.advanced",
+      "isExpanded": false
+    }
+  ],
+  "inputs": [
+    {
+      "name": "sonarProjectKey",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.sonarProjectKey",
+      "defaultValue": "vnext.task.wip",
+      "required": true,
+      "helpMarkDown": "The project key as configured in SonarQube, i.e. sonar.projectKey"
+    },
+    {
+      "name": "sonarProjectName",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.sonarProjectName",
+      "defaultValue": "vnext.task",
+      "required": true,
+      "helpMarkDown": "The project name as configured in SonarQube, i.e. sonar.ProjectName"
+    },
+    {
+      "name": "sonarProjectVersion",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.sonarProjectVersion",
+      "defaultValue": "1.0",
+      "required": true,
+      "helpMarkDown": "The project version as configured in SonarQube, i.e. sonar.projectVersion"
+    },
+    {
+      "name": "sonarPropertiesFile",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.sonarPropertiesFile",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "If you use multiple property files you can specify the agent file path to the one you want here. Leave empty and the default sonar-runner properties file will be used. E.g. c:\\sonar-runner-2.4\\conf\\sonar-runner.properties",
+      "groupName": "advanced"
+    }
+  ],
+  "instanceNameFormat": "Enable SonarQube for $(sonarProjectName)",
+  "execution": {
+    "PowerShell": {
+      "target": "$(currentDirectory)\\SonarQubePreBuild.ps1",
+      "argumentFormat": "",
+      "workingDirectory": "$(currentDirectory)"
+    }
+  }
+}
