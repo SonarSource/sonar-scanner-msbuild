@@ -1,0 +1,104 @@
+{
+  "id": "EAE5B2CC-AC5E-4CBA-B022-A06621F9C01F",
+  "name": "SonarQubeInstallPreBuild",
+  "friendlyName": "SonarQube Pre MSBuild",
+  "description": "Enable SonarQube",
+  "category": "Build",
+  "visibility": [
+    "Build"
+  ],
+  "author": "Microsoft Corporation",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 5
+  },
+  "demands": [
+    "java"
+  ],
+  "groups": [
+    {
+      "name": "temporary",
+      "displayName": "Temporary",
+      "isExpanded": true
+    },
+    {
+      "name": "advanced",
+      "displayName": "Advanced",
+      "isExpanded": false
+    }
+  ],
+  "inputs": [
+    {
+      "name": "sonarServerUrl",
+      "type": "string",
+      "label": "SonarQube Server Url",
+      "required": true,
+      "helpMarkDown": "The sonar host url, e.g. http://fabrikam-sonar:9000/"
+    },
+    {
+      "name": "sonarDbUrl",
+      "type": "string",
+      "label": "SonarQube DB Connection String",
+      "required": false,
+      "helpMarkDown": "The database connection setting, e.g. jdbc:jtds:sqlserver://localhost/sonar;SelectMethod=Cursor",
+      "groupName": "temporary"
+    },
+    {
+      "name": "sonarDbUsername",
+      "type": "string",
+      "label": "SonarQube Db UserName",
+      "required": false,
+      "helpMarkDown": "The username for the database user",
+      "groupName": "temporary"
+    },
+    {
+      "name": "sonarDbPassword",
+      "type": "string",
+      "label": "SonarQube Db User Password",
+      "required": false,
+      "helpMarkDown": "The username for the database user",
+      "groupName": "temporary"
+    },
+    {
+      "name": "sonarProjectKey",
+      "type": "string",
+      "label": "SonarQube Project Key",
+      "required": true,
+      "helpMarkDown": "The project key as configured in SonarQube, i.e. sonar.projectKey"
+    },
+    {
+      "name": "sonarProjectName",
+      "type": "string",
+      "label": "SonarQube Project Name",
+      "required": true,
+      "helpMarkDown": "The project name as configured in SonarQube, i.e. sonar.ProjectName"
+    },
+    {
+      "name": "sonarProjectVersion",
+      "type": "string",
+      "label": "SonarQube Project Version",
+      "defaultValue": "1.0",
+      "required": true,
+      "helpMarkDown": "The project version as configured in SonarQube, i.e. sonar.projectVersion"
+    },
+    {
+      "name": "sonarProjectPropertiesFile",
+      "type": "string",
+      "label": "[Not Used] Sonar-Runner Custom .properties File",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "If you use multiple property files you can specify the agent file path to the one you want here. Leave empty and the default sonar-runner properties file will be used. E.g. c:\\sonar-runner-2.4\\conf\\sonar-runner.properties",
+      "groupName": "advanced"
+    }
+  ],
+  "instanceNameFormat": "Enable SonarQube for $(sonarProjectName)",
+  "execution": {
+    "PowerShell": {
+      "target": "$(currentDirectory)\\SonarQubePreBuild.ps1",
+      "argumentFormat": "",
+      "workingDirectory": "$(currentDirectory)"
+    }
+  }
+
+}

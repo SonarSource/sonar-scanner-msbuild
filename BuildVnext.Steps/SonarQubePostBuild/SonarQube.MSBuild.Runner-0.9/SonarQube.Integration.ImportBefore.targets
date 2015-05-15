@@ -1,0 +1,70 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- **************************************************************************** -->
+  <!-- Auto-import the targets if we are running under TeamBuild and the analysis config file exists -->
+  <!-- **************************************************************************** -->
+  <PropertyGroup Condition="$(RunSonarQubeAnalysis) == '' ">
+    <TeamBuildDir>$(TF_BUILD_BUILDDIRECTORY)</TeamBuildDir>
+    <TeamBuildDir Condition=" $(TeamBuildDir) == '' ">$(AGENT_BUILDDIRECTORY)</TeamBuildDir>
+
+    <AutoImportSonarQubeAnalysisTargets Condition=" $(TeamBuildDir) != '' AND Exists('$(TeamBuildDir)\sqtemp\conf\SonarQubeAnalysisConfig.xml') ">true</AutoImportSonarQubeAnalysisTargets>
+
+    <RunSonarQubeAnalysis>$(AutoImportSonarQubeAnalysisTargets)</RunSonarQubeAnalysis>
+  </PropertyGroup>
+
+  <!-- **************************************************************************** -->
+  <!-- Compute the path to the targets if not specified -->
+  <!-- **************************************************************************** -->
+  <!-- TFS 2013 -->
+  <PropertyGroup Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeTargetsPath) == '' AND $(TF_BUILD_BUILDDIRECTORY) != ''">
+    <SonarQubeTargetsPath>$(TF_BUILD_BUILDDIRECTORY)\sqtemp\bin\targets</SonarQubeTargetsPath>
+  </PropertyGroup>
+  <!-- TFS 2015 -->
+  <PropertyGroup Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeTargetsPath) == '' AND $(AGENT_BUILDDIRECTORY) != ''">
+    <SonarQubeTargetsPath>$(AGENT_BUILDDIRECTORY)\sqTemp\bin\targets</SonarQubeTargetsPath>
+  </PropertyGroup>
+
+  <!-- **************************************************************************** -->
+  <!-- Import the analysis targets if appropriate -->
+  <!-- **************************************************************************** -->
+  <PropertyGroup Condition="$(SonarQubeTargetsImported) != 'true' AND $(RunSonarQubeAnalysis) == 'true' ">
+    <SonarQubeTargetFilePath>$(SonarQubeTargetsPath)\SonarQube.Integration.targets</SonarQubeTargetFilePath>
+  </PropertyGroup>
+  <Import Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeTargetsImported) != 'true' AND Exists('$(SonarQubeTargetFilePath)')" Project="$(SonarQubeTargetFilePath)" />
+
+
+  <!-- **************************************************************************** -->
+  <!-- Diagnostic/error-checking target
+
+        Causes the build to fail if the analysis properties are not correctly configured 
+        i.e. if the user has requested a SonarQube analysis run, but the analysis targets
+        cannot be found.
+        
+        Writes out diagnostic information to help with troubleshooting.  -->
+  <!-- **************************************************************************** -->
+  <Target Name="SonarQubeImportBeforeInfo" Condition="$(RunSonarQubeAnalysis) == 'true' " BeforeTargets="CoreCompile">
+
+    <PropertyGroup>
+      <AnalysisTargetsFileFound Condition=" Exists('$(SonarQubeTargetFilePath)') " >true</AnalysisTargetsFileFound>
+      <ReportAnalysisTargetsError Condition=" $(RunSonarQubeAnalysis)=='true' AND $(AnalysisTargetsFileFound) != 'true'">true</ReportAnalysisTargetsError>
+    </PropertyGroup>
+
+    <!-- Diagnostic messages for troubleshooting -->
+    <Message Importance="low" Text="SonarQube.Integration.ImportBefore.targets was loaded" />
+    <Message Importance="normal" Text="SonarQube analysis targets were automatically imported" Condition="$(AutoImportSonarQubeAnalysisTargets) == 'true' " />
+    <Message Importance="low" Text="SonarQube analysis targets file found: $(AnalysisTargetsFileFound)" />
+    <Message Importance="low" Text="SonarQube analysis targets imported: $(SonarQubeTargetsImported)" />
+
+    <!-- Conditionally raise an error that will fail the build -->
+    <Message Condition=" $(ReportAnalysisTargetsError) == 'true'"
+      Importance="high"
+      Text="Calculated location for the analysis targets file: $(SonarQubeTargetFilePath)" />
+    
+    <!-- We include name of the project being built in the error message as
+      it helps provide some context in TeamBuild scenarios when the error message
+      appears on the build summary page. -->
+    <Error Condition=" $(ReportAnalysisTargetsError) == 'true'"
+      Text="The build is configured to run SonarQube analysis but the SonarQube analysis targets could not be located. Project: $(MSBuildProjectFile)" />
+
+  </Target>
+</Project>

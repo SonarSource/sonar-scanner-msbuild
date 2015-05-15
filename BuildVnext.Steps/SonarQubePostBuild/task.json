@@ -1,0 +1,28 @@
+{
+    "id": "730D8DE1-7A4F-424C-9542-FE7CC02604EB",
+    "name": "SonarQubePostBuild",
+    "friendlyName": "SonarQube Post-Build",
+    "description": "Upload the results of the run to SonarQube",
+    "category": "Build",
+    "visibility": [
+        "Build"
+    ],
+    "author": "Microsoft Corporation",
+    "version": {
+        "Major": 1,
+        "Minor": 0,
+        "Patch": 5
+    },
+    "demands": [
+        "java"
+    ],  
+    "instanceNameFormat": "Upload results to SonarQube",
+    "execution": {
+        "PowerShell": {
+            "target": "$(currentDirectory)\\SonarQubePostBuild.ps1",
+            "argumentFormat": "",
+            "workingDirectory": "$(currentDirectory)"
+        }
+    }
+
+}

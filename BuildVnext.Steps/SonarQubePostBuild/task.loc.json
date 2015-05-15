@@ -1,0 +1,30 @@
+// *******************************************************
+// GENERATED FILE - DO NOT EDIT DIRECTLY
+// *******************************************************
+{
+  "id": "730D8DE1-7A4F-424C-9542-FE7CC02604EB",
+  "name": "SonarQubePostBuild",
+  "friendlyName": "ms-resource:loc.friendlyName",
+  "description": "ms-resource:loc.description",
+  "category": "Build",
+  "visibility": [
+    "Build"
+  ],
+  "author": "Microsoft Corporation",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 5
+  },
+  "__demands": [
+    "SONAR_RUNNER_HOME"
+  ],
+  "instanceNameFormat": "Upload results to SonarQube",
+  "execution": {
+    "PowerShell": {
+      "target": "$(currentDirectory)\\SonarQubePostBuild.ps1",
+      "argumentFormat": "",
+      "workingDirectory": "$(currentDirectory)"
+    }
+  }
+}
