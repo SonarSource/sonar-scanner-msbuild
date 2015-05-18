@@ -143,21 +143,16 @@ namespace SonarQube.Common
         #region Private methods
 
         /// <summary>
-        /// Aggregates together all of the files listed in the analysis results
-        /// and returns the aggregated list
+        /// Returns the list of files to be analyzed. If there are no files to be analyzed
+        /// then an empty list will be returned.
         /// </summary>
-        public static IList<string> GetAllFiles(this ProjectInfo projectInfo)
+        public static IList<string> GetAllAnalysisFiles(this ProjectInfo projectInfo)
         {
             List<String> files = new List<string>();
-            var compiledFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisType.ManagedCompilerInputs);
+            var compiledFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisType.FilesToAnalyze);
             if (compiledFilesPath != null)
             {
                 files.AddRange(File.ReadAllLines(compiledFilesPath));
-            }
-            var contentFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisType.ContentFiles);
-            if (contentFilesPath != null)
-            {
-                files.AddRange(File.ReadAllLines(contentFilesPath));
             }
             return files;
         }

@@ -194,9 +194,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Act
             string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
-            //AssertFileExists(projectDir, ExpectedManagedInputsListFileName);
-            //AssertFileDoesNotExist(projectDir, ExpectedContentsListFileName);
-
             AssertFileExists(projectDir, ExpectedAnalysisFilesListFileName);
 
             CheckProjectOutputFolder(descriptor, projectDir);
@@ -217,11 +214,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Act
             string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
-            //AssertFileDoesNotExist(projectDir, ExpectedManagedInputsListFileName);
-            //AssertFileDoesNotExist(projectDir, ExpectedContentsListFileName);
-
-            AssertFileExists(projectDir, ExpectedAnalysisFilesListFileName);
-
+            AssertFileDoesNotExist(projectDir, ExpectedAnalysisFilesListFileName);
 
             // Specify the expected analysis results
             CheckProjectOutputFolder(descriptor, projectDir);
@@ -248,8 +241,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Act
             string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
-            //AssertFileExists(projectDir, ExpectedManagedInputsListFileName);
-            //AssertFileExists(projectDir, ExpectedContentsListFileName);
             AssertFileExists(projectDir, ExpectedAnalysisFilesListFileName);
 
             CheckProjectOutputFolder(descriptor, projectDir);
@@ -456,7 +447,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
                 expectedProjectInfo.AnalysisResults.Add(
                     new AnalysisResult()
                     {
-                        Id = AnalysisType.ManagedCompilerInputs.ToString(),
+                        Id = AnalysisType.FilesToAnalyze.ToString(),
                         Location = Path.Combine(projectOutputFolder, ExpectedAnalysisFilesListFileName)
                     });
             }

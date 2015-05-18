@@ -144,7 +144,7 @@ namespace SonarRunner.Shim
             var result = new List<string>();
             var baseDir = projectInfo.GetProjectDirectory();
 
-            foreach (string file in projectInfo.GetAllFiles())
+            foreach (string file in projectInfo.GetAllAnalysisFiles())
             {
                 if (File.Exists(file))
                 {

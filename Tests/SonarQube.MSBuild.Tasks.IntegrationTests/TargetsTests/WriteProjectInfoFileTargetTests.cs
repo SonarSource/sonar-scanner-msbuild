@@ -196,95 +196,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #endregion
 
-        #region File lists
+        #region File list tests
 
         [TestMethod]
         [TestCategory("ProjectInfo")]
         [TestCategory("Lists")]
-        public void WriteProjectInfo_ManagedCompileList_NoFiles()
-        {
-            // The managed file list should not be created if there are no files to compile
-
-            // Arrange
-            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
-            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
-
-            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "a.b.proj.txt");
-            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
-
-            // Act
-            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
-
-            // Assert
-            AssertResultFileDoesNotExist(projectInfo, AnalysisType.ManagedCompilerInputs);
-        }
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("Lists")]
-        public void WriteProjectInfo_ManagedCompileList_HasFiles()
-        {
-            // The managed file list should be created with the expected files
-
-            // Arrange
-            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
-            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
-
-            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "a.proj.txt");
-            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
-
-            // Files we expect to be included
-            string file1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false"); // product file 1
-            string file2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "FALSE"); // product file 2
-            string file3 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null); // product file with no metadata
-
-            // Files we do not expect to be included
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "TRUE"); // excluded 2
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "true"); // excluded 1
-
-            // Act
-            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
-
-            // Assert
-            AssertResultFileExists(projectInfo, AnalysisType.ManagedCompilerInputs, file1, file2, file3);
-        }
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("Lists")]
-        public void WriteProjectInfo_ManagedCompileList_AutoGenFilesIgnored()
-        {
-            // The managed file list should not include items with <AutoGen>true</AutoGen> metadata
-
-            // Arrange
-            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
-            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
-
-            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "agM.proj.txt");
-            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
-
-            // Files we expected to be included
-            string compile1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, null); // no metadata
-            string autogenFalseAndIncluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false", "FALSe"); // exclude=false, autogen=false
-            
-            // Files we don't expect to be included
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, "TRUE"); // only AutoGen, set to true
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false", "truE"); // exclude=false, autogen=true
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "true", "false"); // exclude=true, autogen=false
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, "false"); // autogen=false, but wrong item type
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, null); // wrong item type
-
-            // Act
-            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
-
-            // Assert
-            AssertResultFileExists(projectInfo, AnalysisType.ManagedCompilerInputs, compile1, autogenFalseAndIncluded);
-        }
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("Lists")]
-        public void WriteProjectInfo_ContentFileList_NoFiles()
+        public void WriteProjectInfo_AnalysisFileList_NoFiles()
         {
             // The content file list should not be created if there are no files
 
@@ -299,15 +216,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
 
             // Assert
-            AssertResultFileDoesNotExist(projectInfo, AnalysisType.ContentFiles);
+            AssertResultFileDoesNotExist(projectInfo, AnalysisType.FilesToAnalyze);
         }
 
         [TestMethod]
         [TestCategory("ProjectInfo")]
         [TestCategory("Lists")]
-        public void WriteProjectInfo_ContentFileList_HasFiles()
+        public void WriteProjectInfo_AnalysisFileList_HasFiles()
         {
-            // The content file list should be created with the expected files
+            // The analysis file list should be created with the expected files
 
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
@@ -318,24 +235,26 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Files we expect to be included
             string file1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false");
-            string file2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "FALSE");
+            string file2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "FALSE");
             string file3 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null); // no metadata
 
             // Files we don't expect to be included
             AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "true");
             AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "TRUE");
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "true");
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "TRUE");
 
             // Act
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
 
             // Assert
-            AssertResultFileExists(projectInfo, AnalysisType.ContentFiles, file1, file2, file3);
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, file1, file2, file3);
         }
 
         [TestMethod]
         [TestCategory("ProjectInfo")]
         [TestCategory("Lists")]
-        public void WriteProjectInfo_ContentFileList_AutoGenFilesIgnored()
+        public void WriteProjectInfo_AnalysisFileList_AutoGenFilesIgnored()
         {
             // The content file list should not include items with <AutoGen>true</AutoGen> metadata
 
@@ -350,18 +269,18 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, "TRUE"); // only AutoGen, set to true
             AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false", "truE"); // exclude=false, autogen=true
             AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "true", "false"); // exclude=true, autogen=false
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, "false"); // autogen=false, but wrong item type
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, null); // wrong item type
 
             // Files we expect to be included
             string content1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, null); // no metadata
-            string autogenFalseAndIncluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false", "FALSe"); // exclude=false, autogen=false
-
+            string compile1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, null); // no metadata
+            string autogenContentFalseAndIncluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false", "FALSe"); // exclude=false, autogen=false
+            string autogenCompileFalseAndIncluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false", "faLSE"); // exclude=false, autogen=false
+            
             // Act
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
 
             // Assert
-            AssertResultFileExists(projectInfo, AnalysisType.ContentFiles, content1, autogenFalseAndIncluded);
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, compile1, content1, autogenContentFalseAndIncluded, autogenCompileFalseAndIncluded);
         }
 
         #endregion

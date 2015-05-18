@@ -18,9 +18,20 @@ namespace SonarQube.Common
     /// </summary>
     public enum AnalysisType
     {
-        ManagedCompilerInputs,
-        ContentFiles,
+        /// <summary>
+        /// List of files that should be analyzed
+        /// </summary>
+        /// <remarks>The files could be of any type and any language</remarks>
+        FilesToAnalyze,
+
+        /// <summary>
+        /// An FxCop results file
+        /// </summary>
         FxCop,
+
+        /// <summary>
+        /// An XML code coverage report produced by the Visual Studio code coverage tool
+        /// </summary>
         VisualStudioCodeCoverage
     }
 }

@@ -251,7 +251,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.WriteProjectDataTarget);
 
-            logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
+            logger.AssertTargetExecuted(TargetConstants.SetFxCopResultsTarget);
 
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
             ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());

@@ -14,7 +14,7 @@
       files that was passed to the compiler.
       
       The output will only be produced if the properties $(SonarQubeOutputPath) and 
-			$(RunSonarQubeAnalysis) are specified. $(SonarQubeOutputPath) is the output directory 
+      $(RunSonarQubeAnalysis) are specified. $(SonarQubeOutputPath) is the output directory 
       in which the output file should be dropped and can be relative or absolute 
       (use an absolute path if you want a consolidated set of output for a single build).
 
@@ -130,11 +130,6 @@
   <!-- **************************************************************************** -->
   <Target Name="CalculateSonarQubeFileLists" AfterTargets="CoreCompile" BeforeTargets="RunCodeAnalysis"
         Condition="$(RunSonarQubeAnalysis) == 'true' ">
-    <ItemGroup>
-      <!-- Calculate the sets of files to write out to the file lists.
-           Exclude any that have the metadata 'SonarQubeExclude' set, or that are auto-generated -->
-      <SonarQubeManagedFiles Include="@(Compile)" Condition=" %(Compile.SonarQubeExclude) != 'true' AND %(Compile.AutoGen) != 'true' " />
-    </ItemGroup>
 
     <PropertyGroup>
       <!-- Specify the ItemGroups to be analyzed, if not already set -->
@@ -150,9 +145,7 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <!-- Work out which types of input files exist-->
-      <ManagedFilesExist Condition=" @(SonarQubeManagedFiles) != '' ">true</ManagedFilesExist>
-
+      <!-- Set a property indicating whether there are any files to analyze -->
       <AnalysisFilesExist Condition=" @(SonarQubeAnalysisFiles) != '' ">true</AnalysisFilesExist>
     </PropertyGroup>
 
@@ -177,9 +170,6 @@
       <ProjectSpecificDir>$(SonarQubeOutputPath)\$(MSBuildProjectName)_$(FolderDisambiguator)</ProjectSpecificDir>
     </PropertyGroup>
 
-    <!-- Ensure the contents file doesn't already exist -->
-    <Delete Files="$(ProjectSpecificDir)\CompileList.txt" />
-
     <!-- Create the project-specific output folder -->
     <RemoveDir Directories="$(ProjectSpecificDir)" />
     <MakeDir Directories="$(ProjectSpecificDir)" />
@@ -187,25 +177,20 @@
     <!-- **************************************************************************** -->
     <!-- Write of file lists -->
     <PropertyGroup>
-
-      <!-- Set the file names for the list files -->
-      <ManagedFileList>$(ProjectSpecificDir)\ManagedSourceFiles.txt</ManagedFileList>
-      <ContentFileList>$(ProjectSpecificDir)\ContentFiles.txt</ContentFileList>
-
-      <SQAnalysisFileList>$(ProjectSpecificDir)\FilesToAnalyze.txt</SQAnalysisFileList>
-
+      <!-- Set the file name for the list file -->
+      <AnalysisFileList>$(ProjectSpecificDir)\FilesToAnalyze.txt</AnalysisFileList>
     </PropertyGroup>
 
     <!-- Write out a list of files to analyze that will be passed to the sonar-runner -->
-    <WriteLinesToFile Condition=" $(SQAnalysisFilesExist) == 'true' "
-            File="$(SQAnalysisFileList)"
+    <WriteLinesToFile Condition=" $(AnalysisFilesExist) == 'true' "
+            File="$(AnalysisFileList)"
             Lines="%(SonarQubeAnalysisFiles.FullPath)"
             Overwrite="false"
             Encoding="Unicode"/>
 
     <!-- Record the list of files as an analysis result -->
-    <ItemGroup Condition=" $(SQAnalysisFilesExist) == 'true' ">
-      <AnalysisResults Include="$(SQAnalysisFileList)">
+    <ItemGroup Condition=" $(AnalysisFilesExist) == 'true' ">
+      <AnalysisResults Include="$(AnalysisFileList)">
         <Id>FilesToAnalyze</Id>
       </AnalysisResults>
     </ItemGroup>
@@ -318,9 +303,22 @@
 
   <!-- If FxCop is being run then record the FxCop output file as an analysis result -->
   <Target Name="SetFxCopAnalysisResult"
-          Condition=" $(SonarQubeRulesetExists) == 'true' AND $(ManagedFilesExist) == 'true' "
+          Condition=" $(SonarQubeRulesetExists) == 'true' "
           AfterTargets="RunCodeAnalysis" BeforeTargets="WriteSonarQubeProjectData" >
+
+    <!-- TODO: update to support native files -->
     <ItemGroup>
+      <!-- Work out if there were any managed files to be analyzed.
+           Exclude any that have the metadata 'SonarQubeExclude' set, or that are auto-generated -->
+      <SonarQubeManagedFiles Include="@(Compile)" Condition=" %(Compile.SonarQubeExclude) != 'true' AND %(Compile.AutoGen) != 'true' " />
+    </ItemGroup>
+    
+    <PropertyGroup>
+      <!-- Work out which types of input files exist-->
+      <ManagedFilesExist Condition=" @(SonarQubeManagedFiles) != '' ">true</ManagedFilesExist>
+    </PropertyGroup>
+    
+    <ItemGroup Condition=" $(ManagedFilesExist) == 'true' ">
       <AnalysisResults Include="$(CodeAnalysisLogFile)">
         <Id>FxCop</Id>
       </AnalysisResults>
