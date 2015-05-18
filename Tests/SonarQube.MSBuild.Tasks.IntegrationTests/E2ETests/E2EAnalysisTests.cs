@@ -31,8 +31,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
     [TestClass]
     public class E2EAnalysisTests
     {
-        private const string ExpectedManagedInputsListFileName = "ManagedSourceFiles.txt";
-        private const string ExpectedContentsListFileName = "ContentFiles.txt";
+        private const string ExpectedAnalysisFilesListFileName = "FilesToAnalyze.txt";
 
         public TestContext TestContext { get; set; }
 
@@ -169,9 +168,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Act
             string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
-            AssertFileDoesNotExist(projectDir, ExpectedManagedInputsListFileName);
-            AssertFileExists(projectDir, ExpectedContentsListFileName);
-
+            //AssertFileDoesNotExist(projectDir, ExpectedManagedInputsListFileName);
+            //AssertFileExists(projectDir, ExpectedContentsListFileName);
+            AssertFileExists(projectDir, ExpectedAnalysisFilesListFileName);
+            
             CheckProjectOutputFolder(descriptor, projectDir);
         }
 
@@ -194,8 +194,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Act
             string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
-            AssertFileExists(projectDir, ExpectedManagedInputsListFileName);
-            AssertFileDoesNotExist(projectDir, ExpectedContentsListFileName);
+            //AssertFileExists(projectDir, ExpectedManagedInputsListFileName);
+            //AssertFileDoesNotExist(projectDir, ExpectedContentsListFileName);
+
+            AssertFileExists(projectDir, ExpectedAnalysisFilesListFileName);
 
             CheckProjectOutputFolder(descriptor, projectDir);
         }
@@ -215,8 +217,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Act
             string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
-            AssertFileDoesNotExist(projectDir, ExpectedManagedInputsListFileName);
-            AssertFileDoesNotExist(projectDir, ExpectedContentsListFileName);
+            //AssertFileDoesNotExist(projectDir, ExpectedManagedInputsListFileName);
+            //AssertFileDoesNotExist(projectDir, ExpectedContentsListFileName);
+
+            AssertFileExists(projectDir, ExpectedAnalysisFilesListFileName);
+
 
             // Specify the expected analysis results
             CheckProjectOutputFolder(descriptor, projectDir);
@@ -243,8 +248,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Act
             string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
-            AssertFileExists(projectDir, ExpectedManagedInputsListFileName);
-            AssertFileExists(projectDir, ExpectedContentsListFileName);
+            //AssertFileExists(projectDir, ExpectedManagedInputsListFileName);
+            //AssertFileExists(projectDir, ExpectedContentsListFileName);
+            AssertFileExists(projectDir, ExpectedAnalysisFilesListFileName);
 
             CheckProjectOutputFolder(descriptor, projectDir);
         }
@@ -382,8 +388,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Check specific files
             ProjectInfo expectedProjectInfo = CreateExpectedProjectInfo(expected, projectOutputFolder);
             CheckProjectInfo(expectedProjectInfo, projectOutputFolder);
-            CheckManagedFileList(expected, projectOutputFolder);
-            CheckContentFileList(expected, projectOutputFolder);
+            CheckAnalysisFileList(expected, projectOutputFolder);
 
             // Check there are no other files
             List<string> allowedFiles = new List<string>(expectedProjectInfo.AnalysisResults.Select(ar => ar.Location));
@@ -391,38 +396,41 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             AssertNoAdditionalFilesInFolder(projectOutputFolder, allowedFiles.ToArray());
         }
 
-        private void CheckManagedFileList(ProjectDescriptor expected, string projectOutputFolder)
+        private static IList<string> GetAnalysisFiles(ProjectDescriptor descriptor)
         {
-            if (expected.ManagedSourceFiles == null || !expected.ManagedSourceFiles.Any())
+            List<string> allFiles = new List<string>();
+            if (descriptor.ManagedSourceFiles != null && descriptor.ManagedSourceFiles.Any())
             {
-                AssertFileDoesNotExist(projectOutputFolder, ExpectedManagedInputsListFileName);
+                allFiles.AddRange(descriptor.ManagedSourceFiles);
+            }
+            if (descriptor.ContentFiles != null && descriptor.ContentFiles.Any())
+            {
+                allFiles.AddRange(descriptor.ContentFiles);
+            }
+            return allFiles;
+        }
+
+        private void CheckAnalysisFileList(ProjectDescriptor expected, string projectOutputFolder)
+        {
+
+            IList<string> analysisFiles = GetAnalysisFiles(expected);
+
+            if (!analysisFiles.Any())
+            {
+                AssertFileDoesNotExist(projectOutputFolder, ExpectedAnalysisFilesListFileName);
             }
             else
             {
-                string fullName = AssertFileExists(projectOutputFolder, ExpectedManagedInputsListFileName);
+                string fullName = AssertFileExists(projectOutputFolder, ExpectedAnalysisFilesListFileName);
 
                 string[] actualFileNames = File.ReadAllLines(fullName);
 
                 // The actual files might contain extra compiler generated files, so check the expected files
                 // we know about is a subset of the actual
-                CollectionAssert.IsSubsetOf(expected.ManagedSourceFiles.ToArray(), actualFileNames, "Managed compile list file does not contain the expected entries");
+                CollectionAssert.IsSubsetOf(analysisFiles.ToArray(), actualFileNames, "Analysis file does not contain the expected entries");
             }
         }
 
-        private void CheckContentFileList(ProjectDescriptor expected, string projectOutputFolder)
-        {
-            if (expected.ContentFiles == null || !expected.ContentFiles.Any())
-            {
-                AssertFileDoesNotExist(projectOutputFolder, ExpectedContentsListFileName);
-            }
-            else
-            {
-                string fullName = AssertFileExists(projectOutputFolder, ExpectedContentsListFileName);
-
-                string[] actualFileNames = File.ReadAllLines(fullName);
-                CollectionAssert.AreEquivalent(expected.ContentFiles.ToArray(), actualFileNames, "Content list file does not contain the expected entries");
-            }
-        }
 
         private void CheckProjectInfo(ProjectInfo expected, string projectOutputFolder)
         {
@@ -438,23 +446,18 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             ProjectInfo expectedProjectInfo = expected.CreateProjectInfo();
 
             // Work out what the expected analysis results are
-            if (expected.ManagedSourceFiles != null && expected.ManagedSourceFiles.Any())
+
+            if (
+                (expected.ManagedSourceFiles != null && expected.ManagedSourceFiles.Any())
+                ||
+                (expected.ContentFiles != null && expected.ContentFiles.Any())
+                )
             {
                 expectedProjectInfo.AnalysisResults.Add(
                     new AnalysisResult()
                     {
                         Id = AnalysisType.ManagedCompilerInputs.ToString(),
-                        Location = Path.Combine(projectOutputFolder, ExpectedManagedInputsListFileName)
-                    });
-            }
-
-            if (expected.ContentFiles != null && expected.ContentFiles.Any())
-            {
-                expectedProjectInfo.AnalysisResults.Add(
-                    new AnalysisResult()
-                    {
-                        Id = AnalysisType.ContentFiles.ToString(),
-                        Location = Path.Combine(projectOutputFolder, ExpectedContentsListFileName)
+                        Location = Path.Combine(projectOutputFolder, ExpectedAnalysisFilesListFileName)
                     });
             }
 

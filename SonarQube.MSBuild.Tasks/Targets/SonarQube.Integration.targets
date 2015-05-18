@@ -34,7 +34,7 @@
 
       Excluding projects and files from SonarQube analysis
       ****************************************************
-      Individual projects can excluded from Sonary analysis by setting
+      Individual projects can excluded from SonarQube analysis by setting
       the property $(SonarQubeExclude) e.g.
       
         <SonarQubeExclude>true</SonarQubeExclude>
@@ -134,14 +134,26 @@
       <!-- Calculate the sets of files to write out to the file lists.
            Exclude any that have the metadata 'SonarQubeExclude' set, or that are auto-generated -->
       <SonarQubeManagedFiles Include="@(Compile)" Condition=" %(Compile.SonarQubeExclude) != 'true' AND %(Compile.AutoGen) != 'true' " />
-      <SonarQubeContentFiles Include="@(Content)" Condition=" %(Content.SonarQubeExclude) != 'true' AND %(Content.AutoGen) != 'true' " />
-
     </ItemGroup>
-    
+
+    <PropertyGroup>
+      <!-- Specify the ItemGroups to be analyzed, if not already set -->
+      <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">Compile;Content;EmbeddedResource;None;ClCompile;Page;TypeScriptCompile</SQAnalysisFileItemTypes>
+    </PropertyGroup>
+
+    <!-- Include all of contents of the specified item groups, but exclude 
+         any that have the metadata 'SonarQubeExclude' set, or that are auto-generated -->
+    <ItemGroup Condition="('$(SQAnalysisFileItemTypes)' != '')">
+      <SonarQubeAnalysisFileItems Include="$(SQAnalysisFileItemTypes)" />
+      <SonarQubeAnalysisFiles Include="@(%(SonarQubeAnalysisFileItems.Identity))" />
+      <SonarQubeAnalysisFiles Remove="@(SonarQubeAnalysisFiles)" Condition=" %(SonarQubeAnalysisFiles.SonarQubeExclude) == 'true' OR %(SonarQubeAnalysisFiles.AutoGen) == 'true' " />
+    </ItemGroup>
+
     <PropertyGroup>
       <!-- Work out which types of input files exist-->
       <ManagedFilesExist Condition=" @(SonarQubeManagedFiles) != '' ">true</ManagedFilesExist>
-      <ContentFilesExist Condition=" @(SonarQubeContentFiles) != '' ">true</ContentFilesExist>
+
+      <AnalysisFilesExist Condition=" @(SonarQubeAnalysisFiles) != '' ">true</AnalysisFilesExist>
     </PropertyGroup>
 
   </Target>
@@ -179,35 +191,26 @@
       <!-- Set the file names for the list files -->
       <ManagedFileList>$(ProjectSpecificDir)\ManagedSourceFiles.txt</ManagedFileList>
       <ContentFileList>$(ProjectSpecificDir)\ContentFiles.txt</ContentFileList>
+
+      <SQAnalysisFileList>$(ProjectSpecificDir)\FilesToAnalyze.txt</SQAnalysisFileList>
+
     </PropertyGroup>
 
-    <!-- Write out a list of managed files that will be passed to the compiler -->
-    <WriteLinesToFile Condition=" $(ManagedFilesExist) == 'true' "
-            File="$(ManagedFileList)"
-            Lines="%(SonarQubeManagedFiles.FullPath)"
+    <!-- Write out a list of files to analyze that will be passed to the sonar-runner -->
+    <WriteLinesToFile Condition=" $(SQAnalysisFilesExist) == 'true' "
+            File="$(SQAnalysisFileList)"
+            Lines="%(SonarQubeAnalysisFiles.FullPath)"
             Overwrite="false"
             Encoding="Unicode"/>
 
-    <!-- Record the list of managed source files as an analysis result -->
-    <ItemGroup Condition=" $(ManagedFilesExist) == 'true' ">
-      <AnalysisResults Include="$(ManagedFileList)">
-        <Id>ManagedCompilerInputs</Id>
+    <!-- Record the list of files as an analysis result -->
+    <ItemGroup Condition=" $(SQAnalysisFilesExist) == 'true' ">
+      <AnalysisResults Include="$(SQAnalysisFileList)">
+        <Id>FilesToAnalyze</Id>
       </AnalysisResults>
     </ItemGroup>
 
-    <!-- Write out a list of content files that will be passed to the compiler -->
-    <WriteLinesToFile Condition=" $(ContentFilesExist) == 'true' "
-            File="$(ContentFileList)"
-            Lines="%(SonarQubeContentFiles.FullPath)"
-            Overwrite="false"
-            Encoding="Unicode"/>
-    
-    <!-- Record the list of content files as an analysis result -->
-    <ItemGroup Condition=" $(ContentFilesExist) == 'true' ">
-      <AnalysisResults Include="$(ContentFileList)">
-        <Id>ContentFiles</Id>
-      </AnalysisResults>
-    </ItemGroup>
+
 
     <!-- **************************************************************************** -->
     <!-- Categorise as a product or test project -->
