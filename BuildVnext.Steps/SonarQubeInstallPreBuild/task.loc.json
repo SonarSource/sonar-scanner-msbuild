@@ -16,10 +16,15 @@
     "Minor": 0,
     "Patch": 5
   },
-  "__demands": [
-    "SONAR_RUNNER_HOME"
+  "demands": [
+    "java"
   ],
   "groups": [
+    {
+      "name": "temporary",
+      "displayName": "ms-resource:loc.group.displayName.temporary",
+      "isExpanded": true
+    },
     {
       "name": "advanced",
       "displayName": "ms-resource:loc.group.displayName.advanced",
@@ -28,10 +33,40 @@
   ],
   "inputs": [
     {
+      "name": "sonarServerUrl",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.sonarServerUrl",
+      "required": true,
+      "helpMarkDown": "The sonar host url, e.g. http://fabrikam-sonar:9000/"
+    },
+    {
+      "name": "sonarDbUrl",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.sonarDbUrl",
+      "required": false,
+      "helpMarkDown": "The database connection setting, e.g. jdbc:jtds:sqlserver://localhost/sonar;SelectMethod=Cursor",
+      "groupName": "temporary"
+    },
+    {
+      "name": "sonarDbUsername",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.sonarDbUsername",
+      "required": false,
+      "helpMarkDown": "The username for the database user",
+      "groupName": "temporary"
+    },
+    {
+      "name": "sonarDbPassword",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.sonarDbPassword",
+      "required": false,
+      "helpMarkDown": "The username for the database user",
+      "groupName": "temporary"
+    },
+    {
       "name": "sonarProjectKey",
       "type": "string",
       "label": "ms-resource:loc.input.label.sonarProjectKey",
-      "defaultValue": "vnext.task.wip",
       "required": true,
       "helpMarkDown": "The project key as configured in SonarQube, i.e. sonar.projectKey"
     },
@@ -39,7 +74,6 @@
       "name": "sonarProjectName",
       "type": "string",
       "label": "ms-resource:loc.input.label.sonarProjectName",
-      "defaultValue": "vnext.task",
       "required": true,
       "helpMarkDown": "The project name as configured in SonarQube, i.e. sonar.ProjectName"
     },
@@ -52,9 +86,9 @@
       "helpMarkDown": "The project version as configured in SonarQube, i.e. sonar.projectVersion"
     },
     {
-      "name": "sonarPropertiesFile",
+      "name": "sonarProjectPropertiesFile",
       "type": "string",
-      "label": "ms-resource:loc.input.label.sonarPropertiesFile",
+      "label": "ms-resource:loc.input.label.sonarProjectPropertiesFile",
       "defaultValue": "",
       "required": false,
       "helpMarkDown": "If you use multiple property files you can specify the agent file path to the one you want here. Leave empty and the default sonar-runner properties file will be used. E.g. c:\\sonar-runner-2.4\\conf\\sonar-runner.properties",

@@ -16,8 +16,8 @@
     "Minor": 0,
     "Patch": 5
   },
-  "__demands": [
-    "SONAR_RUNNER_HOME"
+  "demands": [
+    "java"
   ],
   "instanceNameFormat": "Upload results to SonarQube",
   "execution": {

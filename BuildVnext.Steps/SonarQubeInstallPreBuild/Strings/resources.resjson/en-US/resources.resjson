@@ -2,11 +2,16 @@
 // GENERATED FILE - DO NOT EDIT DIRECTLY
 // *******************************************************
 {
-  "loc.friendlyName": "SonarQube Install and Pre-Build",
-  "loc.description": "Install and Enable SonarQube",
+  "loc.friendlyName": "SonarQube Pre MSBuild",
+  "loc.description": "Enable SonarQube",
+  "loc.group.displayName.temporary": "Temporary",
   "loc.group.displayName.advanced": "Advanced",
+  "loc.input.label.sonarServerUrl": "SonarQube Server Url",
+  "loc.input.label.sonarDbUrl": "SonarQube DB Connection String",
+  "loc.input.label.sonarDbUsername": "SonarQube Db UserName",
+  "loc.input.label.sonarDbPassword": "SonarQube Db User Password",
   "loc.input.label.sonarProjectKey": "SonarQube Project Key",
   "loc.input.label.sonarProjectName": "SonarQube Project Name",
   "loc.input.label.sonarProjectVersion": "SonarQube Project Version",
-  "loc.input.label.sonarPropertiesFile": "Sonar-Runner Custom .properties File"
+  "loc.input.label.sonarProjectPropertiesFile": "[Not Used] Sonar-Runner Custom .properties File"
 }
