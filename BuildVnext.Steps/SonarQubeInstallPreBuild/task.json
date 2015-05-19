@@ -29,7 +29,7 @@
         },
         {
             "name": "dbSettings",
-            "displayName": "Database Settings (not needed for SonarQube 5.2+)",
+            "displayName": "Database Settings (not required for SonarQube 5.2+)",
             "isExpanded": false
         }
     ],
@@ -87,7 +87,7 @@
             "name": "dbUrl",
             "type": "string",
             "label": "Db Connection String",
-            "required": true,
+            "required": false,
             "helpMarkDown": "SonarQube server 5.1 only. The database connection setting, e.g. jdbc:jtds:sqlserver://localhost/sonar;SelectMethod=Cursor",
             "groupName": "dbSettings"
         },
@@ -95,7 +95,7 @@
             "name": "dbUsername",
             "type": "string",
             "label": "Db UserName",
-            "required": true,
+            "required": false,
             "helpMarkDown": "SonarQube server 5.1 only. The username for the database user",
             "groupName": "dbSettings"
         },
@@ -103,7 +103,7 @@
             "name": "dbPassword",
             "type": "string",
             "label": "Db User Password",
-            "required": true,
+            "required": false,
             "helpMarkDown": "SonarQube server 5.1 only. The password for the database user",
             "groupName": "dbSettings"
         }
