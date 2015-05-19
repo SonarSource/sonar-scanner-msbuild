@@ -156,6 +156,11 @@
       <Output TaskParameter="IsTest" PropertyName="SonarQubeTestProject" />
     </IsTestFileByName>
 
+    <PropertyGroup>
+        <!-- This can't be set in the FX-Cop property group as this target needs to run first -->
+        <SonarQubeRunMSCodeAnalysis Condition="$(SonarQubeTestProject) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
+    </PropertyGroup>
+
   </Target>
 
   <!-- **************************************************************************** -->
@@ -275,7 +280,7 @@
          the SonarQube settings -->
     <SonarQubeRunMSCodeAnalysis>$(SonarQubeRulesetExists)</SonarQubeRunMSCodeAnalysis>
     <SonarQubeRunMSCodeAnalysis Condition="$(SonarQubeExclude) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
-    <SonarQubeRunMSCodeAnalysis Condition="$(SonarQubeTestProject) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
+    <!-- This is potentially set to false once more in the SonarQubeCategoriseProject for test projects -->
 
     <RunCodeAnalysisOnce>$(SonarQubeRunMSCodeAnalysis)</RunCodeAnalysisOnce>
   </PropertyGroup>
