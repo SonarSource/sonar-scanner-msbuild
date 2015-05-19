@@ -4,10 +4,12 @@
 function CreatePropertiesFile
 {
     param([string][ValidateNotNullOrEmpty()]$propertiesFileDir,
-		  [string][ValidateNotNullOrEmpty()]$sonarServerUrl,
-		  [string]$sonarDbUrl,
-		  [string]$sonarDbUsername,
-		  [string]$sonarDbPassword)
+		  [string][ValidateNotNullOrEmpty()]$serverUrl,
+	      [string]$serverUsername,
+		  [string]$serverPassword,
+		  [string]$dbUrl,
+		  [string]$dbUsername,
+		  [string]$dbPassword)
 	
     Write-Verbose -Verbose "Creating the .propertiesFile in $propertiesFileDir"
     
@@ -23,10 +25,20 @@ function CreatePropertiesFile
      {
         $stream = New-Object System.IO.StreamWriter($propertiesFilePath, $false, ([System.Text.Encoding]::Default))
          
-        $stream.WriteLine("sonar.host.url=$sonarServerUrl")
-        $stream.WriteLine("sonar.jdbc.url=$sonarDbUrl")            
-        $stream.WriteLine("sonar.jdbc.username=$sonarDbUsername")
-        $stream.WriteLine("sonar.jdbc.password=$sonarDbPassword")
+        $stream.WriteLine("sonar.host.url=$serverUrl")
+        $stream.WriteLine("sonar.jdbc.url=$dbUrl")            
+        $stream.WriteLine("sonar.jdbc.username=$dbUsername")
+        $stream.WriteLine("sonar.jdbc.password=$dbPassword")
+
+		if (![String]::IsNullOrEmpty($serverUsername))
+		{
+			$stream.WriteLine("sonar.login=$serverUsername")
+		}
+
+		if (![String]::IsNullOrEmpty($serverPassword))
+		{
+			$stream.WriteLine("sonar.password=$serverPassword")
+		}
     }
     finally
     {

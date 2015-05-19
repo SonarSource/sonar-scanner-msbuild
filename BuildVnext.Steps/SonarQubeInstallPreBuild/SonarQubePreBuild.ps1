@@ -1,26 +1,27 @@
 [CmdletBinding(DefaultParameterSetName = 'None')]
 param(
-    [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $sonarProjectKey,
-    [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $sonarProjectName,
-    [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $sonarProjectVersion,
-    [string]$sonarProjectPropertiesFile,  #TODO: do we really need this ? In any case we would use a checked in file;
-	[string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]$sonarServerUrl, 
-	[string]$sonarDbUrl,
-	[string]$sonarDbUsername,
-	[string]$sonarDbPassword
+    [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $projectKey,
+    [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $projectName,
+    [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $projectVersion,
+	[string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]$serverUrl, 
+	[string]$serverUsername,
+	[string]$serverPassword,
+	[string]$dbUrl,
+	[string]$dbUsername,
+	[string]$dbPassword
 )
 
 Write-Verbose "Starting SonarQube Pre-Build Setup Step"
 
-Write-Verbose -Verbose "sonarServerUrl = $sonarServerUrl"
-Write-Verbose -Verbose "sonarDbConnectionString = $sonarDbUrl"
-Write-Verbose -Verbose "sonarDbUsername = $sonarDbUsername"
-Write-Verbose -Verbose "sonarDbPassword = $sonarDbPassword"
-Write-Verbose -Verbose "SonarProjectKey = $sonarProjectKey"
-Write-Verbose -Verbose "SonarProjectName = $sonarProjectName"
-Write-Verbose -Verbose "SonarProjectVersion = $sonarProjectVersion"
-Write-Verbose -Verbose "SonarPropertiesFile = $sonarProjecopertiesFile"
-
+#TODO: discuss removing clear text password fields
+Write-Verbose -Verbose "serverUrl = $serverUrl"
+Write-Verbose -Verbose "dbConnectionString = $dbUrl"
+Write-Verbose -Verbose "dbUsername = $dbUsername"
+Write-Verbose -Verbose "dbPassword = $dbPassword" 
+Write-Verbose -Verbose "projectKey = $projectKey"
+Write-Verbose -Verbose "projectName = $projectName"
+Write-Verbose -Verbose "dbUsername = $dbUsername"
+Write-Verbose -Verbose "dbPassword = $dbPassword" 
 
 import-module "Microsoft.TeamFoundation.DistributedTask.Task.Common"
 
@@ -49,10 +50,10 @@ if (![System.IO.File]::Exists($sonarRunnerPath))
 }
 
 SetTaskContextVaraible "sonarMsBuildRunnerPath" $sonarMsBuildRunnerPath
-CreatePropertiesFile $propertiesFile $sonarServerUrl $sonarDbUrl $sonarDbUsername $sonarDbPassword
+CreatePropertiesFile $propertiesFile $serverUrl $serverUsername $serverPassword $dbUrl $dbUsername $dbPassword
 CopyTargetsFile $targetsFileInitialPath
 
-#TODO: do we really need this env var and will it create versioning problems? 
+#TODO: remove this env variable by passing it in directly to the msbuild runner 
 if (-Not $env:Path.Contains($sonarRunnerDir))
 {
     Write-Verbose -Verbose "PATH is being updated to point at the sonar-runner at $sonarRunnerDir"
@@ -61,8 +62,8 @@ if (-Not $env:Path.Contains($sonarRunnerDir))
 
 #TODO: do we need to set SONAR_RUNNER_OPTS to avoid out of memory issues? Will this work if we set it as a per-process env variable?
 
-Write-Verbose -Verbose "Executing $sonarMsBuildRunnerPath with arguments /k:$sonarProjectKey /n:$sonarProjectName /v:$sonarProjectVersion /r:$sonarProjectPropertiesFile" 
-Invoke-BatchScript $sonarMsBuildRunnerPath –Arguments "/k:$sonarProjectKey /n:$sonarProjectName /v:$sonarProjectVersion /r:$sonarProjectPropertiesFile"
+Write-Verbose -Verbose "Executing $sonarMsBuildRunnerPath with arguments /k:$projectKey /n:$projectName /v:$projectVersion /r:$projectPropertiesFile" 
+Invoke-BatchScript $sonarMsBuildRunnerPath –Arguments "/k:$projectKey /n:$projectName /v:$projectVersion /r:$projectPropertiesFile"
 
 
 

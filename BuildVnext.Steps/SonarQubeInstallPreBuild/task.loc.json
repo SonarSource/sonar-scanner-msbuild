@@ -21,81 +21,97 @@
   ],
   "groups": [
     {
-      "name": "temporary",
-      "displayName": "ms-resource:loc.group.displayName.temporary",
+      "name": "project",
+      "displayName": "ms-resource:loc.group.displayName.project",
       "isExpanded": true
     },
     {
-      "name": "advanced",
-      "displayName": "ms-resource:loc.group.displayName.advanced",
+      "name": "serverSettings",
+      "displayName": "ms-resource:loc.group.displayName.serverSettings",
+      "isExpanded": true
+    },
+    {
+      "name": "dbSettings",
+      "displayName": "ms-resource:loc.group.displayName.dbSettings",
       "isExpanded": false
     }
   ],
   "inputs": [
     {
-      "name": "sonarServerUrl",
+      "name": "projectKey",
       "type": "string",
-      "label": "ms-resource:loc.input.label.sonarServerUrl",
+      "label": "ms-resource:loc.input.label.projectKey",
       "required": true,
-      "helpMarkDown": "The sonar host url, e.g. http://fabrikam-sonar:9000/"
+      "helpMarkDown": "The project key as configured in SonarQube, i.e. sonar.projectKey",
+      "groupName": "project"
     },
     {
-      "name": "sonarDbUrl",
+      "name": "projectName",
       "type": "string",
-      "label": "ms-resource:loc.input.label.sonarDbUrl",
-      "required": false,
-      "helpMarkDown": "The database connection setting, e.g. jdbc:jtds:sqlserver://localhost/sonar;SelectMethod=Cursor",
-      "groupName": "temporary"
-    },
-    {
-      "name": "sonarDbUsername",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.sonarDbUsername",
-      "required": false,
-      "helpMarkDown": "The username for the database user",
-      "groupName": "temporary"
-    },
-    {
-      "name": "sonarDbPassword",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.sonarDbPassword",
-      "required": false,
-      "helpMarkDown": "The username for the database user",
-      "groupName": "temporary"
-    },
-    {
-      "name": "sonarProjectKey",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.sonarProjectKey",
+      "label": "ms-resource:loc.input.label.projectName",
       "required": true,
-      "helpMarkDown": "The project key as configured in SonarQube, i.e. sonar.projectKey"
+      "helpMarkDown": "The project name as configured in SonarQube, i.e. sonar.ProjectName",
+      "groupName": "project"
     },
     {
-      "name": "sonarProjectName",
+      "name": "projectVersion",
       "type": "string",
-      "label": "ms-resource:loc.input.label.sonarProjectName",
-      "required": true,
-      "helpMarkDown": "The project name as configured in SonarQube, i.e. sonar.ProjectName"
-    },
-    {
-      "name": "sonarProjectVersion",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.sonarProjectVersion",
+      "label": "ms-resource:loc.input.label.projectVersion",
       "defaultValue": "1.0",
       "required": true,
-      "helpMarkDown": "The project version as configured in SonarQube, i.e. sonar.projectVersion"
+      "helpMarkDown": "The project version as configured in SonarQube, i.e. sonar.projectVersion",
+      "groupName": "project"
     },
     {
-      "name": "sonarProjectPropertiesFile",
+      "name": "serverUrl",
       "type": "string",
-      "label": "ms-resource:loc.input.label.sonarProjectPropertiesFile",
-      "defaultValue": "",
+      "label": "ms-resource:loc.input.label.serverUrl",
+      "required": true,
+      "helpMarkDown": "The sonar host url, e.g. http://fabrikam-sonar:9000/",
+      "groupName": "serverSettings"
+    },
+    {
+      "name": "serverUsername",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.serverUsername",
       "required": false,
-      "helpMarkDown": "If you use multiple property files you can specify the agent file path to the one you want here. Leave empty and the default sonar-runner properties file will be used. E.g. c:\\sonar-runner-2.4\\conf\\sonar-runner.properties",
-      "groupName": "advanced"
+      "helpMarkDown": "Leave empty if you haven't configured authentication on the SonarQube Server",
+      "groupName": "serverSettings"
+    },
+    {
+      "name": "serverPassword",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.serverPassword",
+      "required": false,
+      "helpMarkDown": "Leave empty if you haven't configured authentication on the SonarQube Server",
+      "groupName": "serverSettings"
+    },
+    {
+      "name": "dbUrl",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.dbUrl",
+      "required": true,
+      "helpMarkDown": "SonarQube server 5.1 only. The database connection setting, e.g. jdbc:jtds:sqlserver://localhost/sonar;SelectMethod=Cursor",
+      "groupName": "dbSettings"
+    },
+    {
+      "name": "dbUsername",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.dbUsername",
+      "required": true,
+      "helpMarkDown": "SonarQube server 5.1 only. The username for the database user",
+      "groupName": "dbSettings"
+    },
+    {
+      "name": "dbPassword",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.dbPassword",
+      "required": true,
+      "helpMarkDown": "SonarQube server 5.1 only. The password for the database user",
+      "groupName": "dbSettings"
     }
   ],
-  "instanceNameFormat": "Enable SonarQube for $(sonarProjectName)",
+  "instanceNameFormat": "Enable SonarQube for $(projectName)",
   "execution": {
     "PowerShell": {
       "target": "$(currentDirectory)\\SonarQubePreBuild.ps1",
