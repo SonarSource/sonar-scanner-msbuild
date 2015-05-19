@@ -371,7 +371,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string managed1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, sonarQubeExclude: null);
             string content1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, sonarQubeExclude: null);
 
-            projectRoot.AddProperty("SQAnalysisFileItemTypes", "fooType;$(SQAnalysisFileItemTypes);xxxType");
+            // Update the "item types" property to add some extra item type
+            // NB this has to be done *after* the integration targets have been imported
+            ProjectPropertyGroupElement group = projectRoot.CreatePropertyGroupElement();
+            projectRoot.AppendChild(group);
+            ProjectPropertyElement prop = group.AddProperty("SQAnalysisFileItemTypes", "fooType;$(SQAnalysisFileItemTypes);xxxType");
+            projectRoot.Save();
 
             // Act
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
