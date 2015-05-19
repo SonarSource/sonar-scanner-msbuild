@@ -192,7 +192,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
-            logger.AssertExpectedTargetOrdering(TargetConstants.CoreCompileTarget,
+            logger.AssertExpectedTargetOrdering(
+                TargetConstants.CategoriseProjectTarget,
+                TargetConstants.CoreCompileTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 TargetConstants.FxCopTarget,
@@ -245,7 +247,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
-            logger.AssertExpectedTargetOrdering(TargetConstants.CoreCompileTarget,
+            logger.AssertExpectedTargetOrdering(
+                TargetConstants.CategoriseProjectTarget,
+                TargetConstants.CoreCompileTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 
@@ -296,7 +300,60 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Assert
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
-            logger.AssertExpectedTargetOrdering(TargetConstants.CoreCompileTarget,
+            logger.AssertExpectedTargetOrdering(
+                TargetConstants.CategoriseProjectTarget,
+                TargetConstants.CoreCompileTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
+                TargetConstants.OverrideFxCopSettingsTarget,
+                TargetConstants.DefaultBuildTarget,
+                TargetConstants.WriteProjectDataTarget);
+
+            logger.AssertTargetNotExecuted(TargetConstants.FxCopTarget);
+            logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
+
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+            ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());
+        }
+
+        [TestMethod] // SONARMSBRU-20: Do not run FxCop (nor other rule engines) on test projects
+        [Description("FxCop analysis should not be run if the project is a test project")]
+        public void E2E_FxCop_TestProject()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
+            preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
+            preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
+
+            preImportProperties.SonarQubeExclude = "false";
+            preImportProperties.SonarTestProject = "true";
+
+            preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
+            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
+
+            // Add a file to the project
+            string itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
+            projectRoot.AddItem("Compile", itemPath);
+            projectRoot.Save();
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
+
+            // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertExpectedTargetOrdering(
+                // We've explicitly marked the project as a test project so we don't expect the "categorise project" target to run
+                TargetConstants.CoreCompileTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 TargetConstants.DefaultBuildTarget,

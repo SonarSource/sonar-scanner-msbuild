@@ -128,7 +128,36 @@
     <Message Importance="high" Text="Skipping dumping compile outputs because SonarQubeOutputPath has not been specified" />
   </Target>
 
-  
+  <!-- **************************************************************************** -->
+  <!-- Categorise as a product or test project -->
+  <!-- **************************************************************************** -->
+  <!-- Work out if the project is a test project or not -->
+  <!-- If it is explicitly marked then use that value, otherwise:
+          * check if the name matches the regular expression in the config file, or
+          * check if it has one of the expected project types guids.
+         If either is true then the project is a test project, otherwise
+         it is a product project.
+    -->
+  <Target Name="SonarQubeCategoriseProject"
+          BeforeTargets="CoreCompile"
+          Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeOutputPath) != '' AND $(SonarQubeTestProject) == '' " >
+
+    <PropertyGroup>
+      <!-- The MS Test project type guid-->
+      <SonarMsTestProjectTypeGuid>3AC096D0-A1C2-E12C-1390-A8335801FDAB</SonarMsTestProjectTypeGuid>
+      <SonarQubeTestProject Condition=" $(ProjectTypeGuid.ToUpperInvariant().Contains('$(SonarMsTestProjectTypeGuid)')) ">true</SonarQubeTestProject>
+    </PropertyGroup>
+
+    <!-- If we haven't already determined whether the project is a test project then check
+         its path/name against the regular expression in the config file -->
+    <IsTestFileByName Condition=" $(SonarQubeTestProject) == '' "
+        AnalysisConfigDir="$(SonarQubeConfigPath)"
+        FullFilePath="$(MSBuildProjectFullPath)">
+      <Output TaskParameter="IsTest" PropertyName="SonarQubeTestProject" />
+    </IsTestFileByName>
+
+  </Target>
+
   <!-- **************************************************************************** -->
   <!-- Calculate the set of files to be analyzed -->
   <!-- **************************************************************************** -->
@@ -193,32 +222,6 @@
         <Id>FilesToAnalyze</Id>
       </AnalysisResults>
     </ItemGroup>
-
-
-
-    <!-- **************************************************************************** -->
-    <!-- Categorise as a product or test project -->
-    
-    <!-- Work out if the project is a test project or not -->
-    <!-- If it is explicitly marked then use that value, otherwise:
-          * check if the name matches the regular expression in the config file, or
-          * check if it has one of the expected project types guids.
-         If either is true then the project is a test project, otherwise
-         it is a product project.
-    -->
-    <PropertyGroup Condition=" $(SonarQubeTestProject) == '' ">
-      <!-- The MS Test project type guid-->
-      <SonarMsTestProjectTypeGuid>3AC096D0-A1C2-E12C-1390-A8335801FDAB</SonarMsTestProjectTypeGuid>
-      <SonarQubeTestProject Condition=" $(ProjectTypeGuid.ToUpperInvariant().Contains('$(SonarMsTestProjectTypeGuid)')) ">true</SonarQubeTestProject>
-    </PropertyGroup>
-
-    <!-- If we haven't already determined whether the project is a test project then check
-         its path/name against the regular expression in the config file -->
-    <IsTestFileByName Condition=" $(SonarQubeTestProject) == '' "
-        AnalysisConfigDir="$(SonarQubeConfigPath)"
-        FullFilePath="$(MSBuildProjectFullPath)">
-      <Output TaskParameter="IsTest" PropertyName="SonarQubeTestProject" />
-    </IsTestFileByName>
     
     <Message Importance="low" Condition=" $(SonarQubeTestProject) == 'true' "
              Text="SonarQube: project will be treated as a test project : $(MSBuildProjectName)" />
@@ -237,7 +240,7 @@
        OutputFolder="$(ProjectSpecificDir)" />
   </Target>
 
-  
+
   <!-- **************************************************************************** -->
   <!-- FxCop -->
   <!-- **************************************************************************** -->
@@ -272,25 +275,30 @@
          the SonarQube settings -->
     <SonarQubeRunMSCodeAnalysis>$(SonarQubeRulesetExists)</SonarQubeRunMSCodeAnalysis>
     <SonarQubeRunMSCodeAnalysis Condition="$(SonarQubeExclude) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
-    
+    <SonarQubeRunMSCodeAnalysis Condition="$(SonarQubeTestProject) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
+
     <RunCodeAnalysisOnce>$(SonarQubeRunMSCodeAnalysis)</RunCodeAnalysisOnce>
   </PropertyGroup>
 
   <!-- We want to override any properties that have been set declaratively in the project -->
   <Target Name="OverrideCodeAnalysisProperties" Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeOutputPath) != '' "
-              BeforeTargets="RunCodeAnalysis" >
+          BeforeTargets="RunCodeAnalysis" >
 
     <Message Condition="$(SonarQubeRulesetExists) != 'true' "
              Importance="normal"
-             Text="Skipping FxCop analysis because the SonarQube ruleset does not exist. Ruleset: $(SonarQubeRulesetFullName)" />
+             Text="Skipping FxCop analysis: the SonarQube ruleset does not exist. Ruleset: $(SonarQubeRulesetFullName)" />
 
-    <Message Condition="$(SonarQubeRulesetExists) == 'true' AND $(SonarQubeExclude) == 'true' "
+    <Message Condition="$(SonarQubeExclude) == 'true' "
              Importance="normal"
-             Text="Skipping FxCop analysis because the project is excluded" />
+             Text="Skipping FxCop analysis: the project is excluded" />
 
-    <Message Condition="$(SonarQubeRulesetExists) == 'true' AND $(SonarQubeExclude) != 'true'"
-         Importance="normal"
-         Text="Running FxCop analysis using the SonarQube ruleset. Ruleset: $(SonarQubeRulesetFullName)" />
+    <Message Condition="$(SonarQubeTestProject) == 'true' "
+             Importance="normal"
+             Text="Skipping FxCop analysis: the project is a test project" />
+
+    <Message Condition="$(SonarQubeRunMSCodeAnalysis) == 'true' "
+             Importance="normal"
+             Text="Running FxCop analysis using the SonarQube ruleset. Ruleset: $(SonarQubeRulesetFullName)" />
 
     <PropertyGroup>
       <!-- By the time this target is evaluated, the FxCop targets have evaluated the

@@ -16,6 +16,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         // Targets
         public const string ImportBeforeInfoTarget = "SonarQubeImportBeforeInfo";
 
+        public const string CategoriseProjectTarget = "SonarQubeCategoriseProject";
         public const string CalculateFilesToAnalyzeTarget = "CalculateSonarQubeFilesToAnalyze";
         public const string WriteProjectDataTarget = "WriteSonarQubeProjectData";
         public const string OverrideFxCopSettingsTarget = "OverrideCodeAnalysisProperties";

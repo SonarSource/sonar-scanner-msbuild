@@ -63,7 +63,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
             preImportProperties.SonarTestProject = "false";
-            preImportProperties.ProjectTypeGuids = "X" + TargetConstants.MsTestProjectTypeGuid.ToUpperInvariant() + "Y";
+            preImportProperties.ProjectTypeGuids = "X;" + TargetConstants.MsTestProjectTypeGuid.ToUpperInvariant() + ";Y";
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "foo.proj");
 
@@ -432,7 +432,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.CalculateFilesToAnalyzeTarget, TargetConstants.WriteProjectDataTarget);
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger,
+                // The "write" target depends on a couple of other targets having executed first to set properties appropriately
+                TargetConstants.CategoriseProjectTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
+                TargetConstants.WriteProjectDataTarget);
 
             // Assert
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.CalculateFilesToAnalyzeTarget);
