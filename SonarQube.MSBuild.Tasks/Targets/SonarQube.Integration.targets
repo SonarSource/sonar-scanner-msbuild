@@ -99,7 +99,7 @@
     <SonarQubeOutputPath Condition="$(SonarQubeOutputPath) == '' AND $(SonarQubeTempPath) !='' "
                      >$(SonarQubeTempPath)\out\</SonarQubeOutputPath>
 
-	
+  
     <!-- Specify the ItemGroups to be analyzed -->
     <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">Compile;Content;EmbeddedResource;None;ClCompile;Page;TypeScriptCompile</SQAnalysisFileItemTypes>
 
@@ -269,8 +269,11 @@
     <SonarQubeRulesetExists Condition=" $(SonarQubeConfigPath) != '' ">$([System.IO.File]::Exists($(SonarQubeRulesetFullName)))</SonarQubeRulesetExists>
 
     <!-- If we are running a SonarQube analysis build then whether or not FxCop is run depends entirely on whether
-         the SonarQube ruleset exists. -->
-    <RunCodeAnalysisOnce>$(SonarQubeRulesetExists)</RunCodeAnalysisOnce>
+         the SonarQube settings -->
+    <SonarQubeRunMSCodeAnalysis>$(SonarQubeRulesetExists)</SonarQubeRunMSCodeAnalysis>
+    <SonarQubeRunMSCodeAnalysis Condition="$(SonarQubeExclude) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
+    
+    <RunCodeAnalysisOnce>$(SonarQubeRunMSCodeAnalysis)</RunCodeAnalysisOnce>
   </PropertyGroup>
 
   <!-- We want to override any properties that have been set declaratively in the project -->
@@ -281,16 +284,20 @@
              Importance="normal"
              Text="Skipping FxCop analysis because the SonarQube ruleset does not exist. Ruleset: $(SonarQubeRulesetFullName)" />
 
-    <Message Condition="$(SonarQubeRulesetExists) == 'true' "
+    <Message Condition="$(SonarQubeRulesetExists) == 'true' AND $(SonarQubeExclude) == 'true' "
              Importance="normal"
-             Text="Running FxCop analysis using the SonarQube ruleset. Ruleset: $(SonarQubeRulesetFullName)" />
+             Text="Skipping FxCop analysis because the project is excluded" />
+
+    <Message Condition="$(SonarQubeRulesetExists) == 'true' AND $(SonarQubeExclude) != 'true'"
+         Importance="normal"
+         Text="Running FxCop analysis using the SonarQube ruleset. Ruleset: $(SonarQubeRulesetFullName)" />
 
     <PropertyGroup>
       <!-- By the time this target is evaluated, the FxCop targets have evaluated the
            $(RunCodeAnalysis) and $(RunCodeAnalysisOnce) properties and used them to 
            set $(RunCodeAnalysisOnThisProject). If we want to stop code analysis from
            running at this point, we need to set $(RunCodeAnalysisOnThisProject). -->
-      <RunCodeAnalysisOnThisProject>$(SonarQubeRulesetExists)</RunCodeAnalysisOnThisProject>
+      <RunCodeAnalysisOnThisProject>$(SonarQubeRunMSCodeAnalysis)</RunCodeAnalysisOnThisProject>
 
       <CodeAnalysisRuleSet>$(SonarQubeRulesetFullName)</CodeAnalysisRuleSet>
       <CodeAnalysisForceOutput>true</CodeAnalysisForceOutput>
@@ -302,7 +309,7 @@
 
   <!-- If FxCop is being run then record the FxCop output file as an analysis result -->
   <Target Name="SetFxCopAnalysisResult"
-          Condition=" $(SonarQubeRulesetExists) == 'true' "
+          Condition=" $(SonarQubeRunMSCodeAnalysis) == 'true' "
           AfterTargets="RunCodeAnalysis" BeforeTargets="WriteSonarQubeProjectData" >
 
     <!-- TODO: update to support native files -->
