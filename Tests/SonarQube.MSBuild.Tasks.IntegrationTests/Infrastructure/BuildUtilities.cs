@@ -159,13 +159,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 }
             }
 
-            if (descriptor.IsTestProject)
+            if (descriptor.IsTestProject && !root.Properties.Any(p => string.Equals(p.Name, TargetProperties.SonarQubeTestProject)))
             {
-                //TODO
-            }
-            else
-            {
-                //TODO
+                root.AddProperty(TargetProperties.SonarQubeTestProject, "true");
             }
 
             return root;
