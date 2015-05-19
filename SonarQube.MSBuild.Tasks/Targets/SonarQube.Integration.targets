@@ -82,7 +82,7 @@
     <SonarQubeTargetsImported>true</SonarQubeTargetsImported>
   </PropertyGroup>
 
-  <!-- Set defaults for the SonarQube paths if explicit values have not been provided -->
+  <!-- Set defaults if explicit values have not been provided -->
   <PropertyGroup Condition="$(RunSonarQubeAnalysis) == 'true' ">
     <!-- Use the TeamBuild per-build base directory as a root -->
     <!-- Legacy TeamBuild system i.e. XAML Builds (pre-2015) -->
@@ -98,7 +98,11 @@
 
     <SonarQubeOutputPath Condition="$(SonarQubeOutputPath) == '' AND $(SonarQubeTempPath) !='' "
                      >$(SonarQubeTempPath)\out\</SonarQubeOutputPath>
-  
+
+	
+    <!-- Specify the ItemGroups to be analyzed -->
+    <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">Compile;Content;EmbeddedResource;None;ClCompile;Page;TypeScriptCompile</SQAnalysisFileItemTypes>
+
   </PropertyGroup>
   
   <!-- **************************************************************************** -->
@@ -126,15 +130,10 @@
 
   
   <!-- **************************************************************************** -->
-  <!-- Calculate the file contents of the file lists -->
+  <!-- Calculate the set of files to be analyzed -->
   <!-- **************************************************************************** -->
-  <Target Name="CalculateSonarQubeFileLists" AfterTargets="CoreCompile" BeforeTargets="RunCodeAnalysis"
+  <Target Name="CalculateSonarQubeFilesToAnalyze" AfterTargets="CoreCompile" BeforeTargets="RunCodeAnalysis"
         Condition="$(RunSonarQubeAnalysis) == 'true' ">
-
-    <PropertyGroup>
-      <!-- Specify the ItemGroups to be analyzed, if not already set -->
-      <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">Compile;Content;EmbeddedResource;None;ClCompile;Page;TypeScriptCompile</SQAnalysisFileItemTypes>
-    </PropertyGroup>
 
     <!-- Include all of contents of the specified item groups, but exclude 
          any that have the metadata 'SonarQubeExclude' set, or that are auto-generated -->

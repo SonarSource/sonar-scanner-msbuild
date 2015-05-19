@@ -9,6 +9,7 @@ using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
+using System;
 using System.IO;
 using System.Linq;
 using TestUtilities;
@@ -283,6 +284,102 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, compile1, content1, autogenContentFalseAndIncluded, autogenCompileFalseAndIncluded);
         }
 
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("Lists")]
+        public void WriteProjectInfo_AnalysisFileList_FilesTypes_Defaults()
+        {
+            // Check that all default item types are included for analysis
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "fileTypes.proj.txt");
+            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+
+            // Files we don't expect to be included by default
+            AddFileToProject(projectRoot, "fooType");
+            AddFileToProject(projectRoot, "barType");
+
+            // Files we expect to be included by default
+            string managed1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, sonarQubeExclude: null);
+            string content1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, sonarQubeExclude: null);
+            string embedded1 = AddFileToProject(projectRoot, "EmbeddedResource", sonarQubeExclude: null);
+            string none1 = AddFileToProject(projectRoot, "None", sonarQubeExclude: null);
+            string nativeCompile1 = AddFileToProject(projectRoot, "ClCompile", sonarQubeExclude: null);
+            string page1 = AddFileToProject(projectRoot, "Page", sonarQubeExclude: null);
+            string typeScript1 = AddFileToProject(projectRoot, "TypeScriptCompile", sonarQubeExclude: null);
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+
+            // Assert
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, managed1, content1, embedded1, none1, nativeCompile1, page1, typeScript1);
+
+            projectRoot.AddProperty("SQAnalysisFileItemTypes", "$(SQAnalysisFileItemTypes);fooType;barType;");
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("Lists")]
+        public void WriteProjectInfo_AnalysisFileList_FilesTypes_OnlySpecified()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "fileTypes.proj.txt");
+            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+
+            // Files we don't expect to be included by default
+            string fooType1 = AddFileToProject(projectRoot, "fooType", sonarQubeExclude: null);
+            string xxxType1 = AddFileToProject(projectRoot, "xxxType", sonarQubeExclude: null);
+            AddFileToProject(projectRoot, "barType", sonarQubeExclude: null);
+            
+            // Files we'd normally expect to be included by default
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, sonarQubeExclude: null);
+            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, sonarQubeExclude: null);
+
+            projectRoot.AddProperty("SQAnalysisFileItemTypes", "fooType;xxxType");
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+
+            // Assert
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, fooType1, xxxType1);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("Lists")]
+        public void WriteProjectInfo_AnalysisFileList_FilesTypes_SpecifiedPlusDefaults()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "fileTypes.proj.txt");
+            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+
+            // Files we don't expect to be included by default
+            string fooType1 = AddFileToProject(projectRoot, "fooType", sonarQubeExclude: null);
+            string xxxType1 = AddFileToProject(projectRoot, "xxxType", sonarQubeExclude: null);
+            AddFileToProject(projectRoot, "barType", sonarQubeExclude: null);
+
+            // Files we'd normally expect to be included by default
+            string managed1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, sonarQubeExclude: null);
+            string content1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, sonarQubeExclude: null);
+
+            projectRoot.AddProperty("SQAnalysisFileItemTypes", "fooType;$(SQAnalysisFileItemTypes);xxxType");
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+
+            // Assert
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, fooType1, xxxType1, content1, managed1);
+        }
+
         #endregion
 
         #region Private methods
@@ -330,10 +427,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.CalculateSonarQubeFileListsTarget, TargetConstants.WriteProjectDataTarget);
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.CalculateFilesToAnalyzeTarget, TargetConstants.WriteProjectDataTarget);
 
             // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.CalculateSonarQubeFileListsTarget);
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.CalculateFilesToAnalyzeTarget);
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.WriteProjectDataTarget);
 
             logger.AssertNoWarningsOrErrors();
@@ -397,7 +494,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         private ProjectItemElement AddFileToProject(ProjectRootElement projectRoot, string includeName)
         {
             string projectPath = Path.GetDirectoryName(projectRoot.DirectoryPath); // project needs to have been saved for this to work
-            string fileName = System.Guid.NewGuid().ToString();
+            string fileName = includeName + "_" + System.Guid.NewGuid().ToString();
             string fullPath = Path.Combine(projectPath, fileName);
             File.WriteAllText(fullPath, "");
 
@@ -480,7 +577,17 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             this.TestContext.AddResultFile(result.Location);
 
             string[] actualFiles = File.ReadAllLines(result.Location);
-            CollectionAssert.AreEquivalent(expected, actualFiles, "The analysis result file does not contain the expected entries");
+
+            try
+            {
+                CollectionAssert.AreEquivalent(expected, actualFiles, "The analysis result file does not contain the expected entries");
+            }
+            catch (AssertFailedException)
+            {
+                this.TestContext.WriteLine("Expected files: {1}{0}", Environment.NewLine, string.Join("\t" + Environment.NewLine, expected));
+                this.TestContext.WriteLine("Actual files: {1}{0}", Environment.NewLine, string.Join("\t" + Environment.NewLine, actualFiles));
+                throw;
+            }
         }
 
         #endregion

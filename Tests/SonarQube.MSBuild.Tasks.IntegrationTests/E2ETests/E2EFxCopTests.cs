@@ -193,7 +193,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
             logger.AssertExpectedTargetOrdering(TargetConstants.CoreCompileTarget,
-                TargetConstants.CalculateSonarQubeFileListsTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 TargetConstants.FxCopTarget,
                 TargetConstants.SetFxCopResultsTarget,
@@ -246,7 +246,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
             logger.AssertExpectedTargetOrdering(TargetConstants.CoreCompileTarget,
-                TargetConstants.CalculateSonarQubeFileListsTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.WriteProjectDataTarget);

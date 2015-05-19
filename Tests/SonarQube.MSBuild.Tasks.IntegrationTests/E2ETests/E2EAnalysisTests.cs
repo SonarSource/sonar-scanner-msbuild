@@ -340,7 +340,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             logger.AssertExpectedWarningCount(expectedWarnings);
 
             logger.AssertExpectedTargetOrdering(TargetConstants.CoreCompileTarget,
-                TargetConstants.CalculateSonarQubeFileListsTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.WriteProjectDataTarget);
 
