@@ -3,10 +3,10 @@
 // *******************************************************
 {
   "loc.friendlyName": "SonarQube Pre-MSBuild",
-  "loc.description": "Enable SonarQube",
+  "loc.description": "Initiates a SonarQube analysis",
   "loc.group.displayName.project": "SonarQube Project Properties",
   "loc.group.displayName.serverSettings": "SonarQube Server Settings",
-  "loc.group.displayName.dbSettings": "Database Settings (not needed for SonarQube 5.2+)",
+  "loc.group.displayName.dbSettings": "Database Settings (not required for SonarQube 5.2+)",
   "loc.input.label.projectKey": "Project Key",
   "loc.input.label.projectName": "Project Name",
   "loc.input.label.projectVersion": "Project Version",

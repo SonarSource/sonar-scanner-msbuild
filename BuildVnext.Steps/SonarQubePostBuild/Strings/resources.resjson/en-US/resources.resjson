@@ -2,6 +2,6 @@
 // GENERATED FILE - DO NOT EDIT DIRECTLY
 // *******************************************************
 {
-  "loc.friendlyName": "SonarQube Post-Build",
-  "loc.description": "Upload the results of the run to SonarQube"
+  "loc.friendlyName": "SonarQube Post-Test",
+  "loc.description": "Upload the analysis results of the run to SonarQube (after the tests)"
 }

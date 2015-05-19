@@ -1,8 +1,8 @@
 {
     "id": "730D8DE1-7A4F-424C-9542-FE7CC02604EB",
     "name": "SonarQubePostBuild",
-    "friendlyName": "SonarQube Post-Build",
-    "description": "Upload the results of the run to SonarQube",
+    "friendlyName": "SonarQube Post-Test",
+    "description": "Upload the analysis results of the run to SonarQube (after the tests)",
     "category": "Build",
     "visibility": [
         "Build"
@@ -16,7 +16,7 @@
     "demands": [
         "java"
     ],  
-    "instanceNameFormat": "Upload results to SonarQube",
+    "instanceNameFormat": "Upload analysis results to SonarQube",
     "execution": {
         "PowerShell": {
             "target": "$(currentDirectory)\\SonarQubePostBuild.ps1",

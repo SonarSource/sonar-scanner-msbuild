@@ -2,7 +2,7 @@
     "id": "EAE5B2CC-AC5E-4CBA-B022-A06621F9C01F",
     "name": "SonarQubeInstallPreBuild",
     "friendlyName": "SonarQube Pre-MSBuild",
-    "description": "Enable SonarQube",
+    "description": "Initiates a SonarQube analysis",
     "category": "Build",
     "visibility": [
         "Build"
@@ -39,7 +39,7 @@
             "type": "string",
             "label": "Project Key",
             "required": true,
-            "helpMarkDown": "The project key as configured in SonarQube, i.e. sonar.projectKey",
+            "helpMarkDown": "The SonarQube project unique key, i.e. sonar.projectKey",
             "groupName": "project"
         },
         {
@@ -47,7 +47,7 @@
             "type": "string",
             "label": "Project Name",
             "required": true,
-            "helpMarkDown": "The project name as configured in SonarQube, i.e. sonar.ProjectName",
+            "helpMarkDown": "The SonarQube project name, i.e. sonar.ProjectName",
             "groupName": "project"
         },
         {
@@ -56,7 +56,7 @@
             "label": "Project Version",
             "defaultValue": "1.0",
             "required": true,
-            "helpMarkDown": "The project version as configured in SonarQube, i.e. sonar.projectVersion",
+            "helpMarkDown": "The SonarQube project version, i.e. sonar.projectVersion",
             "groupName": "project"
         },
         {
@@ -64,7 +64,7 @@
             "type": "string",
             "label": "Server Url",
             "required": true,
-            "helpMarkDown": "The sonar host url, e.g. http://fabrikam-sonar:9000/",
+            "helpMarkDown": "The SonarQube Server url, e.g. http://fabrikam-sonar:9000/",
             "groupName": "serverSettings"
         },
         {
@@ -88,7 +88,7 @@
             "type": "string",
             "label": "Db Connection String",
             "required": false,
-            "helpMarkDown": "SonarQube server 5.1 only. The database connection setting, e.g. jdbc:jtds:sqlserver://localhost/sonar;SelectMethod=Cursor",
+            "helpMarkDown": "SonarQube server 5.1 and lower only. The database connection setting, e.g. jdbc:jtds:sqlserver://localhost/sonar;SelectMethod=Cursor",
             "groupName": "dbSettings"
         },
         {
@@ -96,7 +96,7 @@
             "type": "string",
             "label": "Db UserName",
             "required": false,
-            "helpMarkDown": "SonarQube server 5.1 only. The username for the database user",
+            "helpMarkDown": "SonarQube server 5.1 and lower only. The username for the database user",
             "groupName": "dbSettings"
         },
         {
@@ -104,7 +104,7 @@
             "type": "string",
             "label": "Db User Password",
             "required": false,
-            "helpMarkDown": "SonarQube server 5.1 only. The password for the database user",
+            "helpMarkDown": "SonarQube server 5.1 and lower only. The password for the database user",
             "groupName": "dbSettings"
         }
     ],

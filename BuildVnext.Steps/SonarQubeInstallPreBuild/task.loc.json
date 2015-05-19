@@ -42,7 +42,7 @@
       "type": "string",
       "label": "ms-resource:loc.input.label.projectKey",
       "required": true,
-      "helpMarkDown": "The project key as configured in SonarQube, i.e. sonar.projectKey",
+      "helpMarkDown": "The SonarQube project unique key, i.e. sonar.projectKey",
       "groupName": "project"
     },
     {
@@ -50,7 +50,7 @@
       "type": "string",
       "label": "ms-resource:loc.input.label.projectName",
       "required": true,
-      "helpMarkDown": "The project name as configured in SonarQube, i.e. sonar.ProjectName",
+      "helpMarkDown": "The SonarQube project name, i.e. sonar.ProjectName",
       "groupName": "project"
     },
     {
@@ -59,7 +59,7 @@
       "label": "ms-resource:loc.input.label.projectVersion",
       "defaultValue": "1.0",
       "required": true,
-      "helpMarkDown": "The project version as configured in SonarQube, i.e. sonar.projectVersion",
+      "helpMarkDown": "The SonarQube project version, i.e. sonar.projectVersion",
       "groupName": "project"
     },
     {
@@ -67,7 +67,7 @@
       "type": "string",
       "label": "ms-resource:loc.input.label.serverUrl",
       "required": true,
-      "helpMarkDown": "The sonar host url, e.g. http://fabrikam-sonar:9000/",
+      "helpMarkDown": "The SonarQube Server url, e.g. http://fabrikam-sonar:9000/",
       "groupName": "serverSettings"
     },
     {
@@ -90,24 +90,24 @@
       "name": "dbUrl",
       "type": "string",
       "label": "ms-resource:loc.input.label.dbUrl",
-      "required": true,
-      "helpMarkDown": "SonarQube server 5.1 only. The database connection setting, e.g. jdbc:jtds:sqlserver://localhost/sonar;SelectMethod=Cursor",
+      "required": false,
+      "helpMarkDown": "SonarQube server 5.1 and lower only. The database connection setting, e.g. jdbc:jtds:sqlserver://localhost/sonar;SelectMethod=Cursor",
       "groupName": "dbSettings"
     },
     {
       "name": "dbUsername",
       "type": "string",
       "label": "ms-resource:loc.input.label.dbUsername",
-      "required": true,
-      "helpMarkDown": "SonarQube server 5.1 only. The username for the database user",
+      "required": false,
+      "helpMarkDown": "SonarQube server 5.1 and lower only. The username for the database user",
       "groupName": "dbSettings"
     },
     {
       "name": "dbPassword",
       "type": "string",
       "label": "ms-resource:loc.input.label.dbPassword",
-      "required": true,
-      "helpMarkDown": "SonarQube server 5.1 only. The password for the database user",
+      "required": false,
+      "helpMarkDown": "SonarQube server 5.1 and lower only. The password for the database user",
       "groupName": "dbSettings"
     }
   ],

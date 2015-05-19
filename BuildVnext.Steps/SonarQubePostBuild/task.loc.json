@@ -19,7 +19,7 @@
   "demands": [
     "java"
   ],
-  "instanceNameFormat": "Upload results to SonarQube",
+  "instanceNameFormat": "Upload analysis results to SonarQube",
   "execution": {
     "PowerShell": {
       "target": "$(currentDirectory)\\SonarQubePostBuild.ps1",
