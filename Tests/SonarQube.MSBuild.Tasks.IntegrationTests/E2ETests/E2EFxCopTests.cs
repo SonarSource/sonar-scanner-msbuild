@@ -317,7 +317,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
         [TestMethod] // SONARMSBRU-20: Do not run FxCop (nor other rule engines) on test projects
         [Description("FxCop analysis should not be run if the project is a test project")]
-        public void E2E_FxCop_TestProject()
+        public void E2E_FxCop_TestProject_Explicit()
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
@@ -352,14 +352,135 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
             logger.AssertExpectedTargetOrdering(
-                // We've explicitly marked the project as a test project so we don't expect the "categorise project" target to run
                 TargetConstants.CoreCompileTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.WriteProjectDataTarget);
 
-            logger.AssertTargetNotExecuted(TargetConstants.FxCopTarget);
+            logger.AssertTargetExecuted(TargetConstants.FxCopTarget);
+            logger.AssertTaskNotExecuted(TargetConstants.FxCopTask);
+            logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
+
+            // We've explicitly marked the project as a test project so we don't expect the "categorise project" target to run
+            logger.AssertTargetNotExecuted(TargetConstants.CategoriseProjectTarget);
+
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+            ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());
+        }
+
+        [TestMethod] // SONARMSBRU-20: Do not run FxCop (nor other rule engines) on test projects
+        [Description("FxCop analysis should not be run if the project is a test project")]
+        public void E2E_FxCop_TestProject_TestProjectTypeGuid()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
+            preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
+            preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
+
+            preImportProperties.ProjectTypeGuids = "X;" + TargetConstants.MsTestProjectTypeGuid.ToUpperInvariant() + ";Y";
+
+            preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
+            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
+
+            // Add a file to the project
+            string itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
+            projectRoot.AddItem("Compile", itemPath);
+            projectRoot.Save();
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
+
+            // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertExpectedTargetOrdering(
+                TargetConstants.CategoriseProjectTarget,
+                TargetConstants.CoreCompileTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
+                TargetConstants.OverrideFxCopSettingsTarget,
+                TargetConstants.DefaultBuildTarget,
+                TargetConstants.WriteProjectDataTarget);
+
+            // We expect the FxCop target to be executed...
+            logger.AssertTargetExecuted(TargetConstants.FxCopTarget);
+            // ... but we don't expect the FxCop *task* to have executed
+            logger.AssertTaskNotExecuted(TargetConstants.FxCopTask);
+
+            logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
+
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+            ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());
+        }
+
+
+        [TestMethod] // SONARMSBRU-20: Do not run FxCop (nor other rule engines) on test projects
+        [Description("FxCop analysis should not be run if the project is a test project")]
+        public void E2E_FxCop_TestProject_TestProjectByName()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
+            preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
+            preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
+
+            preImportProperties.SonarQubeConfigPath = rootInputFolder;
+
+            preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
+            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
+
+            // Create a config file in the config folder containing a reg ex to identify tests projects
+            AnalysisConfig config = new AnalysisConfig();
+            config.SetValue(IsTestFileByName.TestRegExSettingId, ".testp.");
+            string configFullPath = Path.Combine(rootInputFolder, FileConstants.ConfigFileName);
+            config.Save(configFullPath);
+
+            // Create a project with a file name that will match the reg ex
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "MyTestProject.proj");
+            ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
+
+
+            // Add a file to the project
+            string itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
+            projectRoot.AddItem("Compile", itemPath);
+            projectRoot.Save();
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
+
+            // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertExpectedTargetOrdering(
+                TargetConstants.CategoriseProjectTarget,
+                TargetConstants.CoreCompileTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
+                TargetConstants.OverrideFxCopSettingsTarget,
+                TargetConstants.DefaultBuildTarget,
+                TargetConstants.WriteProjectDataTarget);
+
+            // We expect the FxCop target to be executed...
+            logger.AssertTargetExecuted(TargetConstants.FxCopTarget);
+            // ... but we don't expect the FxCop *task* to have executed
+            logger.AssertTaskNotExecuted(TargetConstants.FxCopTask);
+
             logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
 
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);

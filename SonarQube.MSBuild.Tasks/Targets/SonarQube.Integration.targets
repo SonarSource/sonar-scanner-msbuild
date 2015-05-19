@@ -275,7 +275,8 @@
          the SonarQube settings -->
     <SonarQubeRunMSCodeAnalysis>$(SonarQubeRulesetExists)</SonarQubeRunMSCodeAnalysis>
     <SonarQubeRunMSCodeAnalysis Condition="$(SonarQubeExclude) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
-    <SonarQubeRunMSCodeAnalysis Condition="$(SonarQubeTestProject) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
+    <!-- It's too early to be certain whether the project is a test project or not as the "categorise" target
+         hasn't run yet. We'll exclude test projects from FxCop analysis in "OverrideCodeAnalysisProperties". -->
 
     <RunCodeAnalysisOnce>$(SonarQubeRunMSCodeAnalysis)</RunCodeAnalysisOnce>
   </PropertyGroup>
@@ -283,6 +284,11 @@
   <!-- We want to override any properties that have been set declaratively in the project -->
   <Target Name="OverrideCodeAnalysisProperties" Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeOutputPath) != '' "
           BeforeTargets="RunCodeAnalysis" >
+
+    <PropertyGroup>
+      <!-- We've determined by now whether the project is a test project or not. If it is, don't run FxCop. -->
+      <SonarQubeRunMSCodeAnalysis Condition="$(SonarQubeTestProject) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
+    </PropertyGroup>
 
     <Message Condition="$(SonarQubeRulesetExists) != 'true' "
              Importance="normal"
