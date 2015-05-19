@@ -193,7 +193,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
             logger.AssertExpectedTargetOrdering(TargetConstants.CoreCompileTarget,
-                TargetConstants.CalculateSonarQubeFileListsTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 TargetConstants.FxCopTarget,
                 TargetConstants.SetFxCopResultsTarget,
@@ -246,11 +246,63 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
             logger.AssertExpectedTargetOrdering(TargetConstants.CoreCompileTarget,
-                TargetConstants.CalculateSonarQubeFileListsTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
+                TargetConstants.OverrideFxCopSettingsTarget,
+                
+                TargetConstants.FxCopTarget,
+                TargetConstants.SetFxCopResultsTarget, // should set the FxCop results after the platform "run Fx Cop" target
+                
+                TargetConstants.DefaultBuildTarget,
+                TargetConstants.WriteProjectDataTarget);
+
+            logger.AssertTargetExecuted(TargetConstants.SetFxCopResultsTarget);
+
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+            ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());
+        }
+
+        [TestMethod]
+        [Description("FxCop analysis should not be run if the project is excluded")]
+        public void E2E_FxCop_ExcludedProject()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
+            preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
+            preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
+
+            preImportProperties.SonarQubeExclude = "true";
+
+            preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
+            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
+
+            // Add a file to the project
+            string itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
+            projectRoot.AddItem("Compile", itemPath);
+            projectRoot.Save();
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
+
+            // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertExpectedTargetOrdering(TargetConstants.CoreCompileTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.WriteProjectDataTarget);
 
+            logger.AssertTargetNotExecuted(TargetConstants.FxCopTarget);
             logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
 
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);

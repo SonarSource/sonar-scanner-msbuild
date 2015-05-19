@@ -133,11 +133,11 @@ namespace SonarRunner.Shim.Tests
             // Create the content files under the relevant project directories
             string contentFile = CreateEmptyFile(projectWithContentDir, "contentFile1.txt");
             string contentFileList = CreateFile(projectWithContentDir, "contentList.txt", contentFile);
-            AddAnalysisResult(contentProjectInfo, AnalysisType.ContentFiles, contentFileList);
+            AddAnalysisResult(contentProjectInfo, AnalysisType.FilesToAnalyze, contentFileList);
 
             string managedFile = CreateEmptyFile(managedProjectDir, "managedFile1.cs");
             string managedFileList = CreateFile(managedProjectDir, "managedList.txt", managedFile);
-            AddAnalysisResult(managedProjectInfo, AnalysisType.ManagedCompilerInputs, managedFileList);
+            AddAnalysisResult(managedProjectInfo, AnalysisType.FilesToAnalyze, managedFileList);
 
             TestLogger logger = new TestLogger();
             AnalysisConfig config = CreateValidConfig(testDir);
@@ -169,7 +169,7 @@ namespace SonarRunner.Shim.Tests
 
             // Create a content file, but not under the project directory
             string contentFileList = CreateFile(projectDir, "contentList.txt", Path.Combine(testDir, "contentFile1.txt"));
-            AddAnalysisResult(projectInfo, AnalysisType.ContentFiles, contentFileList);
+            AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, contentFileList);
 
             TestLogger logger = new TestLogger();
             AnalysisConfig config = CreateValidConfig(testDir);
@@ -214,11 +214,8 @@ namespace SonarRunner.Shim.Tests
                 ProjectType = ProjectType.Product
             };
 
-            string managedFileList = CreateFileList(projectBaseDir, "managedList.txt", existingManagedFile, missingManagedFile);
-            projectInfo.AddAnalyzerResult(AnalysisType.ManagedCompilerInputs, managedFileList);
-
-            string contentFileLIst = CreateFileList(projectBaseDir, "contentList.txt", existingContentFile, missingContentFile);
-            projectInfo.AddAnalyzerResult(AnalysisType.ContentFiles, contentFileLIst);
+            string analysisFileList = CreateFileList(projectBaseDir, "filesToAnalyze.txt", existingManagedFile, missingManagedFile, existingContentFile, missingContentFile);
+            projectInfo.AddAnalyzerResult(AnalysisType.FilesToAnalyze, analysisFileList);
 
             string projectInfoDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "ProjectInfo1Dir");
             string projectInfoFilePath = Path.Combine(projectInfoDir, FileConstants.ProjectInfoFileName);

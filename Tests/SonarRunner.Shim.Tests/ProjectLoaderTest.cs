@@ -125,27 +125,15 @@ namespace SonarRunner.Shim.Tests
             }
 
             ProjectInfo projectInfo = descriptor.CreateProjectInfo();
-
-            // Create the compile list if any input files have been specified
-            if (descriptor.ManagedSourceFiles != null)
+            
+            // Create the analysis file list if any input files have been specified
+            if (descriptor.AllFiles.Any())
             {
-                string fullCompileListName = Path.Combine(descriptor.FullDirectoryPath, compileFiles);
-                File.WriteAllLines(fullCompileListName, descriptor.ManagedSourceFiles);
+                string fullAnalysisFileListPath = Path.Combine(descriptor.FullDirectoryPath, compileFiles);
+                File.WriteAllLines(fullAnalysisFileListPath, descriptor.AllFiles);
 
                 // Add the compile list as an analysis result
-                projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisType.ManagedCompilerInputs.ToString(), Location = fullCompileListName });
-            }
-
-            // Create the content list if any content files have been specified
-            if (descriptor.ContentFiles != null)
-            {
-                string contentFilesName = Path.Combine(descriptor.FullDirectoryPath, contentFiles);
-                File.WriteAllLines(contentFilesName, descriptor.ContentFiles);
-
-                // Add the FxCop report as an analysis result
-                var analysisResult = new AnalysisResult() { Id = AnalysisType.ContentFiles.ToString(), Location = contentFilesName };
-                descriptor.AnalysisResults.Add(analysisResult);
-                projectInfo.AnalysisResults.Add(analysisResult);
+                projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisType.FilesToAnalyze.ToString(), Location = fullAnalysisFileListPath });
             }
 
             // Create the FxCop report file

@@ -182,7 +182,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388
                 Assert.IsTrue(!string.IsNullOrWhiteSpace(fileListFilePath), "Test setup error: must supply the managedFileListFilePath as a list of files has been supplied");
                 File.WriteAllLines(fileListFilePath, files);
 
-                projectInfo.AddAnalyzerResult(AnalysisType.ManagedCompilerInputs, fileListFilePath);
+                projectInfo.AddAnalyzerResult(AnalysisType.FilesToAnalyze, fileListFilePath);
             }
 
             return projectInfo;

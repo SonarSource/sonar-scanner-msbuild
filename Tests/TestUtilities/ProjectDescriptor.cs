@@ -19,7 +19,6 @@ namespace TestUtilities
     /// and to check actual results against</remarks>
     public class ProjectDescriptor
     {
-
         public ProjectDescriptor()
         {
             this.AnalysisResults = new List<AnalysisResult>();
@@ -74,6 +73,23 @@ namespace TestUtilities
             get
             {
                 return Path.GetFileNameWithoutExtension(this.ProjectFileName);
+            }
+        }
+
+        public IEnumerable<string> AllFiles
+        {
+            get
+            {
+                List<string> files = new List<string>();
+                if (this.ManagedSourceFiles != null)
+                {
+                    files.AddRange(this.ManagedSourceFiles);
+                }
+                if (this.ContentFiles != null)
+                {
+                    files.AddRange(this.ContentFiles);
+                }
+                return files;
             }
         }
 
