@@ -37,7 +37,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Bootstrapper.Test
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deploy", "Deploy", "{37FB4C72-0F3D-4BF2-9F78-2780A76746A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Packaging", "Packaging\Packaging.proj", "{C8CFA33B-8733-4813-8C45-B7F88EE2340F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildStepPackaging", "Packaging\BuildStepPackaging.proj", "{C8CFA33B-8733-4813-8C45-B7F88EE2340F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="CreateStepPackage" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!-- Change this when the runner goes up in version-->
+    <BootstrapperDirName>SonarQube.MSBuild.Runner-0.9</BootstrapperDirName>
+    <!-- Needed to understand the output directory of referenced projects-->
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\</SourcesRoot>
+    <DeploymentDirectory>$(SourcesRoot)\DeploymentArtifacts\VsoBuildSteps\$(Configuration)\</DeploymentDirectory>
+    <!-- OutputPath is required by the Clean and Rebuild tasks -->
+    <OutputPath>$(DeploymentDirectory)</OutputPath>
+    <StepSourceDir>$(SourcesRoot)\VsoBuildStepSources\</StepSourceDir>
+    <PreBuildStepDestinationDir>$(DeploymentDirectory)\SonarQubePreBuild\</PreBuildStepDestinationDir>
+    <BootstrapperDirectory>$(PreBuildStepDestinationDir)\$(BootstrapperDirName)</BootstrapperDirectory>
+    <TargetsFileSourcePath>$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.ImportBefore.targets</TargetsFileSourcePath>
+    <ProjectGuid>{C8CFA33B-8733-4813-8C45-B7F88EE2340F}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj">
+      <Project>{60aacbb4-1661-4eeb-a029-91289c1d3f7e}</Project>
+      <Name>SonarQube.Bootstrapper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj">
+      <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>
+      <Name>SonarQube.MSBuild.Tasks</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <SonarQubeBootstrapperAssemblies Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\*" Exclude="$(MSBuildThisFileFullPath)\..\..\SonarQube.Bootstrapper\bin\$(Configuration)\*.pdb" />
+    <OtherStepFiles Include="$(StepSourceDir)\**\*">
+    </OtherStepFiles>
+    <StepOutput Include="$(DeploymentDirectory)">
+    </StepOutput>
+  </ItemGroup>
+  <Target Name="CreateStepPackage">
+    <CallTarget Targets="CleanExistingStepPackage" />
+    <CallTarget Targets="CopyStepFiles" />
+  </Target>
+  <Target Name="CopyStepFiles">
+    <!-- Copy the bootstrapper assemblies -->
+    <Message Text="Copying the @(SonarQubeBootstrapperAssemblies-&gt;Count()) bootstarpper files to $(BootstrapperDirectory)">
+    </Message>
+    <Copy SourceFiles="@(SonarQubeBootstrapperAssemblies)" DestinationFolder="$(BootstrapperDirectory)">
+    </Copy>
+    <!-- Copy the targets file-->
+    <Error Condition="!Exists($(TargetsFileSourcePath))" Text="Could not find the targets file at $(TargetsFileSourcePath)" />
+    <Message Text="Copying the targets files $(TargetsFileSourcePath) to $(BootstrapperDirectory)">
+    </Message>
+    <Copy SourceFiles="$(TargetsFileSourcePath)" DestinationFolder="$(BootstrapperDirectory)">
+    </Copy>
+    <!-- Copy the rest of the Step files (json, icons, scripts, the sonar-runner etc.) -->
+    <Message Text="Copying the @(OtherStepFiles-&gt;Count()) files from $(StepSourceDir) to $(DeploymentDirectory)">
+    </Message>
+    <Copy SourceFiles="@(OtherStepFiles)" DestinationFolder="$(DeploymentDirectory)\%(RecursiveDir)">
+    </Copy>
+  </Target>
+  <Target Name="CleanExistingStepPackage" AfterTargets="Clean">
+    <RemoveDir Directories="@(StepOutput)" />
+  </Target>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
