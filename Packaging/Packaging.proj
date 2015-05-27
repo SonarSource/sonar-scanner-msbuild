@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="CreateStepPackage" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    
+    <!-- Change this when the runner goes up in version-->
+    <BootstrapperDirName>SonarQube.MSBuild.Runner-0.9</BootstrapperDirName>
+    
+    <!-- Needed to understand the output directory of referenced projects-->
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+
+    <TaskOutputDir>$(MSBuildThisFileFullPath)\..\..\VsoBuildSteps\$(Configuration)\</TaskOutputDir>
+    <TaskSourceDir>$(MSBuildThisFileFullPath)\..\..\VsoBuildStepSources\</TaskSourceDir>
+    <PreBuildTaskDestinationDir>$(TaskOutputDir)\SonarQubeInstallPreBuild\</PreBuildTaskDestinationDir>
+    <BootstrapperDirectory>$(PreBuildTaskDestinationDir)\$(BootstrapperDirName)</BootstrapperDirectory>
+    <TargetsFileSourcePath>$(MSBuildThisFileFullPath)\..\..\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.ImportBefore.targets</TargetsFileSourcePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj">
+      <Project>{60aacbb4-1661-4eeb-a029-91289c1d3f7e}</Project>
+      <Name>SonarQube.Bootstrapper</Name>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <SonarQubeBootstraperAssemblies 
+      Include="$(MSBuildThisFileFullPath)\..\..\SonarQube.Bootstrapper\bin\$(Configuration)\*" 
+      Exclude="$(MSBuildThisFileFullPath)\..\..\SonarQube.Bootstrapper\bin\$(Configuration)\*.pdb"/>
+    <OtherTaskFiles Include="$(TaskSourceDir)\**\*"></OtherTaskFiles>
+    <TaskOutput Include="$(TaskOutputDir)"></TaskOutput>
+  </ItemGroup>
+
+  <Target Name="CreateStepPackage">
+    <CallTarget Targets="CleanExistingStepPackage" />
+    <CallTarget Targets="CopyStepFiles" />
+  </Target>
+  
+  <Target Name="CopyStepFiles">
+
+    <!-- Copy the bootstrapper assemblies -->
+    <Message Text="Copying the @(SonarQubeBootstraperAssemblies->Count()) bootstarpper files to $(BootstrapperDirectory)"></Message>
+    <Copy
+      SourceFiles="@(SonarQubeBootstraperAssemblies)"
+      DestinationFolder="$(BootstrapperDirectory)" ></Copy>
+
+    <!-- Copy the targets file-->
+    <Error Condition="!Exists($(TargetsFileSourcePath))" Text="Could not find the targets file at $(TargetsFileSourcePath)" />
+    <Message Text="Copying the targets files $(TargetsFileSourcePath) to $(BootstrapperDirectory)"></Message>
+    <Copy
+      SourceFiles="$(TargetsFileSourcePath)"
+      DestinationFolder="$(BootstrapperDirectory)" ></Copy>
+
+    <!-- Copy the rest of the task files (json, icons, scripts, the sonar-runner etc.) -->
+    <Message Text="Copying the @(OtherTaskFiles->Count()) files from $(TaskSourceDir) to $(TaskOutputDir)"></Message>
+    <Copy
+      SourceFiles="@(OtherTaskFiles)"
+      DestinationFolder="$(TaskOutputDir)\%(RecursiveDir)" ></Copy>
+
+  </Target>
+
+  <Target Name="CleanExistingStepPackage" BeforeTargets="Clean">
+    <RemoveDir Directories="@(TaskOutput)"  />
+  </Target>
+  
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  
+</Project>

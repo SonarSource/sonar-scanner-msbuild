@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.22823.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.MSBuild.Tasks", "SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
 EndProject
@@ -34,6 +34,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Bootstrapper", "SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj", "{60AACBB4-1661-4EEB-A029-91289C1D3F7E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Bootstrapper.Tests", "Tests\SonarQube.Bootstrapper.Tests\SonarQube.Bootstrapper.Tests.csproj", "{3410EA30-5F7A-4E0F-B5F6-8E83077A20DB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deploy", "Deploy", "{37FB4C72-0F3D-4BF2-9F78-2780A76746A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Packaging", "Packaging\Packaging.proj", "{C8CFA33B-8733-4813-8C45-B7F88EE2340F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -195,6 +199,17 @@ Global
 		{3410EA30-5F7A-4E0F-B5F6-8E83077A20DB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{3410EA30-5F7A-4E0F-B5F6-8E83077A20DB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{3410EA30-5F7A-4E0F-B5F6-8E83077A20DB}.Release|x86.ActiveCfg = Release|Any CPU
+		{C8CFA33B-8733-4813-8C45-B7F88EE2340F}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{C8CFA33B-8733-4813-8C45-B7F88EE2340F}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{C8CFA33B-8733-4813-8C45-B7F88EE2340F}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{C8CFA33B-8733-4813-8C45-B7F88EE2340F}.Debug|x86.ActiveCfg = Debug|x86
+		{C8CFA33B-8733-4813-8C45-B7F88EE2340F}.Debug|x86.Build.0 = Debug|x86
+		{C8CFA33B-8733-4813-8C45-B7F88EE2340F}.Release|Any CPU.ActiveCfg = Debug|x86
+		{C8CFA33B-8733-4813-8C45-B7F88EE2340F}.Release|Any CPU.Build.0 = Debug|x86
+		{C8CFA33B-8733-4813-8C45-B7F88EE2340F}.Release|Mixed Platforms.ActiveCfg = Debug|x86
+		{C8CFA33B-8733-4813-8C45-B7F88EE2340F}.Release|Mixed Platforms.Build.0 = Debug|x86
+		{C8CFA33B-8733-4813-8C45-B7F88EE2340F}.Release|x86.ActiveCfg = Debug|x86
+		{C8CFA33B-8733-4813-8C45-B7F88EE2340F}.Release|x86.Build.0 = Debug|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -208,5 +223,6 @@ Global
 		{81E8D103-270F-4363-87D1-72BE7FC4F94A} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{3410EA30-5F7A-4E0F-B5F6-8E83077A20DB} = {E04A4D31-AC10-4F56-9678-5D538932578C}
+		{C8CFA33B-8733-4813-8C45-B7F88EE2340F} = {37FB4C72-0F3D-4BF2-9F78-2780A76746A2}
 	EndGlobalSection
 EndGlobal
