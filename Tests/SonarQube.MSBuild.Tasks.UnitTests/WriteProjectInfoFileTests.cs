@@ -23,7 +23,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         private const string ExpectedProjectInfoFileName = "ProjectInfo.xml";
 
         public TestContext TestContext { get; set; }
-        
+
         #region Tests
 
         [TestMethod]
@@ -80,12 +80,12 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // Note: the TaskItem class won't allow the item spec or metadata values to be null,
             // so we aren't testing those
             resultInputs.Add(CreateMetadataItem("itemSpec1", "abc", "def")); // Id field is missing
-            resultInputs.Add(CreateAnalysisTaskItem("\r", "should be ignored - whitespace")); // whitespace id
-            resultInputs.Add(CreateAnalysisTaskItem("should be ignored - whitespace", " ")); // whitespace location
+            resultInputs.Add(CreateAnalysisResultTaskItem("\r", "should be ignored - whitespace")); // whitespace id
+            resultInputs.Add(CreateAnalysisResultTaskItem("should be ignored - whitespace", " ")); // whitespace location
 
             // Add valid task items
-            resultInputs.Add(CreateAnalysisTaskItem("id1", "location1"));
-            resultInputs.Add(CreateAnalysisTaskItem("id2", "location2", "md1", "md1 value", "md2", "md2 value")); // valid but with extra metadata
+            resultInputs.Add(CreateAnalysisResultTaskItem("id1", "location1"));
+            resultInputs.Add(CreateAnalysisResultTaskItem("id2", "location2", "md1", "md1 value", "md2", "md2 value")); // valid but with extra metadata
 
             task.AnalysisResults = resultInputs.ToArray();
 
@@ -100,6 +100,75 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             AssertAnalysisResultExists(createdProjectInfo, "id1", "location1");
             AssertAnalysisResultExists(createdProjectInfo, "id2", "location2");
             AssertExpectedAnalysisResultCount(2, createdProjectInfo);
+        }
+
+        [TestMethod]
+        [Description("Tests that analysis settings are correctly handled")]
+        public void WriteProjectInfoFile_AnalysisSettings()
+        {
+            // Arrange
+            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            Guid projectGuid = Guid.NewGuid();
+
+            WriteProjectInfoFile task = new WriteProjectInfoFile();
+
+            DummyBuildEngine buildEngine = new DummyBuildEngine();
+            task.BuildEngine = buildEngine;
+            task.FullProjectPath = "x:\\analysisSettings.csproj";
+            task.IsTest = false;
+            task.OutputFolder = testFolder;
+            task.ProjectGuid = projectGuid.ToString("B");
+            task.ProjectName = "MyProject";
+
+            // Example of a valid setting:
+            // <SonarQubeModuleSetting Include="sonar.resharper.projectname">
+            //    <Value>C:\zzz\reportlocation.xxx</Value>
+            // </SonarQubeModuleSetting>                
+
+            List<ITaskItem> resultInputs = new List<ITaskItem>();
+
+            // Add invalid task items
+            // Note: the TaskItem class won't allow the item spec or metadata values to be null,
+            // so we aren't testing those
+            resultInputs.Add(CreateMetadataItem("invalid.missing.value.metadata", "NotValueMetadata", "missing value 1")); // value field is missing
+            resultInputs.Add(CreateAnalysisSettingTaskItem(" ", "should be ignored - key is whitespace only")); // whitespace key
+            resultInputs.Add(CreateAnalysisSettingTaskItem("invalid spaces in key", "spaces.in.key")); // spaces in key
+            resultInputs.Add(CreateAnalysisSettingTaskItem(" invalid.key.has.leading.whitespace", "leading whitespace in key"));
+            resultInputs.Add(CreateAnalysisSettingTaskItem("invalid.key.has.trailing.whitespace ", "trailing whitespace in key"));
+            resultInputs.Add(CreateAnalysisSettingTaskItem(".invalid.non.alpha.first.character", "non alpha first character"));
+
+            // Add valid task items
+            resultInputs.Add(CreateAnalysisSettingTaskItem("valid.setting.1", @"c:\dir1\dir2\file.txt"));
+            resultInputs.Add(CreateAnalysisSettingTaskItem("valid.value.is.whitespace.only", " "));
+            resultInputs.Add(CreateMetadataItem("valid.metadata.name.is.case.insensitive", BuildTaskConstants.ModuleSettingValueMetadataName.ToUpperInvariant(), "uppercase metadata name")); // metadata name is in the wrong case
+            resultInputs.Add(CreateAnalysisSettingTaskItem("valid.value.has.whitespace", "valid setting with whitespace"));
+            resultInputs.Add(CreateAnalysisSettingTaskItem("X", "single character key"));
+            resultInputs.Add(CreateAnalysisSettingTaskItem("Y...", "single character followed by periods"));
+
+            task.AnalysisSettings = resultInputs.ToArray();
+
+            // Act
+            ProjectInfo createdProjectInfo;
+            createdProjectInfo = ExecuteAndCheckSucceeds(task, testFolder);
+
+            // Assert
+            buildEngine.AssertSingleWarningExists("invalid.missing.value.metadata");
+            // Can't easily check for the message complaining against the empty eky
+            buildEngine.AssertSingleWarningExists("invalid spaces in key");
+            buildEngine.AssertSingleWarningExists(" invalid.key.has.leading.whitespace");
+            buildEngine.AssertSingleWarningExists("invalid.key.has.trailing.whitespace ");
+            buildEngine.AssertSingleWarningExists(".invalid.non.alpha.first.character");
+
+            AssertAnalysisSettingExists(createdProjectInfo, "valid.setting.1", @"c:\dir1\dir2\file.txt");
+            AssertAnalysisSettingExists(createdProjectInfo, "valid.value.is.whitespace.only", " ");
+            AssertAnalysisSettingExists(createdProjectInfo, "valid.value.has.whitespace", "valid setting with whitespace");
+            AssertAnalysisSettingExists(createdProjectInfo, "valid.metadata.name.is.case.insensitive", "uppercase metadata name");
+            AssertAnalysisSettingExists(createdProjectInfo, "X", "single character key");
+            AssertAnalysisSettingExists(createdProjectInfo, "Y...", "single character followed by periods");
+
+
+            AssertExpectedAnalysisSettingsCount(6, createdProjectInfo);
         }
 
         [TestMethod]
@@ -127,17 +196,24 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             Assert.AreEqual(1, engine.Warnings.Count, "Expecting a build warning as the ProjectGuid is missing");
 
             BuildWarningEventArgs firstWarning = engine.Warnings[0];
-            Assert.IsNotNull(firstWarning.Message, "Warning message should not be null");   
+            Assert.IsNotNull(firstWarning.Message, "Warning message should not be null");
         }
 
         #endregion
 
         #region Helper methods
 
-        private static ITaskItem CreateAnalysisTaskItem(string id, string location, params string[] idAndValuePairs)
+        private static ITaskItem CreateAnalysisResultTaskItem(string id, string location, params string[] idAndValuePairs)
         {
             ITaskItem item = CreateMetadataItem(location, idAndValuePairs);
             item.SetMetadata(BuildTaskConstants.ResultMetadataIdProperty, id);
+            return item;
+        }
+
+        private static ITaskItem CreateAnalysisSettingTaskItem(string key, string value)
+        {
+            ITaskItem item = new TaskItem(key);
+            item.SetMetadata(BuildTaskConstants.ModuleSettingValueMetadataName, value);
             return item;
         }
 
@@ -148,7 +224,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             int dummy = Math.DivRem(idAndValuePairs.Length, 2, out remainder);
             Assert.AreEqual(0, remainder, "Test setup error: the supplied list should contain id-location pairs");
 
-            for(int index = 0; index < idAndValuePairs.Length; index += 2)
+            for (int index = 0; index < idAndValuePairs.Length; index += 2)
             {
                 item.SetMetadata(idAndValuePairs[index], idAndValuePairs[index + 1]);
             }
@@ -178,20 +254,39 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         private static void AssertAnalysisResultExists(ProjectInfo actual, string expectedId, string expectedLocation)
         {
             Assert.IsNotNull(actual, "Supplied project info should not be null");
-            Assert.IsNotNull(actual.AnalysisResults, "AnalysisResults array should not be null");
+            Assert.IsNotNull(actual.AnalysisResults, "AnalysisResults should not be null");
 
             AnalysisResult result = actual.AnalysisResults.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
             Assert.IsNotNull(result, "AnalysisResult with the expected id does not exist. Id: {0}", expectedId);
 
-            Assert.AreEqual(result.Location, expectedLocation, "Analysis result does not have the expected location");
+            Assert.AreEqual(expectedLocation, result.Location, "Analysis result does not have the expected location");
         }
 
         private static void AssertExpectedAnalysisResultCount(int count, ProjectInfo actual)
         {
             Assert.IsNotNull(actual, "Supplied project info should not be null");
-            Assert.IsNotNull(actual.AnalysisResults, "AnalysisResults array should not be null");
+            Assert.IsNotNull(actual.AnalysisResults, "AnalysisResults should not be null");
 
             Assert.AreEqual(count, actual.AnalysisResults.Count, "Unexpected number of AnalysisResult items");
+        }
+
+        private static void AssertAnalysisSettingExists(ProjectInfo actual, string expectedId, string expectedValue)
+        {
+            Assert.IsNotNull(actual, "Supplied project info should not be null");
+            Assert.IsNotNull(actual.AnalysisSettings, "AdditionalSettings should not be null");
+
+            AnalysisSetting setting = actual.AnalysisSettings.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
+            Assert.IsNotNull(setting, "AnalysisSetting with the expected id does not exist. Id: {0}", expectedId);
+
+            Assert.AreEqual(expectedValue, setting.Value, "Setting does not have the expected value");
+        }
+
+        private static void AssertExpectedAnalysisSettingsCount(int count, ProjectInfo actual)
+        {
+            Assert.IsNotNull(actual, "Supplied project info should not be null");
+            Assert.IsNotNull(actual.AnalysisSettings, "AdditionalSettings should not be null");
+
+            Assert.AreEqual(count, actual.AnalysisSettings.Count, "Unexpected number of AdditionalSettings items");
         }
 
         #endregion

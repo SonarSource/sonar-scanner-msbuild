@@ -161,5 +161,23 @@ namespace SonarQube.MSBuild.Tasks {
                 return ResourceManager.GetString("WPIF_ResolvingRelativePath", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analysis setting key &quot;{0}&quot; is invalid and will be ignored.
+        /// </summary>
+        internal static string WPIF_WARN_InvalidSettingKey {
+            get {
+                return ResourceManager.GetString("WPIF_WARN_InvalidSettingKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analysis setting &quot;{0}&quot; does not have &quot;Value&quot; metadata and will be ignored.
+        /// </summary>
+        internal static string WPIF_WARN_MissingValueMetadata {
+            get {
+                return ResourceManager.GetString("WPIF_WARN_MissingValueMetadata", resourceCulture);
+            }
+        }
     }
 }

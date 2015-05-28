@@ -237,6 +237,7 @@
        IsTest="$(SonarQubeTestProject)"
        IsExcluded="$(SonarQubeExclude)"
        AnalysisResults="@(AnalysisResults)"
+       AnalysisSettings="@(SonarQubeSetting)"
        OutputFolder="$(ProjectSpecificDir)" />
   </Target>
 

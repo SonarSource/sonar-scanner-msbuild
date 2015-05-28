@@ -127,7 +127,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             Assert.IsTrue(result, "Expecting the task to succeed");
             Assert.IsTrue(task.IsTest, "Expecting the file to be recognised as a test");
 
-            dummyEngine.AssertMessageExists(IsTestFileByName.MaxConfigRetryPeriodInMilliseconds.ToString(), IsTestFileByName.DelayBetweenRetriesInMilliseconds.ToString());
+            dummyEngine.AssertSingleMessageExists(IsTestFileByName.MaxConfigRetryPeriodInMilliseconds.ToString(), IsTestFileByName.DelayBetweenRetriesInMilliseconds.ToString());
             dummyEngine.AssertNoErrors();
             dummyEngine.AssertNoWarnings();
         }
@@ -163,7 +163,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
             Assert.IsFalse(result, "Expecting the task to fail");
 
-            dummyEngine.AssertMessageExists(IsTestFileByName.MaxConfigRetryPeriodInMilliseconds.ToString(), IsTestFileByName.DelayBetweenRetriesInMilliseconds.ToString());
+            dummyEngine.AssertSingleMessageExists(IsTestFileByName.MaxConfigRetryPeriodInMilliseconds.ToString(), IsTestFileByName.DelayBetweenRetriesInMilliseconds.ToString());
             dummyEngine.AssertNoWarnings();
             dummyEngine.AssertSingleErrorExists();
         }

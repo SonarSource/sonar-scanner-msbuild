@@ -9,7 +9,24 @@ namespace SonarQube.MSBuild.Tasks
 {
     public static class BuildTaskConstants
     {
+        /// <summary>
+        /// Item name of the analysis result item type
+        /// </summary>
         public const string ResultItemName = "AnalysisResult";
+
+        /// <summary>
+        /// Name of the analysis result "id" metadata item
+        /// </summary>
         public const string ResultMetadataIdProperty = "Id";
+
+        /// <summary>
+        /// Item name of the analysis setting item type
+        /// </summary>
+        public const string ModuleSettingItemName = "SonarQubeSetting";
+
+        /// <summary>
+        /// Name of the analysis setting "value" metadata item
+        /// </summary>
+        public const string ModuleSettingValueMetadataName = "Value";
     }
 }

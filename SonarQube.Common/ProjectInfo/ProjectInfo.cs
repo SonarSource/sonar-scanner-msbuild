@@ -72,6 +72,12 @@ namespace SonarQube.Common
         /// </summary>
         public List<AnalysisResult> AnalysisResults { get; set; }
 
+
+        /// <summary>
+        /// List of additional analysis settings
+        /// </summary>
+        public List<AnalysisSetting> AnalysisSettings { get; set; }
+
         #endregion
 
         #region Serialization
