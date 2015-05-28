@@ -153,6 +153,62 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388
             }
         }
 
+        [TestMethod]
+        public void PropertiesWriter_AnalysisSettingsWritten()
+        {
+            // Tests that analysis settings in the ProjectInfo are written to the file
+            // Arrange
+            string projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_AnalysisSettingsWritten");
+            string productProject = CreateEmptyFile(projectBaseDir, "MyProduct.csproj");
+            
+            string productFile = CreateEmptyFile(projectBaseDir, "File.cs");
+            List<string> productFiles = new List<string>();
+            productFiles.Add(productFile);
+            string productFileListFilePath = Path.Combine(projectBaseDir, "productManagedFiles.txt");
+
+            ProjectInfo product = CreateProjectInfo("AnalysisSettingsTest.proj", "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5", productProject, false, productFiles, productFileListFilePath, null, null);
+
+            List<ProjectInfo> projects = new List<ProjectInfo>();
+            projects.Add(product);
+
+            TestLogger logger = new TestLogger();
+            AnalysisConfig config = new AnalysisConfig()
+            {
+                SonarProjectKey = "my_project_key",
+                SonarProjectName = "my_project_name",
+                SonarProjectVersion = "1.0",
+                SonarOutputDir = @"C:\my_folder"
+            };
+
+            // These are the settings we are going to check. The other config values are not checked.
+            product.AnalysisSettings = new List<AnalysisSetting>();
+            product.AnalysisSettings.Add(new AnalysisSetting() { Id = "my.setting1", Value = "setting1" });
+            product.AnalysisSettings.Add(new AnalysisSetting() { Id = "my.setting2", Value = "setting 2 with spaces" });
+            product.AnalysisSettings.Add(new AnalysisSetting() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" }); // path that will be escaped
+            
+            // Act
+            PropertiesWriter writer = new PropertiesWriter(config);
+            writer.WriteSettingsForProject(product, new string[] { productFile }, null, null);          
+            string fullActualPath = SaveToResultFile(projectBaseDir, "Actual.txt", writer.Flush());
+
+            // Assert
+            SonarQube.Common.FilePropertiesProvider propertyReader = new FilePropertiesProvider(fullActualPath);
+
+            AssertSettingExists(propertyReader, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting1", "setting1");
+            AssertSettingExists(propertyReader, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting2", "setting 2 with spaces");
+            AssertSettingExists(propertyReader, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
+        }
+
+        #endregion
+
+        #region Checks
+
+        private static void AssertSettingExists(FilePropertiesProvider propertyReader, string expectedId, string expectedValue)
+        {
+            string actualValue = propertyReader.GetProperty(expectedId); // will throw if the property is missing
+            Assert.AreEqual(expectedValue, actualValue, "Property does not have the expected value. Property: {0}", expectedId);
+        }
+
         #endregion
 
         #region Private methods
@@ -200,10 +256,11 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388
             return fullPath;
         }
 
-        private void SaveToResultFile(string testDir, string fileName, string content)
+        private string SaveToResultFile(string testDir, string fileName, string content)
         {
             string fullPath = CreateFile(testDir, fileName, content);
             this.TestContext.AddResultFile(fullPath);
+            return fullPath;
         }
         
         #endregion

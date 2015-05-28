@@ -386,6 +386,44 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         #endregion
+        
+        #region Project settings tests
+
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        public void WriteProjectInfo_AnalysisSettings()
+        {
+            // Check analysis settings are correctly passed from the targets to the task
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "content.proj.txt");
+            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+
+            // Add some items
+            AddItem(projectRoot, "UnrelatedItemType", "irrelevantItem"); // should be ignored
+            AddItem(projectRoot, "Compile", "IrrelevantFile.cs"); // should be ignored
+
+            AddItem(projectRoot, BuildTaskConstants.ModuleSettingItemName, "invalid.settings.no.value.metadata"); // invalid -> ignored
+
+            AddItem(projectRoot, BuildTaskConstants.ModuleSettingItemName, "valid.setting1", BuildTaskConstants.ModuleSettingValueMetadataName, "value1");
+            AddItem(projectRoot, BuildTaskConstants.ModuleSettingItemName, "valid.setting2...", BuildTaskConstants.ModuleSettingValueMetadataName, "value 2 with spaces");
+            AddItem(projectRoot, BuildTaskConstants.ModuleSettingItemName, "valid.path", BuildTaskConstants.ModuleSettingValueMetadataName, @"d:\aaa\bbb.txt");
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
+
+            // Assert
+            AssertSettingExists(projectInfo, "valid.setting1", "value1");
+            AssertSettingExists(projectInfo, "valid.setting2...", "value 2 with spaces");
+            AssertSettingExists(projectInfo, "valid.path", @"d:\aaa\bbb.txt");
+
+            Assert.AreEqual(3, projectInfo.AnalysisSettings.Count, "Unexpected number of analysis settings returned");        
+        }
+
+        #endregion
 
         #region Private methods
 
@@ -426,7 +464,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// output file was created.
         /// </summary>
         /// <returns>The project info file that was created during the build</returns>
-        private ProjectInfo ExecuteWriteProjectInfo(ProjectRootElement projectRoot, string rootOutputFolder)
+        private ProjectInfo ExecuteWriteProjectInfo(ProjectRootElement projectRoot, string rootOutputFolder, bool noWarningOrErrors = true)
         {
             projectRoot.Save();
             BuildLogger logger = new BuildLogger();
@@ -442,9 +480,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.CalculateFilesToAnalyzeTarget);
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.WriteProjectDataTarget);
 
-            logger.AssertNoWarningsOrErrors();
             logger.AssertTargetExecuted(TargetConstants.WriteProjectDataTarget);
 
+            if (noWarningOrErrors)
+            {
+                logger.AssertNoWarningsOrErrors();
+            }
+            
             // Check expected project outputs
             Assert.AreEqual(1, Directory.EnumerateDirectories(rootOutputFolder).Count(), "Only expecting one child directory to exist under the root analysis output folder");
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
@@ -548,6 +590,22 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             config.Save(fullPath);
         }
 
+        private static ProjectItemElement AddItem(ProjectRootElement projectRoot, string itemTypeName, string include, params string[] idAndValuePairs)
+        {
+            ProjectItemElement item = projectRoot.AddItem(itemTypeName, include);
+            
+            int remainder;
+            int dummy = Math.DivRem(idAndValuePairs.Length, 2, out remainder);
+            Assert.AreEqual(0, remainder, "Test setup error: the supplied list should contain id-location pairs");
+
+            for (int index = 0; index < idAndValuePairs.Length; index += 2)
+            {
+                item.AddMetadata(idAndValuePairs[index], idAndValuePairs[index + 1]);
+            }
+
+            return item;
+        }
+
         #endregion
 
         #region Assertions
@@ -597,6 +655,19 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
                 this.TestContext.WriteLine("Actual files: {1}{0}", Environment.NewLine, string.Join("\t" + Environment.NewLine, actualFiles));
                 throw;
             }
+        }
+
+        private void AssertSettingExists(ProjectInfo projectInfo, string expectedId, string expectedValue)
+        {
+            AnalysisSetting actualSetting;
+            bool found = projectInfo.TryGetAnalysisSetting(expectedId, out actualSetting);
+            Assert.IsTrue(found, "Expecting the analysis setting to be found. Id: {0}", expectedId);
+
+            // Check the implementation of TryGetAnalysisSetting
+            Assert.IsNotNull(actualSetting, "The returned setting should not be null if the function returned true");
+            Assert.AreEqual(expectedId, actualSetting.Id, "TryGetAnalysisSetting returned a setting with an unexpected id");
+
+            Assert.AreEqual(expectedValue, actualSetting.Value, "Setting has an unexpected value. Id: {0}", expectedId);
         }
 
         #endregion

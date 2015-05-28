@@ -154,4 +154,10 @@ Error: {1}</value>
   <data name="WPIF_ResolvingRelativePath" xml:space="preserve">
     <value>Attempting to resolve the file result path. Analysis type: {0}, path: {1}</value>
   </data>
+  <data name="WPIF_WARN_InvalidSettingKey" xml:space="preserve">
+    <value>Analysis setting key "{0}" is invalid and will be ignored</value>
+  </data>
+  <data name="WPIF_WARN_MissingValueMetadata" xml:space="preserve">
+    <value>Analysis setting "{0}" does not have "Value" metadata and will be ignored</value>
+  </data>
 </root>

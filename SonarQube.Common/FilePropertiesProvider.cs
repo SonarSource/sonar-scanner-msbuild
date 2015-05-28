@@ -90,11 +90,18 @@ namespace SonarQube.Common
             this.properties = new Dictionary<string, string>(PropertyKeyComparer);
             string allText = File.ReadAllText(fullPath);
 
+            //TODO: this expression only works for single-line values
+
             // Regular expression pattern: we're looking for matches that:
             // * start at the beginning of a line
             // * start with a character or number
-            // * consist of string of characters, numbers or "." without whitespace, followed by "=", followed by another string of characters up to the end of the line
-            string pattern = @"^(?<key>[\w|\.]+)=(?<value>[^\r\n]*)";
+            // * are in the form [key]=[value],
+            // * where [key] can  
+            //   - starts with an alpanumeric character.
+            //   - can be followed by any number of alphanumeric characters or .
+            //   - whitespace is not allowed
+            // * [value] can contain anything
+            string pattern = @"^(?<key>\w[\w\d\.-]*)=(?<value>[^\r\n]*)";
 
             foreach (Match match in Regex.Matches(allText, pattern, RegexOptions.Multiline))
             {

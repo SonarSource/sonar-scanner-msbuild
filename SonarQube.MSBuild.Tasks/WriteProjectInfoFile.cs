@@ -12,6 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -20,6 +22,17 @@ namespace SonarQube.MSBuild.Tasks
     /// </summary>
     public class WriteProjectInfoFile : Task
     {
+        /// <summary>
+        /// Regular expression to validate setting ids.
+        /// </summary>
+        /// <remarks>
+        /// Validation rules:
+        /// Must start with an alpanumeric character.
+        /// Can be followed by any number of alphanumeric characters or .
+        /// Whitespace is not allowed
+        /// </remarks>
+        private static readonly Regex ValidSettingKeyRegEx = new Regex(@"^\w[\w\d\.-]*$", RegexOptions.Compiled);
+
         #region Input properties
 
         // TODO: we can get this from this.BuildEngine.ProjectFileOfTaskNode; we don't need the caller to supply it. Same for the full path
@@ -37,9 +50,10 @@ namespace SonarQube.MSBuild.Tasks
         [Required]
         public bool IsExcluded { get; set; }
 
-
         [Required]
         public ITaskItem[] AnalysisResults { get; set; }
+
+        public ITaskItem[] AnalysisSettings { get; set; }
 
         /// <summary>
         /// The folder in which the file should be written
@@ -60,12 +74,12 @@ namespace SonarQube.MSBuild.Tasks
             pi.ProjectName = this.ProjectName;
             pi.FullPath = this.FullProjectPath;
 
-            // TODO: handle failures and missing values.
             Guid projectId;
             if (Guid.TryParse(this.ProjectGuid, out projectId))
             {
                 pi.ProjectGuid = projectId;
                 pi.AnalysisResults = TryCreateAnalysisResults(this.AnalysisResults);
+                pi.AnalysisSettings = TryCreateAnalysisSettings(this.AnalysisSettings);
 
                 string outputFileName = Path.Combine(this.OutputFolder, FileConstants.ProjectInfoFileName);
                 pi.Save(outputFileName);
@@ -140,6 +154,103 @@ namespace SonarQube.MSBuild.Tasks
                 };
             }
             return result;
+        }
+
+        /// <summary>
+        /// Attempts to convert the supplied task items into a list of <see cref="AnalysisSetting"/> objects
+        /// </summary>
+        private List<AnalysisSetting> TryCreateAnalysisSettings(ITaskItem[] resultItems)
+        {
+            List<AnalysisSetting> settings = new List<AnalysisSetting>();
+
+            if (resultItems != null)
+            {
+                foreach (ITaskItem resultItem in resultItems)
+                {
+                    AnalysisSetting result = TryCreateSettingFromItem(resultItem);
+                    if (result != null)
+                    {
+                        settings.Add(result);
+                    }
+                }
+            }
+            return settings;
+        }
+
+        /// <summary>
+        /// Attempts to create an <see cref="AnalysisSetting"/> from the supplied task item.
+        /// Returns null if the task item does not have the required metadata.
+        /// </summary>
+        private AnalysisSetting TryCreateSettingFromItem(ITaskItem taskItem)
+        {
+            Debug.Assert(taskItem != null, "Supplied task item should not be null");
+
+            AnalysisSetting setting = null;
+
+            string settingId;
+
+            if (TryGetSettingId(taskItem, out settingId))
+            {
+                // No validation for the value: can be anything, but the
+                // "Value" metadata item must exist
+                string settingValue;
+
+                if (TryGetSettingValue(taskItem, out settingValue))
+                {
+                    setting = new AnalysisSetting()
+                    {
+                        Id = settingId,
+                        Value = settingValue
+                    };
+                }
+            }
+            return setting;
+        }
+
+        /// <summary>
+        /// Attempts to extract the setting id from the supplied task item.
+        /// Logs warnings if the task item does not contain valid data.
+        /// </summary>
+        private bool TryGetSettingId(ITaskItem taskItem, out string settingId)
+        {
+            settingId = null;
+
+            string possibleKey = taskItem.ItemSpec;
+
+            bool isValid = ValidSettingKeyRegEx.IsMatch(possibleKey);
+            if (isValid)
+            {
+                settingId = possibleKey;
+            }
+            else
+            {
+                this.Log.LogWarning(Resources.WPIF_WARN_InvalidSettingKey, possibleKey);
+            }
+            return isValid;
+        }
+
+        /// <summary>
+        /// Attempts to return the value to use for the setting.
+        /// Logs warnings if the task item does not contain valid data.
+        /// </summary>
+        /// <remarks>The task should have a "Value" metadata item</remarks>
+        private bool TryGetSettingValue(ITaskItem taskItem, out string metadataValue)
+        {
+            bool success;
+
+            metadataValue  = taskItem.GetMetadata(BuildTaskConstants.ModuleSettingValueMetadataName);
+            Debug.Assert(metadataValue != null, "Not expecting the metadata value to be null even if the setting is missing");
+
+            if (metadataValue == string.Empty)
+            {
+                this.Log.LogWarning(Resources.WPIF_WARN_MissingValueMetadata, taskItem.ItemSpec);
+                success = false;
+            }
+            else
+            {
+                success = true;
+            }
+            return success;
         }
 
         #endregion
