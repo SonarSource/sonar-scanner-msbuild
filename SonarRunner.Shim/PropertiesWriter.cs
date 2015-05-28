@@ -145,6 +145,16 @@ namespace SonarRunner.Shim
             sb.AppendLine(string.Join(@",\" + Environment.NewLine, escapedFiles));
 
             sb.AppendLine();
+
+            if (project.AnalysisSettings != null && project.AnalysisSettings.Any())
+            {
+                foreach(AnalysisSetting setting in project.AnalysisSettings)
+                {
+                    sb.AppendFormat("{0}.{1}={2}", guid, setting.Id, Escape(setting.Value));
+                    sb.AppendLine();
+                }
+                sb.AppendLine();
+            }
         }
 
         #endregion

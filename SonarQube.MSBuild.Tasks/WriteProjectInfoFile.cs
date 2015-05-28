@@ -31,7 +31,7 @@ namespace SonarQube.MSBuild.Tasks
         /// Can be followed by any number of alphanumeric characters or .
         /// Whitespace is not allowed
         /// </remarks>
-        private static readonly Regex ValidSettingKeyRegEx = new Regex(@"^\w[\w\d\.]*$", RegexOptions.Compiled);
+        private static readonly Regex ValidSettingKeyRegEx = new Regex(@"^\w[\w\d\.-]*$", RegexOptions.Compiled);
 
         #region Input properties
 

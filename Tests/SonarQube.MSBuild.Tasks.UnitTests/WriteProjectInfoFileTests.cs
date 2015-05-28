@@ -145,6 +145,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             resultInputs.Add(CreateAnalysisSettingTaskItem("valid.value.has.whitespace", "valid setting with whitespace"));
             resultInputs.Add(CreateAnalysisSettingTaskItem("X", "single character key"));
             resultInputs.Add(CreateAnalysisSettingTaskItem("Y...", "single character followed by periods"));
+            resultInputs.Add(CreateAnalysisSettingTaskItem("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.sonar.projectName", "guid followed by key"));
 
             task.AnalysisSettings = resultInputs.ToArray();
 
@@ -166,9 +167,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             AssertAnalysisSettingExists(createdProjectInfo, "valid.metadata.name.is.case.insensitive", "uppercase metadata name");
             AssertAnalysisSettingExists(createdProjectInfo, "X", "single character key");
             AssertAnalysisSettingExists(createdProjectInfo, "Y...", "single character followed by periods");
+            AssertAnalysisSettingExists(createdProjectInfo, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.sonar.projectName", "guid followed by key");
 
-
-            AssertExpectedAnalysisSettingsCount(6, createdProjectInfo);
+            AssertExpectedAnalysisSettingsCount(7, createdProjectInfo);
         }
 
         [TestMethod]
