@@ -39,10 +39,10 @@ namespace SonarQube.TeamBuild.PostProcessor
                 return ErrorCode;
             }
 
-            ICoverageReportProcessor coverageReportProcessor = TryCreateCoverageReportProcessor(settings);
-
             // Handle code coverage reports
-            if (!coverageReportProcessor.ProcessCoverageReports(config, settings, logger))
+            ICoverageReportProcessor coverageReportProcessor = TryCreateCoverageReportProcessor(settings);
+            if (coverageReportProcessor != null &&
+                !coverageReportProcessor.ProcessCoverageReports(config, settings, logger))
             {
                 return ErrorCode;
             }
