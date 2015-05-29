@@ -1,5 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="CreateStepPackage" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- 
+  This project packages the 2 build vnext steps that need to be uploaded to the TFS server. Just navigate to the DeploymentArtifacts\VsoBuildSteps
+  and perform the upload. 
+  -->
   <PropertyGroup>
     <!-- Change this when the runner goes up in version-->
     <BootstrapperDirName>SonarQube.MSBuild.Runner-0.9</BootstrapperDirName>
@@ -7,20 +11,39 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\</SourcesRoot>
     <DeploymentDirectory>$(SourcesRoot)\DeploymentArtifacts\VsoBuildSteps\$(Configuration)\</DeploymentDirectory>
-    <!-- OutputPath is required by the Clean and Rebuild tasks -->
-    <OutputPath>$(DeploymentDirectory)</OutputPath>
     <StepSourceDir>$(SourcesRoot)\VsoBuildStepSources\</StepSourceDir>
     <PreBuildStepDestinationDir>$(DeploymentDirectory)\SonarQubePreBuild\</PreBuildStepDestinationDir>
     <BootstrapperDirectory>$(PreBuildStepDestinationDir)\$(BootstrapperDirName)</BootstrapperDirectory>
     <TargetsFileSourcePath>$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.ImportBefore.targets</TargetsFileSourcePath>
-    <ProjectGuid>{C8CFA33B-8733-4813-8C45-B7F88EE2340F}</ProjectGuid>
+    <ProjectGuid>{BD2F0AD7-610A-4D7F-901C-D939D406997B}</ProjectGuid>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
+  <!-- These seem to be needed otherwise VS does not recognize Release as a configuration option for this project
+  and it will default to Debug even if the solution is set to build in Release -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  
+  
   <ItemGroup>
-    <ProjectReference Include="..\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj">
+    <!-- Reference to dependencies to ensure the build order is correct -->
+    <ProjectReference Include="$(SourcesRoot)\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj">
       <Project>{60aacbb4-1661-4eeb-a029-91289c1d3f7e}</Project>
       <Name>SonarQube.Bootstrapper</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj">
+    <ProjectReference Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj">
       <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>
       <Name>SonarQube.MSBuild.Tasks</Name>
     </ProjectReference>
@@ -32,7 +55,7 @@
     <StepOutput Include="$(DeploymentDirectory)">
     </StepOutput>
   </ItemGroup>
-  <Target Name="CreateStepPackage">
+  <Target Name="CreateStepPackage" AfterTargets="Build">
     <CallTarget Targets="CleanExistingStepPackage" />
     <CallTarget Targets="CopyStepFiles" />
   </Target>
