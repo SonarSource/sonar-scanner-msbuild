@@ -125,13 +125,13 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             logger.LogMessage(Resources.Report_UpdatingTeamBuildSummary);
 
-            int skippedProjectCount = GetProjectsByStatus(result, ProjectInfoValidity.NoFilesToAnalyze).Count();
-            int invalidProjectCount = GetProjectsByStatus(result, ProjectInfoValidity.InvalidGuid).Count();
-            invalidProjectCount += GetProjectsByStatus(result, ProjectInfoValidity.DuplicateGuid).Count();
+            int skippedProjectCount = result.GetProjectsByStatus(ProjectInfoValidity.NoFilesToAnalyze).Count();
+            int invalidProjectCount = result.GetProjectsByStatus(ProjectInfoValidity.InvalidGuid).Count();
+            invalidProjectCount += result.GetProjectsByStatus(ProjectInfoValidity.DuplicateGuid).Count();
 
-            int excludedProjectCount = GetProjectsByStatus(result, ProjectInfoValidity.ExcludeFlagSet).Count();
+            int excludedProjectCount = result.GetProjectsByStatus(ProjectInfoValidity.ExcludeFlagSet).Count();
 
-            IEnumerable<ProjectInfo> validProjects = GetProjectsByStatus(result, ProjectInfoValidity.Valid);
+            IEnumerable<ProjectInfo> validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
             int productProjectCount = validProjects.Count(p => p.ProjectType == ProjectType.Product);
             int testProjectCount = validProjects.Count(p => p.ProjectType == ProjectType.Test);
 
@@ -162,11 +162,6 @@ namespace SonarQube.TeamBuild.PostProcessor
                 summaryLogger.WriteMessage(Resources.Report_InvalidSkippedAndExcludedMessage, invalidProjectCount, skippedProjectCount, excludedProjectCount);
             }
 
-        }
-
-        private static IEnumerable<ProjectInfo> GetProjectsByStatus(ProjectInfoAnalysisResult result, ProjectInfoValidity status)
-        {
-            return result.Projects.Where(p => p.Value == status).Select(p => p.Key);
         }
 
         /// <summary>

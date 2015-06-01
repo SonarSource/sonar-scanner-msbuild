@@ -63,7 +63,7 @@ namespace SonarRunner.Shim
 
         private void Generate()
         {
-            IEnumerable<ProjectInfo> validProjects = GetProjectsByStatus(ProjectInfoValidity.Valid);
+            IEnumerable<ProjectInfo> validProjects = this.analysisResult.GetProjectsByStatus(ProjectInfoValidity.Valid);
 
             WriteTitle(Resources.REPORT_ProductProjectsTitle);
             WriteFileList(validProjects.Where(p => p.ProjectType == ProjectType.Product));
@@ -91,11 +91,6 @@ namespace SonarRunner.Shim
             File.WriteAllText(reportFileName, sb.ToString());
         }
 
-        private IEnumerable<ProjectInfo> GetProjectsByStatus(ProjectInfoValidity status)
-        {
-            return this.analysisResult.Projects.Where(p => p.Value == status).Select(p => p.Key);
-        }
-
         private void WriteTitle(string title)
         {
             this.sb.AppendLine(title);
@@ -114,7 +109,7 @@ namespace SonarRunner.Shim
 
             foreach (ProjectInfoValidity status in statuses)
             {
-                projects = projects.Concat(GetProjectsByStatus(status));
+                projects = projects.Concat(this.analysisResult.GetProjectsByStatus(status));
             }
 
             if (!projects.Any())
