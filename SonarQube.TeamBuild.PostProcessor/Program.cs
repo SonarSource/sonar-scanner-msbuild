@@ -8,6 +8,7 @@
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarRunner.Shim;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -20,7 +21,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         private const int SuccessCode = 0;
         private const int ErrorCode = 1;
 
-        static int Main()
+        private static int Main()
         {
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
 
@@ -46,15 +47,10 @@ namespace SonarQube.TeamBuild.PostProcessor
             {
                 return ErrorCode;
             }
+
             ProjectInfoAnalysisResult result = InvokeSonarRunner(config, logger);
-
-            // Write summary report
-            if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
-                && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
-            {
-                UpdateTeamBuildSummary(config, result, logger);
-            }
-
+            SummaryReportBuilder.GenerateReports(settings, config, result, logger);
+            
             return result.RanToCompletion ? SuccessCode : ErrorCode;
         }
 
@@ -93,8 +89,8 @@ namespace SonarQube.TeamBuild.PostProcessor
         private static bool CheckEnvironmentConsistency(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
         {
             // Currently we're only checking that the build uris match as this is the most likely error
-            // - it probably means that an old analysis config file has been left behind somehow 
-            // e.g. a build definition used to include analysis but has changed so that it is no 
+            // - it probably means that an old analysis config file has been left behind somehow
+            // e.g. a build definition used to include analysis but has changed so that it is no
             // longer an analysis build, but there is still an old analysis config on disc.
 
             if (settings.BuildEnvironment == BuildEnvironment.NotTeamBuild)
@@ -121,54 +117,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             return result;
         }
 
-        private static void UpdateTeamBuildSummary(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
-        {
-            logger.LogMessage(Resources.Report_UpdatingTeamBuildSummary);
-
-            int skippedProjectCount = GetProjectsByStatus(result, ProjectInfoValidity.NoFilesToAnalyze).Count();
-            int invalidProjectCount = GetProjectsByStatus(result, ProjectInfoValidity.InvalidGuid).Count();
-            invalidProjectCount += GetProjectsByStatus(result, ProjectInfoValidity.DuplicateGuid).Count();
-
-            int excludedProjectCount = GetProjectsByStatus(result, ProjectInfoValidity.ExcludeFlagSet).Count();
-
-            IEnumerable<ProjectInfo> validProjects = GetProjectsByStatus(result, ProjectInfoValidity.Valid);
-            int productProjectCount = validProjects.Count(p => p.ProjectType == ProjectType.Product);
-            int testProjectCount = validProjects.Count(p => p.ProjectType == ProjectType.Test);
-
-            using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
-            {
-                string projectDescription = string.Format(System.Globalization.CultureInfo.CurrentCulture,
-                    Resources.Report_SonarQubeProjectDescription, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
-
-                // Add a link to SonarQube dashboard if analysis succeeded
-                Debug.Assert(config.SonarRunnerPropertiesPath != null, "Not expecting the sonar-runner properties path to be null");
-                if (config.SonarRunnerPropertiesPath != null && result.RanToCompletion)
-                {
-                    ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
-                    string hostUrl = propertyProvider.GetProperty(SonarProperties.HostUrl).TrimEnd('/');
-
-                    string sonarUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                        "{0}/dashboard/index/{1}", hostUrl, config.SonarProjectKey);
-
-                    summaryLogger.WriteMessage(Resources.Report_AnalysisSucceeded, projectDescription, sonarUrl);
-                }
-
-                if (!result.RanToCompletion)
-                {
-                    summaryLogger.WriteMessage(Resources.Report_AnalysisFailed, projectDescription);
-                }
-
-                summaryLogger.WriteMessage(Resources.Report_ProductAndTestMessage, productProjectCount, testProjectCount);
-                summaryLogger.WriteMessage(Resources.Report_InvalidSkippedAndExcludedMessage, invalidProjectCount, skippedProjectCount, excludedProjectCount);
-            }
-
-        }
-
-        private static IEnumerable<ProjectInfo> GetProjectsByStatus(ProjectInfoAnalysisResult result, ProjectInfoValidity status)
-        {
-            return result.Projects.Where(p => p.Value == status).Select(p => p.Key);
-        }
-
+     
         /// <summary>
         /// Factory method to create a coverage report processor for the current build environment.
         /// TODO: replace with a general purpose pre- and post- processing extension mechanism.

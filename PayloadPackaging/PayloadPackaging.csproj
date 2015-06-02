@@ -74,6 +74,14 @@
       <Name>SonarRunner.Shim</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup Condition="$(Configuration)== 'Debug'">
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SonarQube.MSBuild.PreProcessor.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SonarQube.Common.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\SonarQube.MSBuild.PostProcessor.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarRunner.Shim\bin\$(Configuration)\SonarRunner.Shim.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\SonarQube.TeamBuild.Integration.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\SonarQube.MSBuild.Tasks.pdb" />
+  </ItemGroup>
   <Target Name="CreatePayload" AfterTargets="Build">
     <CallTarget Targets="CleanExistingPayload" />
     <CallTarget Targets="CopyPayloadFiles" />

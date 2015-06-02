@@ -13,7 +13,6 @@ param(
 
 Write-Verbose "Starting SonarQube Pre-Build Setup Step"
 
-#TODO: discuss removing clear text password fields
 Write-Verbose -Verbose "serverUrl = $serverUrl"
 Write-Verbose -Verbose "dbConnectionString = $dbUrl"
 Write-Verbose -Verbose "dbUsername = $dbUsername"
