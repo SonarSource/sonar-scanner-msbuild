@@ -157,6 +157,23 @@ namespace SonarRunner.Shim
             }
         }
 
+        /// <summary>
+        /// Write the supplied global settings into the file
+        /// </summary>
+        public void WriteGlobalSettings(IEnumerable<AnalysisSetting> settings)
+        {
+            if (settings == null)
+            {
+                throw new ArgumentNullException("settings");
+            }
+
+            foreach(AnalysisSetting setting in settings)
+            {
+                AppendKeyValue(this.sb, setting.Id, setting.Value);
+            }
+            sb.AppendLine();
+        }
+
         #endregion
 
         #region Private methods
@@ -180,15 +197,16 @@ namespace SonarRunner.Shim
 
         private void WriteSonarProjectInfo()
         {
-            AppendKeyValue(sb, "sonar.projectKey", this.config.SonarProjectKey);
-            AppendKeyValue(sb, "sonar.projectName", this.config.SonarProjectName);
-            AppendKeyValue(sb, "sonar.projectVersion", this.config.SonarProjectVersion);
-            AppendKeyValue(sb, "sonar.projectBaseDir", ComputeProjectBaseDir(projects, this.config.SonarOutputDir));
-            AppendKeyValue(sb, "sonar.working.directory", Path.Combine(this.config.SonarOutputDir, ".sonar"));
+            AppendKeyValue(sb, SonarProperties.ProjectKey, this.config.SonarProjectKey);
+            AppendKeyValue(sb, SonarProperties.ProjectName, this.config.SonarProjectName);
+            AppendKeyValue(sb, SonarProperties.ProjectVersion, this.config.SonarProjectVersion);
+            AppendKeyValue(sb, SonarProperties.ProjectBaseDir, ComputeProjectBaseDir(projects, this.config.SonarOutputDir));
+            AppendKeyValue(sb, SonarProperties.WorkingDirectory, Path.Combine(this.config.SonarOutputDir, ".sonar"));
+
             sb.AppendLine();
 
             sb.AppendLine("# FIXME: Encoding is hardcoded");
-            AppendKeyValue(sb, "sonar.sourceEncoding", "UTF-8");
+            AppendKeyValue(sb, SonarProperties.SourceEncoding, "UTF-8");
             sb.AppendLine();
         }
 
@@ -200,9 +218,12 @@ namespace SonarRunner.Shim
             try
             {
                 var commonParts = new List<string>();
-                while (pathPartEnumerators.Any() && pathPartEnumerators.All(e => e.MoveNext()) && pathPartEnumerators.All(e => e.Current == pathPartEnumerators.First().Current))
+                if (pathPartEnumerators.Length > 0)
                 {
-                    commonParts.Add(pathPartEnumerators.First().Current);
+                    while (pathPartEnumerators.All(e => e.MoveNext()) && pathPartEnumerators.All(e => e.Current == pathPartEnumerators.First().Current))
+                    {
+                        commonParts.Add(pathPartEnumerators.First().Current);
+                    }
                 }
 
                 if (!commonParts.Any())

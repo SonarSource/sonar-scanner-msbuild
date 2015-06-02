@@ -5,6 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace SonarQube.Common
@@ -16,6 +18,8 @@ namespace SonarQube.Common
     /// Examples of types of analyzer: FxCop, StyleCode, CodeCoverage, Roslyn Analyzers...</remarks>
     public class AnalysisResult
     {
+        #region Data
+
         /// <summary>
         /// The identifier for the type of analyzer
         /// </summary>
@@ -29,5 +33,18 @@ namespace SonarQube.Common
         /// <remarks>This will normally be an absolute file path</remarks>
         [XmlAttribute]
         public string Location { get; set; }
+
+        #endregion
+
+        #region Static helpers
+
+        /// <summary>
+        /// Comparer to use when comparing keys of analysis results
+        /// </summary>
+        public static IEqualityComparer<string> ResultKeyComparer = StringComparer.Ordinal;
+
+        #endregion
+
+
     }
 }

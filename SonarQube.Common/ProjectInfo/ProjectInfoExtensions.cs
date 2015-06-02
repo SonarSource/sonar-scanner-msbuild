@@ -44,7 +44,7 @@ namespace SonarQube.Common
 
             if (projectInfo.AnalysisResults != null)
             {
-                result = projectInfo.AnalysisResults.FirstOrDefault(ar => id.Equals(ar.Id, StringComparison.Ordinal));
+                result = projectInfo.AnalysisResults.FirstOrDefault(ar => AnalysisResult.ResultKeyComparer.Equals(id, ar.Id));
             }
             return result != null;
         }
@@ -64,7 +64,27 @@ namespace SonarQube.Common
 
             if (projectInfo.AnalysisSettings != null)
             {
-                result = projectInfo.AnalysisSettings.FirstOrDefault(ar => id.Equals(ar.Id, StringComparison.Ordinal));
+                result = projectInfo.AnalysisSettings.FirstOrDefault(ar => AnalysisSetting.SettingKeyComparer.Equals(id, ar.Id));
+            }
+            return result != null;
+        }
+
+        /// <summary>
+        /// Attempts to find and return the global analysis setting with the specified id
+        /// </summary>
+        /// <returns>True if the setting was found, otherwise false</returns>
+        public static bool TryGetGlobalAnalysisSetting(this ProjectInfo projectInfo, string id, out AnalysisSetting result)
+        {
+            if (projectInfo == null)
+            {
+                throw new ArgumentNullException("projectInfo");
+            }
+
+            result = null;
+
+            if (projectInfo.GlobalAnalysisSettings != null)
+            {
+                result = projectInfo.GlobalAnalysisSettings.FirstOrDefault(ar => AnalysisSetting.SettingKeyComparer.Equals(id, ar.Id));
             }
             return result != null;
         }

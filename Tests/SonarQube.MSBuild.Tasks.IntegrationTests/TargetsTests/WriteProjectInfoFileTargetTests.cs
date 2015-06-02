@@ -402,15 +402,22 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "content.proj.txt");
             ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
 
-            // Add some items
+            // Invalid items
             AddItem(projectRoot, "UnrelatedItemType", "irrelevantItem"); // should be ignored
             AddItem(projectRoot, "Compile", "IrrelevantFile.cs"); // should be ignored
+            AddItem(projectRoot, BuildTaskConstants.SettingItemName, "invalid.settings.no.value.metadata"); // invalid -> ignored
 
-            AddItem(projectRoot, BuildTaskConstants.ModuleSettingItemName, "invalid.settings.no.value.metadata"); // invalid -> ignored
+            // Module-level settings
+            AddItem(projectRoot, BuildTaskConstants.SettingItemName, "valid.setting1", BuildTaskConstants.SettingValueMetadataName, "value1");
+            AddItem(projectRoot, BuildTaskConstants.SettingItemName, "valid.setting2...", BuildTaskConstants.SettingValueMetadataName, "value 2 with spaces");
+            AddItem(projectRoot, BuildTaskConstants.SettingItemName, "valid.path", BuildTaskConstants.SettingValueMetadataName, @"d:\aaa\bbb.txt");
+            AddItem(projectRoot, BuildTaskConstants.SettingItemName, "common.setting.name", BuildTaskConstants.SettingValueMetadataName, @"local value");
 
-            AddItem(projectRoot, BuildTaskConstants.ModuleSettingItemName, "valid.setting1", BuildTaskConstants.ModuleSettingValueMetadataName, "value1");
-            AddItem(projectRoot, BuildTaskConstants.ModuleSettingItemName, "valid.setting2...", BuildTaskConstants.ModuleSettingValueMetadataName, "value 2 with spaces");
-            AddItem(projectRoot, BuildTaskConstants.ModuleSettingItemName, "valid.path", BuildTaskConstants.ModuleSettingValueMetadataName, @"d:\aaa\bbb.txt");
+            // Global settings
+            AddItem(projectRoot, BuildTaskConstants.GlobalSettingItemName, "global.valid.setting1", BuildTaskConstants.SettingValueMetadataName, "global value1");
+            AddItem(projectRoot, BuildTaskConstants.GlobalSettingItemName, "global.valid.setting2...", BuildTaskConstants.SettingValueMetadataName, "global value 2 with spaces");
+            AddItem(projectRoot, BuildTaskConstants.GlobalSettingItemName, "global.valid.path", BuildTaskConstants.SettingValueMetadataName, @"d:\aaa\bbb.txt.global");
+            AddItem(projectRoot, BuildTaskConstants.GlobalSettingItemName, "common.setting.name", BuildTaskConstants.SettingValueMetadataName, @"global value");
 
             // Act
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
@@ -419,8 +426,16 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertSettingExists(projectInfo, "valid.setting1", "value1");
             AssertSettingExists(projectInfo, "valid.setting2...", "value 2 with spaces");
             AssertSettingExists(projectInfo, "valid.path", @"d:\aaa\bbb.txt");
+            AssertSettingExists(projectInfo, "common.setting.name", "local value");
 
-            Assert.AreEqual(3, projectInfo.AnalysisSettings.Count, "Unexpected number of analysis settings returned");        
+            Assert.AreEqual(4, projectInfo.AnalysisSettings.Count, "Unexpected number of analysis settings returned");
+
+            AssertGlobalSettingExists(projectInfo, "global.valid.setting1", "global value1");
+            AssertGlobalSettingExists(projectInfo, "global.valid.setting2...", "global value 2 with spaces");
+            AssertGlobalSettingExists(projectInfo, "global.valid.path", @"d:\aaa\bbb.txt.global");
+            AssertGlobalSettingExists(projectInfo, "common.setting.name", "global value");
+
+            Assert.AreEqual(4, projectInfo.GlobalAnalysisSettings.Count, "Unexpected number of global analysis settings returned");
         }
 
         #endregion
@@ -666,6 +681,19 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Check the implementation of TryGetAnalysisSetting
             Assert.IsNotNull(actualSetting, "The returned setting should not be null if the function returned true");
             Assert.AreEqual(expectedId, actualSetting.Id, "TryGetAnalysisSetting returned a setting with an unexpected id");
+
+            Assert.AreEqual(expectedValue, actualSetting.Value, "Setting has an unexpected value. Id: {0}", expectedId);
+        }
+
+        private void AssertGlobalSettingExists(ProjectInfo projectInfo, string expectedId, string expectedValue)
+        {
+            AnalysisSetting actualSetting;
+            bool found = projectInfo.TryGetGlobalAnalysisSetting(expectedId, out actualSetting);
+            Assert.IsTrue(found, "Expecting the global analysis setting to be found. Id: {0}", expectedId);
+
+            // Check the implementation of TryGetGlobakAnalysisSetting
+            Assert.IsNotNull(actualSetting, "The returned setting should not be null if the function returned true");
+            Assert.AreEqual(expectedId, actualSetting.Id, "TryGetGlobalAnalysisSetting returned a setting with an unexpected id");
 
             Assert.AreEqual(expectedValue, actualSetting.Value, "Setting has an unexpected value. Id: {0}", expectedId);
         }

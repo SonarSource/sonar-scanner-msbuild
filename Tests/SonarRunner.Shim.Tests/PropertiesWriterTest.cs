@@ -64,7 +64,6 @@ namespace SonarRunner.Shim.Tests
             projects.Add(product);
             projects.Add(test);
 
-            var logger = new TestLogger();
             AnalysisConfig config = new AnalysisConfig()
             {
                 SonarProjectKey = "my_project_key",
@@ -208,12 +207,8 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388
             List<ProjectInfo> projects = new List<ProjectInfo>();
             projects.Add(product);
 
-            TestLogger logger = new TestLogger();
             AnalysisConfig config = new AnalysisConfig()
             {
-                SonarProjectKey = "my_project_key",
-                SonarProjectName = "my_project_name",
-                SonarProjectVersion = "1.0",
                 SonarOutputDir = @"C:\my_folder"
             };
 
@@ -229,11 +224,43 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388
             string fullActualPath = SaveToResultFile(projectBaseDir, "Actual.txt", writer.Flush());
 
             // Assert
-            SonarQube.Common.FilePropertiesProvider propertyReader = new FilePropertiesProvider(fullActualPath);
+            FilePropertiesProvider propertyReader = new FilePropertiesProvider(fullActualPath);
 
             AssertSettingExists(propertyReader, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting1", "setting1");
             AssertSettingExists(propertyReader, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting2", "setting 2 with spaces");
             AssertSettingExists(propertyReader, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
+        }
+
+        [TestMethod]
+        public void PropertiesWriter_GlobalSettingsWritten()
+        {
+            // Tests that global settings in the ProjectInfo are written to the file
+            
+            // Arrange
+            string projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_GlobalSettingsWritten");
+
+            AnalysisConfig config = new AnalysisConfig()
+            {
+                SonarOutputDir = @"C:\my_folder"
+            };
+
+            IList<AnalysisSetting> globalSettings = new List<AnalysisSetting>();
+
+            globalSettings.Add(new AnalysisSetting() { Id = "my.setting1", Value = "setting1" });
+            globalSettings.Add(new AnalysisSetting() { Id = "my.setting2", Value = "setting 2 with spaces" });
+            globalSettings.Add(new AnalysisSetting() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" }); // path that will be escaped
+
+            // Act
+            PropertiesWriter writer = new PropertiesWriter(config);
+            writer.WriteGlobalSettings(globalSettings);
+            string fullActualPath = SaveToResultFile(projectBaseDir, "Actual.txt", writer.Flush());
+
+            // Assert
+            FilePropertiesProvider propertyReader = new FilePropertiesProvider(fullActualPath);
+
+            AssertSettingExists(propertyReader, "my.setting1", "setting1");
+            AssertSettingExists(propertyReader, "my.setting2", "setting 2 with spaces");
+            AssertSettingExists(propertyReader, "my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
         }
 
         #endregion

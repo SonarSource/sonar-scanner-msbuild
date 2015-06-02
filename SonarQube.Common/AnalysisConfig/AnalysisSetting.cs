@@ -5,6 +5,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 
 namespace SonarQube.Common
@@ -15,6 +18,8 @@ namespace SonarQube.Common
     /// <remarks>The class is XML-serializable.
     public class AnalysisSetting
     {
+        #region Data
+
         /// <summary>
         /// The identifier for the setting
         /// </summary>
@@ -27,5 +32,41 @@ namespace SonarQube.Common
         /// </summary>
         [XmlAttribute]
         public string Value { get; set; }
+
+        #endregion
+
+        #region Static helper methods
+
+        /// <summary>
+        /// Regular expression to validate setting ids.
+        /// </summary>
+        /// <remarks>
+        /// Validation rules:
+        /// Must start with an alpanumeric character.
+        /// Can be followed by any number of alphanumeric characters or .
+        /// Whitespace is not allowed
+        /// </remarks>
+        private static readonly Regex ValidSettingKeyRegEx = new Regex(@"^\w[\w\d\.-]*$", RegexOptions.Compiled);
+
+        /// <summary>
+        /// Returns true if the supplied string is a valid key for a sonar-XXX.properties file, otherwise false
+        /// </summary>
+        public static bool IsValidKey(string key)
+        {
+            bool isValid = ValidSettingKeyRegEx.IsMatch(key);
+            return isValid;
+        }
+
+        /// <summary>
+        /// Comparer to use when comparing keys of analysis settings
+        /// </summary>
+        public static IEqualityComparer<string> SettingKeyComparer = StringComparer.Ordinal;
+
+        /// <summary>
+        /// Comparer to use when comparing keys of analysis settings
+        /// </summary>
+        public static IEqualityComparer<string> SettingValueComparer = StringComparer.Ordinal;
+
+        #endregion
     }
 }

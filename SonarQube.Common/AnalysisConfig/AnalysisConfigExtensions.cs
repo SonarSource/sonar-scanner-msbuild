@@ -61,7 +61,7 @@ namespace SonarQube.Common
 
             if (config.AdditionalSettings != null)
             {
-                result = config.AdditionalSettings.FirstOrDefault(ar => settingId.Equals(ar.Id, StringComparison.Ordinal));
+                result = config.AdditionalSettings.FirstOrDefault(ar => AnalysisSetting.SettingKeyComparer.Equals(settingId, ar.Id));
             }
             return result != null;
         }
