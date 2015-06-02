@@ -22,17 +22,6 @@ namespace SonarQube.MSBuild.Tasks
     /// </summary>
     public class WriteProjectInfoFile : Task
     {
-        /// <summary>
-        /// Regular expression to validate setting ids.
-        /// </summary>
-        /// <remarks>
-        /// Validation rules:
-        /// Must start with an alpanumeric character.
-        /// Can be followed by any number of alphanumeric characters or .
-        /// Whitespace is not allowed
-        /// </remarks>
-        private static readonly Regex ValidSettingKeyRegEx = new Regex(@"^\w[\w\d\.-]*$", RegexOptions.Compiled);
-
         #region Input properties
 
         // TODO: we can get this from this.BuildEngine.ProjectFileOfTaskNode; we don't need the caller to supply it. Same for the full path
@@ -54,6 +43,8 @@ namespace SonarQube.MSBuild.Tasks
         public ITaskItem[] AnalysisResults { get; set; }
 
         public ITaskItem[] AnalysisSettings { get; set; }
+
+        public ITaskItem[] GlobalAnalysisSettings { get; set; }
 
         /// <summary>
         /// The folder in which the file should be written
@@ -80,6 +71,7 @@ namespace SonarQube.MSBuild.Tasks
                 pi.ProjectGuid = projectId;
                 pi.AnalysisResults = TryCreateAnalysisResults(this.AnalysisResults);
                 pi.AnalysisSettings = TryCreateAnalysisSettings(this.AnalysisSettings);
+                pi.GlobalAnalysisSettings = TryCreateAnalysisSettings(this.GlobalAnalysisSettings);
 
                 string outputFileName = Path.Combine(this.OutputFolder, FileConstants.ProjectInfoFileName);
                 pi.Save(outputFileName);
@@ -217,7 +209,7 @@ namespace SonarQube.MSBuild.Tasks
 
             string possibleKey = taskItem.ItemSpec;
 
-            bool isValid = ValidSettingKeyRegEx.IsMatch(possibleKey);
+            bool isValid = AnalysisSetting.IsValidKey(possibleKey);
             if (isValid)
             {
                 settingId = possibleKey;
@@ -238,7 +230,7 @@ namespace SonarQube.MSBuild.Tasks
         {
             bool success;
 
-            metadataValue  = taskItem.GetMetadata(BuildTaskConstants.ModuleSettingValueMetadataName);
+            metadataValue  = taskItem.GetMetadata(BuildTaskConstants.SettingValueMetadataName);
             Debug.Assert(metadataValue != null, "Not expecting the metadata value to be null even if the setting is missing");
 
             if (metadataValue == string.Empty)

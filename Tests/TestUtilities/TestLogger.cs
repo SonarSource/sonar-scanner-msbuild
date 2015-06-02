@@ -93,6 +93,16 @@ namespace TestUtilities
         }
 
         /// <summary>
+        /// Checks that a single message exists that contains all of the specified strings
+        /// </summary>
+        public void AssertSingleMessageExists(params string[] expected)
+        {
+            IEnumerable<string> matches = this.Messages.Where(m => expected.All(e => m.Contains(e)));
+            Assert.AreNotEqual(0, matches.Count(), "No message contains the expected strings: {0}", string.Join(",", expected));
+            Assert.AreEqual(1, matches.Count(), "More than one message contains the expected strings: {0}", string.Join(",", expected));
+        }
+
+        /// <summary>
         /// Checks that at least one message exists that contains all of the specified strings
         /// </summary>
         public void AssertMessageExists(params string[] expected)

@@ -7,8 +7,8 @@
 
 using SonarQube.Common;
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -57,6 +57,11 @@ namespace SonarRunner.Shim
 
             if (validProjects.Any())
             {
+                // Handle global settings
+                IEnumerable<AnalysisSetting> globalSettings = GlobalSettingsHandler.GetGlobalSettings(config, validProjects, logger);
+                Debug.Assert(globalSettings != null, "Not expecting the list of global settings to be null");
+                writer.WriteGlobalSettings(globalSettings);
+
                 string contents = writer.Flush();
 
                 result.FullPropertiesFilePath = fileName;

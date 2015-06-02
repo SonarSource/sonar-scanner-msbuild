@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AnalysisConfigFileDescription" xml:space="preserve">
+    <value>analysis config file in {0}</value>
+  </data>
   <data name="DIAG_CallingSonarRunner" xml:space="preserve">
     <value>Calling the sonar-runner...</value>
   </data>
@@ -165,6 +168,9 @@
   <data name="ERR_SonarRunnerExecutionFailed" xml:space="preserve">
     <value>The sonar-runner did not complete successfully</value>
   </data>
+  <data name="INFO_DuplicateSettingWithSameValue" xml:space="preserve">
+    <value>Setting "{0}" is assigned the same value in multiple locations. Locations: {1}</value>
+  </data>
   <data name="REPORT_ExcludedProjectsTitle" xml:space="preserve">
     <value>Excluded projects</value>
   </data>
@@ -189,8 +195,14 @@
   <data name="WARN_CodeCoverageReportNotFound" xml:space="preserve">
     <value>Code coverage report does not exist at the specified location. Path: {0}</value>
   </data>
+  <data name="WARN_CoreSettingCannotBeSet" xml:space="preserve">
+    <value>Core setting "{0}" can only be set as a property in the analysis config file. The attempts to set the value in the following locations will be ignored: {1}</value>
+  </data>
   <data name="WARN_DuplicateProjectGuid" xml:space="preserve">
     <value>Duplicate project GUID: "{0}". Check that the project is only being built for a single platform/configuration and that that the project guid is unique. The project will not be analyzed by SonarQube. Project file: {1}</value>
+  </data>
+  <data name="WARN_DuplicateSettingWithDifferentValue" xml:space="preserve">
+    <value>Setting "{0}" is assigned different values in multiple locations. The setting will be ignored. Locations: {1}</value>
   </data>
   <data name="WARN_FileDoesNotExist" xml:space="preserve">
     <value>File referenced in the project does not exist: {0}</value>
@@ -200,5 +212,8 @@
   </data>
   <data name="WARN_InvalidProjectGuid" xml:space="preserve">
     <value>The project has an invalid GUID "{0}". The project will not be analyzed by SonarQube. Project file: {1}</value>
+  </data>
+  <data name="WARN_InvalidSettingKey" xml:space="preserve">
+    <value>Analysis setting key "{0}" is invalid and will be ignored. Source of the invalid key: {1}</value>
   </data>
 </root>

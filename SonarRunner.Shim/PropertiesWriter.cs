@@ -157,6 +157,23 @@ namespace SonarRunner.Shim
             }
         }
 
+        /// <summary>
+        /// Write the supplied global settings into the file
+        /// </summary>
+        public void WriteGlobalSettings(IEnumerable<AnalysisSetting> settings)
+        {
+            if (settings == null)
+            {
+                throw new ArgumentNullException("settings");
+            }
+
+            foreach(AnalysisSetting setting in settings)
+            {
+                AppendKeyValue(this.sb, setting.Id, setting.Value);
+            }
+            sb.AppendLine();
+        }
+
         #endregion
 
         #region Private methods
@@ -180,14 +197,14 @@ namespace SonarRunner.Shim
 
         private void WriteSonarProjectInfo()
         {
-            AppendKeyValue(sb, "sonar.projectKey", this.config.SonarProjectKey);
-            AppendKeyValue(sb, "sonar.projectName", this.config.SonarProjectName);
-            AppendKeyValue(sb, "sonar.projectVersion", this.config.SonarProjectVersion);
-            AppendKeyValue(sb, "sonar.projectBaseDir", this.config.SonarOutputDir);
+            AppendKeyValue(sb, SonarProperties.ProjectKey, this.config.SonarProjectKey);
+            AppendKeyValue(sb, SonarProperties.ProjectName, this.config.SonarProjectName);
+            AppendKeyValue(sb, SonarProperties.ProjectVersion, this.config.SonarProjectVersion);
+            AppendKeyValue(sb, SonarProperties.ProjectBaseDir, this.config.SonarOutputDir);
             sb.AppendLine();
 
             sb.AppendLine("# FIXME: Encoding is hardcoded");
-            AppendKeyValue(sb, "sonar.sourceEncoding", "UTF-8");
+            AppendKeyValue(sb, SonarProperties.SourceEncoding, "UTF-8");
             sb.AppendLine();
         }
 

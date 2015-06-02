@@ -70,6 +70,26 @@ namespace SonarQube.Common
         }
 
         /// <summary>
+        /// Attempts to find and return the global analysis setting with the specified id
+        /// </summary>
+        /// <returns>True if the setting was found, otherwise false</returns>
+        public static bool TryGetGlobalAnalysisSetting(this ProjectInfo projectInfo, string id, out AnalysisSetting result)
+        {
+            if (projectInfo == null)
+            {
+                throw new ArgumentNullException("projectInfo");
+            }
+
+            result = null;
+
+            if (projectInfo.GlobalAnalysisSettings != null)
+            {
+                result = projectInfo.GlobalAnalysisSettings.FirstOrDefault(ar => id.Equals(ar.Id, StringComparison.Ordinal));
+            }
+            return result != null;
+        }
+
+        /// <summary>
         /// Adds an analysis result of the specified type
         /// </summary>
         /// <remarks>The method does not check whether an analysis result with the same id already exists i.e. duplicate results are allowed</remarks>

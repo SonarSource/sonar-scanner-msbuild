@@ -29,5 +29,6 @@ namespace SonarQube.Common
 
         // Miscellaneous
         public const string SourceEncoding = "sonar.sourceEncoding";
+        public const string ProjectBaseDir = "sonar.projectBaseDir";
     }
 }
