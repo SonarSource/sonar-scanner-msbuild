@@ -2,9 +2,9 @@
 // GENERATED FILE - DO NOT EDIT DIRECTLY
 // *******************************************************
 {
-  "loc.friendlyName": "SonarQube for MSBuild - start analysis",
-  "loc.description": "Inserted before MSBuild tasks, gets quality definition from SonarQube to direct the analysis",
-  "loc.instanceNameFormat": "Gets quality definition from SonarQube to direct the analysis (before MSBuild)",
+  "loc.friendlyName": "SonarQube for MSBuild - Begin Analysis",
+  "loc.description": "Fetch the Quality Profile from SonarQube to configure the analysis",
+  "loc.instanceNameFormat": "Fetch analysis settings from SonarQube",
   "loc.group.displayName.project": "SonarQube Project Properties",
   "loc.group.displayName.serverSettings": "SonarQube Server Settings",
   "loc.group.displayName.dbSettings": "Database Settings (not required for SonarQube 5.2+)",

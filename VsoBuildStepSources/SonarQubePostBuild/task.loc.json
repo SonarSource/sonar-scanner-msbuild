@@ -19,12 +19,13 @@
   "demands": [
     "java"
   ],
-  "instanceNameFormat": "Upload analysis results to SonarQube",
+  "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "execution": {
     "PowerShell": {
       "target": "$(currentDirectory)\\SonarQubePostBuild.ps1",
       "argumentFormat": "",
       "workingDirectory": "$(currentDirectory)"
     }
-  }
+  },
+  "helpMarkDown": "ms-resource:loc.helpMarkDown"
 }
