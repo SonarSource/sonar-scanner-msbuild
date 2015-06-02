@@ -24,11 +24,6 @@ namespace SonarQube.Common
         /// </summary>
         private IDictionary<string, string> properties;
 
-        /// <summary>
-        /// Property name comparisons are be case-sensitive
-        /// </summary>
-        private static StringComparer PropertyKeyComparer = StringComparer.InvariantCulture;
-
         private string propertyFilePath;
 
         #region Public methods
@@ -87,7 +82,7 @@ namespace SonarQube.Common
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(fullPath), "fullPath should be specified");
 
-            this.properties = new Dictionary<string, string>(PropertyKeyComparer);
+            this.properties = new Dictionary<string, string>(AnalysisSetting.SettingKeyComparer);
             string allText = File.ReadAllText(fullPath);
 
             //TODO: this expression only works for single-line values

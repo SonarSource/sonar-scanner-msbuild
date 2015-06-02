@@ -22,11 +22,16 @@ namespace SonarQube.MSBuild.Tasks
         /// <summary>
         /// Item name of the analysis setting item type
         /// </summary>
-        public const string ModuleSettingItemName = "SonarQubeSetting";
+        public const string SettingItemName = "SonarQubeSetting";
+
+        /// <summary>
+        /// Item name of the global analysis setting item type
+        /// </summary>
+        public const string GlobalSettingItemName = "SonarQubeGlobalSetting";
 
         /// <summary>
         /// Name of the analysis setting "value" metadata item
         /// </summary>
-        public const string ModuleSettingValueMetadataName = "Value";
+        public const string SettingValueMetadataName = "Value";
     }
 }
