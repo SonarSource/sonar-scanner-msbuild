@@ -1,7 +1,7 @@
-{
+ï»¿{
     "id": "730D8DE1-7A4F-424C-9542-FE7CC02604EB",
     "name": "SonarQubePostBuild",
-    "friendlyName": "SonarQube for MSBuild – End Analysis",
+    "friendlyName": "SonarQube for MSBuild - End Analysis",
     "description": "Finish the analysis and upload the results to SonarQube",
     "category": "Build",
     "visibility": [

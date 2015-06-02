@@ -1,7 +1,7 @@
-{
+ï»¿{
     "id": "EAE5B2CC-AC5E-4CBA-B022-A06621F9C01F",
     "name": "SonarQubeInstallPreBuild",
-    "friendlyName": "SonarQube for MSBuild – Begin Analysis",
+    "friendlyName": "SonarQube for MSBuild - Begin Analysis",
     "description": "Fetch the Quality Profile from SonarQube to configure the analysis",
     "category": "Build",
     "visibility": [
