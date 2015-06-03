@@ -49,7 +49,9 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
 
             ProjectInfoAnalysisResult result = InvokeSonarRunner(config, logger);
-            SummaryReportBuilder.GenerateReports(settings, config, result, logger);
+
+            ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
+            SummaryReportBuilder.GenerateReports(settings, config, result, propertyProvider, logger);
             
             return result.RanToCompletion ? SuccessCode : ErrorCode;
         }

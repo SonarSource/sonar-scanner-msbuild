@@ -1,4 +1,10 @@
-﻿using SonarQube.Common;
+﻿//-----------------------------------------------------------------------
+// <copyright file="SummaryReportBuilder.cs" company="SonarSource SA and Microsoft Corporation">
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
+// </copyright>
+//-----------------------------------------------------------------------
+using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarRunner.Shim;
 using System;
@@ -14,12 +20,40 @@ namespace SonarQube.TeamBuild.PostProcessor
     /// </summary>
     internal class SummaryReportBuilder
     {
+        public class SummaryReportData
+        {
+            public int ProductProjects { get; set; }
+            public int TestProjects { get; set; }
+            public int InvalidProjects { get; set; }
+            public int SkippedProjects { get; set; }
+            public int ExcludedProjects { get; set; }
+            public bool Succeeded { get; set; }
+            public string DashboardUrl { get; set; }
+            public string ProjectDescription { get; set; }
+        }
+
+        public /* for test purposes */ const string DashboardUrlFormat= "{0}/dashboard/index/{1}";
+        public /* for test purposes */ const string SummaryMdFilename = "summary.md";
+
         private AnalysisConfig config;
         private ILogger logger;
         private ProjectInfoAnalysisResult result;
         private TeamBuildSettings settings;
+        private ISonarPropertyProvider sonarPropertyProvider;
 
-        private SummaryReportBuilder(TeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+        private SummaryReportBuilder(TeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ISonarPropertyProvider sonarPropertyProvider, ILogger logger)
+        {
+            this.settings = settings;
+            this.config = config;
+            this.result = result;
+            this.logger = logger;
+            this.sonarPropertyProvider = sonarPropertyProvider;
+        }
+
+        /// <summary>
+        /// Generates summary reports for LegacyTeamBuild and for Build Vnext
+        /// </summary>
+        public static void GenerateReports(TeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ISonarPropertyProvider sonarPropertyProvider, ILogger logger)
         {
             if (settings == null)
             {
@@ -37,122 +71,59 @@ namespace SonarQube.TeamBuild.PostProcessor
             {
                 throw new ArgumentNullException(nameof(logger));
             }
+            if (sonarPropertyProvider == null)
+            {
+                throw new ArgumentNullException(nameof(sonarPropertyProvider));
+            }
 
-            this.settings = settings;
-            this.config = config;
-            this.result = result;
-            this.logger = logger;
-        }
-
-        /// <summary>
-        /// Generates summary reports for LegacyTeamBuild and for Build Vnext
-        /// </summary>
-        public static void GenerateReports(TeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
-        {
-            SummaryReportBuilder reportBuilder = new SummaryReportBuilder(settings, config, result, logger);
+            SummaryReportBuilder reportBuilder = new SummaryReportBuilder(settings, config, result, sonarPropertyProvider, logger);
             reportBuilder.GenerateReports();
         }
 
         private void GenerateReports()
         {
+            SummaryReportData summaryData = CreateSummaryData(this.config, this.result, this.sonarPropertyProvider);
+
             if (this.settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
                 && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
             {
-                UpdateTeamBuildSummary();
+                UpdateLegacyTeamBuildSummary(summaryData);
             }
 
-            if (this.settings.BuildEnvironment == BuildEnvironment.TeamBuild)
-            {
-                CreateBuildVnextSummaryMdFile();
-            }
+            CreateSummaryMdFile(summaryData);
         }
 
-        private void CreateBuildVnextSummaryMdFile()
+        public /* for test purposes */ static SummaryReportData CreateSummaryData(
+            AnalysisConfig config,
+            ProjectInfoAnalysisResult result, 
+            ISonarPropertyProvider sonarPropertyProvider)
         {
-            this.logger.LogMessage(Resources.Report_CreatingSummaryMarkdown);
+            SummaryReportData summaryData = new SummaryReportData();
 
-            int skippedProjectCount, invalidProjectCount, excludedProjectCount, productProjectCount, testProjectCount;
-            GetProjectCountByType(out skippedProjectCount, out invalidProjectCount, out excludedProjectCount, out productProjectCount, out testProjectCount);
+            summaryData.SkippedProjects = GetProjectsByStatus(result, ProjectInfoValidity.NoFilesToAnalyze).Count();
+            summaryData.InvalidProjects = GetProjectsByStatus(result, ProjectInfoValidity.InvalidGuid).Count();
+            summaryData.InvalidProjects += GetProjectsByStatus(result, ProjectInfoValidity.DuplicateGuid).Count();
 
-            Debug.Assert(!String.IsNullOrEmpty(this.config.SonarOutputDir), "Could not find the output directory");
-            string summaryMdPath = Path.Combine(this.config.SonarOutputDir, "summary.md");
+            summaryData.ExcludedProjects = GetProjectsByStatus(result, ProjectInfoValidity.ExcludeFlagSet).Count();
+            IEnumerable<ProjectInfo> validProjects = GetProjectsByStatus(result, ProjectInfoValidity.Valid);
+            summaryData.ProductProjects = validProjects.Count(p => p.ProjectType == ProjectType.Product);
+            summaryData.TestProjects = validProjects.Count(p => p.ProjectType == ProjectType.Test);
 
-            using (StreamWriter sw = new StreamWriter(summaryMdPath, append: false))
-            {
-                string projectDescription = GetProjectDescription();
+            summaryData.Succeeded = result.RanToCompletion;
 
-                sw.WriteLine(Resources.Report_MdSummaryTitle);
+            summaryData.DashboardUrl = GetSonarDashboadUrl(config, sonarPropertyProvider);
+            summaryData.ProjectDescription = string.Format(System.Globalization.CultureInfo.CurrentCulture,
+                Resources.Report_SonarQubeProjectDescription, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
+            return summaryData;
 
-                if (this.config.SonarRunnerPropertiesPath != null && this.result.RanToCompletion)
-                {
-                    string sonarUrl = GetSonarDashboadUrl();
-                    sw.WriteLine(Resources.Report_MdSummaryAnalysisSucceeded, projectDescription, sonarUrl);
-                }
-
-                if (!this.result.RanToCompletion)
-                {
-                    sw.WriteLine(Resources.Report_MdSummaryAnalysisFailed, projectDescription);
-                }
-
-                sw.WriteLine(Resources.Report_MdSummaryProductAndTestMessage, productProjectCount, testProjectCount);
-                sw.WriteLine(Resources.Report_MdSummaryInvalidSkippedAndExcludedMessage, invalidProjectCount, skippedProjectCount, excludedProjectCount);
-            }
         }
 
-        private void UpdateTeamBuildSummary()
+        private static string GetSonarDashboadUrl(AnalysisConfig config, ISonarPropertyProvider propertyProvider)
         {
-            this.logger.LogMessage(Resources.Report_UpdatingTeamBuildSummary);
-
-            int skippedProjectCount, invalidProjectCount, excludedProjectCount, productProjectCount, testProjectCount;
-            GetProjectCountByType(out skippedProjectCount, out invalidProjectCount, out excludedProjectCount, out productProjectCount, out testProjectCount);
-
-            using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(this.config.GetTfsUri(), this.config.GetBuildUri()))
-            {
-                string projectDescription = GetProjectDescription();
-
-                // Add a link to SonarQube dashboard if analysis succeeded
-                Debug.Assert(this.config.SonarRunnerPropertiesPath != null, "Not expecting the sonar-runner properties path to be null");
-                if (this.config.SonarRunnerPropertiesPath != null && this.result.RanToCompletion)
-                {
-                    string sonarUrl = GetSonarDashboadUrl();
-                    summaryLogger.WriteMessage(Resources.Report_AnalysisSucceeded, projectDescription, sonarUrl);
-                }
-
-                if (!this.result.RanToCompletion)
-                {
-                    summaryLogger.WriteMessage(Resources.Report_AnalysisFailed, projectDescription);
-                }
-
-                summaryLogger.WriteMessage(Resources.Report_ProductAndTestMessage, productProjectCount, testProjectCount);
-                summaryLogger.WriteMessage(Resources.Report_InvalidSkippedAndExcludedMessage, invalidProjectCount, skippedProjectCount, excludedProjectCount);
-            }
-        }
-
-        private string GetProjectDescription()
-        {
-            return string.Format(System.Globalization.CultureInfo.CurrentCulture,
-                Resources.Report_SonarQubeProjectDescription, this.config.SonarProjectName, this.config.SonarProjectKey, this.config.SonarProjectVersion);
-        }
-
-        private void GetProjectCountByType(out int skippedProjectCount, out int invalidProjectCount, out int excludedProjectCount, out int productProjectCount, out int testProjectCount)
-        {
-            skippedProjectCount = GetProjectsByStatus(this.result, ProjectInfoValidity.NoFilesToAnalyze).Count();
-            invalidProjectCount = GetProjectsByStatus(this.result, ProjectInfoValidity.InvalidGuid).Count();
-            invalidProjectCount += GetProjectsByStatus(this.result, ProjectInfoValidity.DuplicateGuid).Count();
-
-            excludedProjectCount = GetProjectsByStatus(this.result, ProjectInfoValidity.ExcludeFlagSet).Count();
-            IEnumerable<ProjectInfo> validProjects = GetProjectsByStatus(this.result, ProjectInfoValidity.Valid);
-            productProjectCount = validProjects.Count(p => p.ProjectType == ProjectType.Product);
-            testProjectCount = validProjects.Count(p => p.ProjectType == ProjectType.Test);
-        }
-
-        private string GetSonarDashboadUrl()
-        {
-            ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(this.config.SonarRunnerPropertiesPath);
             string hostUrl = propertyProvider.GetProperty(SonarProperties.HostUrl).TrimEnd('/');
 
             string sonarUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                "{0}/dashboard/index/{1}", hostUrl, config.SonarProjectKey);
+                DashboardUrlFormat, hostUrl, config.SonarProjectKey);
             return sonarUrl;
         }
 
@@ -160,5 +131,52 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             return result.Projects.Where(p => p.Value == status).Select(p => p.Key);
         }
+
+        private void CreateSummaryMdFile(SummaryReportData summaryData)
+        {
+            this.logger.LogMessage(Resources.Report_CreatingSummaryMarkdown);
+
+            Debug.Assert(!String.IsNullOrEmpty(this.config.SonarOutputDir), "Could not find the output directory");
+            string summaryMdPath = Path.Combine(this.config.SonarOutputDir, SummaryMdFilename);
+
+            using (StreamWriter sw = new StreamWriter(summaryMdPath, append: false))
+            {
+                sw.WriteLine(Resources.Report_MdSummaryTitle);
+
+                if (summaryData.Succeeded)
+                {
+                    sw.WriteLine(Resources.Report_MdSummaryAnalysisSucceeded, summaryData.ProjectDescription, summaryData.DashboardUrl);
+                }
+                else
+                {
+                    sw.WriteLine(Resources.Report_MdSummaryAnalysisFailed, summaryData.ProjectDescription);
+                }
+
+                sw.WriteLine(Resources.Report_MdSummaryProductAndTestMessage, summaryData.ProductProjects, summaryData.TestProjects);
+                sw.WriteLine(Resources.Report_MdSummaryInvalidSkippedAndExcludedMessage, summaryData.InvalidProjects, summaryData.SkippedProjects, summaryData.ExcludedProjects);
+            }
+        }
+
+        private void UpdateLegacyTeamBuildSummary(SummaryReportData summaryData)
+        {
+            this.logger.LogMessage(Resources.Report_UpdatingTeamBuildSummary);
+
+            using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(this.config.GetTfsUri(), this.config.GetBuildUri()))
+            {
+                // Add a link to SonarQube dashboard if analysis succeeded
+                if (summaryData.Succeeded)
+                {
+                    summaryLogger.WriteMessage(Resources.Report_AnalysisSucceeded, summaryData.ProjectDescription, summaryData.DashboardUrl);
+                }
+                else
+                {
+                    summaryLogger.WriteMessage(Resources.Report_AnalysisFailed, summaryData.ProjectDescription);
+                }
+
+                summaryLogger.WriteMessage(Resources.Report_ProductAndTestMessage, summaryData.ProductProjects, summaryData.TestProjects);
+                summaryLogger.WriteMessage(Resources.Report_InvalidSkippedAndExcludedMessage, summaryData.InvalidProjects, summaryData.SkippedProjects, summaryData.ExcludedProjects);
+            }
+        }
+
     }
 }
