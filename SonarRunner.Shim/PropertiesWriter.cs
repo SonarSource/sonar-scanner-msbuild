@@ -200,7 +200,7 @@ namespace SonarRunner.Shim
             try
             {
                 var commonParts = new List<string>();
-                while (pathPartEnumerators.All(e => e.MoveNext()) && pathPartEnumerators.All(e => e.Current == pathPartEnumerators.First().Current))
+                while (pathPartEnumerators.Any() && pathPartEnumerators.All(e => e.MoveNext()) && pathPartEnumerators.All(e => e.Current == pathPartEnumerators.First().Current))
                 {
                     commonParts.Add(pathPartEnumerators.First().Current);
                 }

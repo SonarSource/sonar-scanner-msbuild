@@ -136,6 +136,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388
             AssertHasProjectBaseDir(@"c:", @"z:\", @"c:\common\src\A\1.proj", @"c:\common\src\B\2.proj", @"c:\outside\src\C\3.proj");
             AssertHasProjectBaseDir(@"z:", @"z:", @"c:\src\A\1.proj", @"d:\src\B\2.proj");
             AssertHasProjectBaseDir(@"c:\src", @"z:\", @"c:\src\..\src\1.proj", @"c:\src\2.proj");
+            AssertHasProjectBaseDir(@"z:\", @"z:\");
         }
 
         private void AssertHasProjectBaseDir(string expectedProjectDir, string fallback, params string[] projectPaths)
