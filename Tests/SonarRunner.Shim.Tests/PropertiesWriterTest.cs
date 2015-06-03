@@ -84,15 +84,7 @@ namespace SonarRunner.Shim.Tests
             }
 
             string expected = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-@"sonar.projectKey=my_project_key
-sonar.projectName=my_project_name
-sonar.projectVersion=1.0
-sonar.projectBaseDir=C:\\my_folder
-
-# FIXME: Encoding is hardcoded
-sonar.sourceEncoding=UTF-8
-
-DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectKey=my_project_key:DB2E5521-3172-47B9-BA50-864F12E6DFFF
+@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectKey=my_project_key:DB2E5521-3172-47B9-BA50-864F12E6DFFF
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName=\u4F60\u597D
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir={0}
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.cs.fxcop.reportPath={1}
@@ -109,6 +101,15 @@ DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources=
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
 {3}\\File.cs
 
+sonar.projectKey=my_project_key
+sonar.projectName=my_project_name
+sonar.projectVersion=1.0
+sonar.projectBaseDir={5}
+sonar.working.directory=C:\\my_folder\\.sonar
+
+# FIXME: Encoding is hardcoded
+sonar.sourceEncoding=UTF-8
+
 sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388281D49B
 
 ",
@@ -116,12 +117,47 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388
  PropertiesWriter.Escape(productFxCopFilePath),
  PropertiesWriter.Escape(productCoverageFilePath),
  PropertiesWriter.Escape(testBaseDir),
- PropertiesWriter.Escape(missingFileOutsideProjectDir));
+ PropertiesWriter.Escape(missingFileOutsideProjectDir),
+ PropertiesWriter.Escape(TestUtils.GetTestSpecificFolderName(TestContext)));
 
             SaveToResultFile(productBaseDir, "Expected.txt", expected.ToString());
             SaveToResultFile(productBaseDir, "Actual.txt", actual);
 
             Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void PropertiesWriter_ComputeProjectBaseDir()
+        {
+            AssertHasProjectBaseDir(@"c:\src\A", @"z:\", @"c:\src\A\1.proj");
+            AssertHasProjectBaseDir(@"c:\src\A", @"z:\", @"c:\src\A\1.proj", @"c:\src\A\2.proj");
+            AssertHasProjectBaseDir(@"c:\src", @"z:\", @"c:\src\A\1.proj", @"c:\src\B\2.proj");
+            AssertHasProjectBaseDir(@"c:\common\src", @"z:\", @"c:\common\src\A\1.proj", @"c:\common\src\B\2.proj");
+            AssertHasProjectBaseDir(@"c:", @"z:\", @"c:\common\src\A\1.proj", @"c:\common\src\B\2.proj", @"c:\outside\src\C\3.proj");
+            AssertHasProjectBaseDir(@"z:", @"z:", @"c:\src\A\1.proj", @"d:\src\B\2.proj");
+            AssertHasProjectBaseDir(@"c:\src", @"z:\", @"c:\src\..\src\1.proj", @"c:\src\2.proj");
+        }
+
+        private void AssertHasProjectBaseDir(string expectedProjectDir, string fallback, params string[] projectPaths)
+        {
+            var config = new AnalysisConfig();
+            config.SonarOutputDir = fallback;
+            var writer = new PropertiesWriter(config);
+
+            using (new AssertIgnoreScope())
+            {
+                foreach (string projectPath in projectPaths)
+                {
+                    var projectInfo = new ProjectInfo { FullPath = projectPath };
+                    writer.WriteSettingsForProject(projectInfo, Enumerable.Empty<string>(), "", "");
+                }
+                var actual = writer.Flush();
+                var expected = "\r\nsonar.projectBaseDir=" + PropertiesWriter.Escape(expectedProjectDir);
+
+                Console.WriteLine(actual);
+
+                Assert.IsTrue(actual.Contains(expected));
+            }
         }
 
         [TestMethod]

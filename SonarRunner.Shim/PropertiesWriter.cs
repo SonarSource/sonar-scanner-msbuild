@@ -68,8 +68,6 @@ namespace SonarRunner.Shim
             this.config = config;
             this.sb = new StringBuilder();
             this.projects = new List<ProjectInfo>();
-
-            this.WriteSonarProjectInfo();
         }
 
         public bool FinishedWriting { get; private set; }
@@ -88,6 +86,8 @@ namespace SonarRunner.Shim
 
             Debug.Assert(this.projects.Select(p => p.ProjectGuid).Distinct().Count() == projects.Count(),
                 "Expecting the project guids to be unique");
+
+            WriteSonarProjectInfo();
 
             AppendKeyValue(sb, "sonar.modules", string.Join(",", this.projects.Select(p => p.GetProjectGuidAsString())));
             sb.AppendLine();
@@ -183,12 +183,39 @@ namespace SonarRunner.Shim
             AppendKeyValue(sb, "sonar.projectKey", this.config.SonarProjectKey);
             AppendKeyValue(sb, "sonar.projectName", this.config.SonarProjectName);
             AppendKeyValue(sb, "sonar.projectVersion", this.config.SonarProjectVersion);
-            AppendKeyValue(sb, "sonar.projectBaseDir", this.config.SonarOutputDir);
+            AppendKeyValue(sb, "sonar.projectBaseDir", ComputeProjectBaseDir(projects, this.config.SonarOutputDir));
+            AppendKeyValue(sb, "sonar.working.directory", Path.Combine(this.config.SonarOutputDir, ".sonar"));
             sb.AppendLine();
 
             sb.AppendLine("# FIXME: Encoding is hardcoded");
             AppendKeyValue(sb, "sonar.sourceEncoding", "UTF-8");
             sb.AppendLine();
+        }
+
+        private static string ComputeProjectBaseDir(IEnumerable<ProjectInfo> projects, string defaultValue)
+        {
+            var projectDirs = projects.Select(p => p.GetProjectDirectory());
+
+            var pathPartEnumerators = projectDirs.Select(s => s.Split(Path.DirectorySeparatorChar).AsEnumerable().GetEnumerator()).ToArray();
+            try
+            {
+                var commonParts = new List<string>();
+                while (pathPartEnumerators.All(e => e.MoveNext()) && pathPartEnumerators.All(e => e.Current == pathPartEnumerators.First().Current))
+                {
+                    commonParts.Add(pathPartEnumerators.First().Current);
+                }
+
+                if (!commonParts.Any())
+                {
+                    return defaultValue;
+                }
+
+                return string.Join(Path.DirectorySeparatorChar.ToString(), commonParts);
+            }
+            finally
+            {
+                Array.ForEach(pathPartEnumerators, e => e.Dispose());
+            }
         }
 
         #endregion
