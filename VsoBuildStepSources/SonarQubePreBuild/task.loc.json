@@ -42,7 +42,7 @@
       "type": "string",
       "label": "ms-resource:loc.input.label.projectKey",
       "required": true,
-      "helpMarkDown": "The SonarQube project unique key, i.e. sonar.projectKey",
+      "helpMarkDown": "ms-resource:loc.input.help.projectKey",
       "groupName": "project"
     },
     {
@@ -50,7 +50,7 @@
       "type": "string",
       "label": "ms-resource:loc.input.label.projectName",
       "required": true,
-      "helpMarkDown": "The SonarQube project name, i.e. sonar.ProjectName",
+      "helpMarkDown": "ms-resource:loc.input.help.projectName",
       "groupName": "project"
     },
     {
@@ -59,31 +59,15 @@
       "label": "ms-resource:loc.input.label.projectVersion",
       "defaultValue": "1.0",
       "required": true,
-      "helpMarkDown": "The SonarQube project version, i.e. sonar.projectVersion",
+      "helpMarkDown": "ms-resource:loc.input.help.projectVersion",
       "groupName": "project"
     },
     {
-      "name": "serverUrl",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.serverUrl",
+      "name": "connectedServiceName",
+      "type": "connectedService:Generic",
+      "label": "ms-resource:loc.input.label.connectedServiceName",
       "required": true,
-      "helpMarkDown": "The SonarQube Server url, e.g. http://fabrikam-sonar:9000/",
-      "groupName": "serverSettings"
-    },
-    {
-      "name": "serverUsername",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.serverUsername",
-      "required": false,
-      "helpMarkDown": "Leave empty if you haven't configured authentication on the SonarQube Server",
-      "groupName": "serverSettings"
-    },
-    {
-      "name": "serverPassword",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.serverPassword",
-      "required": false,
-      "helpMarkDown": "Leave empty if you haven't configured authentication on the SonarQube Server",
+      "helpMarkDown": "ms-resource:loc.input.help.connectedServiceName",
       "groupName": "serverSettings"
     },
     {
@@ -91,7 +75,7 @@
       "type": "string",
       "label": "ms-resource:loc.input.label.dbUrl",
       "required": false,
-      "helpMarkDown": "SonarQube server 5.1 and lower only. The database connection setting, e.g. jdbc:jtds:sqlserver://localhost/sonar;SelectMethod=Cursor",
+      "helpMarkDown": "ms-resource:loc.input.help.dbUrl",
       "groupName": "dbSettings"
     },
     {
@@ -99,7 +83,7 @@
       "type": "string",
       "label": "ms-resource:loc.input.label.dbUsername",
       "required": false,
-      "helpMarkDown": "SonarQube server 5.1 and lower only. The username for the database user",
+      "helpMarkDown": "ms-resource:loc.input.help.dbUsername",
       "groupName": "dbSettings"
     },
     {
@@ -107,16 +91,17 @@
       "type": "string",
       "label": "ms-resource:loc.input.label.dbPassword",
       "required": false,
-      "helpMarkDown": "SonarQube server 5.1 and lower only. The password for the database user",
+      "helpMarkDown": "ms-resource:loc.input.help.dbPassword",
       "groupName": "dbSettings"
     }
   ],
-  "instanceNameFormat": "Enable SonarQube for $(projectName)",
+  "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "execution": {
     "PowerShell": {
       "target": "$(currentDirectory)\\SonarQubePreBuild.ps1",
       "argumentFormat": "",
       "workingDirectory": "$(currentDirectory)"
     }
-  }
+  },
+  "helpMarkDown": "ms-resource:loc.helpMarkDown"
 }

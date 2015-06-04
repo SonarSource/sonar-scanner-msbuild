@@ -94,6 +94,37 @@ function SetTaskContextVaraible
     Write-Host "##vso[task.setvariable variable=$varName;]$varValue"
 }
 
+function GetCredentialsFromEndpoint
+{
+	param([string][ValidateNotNullOrEmpty()]$connectedServiceName, 
+	$sonarUrl, 
+	$unsername, 
+	$password)
+
+	$serviceEndpoint = Get-ServiceEndpoint -Context $distributedTaskContext -Name $connectedServiceName
+
+	if (!$serviceEndpoint)
+	{
+		throw "A Connected Service with name '$ConnectedServiceName' could not be found.  Ensure that this Connected Service was successfully provisioned using the services tab in the Admin UI."
+	}
+
+	$authScheme = $serviceEndpoint.Authorization.Scheme
+	if ($authScheme -eq 'UserNamePassword')
+	{
+		$sonarUrl = $serviceEndpoint.Url
+		$username = $serviceEndpoint.Authorization.Parameters.UserName
+		$password = $serviceEndpoint.Authorization.Parameters.Password
+    
+		Write-Host "SonarUrl= $sonarUrl"
+		Write-Host "Username= $username"
+		# don't print the password as it will be in clear!
+	}
+	else
+	{
+		throw "The authorization scheme $serviceEndpoint.Authorization.Scheme is not supported for a SonarQube server."
+	}
+}
+
 
 
 

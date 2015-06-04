@@ -2,7 +2,7 @@
 // GENERATED FILE - DO NOT EDIT DIRECTLY
 // *******************************************************
 {
-  "loc.friendlyName": "SonarQube for MSBuild - end analysis",
-  "loc.description": "Appended after the Tests (if any, or otherwise after MSBuild), completes the SonarQube analysis",
-  "loc.instanceNameFormat": "Completes the analysis and uploads results to SonarQube"
+  "loc.friendlyName": "SonarQube for MSBuild - End Analysis",
+  "loc.description": "Finish the analysis and upload the results to SonarQube",
+  "loc.instanceNameFormat": "Upload analysis results to SonarQube"
 }

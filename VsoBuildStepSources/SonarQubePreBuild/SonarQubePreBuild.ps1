@@ -14,18 +14,18 @@ param(
 Write-Verbose "Starting SonarQube Pre-Build Setup Step"
 
 #TODO: discuss removing clear text password fields
-Write-Verbose -Verbose "serverUrl = $serverUrl"
 Write-Verbose -Verbose "dbConnectionString = $dbUrl"
 Write-Verbose -Verbose "dbUsername = $dbUsername"
 Write-Verbose -Verbose "dbPassword = $dbPassword" 
 Write-Verbose -Verbose "projectKey = $projectKey"
 Write-Verbose -Verbose "projectName = $projectName"
-Write-Verbose -Verbose "dbUsername = $dbUsername"
-Write-Verbose -Verbose "dbPassword = $dbPassword" 
+Write-Verbose -Verbose "connectedServiceName = $connectedServiceName"
 
 import-module "Microsoft.TeamFoundation.DistributedTask.Task.Common"
 
 . ./SonarQubeHelper.ps1
+
+GetCredentialsFromEndpoint $connectedServiceName $serverUrl $serverUsername $serverPassword
 
 #
 # These variables need to be updated when deploying different versions of sonar-runner / sonarqube.msbuild.runner
