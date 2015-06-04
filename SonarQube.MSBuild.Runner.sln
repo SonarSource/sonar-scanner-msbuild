@@ -41,6 +41,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StepPackaging", "StepPackag
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PayloadPackaging", "PayloadPackaging\PayloadPackaging.csproj", "{87887805-9389-4158-9C3F-BAD53908CC12}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.PostProcessor.Tests", "Tests\SonarQube.TeamBuild.PostProcessor.Tests\SonarQube.TeamBuild.PostProcessor.Tests.csproj", "{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -225,6 +227,18 @@ Global
 		{87887805-9389-4158-9C3F-BAD53908CC12}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{87887805-9389-4158-9C3F-BAD53908CC12}.Release|x86.ActiveCfg = Release|Any CPU
 		{87887805-9389-4158-9C3F-BAD53908CC12}.Release|x86.Build.0 = Release|Any CPU
+		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}.Debug|x86.Build.0 = Debug|Any CPU
+		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}.Release|x86.ActiveCfg = Release|Any CPU
+		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -240,5 +254,6 @@ Global
 		{3410EA30-5F7A-4E0F-B5F6-8E83077A20DB} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{BD2F0AD7-610A-4D7F-901C-D939D406997B} = {37FB4C72-0F3D-4BF2-9F78-2780A76746A2}
 		{87887805-9389-4158-9C3F-BAD53908CC12} = {37FB4C72-0F3D-4BF2-9F78-2780A76746A2}
+		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 	EndGlobalSection
 EndGlobal

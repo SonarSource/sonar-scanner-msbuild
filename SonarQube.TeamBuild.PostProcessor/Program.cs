@@ -8,6 +8,7 @@
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarRunner.Shim;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -20,7 +21,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         private const int SuccessCode = 0;
         private const int ErrorCode = 1;
 
-        static int Main()
+        private static int Main()
         {
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
 
@@ -46,15 +47,12 @@ namespace SonarQube.TeamBuild.PostProcessor
             {
                 return ErrorCode;
             }
+
             ProjectInfoAnalysisResult result = InvokeSonarRunner(config, logger);
 
-            // Write summary report
-            if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
-                && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
-            {
-                UpdateTeamBuildSummary(config, result, logger);
-            }
-
+            ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
+            SummaryReportBuilder.GenerateReports(settings, config, result, propertyProvider, logger);
+            
             return result.RanToCompletion ? SuccessCode : ErrorCode;
         }
 
@@ -93,8 +91,8 @@ namespace SonarQube.TeamBuild.PostProcessor
         private static bool CheckEnvironmentConsistency(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
         {
             // Currently we're only checking that the build uris match as this is the most likely error
-            // - it probably means that an old analysis config file has been left behind somehow 
-            // e.g. a build definition used to include analysis but has changed so that it is no 
+            // - it probably means that an old analysis config file has been left behind somehow
+            // e.g. a build definition used to include analysis but has changed so that it is no
             // longer an analysis build, but there is still an old analysis config on disc.
 
             if (settings.BuildEnvironment == BuildEnvironment.NotTeamBuild)
@@ -163,7 +161,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
 
         }
-
+     
         /// <summary>
         /// Factory method to create a coverage report processor for the current build environment.
         /// TODO: replace with a general purpose pre- and post- processing extension mechanism.
