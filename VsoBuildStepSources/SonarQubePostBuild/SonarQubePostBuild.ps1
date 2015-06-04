@@ -2,9 +2,7 @@ Write-Verbose "Starting SonarQube PostBuild Step"
 
 import-module "Microsoft.TeamFoundation.DistributedTask.Task.Common"
 
-$sonarMsBuildRunnerPath = Get-Variable $distributedTaskContext "sonarMsBuildRunnerPath"
-
-
+$sonarMsBuildRunnerPath = Get-TaskVariable -Context $distributedTaskContext -Name "sonarMsBuildRunnerPath" -Global $FALSE
 if (!$sonarMsBuildRunnerPath -or ![System.IO.File]::Exists($sonarMsBuildRunnerPath))
 {
 	throw "The SonarQube MsBuild Runner executable could not be found. Does your build definition include the SonarQube Pre-Build step?"
@@ -13,11 +11,11 @@ if (!$sonarMsBuildRunnerPath -or ![System.IO.File]::Exists($sonarMsBuildRunnerPa
 Write-Verbose -Verbose "Executing $sonarMsBuildRunnerPath without arguments"
 Invoke-BatchScript $sonarMsBuildRunnerPath 
 
-$agentBuildDirectory = Get-Variable $distributedTaskContext "Agent.BuildDirectory"
 
+$agentBuildDirectory = Get-TaskVariable -Context $distributedTaskContext -Name "Agent.BuildDirectory" -Global $FALSE
 if (!$agentBuildDirectory)
 {
-    throw "Internal error - could not determine the build directory path on the agent";
+    throw "Could not retrieve the Agent.BuildDirectory variable";
 }
 
 # Upload the summary markdown file

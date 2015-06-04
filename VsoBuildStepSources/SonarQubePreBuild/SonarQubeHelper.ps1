@@ -94,13 +94,24 @@ function SetTaskContextVaraible
     Write-Host "##vso[task.setvariable variable=$varName;]$varValue"
 }
 
+# Retrieves the url, username and password from the specified generic endpoint.
+# Only UserNamePassword authentication scheme is supported for SonarQube.
+function GetEndpointData
+{
+	param([string][ValidateNotNullOrEmpty()]$connectedServiceName)
 
+	$serviceEndpoint = Get-ServiceEndpoint -Context $distributedTaskContext -Name $connectedServiceName
 
+	if (!$serviceEndpoint)
+	{
+		throw "A Connected Service with name '$ConnectedServiceName' could not be found.  Ensure that this Connected Service was successfully provisioned using the services tab in the Admin UI."
+	}
 
+	$authScheme = $serviceEndpoint.Authorization.Scheme
+	if ($authScheme -ne 'UserNamePassword')
+	{
+		throw "The authorization scheme $authScheme is not supported for a SonarQube server."
+	}
 
-
-
-
-
-            
-            
+    return $serviceEndpoint
+}

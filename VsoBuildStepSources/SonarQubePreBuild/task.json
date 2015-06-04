@@ -18,13 +18,13 @@
     ],
     "groups": [
         {
-            "name": "project",
-            "displayName": "SonarQube Project Properties",
+            "name": "serverSettings",
+            "displayName": "SonarQube Server Settings",
             "isExpanded": true
         },
         {
-            "name": "serverSettings",
-            "displayName": "SonarQube Server Settings",
+            "name": "project",
+            "displayName": "SonarQube Project Properties",
             "isExpanded": true
         },
         {
@@ -60,27 +60,11 @@
             "groupName": "project"
         },
         {
-            "name": "serverUrl",
-            "type": "string",
-            "label": "Server Url",
+            "name": "connectedServiceName",
+            "type": "connectedService:Generic",
+            "label": "SonarQube Endpoint",
             "required": true,
-            "helpMarkDown": "The SonarQube Server url, e.g. http://fabrikam-sonar:9000/",
-            "groupName": "serverSettings"
-        },
-        {
-            "name": "serverUsername",
-            "type": "string",
-            "label": "Server Username",
-            "required": false,
-            "helpMarkDown": "Leave empty if you haven't configured authentication on the SonarQube Server",
-            "groupName": "serverSettings"
-        },
-        {
-            "name": "serverPassword",
-            "type": "string",
-            "label": "Server Password",
-            "required": false,
-            "helpMarkDown": "Leave empty if you haven't configured authentication on the SonarQube Server",
+            "helpMarkDown": "The SonarQube Server Endpoint.",
             "groupName": "serverSettings"
         },
         {

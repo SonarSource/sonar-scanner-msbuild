@@ -63,27 +63,11 @@
       "groupName": "project"
     },
     {
-      "name": "serverUrl",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.serverUrl",
+      "name": "connectedServiceName",
+      "type": "connectedService:Generic",
+      "label": "ms-resource:loc.input.label.connectedServiceName",
       "required": true,
-      "helpMarkDown": "ms-resource:loc.input.help.serverUrl",
-      "groupName": "serverSettings"
-    },
-    {
-      "name": "serverUsername",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.serverUsername",
-      "required": false,
-      "helpMarkDown": "ms-resource:loc.input.help.serverUsername",
-      "groupName": "serverSettings"
-    },
-    {
-      "name": "serverPassword",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.serverPassword",
-      "required": false,
-      "helpMarkDown": "ms-resource:loc.input.help.serverPassword",
+      "helpMarkDown": "ms-resource:loc.input.help.connectedServiceName",
       "groupName": "serverSettings"
     },
     {
