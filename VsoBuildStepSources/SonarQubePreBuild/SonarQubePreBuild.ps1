@@ -26,7 +26,6 @@ $serviceEndpoint = GetEndpointData $connectedServiceName
 
 Write-Verbose -Verbose "serverUrl = $($serviceEndpoint.Url)"
 Write-Verbose -Verbose "serverUsername = $($serviceEndpoint.Authorization.Parameters.UserName)"
-# don't output the password as it will be printed in clear text
 
 #
 # These variables need to be updated when deploying different versions of sonar-runner / sonarqube.msbuild.runner
@@ -38,12 +37,7 @@ $sonarMsBuildRunnerDir = [System.IO.Path]::Combine($currentDir, "SonarQube.MSBui
 $sonarMsBuildRunnerPath = [System.IO.Path]::Combine($sonarMsBuildRunnerDir, "SonarQube.MSBuild.Runner.exe")
 
 $targetsFileInitialPath = [System.IO.Path]::Combine($sonarMsBuildRunnerDir, "SonarQube.Integration.ImportBefore.targets")
-$propertiesFile = [System.IO.Path]::Combine($sonarRunnerDir, "../", "conf")
-
-if (![System.IO.File]::Exists($sonarMsBuildRunnerPath))
-{
-	throw "Could not find $sonarMsBuildRunnerPath"
-}
+$propertiesFileDir = [System.IO.Path]::Combine($sonarRunnerDir, "..\", "conf")
 
 if (![System.IO.File]::Exists($sonarRunnerPath))
 {
@@ -51,7 +45,7 @@ if (![System.IO.File]::Exists($sonarRunnerPath))
 }
 
 SetTaskContextVaraible "sonarMsBuildRunnerPath" $sonarMsBuildRunnerPath
-CreatePropertiesFile $propertiesFile $serviceEndpoint.Url $serviceEndpoint.Authorization.Parameters.UserName $serviceEndpoint.Authorization.Parameters.Password $dbUrl $dbUsername $dbPassword
+CreatePropertiesFile $propertiesFileDir $serviceEndpoint.Url $serviceEndpoint.Authorization.Parameters.UserName $serviceEndpoint.Authorization.Parameters.Password $dbUrl $dbUsername $dbPassword
 CopyTargetsFile $targetsFileInitialPath
 
 #TODO: remove this env variable by passing it in directly to the msbuild runner 

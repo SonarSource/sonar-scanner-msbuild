@@ -13,10 +13,7 @@ function CreatePropertiesFile
 	
     Write-Verbose -Verbose "Creating the .propertiesFile in $propertiesFileDir"
     
-	if (![System.IO.Directory]::Exists($propertiesFileDir))
-    {
-        throw "Cannot find directory: $propertiesFileDir"
-    }
+	[System.IO.Directory]::CreateDirectory($propertiesFileDir);
 
     $propertiesFilePath = [System.IO.Path]::Combine($propertiesFileDir, "sonar-runner.properties")
 	Remove-Item $propertiesFilePath -ErrorAction SilentlyContinue
