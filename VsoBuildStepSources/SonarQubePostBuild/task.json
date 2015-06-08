@@ -3,6 +3,7 @@
     "name": "SonarQubePostBuild",
     "friendlyName": "SonarQube for MSBuild - End Analysis",
     "description": "Finish the analysis and upload the results to SonarQube",
+    "helpMarkDown": "[More Information](https://github.com/SonarSource/sonar-msbuild-runner)",
     "category": "Build",
     "visibility": [
         "Build"
@@ -24,5 +25,5 @@
             "workingDirectory": "$(currentDirectory)"
         }
     }
-
+    
 }

@@ -3,6 +3,7 @@
     "name": "SonarQubeInstallPreBuild",
     "friendlyName": "SonarQube for MSBuild - Begin Analysis",
     "description": "Fetch the Quality Profile from SonarQube to configure the analysis",
+    "helpMarkDown": "[More Information](https://github.com/SonarSource/sonar-msbuild-runner)",
     "category": "Build",
     "visibility": [
         "Build"
@@ -64,7 +65,7 @@
             "type": "connectedService:Generic",
             "label": "SonarQube Endpoint",
             "required": true,
-            "helpMarkDown": "The SonarQube Server Endpoint.",
+            "helpMarkDown": "The SonarQube Server Endpoint",
             "groupName": "serverSettings"
         },
         {

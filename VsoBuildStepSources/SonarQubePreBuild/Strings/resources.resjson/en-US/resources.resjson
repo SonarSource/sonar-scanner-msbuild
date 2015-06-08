@@ -3,10 +3,11 @@
 // *******************************************************
 {
   "loc.friendlyName": "SonarQube for MSBuild - Begin Analysis",
+  "loc.helpMarkDown": "[More Information](https://github.com/SonarSource/sonar-msbuild-runner)",
   "loc.description": "Fetch the Quality Profile from SonarQube to configure the analysis",
   "loc.instanceNameFormat": "Fetch analysis settings from SonarQube",
-  "loc.group.displayName.project": "SonarQube Project Properties",
   "loc.group.displayName.serverSettings": "SonarQube Server Settings",
+  "loc.group.displayName.project": "SonarQube Project Properties",
   "loc.group.displayName.dbSettings": "Database Settings (not required for SonarQube 5.2+)",
   "loc.input.label.projectKey": "Project Key",
   "loc.input.help.projectKey": "The SonarQube project unique key, i.e. sonar.projectKey",

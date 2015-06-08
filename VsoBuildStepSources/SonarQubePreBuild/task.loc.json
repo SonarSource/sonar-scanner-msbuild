@@ -6,6 +6,7 @@
   "name": "SonarQubeInstallPreBuild",
   "friendlyName": "ms-resource:loc.friendlyName",
   "description": "ms-resource:loc.description",
+  "helpMarkDown": "ms-resource:loc.helpMarkDown",
   "category": "Build",
   "visibility": [
     "Build"
@@ -21,13 +22,13 @@
   ],
   "groups": [
     {
-      "name": "project",
-      "displayName": "ms-resource:loc.group.displayName.project",
+      "name": "serverSettings",
+      "displayName": "ms-resource:loc.group.displayName.serverSettings",
       "isExpanded": true
     },
     {
-      "name": "serverSettings",
-      "displayName": "ms-resource:loc.group.displayName.serverSettings",
+      "name": "project",
+      "displayName": "ms-resource:loc.group.displayName.project",
       "isExpanded": true
     },
     {
@@ -102,6 +103,5 @@
       "argumentFormat": "",
       "workingDirectory": "$(currentDirectory)"
     }
-  },
-  "helpMarkDown": "ms-resource:loc.helpMarkDown"
+  }
 }
