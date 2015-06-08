@@ -48,14 +48,11 @@ SetTaskContextVaraible "sonarMsBuildRunnerPath" $sonarMsBuildRunnerPath
 CreatePropertiesFile $propertiesFileDir $serviceEndpoint.Url $serviceEndpoint.Authorization.Parameters.UserName $serviceEndpoint.Authorization.Parameters.Password $dbUrl $dbUsername $dbPassword
 CopyTargetsFile $targetsFileInitialPath
 
-#TODO: remove this env variable by passing it in directly to the msbuild runner 
-if (-Not $env:Path.Contains($sonarRunnerDir))
-{
-    Write-Verbose -Verbose "PATH is being updated to point at the sonar-runner at $sonarRunnerDir"
-    $env:Path = $env:Path + ";" + $sonarRunnerDir
-}
 
-#TODO: do we need to set SONAR_RUNNER_OPTS to avoid out of memory issues? Will this work if we set it as a per-process env variable?
+SetSonarOptsEnvVarIfNeeded
+
+#TODO: remove this env variable by passing it in directly to the msbuild runner 
+UpdatePathIfNeeded $sonarRunnerPath
 
 Write-Verbose -Verbose "Executing $sonarMsBuildRunnerPath with arguments /k:$projectKey /n:$projectName /v:$projectVersion" 
 Invoke-BatchScript $sonarMsBuildRunnerPath –Arguments "/k:$projectKey /n:$projectName /v:$projectVersion"
