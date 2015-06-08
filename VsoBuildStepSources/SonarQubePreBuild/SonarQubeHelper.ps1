@@ -117,7 +117,7 @@ function SetSonarOptsEnvVarIfNeeded
 {
     if (!$env:SONAR_RUNNER_OPTS)
     {
-        $defaultSonarRunnerOpts = "-Xmx2048m"
+        $defaultSonarRunnerOpts = "-Xmx1024m"
         Write-Verbose -Verbose "Could not detect the env variable SONAR_RUNNER_OPTS. Setting it to the default value: $defaultSonarRunnerOpts" 
         $env:SONAR_RUNNER_OPTS = $defaultSonarRunnerOpts
     }
