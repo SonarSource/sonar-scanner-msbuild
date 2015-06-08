@@ -57,23 +57,23 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             if (settings == null)
             {
-                throw new ArgumentNullException(nameof(settings));
+                throw new ArgumentNullException("settings");
             }
             if (config == null)
             {
-                throw new ArgumentNullException(nameof(config));
+                throw new ArgumentNullException("config");
             }
             if (result == null)
             {
-                throw new ArgumentNullException(nameof(result));
+                throw new ArgumentNullException("result");
             }
             if (logger == null)
             {
-                throw new ArgumentNullException(nameof(logger));
+                throw new ArgumentNullException("logger");
             }
             if (sonarPropertyProvider == null)
             {
-                throw new ArgumentNullException(nameof(sonarPropertyProvider));
+                throw new ArgumentNullException("sonarPropertyProvider");
             }
 
             SummaryReportBuilder reportBuilder = new SummaryReportBuilder(settings, config, result, sonarPropertyProvider, logger);
