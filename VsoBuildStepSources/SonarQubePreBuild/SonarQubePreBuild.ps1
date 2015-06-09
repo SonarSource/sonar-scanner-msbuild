@@ -51,7 +51,7 @@ CopyTargetsFile $targetsFileInitialPath
 SetSonarOptsEnvVarIfNeeded
 
 #TODO: remove this env variable by passing it in directly to the msbuild runner 
-UpdatePathIfNeeded $sonarRunnerPath
+UpdatePathIfNeeded $sonarRunnerDir
 
 $arguments = [System.String]::Format("/k:""{0}"" /n:""{1}"" /v:""{2}""", $projectKey, $projectName, $projectVersion)
 Write-Verbose -Verbose "Executing $sonarMsBuildRunnerPath with arguments $arguments"
