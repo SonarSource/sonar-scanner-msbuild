@@ -306,7 +306,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         {
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
-            
+
+            preImportProperties.SonarQubeTempPath = outputPath; // FIXME
             preImportProperties.SonarQubeConfigPath = configPath;
             preImportProperties.SonarQubeOutputPath = outputPath;
             

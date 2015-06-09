@@ -31,7 +31,7 @@ namespace SonarQube.Bootstrapper
                 BuildDirectory_TFS2015      // TeamBuild 2015 and later build directory
                };
 
-        private const string RelativePathToDownloadDir = @"sqtemp\bin";
+        private const string RelativePathToDownloadDir = @".sonarqube\bin";
 
 
         private Settings appConfig;

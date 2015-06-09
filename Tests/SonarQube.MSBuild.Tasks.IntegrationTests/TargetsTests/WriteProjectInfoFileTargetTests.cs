@@ -461,6 +461,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             preImportProperties.RunSonarQubeAnalysis = "true";
             preImportProperties.SonarQubeOutputPath = rootOutputFolder;
 
+            // The temp folder needs to be set for the targets to succeed. Use the temp folder
+            // if one has not been supplied.
+            if (string.IsNullOrEmpty(preImportProperties.SonarQubeTempPath))
+            {
+                preImportProperties.SonarQubeTempPath = Path.GetTempPath();
+            }
+
             // The config folder needs to be set for the targets to succeed. Use the temp folder
             // if one has not been supplied.
             if (string.IsNullOrEmpty(preImportProperties.SonarQubeConfigPath))

@@ -8,6 +8,7 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
@@ -82,6 +83,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "TRUE";
+            preImportProperties.SonarQubeTempPath = @"t:\TeamBuildDir_Legacy\.sonarqube";
             preImportProperties.TeamBuildLegacyBuildDirectory = @"t:\TeamBuildDir_Legacy";
             preImportProperties.TeamBuild2105BuildDirectory = "";
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
@@ -90,8 +92,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectInstance projectInstance = new ProjectInstance(projectRoot.FullPath);
 
             // Assert
-            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_Legacy\sqtemp\out\");
-            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_Legacy\sqtemp\conf\");
+            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_Legacy\.sonarqube\out\");
+            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_Legacy\.sonarqube\conf\");
         }
 
         [TestMethod]
@@ -103,6 +105,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "TRUE";
+            preImportProperties.SonarQubeTempPath = @"t:\TeamBuildDir_NonLegacy\.sonarqube"; // FIXME
             preImportProperties.TeamBuildLegacyBuildDirectory = "";
             preImportProperties.TeamBuild2105BuildDirectory = @"t:\TeamBuildDir_NonLegacy";
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
@@ -111,8 +114,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectInstance projectInstance = new ProjectInstance(projectRoot.FullPath);
 
             // Assert
-            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_NonLegacy\sqtemp\out\");
-            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_NonLegacy\sqtemp\conf\");
+            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\out\");
+            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\conf\");
         }
 
         [TestMethod]

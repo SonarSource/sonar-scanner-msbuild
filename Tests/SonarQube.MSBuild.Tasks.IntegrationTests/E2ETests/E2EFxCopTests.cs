@@ -94,6 +94,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeTempPath = rootOutputFolder; // FIXME
             preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             preImportProperties.SonarQubeConfigPath = rootInputFolder;
             preImportProperties.RunCodeAnalysis = "TRUE";
@@ -131,6 +132,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeTempPath = rootOutputFolder; // FIXME
             preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             preImportProperties.RunCodeAnalysis = "true"; // our targets should override this value
             preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
@@ -170,6 +172,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeTempPath = rootOutputFolder; // FIXME
             preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             preImportProperties.RunCodeAnalysis = "false";
             preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
@@ -220,6 +223,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeTempPath = rootOutputFolder; // FIXME
             preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             preImportProperties.RunCodeAnalysis = "false";
             preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
@@ -276,6 +280,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeTempPath = rootOutputFolder; // FIXME
             preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
             preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
@@ -326,6 +331,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeTempPath = rootOutputFolder; // FIXME
             preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
             preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
@@ -380,6 +386,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeTempPath = rootOutputFolder; // FIXME
             preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
             preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
@@ -435,6 +442,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeTempPath = rootOutputFolder; // FIXME
             preImportProperties.SonarQubeOutputPath = rootOutputFolder;
             preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
             preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";

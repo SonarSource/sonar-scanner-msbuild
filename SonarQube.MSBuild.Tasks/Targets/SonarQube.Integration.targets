@@ -1,114 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!--
-      This file contains targets to integrate SonarQube and MSBuild.
-      
-      The targets will produce an output folder structure containing information required
-      by SonarQube.
-      
-      A subdirectory will be created for each MSBuild project. Information about the project 
-      will be written to a file called "ProjectInfo.xml". Additional files may also be written
-      containing information required by different analysers e.g. if there are managed code files
-      then a file called "ManagedFileList" will be written containing the list of managed code
-      files that was passed to the compiler.
-      
-      The output will only be produced if the properties $(SonarQubeOutputPath) and 
-      $(RunSonarQubeAnalysis) are specified. $(SonarQubeOutputPath) is the output directory 
-      in which the output file should be dropped and can be relative or absolute 
-      (use an absolute path if you want a consolidated set of output for a single build).
-
-      Using this targets file
-      - - - - - - - - - - - -
-      To use these targets with a single project, import the targets into that project.
-
-      To use these targets with all projects, put the file in:
-          C:\Program Files (x86)\MSBuild\12.0\Microsoft.Common.Targets\ImportBefore
-      ... adjusting the MSBuild version as necessary.
-
-
-      Example of use:
-      - - - - - - - -
-      msbuild MyProject.csproj /p:SonarQubeOutputPath=C:\SQOutput /p:RunSonarQubeAnalysis=true
-
-
-      Excluding projects and files from SonarQube analysis
-      ****************************************************
-      Individual projects can excluded from SonarQube analysis by setting
-      the property $(SonarQubeExclude) e.g.
-      
-        <SonarQubeExclude>true</SonarQubeExclude>
-
-      Individual files can be excluded from analysis by setting the 
-      <SonarQubeExclude> metadata item e.g.
-      
-        <Compile Include="Logger.cs">
-          <SonarQubeExclude>true</SonarQubeExclude>
-        </Compile>
+  <!-- **************************************************************************** -->
+  <!-- SonarQube MSBuild Integration implementation logic -->
+  <!-- **************************************************************************** -->
   
-  
-      Test projects
-      *************
-      The analysis performed by SonarQube varies depending on whether a project
-      is a test project or not.
-
-      A project can be explicitly marked as being a test or product project by setting
-      the property $(c) e.g.
-      
-        <SonarQubeTestProject>true</SonarQubeTestProject>
-       
-      If the $(SonarQubeTestProject) is not set then the targets will determine the project
-      type as follows:
-      
-      1) Projects whose full project file name matches the regular expression in the analysis
-         config file will be treated as test projects. This is set via the SonarQube portal
-         (the "Test project pattern" in the per-project settings for C#).
-          By default, any projects with:
-          * "test" (case-insensitive) in the project name, or
-          * that have a directory called "test" or "tests" in the path
-          will be treated as test projects
-          
-          Note that the regular expression uses the .Net Regex format i.e. "+" is the
-          single character wildcard and "*" is the multi-character wildcard (zero to many).
-          
-      2) MSTest projects will be treated as test projects.
-          The $(ProjectTypeGuid) of MS Test projects contains a specific guid
-          ("3AC096D0-A1C2-E12C-1390-A8335801FDAB")
-  
--->
-
   <!-- Safeguard against importing this .targets file multiple times -->
   <PropertyGroup>
     <SonarQubeTargetsImported>true</SonarQubeTargetsImported>
   </PropertyGroup>
 
   <!-- Set defaults if explicit values have not been provided -->
-  <PropertyGroup Condition="$(RunSonarQubeAnalysis) == 'true' ">
-    <!-- Use the TeamBuild per-build base directory as a root -->
-    <!-- Legacy TeamBuild system i.e. XAML Builds (pre-2015) -->
-    <SonarQubeTempPath Condition=" $(SonarQubeTempPath) == '' AND $(TF_BUILD_BUILDDIRECTORY) != '' "
-                   >$(TF_BUILD_BUILDDIRECTORY)\sqtemp</SonarQubeTempPath>
+  <PropertyGroup Condition=" $(SonarQubeTempPath) != '' ">
+    <SonarQubeConfigPath Condition=" $(SonarQubeConfigPath) == '' ">$(SonarQubeTempPath)\conf\</SonarQubeConfigPath>
+    <SonarQubeOutputPath Condition=" $(SonarQubeOutputPath) == '' ">$(SonarQubeTempPath)\out\</SonarQubeOutputPath>
 
-    <!-- New TeamBuild system (2015 onwards) -->
-    <SonarQubeTempPath Condition=" $(SonarQubeTempPath) == '' AND $(AGENT_BUILDDIRECTORY) != '' "
-                   >$(AGENT_BUILDDIRECTORY)\sqtemp</SonarQubeTempPath>
-
-    <SonarQubeConfigPath Condition="$(SonarQubeConfigPath) == '' AND $(SonarQubeTempPath) !='' "
-                     >$(SonarQubeTempPath)\conf\</SonarQubeConfigPath>
-
-    <SonarQubeOutputPath Condition="$(SonarQubeOutputPath) == '' AND $(SonarQubeTempPath) !='' "
-                     >$(SonarQubeTempPath)\out\</SonarQubeOutputPath>
-
-  
     <!-- Specify the ItemGroups to be analyzed -->
     <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">Compile;Content;EmbeddedResource;None;ClCompile;Page;TypeScriptCompile</SQAnalysisFileItemTypes>
-
   </PropertyGroup>
-  
+
   <!-- **************************************************************************** -->
   <!-- Using tasks -->
   <!-- **************************************************************************** -->
-  <PropertyGroup Condition="$(RunSonarQubeAnalysis) == 'true' ">
+  <PropertyGroup Condition=" $(SonarQubeTempPath) != '' ">
     <!-- Assume that the tasks assembly is in the same location as this targets file 
          or in a parent directory unless another location has already been specified. -->
     <SonarQubeBuildTasksAssemblyFile Condition=" $(SonarQubeBuildTasksAssemblyFile) == '' ">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.MSBuild.Tasks.dll))\SonarQube.MSBuild.Tasks.dll</SonarQubeBuildTasksAssemblyFile>
@@ -124,8 +38,8 @@
   <!-- **************************************************************************** -->
 
   <Target Name="SkippingSonarQubeAnalysis" BeforeTargets="CoreCompile"
-          Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeOutputPath) == '' ">
-    <Message Importance="high" Text="Skipping dumping compile outputs because SonarQubeOutputPath has not been specified" />
+          Condition=" $(SonarQubeTempPath) == '' ">
+    <Message Importance="high" Text="Skipping dumping compile outputs because SonarQubeTempPath has not been specified" />
   </Target>
 
   <!-- **************************************************************************** -->
@@ -140,12 +54,12 @@
     -->
   <Target Name="SonarQubeCategoriseProject"
           BeforeTargets="CoreCompile"
-          Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeOutputPath) != '' AND $(SonarQubeTestProject) == '' " >
+          Condition=" $(SonarQubeTempPath) != '' AND $(SonarQubeTestProject) == '' " >
 
     <PropertyGroup>
       <!-- The MS Test project type guid-->
-      <SonarMsTestProjectTypeGuid>3AC096D0-A1C2-E12C-1390-A8335801FDAB</SonarMsTestProjectTypeGuid>
-      <SonarQubeTestProject Condition=" $(ProjectTypeGuid.ToUpperInvariant().Contains('$(SonarMsTestProjectTypeGuid)')) ">true</SonarQubeTestProject>
+      <SonarQubeMsTestProjectTypeGuid>3AC096D0-A1C2-E12C-1390-A8335801FDAB</SonarQubeMsTestProjectTypeGuid>
+      <SonarQubeTestProject Condition=" $(ProjectTypeGuid.ToUpperInvariant().Contains('$(SonarQubeMsTestProjectTypeGuid)')) ">true</SonarQubeTestProject>
     </PropertyGroup>
 
     <!-- If we haven't already determined whether the project is a test project then check
@@ -162,7 +76,7 @@
   <!-- Calculate the set of files to be analyzed -->
   <!-- **************************************************************************** -->
   <Target Name="CalculateSonarQubeFilesToAnalyze" AfterTargets="CoreCompile" BeforeTargets="RunCodeAnalysis"
-        Condition="$(RunSonarQubeAnalysis) == 'true' ">
+        Condition=" $(SonarQubeTempPath) != '' ">
 
     <!-- Include all of contents of the specified item groups, but exclude 
          any that have the metadata 'SonarQubeExclude' set, or that are auto-generated -->
@@ -187,7 +101,7 @@
   -->
   <!-- **************************************************************************** -->
   <Target Name="WriteSonarQubeProjectData" AfterTargets="Build"
-        Condition="$(RunSonarQubeAnalysis) == 'true' AND  $(SonarQubeOutputPath) != '' ">
+        Condition=" $(SonarQubeTempPath) != '' ">
     
     <!-- **************************************************************************** -->
     <!-- Create the project-specific directory -->
@@ -265,18 +179,15 @@
   
   <!-- The FxCop targets are conditionally imported so we need to make sure the required condition
        is true early enough. -->
-  <PropertyGroup Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeOutputPath) != '' ">
+  <PropertyGroup Condition=" $(SonarQubeTempPath) != '' ">
     <SonarQubeRulesetFileName Condition=" $(SonarQubeRulesetFileName) == ''">SonarQubeAnalysis.ruleset</SonarQubeRulesetFileName>
     <SonarQubeRulesetFullName>$(SonarQubeConfigPath)\$(SonarQubeRulesetFileName)</SonarQubeRulesetFullName>
-
-    <!-- If the config path hasn't been specified then don't run code analysis-->
-    <SonarQubeRulesetExists Condition=" $(SonarQubeConfigPath) == '' ">false</SonarQubeRulesetExists>
-    <SonarQubeRulesetExists Condition=" $(SonarQubeConfigPath) != '' ">$([System.IO.File]::Exists($(SonarQubeRulesetFullName)))</SonarQubeRulesetExists>
+    <SonarQubeRulesetExists>$([System.IO.File]::Exists($(SonarQubeRulesetFullName)))</SonarQubeRulesetExists>
 
     <!-- If we are running a SonarQube analysis build then whether or not FxCop is run depends entirely on whether
          the SonarQube settings -->
     <SonarQubeRunMSCodeAnalysis>$(SonarQubeRulesetExists)</SonarQubeRunMSCodeAnalysis>
-    <SonarQubeRunMSCodeAnalysis Condition="$(SonarQubeExclude) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
+    <SonarQubeRunMSCodeAnalysis Condition=" $(SonarQubeExclude) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
     <!-- It's too early to be certain whether the project is a test project or not as the "categorise" target
          hasn't run yet. We'll exclude test projects from FxCop analysis in "OverrideCodeAnalysisProperties". -->
 
@@ -284,7 +195,7 @@
   </PropertyGroup>
 
   <!-- We want to override any properties that have been set declaratively in the project -->
-  <Target Name="OverrideCodeAnalysisProperties" Condition="$(RunSonarQubeAnalysis) == 'true' AND $(SonarQubeOutputPath) != '' "
+  <Target Name="OverrideCodeAnalysisProperties" Condition=" $(SonarQubeTempPath) != '' "
           BeforeTargets="RunCodeAnalysis" >
 
     <PropertyGroup>
@@ -328,18 +239,18 @@
           Condition=" $(SonarQubeRunMSCodeAnalysis) == 'true' "
           AfterTargets="RunCodeAnalysis" BeforeTargets="WriteSonarQubeProjectData" >
 
-    <!-- TODO: update to support native files -->
+    <!-- TODO: remove this duplicated logic -->
     <ItemGroup>
       <!-- Work out if there were any managed files to be analyzed.
            Exclude any that have the metadata 'SonarQubeExclude' set, or that are auto-generated -->
       <SonarQubeManagedFiles Include="@(Compile)" Condition=" %(Compile.SonarQubeExclude) != 'true' AND %(Compile.AutoGen) != 'true' " />
     </ItemGroup>
-    
+
     <PropertyGroup>
       <!-- Work out which types of input files exist-->
       <ManagedFilesExist Condition=" @(SonarQubeManagedFiles) != '' ">true</ManagedFilesExist>
     </PropertyGroup>
-    
+
     <ItemGroup Condition=" $(ManagedFilesExist) == 'true' ">
       <AnalysisResults Include="$(CodeAnalysisLogFile)">
         <Id>FxCop</Id>

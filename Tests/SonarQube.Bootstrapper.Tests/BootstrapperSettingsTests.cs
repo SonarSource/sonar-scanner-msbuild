@@ -38,7 +38,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // 2. Now clear the config scope and check the env var is used
                 configScope.Reset();
                 settings = new BootstrapperSettings(logger);
-                AssertExpectedDownloadDir(@"env download dir\sqtemp\bin", settings);
+                AssertExpectedDownloadDir(@"env download dir\.sonarqube\bin", settings);
             }
         }
 
@@ -56,7 +56,7 @@ namespace SonarQube.Bootstrapper.Tests
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
                 
                 IBootstrapperSettings settings = new BootstrapperSettings(logger);
-                AssertExpectedDownloadDir(@"legacy tf build\sqtemp\bin", settings);
+                AssertExpectedDownloadDir(@"legacy tf build\.sonarqube\bin", settings);
             }
 
             // 2. TFS2015 variable will be used if available
@@ -67,7 +67,7 @@ namespace SonarQube.Bootstrapper.Tests
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, "tfs build");
                 
                 IBootstrapperSettings settings = new BootstrapperSettings(logger);
-                AssertExpectedDownloadDir(@"tfs build\sqtemp\bin", settings);
+                AssertExpectedDownloadDir(@"tfs build\.sonarqube\bin", settings);
             }
 
             // 3. SQ variable takes precedence over the other variables
@@ -78,7 +78,7 @@ namespace SonarQube.Bootstrapper.Tests
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, "tfs build");
 
                 IBootstrapperSettings settings = new BootstrapperSettings(logger);
-                AssertExpectedDownloadDir(@"sq build\sqtemp\bin", settings);
+                AssertExpectedDownloadDir(@"sq build\.sonarqube\bin", settings);
             }
         }
 
@@ -123,12 +123,12 @@ namespace SonarQube.Bootstrapper.Tests
 
                 // 1. Default value -> relative to download dir
                 IBootstrapperSettings settings = new BootstrapperSettings(logger, configScope.AppConfig);
-                AssertExpectedPostProcessPath(@"c:\temp\sqtemp\bin\SonarQube.MSBuild.PostProcessor.exe", settings);
+                AssertExpectedPostProcessPath(@"c:\temp\.sonarqube\bin\SonarQube.MSBuild.PostProcessor.exe", settings);
 
                 // 2. Relative exe set in config -> relative to download dir
                 configScope.SetPostProcessExe(@"..\foo\myCustomPreProcessor.exe");
                 settings = new BootstrapperSettings(logger, configScope.AppConfig);
-                AssertExpectedPostProcessPath(@"c:\temp\sqtemp\foo\myCustomPreProcessor.exe", settings);
+                AssertExpectedPostProcessPath(@"c:\temp\.sonarqube\foo\myCustomPreProcessor.exe", settings);
 
                 // 3. Now set the config path to an absolute value
                 configScope.SetPostProcessExe(@"d:\myCustomPostProcessor.exe");

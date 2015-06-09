@@ -19,7 +19,7 @@ if (!$agentBuildDirectory)
 }
 
 # Upload the summary markdown file
-$summaryMdPath = [System.IO.Path]::Combine($agentBuildDirectory, "sqtemp", "out", "summary.md")
+$summaryMdPath = [System.IO.Path]::Combine($agentBuildDirectory, ".sonarqube", "out", "summary.md")
 Write-Verbose -Verbose "summaryMdPath = $summaryMdPath"
 
 if ([System.IO.File]::Exists($summaryMdPath))

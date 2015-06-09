@@ -205,7 +205,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             get
             {
-                return Path.Combine(this.BuildDirectory, "sqtemp", "conf");
+                return Path.Combine(this.BuildDirectory, ".sonarqube", "conf");
             }
         }
 
@@ -213,7 +213,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             get
             {
-                return Path.Combine(this.BuildDirectory, "sqtemp", "out");
+                return Path.Combine(this.BuildDirectory, ".sonarqube", "out");
             }
         }
 
