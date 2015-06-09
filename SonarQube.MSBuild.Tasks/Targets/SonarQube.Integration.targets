@@ -262,4 +262,36 @@
   <!-- End of FxCop section-->
   <!-- **************************************************************************** -->
 
+
+  <!-- **************************************************************************** -->
+  <!-- StyleCop -->
+  <!-- **************************************************************************** -->
+  <!-- Set the analysis properties required by the StyleCop plugin. The actual execution of 
+       StyleCop is handled by the plugin. -->
+  <Target Name="SetStyleCopAnalysisSettings"
+        Condition=" $(RunSonarQubeAnalysis) == 'true' "
+        BeforeTargets="WriteSonarQubeProjectData" >
+
+    <!-- Work out if the item has already been set -->
+    <PropertyGroup>
+      <SonarStyleProjectFilePathSpecified Condition=" %(SonarQubeSetting.Identity) == 'sonar.stylecop.projectFilePath'  ">true</SonarStyleProjectFilePathSpecified>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <SonarQubeSetting Include="sonar.stylecop.projectFilePath" Condition=" $(SonarStyleProjectFilePathSpecified) != true ">
+        <Value>$(MSBuildProjectFullPath)</Value>
+      </SonarQubeSetting>
+    </ItemGroup>
+
+    <Message Importance="normal" Condition="$(SonarStyleProjectFilePathSpecified) == 'true' "
+             Text="Analysis setting 'sonar.stylecop.projectFilePath' was already specified." />
+
+    <Message Importance="normal" Condition="$(SonarStyleProjectFilePathSpecified) != 'true' "
+         Text="Setting 'sonar.stylecop.projectFilePath' to '$(MSBuildProjectFullPath)'" />
+
+  </Target>
+  <!-- **************************************************************************** -->
+  <!-- End of StyleCop section-->
+  <!-- **************************************************************************** -->
+
 </Project>

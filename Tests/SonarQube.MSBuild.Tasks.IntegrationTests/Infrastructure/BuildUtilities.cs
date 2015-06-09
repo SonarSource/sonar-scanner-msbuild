@@ -275,6 +275,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             {
                 result = mgr.Build(parameters, requestData);
 
+                result.ProjectStateAfterBuild = projectInstance;
                 BuildUtilities.DumpProjectProperties(projectInstance, "Project properties post-build");
             }
             finally

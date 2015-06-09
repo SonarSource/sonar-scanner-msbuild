@@ -427,9 +427,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertSettingExists(projectInfo, "valid.setting2...", "value 2 with spaces");
             AssertSettingExists(projectInfo, "valid.path", @"d:\aaa\bbb.txt");
             AssertSettingExists(projectInfo, "common.setting.name", "local value");
-
-            Assert.AreEqual(4, projectInfo.AnalysisSettings.Count, "Unexpected number of analysis settings returned");
-
+            // Additional settings might be added by other targets so we won't check the total number of settings
             AssertGlobalSettingExists(projectInfo, "global.valid.setting1", "global value1");
             AssertGlobalSettingExists(projectInfo, "global.valid.setting2...", "global value 2 with spaces");
             AssertGlobalSettingExists(projectInfo, "global.valid.path", @"d:\aaa\bbb.txt.global");

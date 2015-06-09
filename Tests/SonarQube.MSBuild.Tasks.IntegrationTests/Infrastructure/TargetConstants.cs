@@ -29,6 +29,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string FxCopTarget = "RunCodeAnalysis";
         public const string FxCopTask = "CodeAnalysis";
 
+        // StyleCop
+        public const string SetStyleCopSettingsTarget = "SetStyleCopAnalysisSettings";
+        public const string StyleCopProjectPathItemName = "sonar.stylecop.projectFilePath";
+
         public const string MsTestProjectTypeGuid = "3AC096D0-A1C2-E12C-1390-A8335801FDAB";
     }
 

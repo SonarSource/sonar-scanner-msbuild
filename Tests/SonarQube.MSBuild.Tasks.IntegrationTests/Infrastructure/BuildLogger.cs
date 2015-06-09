@@ -107,12 +107,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             this.warnings.Add(e);
         }
 
-        private void source_AnyEventRaised(object sender, BuildEventArgs e)
+        private static void source_AnyEventRaised(object sender, BuildEventArgs e)
         {
             Log("{0}: {1}: {2}", e.Timestamp, e.SenderName, e.Message);
         }
 
-        private void Log(string message, params object[] args)
+        private static void Log(string message, params object[] args)
         {
             Console.WriteLine(message, args);
         }
