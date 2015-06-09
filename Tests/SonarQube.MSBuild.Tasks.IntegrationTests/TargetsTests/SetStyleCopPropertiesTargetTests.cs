@@ -101,6 +101,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
 
+            // Add some settings we expect to be ignored
+            AddAnalysisSetting("sonar.other.setting", "other value", projectRoot);
+            AddAnalysisSetting("sonar.other.setting.2", "other value 2", projectRoot);
+            projectRoot.Save();
+
             BuildLogger logger = new BuildLogger();
 
             // Act
@@ -128,9 +133,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
 
-            // Pre-set the value
-            ProjectItemElement element = projectRoot.AddItem(BuildTaskConstants.SettingItemName, TargetConstants.StyleCopProjectPathItemName);
-            element.AddMetadata(BuildTaskConstants.SettingValueMetadataName, "xxx.yyy");
+            // Apply some SonarQubeSettings, one of which specifies the StyleCop setting
+            AddAnalysisSetting("sonar.other.setting", "other value", projectRoot);
+            AddAnalysisSetting(TargetConstants.StyleCopProjectPathItemName, "xxx.yyy", projectRoot);
+            AddAnalysisSetting("sonar.other.setting.2", "other value 2", projectRoot);
             projectRoot.Save();
 
             BuildLogger logger = new BuildLogger();
@@ -139,6 +145,16 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Assert
             logger.AssertTargetExecuted(TargetConstants.SetStyleCopSettingsTarget);
             AssertExpectedStyleCopSetting("xxx.yyy", result);
+        }
+
+        #endregion
+
+        #region Private methods
+
+        private static void AddAnalysisSetting(string name, string value, ProjectRootElement project)
+        {
+            ProjectItemElement element = project.AddItem(BuildTaskConstants.SettingItemName, name);
+            element.AddMetadata(BuildTaskConstants.SettingValueMetadataName, value);
         }
 
         #endregion
