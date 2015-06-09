@@ -48,14 +48,18 @@ SetTaskContextVaraible "sonarMsBuildRunnerPath" $sonarMsBuildRunnerPath
 CreatePropertiesFile $propertiesFileDir $serviceEndpoint.Url $serviceEndpoint.Authorization.Parameters.UserName $serviceEndpoint.Authorization.Parameters.Password $dbUrl $dbUsername $dbPassword
 CopyTargetsFile $targetsFileInitialPath
 
-
 SetSonarOptsEnvVarIfNeeded
 
 #TODO: remove this env variable by passing it in directly to the msbuild runner 
 UpdatePathIfNeeded $sonarRunnerPath
 
-Write-Verbose -Verbose "Executing $sonarMsBuildRunnerPath with arguments /k:$projectKey /n:$projectName /v:$projectVersion" 
-Invoke-BatchScript $sonarMsBuildRunnerPath –Arguments "/k:$projectKey /n:$projectName /v:$projectVersion"
+$arguments = [System.String]::Format("/k:""{0}"" /n:""{1}"" /v:""{2}""", $projectKey, $projectName, $projectVersion)
+Write-Verbose -Verbose "Executing $sonarMsBuildRunnerPath with arguments $arguments"
+Invoke-BatchScript $sonarMsBuildRunnerPath –Arguments $arguments
+
+
+
+
 
 
 
