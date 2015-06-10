@@ -180,7 +180,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string testDir = TestUtils.EnsureTestSpecificFolder(this.TestContext);
             string configFilePath = this.EnsureDummyAnalysisConfigFileExists(testDir);
 
-            // 1. RunSonarQubeAnalysis is set -> not auto-imported
+            // 1. Temp path is set -> not auto-imported
             preImportProperties = new WellKnownProjectProperties();
             preImportProperties.SonarQubeTempPath = "foo";
             preImportProperties.TeamBuild2105BuildDirectory = testDir;

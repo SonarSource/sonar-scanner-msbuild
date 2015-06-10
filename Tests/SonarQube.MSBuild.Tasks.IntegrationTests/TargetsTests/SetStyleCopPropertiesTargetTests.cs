@@ -22,14 +22,14 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         #region Tests
 
         [TestMethod]
-        [Description("Checks the target is not executed if RunSonarQubeAnalysis is not set")]
-        public void StyleCop_RunSonarQubeAnalysisNotSet()
+        [Description("Checks the target is not executed if the temp folder is not set")]
+        public void StyleCop_TempFolderIsNotSet()
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
 
             WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.RunSonarQubeAnalysis = "false";
+            properties.SonarQubeTempPath = "";
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
 
@@ -43,35 +43,14 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [Description("Checks the target is not executed if RunSonarQubeAnalysis is false")]
-        public void StyleCop_RunSonarQubeAnalysisFalse()
+        [Description("Checks the target is executed if the temp folder has been provided")]
+        public void StyleCop_TempFolderIsSet()
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
 
             WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.RunSonarQubeAnalysis = "false";
-
-            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
-
-            BuildLogger logger = new BuildLogger();
-
-            // Act
-            BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetStyleCopSettingsTarget);
-
-            // Assert
-            logger.AssertTargetNotExecuted(TargetConstants.SetStyleCopSettingsTarget);
-        }
-
-        [TestMethod]
-        [Description("Checks the target is executed if RunSonarQubeAnalysis is true")]
-        public void StyleCop_RunSonarQubeAnalysisIsTrue()
-        {
-            // Arrange
-            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
-
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.RunSonarQubeAnalysis = "true";
+            properties.SonarQubeTempPath = rootInputFolder;
             properties.SonarQubeOutputPath = rootInputFolder;
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
@@ -95,7 +74,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
             WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.RunSonarQubeAnalysis = "true";
+            properties.SonarQubeTempPath = rootInputFolder;
             properties.SonarQubeOutputPath = rootInputFolder;
             properties.SonarQubeConfigPath = rootOutputFolder;
 
@@ -127,7 +106,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
             WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.RunSonarQubeAnalysis = "true";
+            properties.SonarQubeTempPath = rootInputFolder;
             properties.SonarQubeOutputPath = rootInputFolder;
             properties.SonarQubeConfigPath = rootOutputFolder;
 

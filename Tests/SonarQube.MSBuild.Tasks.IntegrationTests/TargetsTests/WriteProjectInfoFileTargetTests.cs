@@ -456,7 +456,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         private ProjectRootElement CreateInitializedProject(ProjectDescriptor descriptor, WellKnownProjectProperties preImportProperties, string rootOutputFolder)
         {
             // Still need to set the conditions so the target is invoked
-            preImportProperties.RunSonarQubeAnalysis = "true";
             preImportProperties.SonarQubeOutputPath = rootOutputFolder;
 
             // The temp folder needs to be set for the targets to succeed. Use the temp folder
@@ -582,7 +581,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         private static WellKnownProjectProperties CreateDefaultAnalysisProperties(string configPath, string outputPath)
         {
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarQubeAnalysis = "true";
+            preImportProperties.SonarQubeTempPath = configPath;
             preImportProperties.SonarQubeOutputPath = outputPath;
             preImportProperties.SonarQubeConfigPath = configPath;
             return preImportProperties;

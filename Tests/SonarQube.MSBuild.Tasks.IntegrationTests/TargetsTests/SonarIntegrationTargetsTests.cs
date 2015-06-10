@@ -21,8 +21,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         #region Tests
 
         [TestMethod]
-        [Description("Checks the properties are not set if RunSonarQubeAnalysis is not set")]
-        public void IntTargets_RunSonarQubeAnalysisNotSet()
+        [Description("Checks the properties are not set if the temp folder is not set")]
+        public void IntTargets_TempFolderIsNotSet()
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
@@ -31,24 +31,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Act
             ProjectInstance projectInstance = new ProjectInstance(projectRoot.FullPath);
             
-            // Assert
-            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarQubeOutputPath);
-            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarQubeConfigPath);
-        }
-
-        [TestMethod]
-        [Description("Checks the properties are not set if RunSonarQubeAnalysis is not true")]
-        public void IntTargets_RunSonarQubeAnalysisNotTrue()
-        {
-            // Arrange
-            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
-            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarQubeAnalysis = "trueX";
-            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
-
-            // Act
-            ProjectInstance projectInstance = new ProjectInstance(projectRoot.FullPath);
-
             // Assert
             BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarQubeOutputPath);
             BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarQubeConfigPath);
@@ -82,7 +64,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarQubeAnalysis = "TRUE";
             preImportProperties.SonarQubeTempPath = @"t:\TeamBuildDir_Legacy\.sonarqube";
             preImportProperties.TeamBuildLegacyBuildDirectory = @"t:\TeamBuildDir_Legacy";
             preImportProperties.TeamBuild2105BuildDirectory = "";
@@ -104,7 +85,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarQubeAnalysis = "TRUE";
             preImportProperties.SonarQubeTempPath = @"t:\TeamBuildDir_NonLegacy\.sonarqube"; // FIXME
             preImportProperties.TeamBuildLegacyBuildDirectory = "";
             preImportProperties.TeamBuild2105BuildDirectory = @"t:\TeamBuildDir_NonLegacy";
@@ -126,7 +106,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarQubeAnalysis = "TRUE";
             preImportProperties.SonarQubeTempPath = @"c:\sonarQTemp";
             preImportProperties.TeamBuildLegacyBuildDirectory = @"t:\Legacy TeamBuildPath\"; // SonarQubeTempPath setting should take precedence
             preImportProperties.TeamBuild2105BuildDirectory = @"x:\New Team Build Path\";
@@ -151,7 +130,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.RunSonarQubeAnalysis = "true";
             preImportProperties.SonarQubeOutputPath = @"c:\output";
             preImportProperties.SonarQubeConfigPath= @"c:\config";
             preImportProperties.SonarQubeTempPath = @"c:\sonarQTemp";

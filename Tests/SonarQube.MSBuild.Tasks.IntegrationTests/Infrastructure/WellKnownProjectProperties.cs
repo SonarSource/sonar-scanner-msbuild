@@ -16,12 +16,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
     {
         #region Public properties
 
-        public string RunSonarQubeAnalysis
-        {
-            get { return this.GetValueOrNull(TargetProperties.RunSonarQubeAnalysis); }
-            set { this[TargetProperties.RunSonarQubeAnalysis] = value; }
-        }
-
         public string SonarQubeExclude
         {
             get { return this.GetValueOrNull(TargetProperties.SonarQubeExcludeMetadata); }

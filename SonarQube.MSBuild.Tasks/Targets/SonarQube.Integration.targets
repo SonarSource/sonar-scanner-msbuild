@@ -269,7 +269,7 @@
   <!-- Set the analysis properties required by the StyleCop plugin. The actual execution of 
        StyleCop is handled by the plugin. -->
   <Target Name="SetStyleCopAnalysisSettings"
-        Condition=" $(RunSonarQubeAnalysis) == 'true' "
+        Condition=" $(SonarQubeTempPath) != '' "
         BeforeTargets="WriteSonarQubeProjectData" >
 
     <!-- Work out if the item has already been set -->
