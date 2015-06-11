@@ -28,8 +28,8 @@ namespace SonarQube.Bootstrapper
                 BuildDirectory_TFS2015      // TeamBuild 2015 and later build directory
                };
 
-        private const string RelativePathToTempDir = @".sonarqube";
-        private const string RelativePathToDownloadDir = @"bin";
+        public const string RelativePathToTempDir = @".sonarqube";
+        public const string RelativePathToDownloadDir = @"bin";
 
 
         private Settings appConfig;
@@ -166,11 +166,6 @@ namespace SonarQube.Bootstrapper
             }
 
             return Path.Combine(rootDir, RelativePathToTempDir);
-        }
-
-        private static string CalculateDownloadDir(Settings settings, ILogger logger)
-        {
-            return Path.Combine(CalculateTempDir(settings, logger), RelativePathToDownloadDir);
         }
 
         /// <summary>

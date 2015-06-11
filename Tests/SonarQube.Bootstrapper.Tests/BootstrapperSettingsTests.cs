@@ -15,6 +15,8 @@ namespace SonarQube.Bootstrapper.Tests
     {
         public TestContext TestContext { get; set; }
 
+        private static readonly string DownloadFolderRelativePath = Path.Combine(BootstrapperSettings.RelativePathToTempDir, BootstrapperSettings.RelativePathToDownloadDir);
+
         #region Tests
 
         [TestMethod]
@@ -30,7 +32,7 @@ namespace SonarQube.Bootstrapper.Tests
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
                 
                 IBootstrapperSettings settings = new BootstrapperSettings(logger);
-                AssertExpectedDownloadDir(@"legacy tf build\.sonarqube\bin", settings);
+                AssertExpectedDownloadDir(Path.Combine("legacy tf build", DownloadFolderRelativePath), settings);
             }
 
             // 2. TFS2015 variable will be used if available
@@ -40,7 +42,7 @@ namespace SonarQube.Bootstrapper.Tests
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, "tfs build");
                 
                 IBootstrapperSettings settings = new BootstrapperSettings(logger);
-                AssertExpectedDownloadDir(@"tfs build\.sonarqube\bin", settings);
+                AssertExpectedDownloadDir(Path.Combine("tfs build", DownloadFolderRelativePath), settings);
             }
 
             // 3. CWD has least precedence over env variables
@@ -50,7 +52,7 @@ namespace SonarQube.Bootstrapper.Tests
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
 
                 IBootstrapperSettings settings = new BootstrapperSettings(logger);
-                AssertExpectedDownloadDir(Path.Combine(Directory.GetCurrentDirectory(), @".sonarqube\bin"), settings);
+                AssertExpectedDownloadDir(Path.Combine(Directory.GetCurrentDirectory(), DownloadFolderRelativePath), settings);
             }
         }
 
@@ -69,12 +71,12 @@ namespace SonarQube.Bootstrapper.Tests
 
                 // 1. Default value -> relative to download dir
                 IBootstrapperSettings settings = new BootstrapperSettings(logger, configScope.AppConfig);
-                AssertExpectedPreProcessPath(@"c:\temp\.sonarqube\bin\SonarQube.MSBuild.PreProcessor.exe", settings);
+                AssertExpectedPreProcessPath(Path.Combine(@"c:\temp", DownloadFolderRelativePath, "SonarQube.MSBuild.PreProcessor.exe"), settings);
 
                 // 2. Relative exe set in config -> relative to download dir
                 configScope.SetPreProcessExe(@"..\myCustomPreProcessor.exe");
                 settings = new BootstrapperSettings(logger, configScope.AppConfig);
-                AssertExpectedPreProcessPath(@"c:\temp\.sonarqube\myCustomPreProcessor.exe", settings);
+                AssertExpectedPreProcessPath(Path.Combine(@"c:\temp", BootstrapperSettings.RelativePathToTempDir, "myCustomPreProcessor.exe"), settings);
 
                 // 3. Now set the config path to an absolute value
                 configScope.SetPreProcessExe(@"d:\myCustomPreProcessor.exe");
@@ -100,12 +102,12 @@ namespace SonarQube.Bootstrapper.Tests
 
                 // 1. Default value -> relative to download dir
                 IBootstrapperSettings settings = new BootstrapperSettings(logger, configScope.AppConfig);
-                AssertExpectedPostProcessPath(@"c:\temp\.sonarqube\bin\SonarQube.MSBuild.PostProcessor.exe", settings);
+                AssertExpectedPostProcessPath(Path.Combine(@"c:\temp", DownloadFolderRelativePath, "SonarQube.MSBuild.PostProcessor.exe"), settings);
 
                 // 2. Relative exe set in config -> relative to download dir
                 configScope.SetPostProcessExe(@"..\foo\myCustomPreProcessor.exe");
                 settings = new BootstrapperSettings(logger, configScope.AppConfig);
-                AssertExpectedPostProcessPath(@"c:\temp\.sonarqube\foo\myCustomPreProcessor.exe", settings);
+                AssertExpectedPostProcessPath(Path.Combine(@"c:\temp", BootstrapperSettings.RelativePathToTempDir, @"foo\myCustomPreProcessor.exe"), settings);
 
                 // 3. Now set the config path to an absolute value
                 configScope.SetPostProcessExe(@"d:\myCustomPostProcessor.exe");
