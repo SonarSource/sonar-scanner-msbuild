@@ -23,12 +23,6 @@ namespace SonarQube.TeamBuild.Integration
         public static class EnvironmentVariables // was internal
         {
             /// <summary>
-            /// Name of the environment variable that specifies the directory to use as the 
-            /// analysis root in non-TFS cases
-            /// </summary>
-            public const string SQAnalysisRootPath = "SQ_BUILDDIRECTORY";
-
-            /// <summary>
             /// Name of the environment variable that specifies whether the processing
             /// of code coverage reports in legacy TeamBuild cases should be skipped
             /// </summary>
@@ -45,12 +39,10 @@ namespace SonarQube.TeamBuild.Integration
             // Legacy TeamBuild environment variables (XAML Builds)
             public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
             public const string BuildUri_Legacy = "TF_BUILD_BUILDURI";
-            public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
 
             // TFS 2015 Environment variables
             public const string TfsCollectionUri_TFS2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
             public const string BuildUri_TFS2015 = "BUILD_BUILDURI";
-            public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
         }
 
         #region Public static methods
@@ -80,7 +72,7 @@ namespace SonarQube.TeamBuild.Integration
                         BuildEnvironment = env,
                         BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_Legacy),
                         TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUri_Legacy),
-                        BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectory_Legacy)
+                        BuildDirectory = Directory.GetCurrentDirectory()
                     };
 
                     break;
@@ -92,7 +84,7 @@ namespace SonarQube.TeamBuild.Integration
                         BuildEnvironment = env,
                         BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_TFS2015),
                         TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUri_TFS2015),
-                        BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectory_TFS2015)
+                        BuildDirectory = Directory.GetCurrentDirectory()
                     };
                     
                     break;
@@ -100,16 +92,10 @@ namespace SonarQube.TeamBuild.Integration
                 default:
                     logger.LogMessage(Resources.SETTINGS_NotInTeamBuild);
 
-                    string buildDir = Environment.GetEnvironmentVariable(EnvironmentVariables.SQAnalysisRootPath);
-                    if (string.IsNullOrEmpty(buildDir))
-                    {
-                        buildDir = Path.GetTempPath();
-                    }
-
                     settings = new TeamBuildSettings()
                     {
                         BuildEnvironment = env,
-                        BuildDirectory = buildDir
+                        BuildDirectory = Directory.GetCurrentDirectory()
                     };
 
                     break;
@@ -205,7 +191,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             get
             {
-                return Path.Combine(this.BuildDirectory, ".sonarqube", "conf");
+                return Path.Combine(this.BuildDirectory, "conf");
             }
         }
 
@@ -213,7 +199,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             get
             {
-                return Path.Combine(this.BuildDirectory, ".sonarqube", "out");
+                return Path.Combine(this.BuildDirectory, "out");
             }
         }
 

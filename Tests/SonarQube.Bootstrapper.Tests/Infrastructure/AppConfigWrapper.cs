@@ -33,13 +33,6 @@ namespace SonarQube.Bootstrapper.Tests
             this.appConfig.Reset();
         }
 
-        public void SetDownloadDir(string value)
-        {
-            // Dummy access to ensure the properties are initialised
-            string dummy = this.appConfig.DownloadDir;
-            this.appConfig.PropertyValues["DownloadDir"].PropertyValue = value;
-        }
-
         public void SetPreProcessExe(string value)
         {
             // Dummy access to ensure the properties are initialised

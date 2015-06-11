@@ -15,6 +15,11 @@ namespace SonarQube.Bootstrapper
         string SonarQubeUrl { get; }
 
         /// <summary>
+        /// Temporary analysis directory
+        /// </summary>
+        string TempDirectory { get; }
+
+        /// <summary>
         /// Directory into which the downloaded files should be placed
         /// </summary>
         string DownloadDirectory { get; }

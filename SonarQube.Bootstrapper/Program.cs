@@ -60,7 +60,7 @@ namespace SonarQube.Bootstrapper
 
             var preprocessorFilePath = settings.PreProcessorFilePath;
             var processRunner = new ProcessRunner();
-            processRunner.Execute(preprocessorFilePath, string.Join(" ", args.Select(a => "\"" + a + "\"")), downloadBinPath, settings.PreProcessorTimeoutInMs, logger);
+            processRunner.Execute(preprocessorFilePath, string.Join(" ", args.Select(a => "\"" + a + "\"")), settings.TempDirectory, settings.PreProcessorTimeoutInMs, logger);
             
             return processRunner.ExitCode;
         }
@@ -70,7 +70,7 @@ namespace SonarQube.Bootstrapper
             var postprocessorFilePath = settings.PostProcessorFilePath;
 
             var processRunner = new ProcessRunner();
-            processRunner.Execute(postprocessorFilePath, "", settings.DownloadDirectory, settings.PostProcessorTimeoutInMs, logger);
+            processRunner.Execute(postprocessorFilePath, "", settings.TempDirectory, settings.PostProcessorTimeoutInMs, logger);
             return processRunner.ExitCode;
         }
 

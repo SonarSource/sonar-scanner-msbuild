@@ -15,9 +15,7 @@ namespace SonarQube.Bootstrapper
 {
     public class BootstrapperSettings : IBootstrapperSettings
     {
-        // Note: these constant values must be kept in step with the values used 
-        // in the SonarQube.TeamBuild.Integration assembly, and also the targets files.
-        public const string SQAnalysisRootPath = "SQ_BUILDDIRECTORY";
+        // Note: these constant values must be kept in sync with the targets files.
         public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
         public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
 
@@ -26,12 +24,12 @@ namespace SonarQube.Bootstrapper
         /// root folder under which all analysis ouput will be written
         /// </summary>
         private static readonly string[] DirectoryEnvVarNames = {
-                SQAnalysisRootPath,        // Variable to use in non-TFS cases, or to override the TFS settings
-                BuildDirectory_Legacy,  // Legacy TeamBuild directory (TFS2013 and earlier)
+                BuildDirectory_Legacy,      // Legacy TeamBuild directory (TFS2013 and earlier)
                 BuildDirectory_TFS2015      // TeamBuild 2015 and later build directory
                };
 
-        private const string RelativePathToDownloadDir = @".sonarqube\bin";
+        private const string RelativePathToTempDir = @".sonarqube";
+        private const string RelativePathToDownloadDir = @"bin";
 
 
         private Settings appConfig;
@@ -39,7 +37,7 @@ namespace SonarQube.Bootstrapper
         private ILogger logger;
 
         private string sonarQubeUrl;
-        private string downloadDir;
+        private string tempDir;
         private string preProcFilePath;
         private string postProcFilePath;
 
@@ -91,15 +89,23 @@ namespace SonarQube.Bootstrapper
             }
         }
 
+        public string TempDirectory
+        {
+            get
+            {
+                if (this.tempDir == null)
+                {
+                    this.tempDir = CalculateTempDir(this.appConfig, this.logger);
+                }
+                return this.tempDir;
+            }
+        }
+
         public string DownloadDirectory
         {
             get
             {
-                if (this.downloadDir == null)
-                {
-                    this.downloadDir = CalculateDownloadDir(this.appConfig, this.logger);
-                }
-                return this.downloadDir;
+                return Path.Combine(TempDirectory, RelativePathToDownloadDir);
             }
         }
 
@@ -149,23 +155,22 @@ namespace SonarQube.Bootstrapper
 
         #region Private methods
 
-        private static string CalculateDownloadDir(Settings settings, ILogger logger)
+        private static string CalculateTempDir(Settings settings, ILogger logger)
         {
-            // Use the app setting if supplied...
-            string dir = settings.DownloadDir;
-            if (string.IsNullOrWhiteSpace(dir))
-            {
-                // ... otherwise work it out from the environment variables
-                logger.LogMessage(Resources.INFO_UsingEnvVarToGetDirectory);
-                string rootDir = GetFirstEnvironmentVariable(DirectoryEnvVarNames, logger);
+            logger.LogMessage(Resources.INFO_UsingEnvVarToGetDirectory);
+            string rootDir = GetFirstEnvironmentVariable(DirectoryEnvVarNames, logger);
 
-                if (!string.IsNullOrWhiteSpace(rootDir))
-                {
-                    dir = Path.Combine(rootDir, RelativePathToDownloadDir);
-                }
+            if (string.IsNullOrWhiteSpace(rootDir))
+            {
+                rootDir = Directory.GetCurrentDirectory();
             }
 
-            return dir;
+            return Path.Combine(rootDir, RelativePathToTempDir);
+        }
+
+        private static string CalculateDownloadDir(Settings settings, ILogger logger)
+        {
+            return Path.Combine(CalculateTempDir(settings, logger), RelativePathToDownloadDir);
         }
 
         /// <summary>

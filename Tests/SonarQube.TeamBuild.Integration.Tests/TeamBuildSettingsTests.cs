@@ -123,40 +123,21 @@ namespace SonarQube.TeamBuild.Integration.Tests
             TestLogger logger;
             TeamBuildSettings settings;
 
-            // 1. No environment vars set -> use the temp path
+            // 1. No environment vars set
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SQAnalysisRootPath, null);
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, null);
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_Legacy, null);
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, null);
 
                 logger = new TestLogger();
                 settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
 
                 // Check the environment properties
-                CheckExpectedSettings(settings, BuildEnvironment.NotTeamBuild, Path.GetTempPath(), null, null);
+                CheckExpectedSettings(settings, BuildEnvironment.NotTeamBuild, Directory.GetCurrentDirectory(), null, null);
             }
 
-            // 2. SQ analysis dir set
-            using(EnvironmentVariableScope scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SQAnalysisRootPath, "d:\\sqdir");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, null);
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_Legacy, null);
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, null);
-
-                logger = new TestLogger();
-                settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
-
-                CheckExpectedSettings(settings, BuildEnvironment.NotTeamBuild, "d:\\sqdir", null, null);
-            }
-
-
-            // 3. Some Team build settings provided, but not marked as in team build
+            // 2. Some Team build settings provided, but not marked as in team build
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SQAnalysisRootPath, "x:\\a");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, null);
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, "build uri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, "collection uri");
@@ -164,7 +145,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
                 logger = new TestLogger();
                 settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
 
-                CheckExpectedSettings(settings, BuildEnvironment.NotTeamBuild, "x:\\a", null, null);
+                CheckExpectedSettings(settings, BuildEnvironment.NotTeamBuild, Directory.GetCurrentDirectory(), null, null);
             }
 
         }
@@ -179,7 +160,6 @@ namespace SonarQube.TeamBuild.Integration.Tests
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, "TRUE");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_Legacy, "build dir");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, "http://legacybuilduri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, "http://legacycollectionUri");
 
@@ -193,7 +173,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             logger.AssertWarningsLogged(0);
 
             // Check the environment properties
-            CheckExpectedSettings(settings, BuildEnvironment.LegacyTeamBuild, "build dir", "http://legacybuilduri", "http://legacycollectionUri");
+            CheckExpectedSettings(settings, BuildEnvironment.LegacyTeamBuild, Directory.GetCurrentDirectory(), "http://legacybuilduri", "http://legacycollectionUri");
         }
 
         [TestMethod]
@@ -206,7 +186,6 @@ namespace SonarQube.TeamBuild.Integration.Tests
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, "TRUE");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, "build dir");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "http://builduri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, "http://collectionUri");
 
@@ -220,7 +199,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             logger.AssertWarningsLogged(0);
 
             // Check the environment properties
-            CheckExpectedSettings(settings, BuildEnvironment.TeamBuild, "build dir", "http://builduri", "http://collectionUri");
+            CheckExpectedSettings(settings, BuildEnvironment.TeamBuild, Directory.GetCurrentDirectory(), "http://builduri", "http://collectionUri");
         }
 
         #endregion
@@ -237,9 +216,9 @@ namespace SonarQube.TeamBuild.Integration.Tests
             Assert.AreEqual(expectedCollectionUri, actual.TfsUri, "Unexpected tfs uri returned");
 
             // Check the calculated values
-            Assert.AreEqual(Path.Combine(expectedDir, ".sonarqube\\conf"), actual.SonarConfigDirectory, "Unexpected config dir");
-            Assert.AreEqual(Path.Combine(expectedDir, ".sonarqube\\out"), actual.SonarOutputDirectory, "Unexpected output dir");
-            Assert.AreEqual(Path.Combine(expectedDir, ".sonarqube\\conf", FileConstants.ConfigFileName), actual.AnalysisConfigFilePath, "Unexpected analysis file path");
+            Assert.AreEqual(Path.Combine(expectedDir, "conf"), actual.SonarConfigDirectory, "Unexpected config dir");
+            Assert.AreEqual(Path.Combine(expectedDir, "out"), actual.SonarOutputDirectory, "Unexpected output dir");
+            Assert.AreEqual(Path.Combine(expectedDir, "conf", FileConstants.ConfigFileName), actual.AnalysisConfigFilePath, "Unexpected analysis file path");
         }
 
         private static void CheckExpectedTimeoutReturned(string envValue, int expected)

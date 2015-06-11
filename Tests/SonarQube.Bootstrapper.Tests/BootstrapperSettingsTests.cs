@@ -18,31 +18,6 @@ namespace SonarQube.Bootstrapper.Tests
         #region Tests
 
         [TestMethod]
-        [Description("Checks that the download directory is taken from the config file in preference to using the environment variables")]
-        public void BootSettings_DownloadConfigOverridesEnvVars()
-        {
-            // 0. Setup
-            TestLogger logger = new TestLogger();
-
-            using (EnvironmentVariableScope envScope = new EnvironmentVariableScope())
-            {
-                AppConfigWrapper configScope = new AppConfigWrapper();
-
-                envScope.SetVariable(BootstrapperSettings.SQAnalysisRootPath, "env download dir");
-                configScope.SetDownloadDir("config download dir");
-
-                // 1. Check the config scope takes precedence
-                IBootstrapperSettings settings = new BootstrapperSettings(logger, configScope.AppConfig);
-                AssertExpectedDownloadDir(@"config download dir", settings);
-
-                // 2. Now clear the config scope and check the env var is used
-                configScope.Reset();
-                settings = new BootstrapperSettings(logger);
-                AssertExpectedDownloadDir(@"env download dir\.sonarqube\bin", settings);
-            }
-        }
-
-        [TestMethod]
         public void BootSettings_DownloadDirFromEnvVars()
         {
             // 0. Setup
@@ -51,7 +26,6 @@ namespace SonarQube.Bootstrapper.Tests
             // 1. Legacy TFS variable will be used if available
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(BootstrapperSettings.SQAnalysisRootPath, null);
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, "legacy tf build");
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
                 
@@ -62,7 +36,6 @@ namespace SonarQube.Bootstrapper.Tests
             // 2. TFS2015 variable will be used if available
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(BootstrapperSettings.SQAnalysisRootPath, null);
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, null);
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, "tfs build");
                 
@@ -70,15 +43,14 @@ namespace SonarQube.Bootstrapper.Tests
                 AssertExpectedDownloadDir(@"tfs build\.sonarqube\bin", settings);
             }
 
-            // 3. SQ variable takes precedence over the other variables
+            // 3. CWD has least precedence over env variables
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(BootstrapperSettings.SQAnalysisRootPath, "sq build");
-                scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, "legacy tf build");
-                scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, "tfs build");
+                scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, null);
+                scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
 
                 IBootstrapperSettings settings = new BootstrapperSettings(logger);
-                AssertExpectedDownloadDir(@"sq build\.sonarqube\bin", settings);
+                AssertExpectedDownloadDir(Path.Combine(Directory.GetCurrentDirectory(), @".sonarqube\bin"), settings);
             }
         }
 
@@ -88,22 +60,27 @@ namespace SonarQube.Bootstrapper.Tests
         {
             // 0. Setup
             TestLogger logger = new TestLogger();
-            AppConfigWrapper configScope = new AppConfigWrapper();
-            configScope.SetDownloadDir(@"c:\temp");
 
-            // 1. Default value -> relative to download dir
-            IBootstrapperSettings settings = new BootstrapperSettings(logger, configScope.AppConfig);
-            AssertExpectedPreProcessPath(@"c:\temp\SonarQube.MSBuild.PreProcessor.exe", settings);
+            using (EnvironmentVariableScope envScope = new EnvironmentVariableScope())
+            {
+                AppConfigWrapper configScope = new AppConfigWrapper();
 
-            // 2. Relative exe set in config -> relative to download dir
-            configScope.SetPreProcessExe(@"..\myCustomPreProcessor.exe");
-            settings = new BootstrapperSettings(logger, configScope.AppConfig);
-            AssertExpectedPreProcessPath(@"c:\myCustomPreProcessor.exe", settings);
+                envScope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
 
-            // 3. Now set the config path to an absolute value
-            configScope.SetPreProcessExe(@"d:\myCustomPreProcessor.exe");
-            settings = new BootstrapperSettings(logger, configScope.AppConfig);
-            AssertExpectedPreProcessPath(@"d:\myCustomPreProcessor.exe", settings);
+                // 1. Default value -> relative to download dir
+                IBootstrapperSettings settings = new BootstrapperSettings(logger, configScope.AppConfig);
+                AssertExpectedPreProcessPath(@"c:\temp\.sonarqube\bin\SonarQube.MSBuild.PreProcessor.exe", settings);
+
+                // 2. Relative exe set in config -> relative to download dir
+                configScope.SetPreProcessExe(@"..\myCustomPreProcessor.exe");
+                settings = new BootstrapperSettings(logger, configScope.AppConfig);
+                AssertExpectedPreProcessPath(@"c:\temp\.sonarqube\myCustomPreProcessor.exe", settings);
+
+                // 3. Now set the config path to an absolute value
+                configScope.SetPreProcessExe(@"d:\myCustomPreProcessor.exe");
+                settings = new BootstrapperSettings(logger, configScope.AppConfig);
+                AssertExpectedPreProcessPath(@"d:\myCustomPreProcessor.exe", settings);
+            }
         }
 
         [TestMethod]
@@ -119,7 +96,7 @@ namespace SonarQube.Bootstrapper.Tests
             {
                 AppConfigWrapper configScope = new AppConfigWrapper();
 
-                envScope.SetVariable(BootstrapperSettings.SQAnalysisRootPath, @"c:\temp");
+                envScope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
 
                 // 1. Default value -> relative to download dir
                 IBootstrapperSettings settings = new BootstrapperSettings(logger, configScope.AppConfig);
