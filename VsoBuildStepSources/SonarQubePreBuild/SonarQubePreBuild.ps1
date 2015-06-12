@@ -13,7 +13,6 @@ Write-Verbose "Starting SonarQube Pre-Build Setup Step"
 
 Write-Verbose -Verbose "dbConnectionString = $dbUrl"
 Write-Verbose -Verbose "dbUsername = $dbUsername"
-Write-Verbose -Verbose "dbPassword = $dbPassword" 
 Write-Verbose -Verbose "projectKey = $projectKey"
 Write-Verbose -Verbose "projectName = $projectName"
 Write-Verbose -Verbose "connectedServiceName = $connectedServiceName"
