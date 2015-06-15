@@ -95,8 +95,10 @@
     <Content Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <None Include="App.12.0.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="App.14.0.config">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
@@ -127,4 +129,14 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <!-- Custom target to copy the version of the app.config appropriate to the current
+       version of Visual Studio. -->
+  <Target Name="CopyAppConfig" AfterTargets="Compile">
+    <ItemGroup>
+      <AppConfigToCopy Include="App.$(VisualStudioVersion).config" />
+      <AppConfigTarget Include="$(OutDir)App.config" />
+    </ItemGroup>
+    <Message Importance="normal" Text="Copying from @(AppConfigToCopy) to @(AppConfigTarget)" />
+    <Copy SourceFiles="@(AppConfigToCopy)" DestinationFiles="@(AppConfigTarget)" SkipUnchangedFiles="true" />
+  </Target>
 </Project>
