@@ -60,6 +60,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string CodeAnalysisRuleset = "CodeAnalysisRuleSet";
         public const string CodeAnalysisLogFile = "CodeAnalysisLogFile";
 
+        public const string AssemblyName = "AssemblyName";
+
         public const string IsInTeamBuild = "TF_Build"; // Common to legacy and non-legacy TeamBuilds
 
         // Legacy TeamBuild environment variables (XAML Builds)

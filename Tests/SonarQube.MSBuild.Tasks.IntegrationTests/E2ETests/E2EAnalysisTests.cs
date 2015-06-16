@@ -360,7 +360,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
         #region Assertions methods
 
-        private void CheckRootOutputFolder(string rootOutputFolder)
+        private static void CheckRootOutputFolder(string rootOutputFolder)
         {
             Assert.IsTrue(Directory.Exists(rootOutputFolder), "Expected root output folder does not exist");
 

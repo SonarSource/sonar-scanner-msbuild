@@ -36,6 +36,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
             preImportProperties.SonarTestProject = "true";
+            preImportProperties.AssemblyName = "MyTest.proj";
 
             EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
 
@@ -46,6 +47,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             AssertIsTestProject(projectInfo);
+            AssertProjectIsNotExcluded(projectInfo);
         }
 
         [TestMethod]
@@ -72,6 +74,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             AssertIsProductProject(projectInfo);
+            AssertProjectIsNotExcluded(projectInfo);
         }
 
         [TestMethod]
@@ -94,6 +97,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             AssertIsProductProject(projectInfo);
+            AssertProjectIsNotExcluded(projectInfo);
         }
 
         [TestMethod]
@@ -118,6 +122,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             AssertIsTestProject(projectInfo);
+            AssertProjectIsNotExcluded(projectInfo);
         }
 
         [TestMethod]
@@ -143,6 +148,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             AssertIsProductProject(projectInfo);
+            AssertProjectIsNotExcluded(projectInfo);
         }
 
         [TestMethod]
@@ -168,6 +174,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             AssertIsTestProject(projectInfo);
+            AssertProjectIsNotExcluded(projectInfo);
         }
 
         [TestMethod]
@@ -193,6 +200,64 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             AssertIsTestProject(projectInfo);
+            AssertProjectIsNotExcluded(projectInfo);
+        }
+
+        #endregion
+
+        #region Fakes projects tests
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")] // SONARMSBRU-26: MS Fakes should be excluded from analysis
+        public void WriteProjectInfo_FakesProjectsAreExcluded()
+        {
+            // Checks that fakes projects are excluded from analysis
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
+
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+            preImportProperties.AssemblyName = "f.fAKes";
+            
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "f.proj");
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+            // Assert
+            AssertIsTestProject(projectInfo);
+            AssertProjectIsExcluded(projectInfo);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")] // SONARMSBRU-26: MS Fakes should be excluded from analysis
+        public void WriteProjectInfo_FakesProjectsAreMarkedAsTest()
+        {
+            // Checks that fakes projects are recognised and marked as test
+            // projects, irrespective of whether the SonarQubeTestProject is
+            // already set.
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
+
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+            preImportProperties.SonarTestProject = "false";
+            preImportProperties.AssemblyName = "MyFakeProject.fakes";
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "f.proj");
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+            // Assert
+            AssertIsTestProject(projectInfo);
+            AssertProjectIsExcluded(projectInfo);
         }
 
         #endregion
@@ -637,6 +702,16 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         private static void AssertIsTestProject(ProjectInfo projectInfo)
         {
             Assert.AreEqual(ProjectType.Test, projectInfo.ProjectType, "Should be a test project");
+        }
+
+        private static void AssertProjectIsExcluded(ProjectInfo projectInfo)
+        {
+            Assert.IsTrue(projectInfo.IsExcluded, "Expecting the project to be excluded");
+        }
+
+        private static void AssertProjectIsNotExcluded(ProjectInfo projectInfo)
+        {
+            Assert.IsFalse(projectInfo.IsExcluded, "Not expecting the project to be excluded");
         }
 
         private void AssertResultFileDoesNotExist(ProjectInfo projectInfo, AnalysisType resultType)

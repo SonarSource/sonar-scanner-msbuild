@@ -352,6 +352,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
             logger.AssertExpectedTargetOrdering(
+                TargetConstants.CategoriseProjectTarget, // should always be run so we can detect Fakes
                 TargetConstants.CoreCompileTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
@@ -361,9 +362,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             logger.AssertTargetExecuted(TargetConstants.FxCopTarget);
             logger.AssertTaskNotExecuted(TargetConstants.FxCopTask);
             logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
-
-            // We've explicitly marked the project as a test project so we don't expect the "categorise project" target to run
-            logger.AssertTargetNotExecuted(TargetConstants.CategoriseProjectTarget);
 
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
             ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());

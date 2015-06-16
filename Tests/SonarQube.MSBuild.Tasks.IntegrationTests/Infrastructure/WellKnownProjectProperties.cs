@@ -64,6 +64,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             set { this[TargetProperties.CodeAnalysisRuleset] = value; }
         }
 
+        public string AssemblyName
+        {
+            get { return this.GetValueOrNull(TargetProperties.AssemblyName); }
+            set { this[TargetProperties.AssemblyName] = value; }
+        }
+
         public string TeamBuildLegacyBuildDirectory
         {
             get { return this.GetValueOrNull(TargetProperties.BuildDirectory_Legacy); }

@@ -45,8 +45,10 @@
   <!-- **************************************************************************** -->
   <!-- Categorise as a product or test project -->
   <!-- **************************************************************************** -->
-  <!-- Work out if the project is a test project or not -->
-  <!-- If it is explicitly marked then use that value, otherwise:
+  <!-- Work out if the project is a test or Fakes project. -->
+  <!-- Fakes projects are auto-generated. If a project is recognised as a Fakes
+       project then it will be marked as a test project and excluded. 
+       For test projects, if it is explicitly marked then use that value, otherwise:
           * check if the name matches the regular expression in the config file, or
           * check if it has one of the expected project types guids.
          If either is true then the project is a test project, otherwise
@@ -54,9 +56,18 @@
     -->
   <Target Name="SonarQubeCategoriseProject"
           BeforeTargets="CoreCompile"
-          Condition=" $(SonarQubeTempPath) != '' AND $(SonarQubeTestProject) == '' " >
+          Condition=" $(SonarQubeTempPath) != '' " >
 
+    <!-- Fakes detection -->
     <PropertyGroup>
+      <IsFakesProject Condition="$(AssemblyName.EndsWith('.fakes', System.StringComparison.OrdinalIgnoreCase))">true</IsFakesProject>
+    </PropertyGroup>
+    <PropertyGroup Condition="$(IsFakesProject) == 'true'">
+      <SonarQubeTestProject>true</SonarQubeTestProject>
+      <SonarQubeExclude>true</SonarQubeExclude>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" $(SonarQubeTestProject) == '' ">
       <!-- The MS Test project type guid-->
       <SonarQubeMsTestProjectTypeGuid>3AC096D0-A1C2-E12C-1390-A8335801FDAB</SonarQubeMsTestProjectTypeGuid>
       <SonarQubeTestProject Condition=" $(ProjectTypeGuid.ToUpperInvariant().Contains('$(SonarQubeMsTestProjectTypeGuid)')) ">true</SonarQubeTestProject>
