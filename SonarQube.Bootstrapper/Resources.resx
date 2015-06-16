@@ -123,9 +123,6 @@
   <data name="ERROR_CouldNotFindSonarRunnerProperties" xml:space="preserve">
     <value>Could not find the sonar-project.properties from the sonar-runner in %PATH%.</value>
   </data>
-  <data name="INFO_CreatingBinDir" xml:space="preserve">
-    <value>Creating the analysis bin directory: {0}</value>
-  </data>
   <data name="INFO_Downloading" xml:space="preserve">
     <value>Downloading {0} from {1} to {2}</value>
   </data>

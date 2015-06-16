@@ -141,7 +141,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             WellKnownProjectProperties preImportProperties;
 
             string testDir = TestUtils.EnsureTestSpecificFolder(this.TestContext);
-            string configFilePath = this.EnsureDummyAnalysisConfigFileExists(testDir);
+            string configFilePath = EnsureDummyAnalysisConfigFileExists(testDir);
 
             // 1. RunSonarAnalysisQube is not set, Legacy TFS path -> auto-import
             preImportProperties = new WellKnownProjectProperties();
@@ -178,7 +178,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             WellKnownProjectProperties preImportProperties;
 
             string testDir = TestUtils.EnsureTestSpecificFolder(this.TestContext);
-            string configFilePath = this.EnsureDummyAnalysisConfigFileExists(testDir);
+            string configFilePath = EnsureDummyAnalysisConfigFileExists(testDir);
 
             // 1. Temp path is set -> not auto-imported
             preImportProperties = new WellKnownProjectProperties();
@@ -311,7 +311,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// Ensures a file with the correct file name exists in the correct sub-directory
         /// under the specified root
         /// </summary>
-        private string EnsureDummyAnalysisConfigFileExists(string rootBuildDir)
+        private static string EnsureDummyAnalysisConfigFileExists(string rootBuildDir)
         {
             string subDir = Path.Combine(rootBuildDir, ".sonarqube", "conf");
             Directory.CreateDirectory(subDir);

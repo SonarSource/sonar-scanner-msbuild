@@ -30,10 +30,7 @@ namespace SonarQube.TeamBuild.Integration
             }
 
             string downloadDir = Path.GetDirectoryName(newFullFileName);
-            if (!Directory.Exists(downloadDir))
-            {
-                Directory.CreateDirectory(downloadDir);
-            }
+            Utilities.EnsureDirectoryExists(downloadDir, logger);
 
             using (WebClient myWebClient = new WebClient())
             {

@@ -7,6 +7,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 
 namespace SonarQube.Common
 {
@@ -62,6 +63,54 @@ namespace SonarQube.Common
                 logger.LogMessage(Resources.DIAG_RetryOperationFailed, timer.ElapsedMilliseconds);
             }
             return succeeded;
+        }
+
+        /// <summary>
+        /// Ensures that the specified directory exists
+        /// </summary>
+        public static void EnsureDirectoryExists(string directory, ILogger logger)
+        {
+            if (string.IsNullOrWhiteSpace(directory))
+            {
+                throw new ArgumentNullException("directory");
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+
+            if (Directory.Exists(directory))
+            {
+                logger.LogMessage(Resources.DIAG_DirectoryAlreadyExists, directory);
+            }
+            else
+            {
+                logger.LogMessage(Resources.DIAG_CreatingDirectory, directory);
+                Directory.CreateDirectory(directory);
+            }
+        }
+
+        /// <summary>
+        /// Ensures that the specified directory exists and is empty
+        /// </summary>
+        public static void EnsureEmptyDirectory(string directory, ILogger logger)
+        {
+            if (string.IsNullOrWhiteSpace(directory))
+            {
+                throw new ArgumentNullException("directory");
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+
+            if (Directory.Exists(directory))
+            {
+                logger.LogMessage(Resources.DIAG_DeletingDirectory, directory);
+                Directory.Delete(directory, true);
+            }
+            logger.LogMessage(Resources.DIAG_CreatingDirectory, directory);
+            Directory.CreateDirectory(directory);
         }
 
         #endregion

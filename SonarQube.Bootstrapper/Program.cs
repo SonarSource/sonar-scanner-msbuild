@@ -40,12 +40,8 @@ namespace SonarQube.Bootstrapper
         {
             string downloadBinPath = settings.DownloadDirectory;
 
-            logger.LogMessage(Resources.INFO_CreatingBinDir, downloadBinPath);
-            if (Directory.Exists(downloadBinPath))
-            {
-                Directory.Delete(downloadBinPath, true);
-            }
-            Directory.CreateDirectory(downloadBinPath);
+            Utilities.EnsureEmptyDirectory(settings.TempDirectory, logger);
+            Utilities.EnsureEmptyDirectory(downloadBinPath, logger);
 
             string server = settings.SonarQubeUrl;
             Debug.Assert(!string.IsNullOrWhiteSpace(server), "Not expecting the server url to be null/empty");

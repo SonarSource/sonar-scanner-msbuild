@@ -97,8 +97,8 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             // Create the directories
             logger.LogMessage(Resources.DIAG_CreatingFolders);
-            EnsureEmptyDirectory(logger, config.SonarConfigDir);
-            EnsureEmptyDirectory(logger, config.SonarOutputDir);
+            Utilities.EnsureEmptyDirectory(config.SonarConfigDir, logger);
+            Utilities.EnsureEmptyDirectory(config.SonarOutputDir, logger);
 
             using (SonarWebService ws = GetSonarWebService(config))
             {
@@ -119,17 +119,6 @@ namespace SonarQube.TeamBuild.PreProcessor
         #endregion
 
         #region Private methods
-
-        private static void EnsureEmptyDirectory(ILogger logger, string directory)
-        {
-            if (Directory.Exists(directory))
-            {
-                logger.LogMessage(Resources.DIAG_DeletingDirectory, directory);
-                Directory.Delete(directory, true);
-            }
-            logger.LogMessage(Resources.DIAG_CreatingDirectory, directory);
-            Directory.CreateDirectory(directory);
-        }
 
         private static SonarWebService GetSonarWebService(AnalysisConfig config)
         {

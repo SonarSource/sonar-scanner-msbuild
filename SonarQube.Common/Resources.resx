@@ -151,4 +151,13 @@
   <data name="Logger_WarningPrefix" xml:space="preserve">
     <value>WARNING: </value>
   </data>
+  <data name="DIAG_CreatingDirectory" xml:space="preserve">
+    <value>Creating directory: {0}</value>
+  </data>
+  <data name="DIAG_DeletingDirectory" xml:space="preserve">
+    <value>Removing the existing directory: {0}</value>
+  </data>
+  <data name="DIAG_DirectoryAlreadyExists" xml:space="preserve">
+    <value>The directory already exists: {0}</value>
+  </data>
 </root>
