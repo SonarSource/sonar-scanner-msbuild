@@ -233,8 +233,33 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [TestCategory("ProjectInfo")] // SONARMSBRU-26: MS Fakes should be excluded from analysis
-        public void WriteProjectInfo_FakesProjectsAreMarkedAsTest()
+        [TestCategory("ProjectInfo")]
+        public void WriteProjectInfo_FakesProjects_FakesInName()
+        {
+            // Checks that projects with ".fakes" in the name are not excluded
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
+
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+            preImportProperties.AssemblyName = "f.fakes.proj";
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "f.proj");
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+            // Assert
+            AssertIsProductProject(projectInfo);
+            AssertProjectIsNotExcluded(projectInfo);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        public void WriteProjectInfo_FakesProjects_ExplicitSonarTestPropertyIsIgnored()
         {
             // Checks that fakes projects are recognised and marked as test
             // projects, irrespective of whether the SonarQubeTestProject is
