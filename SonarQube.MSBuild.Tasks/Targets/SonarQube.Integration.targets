@@ -79,7 +79,7 @@
   <!-- **************************************************************************** -->
   <!-- SonarQube MSBuild Integration implementation logic -->
   <!-- **************************************************************************** -->
-  
+
   <!-- Safeguard against importing this .targets file multiple times -->
   <PropertyGroup>
     <SonarQubeTargetsImported>true</SonarQubeTargetsImported>
@@ -97,14 +97,16 @@
   <!-- **************************************************************************** -->
   <!-- Using tasks -->
   <!-- **************************************************************************** -->
-  <PropertyGroup Condition=" $(SonarQubeTempPath) != '' ">
+  <PropertyGroup Condition=" $(SonarQubeTempPath) != '' AND $(SonarQubeBuildTasksAssemblyFile) == '' ">
     <!-- Assume that the tasks assembly is in the same location as this targets file 
          or in a parent directory unless another location has already been specified. -->
-    <SonarQubeBuildTasksAssemblyFile Condition=" $(SonarQubeBuildTasksAssemblyFile) == '' ">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.MSBuild.Tasks.dll))\SonarQube.MSBuild.Tasks.dll</SonarQubeBuildTasksAssemblyFile>
+    <SonarQubeBuildTasksAssemblyFile>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.MSBuild.Tasks.dll))SonarQube.MSBuild.Tasks.dll</SonarQubeBuildTasksAssemblyFile>
   </PropertyGroup>
 
-  <UsingTask TaskName="WriteProjectInfoFile" AssemblyFile="$(SonarQubeBuildTasksAssemblyFile)" />
-  <UsingTask TaskName="IsTestFileByName" AssemblyFile="$(SonarQubeBuildTasksAssemblyFile)" />
+  <!-- Unescape the paths to work around the issue "MSBuild 4.0 UsingTask cannot have a path with parentheses".
+       See https://connect.microsoft.com/VisualStudio/feedback/details/713690/msbuild-4-0-usingtask-cannot-have-a-path-with-parentheses -->
+  <UsingTask TaskName="WriteProjectInfoFile" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
+  <UsingTask TaskName="IsTestFileByName" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
 
   <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
@@ -188,10 +190,10 @@
   <!-- **************************************************************************** -->
   <Target Name="WriteSonarQubeProjectData" AfterTargets="Build"
         Condition=" $(SonarQubeTempPath) != '' ">
-    
+
     <!-- **************************************************************************** -->
     <!-- Create the project-specific directory -->
-    
+
     <!-- Calculate a project-specific directory name -->
     <PropertyGroup>
       <FolderDisambiguator Condition=" $(FolderDisambiguator)=='' ">_$(Platform)_$(Configuration)_$([System.DateTime]::Now.Ticks)</FolderDisambiguator>
@@ -222,13 +224,13 @@
         <Id>FilesToAnalyze</Id>
       </AnalysisResults>
     </ItemGroup>
-    
+
     <Message Importance="low" Condition=" $(SonarQubeTestProject) == 'true' "
              Text="SonarQube: project will be treated as a test project : $(MSBuildProjectName)" />
-    
+
     <PropertyGroup >
       <!-- Ensure SonarQubeExclude has a value -->
-      <SonarQubeExclude Condition=" $(SonarQubeExclude) == '' ">false</SonarQubeExclude>	
+      <SonarQubeExclude Condition=" $(SonarQubeExclude) == '' ">false</SonarQubeExclude>
     </PropertyGroup>
 
     <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
@@ -261,8 +263,8 @@
        update the property values. These values set in this way will take precedence over
        any values passed on the MSBuild command line or in <PropertyGroups>.
        -->
-  
-  
+
+
   <!-- The FxCop targets are conditionally imported so we need to make sure the required condition
        is true early enough. -->
   <PropertyGroup Condition=" $(SonarQubeTempPath) != '' ">
@@ -362,7 +364,7 @@
     <PropertyGroup>
       <SonarStyleProjectFilePathSpecified Condition=" %(SonarQubeSetting.Identity) == 'sonar.stylecop.projectFilePath'  ">true</SonarStyleProjectFilePathSpecified>
     </PropertyGroup>
-    
+
     <ItemGroup>
       <SonarQubeSetting Include="sonar.stylecop.projectFilePath" Condition=" $(SonarStyleProjectFilePathSpecified) != true ">
         <Value>$(MSBuildProjectFullPath)</Value>
