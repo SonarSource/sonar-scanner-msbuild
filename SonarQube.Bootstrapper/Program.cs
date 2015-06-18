@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -25,18 +26,18 @@ namespace SonarQube.Bootstrapper
             if (args.Any())
             {
                 logger.LogMessage(Resources.INFO_PreProcessing, args.Length);
-                exitCode = preprocess(logger, settings, args);
+                exitCode = PreProcess(logger, settings, args);
             }
             else
             {
                 logger.LogMessage(Resources.INFO_PostProcessing);
-                exitCode = postprocess(logger, settings);
+                exitCode = PostProcess(logger, settings);
             }
 
             return exitCode;
         }
 
-        private static int preprocess(ILogger logger, IBootstrapperSettings settings, string[] args)
+        private static int PreProcess(ILogger logger, IBootstrapperSettings settings, string[] args)
         {
             string downloadBinPath = settings.DownloadDirectory;
 
@@ -47,8 +48,14 @@ namespace SonarQube.Bootstrapper
             Debug.Assert(!string.IsNullOrWhiteSpace(server), "Not expecting the server url to be null/empty");
             logger.LogMessage(Resources.INFO_ServerUrl, server);
 
-            IBuildAgentUpdater updater = new BuildAgentUpdater();
-            if (!updater.TryUpdate(server, downloadBinPath, logger))
+            BuildAgentUpdater updater = new BuildAgentUpdater(logger);
+            if (!updater.TryUpdate(server, downloadBinPath))
+            {
+                logger.LogError(Resources.ERROR_CouldNotFindIntegrationZip);
+                return 1;
+            }
+
+            if (!BuildAgentUpdater.CheckBootstrapperVersion(settings.SupportedBootstrapperVersionsFilePath, settings.BootstrapperVersion))
             {
                 logger.LogError(Resources.ERROR_CouldNotFindIntegrationZip);
                 return 1;
@@ -57,11 +64,11 @@ namespace SonarQube.Bootstrapper
             var preprocessorFilePath = settings.PreProcessorFilePath;
             var processRunner = new ProcessRunner();
             processRunner.Execute(preprocessorFilePath, string.Join(" ", args.Select(a => "\"" + a + "\"")), settings.TempDirectory, settings.PreProcessorTimeoutInMs, logger);
-            
+
             return processRunner.ExitCode;
         }
 
-        private static int postprocess(ILogger logger, IBootstrapperSettings settings)
+        private static int PostProcess(ILogger logger, IBootstrapperSettings settings)
         {
             var postprocessorFilePath = settings.PostProcessorFilePath;
 
@@ -69,6 +76,7 @@ namespace SonarQube.Bootstrapper
             processRunner.Execute(postprocessorFilePath, "", settings.TempDirectory, settings.PostProcessorTimeoutInMs, logger);
             return processRunner.ExitCode;
         }
+
 
     }
 }

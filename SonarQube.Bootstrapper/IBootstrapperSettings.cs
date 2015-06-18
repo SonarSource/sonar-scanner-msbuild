@@ -5,6 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 namespace SonarQube.Bootstrapper
 {
     /// <summary>
@@ -33,6 +35,16 @@ namespace SonarQube.Bootstrapper
         /// Full path to the post-processor to be executed
         /// </summary>
         string PostProcessorFilePath { get; }
+
+        /// <summary>
+        /// Full path to the xml file containing the supported bootstrapper versions
+        /// </summary>
+        string SupportedBootstrapperVersionsFilePath { get; }
+
+        /// <summary>
+        /// Logical version of the bootstrapper 
+        /// </summary>
+        Version BootstrapperVersion { get; }
 
         /// <summary>
         /// Timeout for the pre-processor execution

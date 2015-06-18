@@ -15,7 +15,7 @@ namespace SonarQube.Common
     /// <summary>
     /// Helper class to serialize objects to and from XML
     /// </summary>
-    internal static class Serializer
+    public static class Serializer
     {
         #region Serialisation methods
 

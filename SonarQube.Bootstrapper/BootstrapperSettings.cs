@@ -20,6 +20,12 @@ namespace SonarQube.Bootstrapper
         public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
 
         /// <summary>
+        /// The logical version of the boostrapper API that has to match the logical version of the preprocessor / postprocessor. 
+        /// </summary>
+        /// <remarks>The version string should have at least a major and a minor component</remarks>
+        private const string BootstrapperLogicalVersionString = "1.0";
+
+        /// <summary>
         /// The list of environment variables that should be checked in order to find the
         /// root folder under which all analysis ouput will be written
         /// </summary>
@@ -40,6 +46,7 @@ namespace SonarQube.Bootstrapper
         private string tempDir;
         private string preProcFilePath;
         private string postProcFilePath;
+        private string supportedBootStrapperVersionsPath;
 
         #region Constructor(s)
 
@@ -135,6 +142,20 @@ namespace SonarQube.Bootstrapper
             }
         }
 
+        public string SupportedBootstrapperVersionsFilePath
+        {
+            get
+            {
+                if (this.supportedBootStrapperVersionsPath == null)
+                {
+                    Debug.Assert(this.appConfig.SupportedBootstrapperVersionsXml != null, "Not expecting the SupportedBootStrapperVersionsXml setting to be null - it should have a default value");
+                    this.supportedBootStrapperVersionsPath = this.EnsurePathIsAbsolute(this.appConfig.SupportedBootstrapperVersionsXml);
+                }
+
+                return this.supportedBootStrapperVersionsPath;
+            }
+        }
+
         public int PreProcessorTimeoutInMs
         {
             get
@@ -148,6 +169,14 @@ namespace SonarQube.Bootstrapper
             get
             {
                 return this.appConfig.PostProcessorTimeoutInMs;
+            }
+        }
+
+        public Version BootstrapperVersion
+        {
+            get
+            {
+                return new Version(BootstrapperLogicalVersionString);
             }
         }
 

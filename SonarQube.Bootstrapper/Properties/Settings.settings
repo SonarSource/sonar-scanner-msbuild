@@ -17,5 +17,8 @@
     <Setting Name="SonarQubeUrl" Type="System.String" Scope="Application">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="SupportedBootstrapperVersionsXml" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SupportedBootstrapperVersions.xml</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -42,6 +42,7 @@
   </PropertyGroup>
   <ItemGroup>
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SonarQube.MSBuild.PreProcessor.exe" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SupportedBootstrapperVersions.xml" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SonarQube.MSBuild.PreProcessor.exe.config" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\Newtonsoft.Json.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SonarQube.Common.dll" />
