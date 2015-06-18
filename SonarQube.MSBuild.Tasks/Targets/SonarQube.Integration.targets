@@ -1,6 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+<!--
+    This file contains targets to integrate SonarQube and MSBuild.
+
+    The targets will produce an output folder structure containing information required
+    by the sonar-runner.
+
+    A subdirectory will be created for each MSBuild project. Information about the project 
+    will be written to a file called "ProjectInfo.xml". Additional files may also be written
+    containing information required by different analysers. In particular, a file will be written 
+    containing the list of files in the project that should be analysed by the sonar-runner.
+
+    The output will only be produced if the property $(SonarQubeTempPath) and 
+    is specified. $(SonarQubeTempPath) is the root folder under which per-analysis output
+    should be written.
+
+
+    Excluding projects and files from SonarQube analysis
+    ****************************************************
+    Individual projects can excluded from SonarQube analysis by setting
+    the property $(SonarQubeExclude) e.g.
+
+      <SonarQubeExclude>true</SonarQubeExclude>
+
+    Individual files can be excluded from analysis by setting the 
+    <SonarQubeExclude> metadata item e.g.
+
+      <Compile Include="Logger.cs">
+        <SonarQubeExclude>true</SonarQubeExclude>
+      </Compile>
+
+
+    Test projects
+    *************
+    The analysis performed by SonarQube varies depending on whether a project
+    is a test project or not.
+
+    A project can be explicitly marked as being a test or product project by setting
+    the property $(SonarQubeTestProject) e.g.
+  
+      <SonarQubeTestProject>true</SonarQubeTestProject>
+
+    If $(SonarQubeTestProject) is not set explicitly then the targets will determine the project
+    type as follows:
+
+    1) Projects whose full project file name matches the regular expression specified in
+        the analysis setting "sonar.cs.msbuild.testProjectPattern" will be treated as test
+        projects. This setting is set via the SonarQube portal (set "Test project pattern"
+        in the per-project settings on the MSBuild tab for the C# plug-in).
+
+        By default, any projects with "test" (case-insensitive) in the project name will
+        be treated as test projects.
+
+        Note that the regular expression uses the .Net Regex format i.e. "+" is the
+        single character wildcard and "*" is the multi-character wildcard (zero to many).
+
+    2) MSTest projects will be treated as test projects.
+        The $(ProjectTypeGuid) of MS Test projects contains a specific guid
+        ("3AC096D0-A1C2-E12C-1390-A8335801FDAB")
+
+
+    Supplying analysis setting in a project file
+    ********************************************
+    Project-level analysis settings can be specified in a project file using following
+    syntax:
+
+    <ItemGroup>
+      <SonarQubeSetting Include="sonar.my.analysis.setting" >
+        <Value>42</Value>
+      </SonarQubeSetting>
+    </ItemGroup>
+
+    Settings specified in the project file will override those specified on the SonarQube server.
+
+-->
+
   <!-- **************************************************************************** -->
   <!-- SonarQube MSBuild Integration implementation logic -->
   <!-- **************************************************************************** -->
