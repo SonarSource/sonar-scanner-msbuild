@@ -210,6 +210,63 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         }
 
         [TestMethod]
+        [TestCategory("VB")]
+        [Description("FxCop analysis should be run on VB projects if the output folder is set and the ruleset can be found")]
+        public void E2E_FxCop_AllConditionsMet_VB()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            string fxCopLogFile = Path.Combine(rootInputFolder, "FxCopResults.xml");
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            preImportProperties.SonarQubeTempPath = rootOutputFolder; // FIXME
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
+            preImportProperties.RunCodeAnalysis = "false";
+            preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
+            preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
+
+            preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
+            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties, isVBProject: true);
+
+            string itemPath = CreateTextFile(rootInputFolder, "my.vb",
+@"Public Class Class1
+
+  Public Sub DoStuff()
+  End Sub
+
+End Class");
+
+            projectRoot.AddItem("Compile", itemPath);
+            projectRoot.Save();
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
+
+            // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertExpectedTargetOrdering(
+                TargetConstants.CategoriseProjectTarget,
+                TargetConstants.CoreCompileTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
+                TargetConstants.OverrideFxCopSettingsTarget,
+                TargetConstants.FxCopTarget,
+                TargetConstants.SetFxCopResultsTarget,
+                TargetConstants.DefaultBuildTarget);
+
+            AssertAllFxCopTargetsExecuted(logger);
+            Assert.IsTrue(File.Exists(fxCopLogFile), "FxCop log file should have been produced");
+
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+            ProjectInfoAssertions.AssertAnalysisResultExists(projectInfo, AnalysisType.FxCop.ToString(), fxCopLogFile);
+        }
+
+        [TestMethod]
         [Description("The FxCop analysis result should not exist if there are not files to analyse")]
         public void E2E_FxCop_NoFilesToAnalyse()
         {
@@ -421,7 +478,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             ProjectInfoAssertions.AssertAnalysisResultDoesNotExists(projectInfo, AnalysisType.FxCop.ToString());
         }
 
-
         [TestMethod] // SONARMSBRU-20: Do not run FxCop (nor other rule engines) on test projects
         [Description("FxCop analysis should not be run if the project is a test project")]
         public void E2E_FxCop_TestProject_TestProjectByName()
@@ -498,16 +554,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         {
             string fullPath = Path.Combine(rootInputFolder, fileName);
 
-            string content = @"
-<?xml version='1.0' encoding='utf-8'?>
-<RuleSet Name='Empty ruleset' Description='Valid empty ruleset' ToolsVersion='12.0'>
-<!--
-  <Include Path='minimumrecommendedrules.ruleset' Action='Default' />
-
+            string content = @"<?xml version='1.0' encoding='utf-8'?>
+<RuleSet Name='Minimal ruleset' Description='Valid minimalruleset' ToolsVersion='12.0'>
   <Rules AnalyzerId='Microsoft.Analyzers.ManagedCodeAnalysis' RuleNamespace='Microsoft.Rules.Managed'>
     <Rule Id='CA1008' Action='Warning' />
   </Rules>
--->
 </RuleSet>";
 
             File.WriteAllText(fullPath, content);

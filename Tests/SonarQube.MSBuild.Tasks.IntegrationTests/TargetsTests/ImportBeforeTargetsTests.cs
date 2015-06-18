@@ -259,7 +259,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string testSpecificFolder = TestUtils.EnsureTestSpecificFolder(this.TestContext);
             string fullProjectPath = Path.Combine(testSpecificFolder, projectName);
 
-            ProjectRootElement root = BuildUtilities.CreateMinimalBuildableProject(preImportProperties, importsBeforeTargets);
+            ProjectRootElement root = BuildUtilities.CreateMinimalBuildableProject(preImportProperties, false /* not a VB project */, importsBeforeTargets);
             root.AddProperty(TargetProperties.ProjectGuid, Guid.NewGuid().ToString("D"));
 
             root.Save(fullProjectPath);

@@ -31,11 +31,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// </summary>
         /// <param name="projectDirectory">The folder in which the project should be created</param>
         /// <param name="preImportProperties">Any MSBuild properties that should be set before any targets are imported</param>
-        /// <returns></returns>
-        public static ProjectRootElement CreateValidProjectRoot(TestContext testContext, string projectDirectory, IDictionary<string, string> preImportProperties)
+        public static ProjectRootElement CreateValidProjectRoot(TestContext testContext, string projectDirectory, IDictionary<string, string> preImportProperties, bool isVBProject = false)
         {
             ProjectDescriptor descriptor = CreateValidProjectDescriptor(projectDirectory);
-            ProjectRootElement projectRoot = CreateInitializedProjectRoot(testContext, descriptor, preImportProperties);
+            ProjectRootElement projectRoot = CreateInitializedProjectRoot(testContext, descriptor, preImportProperties, isVBProject);
             return projectRoot;
         }
 
@@ -83,7 +82,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// Creates a project file on disk from the specified descriptor.
         /// Sets the SonarQube output folder property, if specified.
         /// </summary>
-        public static ProjectRootElement CreateInitializedProjectRoot(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
+        public static ProjectRootElement CreateInitializedProjectRoot(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties, bool isVBProject = false)
         {
             if (testContext == null)
             {
@@ -94,7 +93,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 throw new ArgumentNullException("descriptor");
             }
             
-            ProjectRootElement projectRoot = BuildUtilities.CreateAnalysisProject(testContext, descriptor, preImportProperties);
+            ProjectRootElement projectRoot = BuildUtilities.CreateAnalysisProject(testContext, descriptor, preImportProperties, isVBProject);
 
             projectRoot.ToolsVersion = MSBuildToolsVersionForTestProjects;
 
@@ -109,7 +108,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// The project will import the SonarQube analysis targets file and the standard C# targets file.
         /// The project name and GUID will be set if the values are supplied in the descriptor.
         /// </summary>
-        public static ProjectRootElement CreateAnalysisProject(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
+        public static ProjectRootElement CreateAnalysisProject(TestContext testContext, ProjectDescriptor descriptor,
+            IDictionary<string, string> preImportProperties, bool isVBProject = false)
         {
             if (testContext == null)
             {
@@ -133,7 +133,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 DisableStandardTargetsWildcardImporting(properties);
             }
 
-            ProjectRootElement root = CreateMinimalBuildableProject(properties, sqTargetFile);
+            ProjectRootElement root = CreateMinimalBuildableProject(properties, isVBProject, sqTargetFile);
 
             // Set the location of the task assembly
             root.AddProperty(TargetProperties.SonarBuildTasksAssemblyFile, typeof(WriteProjectInfoFile).Assembly.Location);
@@ -187,13 +187,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         }
 
         /// <summary>
-        /// Creates and returns a minimal C# project file that can be built.
-        /// The project imports the C# targets and any other optional targets that are specified.
+        /// Creates and returns a minimal C# or VB project file that can be built.
+        /// The project imports the C#/VB targets and any other optional targets that are specified.
         /// The project is NOT saved.
         /// </summary>
         /// <param name="preImportProperties">Any properties that need to be set before the C# targets are imported. Can be null.</param>
         /// <param name="importsBeforeTargets">Any targets that should be imported before the C# targets are imported. Optional.</param>
-        public static ProjectRootElement CreateMinimalBuildableProject(IDictionary<string, string> preImportProperties, params string[] importsBeforeTargets)
+        public static ProjectRootElement CreateMinimalBuildableProject(IDictionary<string, string> preImportProperties, bool isVBProject, params string[] importsBeforeTargets)
         {       
             ProjectRootElement root = ProjectRootElement.Create();
             
@@ -218,7 +218,14 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             }
 
             // Import the standard Microsoft targets
-            root.AddImport("$(MSBuildToolsPath)\\Microsoft.CSharp.targets");
+            if (isVBProject)
+            {
+                root.AddImport("$(MSBuildToolsPath)\\Microsoft.VisualBasic.targets");
+            }
+            else
+            {
+                root.AddImport("$(MSBuildToolsPath)\\Microsoft.CSharp.targets");
+            }
             root.AddProperty("OutputType", "library"); // build a library so we don't need a Main method
 
             return root;

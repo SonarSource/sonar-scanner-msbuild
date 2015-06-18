@@ -247,6 +247,32 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         }
 
         [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets"), TestCategory("VB")]
+        public void E2E_HasManagedAndContentFiles_VB()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
+
+            AddEmptyCodeFile(descriptor, rootInputFolder, ".vb");
+            AddEmptyCodeFile(descriptor, rootInputFolder, ".vb");
+
+            AddEmptyContentFile(descriptor, rootInputFolder);
+            AddEmptyContentFile(descriptor, rootInputFolder);
+
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+
+            // Act
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties, isVBProject:true);
+
+            AssertFileExists(projectDir, ExpectedAnalysisFilesListFileName);
+
+            CheckProjectOutputFolder(descriptor, projectDir);
+        }
+
+        [TestMethod]
         [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_ExcludedProjects()
         {
@@ -272,9 +298,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
         #region Private methods
 
-        private void AddEmptyCodeFile(ProjectDescriptor descriptor, string projectFolder)
+        private void AddEmptyCodeFile(ProjectDescriptor descriptor, string projectFolder, string extension = "cs")
         {
-            string emptyCodeFilePath = Path.Combine(projectFolder, "empty_" + Guid.NewGuid().ToString() + ".cs");
+            string emptyCodeFilePath = Path.Combine(projectFolder, "empty_" + Guid.NewGuid().ToString() + ".xxx");
+            emptyCodeFilePath = Path.ChangeExtension(emptyCodeFilePath, extension);
             File.WriteAllText(emptyCodeFilePath, string.Empty);
             
             if (descriptor.ManagedSourceFiles == null)
@@ -322,9 +349,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         /// The method will check the build succeeded and that a single project output file was created.
         /// </summary>
         /// <returns>The full path of the project-specsific directory that was created during the build</returns>
-        private string CreateAndBuildSonarProject(ProjectDescriptor descriptor, string rootOutputFolder, WellKnownProjectProperties preImportProperties)
+        private string CreateAndBuildSonarProject(ProjectDescriptor descriptor, string rootOutputFolder, WellKnownProjectProperties preImportProperties, bool isVBProject = false)
         {
-            ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
+            ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties, isVBProject);
 
             BuildLogger logger = new BuildLogger();
 
