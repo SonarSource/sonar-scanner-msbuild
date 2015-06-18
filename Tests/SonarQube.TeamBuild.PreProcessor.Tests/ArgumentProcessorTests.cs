@@ -348,14 +348,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #endregion
 
-            #region Private methods
+        #region Private methods
 
-            /// <summary>
-            /// Creates the sonar runner file structure required for the
-            /// product "FileLocator" code to work and create a sonar-runner properties
-            /// file containing the specified host url setting
-            /// </summary>
-            /// <returns>Returns the path of the runner bin directory</returns>
+        /// <summary>
+        /// Creates the sonar runner file structure required for the
+        /// product "FileLocator" code to work and create a sonar-runner properties
+        /// file containing the specified host url setting
+        /// </summary>
+        /// <returns>Returns the path of the runner bin directory</returns>
         private string CreateRunnerFilesInScope(EnvironmentVariableScope scope)
         {
             string runnerConfDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "conf");
