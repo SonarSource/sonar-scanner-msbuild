@@ -232,16 +232,130 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             }
         }
 
+        [TestMethod]
+        public void PreArgProc_DynamicSettings()
+        {
+            // 0. Setup
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            string propertiesFilePath = Path.Combine(testDir, ActualRunnerPropertiesFileName);
+
+            // 1. File exists -> args ok
+            File.WriteAllText(propertiesFilePath, "# empty properties file");
+
+            ProcessedArgs result = CheckProcessingSucceeds(
+                "/key:my.key", "/name:my name", "/version:1.2", "/r:" + propertiesFilePath,
+                "/p:key1=value1", "/p:key2=value two with spaces");
+
+            AssertExpectedValues("my.key", "my name", "1.2", propertiesFilePath, result);
+
+            AssertExpectedDynamicValue("key1", "value1", result);
+            AssertExpectedDynamicValue("key2", "value two with spaces", result);
+        }
+
+        [TestMethod]
+        public void PreArgProc_DynamicSettings_Invalid()
+        {
+            // Arrange
+            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            {
+                CreateRunnerFilesInScope(scope);
+
+                TestLogger logger;
+
+                // Act 
+                logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2",
+                        "/p:invalid1 =aaa",
+                        "/p:notkeyvalue",
+                        "/p: spacebeforekey=bb",
+                        "/p:missingvalue=",
+                        "/p:validkey=validvalue");
+
+                // Assert
+                logger.AssertSingleErrorExists("invalid1 =aaa");
+                logger.AssertSingleErrorExists("notkeyvalue");
+                logger.AssertSingleErrorExists(" spacebeforekey=bb");
+                logger.AssertSingleErrorExists("missingvalue=");
+
+                logger.AssertErrorsLogged(4);
+            }
+        }
+
+        [TestMethod]
+        public void PreArgProc_DynamicSettings_Duplicates()
+        {
+            // Arrange
+            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            {
+                CreateRunnerFilesInScope(scope);
+
+                TestLogger logger;
+
+                // Act 
+                logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2",
+                        "/p:dup1=value1", "/p:dup1=value2", "/p:dup2=value3", "/p:dup2=value4",
+                        "/p:unique=value5");
+
+                // Assert
+                logger.AssertSingleErrorExists("dup1=value2", "value1");
+                logger.AssertSingleErrorExists("dup2=value4", "value3");
+                logger.AssertErrorsLogged(2);
+            }
+        }
+
+        [TestMethod]
+        public void PreArgProc_Disallowed_DynamicSettings()
+        {
+            // 0. Setup
+            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            {
+                CreateRunnerFilesInScope(scope);
+
+                TestLogger logger;
+
+                // 1. Named arguments cannot be overridden
+                logger = CheckProcessingFails(
+                    "/key:my.key", "/name:my name", "/version:1.2",
+                    "/p:sonar.projectKey=value1");
+                logger.AssertSingleErrorExists(SonarProperties.ProjectKey, "/k");
+
+
+                logger = CheckProcessingFails(
+                    "/key:my.key", "/name:my name", "/version:1.2",
+                    "/p:sonar.projectName=value1");
+                logger.AssertSingleErrorExists(SonarProperties.ProjectName, "/n");
+
+
+                logger = CheckProcessingFails(
+                    "/key:my.key", "/name:my name", "/version:1.2",
+                    "/p:sonar.projectVersion=value1");
+                logger.AssertSingleErrorExists(SonarProperties.ProjectVersion, "/v");
+
+
+                // 2. Other values that can't be set
+                logger = CheckProcessingFails(
+                    "/key:my.key", "/name:my name", "/version:1.2",
+                    "/p:sonar.projectBaseDir=value1");
+                logger.AssertSingleErrorExists(SonarProperties.ProjectBaseDir);
+
+
+                logger = CheckProcessingFails(
+                    "/key:my.key", "/name:my name", "/version:1.2",
+                    "/p:sonar.working.directory=value1");
+                logger.AssertSingleErrorExists(SonarProperties.WorkingDirectory);
+
+            }
+        }
+
         #endregion
 
-        #region Private methods
+            #region Private methods
 
-        /// <summary>
-        /// Creates the sonar runner file structure required for the
-        /// product "FileLocator" code to work and create a sonar-runner properties
-        /// file containing the specified host url setting
-        /// </summary>
-        /// <returns>Returns the path of the runner bin directory</returns>
+            /// <summary>
+            /// Creates the sonar runner file structure required for the
+            /// product "FileLocator" code to work and create a sonar-runner properties
+            /// file containing the specified host url setting
+            /// </summary>
+            /// <returns>Returns the path of the runner bin directory</returns>
         private string CreateRunnerFilesInScope(EnvironmentVariableScope scope)
         {
             string runnerConfDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "conf");
@@ -295,6 +409,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual(name, actual.ProjectName, "Unexpected project name");
             Assert.AreEqual(version, actual.ProjectVersion, "Unexpected project version");
             Assert.AreEqual(path, actual.RunnerPropertiesPath, "Unexpected runner properties path version");
+        }
+
+        private static void AssertExpectedDynamicValue(string key, string value, ProcessedArgs actual)
+        {
+            string actualValue = actual.GetSetting(key);
+            Assert.IsNotNull(actualValue, "Expected dynamic settings does not exist. Key: {0}", key);
+            Assert.AreEqual(value, actualValue, "Dynamic setting does not have the expected value");
         }
 
         #endregion
