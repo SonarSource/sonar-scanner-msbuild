@@ -272,6 +272,38 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             CheckProjectOutputFolder(descriptor, projectDir);
         }
 
+        [TestCategory("E2E"), TestCategory("Targets")] // SONARMSBRU-12: Analysis build fails if the build definition name contains brackets
+        public void E2E_UsingTaskHandlesBracketsInName()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "folder with brackets in name (SONARMSBRU-12)");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
+            AddEmptyCodeFile(descriptor, rootInputFolder);
+
+            // Copy the task assembly to a folder with brackets in the name
+            string taskAssemblyFilePath = typeof(WriteProjectInfoFile).Assembly.Location;
+            string asmName = Path.GetFileName(taskAssemblyFilePath);
+            string copiedTaskAssemblyFilePath = Path.Combine(rootInputFolder, Path.GetFileName(asmName));
+            File.Copy(taskAssemblyFilePath, copiedTaskAssemblyFilePath);
+
+            // Set the project property to use that file. To reproduce the bug, we need to have MSBuild search for
+            // the assembly using "GetDirectoryNameOfFileAbove".
+            string val = @"$([MSBuild]::GetDirectoryNameOfFileAbove('{0}', '{1}'))\{1}";
+            val = string.Format(System.Globalization.CultureInfo.InvariantCulture, val, rootInputFolder, asmName);
+
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+            preImportProperties.Add(TargetProperties.SonarBuildTasksAssemblyFile, val);
+
+            // Act
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
+
+            AssertFileExists(projectDir, ExpectedAnalysisFilesListFileName);
+
+            CheckProjectOutputFolder(descriptor, projectDir);
+        }
+
         [TestMethod]
         [TestCategory("E2E"), TestCategory("Targets")]
         public void E2E_ExcludedProjects()
@@ -311,7 +343,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             descriptor.ManagedSourceFiles.Add(emptyCodeFilePath);
         }
 
-        private void AddEmptyContentFile(ProjectDescriptor descriptor, string projectFolder)
+        private static void AddEmptyContentFile(ProjectDescriptor descriptor, string projectFolder)
         {
             string emptyFilePath = Path.Combine(projectFolder, "emptyContent_" + Guid.NewGuid().ToString() + ".txt");
             File.WriteAllText(emptyFilePath, string.Empty);

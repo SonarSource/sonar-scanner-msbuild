@@ -58,7 +58,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public static ProjectDescriptor CreateValidProjectDescriptor(string parentDirectory)
         {
-            return CreateValidNamedProjectDescriptor(parentDirectory, "MyProject.xproj");
+            return CreateValidNamedProjectDescriptor(parentDirectory, "MyProject.xproj.txt");
         }
 
         /// <summary>
@@ -136,7 +136,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             ProjectRootElement root = CreateMinimalBuildableProject(properties, isVBProject, sqTargetFile);
 
             // Set the location of the task assembly
-            root.AddProperty(TargetProperties.SonarBuildTasksAssemblyFile, typeof(WriteProjectInfoFile).Assembly.Location);
+            if (!properties.ContainsKey(TargetProperties.SonarBuildTasksAssemblyFile))
+            {
+                root.AddProperty(TargetProperties.SonarBuildTasksAssemblyFile, typeof(WriteProjectInfoFile).Assembly.Location);
+            }
 
             if (descriptor.ProjectGuid != Guid.Empty)
             {

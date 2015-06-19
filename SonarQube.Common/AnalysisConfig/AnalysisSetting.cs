@@ -48,6 +48,20 @@ namespace SonarQube.Common
         /// </remarks>
         private static readonly Regex ValidSettingKeyRegEx = new Regex(@"^\w[\w\d\.-]*$", RegexOptions.Compiled);
 
+        //TODO: this expression only works for single-line values
+        // Regular expression pattern: we're looking for matches that:
+        // * start at the beginning of a line
+        // * start with a character or number
+        // * are in the form [key]=[value],
+        // * where [key] can  
+        //   - starts with an alpanumeric character.
+        //   - can be followed by any number of alphanumeric characters or .
+        //   - whitespace is not allowed
+        // * [value] can contain anything
+        public const string KeyValueSettingPattern = @"^(?<key>\w[\w\d\.-]*)=(?<value>[^\r\n]+)";
+
+        private static readonly Regex SingleLineSettingRegEx = new Regex(KeyValueSettingPattern, RegexOptions.Compiled);
+
         /// <summary>
         /// Returns true if the supplied string is a valid key for a sonar-XXX.properties file, otherwise false
         /// </summary>
@@ -58,14 +72,33 @@ namespace SonarQube.Common
         }
 
         /// <summary>
-        /// Comparer to use when comparing keys of analysis settings
+        /// Attempts to parse the supplied string into a key and value
         /// </summary>
-        public static IEqualityComparer<string> SettingKeyComparer = StringComparer.Ordinal;
+        public static bool TryParse(string input, out AnalysisSetting setting)
+        {
+            setting = null;
+
+            Match match = SingleLineSettingRegEx.Match(input);
+
+            if (match.Success)
+            {
+                string key = match.Groups["key"].Value;
+                string value = match.Groups["value"].Value;
+
+                setting = new AnalysisSetting() { Id = key, Value = value };
+            }
+            return setting != null;
+        }
 
         /// <summary>
         /// Comparer to use when comparing keys of analysis settings
         /// </summary>
-        public static IEqualityComparer<string> SettingValueComparer = StringComparer.Ordinal;
+        public static readonly IEqualityComparer<string> SettingKeyComparer = StringComparer.Ordinal;
+
+        /// <summary>
+        /// Comparer to use when comparing keys of analysis settings
+        /// </summary>
+        public static readonly IEqualityComparer<string> SettingValueComparer = StringComparer.Ordinal;
 
         #endregion
     }

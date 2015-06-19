@@ -66,8 +66,6 @@ my.property.key2=key2 Value Duplicate
 
 123.456=abc.def
 
-empty.property=
-
 invalid name=123
 invalidname2 =abc
 ";
@@ -82,7 +80,6 @@ invalidname2 =abc
             AssertExpectedValueReturned(provider, "my.property.key1", "xxx", "key1 Value"); // name can contain ".", value can contain spaces
             AssertExpectedValueReturned(provider, "my.property.key2", null, "key2 Value Duplicate"); // the last-defined value for a property name is used
             AssertExpectedValueReturned(provider, "123.456", "default", "abc.def"); // property name is numeric
-            AssertExpectedValueReturned(provider, "empty.property", "YYY", string.Empty); // the property value is emtpy
 
             AssertDefaultValueReturned(provider, "invalid name", "default1"); // invalid names should not be parsed (name contains a space)
             AssertDefaultValueReturned(provider, "invalidname2 ", "default2"); // invalid names should not be parsed (space before the =)
