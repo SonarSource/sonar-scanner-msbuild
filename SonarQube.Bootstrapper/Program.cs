@@ -57,7 +57,7 @@ namespace SonarQube.Bootstrapper
 
             if (!BuildAgentUpdater.CheckBootstrapperVersion(settings.SupportedBootstrapperVersionsFilePath, settings.BootstrapperVersion))
             {
-                logger.LogError(Resources.ERROR_CouldNotFindIntegrationZip);
+                logger.LogError(Resources.ERROR_VersionMismatch);
                 return 1;
             }
 

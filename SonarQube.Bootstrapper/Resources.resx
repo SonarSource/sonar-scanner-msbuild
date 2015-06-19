@@ -124,7 +124,7 @@
     <value>Could not find the sonar-project.properties from the sonar-runner in %PATH%.</value>
   </data>
   <data name="ERROR_VersionMismatch" xml:space="preserve">
-    <value>The C# plugin you have installed on the server is not compatible with the SonarQube.MSBuild.Runner.exe - either check the compatibility matrix or get the latest versions for both. </value>
+    <value>The C# plugin installed on the server is not compatible with the SonarQube.MSBuild.Runner.exe - either check the compatibility matrix or get the latest versions for both. </value>
   </data>
   <data name="INFO_Downloading" xml:space="preserve">
     <value>Downloading {0} from {1} to {2}</value>

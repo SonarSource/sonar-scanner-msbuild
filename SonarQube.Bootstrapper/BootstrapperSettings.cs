@@ -20,10 +20,15 @@ namespace SonarQube.Bootstrapper
         public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
 
         /// <summary>
-        /// The logical version of the boostrapper API that has to match the logical version of the preprocessor / postprocessor. 
+        /// The logical version of the bootstrapper API that the pre/post-processor must support
         /// </summary>
         /// <remarks>The version string should have at least a major and a minor component</remarks>
         private const string BootstrapperLogicalVersionString = "1.0";
+
+        /// <summary>
+        /// The file name where the supported bootstrapper logical API versions are mentioned
+        /// </summary>
+        private const string SupportedBootstrapperVersionsFilename = "SupportedBootstrapperVersions.xml";
 
         /// <summary>
         /// The list of environment variables that should be checked in order to find the
@@ -146,13 +151,7 @@ namespace SonarQube.Bootstrapper
         {
             get
             {
-                if (this.supportedBootStrapperVersionsPath == null)
-                {
-                    Debug.Assert(this.appConfig.SupportedBootstrapperVersionsXml != null, "Not expecting the SupportedBootStrapperVersionsXml setting to be null - it should have a default value");
-                    this.supportedBootStrapperVersionsPath = this.EnsurePathIsAbsolute(this.appConfig.SupportedBootstrapperVersionsXml);
-                }
-
-                return this.supportedBootStrapperVersionsPath;
+                return this.EnsurePathIsAbsolute(SupportedBootstrapperVersionsFilename);
             }
         }
 

@@ -37,7 +37,7 @@ namespace SonarQube.Bootstrapper
         string PostProcessorFilePath { get; }
 
         /// <summary>
-        /// Full path to the xml file containing the supported bootstrapper versions
+        /// Full path to the xml file containing the logical bootstrapper API versions supported by the pre/post-processors
         /// </summary>
         string SupportedBootstrapperVersionsFilePath { get; }
 

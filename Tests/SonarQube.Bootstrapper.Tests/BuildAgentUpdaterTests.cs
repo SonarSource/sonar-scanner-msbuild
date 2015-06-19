@@ -52,7 +52,7 @@ namespace SonarQube.Bootstrapper.Tests
 
         private string CreateVersionFile(params string[] versionStrings)
         {
-            BoostrapperSupportedVersions versions = new BoostrapperSupportedVersions();
+            BootstrapperSupportedVersions versions = new BootstrapperSupportedVersions();
             versions.Versions.AddRange(versionStrings);
             string path = Path.Combine(TestContext.TestRunDirectory, "versions.xml");
             versions.Save(path);

@@ -12,13 +12,17 @@ using System.Xml.Serialization;
 
 namespace SonarQube.Bootstrapper
 {
+    /// <summary>
+    /// Data class that stores a list of version numbers representing the supported bootstrapper versions 
+    /// from an API perspective (i.e. not assembly versions)
+    /// </summary>
     [XmlRoot(Namespace = XmlNamespace)]
-    public class BoostrapperSupportedVersions
+    public class BootstrapperSupportedVersions
     {
         public const string XmlNamespace = "http://www.sonarsource.com/msbuild/integration/2015/1";
 
 
-        public BoostrapperSupportedVersions()
+        public BootstrapperSupportedVersions()
         {
             this.Versions = new List<string>();
         }
@@ -26,7 +30,7 @@ namespace SonarQube.Bootstrapper
 
         #region Public Properties
 
-        [XmlElement("SupportedVersion")]
+        [XmlElement("SupportedApiVersion")]
         public List<string> Versions { get; private set; }
 
         #endregion
@@ -35,9 +39,9 @@ namespace SonarQube.Bootstrapper
         #region Serialization
 
         /// <summary>
-        /// Saves the project to the specified file as XML
+        /// Saves the versions to the specified file as XML
         /// </summary>
-        public void Save(string fileName)
+        public /* for testing purposes */ void Save(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
@@ -49,16 +53,16 @@ namespace SonarQube.Bootstrapper
 
 
         /// <summary>
-        /// Loads and returns project info from the specified XML file
+        /// Loads and returns the versions from the specified XML file
         /// </summary>
-        public static BoostrapperSupportedVersions Load(string fileName)
+        public static BootstrapperSupportedVersions Load(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException("fileName");
             }
 
-            BoostrapperSupportedVersions model = Serializer.LoadModel<BoostrapperSupportedVersions>(fileName);
+            BootstrapperSupportedVersions model = Serializer.LoadModel<BootstrapperSupportedVersions>(fileName);
             return model;
         }
     }
