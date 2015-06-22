@@ -100,7 +100,7 @@
   <PropertyGroup Condition=" $(SonarQubeTempPath) != '' AND $(SonarQubeBuildTasksAssemblyFile) == '' ">
     <!-- Assume that the tasks assembly is in the same location as this targets file 
          or in a parent directory unless another location has already been specified. -->
-    <SonarQubeBuildTasksAssemblyFile>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.MSBuild.Tasks.dll))SonarQube.MSBuild.Tasks.dll</SonarQubeBuildTasksAssemblyFile>
+    <SonarQubeBuildTasksAssemblyFile>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.MSBuild.Tasks.dll))\SonarQube.MSBuild.Tasks.dll</SonarQubeBuildTasksAssemblyFile>
   </PropertyGroup>
 
   <!-- Unescape the paths to work around the issue "MSBuild 4.0 UsingTask cannot have a path with parentheses".
