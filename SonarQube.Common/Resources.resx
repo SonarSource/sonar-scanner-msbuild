@@ -131,7 +131,7 @@
     <value>Process returned exit code {0}</value>
   </data>
   <data name="DIAG_ExecutionTimedOut" xml:space="preserve">
-    <value>Timed out waiting for the process to complete</value>
+    <value>Timed out after waiting {0} ms for process {1} to complete. The process may still be running.</value>
   </data>
   <data name="DIAG_RetryingOperation" xml:space="preserve">
     <value>Retrying...</value>

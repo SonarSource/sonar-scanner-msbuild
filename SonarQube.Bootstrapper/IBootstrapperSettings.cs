@@ -45,17 +45,5 @@ namespace SonarQube.Bootstrapper
         /// Logical version of the bootstrapper 
         /// </summary>
         Version BootstrapperVersion { get; }
-
-        /// <summary>
-        /// Timeout for the pre-processor execution. 
-        /// </summary>
-        /// <remarks>Use -1 for infinite timeout</remarks>
-        int PreProcessorTimeoutInMs { get; }
-
-        /// <summary>
-        /// Timeout for the post-processor execution
-        /// </summary>
-        /// <remarks>Use -1 for infinite timeout</remarks>
-        int PostProcessorTimeoutInMs { get; }
     }
 }
