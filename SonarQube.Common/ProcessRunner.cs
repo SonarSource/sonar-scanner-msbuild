@@ -8,6 +8,7 @@
 using SonarQube.Common;
 using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace SonarQube.Common
 {
@@ -27,10 +28,10 @@ namespace SonarQube.Common
         /// <summary>
         /// Runs the specified executable without timeout 
         /// </summary>
-        /// <returns>True if the process exist code is 0</returns>
+        /// <returns>True if the process exited successfully, otherwise false</returns>
         public bool Execute(string exeName, string args, string workingDirectory, ILogger logger)
         {
-            return Execute(exeName, args, workingDirectory, -1, logger);
+            return Execute(exeName, args, workingDirectory, Timeout.Infinite, logger);
         }
 
         /// <summary>
@@ -95,8 +96,9 @@ namespace SonarQube.Common
                 }
                 else
                 {
-                    logger.LogMessage(Resources.DIAG_ExecutionTimedOut);
+                    logger.LogWarning(Resources.DIAG_ExecutionTimedOut, timeoutInMilliseconds, exeName);
                 }
+
                 succeeded = succeeded && (process.ExitCode == 0);
             }
             finally
