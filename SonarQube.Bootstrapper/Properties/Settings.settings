@@ -8,12 +8,6 @@
     <Setting Name="PostProcessExe" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SonarQube.MSBuild.PostProcessor.exe</Value>
     </Setting>
-    <Setting Name="PreProcessorTimeoutInMs" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">-1</Value>
-    </Setting>
-    <Setting Name="PostProcessorTimeoutInMs" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">-1</Value>
-    </Setting>
     <Setting Name="SonarQubeUrl" Type="System.String" Scope="Application">
       <Value Profile="(Default)" />
     </Setting>

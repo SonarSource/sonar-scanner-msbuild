@@ -155,22 +155,6 @@ namespace SonarQube.Bootstrapper
             }
         }
 
-        public int PreProcessorTimeoutInMs
-        {
-            get
-            {
-                return this.appConfig.PreProcessorTimeoutInMs;
-            }
-        }
-
-        public int PostProcessorTimeoutInMs
-        {
-            get
-            {
-                return this.appConfig.PostProcessorTimeoutInMs;
-            }
-        }
-
         public Version BootstrapperVersion
         {
             get

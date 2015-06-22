@@ -25,6 +25,15 @@ namespace SonarQube.Common
         public int ExitCode { get; private set; }
 
         /// <summary>
+        /// Runs the specified executable without timeout 
+        /// </summary>
+        /// <returns>True if the process exist code is 0</returns>
+        public bool Execute(string exeName, string args, string workingDirectory, ILogger logger)
+        {
+            return Execute(exeName, args, workingDirectory, -1, logger);
+        }
+
+        /// <summary>
         /// Runs the specified executable and returns a boolean indicating success or failure
         /// </summary>
         /// <param name="exeName">Name of the file to execute. This can be a full name or just the file name (if the file is on the %PATH%).</param>
