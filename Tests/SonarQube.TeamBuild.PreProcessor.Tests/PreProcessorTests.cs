@@ -126,12 +126,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             mockPropertiesFetcher.PropertiesToReturn.Add("key1", "server value 1 - should be overridden");
             mockPropertiesFetcher.PropertiesToReturn.Add("key2", "server value 2 - should be overridden");
-            mockPropertiesFetcher.PropertiesToReturn.Add("key3", "server value 3 - should not be overridden");
+            mockPropertiesFetcher.PropertiesToReturn.Add("key3", "server value 3 - only on server");
+            mockPropertiesFetcher.PropertiesToReturn.Add("xxx", "server value xxx - lower case");
+
 
             IDictionary<string, string> additionalSettings = new Dictionary<string, string>();
-            additionalSettings.Add("key1", "cmd line value1");
-            additionalSettings.Add("key2", "cmd line value2");
-            additionalSettings.Add("key4", "cmd line value4");
+            additionalSettings.Add("key1", "cmd line value1 - should override server value");
+            additionalSettings.Add("key2", "cmd line value2 - should override server value");
+            additionalSettings.Add("key4", "cmd line value4 - only on command line");
+            mockPropertiesFetcher.PropertiesToReturn.Add("XXX", "cmd line value XXX - upper case");
 
             string configFilePath;
             using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", "build uri"))
@@ -154,9 +157,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertWarningsLogged(0);
 
             AnalysisConfig actualConfig = AnalysisConfig.Load(configFilePath);
-            AssertExpectedAnalysisSetting("key1", "cmd line value1", actualConfig);
-            AssertExpectedAnalysisSetting("key2", "cmd line value2", actualConfig);
-            AssertExpectedAnalysisSetting("key3", "server value 3 - should not be overridden", actualConfig);
+            AssertExpectedAnalysisSetting("key1", "cmd line value1 - should override server value", actualConfig);
+            AssertExpectedAnalysisSetting("key2", "cmd line value2 - should override server value", actualConfig);
+            AssertExpectedAnalysisSetting("key3", "server value 3 - only on server", actualConfig);
+            AssertExpectedAnalysisSetting("key4", "cmd line value4 - only on command line", actualConfig);
+            AssertExpectedAnalysisSetting("xxx", "server value xxx - lower case", actualConfig);
+            AssertExpectedAnalysisSetting("XXX", "cmd line value XXX - upper case", actualConfig);
         }
 
         #endregion
