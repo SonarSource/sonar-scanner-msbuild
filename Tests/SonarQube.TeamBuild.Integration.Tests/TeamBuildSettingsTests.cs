@@ -218,6 +218,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // Check the calculated values
             Assert.AreEqual(Path.Combine(expectedDir, "conf"), actual.SonarConfigDirectory, "Unexpected config dir");
             Assert.AreEqual(Path.Combine(expectedDir, "out"), actual.SonarOutputDirectory, "Unexpected output dir");
+            Assert.AreEqual(Path.Combine(expectedDir, "bin"), actual.SonarBinDirectory, "Unexpected bin dir");
             Assert.AreEqual(Path.Combine(expectedDir, "conf", FileConstants.ConfigFileName), actual.AnalysisConfigFilePath, "Unexpected analysis file path");
         }
 

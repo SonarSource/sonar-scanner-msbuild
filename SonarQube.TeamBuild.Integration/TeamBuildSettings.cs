@@ -203,6 +203,14 @@ namespace SonarQube.TeamBuild.Integration
             }
         }
 
+        public string SonarBinDirectory
+        {
+            get
+            {
+                return Path.Combine(this.BuildDirectory, "bin");
+            }
+        }
+
         public string AnalysisConfigFilePath
         {
             get { return Path.Combine(this.SonarConfigDirectory, FileConstants.ConfigFileName); }

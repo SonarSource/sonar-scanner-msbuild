@@ -369,7 +369,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             scope.SetPath(runnerBinDir);
 
-            Assert.IsFalse(string.IsNullOrWhiteSpace(FileLocator.FindDefaultSonarRunnerExecutable()), "Test setup error: failed to locate the created runner executable file");
+            Assert.IsFalse(string.IsNullOrWhiteSpace(FileLocator.FindDefaultSonarRunnerProperties()), "Test setup error: failed to locate the created runner properties file");
 
             return configFile;
         }

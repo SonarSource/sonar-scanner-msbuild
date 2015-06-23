@@ -126,9 +126,6 @@
   <data name="DIAG_GeneratingProjectProperties" xml:space="preserve">
     <value>Generating SonarQube project properties file to {0}</value>
   </data>
-  <data name="DIAG_LocatedSonarRunner" xml:space="preserve">
-    <value>Located the sonar-runner: {0}</value>
-  </data>
   <data name="DIAG_NoFilesToAnalyze" xml:space="preserve">
     <value>The project does not contain any files that can analyzed by SonarQube. Project file: {0}</value>
   </data>
@@ -146,9 +143,6 @@
   </data>
   <data name="ERR_ErrorLoadingConfigFile" xml:space="preserve">
     <value>An error occurred loading the analysis config file. Please check that it is a valid file and try again. Error: {0}</value>
-  </data>
-  <data name="ERR_FailedToLocateSonarRunner" xml:space="preserve">
-    <value>Failed to locate the sonar-runner ({0}). Ensure that the containing directory is on the system PATH and try again.</value>
   </data>
   <data name="ERR_InvalidAnalysisConfigFilePath" xml:space="preserve">
     <value>The specified analysis config file does not exist: {0}</value>

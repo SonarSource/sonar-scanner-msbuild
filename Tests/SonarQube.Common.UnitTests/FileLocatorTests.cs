@@ -24,29 +24,6 @@ namespace SonarQube.Common.UnitTests
         #region Tests
 
         [TestMethod]
-        public void FileLoc_GetSonarRunner()
-        {
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-
-            string runnerFile = Path.Combine(testDir, FileLocator.SonarRunnerFileName);
-            File.WriteAllText(runnerFile, "dummy runner file");
-
-            using(TestUtilities.EnvironmentVariableScope scope = new TestUtilities.EnvironmentVariableScope())
-            {
-                // 1. Not found on path
-                scope.SetPath("c:\\");
-                string actual = FileLocator.FindDefaultSonarRunnerExecutable();
-                Assert.IsNull(actual, "Not expecting the file to be found");
-
-                // 2. Found on path
-                scope.SetPath("c:\\;" + testDir);
-                actual = FileLocator.FindDefaultSonarRunnerExecutable();
-                Assert.IsNotNull(actual, "Expecting the runner file to be found");
-                Assert.AreEqual(runnerFile, actual, "Unexpected file name returned");
-            }
-        }
-
-        [TestMethod]
         public void FileLoc_GetSonarRunnerProperties()
         {
             // 0. Set up

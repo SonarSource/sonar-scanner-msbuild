@@ -24,6 +24,8 @@ namespace SonarQube.Common
 
         public string SonarOutputDir { get; set; }
 
+        public string SonarBinDir { get; set; }
+
         #region SonarQube project properties
 
         public string SonarProjectKey { get; set; }

@@ -50,11 +50,8 @@ namespace SonarQube.Common
             return configPath;
         }
 
-        /// <summary>
-        /// Searches the path for the sonar-runner executable
-        /// </summary>
-        /// <returns>The full path to the file, or null if the file could not be located</returns>
-        public static string FindDefaultSonarRunnerExecutable()
+        // No longer public after SONARMSBRU-42
+        private static string FindDefaultSonarRunnerExecutable()
         {
             return NativeMethods.FindOnPath(SonarRunnerFileName);
         }

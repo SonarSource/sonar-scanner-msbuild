@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 
@@ -47,7 +48,7 @@ namespace SonarRunner.Shim
             }
             else
             {
-                string exeFileName = FindRunnerExe(logger);
+                string exeFileName = FindRunnerExe(config, logger);
                 if (exeFileName != null)
                 {
                     result.RanToCompletion = ExecuteJavaRunner(logger, exeFileName, result.FullPropertiesFilePath);
@@ -61,18 +62,16 @@ namespace SonarRunner.Shim
 
         #region Private methods
 
-        private static string FindRunnerExe(ILogger logger)
+        private static string FindRunnerExe(AnalysisConfig config, ILogger logger)
         {
-            string exeFileName = FileLocator.FindDefaultSonarRunnerExecutable();
-            if (exeFileName == null)
-            {
-                logger.LogError(Resources.ERR_FailedToLocateSonarRunner, FileLocator.SonarRunnerFileName);
-            }
-            else
-            {
-                logger.LogMessage(Resources.DIAG_LocatedSonarRunner, exeFileName);
-            }
-            return exeFileName;
+            var binFolder = config.SonarBinDir;
+
+            var sonarRunnerZip = Path.Combine(binFolder, "sonar-runner.zip");
+            var sonarRunnerDestinationFolder = Path.Combine(binFolder, "sonar-runner");
+            Utilities.EnsureEmptyDirectory(sonarRunnerDestinationFolder, logger);
+            ZipFile.ExtractToDirectory(sonarRunnerZip, sonarRunnerDestinationFolder);
+
+            return Path.Combine(sonarRunnerDestinationFolder, @"bin\sonar-runner.bat");
         }
 
         private static bool ExecuteJavaRunner(ILogger logger, string exeFileName, string propertiesFileName)
