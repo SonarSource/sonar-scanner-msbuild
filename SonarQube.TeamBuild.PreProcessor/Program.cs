@@ -37,7 +37,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 Debug.Assert(File.Exists(processedArgs.RunnerPropertiesPath), "Expecting the properties file to exist: " + processedArgs.RunnerPropertiesPath);
                 TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor();
-                success = preProcessor.Execute(logger, processedArgs.ProjectKey, processedArgs.ProjectName, processedArgs.ProjectVersion, processedArgs.RunnerPropertiesPath);
+                success = preProcessor.Execute(logger, processedArgs.ProjectKey, processedArgs.ProjectName, processedArgs.ProjectVersion, processedArgs.RunnerPropertiesPath, processedArgs.AdditionalSettings);
             }
 
             return success ? 0 : ErrorCode;

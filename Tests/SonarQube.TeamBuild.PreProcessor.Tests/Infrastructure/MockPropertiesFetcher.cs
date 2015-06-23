@@ -18,6 +18,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         private string actualKey;
         private SonarWebService actualWs;
 
+
+        #region Test helpers
+
+        public IDictionary<string, string> PropertiesToReturn { get; set; }
+
+        #endregion
+
         #region Assertions
 
         public void AssertFetchPropertiesCalled()
@@ -44,7 +51,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             this.actualKey = sonarProjectKey;
             this.actualWs = ws;
 
-            return new Dictionary<string, string>();
+            return this.PropertiesToReturn ?? new Dictionary<string, string>();
         }
 
         #endregion

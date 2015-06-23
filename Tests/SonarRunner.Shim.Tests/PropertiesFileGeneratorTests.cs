@@ -39,7 +39,7 @@ namespace SonarRunner.Shim.Tests
 
             // Act
             ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
-        
+
             // Assert
             AssertFailedToCreatePropertiesFiles(result, logger);
             AssertExpectedProjectCount(0, result);
@@ -60,7 +60,7 @@ namespace SonarRunner.Shim.Tests
 
             TestLogger logger = new TestLogger();
             AnalysisConfig config = CreateValidConfig(testDir);
-            
+
             // Act
             ProjectInfoAnalysisResult result = null;
             using (new AssertIgnoreScope()) // expecting the properties writer to assert
@@ -77,7 +77,7 @@ namespace SonarRunner.Shim.Tests
             // No valid project info files -> file not generated
             AssertFailedToCreatePropertiesFiles(result, logger);
             logger.AssertWarningsLogged(2); // should be a warning for each project with a duplicate id
-        
+
             logger.AssertSingleWarningExists(duplicateGuid.ToString(), "c:\\abc\\duplicateProject1.proj");
             logger.AssertSingleWarningExists(duplicateGuid.ToString(), "S:\\duplicateProject2.proj");
         }
@@ -119,8 +119,8 @@ namespace SonarRunner.Shim.Tests
 
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-         
-            string projectWithoutFiles = CreateProjectInfoInSubDir(testDir, "withoutFiles", Guid.NewGuid(), ProjectType.Product, false, null); // not excluded
+
+            CreateProjectInfoInSubDir(testDir, "withoutFiles", Guid.NewGuid(), ProjectType.Product, false, null); // not excluded
 
             string projectWithContentDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "projectWithContent");
             string contentProjectPath = Path.Combine(projectWithContentDir, "contentProject.proj");
@@ -246,6 +246,51 @@ namespace SonarRunner.Shim.Tests
             logger.AssertSingleWarningExists(missingContentFile);
         }
 
+        [TestMethod]
+        [Description("Checks that the generated properties file contains additional properties")]
+        public void FileGen_AdditionalProperties()
+        {
+
+            // 0. Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            // Must have valid project otherwise the properties file won't be created
+            string projectWithContentDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "projectWithContent");
+            string contentProjectPath = Path.Combine(projectWithContentDir, "contentProject.proj");
+            string contentProjectInfo = CreateProjectInfoInSubDir(testDir, "withContentFiles", Guid.NewGuid(), ProjectType.Product, false, contentProjectPath); // not excluded
+
+            // Create the content files under the relevant project directories
+            string contentFile = CreateEmptyFile(projectWithContentDir, "contentFile1.txt");
+            string contentFileList = CreateFile(projectWithContentDir, "contentList.txt", contentFile);
+            AddAnalysisResult(contentProjectInfo, AnalysisType.FilesToAnalyze, contentFileList);
+
+            TestLogger logger = new TestLogger();
+            AnalysisConfig config = CreateValidConfig(testDir);
+            
+
+            // Add additional properties
+            config.SetValue("key1", "value1");
+            config.SetValue("key.2", "value two");
+            config.SetValue("key.3", " ");
+
+            // Act
+            PropertiesFileGenerator.GenerateFile(config, logger);
+
+            // Act
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+
+            // Assert
+            AssertExpectedProjectCount(1, result);
+
+            // One valid project info file -> file created
+            AssertPropertiesFilesCreated(result, logger);
+
+            FilePropertiesProvider provider = new FilePropertiesProvider(result.FullPropertiesFilePath);
+            AssertExpectedConfigSetting("key1", "value1", provider);
+            AssertExpectedConfigSetting("key.2", "value two", provider);
+            AssertExpectedConfigSetting("key.3", " ", provider);
+        }
+
         #endregion
 
         #region Assertions
@@ -262,7 +307,7 @@ namespace SonarRunner.Shim.Tests
 
         private static void AssertPropertiesFilesCreated(ProjectInfoAnalysisResult result, TestLogger logger)
         {
-            Assert.IsNotNull(result.FullPropertiesFilePath, "Not expecting the sonar-runner properties file to have been set");
+            Assert.IsNotNull(result.FullPropertiesFilePath, "Expecting the sonar-runner properties file to have been set");
 
             AssertValidProjectsExist(result);
 
@@ -298,12 +343,19 @@ namespace SonarRunner.Shim.Tests
             string formattedPath = PropertiesWriter.Escape(fullFilePath);
             Assert.IsTrue(content.Contains(formattedPath), "Files should be referenced: {0}", formattedPath);
         }
+
         private static void AssertFileIsNotReferenced(string fullFilePath, string content)
         {
             string formattedPath = PropertiesWriter.Escape(fullFilePath);
             Assert.IsFalse(content.Contains(formattedPath), "File should not be referenced: {0}", formattedPath);
         }
  
+        private static void AssertExpectedConfigSetting(string key, string expectedValue, FilePropertiesProvider provider)
+        {
+            string actualValue = provider.GetProperty(key);
+            Assert.AreEqual(expectedValue, actualValue, "Property does not have the expected value. Key: {0}", key);
+        }
+
         #endregion
 
         #region Private methods
@@ -319,7 +371,8 @@ namespace SonarRunner.Shim.Tests
                 SonarProjectKey = dummyProjectKey,
                 SonarProjectName = dummyProjectKey,
                 SonarConfigDir = Path.Combine(outputDir, "config"),
-                SonarProjectVersion = "1.0"
+                SonarProjectVersion = "1.0",
+                AdditionalSettings = new List<AnalysisSetting>()
             };
 
             return config;

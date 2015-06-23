@@ -8,6 +8,7 @@
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 
@@ -51,7 +52,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         
         #region Public methods
 
-        public bool Execute(ILogger logger, string projectKey, string projectName, string projectVersion, string propertiesPath)
+        public bool Execute(ILogger logger, string projectKey, string projectName, string projectVersion, string propertiesPath, IDictionary<string, string> additionalSettings)
         {
             if (logger == null)
             {
@@ -106,6 +107,9 @@ namespace SonarQube.TeamBuild.PreProcessor
                 // Fetch the SonarQube project properties
                 FetchSonarQubeProperties(config, ws);
 
+                // Merge in command line arguments
+                MergeSettingsFromCommandLine(config, additionalSettings);
+
                 // Generate the FxCop ruleset
                 GenerateFxCopRuleset(config, ws, logger);
             }
@@ -145,6 +149,19 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             logger.LogMessage(Resources.DIAG_GeneratingRuleset);
             this.rulesetGenerator.Generate(ws, config.SonarProjectKey, Path.Combine(config.SonarConfigDir, FxCopRulesetFileName));
+        }
+
+        private static void MergeSettingsFromCommandLine(AnalysisConfig config, IDictionary<string, string> settings)
+        {
+            if (settings == null)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<string, string> setting in settings)
+            {
+                config.SetValue(setting.Key, setting.Value); // this will overwrite the setting if it already exists
+            }
         }
 
         #endregion

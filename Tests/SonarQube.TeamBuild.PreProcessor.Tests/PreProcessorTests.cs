@@ -8,6 +8,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using TestUtilities;
@@ -46,11 +47,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
 
                 // Act
-                preProcessor.Execute(logger, "key", "name", "ver", propertiesFile);
+                preProcessor.Execute(logger, "key", "name", "ver", propertiesFile, null);
             }
 
             // Assert
-            Assert.IsTrue(File.Exists(expectedConfigFileName), "Config file does not exist: {0}", expectedConfigFileName);
+            AssertConfigFileExists(expectedConfigFileName);
             AnalysisConfig config = AnalysisConfig.Load(expectedConfigFileName);
             Assert.IsTrue(Directory.Exists(config.SonarOutputDir), "Output directory was not created: {0}", config.SonarOutputDir);
             Assert.IsTrue(Directory.Exists(config.SonarConfigDir), "Config directory was not created: {0}", config.SonarConfigDir);
@@ -81,28 +82,81 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
             TestLogger logger = new TestLogger();
 
-            string expectedConfigFileName;
+            string expectedConfigFilePath;
 
             using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", "build uri"))
             {
                 TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(new ConsoleLogger());
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
-                expectedConfigFileName = settings.AnalysisConfigFilePath;
+                expectedConfigFilePath = settings.AnalysisConfigFilePath;
 
                 TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
 
                 // Act
-                preProcessor.Execute(logger, "key", "name", "ver", propertiesFile);
+                preProcessor.Execute(logger, "key", "name", "ver", propertiesFile, null);
             }
 
             // Assert
+            AssertConfigFileExists(expectedConfigFilePath);
+
             mockPropertiesFetcher.AssertFetchPropertiesCalled();
             mockPropertiesFetcher.CheckFetcherArguments("my url", "key");
 
             mockRulesetGenerator.AssertGenerateCalled();
             mockRulesetGenerator.CheckGeneratorArguments("my url", "key");
+
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
+        }
+
+        [TestMethod]
+        public void PreProc_CommandLinePropertiesOverrideServerSettings()
+        {
+            // Checks command line properties override those fetched from the server
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string propertiesFile = CreatePropertiesFile(testDir, "my url", "my user name", "my password");
+
+            MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
+            TestLogger logger = new TestLogger();
+
+            MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
+            mockPropertiesFetcher.PropertiesToReturn = new Dictionary<string, string>();
+
+            mockPropertiesFetcher.PropertiesToReturn.Add("key1", "server value 1 - should be overridden");
+            mockPropertiesFetcher.PropertiesToReturn.Add("key2", "server value 2 - should be overridden");
+            mockPropertiesFetcher.PropertiesToReturn.Add("key3", "server value 3 - should not be overridden");
+
+            IDictionary<string, string> additionalSettings = new Dictionary<string, string>();
+            additionalSettings.Add("key1", "cmd line value1");
+            additionalSettings.Add("key2", "cmd line value2");
+            additionalSettings.Add("key4", "cmd line value4");
+
+            string configFilePath;
+            using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", "build uri"))
+            {
+                TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(new ConsoleLogger());
+                Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
+                configFilePath = settings.AnalysisConfigFilePath;
+
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
+
+                // Act
+                preProcessor.Execute(logger, "key", "name", "ver", propertiesFile, additionalSettings);
+            }
+
+            // Assert
+            AssertConfigFileExists(configFilePath);
+            mockPropertiesFetcher.AssertFetchPropertiesCalled();
+
+            logger.AssertErrorsLogged(0);
+            logger.AssertWarningsLogged(0);
+
+            AnalysisConfig actualConfig = AnalysisConfig.Load(configFilePath);
+            AssertExpectedAnalysisSetting("key1", "cmd line value1", actualConfig);
+            AssertExpectedAnalysisSetting("key2", "cmd line value2", actualConfig);
+            AssertExpectedAnalysisSetting("key3", "server value 3 - should not be overridden", actualConfig);
         }
 
         #endregion
@@ -139,6 +193,24 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             File.WriteAllText(propertiesFile, sb.ToString());
 
             return propertiesFile;
+        }
+
+        #endregion
+
+        #region Checks
+
+        private static void AssertConfigFileExists(string filePath)
+        {
+            Assert.IsTrue(File.Exists(filePath), "Expecting the analysis config file to exist. Path: {0}", filePath);
+        }
+
+        private static void AssertExpectedAnalysisSetting(string key, string expectedValue, AnalysisConfig actualConfig)
+        {
+            AnalysisSetting setting;
+            actualConfig.TryGetSetting(key, out setting);
+
+            Assert.IsNotNull(setting, "Failed to retrieve the expected setting. Key: {0}", key);
+            Assert.AreEqual(expectedValue, setting.Value, "Unexpected setting value. Key: {0}", key);
         }
 
         #endregion
