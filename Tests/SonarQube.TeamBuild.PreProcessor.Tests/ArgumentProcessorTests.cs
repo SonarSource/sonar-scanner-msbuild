@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using System;
 using System.IO;
+using System.Linq;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -250,6 +251,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             AssertExpectedDynamicValue("key1", "value1", result);
             AssertExpectedDynamicValue("key2", "value two with spaces", result);
+
+            Assert.IsNotNull(result.AdditionalSettings, "AdditionalSettings should not be null");
+            Assert.AreEqual(2, result.AdditionalSettings.Count(), "Unexpected number of settings");
         }
 
         [TestMethod]
@@ -413,9 +417,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static void AssertExpectedDynamicValue(string key, string value, ProcessedArgs actual)
         {
+            // Test the GetSetting method
             string actualValue = actual.GetSetting(key);
             Assert.IsNotNull(actualValue, "Expected dynamic settings does not exist. Key: {0}", key);
             Assert.AreEqual(value, actualValue, "Dynamic setting does not have the expected value");
+
+            // Check the public list of settings
+            AnalysisSetting match = actual.AdditionalSettings.SingleOrDefault(s => AnalysisSetting.SettingKeyComparer.Equals(s.Id, key));
+            Assert.IsNotNull(match, "Setting was not found in the settings list. Key: {0}", key);
+            Assert.AreEqual(value, match.Value, "Dynamic setting does not have the expected value");
         }
 
         #endregion

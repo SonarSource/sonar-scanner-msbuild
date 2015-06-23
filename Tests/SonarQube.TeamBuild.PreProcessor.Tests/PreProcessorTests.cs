@@ -130,11 +130,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockPropertiesFetcher.PropertiesToReturn.Add("xxx", "server value xxx - lower case");
 
 
-            IDictionary<string, string> additionalSettings = new Dictionary<string, string>();
-            additionalSettings.Add("key1", "cmd line value1 - should override server value");
-            additionalSettings.Add("key2", "cmd line value2 - should override server value");
-            additionalSettings.Add("key4", "cmd line value4 - only on command line");
-            mockPropertiesFetcher.PropertiesToReturn.Add("XXX", "cmd line value XXX - upper case");
+            IList<AnalysisSetting> additionalSettings = new List<AnalysisSetting>();
+            AddAnalysisSetting(additionalSettings, "key1", "cmd line value1 - should override server value");
+            AddAnalysisSetting(additionalSettings, "key2", "cmd line value2 - should override server value");
+            AddAnalysisSetting(additionalSettings, "key4", "cmd line value4 - only on command line");
+            AddAnalysisSetting(additionalSettings, "XXX", "cmd line value XXX - upper case");
 
             string configFilePath;
             using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", "build uri"))
@@ -199,6 +199,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             File.WriteAllText(propertiesFile, sb.ToString());
 
             return propertiesFile;
+        }
+
+        private static void AddAnalysisSetting(IList<AnalysisSetting> settings, string key, string value)
+        {
+            settings.Add(new AnalysisSetting() { Id = key, Value = value });
         }
 
         #endregion

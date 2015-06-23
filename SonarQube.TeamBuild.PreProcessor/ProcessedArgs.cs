@@ -39,7 +39,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public string RunnerPropertiesPath { get { return this.propertiesPath; } }
 
-        public IDictionary<string, string> AdditionalSettings { get; set; }
+        public IEnumerable<AnalysisSetting> AdditionalSettings { get { return this.additionalSettings; } }
 
         public string GetSetting(string key)
         {

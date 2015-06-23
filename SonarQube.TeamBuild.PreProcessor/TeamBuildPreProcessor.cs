@@ -52,7 +52,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         
         #region Public methods
 
-        public bool Execute(ILogger logger, string projectKey, string projectName, string projectVersion, string propertiesPath, IDictionary<string, string> additionalSettings)
+        public bool Execute(ILogger logger, string projectKey, string projectName, string projectVersion, string propertiesPath, IEnumerable<AnalysisSetting> additionalSettings)
         {
             if (logger == null)
             {
@@ -151,16 +151,16 @@ namespace SonarQube.TeamBuild.PreProcessor
             this.rulesetGenerator.Generate(ws, config.SonarProjectKey, Path.Combine(config.SonarConfigDir, FxCopRulesetFileName));
         }
 
-        private static void MergeSettingsFromCommandLine(AnalysisConfig config, IDictionary<string, string> settings)
+        private static void MergeSettingsFromCommandLine(AnalysisConfig config, IEnumerable<AnalysisSetting> settings)
         {
             if (settings == null)
             {
                 return;
             }
 
-            foreach (KeyValuePair<string, string> setting in settings)
+            foreach (AnalysisSetting setting in settings)
             {
-                config.SetValue(setting.Key, setting.Value); // this will overwrite the setting if it already exists
+                config.SetValue(setting.Id, setting.Value); // this will overwrite the setting if it already exists
             }
         }
 
