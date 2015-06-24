@@ -7,6 +7,8 @@
 
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using TestUtilities;
 
@@ -55,7 +57,7 @@ xxx yyy
             // Assert
             Assert.IsTrue(success, "Expecting the process to have succeeded");
             Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
-            
+
             logger.AssertMessageLogged("Hello world"); // Check output message are passed to the logger
             logger.AssertMessageLogged("Testing 1,2,3...");
             logger.AssertErrorLogged("'xxx' is not recognized as an internal or external command,"); // Check error messages are passed to the logger
@@ -88,6 +90,27 @@ xxx yyy
             // if the test(s) started a thread but did not stop it. Make sure that all the threads started by 
             // the test(s) are stopped before completion."
             System.Threading.Thread.Sleep(1100);
+        }
+
+        [TestMethod]
+        public void ProcRunner_PassesEnvVariables()
+        {
+            // Arrange
+            string exeName = WriteBatchFileForTest(
+@"echo %PROCESS_VAR%
+");
+            TestLogger logger = new TestLogger();
+            ProcessRunner runner = new ProcessRunner();
+            var envVariables = new Dictionary<string, string>() { { "PROCESS_VAR", "PROCESS_VAR value" } };
+
+            // Act
+            bool success = runner.Execute(exeName, null, null, 100, envVariables, logger);
+
+            // Assert
+            Assert.IsTrue(success, "Expecting the process to have failed");
+            Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
+
+            logger.AssertMessageLogged("PROCESS_VAR value");
         }
 
         #endregion

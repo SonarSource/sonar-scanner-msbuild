@@ -21,7 +21,7 @@ namespace SonarQube.Common
     public sealed class ProcessRunner
     {
         private ILogger outputLogger;
-        
+
         #region Public methods
 
         public bool ErrorsLogged { get; private set; }
@@ -34,7 +34,7 @@ namespace SonarQube.Common
         /// <returns>True if the process exited successfully, otherwise false</returns>
         public bool Execute(string exeName, string args, string workingDirectory, int timeoutInMilliseconds, ILogger logger)
         {
-            return Execute(exeName, args, workingDirectory, Timeout.Infinite, null, logger);
+            return Execute(exeName, args, workingDirectory, timeoutInMilliseconds, null, logger);
         }
 
         /// <summary>
@@ -47,21 +47,11 @@ namespace SonarQube.Common
         }
 
         /// <summary>
-        /// Runs the specified executable and passes per-process env variables
-        /// </summary>
-        /// <param name="envVariables">Names and values of process env variables to be passed to the new process</param>
-        /// <returns>True if the process exited successfully, otherwise false</returns>
-        public bool Execute(string exeName, string args, string workingDirectory, IDictionary<string, string> envVariables, ILogger logger)
-        {
-            return Execute(exeName, args, workingDirectory, Timeout.Infinite, envVariables, logger);
-        }
-
-        /// <summary>
         /// Runs the specified executable and returns a boolean indicating success or failure
         /// </summary>
         /// <param name="exeName">Name of the file to execute. This can be a full name or just the file name (if the file is on the %PATH%).</param>
-        /// <param name="envVariables">Names and values of process env variables to be passed to the new process</param>
-        /// <remarks>The standard and error output will be streamed to the logger</remarks>
+        /// <param name="envVariables">Names and values of process env variables to be passed to the new process. Can be null.</param>
+        /// <remarks>The standard and error output will be streamed to the logger. Child processes do not inherit the env variables from the parent autmatically</remarks>
         public bool Execute(string exeName, string args, string workingDirectory, int timeoutInMilliseconds, IDictionary<string, string> envVariables, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(exeName))
@@ -72,7 +62,7 @@ namespace SonarQube.Common
             {
                 throw new ArgumentNullException("logger");
             }
-            
+
             this.outputLogger = logger;
 
             ProcessStartInfo psi = new ProcessStartInfo()
@@ -91,10 +81,8 @@ namespace SonarQube.Common
             {
                 foreach (KeyValuePair<string, string> envVariable in envVariables)
                 {
-                    if (!String.IsNullOrEmpty(envVariable.Value))
-                    {
-                        psi.EnvironmentVariables.Add(envVariable.Key, envVariable.Value);
-                    }
+                    Debug.Assert(!String.IsNullOrEmpty(envVariable.Key), "Env variable name cannot be null or empty");
+                    psi.EnvironmentVariables.Add(envVariable.Key, envVariable.Value);
                 }
             }
 
@@ -122,7 +110,7 @@ namespace SonarQube.Common
 
                 // false means we asked the process to stop but it didn't.
                 // true: we might still have timed out, but the process ended when we asked it to
-                if (succeeded) 
+                if (succeeded)
                 {
                     logger.LogMessage(Resources.DIAG_ExecutionExitCode, process.ExitCode);
                     this.ExitCode = process.ExitCode;
@@ -138,7 +126,7 @@ namespace SonarQube.Common
             {
                 process.ErrorDataReceived -= OnErrorDataReceived;
                 process.OutputDataReceived -= OnOutputDataReceived;
-                
+
                 process.Dispose();
             }
             return succeeded;

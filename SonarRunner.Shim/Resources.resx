@@ -171,6 +171,9 @@
   <data name="INFO_DuplicateSettingWithSameValue" xml:space="preserve">
     <value>Setting "{0}" is assigned the same value in multiple locations. Locations: {1}</value>
   </data>
+  <data name="INFO_SonarRunnerOptsDefaultUsed" xml:space="preserve">
+    <value>{0} is not configured. Setting it to the default value of {1}</value>
+  </data>
   <data name="REPORT_ExcludedProjectsTitle" xml:space="preserve">
     <value>Excluded projects</value>
   </data>
