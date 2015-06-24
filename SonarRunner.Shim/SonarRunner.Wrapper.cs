@@ -8,6 +8,7 @@
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -18,7 +19,13 @@ namespace SonarRunner.Shim
 {
     public class SonarRunnerWrapper : ISonarRunner
     {
-        private const int SonarRunnerTimeoutInMs = System.Threading.Timeout.Infinite;
+        private const string SonarOptsVariable = "SONAR_RUNNER_OPTS";
+
+        /// <summary>
+        /// Default value for the SONAR_RUNNER_OPTS
+        /// </summary>
+        /// <remarks>Reserving more than is available on the agent  </remarks>
+        private const string SonarOptsDefaultValue = "-Xmx1024m";
 
         #region ISonarRunner interface
 
@@ -84,8 +91,15 @@ namespace SonarRunner.Shim
             
             logger.LogMessage(Resources.DIAG_CallingSonarRunner);
 
+            string sonarOptsValue = GetSonarOptsValue();
+
             ProcessRunner runner = new ProcessRunner();
-            bool success = runner.Execute(exeFileName, args, Path.GetDirectoryName(exeFileName), SonarRunnerTimeoutInMs, logger);
+            bool success = runner.Execute(
+                exeFileName, 
+                args, 
+                Path.GetDirectoryName(exeFileName), 
+                new Dictionary<string, string>() { { SonarOptsVariable, sonarOptsValue } },
+                logger);
             success = success && !runner.ErrorsLogged;
 
             if (success)
@@ -98,6 +112,26 @@ namespace SonarRunner.Shim
                 logger.LogError(Resources.ERR_SonarRunnerExecutionFailed);
             }
             return success;
+        }
+
+        /// <summary>
+        /// Get the value of the SONAR_RUNNER_OPTS variable that controls the amount of memory available to the JDK so that the sonar-runner doesn't 
+        /// hit OutOfMemory exceptions. If no env variable with this name is defined at machine or user level then use the process one is used. 
+        /// Bar that, a default value is used. 
+        /// </summary>
+        /// <returns></returns>
+        private static string GetSonarOptsValue()
+        {
+            if (!String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(SonarOptsVariable, EnvironmentVariableTarget.Machine)) ||
+                !String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(SonarOptsVariable, EnvironmentVariableTarget.User)))
+            {
+                // nothing to do, the sonar-runner should read them directly
+                return null;
+            }
+
+            string processEnvVar = Environment.GetEnvironmentVariable(SonarOptsVariable, EnvironmentVariableTarget.Process);
+
+            return !String.IsNullOrWhiteSpace(processEnvVar) ? processEnvVar : SonarOptsDefaultValue;
         }
 
         #endregion

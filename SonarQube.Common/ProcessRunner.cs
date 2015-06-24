@@ -7,7 +7,10 @@
 
 using SonarQube.Common;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 namespace SonarQube.Common
@@ -26,20 +29,40 @@ namespace SonarQube.Common
         public int ExitCode { get; private set; }
 
         /// <summary>
+        /// Runs the specified executable with timeout
+        /// </summary>
+        /// <returns>True if the process exited successfully, otherwise false</returns>
+        public bool Execute(string exeName, string args, string workingDirectory, int timeoutInMilliseconds, ILogger logger)
+        {
+            return Execute(exeName, args, workingDirectory, Timeout.Infinite, null, logger);
+        }
+
+        /// <summary>
         /// Runs the specified executable without timeout 
         /// </summary>
         /// <returns>True if the process exited successfully, otherwise false</returns>
         public bool Execute(string exeName, string args, string workingDirectory, ILogger logger)
         {
-            return Execute(exeName, args, workingDirectory, Timeout.Infinite, logger);
+            return Execute(exeName, args, workingDirectory, Timeout.Infinite, null, logger);
+        }
+
+        /// <summary>
+        /// Runs the specified executable and passes per-process env variables
+        /// </summary>
+        /// <param name="envVariables">Names and values of process env variables to be passed to the new process</param>
+        /// <returns>True if the process exited successfully, otherwise false</returns>
+        public bool Execute(string exeName, string args, string workingDirectory, IDictionary<string, string> envVariables, ILogger logger)
+        {
+            return Execute(exeName, args, workingDirectory, Timeout.Infinite, envVariables, logger);
         }
 
         /// <summary>
         /// Runs the specified executable and returns a boolean indicating success or failure
         /// </summary>
         /// <param name="exeName">Name of the file to execute. This can be a full name or just the file name (if the file is on the %PATH%).</param>
+        /// <param name="envVariables">Names and values of process env variables to be passed to the new process</param>
         /// <remarks>The standard and error output will be streamed to the logger</remarks>
-        public bool Execute(string exeName, string args, string workingDirectory, int timeoutInMilliseconds, ILogger logger)
+        public bool Execute(string exeName, string args, string workingDirectory, int timeoutInMilliseconds, IDictionary<string, string> envVariables, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(exeName))
             {
@@ -64,6 +87,16 @@ namespace SonarQube.Common
                 WorkingDirectory = workingDirectory
             };
 
+            if (envVariables != null)
+            {
+                foreach (KeyValuePair<string, string> envVariable in envVariables)
+                {
+                    if (!String.IsNullOrEmpty(envVariable.Value))
+                    {
+                        psi.EnvironmentVariables.Add(envVariable.Key, envVariable.Value);
+                    }
+                }
+            }
 
             bool succeeded;
             Process process = null;

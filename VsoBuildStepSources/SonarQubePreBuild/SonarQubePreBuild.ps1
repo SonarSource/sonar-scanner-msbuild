@@ -47,8 +47,6 @@ SetTaskContextVaraible "sonarMsBuildRunnerPath" $sonarMsBuildRunnerPath
 CreatePropertiesFile $propertiesFileDir $serviceEndpoint.Url $serviceEndpoint.Authorization.Parameters.UserName $serviceEndpoint.Authorization.Parameters.Password $dbUrl $dbUsername $dbPassword
 CopyTargetsFile $targetsFileInitialPath
 
-SetSonarOptsEnvVarIfNeeded
-
 #TODO: remove this env variable by passing it in directly to the msbuild runner 
 UpdatePathIfNeeded $sonarRunnerDir
 
