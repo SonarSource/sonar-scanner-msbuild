@@ -44,7 +44,7 @@ namespace SonarRunner.Shim
                 {
                     sb.Append("\\\\");
                 }
-                else if (IsAscii(c))
+                else if (IsAscii(c) && !char.IsControl(c))
                 {
                     sb.Append(c);
                 }

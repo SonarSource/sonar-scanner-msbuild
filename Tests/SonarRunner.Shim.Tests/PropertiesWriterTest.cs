@@ -28,6 +28,7 @@ namespace SonarRunner.Shim.Tests
             Assert.AreEqual("foo", SonarRunner.Shim.PropertiesWriter.Escape("foo"));
             Assert.AreEqual(@"C:\\File.cs", SonarRunner.Shim.PropertiesWriter.Escape(@"C:\File.cs"));
             Assert.AreEqual(@"\u4F60\u597D", SonarRunner.Shim.PropertiesWriter.Escape("你好"));
+            Assert.AreEqual(@"\u000A", SonarRunner.Shim.PropertiesWriter.Escape("\n"));
         }
 
         [TestMethod]
