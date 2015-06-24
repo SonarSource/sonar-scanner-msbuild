@@ -187,11 +187,11 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A value has already been supplied for this argument:{0}. Existing: {1}.
+        ///   Looks up a localized string similar to A value has already been supplied for this setting{0}. Existing: {1}.
         /// </summary>
-        internal static string ERROR_CmdLine_DuplicateArg {
+        internal static string ERROR_CmdLine_DuplicateSetting {
             get {
-                return ResourceManager.GetString("ERROR_CmdLine_DuplicateArg", resourceCulture);
+                return ResourceManager.GetString("ERROR_CmdLine_DuplicateSetting", resourceCulture);
             }
         }
         
@@ -201,24 +201,6 @@ namespace SonarQube.TeamBuild.PreProcessor {
         internal static string ERROR_CmdLine_InvalidDynamicSetting {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_InvalidDynamicSetting", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A required argument is missing: {0}.
-        /// </summary>
-        internal static string ERROR_CmdLine_MissingRequiredArgument {
-            get {
-                return ResourceManager.GetString("ERROR_CmdLine_MissingRequiredArgument", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unrecognised command line argument: {0}.
-        /// </summary>
-        internal static string ERROR_CmdLine_UnrecognisedArg {
-            get {
-                return ResourceManager.GetString("ERROR_CmdLine_UnrecognisedArg", resourceCulture);
             }
         }
         

@@ -159,17 +159,11 @@
   <data name="ERROR_CannotSetPropertyOnCommandLine" xml:space="preserve">
     <value>The property '{0}' is automatically set by the MSBuild Runner and cannot be overridden on the command line.</value>
   </data>
-  <data name="ERROR_CmdLine_DuplicateArg" xml:space="preserve">
-    <value>A value has already been supplied for this argument:{0}. Existing: {1}</value>
+  <data name="ERROR_CmdLine_DuplicateSetting" xml:space="preserve">
+    <value>A value has already been supplied for this setting{0}. Existing: {1}</value>
   </data>
   <data name="ERROR_CmdLine_InvalidDynamicSetting" xml:space="preserve">
     <value>The format of the dynamic setting {0} is invalid</value>
-  </data>
-  <data name="ERROR_CmdLine_MissingRequiredArgument" xml:space="preserve">
-    <value>A required argument is missing: {0}</value>
-  </data>
-  <data name="ERROR_CmdLine_UnrecognisedArg" xml:space="preserve">
-    <value>Unrecognised command line argument: {0}</value>
   </data>
   <data name="ERROR_DuplicateCheckId" xml:space="preserve">
     <value>The following CheckId should not appear multiple times: {0}</value>

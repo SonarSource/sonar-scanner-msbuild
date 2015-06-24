@@ -160,4 +160,13 @@
   <data name="DIAG_DirectoryAlreadyExists" xml:space="preserve">
     <value>The directory already exists: {0}</value>
   </data>
+  <data name="ERROR_CmdLine_DuplicateArg" xml:space="preserve">
+    <value>A value has already been supplied for this argument:{0}. Existing: {1}</value>
+  </data>
+  <data name="ERROR_CmdLine_MissingRequiredArgument" xml:space="preserve">
+    <value>A required argument is missing: {0}</value>
+  </data>
+  <data name="ERROR_CmdLine_UnrecognisedArg" xml:space="preserve">
+    <value>Unrecognised command line argument: {0}</value>
+  </data>
 </root>

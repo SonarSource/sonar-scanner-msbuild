@@ -1,0 +1,78 @@
+﻿//-----------------------------------------------------------------------
+// <copyright file="ArgumentDescriptor.cs" company="SonarSource SA and Microsoft Corporation">
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using System;
+
+namespace SonarQube.Common
+{
+    /// <summary>
+    /// Data class that describes a single valid command line argument - id, prefixes, multiplicity etc
+    /// </summary>
+    public class ArgumentDescriptor
+    {
+        private readonly string id;
+        private readonly string[] prefixes;
+        private readonly bool required;
+        private readonly string description;
+        private readonly bool allowMultiple;
+
+        public ArgumentDescriptor(string id, string[] prefixes, bool required, string description, bool allowMultiple)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException("id");
+            }
+            if (prefixes == null || prefixes.Length == 0)
+            {
+                throw new ArgumentNullException("prefixes");
+            }
+
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                throw new ArgumentNullException("description");
+            }
+
+            this.id = id;
+            this.prefixes = prefixes;
+            this.required = required;
+            this.description = description;
+            this.allowMultiple = allowMultiple;
+        }
+
+        #region Properties
+
+        /// <summary>
+        /// The unique (internal) identifier for the argument
+        /// </summary>
+        public string Id { get { return this.id; } }
+
+        /// <summary>
+        /// Any prefixes supported for the argument. This should include all of the characters that
+        /// are not to be treated as part of the value e.g. /key=
+        /// </summary>
+        public string[] Prefixes { get { return this.prefixes; } }
+
+        /// <summary>
+        /// Whether the argument is mandatory or not
+        /// </summary>
+        public bool Required { get { return this.required; } }
+
+        /// <summary>
+        /// A short description of the argument that will be displayed to the user
+        /// e.g. /key= [SonarQube project key]
+        /// </summary>
+        public string Description { get { return this.description; } }
+
+        /// <summary>
+        /// True if the argument can be specified multiple times,
+        /// false if it can be specified at most once
+        /// </summary>
+        public bool AllowMultiple { get { return this.allowMultiple; } }
+
+        #endregion
+    }
+}
