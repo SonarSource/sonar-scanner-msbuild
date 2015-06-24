@@ -94,13 +94,19 @@ namespace SonarRunner.Shim
 
             string sonarRunnerOptsValue = GetSonarRunnerOptsValue(logger);
 
+            IDictionary<string, string> envVarsDictionary = new Dictionary<string, string>();
+            if (!String.IsNullOrEmpty(sonarRunnerOptsValue))
+            {
+                envVarsDictionary.Add(SonarRunnerOptsVariableName, sonarRunnerOptsValue);
+            }
+
             ProcessRunner runner = new ProcessRunner();
             bool success = runner.Execute(
                 exeFileName,
                 args,
                 Path.GetDirectoryName(exeFileName),
                 Timeout.Infinite,
-                !String.IsNullOrEmpty(sonarRunnerOptsValue) ? new Dictionary<string, string>() { { SonarRunnerOptsVariableName, sonarRunnerOptsValue } } : null,
+                envVarsDictionary,
                 logger);
 
             success = success && !runner.ErrorsLogged;

@@ -99,12 +99,14 @@ xxx yyy
             string exeName = WriteBatchFileForTest(
 @"echo %PROCESS_VAR%
 @echo %PROCESS_VAR2%
+@echo %PROCESS_VAR3%
 ");
             TestLogger logger = new TestLogger();
             ProcessRunner runner = new ProcessRunner();
             var envVariables = new Dictionary<string, string>() {
                 { "PROCESS_VAR", "PROCESS_VAR value" },
-                { "PROCESS_VAR2", "PROCESS_VAR2 value" }};
+                { "PROCESS_VAR2", "PROCESS_VAR2 value" },
+                { "PROCESS_VAR3", "PROCESS_VAR3 value" } };
 
             // Act
             bool success = runner.Execute(exeName, null, null, 100, envVariables, logger);
@@ -115,6 +117,7 @@ xxx yyy
 
             logger.AssertMessageLogged("PROCESS_VAR value");
             logger.AssertMessageLogged("PROCESS_VAR2 value");
+            logger.AssertMessageLogged("PROCESS_VAR3 value");
         }
 
         #endregion
