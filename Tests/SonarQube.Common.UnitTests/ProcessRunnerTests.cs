@@ -98,19 +98,23 @@ xxx yyy
             // Arrange
             string exeName = WriteBatchFileForTest(
 @"echo %PROCESS_VAR%
+@echo %PROCESS_VAR2%
 ");
             TestLogger logger = new TestLogger();
             ProcessRunner runner = new ProcessRunner();
-            var envVariables = new Dictionary<string, string>() { { "PROCESS_VAR", "PROCESS_VAR value" } };
+            var envVariables = new Dictionary<string, string>() {
+                { "PROCESS_VAR", "PROCESS_VAR value" },
+                { "PROCESS_VAR2", "PROCESS_VAR2 value" }};
 
             // Act
             bool success = runner.Execute(exeName, null, null, 100, envVariables, logger);
 
             // Assert
-            Assert.IsTrue(success, "Expecting the process to have failed");
+            Assert.IsTrue(success, "Expecting the process to have succeeded");
             Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
 
             logger.AssertMessageLogged("PROCESS_VAR value");
+            logger.AssertMessageLogged("PROCESS_VAR2 value");
         }
 
         #endregion

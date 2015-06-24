@@ -119,10 +119,8 @@ namespace SonarRunner.Shim
 
         /// <summary>
         /// Get the value of the SONAR_RUNNER_OPTS variable that controls the amount of memory available to the JDK so that the sonar-runner doesn't 
-        /// hit OutOfMemory exceptions. If no env variable with this name is defined at machine or user level then use the process one is used. 
-        /// Bar that, a default value is used. 
+        /// hit OutOfMemory exceptions. If no env variable with this name is defined then a default value is used.
         /// </summary>
-        /// <returns></returns>
         private static string GetSonarRunnerOptsValue(ILogger logger)
         {
             string existingValue = Environment.GetEnvironmentVariable(SonarRunnerOptsVariableName);
