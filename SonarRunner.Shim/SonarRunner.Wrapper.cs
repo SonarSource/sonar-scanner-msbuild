@@ -14,18 +14,19 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace SonarRunner.Shim
 {
     public class SonarRunnerWrapper : ISonarRunner
     {
-        private const string SonarOptsVariable = "SONAR_RUNNER_OPTS";
+        private const string SonarRunnerOptsVariableName = "SONAR_RUNNER_OPTS";
 
         /// <summary>
         /// Default value for the SONAR_RUNNER_OPTS
         /// </summary>
-        /// <remarks>Reserving more than is available on the agent  </remarks>
-        private const string SonarOptsDefaultValue = "-Xmx1024m";
+        /// <remarks>Reserving more than is available on the agent will cause the sonar-runner to fail</remarks>
+        private const string SonarRunnerOptsDefaultValue = "-Xmx1024m";
 
         #region ISonarRunner interface
 
@@ -88,27 +89,29 @@ namespace SonarRunner.Shim
 
             string args = string.Format(System.Globalization.CultureInfo.InvariantCulture,
                 "-Dproject.settings=\"{0}\"", propertiesFileName);
-            
+
             logger.LogMessage(Resources.DIAG_CallingSonarRunner);
 
-            string sonarOptsValue = GetSonarOptsValue();
+            string sonarRunnerOptsValue = GetSonarRunnerOptsValue(logger);
 
             ProcessRunner runner = new ProcessRunner();
             bool success = runner.Execute(
-                exeFileName, 
-                args, 
-                Path.GetDirectoryName(exeFileName), 
-                new Dictionary<string, string>() { { SonarOptsVariable, sonarOptsValue } },
+                exeFileName,
+                args,
+                Path.GetDirectoryName(exeFileName),
+                Timeout.Infinite,
+                !String.IsNullOrEmpty(sonarRunnerOptsValue) ? new Dictionary<string, string>() { { SonarRunnerOptsVariableName, sonarRunnerOptsValue } } : null,
                 logger);
+
             success = success && !runner.ErrorsLogged;
 
             if (success)
             {
                 logger.LogMessage(Resources.DIAG_SonarRunnerCompleted);
             }
-			else
+            else
             {
-				// TODO: should be kill the process or leave it? Could we corrupt the data on the server if we kill the process?
+                // TODO: should be kill the process or leave it? Could we corrupt the data on the server if we kill the process?
                 logger.LogError(Resources.ERR_SonarRunnerExecutionFailed);
             }
             return success;
@@ -120,18 +123,20 @@ namespace SonarRunner.Shim
         /// Bar that, a default value is used. 
         /// </summary>
         /// <returns></returns>
-        private static string GetSonarOptsValue()
+        private static string GetSonarRunnerOptsValue(ILogger logger)
         {
-            if (!String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(SonarOptsVariable, EnvironmentVariableTarget.Machine)) ||
-                !String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(SonarOptsVariable, EnvironmentVariableTarget.User)))
+            string existingValue = Environment.GetEnvironmentVariable(SonarRunnerOptsVariableName);
+
+            if (!String.IsNullOrWhiteSpace(existingValue))
             {
-                // nothing to do, the sonar-runner should read them directly
-                return null;
+                return existingValue;
+            }
+            else
+            {
+                logger.LogMessage(Resources.INFO_SonarRunnerOptsDefaultUsed, SonarRunnerOptsVariableName, SonarRunnerOptsDefaultValue);
+                return SonarRunnerOptsDefaultValue;
             }
 
-            string processEnvVar = Environment.GetEnvironmentVariable(SonarOptsVariable, EnvironmentVariableTarget.Process);
-
-            return !String.IsNullOrWhiteSpace(processEnvVar) ? processEnvVar : SonarOptsDefaultValue;
         }
 
         #endregion
