@@ -51,7 +51,6 @@ namespace SonarQube.Bootstrapper
         private string tempDir;
         private string preProcFilePath;
         private string postProcFilePath;
-        private string supportedBootStrapperVersionsPath;
 
         #region Constructor(s)
 
