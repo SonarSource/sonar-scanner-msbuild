@@ -50,7 +50,7 @@ namespace SonarQube.Common
         }
 
         /// <summary>
-        /// Loads and returns an instnace of <typeparamref name="T"/> from the specified XML file
+        /// Loads and returns an instance of <typeparamref name="T"/> from the specified XML file
         /// </summary>
         public static T LoadModel<T>(string fileName)
         {

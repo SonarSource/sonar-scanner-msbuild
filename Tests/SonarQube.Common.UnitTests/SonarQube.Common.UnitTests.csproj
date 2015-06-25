@@ -53,10 +53,14 @@
     <Compile Include="..\..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
+    <Compile Include="AggregatePropertiesProviderTests.cs" />
+    <Compile Include="CmdLineArgsPropertiesProviderTests.cs" />
     <Compile Include="ConsoleLoggerTests.cs" />
     <Compile Include="FileLocatorTests.cs" />
     <Compile Include="FilePropertiesProviderTests.cs" />
     <Compile Include="AnalysisConfigTests.cs" />
+    <Compile Include="AnalysisPropertyFileProviderTests.cs" />
+    <Compile Include="Infrastructure\ListSettingsProvider.cs" />
     <Compile Include="Infrastructure\OutputCaptureScope.cs" />
     <Compile Include="ProcessRunnerTests.cs" />
     <Compile Include="ProjectInfoTests.cs" />
