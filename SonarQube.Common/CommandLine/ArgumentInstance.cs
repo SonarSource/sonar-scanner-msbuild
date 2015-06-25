@@ -6,6 +6,8 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SonarQube.Common
 {
@@ -27,8 +29,56 @@ namespace SonarQube.Common
             this.value = value;
         }
 
+        #region Data
+
         public ArgumentDescriptor Descriptor { get { return this.descriptor; } }
 
         public string Value { get { return this.value; } }
+
+
+        #endregion
+
+        #region Static methods
+
+        public static bool TryGetArgument(string id, IEnumerable<ArgumentInstance> arguments, out ArgumentInstance instance)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException("id");
+            }
+            if (arguments == null)
+            {
+                throw new ArgumentNullException("arguments");
+            }
+
+            instance = arguments.FirstOrDefault(a => ArgumentDescriptor.IdComparer.Equals(a.Descriptor.Id, id));
+            return instance != null;
+        }
+
+        public static bool TryGetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments, out string value)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException("id");
+            }
+            if (arguments == null)
+            {
+                throw new ArgumentNullException("arguments");
+            }
+
+            ArgumentInstance instance;
+            if (TryGetArgument(id, arguments, out instance))
+            {
+                value = instance.value;
+            }
+            else
+            {
+                value = null;
+            }
+
+            return instance != null;
+        }
+
+        #endregion
     }
 }

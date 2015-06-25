@@ -15,7 +15,7 @@ namespace SonarQube.Common
     /// <summary>
     /// Data class to describe an additional analysis configuration setting
     /// /// </summary>
-    /// <remarks>The class is XML-serializable.
+    /// <remarks>The class is XML-serializable</remarks>
     public class AnalysisSetting
     {
         #region Data

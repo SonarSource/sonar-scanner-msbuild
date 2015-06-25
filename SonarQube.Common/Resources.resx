@@ -175,4 +175,43 @@
   <data name="DIAG_Runner_SettingEnvVar" xml:space="preserve">
     <value>Setting environment variable '{0}'. Value: {1}</value>
   </data>
+  <data name="CmdLine_ArgDescription_PropertiesFilePath" xml:space="preserve">
+    <value>[/s:{full path to the analysis settings file}]</value>
+  </data>
+  <data name="DIAG_Properties_DefaultPropertiesFileFound" xml:space="preserve">
+    <value>Default properties file was found at {0}</value>
+  </data>
+  <data name="DIAG_Properties_DefaultPropertiesFileNotFound" xml:space="preserve">
+    <value>Default properties file was not found at {0}</value>
+  </data>
+  <data name="DIAG_Properties_LoadingPropertiesFromFile" xml:space="preserve">
+    <value>Loading analysis properties from {0}</value>
+  </data>
+  <data name="ERROR_Properties_GlobalPropertiesFileDoesNotExist" xml:space="preserve">
+    <value>Unable to find the SonarQube analysis settings file '{0}'. Please fix the path to this settings file.</value>
+  </data>
+  <data name="ERROR_Properties_InvalidPropertiesFile" xml:space="preserve">
+    <value>Unable to read the SonarQube analysis settings file '{0}'. Please fix the content of this file.</value>
+  </data>
+  <data name="CmdLine_ArgDescription_DynamicProperty" xml:space="preserve">
+    <value>/p:[key]=[value]</value>
+  </data>
+  <data name="ERROR_CmdLine_CannotSetPropertyOnCommandLine" xml:space="preserve">
+    <value>The property '{0}' is automatically set by the MSBuild Runner and cannot be overridden on the command line.</value>
+  </data>
+  <data name="ERROR_CmdLine_DuplicateProperty" xml:space="preserve">
+    <value>A value has already been supplied for this property. Key: {0}, existing value: {1}</value>
+  </data>
+  <data name="ERROR_CmdLine_InvalidAnalysisProperty" xml:space="preserve">
+    <value>The format of the analysis property {0} is invalid</value>
+  </data>
+  <data name="ERROR_CmdLine_MustUseProjectKey" xml:space="preserve">
+    <value>Please use the parameter prefix '/k:' to define the key of the SonarQube project instead of injecting this key with the help of the 'sonar.projectKey' property.</value>
+  </data>
+  <data name="ERROR_CmdLine_MustUseProjectName" xml:space="preserve">
+    <value>Please use the parameter prefix '/n:' to define the name of the SonarQube project instead of injecting this name with the help of the 'sonar.projectName' property.</value>
+  </data>
+  <data name="ERROR_CmdLine_MustUseProjectVersion" xml:space="preserve">
+    <value>Please use the parameter prefix '/v:' to define the version of the SonarQube project instead of injecting this version with the help of the 'sonar.projectVersion' property.</value>
+  </data>
 </root>
