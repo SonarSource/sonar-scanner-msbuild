@@ -32,8 +32,6 @@ namespace SonarQube.Common
         /// </summary>
         private readonly IEnumerable<ArgumentDescriptor> descriptors;
 
-        private static StringComparer IdComparer = StringComparer.InvariantCultureIgnoreCase;
-
         public CommandLineParser(IEnumerable<ArgumentDescriptor> descriptors)
         {
             if (descriptors == null)
@@ -42,7 +40,7 @@ namespace SonarQube.Common
             }
 
             Debug.Assert(descriptors.All(d => d.Prefixes != null && d.Prefixes.Any()), "All descriptors must provide at least one prefix");
-            Debug.Assert(descriptors.Select(d => d.Id).Distinct(IdComparer).Count() == descriptors.Count(), "All descriptors must have a unique id");
+            Debug.Assert(descriptors.Select(d => d.Id).Distinct(ArgumentDescriptor.IdComparer).Count() == descriptors.Count(), "All descriptors must have a unique id");
 
             this.descriptors = descriptors;
         }
@@ -79,7 +77,8 @@ namespace SonarQube.Common
 
                     if (!descriptor.AllowMultiple && IdExists(newId, arguments))
                     {
-                        string existingValue = TryGetArgumentValue(newId, arguments);
+                        string existingValue;
+                        ArgumentInstance.TryGetArgumentValue(newId, arguments, out existingValue);
                         logger.LogError(Resources.ERROR_CmdLine_DuplicateArg, arg, existingValue);
                         parsedOk = false;
                     }
@@ -144,7 +143,8 @@ namespace SonarQube.Common
 
         private static bool IdExists(string id, IEnumerable<ArgumentInstance> arguments)
         {
-            bool exists = arguments.Any(a => IdComparer.Equals(a.Descriptor.Id, id));
+            ArgumentInstance existing;
+            bool exists = ArgumentInstance.TryGetArgument(id, arguments, out existing);
             return exists;
         }
 
@@ -156,7 +156,8 @@ namespace SonarQube.Common
             bool allExist = true;
             foreach (ArgumentDescriptor desc in this.descriptors.Where(d => d.Required))
             {
-                ArgumentInstance argument = TryGetArgument(desc.Id, arguments);
+                ArgumentInstance argument;
+                ArgumentInstance.TryGetArgument(desc.Id, arguments, out argument);
 
                 bool exists = argument != null && !string.IsNullOrWhiteSpace(argument.Value);
                 if (!exists)
@@ -167,16 +168,6 @@ namespace SonarQube.Common
             }
             return allExist;
         }
-
-        private static ArgumentInstance TryGetArgument(string id, IEnumerable<ArgumentInstance> arguments)
-        {
-            return arguments.FirstOrDefault(a => IdComparer.Equals(a.Descriptor.Id, id));
-        }
-
-        private static string TryGetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments)
-        {
-            ArgumentInstance argument = arguments.SingleOrDefault(a => IdComparer.Equals(a.Descriptor.Id, id));
-            return argument == null ? null : argument.Value;
-        }
+        
     }
 }

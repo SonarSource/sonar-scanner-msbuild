@@ -14,6 +14,8 @@ namespace SonarQube.Common
     /// </summary>
     public class ArgumentDescriptor
     {
+        public static readonly StringComparer IdComparer = StringComparer.InvariantCultureIgnoreCase;
+
         private readonly string id;
         private readonly string[] prefixes;
         private readonly bool required;

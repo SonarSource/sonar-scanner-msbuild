@@ -61,6 +61,24 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to /p:[key]=[value].
+        /// </summary>
+        internal static string CmdLine_ArgDescription_DynamicProperty {
+            get {
+                return ResourceManager.GetString("CmdLine_ArgDescription_DynamicProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [/s:{full path to the analysis settings file}].
+        /// </summary>
+        internal static string CmdLine_ArgDescription_PropertiesFilePath {
+            get {
+                return ResourceManager.GetString("CmdLine_ArgDescription_PropertiesFilePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Commencing retry-able operation. Max wait (milliseconds): {0}, pause between tries (milliseconds): {1}.
         /// </summary>
         internal static string DIAG_BeginningRetry {
@@ -128,6 +146,33 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Default properties file was found at {0}.
+        /// </summary>
+        internal static string DIAG_Properties_DefaultPropertiesFileFound {
+            get {
+                return ResourceManager.GetString("DIAG_Properties_DefaultPropertiesFileFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default properties file was not found at {0}.
+        /// </summary>
+        internal static string DIAG_Properties_DefaultPropertiesFileNotFound {
+            get {
+                return ResourceManager.GetString("DIAG_Properties_DefaultPropertiesFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading analysis properties from {0}.
+        /// </summary>
+        internal static string DIAG_Properties_LoadingPropertiesFromFile {
+            get {
+                return ResourceManager.GetString("DIAG_Properties_LoadingPropertiesFromFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Retrying....
         /// </summary>
         internal static string DIAG_RetryingOperation {
@@ -155,11 +200,38 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The property &apos;{0}&apos; is automatically set by the MSBuild Runner and cannot be overridden on the command line..
+        /// </summary>
+        internal static string ERROR_CmdLine_CannotSetPropertyOnCommandLine {
+            get {
+                return ResourceManager.GetString("ERROR_CmdLine_CannotSetPropertyOnCommandLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A value has already been supplied for this argument:{0}. Existing: {1}.
         /// </summary>
         internal static string ERROR_CmdLine_DuplicateArg {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_DuplicateArg", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A value has already been supplied for this property. Key: {0}, existing value: {1}.
+        /// </summary>
+        internal static string ERROR_CmdLine_DuplicateProperty {
+            get {
+                return ResourceManager.GetString("ERROR_CmdLine_DuplicateProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The format of the analysis property {0} is invalid.
+        /// </summary>
+        internal static string ERROR_CmdLine_InvalidAnalysisProperty {
+            get {
+                return ResourceManager.GetString("ERROR_CmdLine_InvalidAnalysisProperty", resourceCulture);
             }
         }
         
@@ -173,11 +245,56 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/k:&apos; to define the key of the SonarQube project instead of injecting this key with the help of the &apos;sonar.projectKey&apos; property..
+        /// </summary>
+        internal static string ERROR_CmdLine_MustUseProjectKey {
+            get {
+                return ResourceManager.GetString("ERROR_CmdLine_MustUseProjectKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/n:&apos; to define the name of the SonarQube project instead of injecting this name with the help of the &apos;sonar.projectName&apos; property..
+        /// </summary>
+        internal static string ERROR_CmdLine_MustUseProjectName {
+            get {
+                return ResourceManager.GetString("ERROR_CmdLine_MustUseProjectName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/v:&apos; to define the version of the SonarQube project instead of injecting this version with the help of the &apos;sonar.projectVersion&apos; property..
+        /// </summary>
+        internal static string ERROR_CmdLine_MustUseProjectVersion {
+            get {
+                return ResourceManager.GetString("ERROR_CmdLine_MustUseProjectVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unrecognised command line argument: {0}.
         /// </summary>
         internal static string ERROR_CmdLine_UnrecognisedArg {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_UnrecognisedArg", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to find the SonarQube analysis settings file &apos;{0}&apos;. Please fix the path to this settings file..
+        /// </summary>
+        internal static string ERROR_Properties_GlobalPropertiesFileDoesNotExist {
+            get {
+                return ResourceManager.GetString("ERROR_Properties_GlobalPropertiesFileDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to read the SonarQube analysis settings file &apos;{0}&apos;. Please fix the content of this file..
+        /// </summary>
+        internal static string ERROR_Properties_InvalidPropertiesFile {
+            get {
+                return ResourceManager.GetString("ERROR_Properties_InvalidPropertiesFile", resourceCulture);
             }
         }
         
