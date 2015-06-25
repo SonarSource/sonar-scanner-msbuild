@@ -13,6 +13,7 @@ namespace SonarQube.Common
     /// <summary>
     /// Provides methods to locate installed SonarQube files and directories
     /// </summary>
+    // Should be dropped with SONARMSBRU-84
     public static class FileLocator
     {
         public const string SonarRunnerFileName = "sonar-runner.bat";

@@ -49,6 +49,12 @@ namespace SonarQube.Common
             this.ExtractProperties(fullPath);
         }
 
+        // Should be dropped with SONARMSBRU-84
+        public IDictionary<string, string> GetProperties()
+        {
+            return properties;
+        }
+
         #endregion
 
         #region ISonarPropertyProvider interface

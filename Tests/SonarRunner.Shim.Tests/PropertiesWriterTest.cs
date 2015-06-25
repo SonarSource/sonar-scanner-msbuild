@@ -264,6 +264,27 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388
             AssertSettingExists(propertyReader, "my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
         }
 
+        [TestMethod]
+        public void PropertiesWriter_WriteSonarRunnerProperties()
+        {
+            var sonarRunnerPropertiesFolder = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriter_ForwardSonarRunnerProperties");
+            var sonarRunnerPropertiesPath = Path.Combine(sonarRunnerPropertiesFolder, "sonar-runner.properties");
+            File.WriteAllText(sonarRunnerPropertiesPath, "foo=bar");
+
+            AnalysisConfig validConfig = new AnalysisConfig()
+            {
+                SonarProjectKey = "key",
+                SonarProjectName = "name",
+                SonarProjectVersion = "1.0",
+                SonarRunnerPropertiesPath = sonarRunnerPropertiesPath,
+                SonarOutputDir = this.TestContext.DeploymentDirectory
+            };
+
+            var contents = new PropertiesWriter(validConfig).Flush();
+
+            Assert.IsTrue(contents.Contains("foo=bar"));
+        }
+
         #endregion
 
         #region Checks
