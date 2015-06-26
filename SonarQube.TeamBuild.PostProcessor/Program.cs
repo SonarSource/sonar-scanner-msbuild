@@ -50,8 +50,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             ProjectInfoAnalysisResult result = InvokeSonarRunner(config, logger);
 
-            ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
-            SummaryReportBuilder.GenerateReports(settings, config, result, propertyProvider, logger);
+            SummaryReportBuilder.GenerateReports(settings, config, result, logger);
             
             return result.RanToCompletion ? SuccessCode : ErrorCode;
         }
@@ -139,11 +138,9 @@ namespace SonarQube.TeamBuild.PostProcessor
                     Resources.Report_SonarQubeProjectDescription, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
 
                 // Add a link to SonarQube dashboard if analysis succeeded
-                Debug.Assert(config.SonarRunnerPropertiesPath != null, "Not expecting the sonar-runner properties path to be null");
-                if (config.SonarRunnerPropertiesPath != null && result.RanToCompletion)
+                if (result.RanToCompletion)
                 {
-                    ISonarPropertyProvider propertyProvider = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
-                    string hostUrl = propertyProvider.GetProperty(SonarProperties.HostUrl).TrimEnd('/');
+                    string hostUrl = config.SonarQubeHostUrl.TrimEnd('/');
 
                     string sonarUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture,
                         "{0}/dashboard/index/{1}", hostUrl, config.SonarProjectKey);

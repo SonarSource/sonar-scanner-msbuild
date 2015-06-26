@@ -349,8 +349,7 @@ namespace SonarRunner.Shim.Tests
                 SonarProjectName = "My project",
                 SonarProjectVersion = "1.0",
                 SonarOutputDir = @"c:\output",
-                SonarConfigDir = @"c:\config",
-                SonarRunnerPropertiesPath = @"c:\properties\a.props"
+                SonarConfigDir = @"c:\config"
             };
             return config;
         }

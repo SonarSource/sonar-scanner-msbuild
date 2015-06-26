@@ -225,7 +225,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388
             string fullActualPath = SaveToResultFile(projectBaseDir, "Actual.txt", writer.Flush());
 
             // Assert
-            FilePropertiesProvider propertyReader = new FilePropertiesProvider(fullActualPath);
+            SQPropertiesFileReader propertyReader = new SQPropertiesFileReader(fullActualPath);
 
             AssertSettingExists(propertyReader, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting1", "setting1");
             AssertSettingExists(propertyReader, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting2", "setting 2 with spaces");
@@ -257,39 +257,18 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388
             string fullActualPath = SaveToResultFile(projectBaseDir, "Actual.txt", writer.Flush());
 
             // Assert
-            FilePropertiesProvider propertyReader = new FilePropertiesProvider(fullActualPath);
+            SQPropertiesFileReader propertyReader = new SQPropertiesFileReader(fullActualPath);
 
             AssertSettingExists(propertyReader, "my.setting1", "setting1");
             AssertSettingExists(propertyReader, "my.setting2", "setting 2 with spaces");
             AssertSettingExists(propertyReader, "my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
         }
 
-        [TestMethod]
-        public void PropertiesWriter_WriteSonarRunnerProperties()
-        {
-            var sonarRunnerPropertiesFolder = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriter_ForwardSonarRunnerProperties");
-            var sonarRunnerPropertiesPath = Path.Combine(sonarRunnerPropertiesFolder, "sonar-runner.properties");
-            File.WriteAllText(sonarRunnerPropertiesPath, "foo=bar");
-
-            AnalysisConfig validConfig = new AnalysisConfig()
-            {
-                SonarProjectKey = "key",
-                SonarProjectName = "name",
-                SonarProjectVersion = "1.0",
-                SonarRunnerPropertiesPath = sonarRunnerPropertiesPath,
-                SonarOutputDir = this.TestContext.DeploymentDirectory
-            };
-
-            var contents = new PropertiesWriter(validConfig).Flush();
-
-            Assert.IsTrue(contents.Contains("foo=bar"));
-        }
-
         #endregion
 
         #region Checks
 
-        private static void AssertSettingExists(FilePropertiesProvider propertyReader, string expectedId, string expectedValue)
+        private static void AssertSettingExists(SQPropertiesFileReader propertyReader, string expectedId, string expectedValue)
         {
             string actualValue = propertyReader.GetProperty(expectedId); // will throw if the property is missing
             Assert.AreEqual(expectedValue, actualValue, "Property does not have the expected value. Property: {0}", expectedId);

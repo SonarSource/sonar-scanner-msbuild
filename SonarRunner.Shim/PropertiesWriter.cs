@@ -18,14 +18,14 @@ namespace SonarRunner.Shim
 {
     public class PropertiesWriter
     {
-        private StringBuilder sb;
+        private readonly StringBuilder sb;
 
-        private AnalysisConfig config;
+        private readonly AnalysisConfig config;
 
         /// <summary>
         /// List of projects that for which settings have been written
         /// </summary>
-        private IList<ProjectInfo> projects;
+        private readonly IList<ProjectInfo> projects;
 
         #region Public methods
 
@@ -91,8 +91,6 @@ namespace SonarRunner.Shim
 
             AppendKeyValue(sb, "sonar.modules", string.Join(",", this.projects.Select(p => p.GetProjectGuidAsString())));
             sb.AppendLine();
-
-            WriteSonarRunnerProperties();
 
             return sb.ToString();
         }
@@ -180,20 +178,6 @@ namespace SonarRunner.Shim
         #endregion
 
         #region Private methods
-
-        // Should be dropped with SONARMSBRU-84
-        private void WriteSonarRunnerProperties()
-        {
-            if (config.SonarRunnerPropertiesPath != null)
-            {
-                var sonarRunnerProperties = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
-                foreach (var property in sonarRunnerProperties.GetProperties())
-                {
-                    AppendKeyValue(sb, property.Key, property.Value);
-                }
-                sb.AppendLine();
-            }
-        }
 
         private static void AppendKeyValue(StringBuilder sb, string keyPrefix, string keySuffix, string value)
         {

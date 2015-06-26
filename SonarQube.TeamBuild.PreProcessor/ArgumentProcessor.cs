@@ -109,52 +109,13 @@ namespace SonarQube.TeamBuild.PreProcessor
         #endregion
 
         #region Private methods
-
-        private static ArgumentInstance TryGetArgument(string id, IEnumerable<ArgumentInstance> arguments)
-        {
-            return arguments.FirstOrDefault(a => a.Descriptor.Id == id);
-        }
-
+        
         private static string TryGetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments)
         {
             ArgumentInstance argument = arguments.SingleOrDefault(a => a.Descriptor.Id == id);
             return argument == null ? null : argument.Value;
         }
-
-        private static string TryResolveRunnerPropertiesPath(string propertiesPath, ILogger logger)
-        {
-            string resolvedPath;
-
-            if (string.IsNullOrEmpty(propertiesPath))
-            {
-                logger.LogMessage(Resources.DIAG_LocatingRunnerProperties);
-                resolvedPath = FileLocator.FindDefaultSonarRunnerProperties();
-
-                if (string.IsNullOrWhiteSpace(resolvedPath))
-                {
-                    logger.LogError(Resources.ERROR_FailedToLocateRunnerProperties);
-                }
-                else
-                {
-                    logger.LogMessage(Resources.DIAG_LocatedRunnerProperties, resolvedPath);
-                }
-            }
-            else
-            {
-                if (File.Exists(propertiesPath))
-                {
-                    resolvedPath = propertiesPath;
-                }
-                else
-                {
-                    logger.LogError(Resources.ERROR_InvalidRunnerPropertiesLocationSupplied, propertiesPath);
-                    resolvedPath = null;
-                }
-            }
-
-            return resolvedPath;
-        }
-
+        
         #endregion
     }
 }

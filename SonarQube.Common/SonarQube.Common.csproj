@@ -49,16 +49,13 @@
     <Compile Include="CommandLine\ArgumentInstance.cs" />
     <Compile Include="CommandLine\ArgumentDescriptor.cs" />
     <Compile Include="CommandLine\CommandLineParser.cs" />
-    <Compile Include="FileLocator.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="ProcessRunner.cs" />
     <Compile Include="ProjectInfo\AnalysisResult.cs" />
     <Compile Include="ProjectInfo\AnalysisType.cs" />
     <Compile Include="ConsoleLogger.cs" />
     <Compile Include="FileConstants.cs" />
-    <Compile Include="FilePropertiesProvider.cs" />
     <Compile Include="Interfaces\ILogger.cs" />
-    <Compile Include="Interfaces\ISonarPropertyProvider.cs" />
     <Compile Include="ProjectInfo\ProjectInfo.cs" />
     <Compile Include="ProjectInfo\ProjectInfoExtensions.cs" />
     <Compile Include="ProjectInfo\ProjectType.cs" />
