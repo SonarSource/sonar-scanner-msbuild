@@ -101,6 +101,13 @@ namespace SonarQube.TeamBuild.Integration
                     break;
             }
 
+            logger.LogMessage(Resources.SETTING_DumpSettings,
+                settings.BuildDirectory,
+                settings.SonarBinDirectory,
+                settings.SonarConfigDirectory,
+                settings.SonarOutputDirectory,
+                settings.AnalysisConfigFilePath);
+
             return settings;
         }
 
