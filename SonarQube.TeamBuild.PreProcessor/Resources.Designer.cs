@@ -61,15 +61,6 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /p:[key]=[value].
-        /// </summary>
-        internal static string CmdLine_ArgDescription_DynamicSetting {
-            get {
-                return ResourceManager.GetString("CmdLine_ArgDescription_DynamicSetting", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to /key:{SonarQube project key}.
         /// </summary>
         internal static string CmdLine_ArgDescription_ProjectKey {
@@ -97,24 +88,6 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [/runnerPath:{full path to the sonar-runner.properties file}].
-        /// </summary>
-        internal static string CmdLine_ArgDescription_PropertiesPath {
-            get {
-                return ResourceManager.GetString("CmdLine_ArgDescription_PropertiesPath", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Creating directory: {0}.
-        /// </summary>
-        internal static string DIAG_CreatingDirectory {
-            get {
-                return ResourceManager.GetString("DIAG_CreatingDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Creating config and output folders....
         /// </summary>
         internal static string DIAG_CreatingFolders {
@@ -124,38 +97,11 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Removing the existing directory: {0}.
-        /// </summary>
-        internal static string DIAG_DeletingDirectory {
-            get {
-                return ResourceManager.GetString("DIAG_DeletingDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Generating the FxCop ruleset....
         /// </summary>
         internal static string DIAG_GeneratingRuleset {
             get {
                 return ResourceManager.GetString("DIAG_GeneratingRuleset", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Located the runner properties file: {0}.
-        /// </summary>
-        internal static string DIAG_LocatedRunnerProperties {
-            get {
-                return ResourceManager.GetString("DIAG_LocatedRunnerProperties", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The path to the sonar-runner.properties file was not supplied on the command line. Attempting to locate the file....
-        /// </summary>
-        internal static string DIAG_LocatingRunnerProperties {
-            get {
-                return ResourceManager.GetString("DIAG_LocatingRunnerProperties", resourceCulture);
             }
         }
         
@@ -178,33 +124,6 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The property &apos;{0}&apos; is automatically set by the MSBuild Runner and cannot be overridden on the command line..
-        /// </summary>
-        internal static string ERROR_CannotSetPropertyOnCommandLine {
-            get {
-                return ResourceManager.GetString("ERROR_CannotSetPropertyOnCommandLine", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A value has already been supplied for this setting{0}. Existing: {1}.
-        /// </summary>
-        internal static string ERROR_CmdLine_DuplicateSetting {
-            get {
-                return ResourceManager.GetString("ERROR_CmdLine_DuplicateSetting", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The format of the dynamic setting {0} is invalid.
-        /// </summary>
-        internal static string ERROR_CmdLine_InvalidDynamicSetting {
-            get {
-                return ResourceManager.GetString("ERROR_CmdLine_InvalidDynamicSetting", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The following CheckId should not appear multiple times: {0}.
         /// </summary>
         internal static string ERROR_DuplicateCheckId {
@@ -214,60 +133,15 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to locate the sonar-runner.properties file. Unable to proceed..
-        /// </summary>
-        internal static string ERROR_FailedToLocateRunnerProperties {
-            get {
-                return ResourceManager.GetString("ERROR_FailedToLocateRunnerProperties", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Expecting at least three command line arguments:
         ///- SonarQube project key
         ///- SonarQube project name
         ///- SonarQube project version
-        ///The full path to the sonar-runner.properties file can also be supplied as a fourth parameter. If it is not supplied, the exe will attempt to locate the file on the path..
+        ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube.MSBuild.Runner..
         /// </summary>
         internal static string ERROR_InvalidCommandLineArgs {
             get {
                 return ResourceManager.GetString("ERROR_InvalidCommandLineArgs", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The specified file does not exist: {0}.
-        /// </summary>
-        internal static string ERROR_InvalidRunnerPropertiesLocationSupplied {
-            get {
-                return ResourceManager.GetString("ERROR_InvalidRunnerPropertiesLocationSupplied", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/k:&apos; to define the key of the SonarQube project instead of injecting this key with the help of the &apos;sonar.projectKey&apos; property..
-        /// </summary>
-        internal static string ERROR_MustUseProjectKey {
-            get {
-                return ResourceManager.GetString("ERROR_MustUseProjectKey", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/n:&apos; to define the name of the SonarQube project instead of injecting this name with the help of the &apos;sonar.projectName&apos; property..
-        /// </summary>
-        internal static string ERROR_MustUseProjectName {
-            get {
-                return ResourceManager.GetString("ERROR_MustUseProjectName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/v:&apos; to define the version of the SonarQube project instead of injecting this version with the help of the &apos;sonar.projectVersion&apos; property..
-        /// </summary>
-        internal static string ERROR_MustUseProjectVersion {
-            get {
-                return ResourceManager.GetString("ERROR_MustUseProjectVersion", resourceCulture);
             }
         }
     }

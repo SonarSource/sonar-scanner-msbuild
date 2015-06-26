@@ -140,9 +140,6 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   <data name="DOWN_DIAG_DownloadCoverageReportFromTo" xml:space="preserve">
     <value>Downloading coverage file from {0} to {1}</value>
   </data>
-  <data name="MissingEnvironmentVariable" xml:space="preserve">
-    <value>Required environment variable could not be found: {0}</value>
-  </data>
   <data name="PROC_DIAG_FetchingCoverageReportInfoFromServer" xml:space="preserve">
     <value>Fetching code coverage report information from TFS...</value>
   </data>
@@ -166,6 +163,13 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   </data>
   <data name="SETTINGS_NotInTeamBuild" xml:space="preserve">
     <value>Not running under TeamBuild</value>
+  </data>
+  <data name="SETTING_DumpSettings" xml:space="preserve">
+    <value>Build directory: {0}
+Bin directory: {1}
+Config directory: {2}
+Output directory: {3}
+Config file: {4}</value>
   </data>
   <data name="SonarQubeSummarySectionHeader" xml:space="preserve">
     <value>SonarQube Analysis Summary</value>
