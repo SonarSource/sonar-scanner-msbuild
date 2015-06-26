@@ -57,15 +57,6 @@ namespace SonarQube.Common
 
         public static bool TryGetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments, out string value)
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                throw new ArgumentNullException("id");
-            }
-            if (arguments == null)
-            {
-                throw new ArgumentNullException("arguments");
-            }
-
             ArgumentInstance instance;
             if (TryGetArgument(id, arguments, out instance))
             {

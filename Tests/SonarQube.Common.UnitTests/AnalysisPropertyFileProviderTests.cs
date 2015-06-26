@@ -63,7 +63,7 @@ namespace SonarQube.Common.UnitTests
         {
             // Arrange
             string defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string validPropertiesFile = CreateValidPropertiesFile(defaultPropertiesDir, AnalysisPropertyFileProvider.DefaultFileName);
+            string validPropertiesFile = CreateValidPropertiesFile(defaultPropertiesDir, AnalysisPropertyFileProvider.DefaultFileName, "key1", "value1");
             TestLogger logger = new TestLogger();
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
@@ -73,6 +73,7 @@ namespace SonarQube.Common.UnitTests
 
             // Assert
             AssertExpectedPropertiesFile(validPropertiesFile, provider, logger);
+            AssertPropertyExists("key1", "value1", provider);
         }
 
         [TestMethod]
@@ -81,7 +82,7 @@ namespace SonarQube.Common.UnitTests
         {
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string validPropertiesFile = CreateValidPropertiesFile(testDir, "myPropertiesFile.xml");
+            string validPropertiesFile = CreateValidPropertiesFile(testDir, "myPropertiesFile.xml", "xxx", "value with spaces");
 
             string defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "Default");
             CreateFile(defaultPropertiesDir, AnalysisPropertyFileProvider.DefaultFileName, "invalid file - will error if this file is loaded");
@@ -97,6 +98,7 @@ namespace SonarQube.Common.UnitTests
 
             // Assert
             AssertExpectedPropertiesFile(validPropertiesFile, provider, logger);
+            AssertPropertyExists("xxx", "value with spaces", provider);
         }
 
         [TestMethod]
@@ -168,14 +170,17 @@ namespace SonarQube.Common.UnitTests
             return fullPath;
         }
 
-        private static string CreateValidPropertiesFile(string path, string fileName)
+        /// <summary>
+        /// Creates a valid properties file with a single property
+        /// </summary>
+        private static string CreateValidPropertiesFile(string path, string fileName, string property, string value)
         {
             string fullPath = Path.Combine(path, fileName);
 
             AnalysisProperties properties = new AnalysisProperties();
 
             properties = new AnalysisProperties();
-            properties.Add(new Property() { Id = "foo", Value = "bar" });
+            properties.Add(new Property() { Id = property, Value = value });
 
             properties.Save(fullPath);
             return fullPath;
