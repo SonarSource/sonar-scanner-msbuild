@@ -28,7 +28,7 @@ namespace SonarQube.Common.UnitTests
         public void FileProvider_InvalidArguments()
         {
             // 0. Setup
-            AnalysisPropertyFileProvider provider;
+            IAnalysisPropertyProvider provider;
 
             // 1. Null command line arguments
             AssertException.Expects<ArgumentNullException>(() => AnalysisPropertyFileProvider.TryCreateProvider(null, string.Empty, new TestLogger(), out provider));
@@ -38,6 +38,23 @@ namespace SonarQube.Common.UnitTests
 
             // 3. Null logger
             AssertException.Expects<ArgumentNullException>(() => AnalysisPropertyFileProvider.TryCreateProvider(Enumerable.Empty<ArgumentInstance>(), string.Empty, null, out provider));
+        }
+
+        [TestMethod]
+        [TestCategory("Properties")]
+        public void FileProvider_NoFileArguments()
+        {
+            // Arrange
+            IAnalysisPropertyProvider provider;
+            TestLogger logger = new TestLogger();
+            string defaultPropertiesDir = this.TestContext.TestDeploymentDir;
+
+            // Act
+            provider = CheckProcessingSucceeds(Enumerable.Empty<ArgumentInstance>(), defaultPropertiesDir, logger);
+
+            // Assert
+            Assert.IsNotNull(provider, "Expecting a provider to have been created");
+            Assert.AreEqual(0, provider.GetAllProperties().Count(), "Not expecting the provider to return any properties");
         }
 
         [TestMethod]
@@ -52,7 +69,7 @@ namespace SonarQube.Common.UnitTests
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
 
             // Act
-            AnalysisPropertyFileProvider provider = InitializeAndCheckIsValid(defaultPropertiesDir, args, logger);
+            IAnalysisPropertyProvider provider = CheckProcessingSucceeds(args, defaultPropertiesDir, logger);
 
             // Assert
             AssertExpectedPropertiesFile(validPropertiesFile, provider, logger);
@@ -76,7 +93,7 @@ namespace SonarQube.Common.UnitTests
             TestLogger logger = new TestLogger();
 
             // Act
-            AnalysisPropertyFileProvider provider = InitializeAndCheckIsValid(defaultPropertiesDir, args, logger);
+            IAnalysisPropertyProvider provider = CheckProcessingSucceeds(args, defaultPropertiesDir, logger);
 
             // Assert
             AssertExpectedPropertiesFile(validPropertiesFile, provider, logger);
@@ -88,16 +105,15 @@ namespace SonarQube.Common.UnitTests
         {
             // Arrange
             TestLogger logger = new TestLogger();
+            string defaultPropertiesDir = this.TestContext.DeploymentDirectory;
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
             args.Add(new ArgumentInstance(AnalysisPropertyFileProvider.Descriptor, "missingFile.txt"));
 
             // Act
-            AnalysisPropertyFileProvider provider;
-            bool success = AnalysisPropertyFileProvider.TryCreateProvider(args, this.TestContext.DeploymentDirectory, logger, out provider);
+            CheckProcessingFails(args, defaultPropertiesDir, logger);
 
             // Assert
-            Assert.IsFalse(success, "Not expecting the properties provider to be created successfully");
             logger.AssertErrorsLogged(1);
             logger.AssertSingleErrorExists("missingFile.txt");
         }
@@ -108,17 +124,15 @@ namespace SonarQube.Common.UnitTests
         {
             // Arrange
             TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string invalidFile = CreateFile(testDir, AnalysisPropertyFileProvider.DefaultFileName, "not a valid XML properties file");
+            string defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            string invalidFile = CreateFile(defaultPropertiesDir, AnalysisPropertyFileProvider.DefaultFileName, "not a valid XML properties file");
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
 
             // Act
-            AnalysisPropertyFileProvider provider;
-            bool success = AnalysisPropertyFileProvider.TryCreateProvider(args, testDir, logger, out provider);
+            CheckProcessingFails(args, defaultPropertiesDir, logger);
 
             // Assert
-            Assert.IsFalse(success, "Not expecting the properties provider to be created successfully");
             logger.AssertErrorsLogged(1);
             logger.AssertSingleErrorExists(invalidFile);
         }
@@ -129,18 +143,16 @@ namespace SonarQube.Common.UnitTests
         {
             // Arrange
             TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string invalidFile = CreateFile(testDir, "invalidPropertiesFile.txt", "not a valid XML properties file");
+            string defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            string invalidFile = CreateFile(defaultPropertiesDir, "invalidPropertiesFile.txt", "not a valid XML properties file");
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
             args.Add(new ArgumentInstance(AnalysisPropertyFileProvider.Descriptor, invalidFile));
 
             // Act
-            AnalysisPropertyFileProvider provider;
-            bool success = AnalysisPropertyFileProvider.TryCreateProvider(args, testDir, logger, out provider);
+            CheckProcessingFails(args, defaultPropertiesDir, logger);
 
             // Assert
-            Assert.IsFalse(success, "Not expecting the properties provider to be created successfully");
             logger.AssertErrorsLogged(1);
             logger.AssertSingleErrorExists(invalidFile);
         }
@@ -178,19 +190,37 @@ namespace SonarQube.Common.UnitTests
 
         #region Checks
 
-        private static AnalysisPropertyFileProvider InitializeAndCheckIsValid(string defaultPropertiesDirectory, IEnumerable<ArgumentInstance> cmdLineArgs, ILogger logger)
+        private static IAnalysisPropertyProvider CheckProcessingSucceeds(IEnumerable<ArgumentInstance> cmdLineArgs, string defaultPropertiesDirectory, TestLogger logger)
         {
-            AnalysisPropertyFileProvider provider;
+            IAnalysisPropertyProvider provider;
             bool isValid = AnalysisPropertyFileProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out provider);
             
             Assert.IsTrue(isValid, "Expecting the provider to be initialized successfully");
+            Assert.IsNotNull(provider, "Not expecting a null provider if the function returned true");
+            logger.AssertErrorsLogged(0);
+
             return provider;
         }
 
-        private static void AssertExpectedPropertiesFile(string expectedFilePath, AnalysisPropertyFileProvider actualProvider, TestLogger logger)
+        private static void CheckProcessingFails(IEnumerable<ArgumentInstance> cmdLineArgs, string defaultPropertiesDirectory, TestLogger logger)
         {
-            Assert.IsNotNull(actualProvider.PropertiesFile, "Properties file object should not be null");
-            Assert.AreEqual(expectedFilePath, actualProvider.PropertiesFile.FilePath, "Properties were not loaded from the expected location");
+            IAnalysisPropertyProvider provider;
+            bool isValid = AnalysisPropertyFileProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out provider);
+
+            Assert.IsFalse(isValid, "Not expecting the provider to be initialized successfully");
+            Assert.IsNull(provider, "Not expecting a provider instance if the function returned true");
+            logger.AssertErrorsLogged();
+        }
+
+        private static void AssertExpectedPropertiesFile(string expectedFilePath, IAnalysisPropertyProvider actualProvider, TestLogger logger)
+        {
+            Assert.IsNotNull(actualProvider, "Supplied provider should not be null");
+            Assert.IsInstanceOfType(actualProvider, typeof(AnalysisPropertyFileProvider), "Expecting a file provider");
+
+            AnalysisPropertyFileProvider fileProvider = (AnalysisPropertyFileProvider)actualProvider;
+
+            Assert.IsNotNull(fileProvider.PropertiesFile, "Properties file object should not be null");
+            Assert.AreEqual(expectedFilePath, fileProvider.PropertiesFile.FilePath, "Properties were not loaded from the expected location");
         }
 
         private static void AssertPropertyExists(string key, string expectedValue, IAnalysisPropertyProvider actualProvider)

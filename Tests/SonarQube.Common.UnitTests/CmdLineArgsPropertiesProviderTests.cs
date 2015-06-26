@@ -24,7 +24,7 @@ namespace SonarQube.Common.UnitTests
         [TestCategory("Properties")]
         public void CmdLineArgProperties_InvalidArguments()
         {
-            CmdLineArgPropertyProvider provider;
+            IAnalysisPropertyProvider provider;
 
             AssertException.Expects<ArgumentNullException>(() => CmdLineArgPropertyProvider.TryCreateProvider(null, new TestLogger(), out provider));
             AssertException.Expects<ArgumentNullException>(() => CmdLineArgPropertyProvider.TryCreateProvider(Enumerable.Empty<ArgumentInstance>(), null, out provider));
@@ -32,9 +32,18 @@ namespace SonarQube.Common.UnitTests
 
         [TestMethod]
         [TestCategory("Properties")]
+        public void CmdLineArgProperties_NoArguments()
+        {
+            IAnalysisPropertyProvider provider = CheckProcessingSucceeds(Enumerable.Empty<ArgumentInstance>(), new TestLogger());
+
+            Assert.AreEqual(0, provider.GetAllProperties().Count(), "Not expecting any properties");
+        }
+
+        [TestMethod]
+        [TestCategory("Properties")]
         public void CmdLineArgProperties_DynamicProperties()
         {
-            // 0. Arrange
+            // Arrange
             TestLogger logger = new TestLogger();
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
 
@@ -47,12 +56,9 @@ namespace SonarQube.Common.UnitTests
             AddDynamicArguments(args, "key1=value1", "key2=value two with spaces");
 
             // Act
-            CmdLineArgPropertyProvider provider;
-            bool success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out provider);
+            IAnalysisPropertyProvider provider = CheckProcessingSucceeds(args, logger);
 
             // Assert
-            Assert.IsTrue(success, "Expecting processing to succeed");
-            
             AssertPropertyHasValue("key1", "value1", provider);
             AssertPropertyHasValue("key2", "value two with spaces", provider);
 
@@ -176,13 +182,27 @@ namespace SonarQube.Common.UnitTests
         {
             TestLogger logger = new TestLogger();
 
-            CmdLineArgPropertyProvider provider;
+            IAnalysisPropertyProvider provider;
             bool success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out provider);
             Assert.IsFalse(success, "Not expecting the provider to be created");
+            Assert.IsNull(provider, "Expecting the provider to be null is processing fails");
+            logger.AssertErrorsLogged();
+
             return logger;
         }
 
-        #endregion
+        private static IAnalysisPropertyProvider CheckProcessingSucceeds(IEnumerable<ArgumentInstance> args, TestLogger logger)
+        {
+            IAnalysisPropertyProvider provider;
+            bool success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out provider);
 
+            Assert.IsTrue(success, "Expected processing to succeed");
+            Assert.IsNotNull(provider, "Not expecting a null provider when processing succeeds");
+            logger.AssertErrorsLogged(0);
+
+            return provider;
+        }
+
+        #endregion
     }
 }

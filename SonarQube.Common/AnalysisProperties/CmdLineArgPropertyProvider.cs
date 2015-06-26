@@ -31,7 +31,7 @@ namespace SonarQube.Common
         /// <param name="commandLineArguments">List of command line arguments (optional)</param>
         /// <returns>False if errors occurred when constructing the provider, otherwise true</returns>
         /// <remarks>If no properties were provided on the command line then an empty provider will be returned</remarks>
-        public static bool TryCreateProvider(IEnumerable<ArgumentInstance> commandLineArguments, ILogger logger, out CmdLineArgPropertyProvider provider)
+        public static bool TryCreateProvider(IEnumerable<ArgumentInstance> commandLineArguments, ILogger logger, out IAnalysisPropertyProvider provider)
         {
             if (commandLineArguments == null)
             {
@@ -43,9 +43,17 @@ namespace SonarQube.Common
             }
 
             IEnumerable<Property> validProperties;
-            if (TryGetAnalysisProperties(commandLineArguments, logger, out validProperties))
+            if (ExtractAndValidateProperties(commandLineArguments, logger, out validProperties))
             {
-                provider = new CmdLineArgPropertyProvider(validProperties);
+                if (validProperties.Any())
+                {
+                    provider = new CmdLineArgPropertyProvider(validProperties);
+                }
+                else
+                {
+                    provider = EmptyPropertyProvider.Instance;
+                }
+
                 return true;
             }
 
@@ -84,12 +92,17 @@ namespace SonarQube.Common
         #endregion
 
         #region Analysis properties handling
-        /*
-            Analysis properties (/p:[key]=[value] arguments) need further processing.
-            We need to extract the key-value pairs and check for duplicate keys
-        */
-
-        private static bool TryGetAnalysisProperties(IEnumerable<ArgumentInstance> arguments, ILogger logger, out IEnumerable<Property> analysisProperties)
+        
+        /// <summary>
+        /// Fetches and processes any analysis properties from the command line arguments
+        /// </summary>
+        /// <param name="analysisProperties">The extracted analysis properties, if any</param>
+        /// <returns>Returns false if any errors are encountered, otherwise true</returns>
+        /// <remarks>
+        /// Analysis properties (/p:[key]=[value] arguments) need further processing. We need
+        /// to extract the key-value pairs and check for duplicate keys.
+        /// </remarks>
+        private static bool ExtractAndValidateProperties(IEnumerable<ArgumentInstance> arguments, ILogger logger, out IEnumerable<Property> analysisProperties)
         {
             bool success = true;
 

@@ -70,26 +70,7 @@ namespace SonarQube.Common
             bool isValid = ValidSettingKeyRegEx.IsMatch(key);
             return isValid;
         }
-
-        /// <summary>
-        /// Attempts to parse the supplied string into a key and value
-        /// </summary>
-        public static bool TryParse(string input, out AnalysisSetting setting)
-        {
-            setting = null;
-
-            Match match = SingleLineSettingRegEx.Match(input);
-
-            if (match.Success)
-            {
-                string key = match.Groups["key"].Value;
-                string value = match.Groups["value"].Value;
-
-                setting = new AnalysisSetting() { Id = key, Value = value };
-            }
-            return setting != null;
-        }
-
+        
         /// <summary>
         /// Comparer to use when comparing keys of analysis settings
         /// </summary>

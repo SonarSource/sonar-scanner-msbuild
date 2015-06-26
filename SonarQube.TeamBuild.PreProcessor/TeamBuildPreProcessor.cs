@@ -8,7 +8,6 @@
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 
@@ -52,34 +51,21 @@ namespace SonarQube.TeamBuild.PreProcessor
         
         #region Public methods
 
-        public bool Execute(ILogger logger, string projectKey, string projectName, string projectVersion, string propertiesPath, IEnumerable<AnalysisSetting> additionalSettings)
+        public bool Execute(ProcessedArgs args, ILogger logger)
         {
+            if (args == null)
+            {
+                throw new ArgumentNullException("args");
+            }
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
             }
-            if (string.IsNullOrWhiteSpace(projectKey))
-            {
-                throw new ArgumentNullException("projectKey");
-            }
-            if (string.IsNullOrWhiteSpace(projectName))
-            {
-                throw new ArgumentNullException("projectName");
-            }
-            if (string.IsNullOrWhiteSpace(projectVersion))
-            {
-                throw new ArgumentNullException("projectVersion");
-            }
-            if (string.IsNullOrWhiteSpace(propertiesPath))
-            {
-                throw new ArgumentNullException("propertiesPath");
-            }
             
             AnalysisConfig config = new AnalysisConfig();
-            config.SonarProjectKey = projectKey;
-            config.SonarProjectName = projectName;
-            config.SonarProjectVersion = projectVersion;
-            config.SonarRunnerPropertiesPath = propertiesPath;
+            config.SonarProjectKey = args.ProjectKey;
+            config.SonarProjectName = args.ProjectName;
+            config.SonarProjectVersion = args.ProjectVersion;
 
             TeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
 
@@ -102,13 +88,13 @@ namespace SonarQube.TeamBuild.PreProcessor
             Utilities.EnsureEmptyDirectory(config.SonarConfigDir, logger);
             Utilities.EnsureEmptyDirectory(config.SonarOutputDir, logger);
 
-            using (SonarWebService ws = GetSonarWebService(config))
+            using (SonarWebService ws = GetSonarWebService(args))
             {
                 // Fetch the SonarQube project properties
                 FetchSonarQubeProperties(config, ws);
 
                 // Merge in command line arguments
-                MergeSettingsFromCommandLine(config, additionalSettings);
+                MergeSettingsFromCommandLine(config, args);
 
                 // Generate the FxCop ruleset
                 GenerateFxCopRuleset(config, ws, logger);
@@ -125,13 +111,11 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #region Private methods
 
-        private static SonarWebService GetSonarWebService(AnalysisConfig config)
+        private static SonarWebService GetSonarWebService(ProcessedArgs args)
         {
-            FilePropertiesProvider sonarRunnerProperties = new FilePropertiesProvider(config.SonarRunnerPropertiesPath);
-
-            string server = sonarRunnerProperties.GetProperty(SonarProperties.HostUrl, DefaultSonarServerUrl);
-            string username = sonarRunnerProperties.GetProperty(SonarProperties.SonarUserName, null);
-            string password = sonarRunnerProperties.GetProperty(SonarProperties.SonarPassword, null);
+            string server = args.GetSetting(SonarProperties.HostUrl, DefaultSonarServerUrl);
+            string username = args.GetSetting(SonarProperties.SonarUserName, null);
+            string password = args.GetSetting(SonarProperties.SonarPassword, null);
 
             return new SonarWebService(new WebClientDownloader(new WebClient(), username, password), server, "cs", "fxcop");
         }
@@ -151,16 +135,16 @@ namespace SonarQube.TeamBuild.PreProcessor
             this.rulesetGenerator.Generate(ws, config.SonarProjectKey, Path.Combine(config.SonarConfigDir, FxCopRulesetFileName));
         }
 
-        private static void MergeSettingsFromCommandLine(AnalysisConfig config, IEnumerable<AnalysisSetting> settings)
+        private static void MergeSettingsFromCommandLine(AnalysisConfig config, ProcessedArgs args)
         {
-            if (settings == null)
+            if (args == null)
             {
                 return;
             }
 
-            foreach (AnalysisSetting setting in settings)
+            foreach (Property item in args.GetAllProperties())
             {
-                config.SetValue(setting.Id, setting.Value); // this will overwrite the setting if it already exists
+                config.SetValue(item.Id, item.Value); // this will overwrite the setting if it already exists
             }
         }
 

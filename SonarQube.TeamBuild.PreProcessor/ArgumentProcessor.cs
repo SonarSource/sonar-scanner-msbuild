@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -50,11 +51,8 @@ namespace SonarQube.TeamBuild.PreProcessor
             Descriptors.Add(new ArgumentDescriptor(
                 id: KeywordIds.ProjectVersion, prefixes: new string[] { "/version:", "/v:" }, required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion));
             
-            Descriptors.Add(new ArgumentDescriptor(
-                id: KeywordIds.RunnerPropertiesPath, prefixes: new string[] { "/runnerProperties:", "/r:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_PropertiesPath));
-
-            Descriptors.Add(new ArgumentDescriptor(
-                id: KeywordIds.DynamicSetting, prefixes: new string[] { "/p:" }, required: false, allowMultiple: true, description: Resources.CmdLine_ArgDescription_DynamicSetting));
+            Descriptors.Add(AnalysisPropertyFileProvider.Descriptor);
+            Descriptors.Add(CmdLineArgPropertyProvider.Descriptor);
 
             Debug.Assert(Descriptors.All(d => d.Prefixes != null && d.Prefixes.Any()), "All descriptors must provide at least one prefix");
             Debug.Assert(Descriptors.Select(d => d.Id).Distinct().Count() == Descriptors.Count, "All descriptors must have a unique id");
@@ -75,38 +73,36 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException("logger");
             }
-            
+
             ProcessedArgs processed = null;
             IEnumerable<ArgumentInstance> arguments;
 
             // This call will fail if there are duplicate, missing, or unrecognised arguments
             CommandLineParser parser = new CommandLineParser(Descriptors);
             bool parsedOk = parser.ParseArguments(commandLineArgs, logger, out arguments);
-            
-            // The /p:[key]=[value] settings required further processing
-            IEnumerable<AnalysisSetting> settings;
-            bool analysisSettingsOk = TryGetAnalysisSettings(arguments, logger, out settings);
 
-            if (parsedOk && analysisSettingsOk)
+            // Handler for command line analysis properties
+            IAnalysisPropertyProvider cmdLineProperties;
+            parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out cmdLineProperties);
+
+            // Handler for property file
+            IAnalysisPropertyProvider globalFileProperties;
+            string asmPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            parsedOk &= AnalysisPropertyFileProvider.TryCreateProvider(arguments, asmPath, logger, out globalFileProperties);
+
+            if (parsedOk)
             {
-                {
-                    ArgumentInstance propertyPathArgument = TryGetArgument(KeywordIds.RunnerPropertiesPath, arguments);
-                    string propertiesPath = propertyPathArgument == null ? null : propertyPathArgument.Value;
-                    propertiesPath = TryResolveRunnerPropertiesPath(propertiesPath, logger);
+                Debug.Assert(cmdLineProperties != null);
+                Debug.Assert(globalFileProperties != null);
 
-                    if (!string.IsNullOrEmpty(propertiesPath))
-                    {
-                        processed = new ProcessedArgs(
-                            TryGetArgumentValue(KeywordIds.ProjectKey, arguments),
-                            TryGetArgumentValue(KeywordIds.ProjectName, arguments),
-                            TryGetArgumentValue(KeywordIds.ProjectVersion, arguments),
-                            propertiesPath,
-                            settings);
-                    }
-
-                }
-
+                processed = new ProcessedArgs(
+                    TryGetArgumentValue(KeywordIds.ProjectKey, arguments),
+                    TryGetArgumentValue(KeywordIds.ProjectName, arguments),
+                    TryGetArgumentValue(KeywordIds.ProjectVersion, arguments),
+                    cmdLineProperties,
+                    globalFileProperties);
             }
+
             return processed;
         }
 
@@ -160,81 +156,5 @@ namespace SonarQube.TeamBuild.PreProcessor
         }
 
         #endregion
-
-        #region Analysis settings handling
-        /*
-            Analysis settings (/p:[key]=[value] arguments) need further processing.
-            We need to extract the key-value pairs and check for duplicate keys
-        */
-
-        private static bool TryGetAnalysisSettings(IEnumerable<ArgumentInstance> arguments, ILogger logger, out IEnumerable<AnalysisSetting> analysisSettings)
-        {
-            bool success = true;
-
-            List<AnalysisSetting> settings = new List<AnalysisSetting>();
-
-            foreach (ArgumentInstance argument in arguments.Where(a => a.Descriptor.Id == KeywordIds.DynamicSetting))
-            {
-                AnalysisSetting setting;
-                if (AnalysisSetting.TryParse(argument.Value, out setting))
-                {
-                    AnalysisSetting existing = TryGetAnalysisSetting(setting.Id, settings);
-                    if (existing != null)
-                    {
-                        logger.LogError(Resources.ERROR_CmdLine_DuplicateSetting, argument.Value, existing.Value);
-                        success = false;
-                    }
-                    else
-                    {
-                        settings.Add(setting);
-                    }
-                }
-                else
-                {
-                    logger.LogError(Resources.ERROR_CmdLine_InvalidDynamicSetting, argument.Value);
-                    success = false;
-                }
-            }
-
-            // Check for named parameters that can't be set by dynamic properties
-            success = success & !ContainsNamedParameter(SonarProperties.ProjectKey, settings, logger, Resources.ERROR_MustUseProjectKey);
-            success = success & !ContainsNamedParameter(SonarProperties.ProjectName, settings, logger, Resources.ERROR_MustUseProjectName);
-            success = success & !ContainsNamedParameter(SonarProperties.ProjectVersion, settings, logger, Resources.ERROR_MustUseProjectVersion);
-
-            // Check for others settings that can't be set
-            success = success & !ContainsUnsettableParameter(SonarProperties.ProjectBaseDir, settings, logger);
-            success = success & !ContainsUnsettableParameter(SonarProperties.WorkingDirectory, settings, logger);
-
-            analysisSettings = settings;
-            return success;
-        }
-
-        private static AnalysisSetting TryGetAnalysisSetting(string id, IEnumerable<AnalysisSetting> settings)
-        {
-            return settings.FirstOrDefault(s => AnalysisSetting.SettingKeyComparer.Equals(id, s.Id));
-        }
-
-        private static bool ContainsNamedParameter(string settingName, IEnumerable<AnalysisSetting> settings, ILogger logger, string errorMessage)
-        {
-            if (settings.Any(s => AnalysisSetting.SettingKeyComparer.Equals(settingName, s.Id)))
-            {
-                logger.LogError(errorMessage);
-                return true;
-            }
-            return false;
-        }
-
-        private static bool ContainsUnsettableParameter(string settingName, IEnumerable<AnalysisSetting> settings, ILogger logger)
-        {
-            if (settings.Any(s => AnalysisSetting.SettingKeyComparer.Equals(settingName, s.Id)))
-            {
-                logger.LogError(Resources.ERROR_CannotSetPropertyOnCommandLine, settingName);
-                return true;
-            }
-            return false;
-        }
-
-        #endregion
-
     }
 }

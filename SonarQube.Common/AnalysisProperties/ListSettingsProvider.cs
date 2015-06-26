@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SonarQube.Common.UnitTests
+namespace SonarQube.Common
 {
     /// <summary>
     /// Simple settings provider that returns values from a list
