@@ -34,7 +34,7 @@ namespace SonarQube.Common
         /// <param name="commandLineArguments">List of command line arguments (optional)</param>
         /// <returns>False if errors occurred when constructing the provider, otherwise true</returns>
         /// <remarks>If a properties file could not be located then an empty provider will be returned</remarks>
-        public static bool TryCreateProvider(IEnumerable<ArgumentInstance> commandLineArguments, string defaultPropertiesFileDirectory, ILogger logger, out AnalysisPropertyFileProvider provider)
+        public static bool TryCreateProvider(IEnumerable<ArgumentInstance> commandLineArguments, string defaultPropertiesFileDirectory, ILogger logger, out IAnalysisPropertyProvider provider)
         {
             if (commandLineArguments == null)
             {
@@ -56,9 +56,16 @@ namespace SonarQube.Common
             ArgumentInstance.TryGetArgumentValue(DescriptorId, commandLineArguments, out propertiesFilePath);
 
             AnalysisProperties locatedPropertiesFile;
-            if (TryGetPropertiesFile(propertiesFilePath, defaultPropertiesFileDirectory, logger, out locatedPropertiesFile) && locatedPropertiesFile != null)
+            if(ResolveFilePath(propertiesFilePath, defaultPropertiesFileDirectory, logger, out locatedPropertiesFile))
             {
-                provider = new AnalysisPropertyFileProvider(locatedPropertiesFile);
+                if (locatedPropertiesFile == null)
+                {
+                    provider = EmptyPropertyProvider.Instance;
+                }
+                else
+                {
+                    provider = new AnalysisPropertyFileProvider(locatedPropertiesFile);
+                }
                 return true;
             }
 
@@ -97,9 +104,9 @@ namespace SonarQube.Common
 
         /// <summary>
         /// Attempt to find a properties file - either the one specified by the user, or the default properties file.
-        /// Returns false if a path is specified to a file that does not exist, otherwise returns true.
+        /// Returns false if a path is specified to a file that does not exist, otherwise returns true
         /// </summary>
-        private static bool TryGetPropertiesFile(string propertiesFilePath, string defaultPropertiesFileDirectory, ILogger logger, out AnalysisProperties properties)
+        private static bool ResolveFilePath(string propertiesFilePath, string defaultPropertiesFileDirectory, ILogger logger, out AnalysisProperties properties)
         {
             properties = null;
             bool isValid = true;
@@ -124,6 +131,7 @@ namespace SonarQube.Common
                 else
                 {
                     logger.LogError(Resources.ERROR_Properties_GlobalPropertiesFileDoesNotExist, resolvedPath);
+                    isValid = false;
                 }
             }
             return isValid;

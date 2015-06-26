@@ -8,9 +8,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -23,15 +23,27 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         #region Tests
 
         [TestMethod]
-        public void PreProc_EmptySonarRunnerProperties()
+        public void PreProc_InvalidArgsd()
         {
-            // Checks the pre-processor creates a valid config file
-
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            TestLogger validLogger = new TestLogger();
+            ProcessedArgs validArgs = new ProcessedArgs("key", "name", "ver", EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
 
-            string propertiesFile = CreateEmptyPropertiesFile(testDir);
+            MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
+            MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
+            TeamBuildPreProcessor preprocessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
 
+            // Act and assert
+            AssertException.Expects<ArgumentNullException>(() => preprocessor.Execute(null, validLogger));
+            AssertException.Expects<ArgumentNullException>(() => preprocessor.Execute(validArgs, null));
+
+            string expectedConfigFileName;
+        }
+
+        [TestMethod]
+        public void PreProc_FileProperties_NotSupplied()
+        {
+            // Arrange
             MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
             MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
             TestLogger logger = new TestLogger();
@@ -47,7 +59,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
 
                 // Act
-                preProcessor.Execute(logger, "key", "name", "ver", propertiesFile, null);
+                ProcessedArgs args = new ProcessedArgs("key", "name", "ver", EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
+                preProcessor.Execute(args, logger);
             }
 
             // Assert
@@ -60,7 +73,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual("ver", config.SonarProjectVersion);
             Assert.AreEqual("http://builduri", config.GetBuildUri());
             Assert.AreEqual("tfs uri", config.GetTfsUri());
-            Assert.AreEqual(propertiesFile, config.SonarRunnerPropertiesPath);
 
             mockPropertiesFetcher.AssertFetchPropertiesCalled();
             mockPropertiesFetcher.CheckFetcherArguments("http://localhost:9000", "key");
@@ -70,17 +82,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         }
 
         [TestMethod]
-        public void PreProc_NonEmptySonarRunnerProperties()
+        public void PreProc_FileProperties_Supplied()
         {
-            // Checks the ruleset generator is called with the expected arguments
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-
-            string propertiesFile = CreatePropertiesFile(testDir, "my url", "my user name", "my password");
 
             MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
             MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
             TestLogger logger = new TestLogger();
+
+            // Create the list of file properties
+            ListPropertiesProvider fileProperties = new ListPropertiesProvider();
+            fileProperties.AddProperty(SonarProperties.HostUrl, "my url");
+            fileProperties.AddProperty(SonarProperties.SonarUserName, "my user name");
+            fileProperties.AddProperty(SonarProperties.SonarPassword, "my password");
 
             string expectedConfigFilePath;
 
@@ -93,7 +107,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
 
                 // Act
-                preProcessor.Execute(logger, "key", "name", "ver", propertiesFile, null);
+                ProcessedArgs args = new ProcessedArgs("key", "name", "ver", new ListPropertiesProvider(), fileProperties);
+                preProcessor.Execute(args, logger);
             }
 
             // Assert
@@ -110,31 +125,36 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         }
 
         [TestMethod]
-        public void PreProc_CommandLinePropertiesOverrideServerSettings()
+        public void PreProc_LocalPropertiesOverrideServerSettings()
         {
             // Checks command line properties override those fetched from the server
+            
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-
-            string propertiesFile = CreatePropertiesFile(testDir, "my url", "my user name", "my password");
-
             MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
             TestLogger logger = new TestLogger();
 
             MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
             mockPropertiesFetcher.PropertiesToReturn = new Dictionary<string, string>();
 
-            mockPropertiesFetcher.PropertiesToReturn.Add("key1", "server value 1 - should be overridden");
-            mockPropertiesFetcher.PropertiesToReturn.Add("key2", "server value 2 - should be overridden");
-            mockPropertiesFetcher.PropertiesToReturn.Add("key3", "server value 3 - only on server");
+            // The set of server properties to return
+            mockPropertiesFetcher.PropertiesToReturn.Add("shared.key1", "server value 1 - should be overridden by cmd line");
+            mockPropertiesFetcher.PropertiesToReturn.Add("shared.key2", "server value 2 - should be overridden by file");
+            mockPropertiesFetcher.PropertiesToReturn.Add("server.only", "server value 3 - only on server");
             mockPropertiesFetcher.PropertiesToReturn.Add("xxx", "server value xxx - lower case");
 
+            // The set of command line properties to supply
+            ListPropertiesProvider cmdLineProperties = new ListPropertiesProvider();
+            cmdLineProperties.AddProperty("shared.key1", "cmd line value1 - should override server value");
+            cmdLineProperties.AddProperty("cmd.line.only", "cmd line value4 - only on command line");
+            cmdLineProperties.AddProperty("XXX", "cmd line value XXX - upper case");
+            cmdLineProperties.AddProperty(SonarProperties.HostUrl, "http://host");
 
-            IList<AnalysisSetting> additionalSettings = new List<AnalysisSetting>();
-            AddAnalysisSetting(additionalSettings, "key1", "cmd line value1 - should override server value");
-            AddAnalysisSetting(additionalSettings, "key2", "cmd line value2 - should override server value");
-            AddAnalysisSetting(additionalSettings, "key4", "cmd line value4 - only on command line");
-            AddAnalysisSetting(additionalSettings, "XXX", "cmd line value XXX - upper case");
+            // The set of file properties to supply
+            ListPropertiesProvider fileProperties = new ListPropertiesProvider();
+            fileProperties.AddProperty("shared.key1", "file value1 - should be overridden");
+            fileProperties.AddProperty("shared.key2", "file value2 - should override server value");
+            fileProperties.AddProperty("file.only", "file value3 - only in file");
+            fileProperties.AddProperty("XXX", "cmd line value XXX - upper case");
 
             string configFilePath;
             using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", "build uri"))
@@ -146,7 +166,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
 
                 // Act
-                preProcessor.Execute(logger, "key", "name", "ver", propertiesFile, additionalSettings);
+                ProcessedArgs args = new ProcessedArgs("key", "name", "ver", cmdLineProperties, fileProperties);
+                preProcessor.Execute(args, logger);
             }
 
             // Assert
@@ -157,53 +178,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertWarningsLogged(0);
 
             AnalysisConfig actualConfig = AnalysisConfig.Load(configFilePath);
-            AssertExpectedAnalysisSetting("key1", "cmd line value1 - should override server value", actualConfig);
-            AssertExpectedAnalysisSetting("key2", "cmd line value2 - should override server value", actualConfig);
-            AssertExpectedAnalysisSetting("key3", "server value 3 - only on server", actualConfig);
-            AssertExpectedAnalysisSetting("key4", "cmd line value4 - only on command line", actualConfig);
+            AssertExpectedAnalysisSetting("shared.key1", "cmd line value1 - should override server value", actualConfig);
+            AssertExpectedAnalysisSetting("shared.key2", "file value2 - should override server value", actualConfig);
+            AssertExpectedAnalysisSetting("server.only", "server value 3 - only on server", actualConfig);
+            AssertExpectedAnalysisSetting("cmd.line.only", "cmd line value4 - only on command line", actualConfig);
+            AssertExpectedAnalysisSetting("file.only", "file value3 - only in file", actualConfig);
             AssertExpectedAnalysisSetting("xxx", "server value xxx - lower case", actualConfig);
             AssertExpectedAnalysisSetting("XXX", "cmd line value XXX - upper case", actualConfig);
-        }
-
-        #endregion
-
-        #region Private methods
-
-        private static string CreateEmptyPropertiesFile(string outputDirectory)
-        {
-            return CreatePropertiesFile(outputDirectory, null, null, null);
-        }
-
-        private static string CreatePropertiesFile(string outputDirectory, string url, string userName, string password)
-        {
-            string propertiesFile = Path.Combine(outputDirectory, "propertiesFile.txt");
-            Assert.IsFalse(File.Exists(propertiesFile), "Test setup error: the properties file already exists. File: {0}", propertiesFile);
-
-            StringBuilder sb = new StringBuilder();
-            if (url != null)
-            {
-                sb.AppendFormat("sonar.host.url={0}", url);
-                sb.AppendLine();
-            }
-            if (userName != null)
-            {
-                sb.AppendFormat("sonar.login={0}", userName);
-                sb.AppendLine();
-            }
-            if (password != null)
-            {
-                sb.AppendFormat("sonar.password={0}", password);
-                sb.AppendLine();
-            }
-            
-            File.WriteAllText(propertiesFile, sb.ToString());
-
-            return propertiesFile;
-        }
-
-        private static void AddAnalysisSetting(IList<AnalysisSetting> settings, string key, string value)
-        {
-            settings.Add(new AnalysisSetting() { Id = key, Value = value });
+            AssertExpectedAnalysisSetting(SonarProperties.HostUrl, "http://host", actualConfig);
         }
 
         #endregion

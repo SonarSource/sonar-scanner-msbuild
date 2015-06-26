@@ -44,6 +44,8 @@
     </Compile>
     <Compile Include="AnalysisConfig\AnalysisSetting.cs" />
     <Compile Include="AnalysisConfig\AnalysisConfigExtensions.cs" />
+    <Compile Include="AnalysisProperties\EmptyPropertyProvider.cs" />
+    <Compile Include="AnalysisProperties\ListSettingsProvider.cs" />
     <Compile Include="CommandLine\ArgumentInstance.cs" />
     <Compile Include="CommandLine\ArgumentDescriptor.cs" />
     <Compile Include="CommandLine\CommandLineParser.cs" />
