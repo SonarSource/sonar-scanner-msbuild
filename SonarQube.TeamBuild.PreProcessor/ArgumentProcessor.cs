@@ -77,8 +77,8 @@ namespace SonarQube.TeamBuild.PreProcessor
             ProcessedArgs processed = null;
             IEnumerable<ArgumentInstance> arguments;
 
-            // This call will fail if there are duplicate, missing, or unrecognised arguments
-            CommandLineParser parser = new CommandLineParser(Descriptors);
+            // This call will fail if there are duplicate, missing, or unrecognized arguments
+            CommandLineParser parser = new CommandLineParser(Descriptors, false /* don't allow unrecognized */);
             bool parsedOk = parser.ParseArguments(commandLineArgs, logger, out arguments);
 
             // Handler for command line analysis properties

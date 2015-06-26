@@ -23,9 +23,9 @@ namespace TestUtilities
         {
             // Write out a separator. Many tests create more than one TestLogger.
             // This helps separate the results of the different cases.
-            Console.WriteLine();
-            Console.WriteLine("------------------------------------------------------------- (new TestLogger created)");
-            Console.WriteLine();
+            WriteLine("");
+            WriteLine("------------------------------------------------------------- (new TestLogger created)");
+            WriteLine("");
             
             Messages = new List<string>();
             Warnings = new List<string>();
@@ -53,22 +53,26 @@ namespace TestUtilities
         {
             Assert.AreEqual(expectedCount, this.Warnings.Count, "Unexpected number of warnings logged");
         }
+        public void AssertMessagesLogged(int expectedCount)
+        {
+            Assert.AreEqual(expectedCount, this.Messages.Count, "Unexpected number of messages logged");
+        }
 
         public void AssertMessageLogged(string expected)
         {
-            bool found = this.Messages.Any(s => expected.Equals(s, System.StringComparison.InvariantCulture));
+            bool found = this.Messages.Any(s => expected.Equals(s, System.StringComparison.CurrentCulture));
             Assert.IsTrue(found, "Expected message was not found: '{0}'", expected);
         }
 
         public void AssertErrorLogged(string expected)
         {
-            bool found = this.Errors.Any(s => expected.Equals(s, System.StringComparison.InvariantCulture));
+            bool found = this.Errors.Any(s => expected.Equals(s, System.StringComparison.CurrentCulture));
             Assert.IsTrue(found, "Expected error was not found: '{0}'", expected);
         }
 
         public void AssertMessageNotLogged(string message)
         {
-            bool found = this.Messages.Any(s => message.Equals(s, System.StringComparison.InvariantCulture));
+            bool found = this.Messages.Any(s => message.Equals(s, System.StringComparison.CurrentCulture));
             Assert.IsFalse(found, "Not expecting the message to have been logged: '{0}'", message);
         }
 
@@ -128,26 +132,35 @@ namespace TestUtilities
         public void LogMessage(string message, params object[] args)
         {
             Messages.Add(GetFormattedMessage(message, args));
-            Console.WriteLine("MESSAGE: " + message, args);
+            WriteLine("MESSAGE: " + message, args);
         }
 
         public void LogWarning(string message, params object[] args)
         {
             Warnings.Add(GetFormattedMessage(message, args));
-            Console.WriteLine("WARNING: " + message, args);
+            WriteLine("WARNING: " + message, args);
         }
 
         public void LogError(string message, params object[] args)
         {
             Errors.Add(GetFormattedMessage(message, args));
-            Console.WriteLine("ERROR: " + message, args);
+            WriteLine("ERROR: " + message, args);
         }
 
         #endregion
 
-        private string GetFormattedMessage(string message, params object[] args)
+        #region Private methods
+
+        private static void WriteLine(string message, params object[] args)
         {
-            return string.Format(System.Globalization.CultureInfo.InvariantCulture, message, args);
+            Console.WriteLine(GetFormattedMessage(message, args));
         }
+
+        private static string GetFormattedMessage(string message, params object[] args)
+        {
+            return string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args);
+        }
+
+        #endregion
     }
 }

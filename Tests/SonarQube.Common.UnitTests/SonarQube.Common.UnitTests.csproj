@@ -55,6 +55,7 @@
     </Compile>
     <Compile Include="AggregatePropertiesProviderTests.cs" />
     <Compile Include="CmdLineArgsPropertiesProviderTests.cs" />
+    <Compile Include="CommandLineParserTests.cs" />
     <Compile Include="ConsoleLoggerTests.cs" />
     <Compile Include="FileLocatorTests.cs" />
     <Compile Include="FilePropertiesProviderTests.cs" />

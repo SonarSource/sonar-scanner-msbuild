@@ -126,13 +126,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             actual = CheckProcessingSucceeds("/v:2.0", "/k:my.key", "/n:my name");
             AssertExpectedValues("my.key", "my name", "2.0", actual);
 
-            // Full names, casing
-            actual = CheckProcessingSucceeds("/KEY:my.key", "/nAme:my name", "/version:1.0");
+            // Full names
+            actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0");
             AssertExpectedValues("my.key", "my name", "1.0", actual);
 
             // Aliases, different order
             actual = CheckProcessingSucceeds("/v:2:0", "/k:my.key", "/n:my name");
             AssertExpectedValues("my.key", "my name", "2:0", actual);
+
+            // Full names, wrong case -> ignored
+            TestLogger logger = CheckProcessingFails("/KEY:my.key", "/nAme:my name", "/versIOn:1.0");
+            logger.AssertSingleErrorExists("/KEY:my.key");
+            logger.AssertSingleErrorExists("/nAme:my name");
+            logger.AssertSingleErrorExists("/versIOn:1.0");
         }
 
         [TestMethod]
@@ -147,9 +153,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertSingleErrorExists("/k:key2", "my.key"); // we expect the error to include the first value and the duplicate argument
 
             // 2. Duplicate name, not using alias
-            logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/NAME:dupName");
+            logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/name:dupName");
             logger.AssertErrorsLogged(1);
-            logger.AssertSingleErrorExists("/NAME:dupName", "my name");
+            logger.AssertSingleErrorExists("/name:dupName", "my name");
 
             // 3. Duplicate version, not using alias
             logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/v:version2.0");

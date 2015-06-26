@@ -14,7 +14,11 @@ namespace SonarQube.Common
     /// </summary>
     public class ArgumentDescriptor
     {
-        public static readonly StringComparer IdComparer = StringComparer.InvariantCultureIgnoreCase;
+        // https://msdn.microsoft.com/en-us/library/ms973919.aspx
+        // "[d]ata that is designed to be culture-agnostic and linguistically irrelevant should... 
+        //  use either StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase..."
+        public static readonly StringComparer IdComparer = StringComparer.Ordinal;
+        public static readonly StringComparison IdComparison = StringComparison.Ordinal;
 
         private readonly string id;
         private readonly string[] prefixes;
@@ -32,7 +36,6 @@ namespace SonarQube.Common
             {
                 throw new ArgumentNullException("prefixes");
             }
-
             if (string.IsNullOrWhiteSpace(description))
             {
                 throw new ArgumentNullException("description");

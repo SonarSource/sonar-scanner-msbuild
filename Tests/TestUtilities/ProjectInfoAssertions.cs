@@ -93,7 +93,7 @@ namespace TestUtilities
             IList<ProjectInfo> items = GetProjectInfosFromOutputFolder(rootOutputFolder);
             Assert.AreNotEqual(0, items.Count, "Failed to locate any project info files under the specified root folder");
 
-            ProjectInfo match = GetProjectInfosFromOutputFolder(rootOutputFolder).FirstOrDefault(pi => fullProjectFileName.Equals(pi.FullPath, StringComparison.InvariantCultureIgnoreCase));
+            ProjectInfo match = GetProjectInfosFromOutputFolder(rootOutputFolder).FirstOrDefault(pi => fullProjectFileName.Equals(pi.FullPath, StringComparison.OrdinalIgnoreCase));
             Assert.IsNotNull(match, "Failed to retrieve a project info file for the specified project: {0}", fullProjectFileName);
             return match;
         }

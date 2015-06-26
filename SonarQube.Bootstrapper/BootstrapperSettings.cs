@@ -5,7 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using SonarQube.Bootstrapper.Properties;
 using SonarQube.Common;
 using System;
 using System.Diagnostics;
@@ -18,6 +17,9 @@ namespace SonarQube.Bootstrapper
         // Note: these constant values must be kept in sync with the targets files.
         public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
         public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
+
+        public const string PreProcessorExeName = "SonarQube.MSBuild.PreProcessor.exe";
+        public const string PostProcessorExeName = "SonarQube.MSBuild.PostProcessor.exe";
 
         /// <summary>
         /// The logical version of the bootstrapper API that the pre/post-processor must support
@@ -42,63 +44,36 @@ namespace SonarQube.Bootstrapper
         public const string RelativePathToTempDir = @".sonarqube";
         public const string RelativePathToDownloadDir = @"bin";
 
+        private readonly ILogger logger;
 
-        private Settings appConfig;
-
-        private ILogger logger;
-
-        private string sonarQubeUrl;
+        private readonly string sonarQubeUrl;
         private string tempDir;
         private string preProcFilePath;
         private string postProcFilePath;
 
         #region Constructor(s)
-
-        public BootstrapperSettings(ILogger logger) : this(logger, Settings.Default)
+        
+        public BootstrapperSettings(string sonarQubeUrl, ILogger logger)
         {
-        }
+            if (string.IsNullOrWhiteSpace(sonarQubeUrl))
+            {
+                throw new ArgumentNullException("sonarQubeUrl");
+            }
 
-        /// <summary>
-        /// Internal constructor for testing
-        /// </summary>
-        public BootstrapperSettings(ILogger logger, Properties.Settings appConfigSettings) // was internal
-        {
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
             }
-            if (appConfigSettings == null)
-            {
-                throw new ArgumentNullException("appConfigSettings");
-            }
 
+            this.sonarQubeUrl = sonarQubeUrl;
             this.logger = logger;
-            this.appConfig = appConfigSettings;
         }
 
         #endregion
 
         #region IBootstrapperSettings
 
-        public string SonarQubeUrl
-        {
-            get
-            {
-                if (this.sonarQubeUrl == null)
-                {
-                    // Use the value specified in the settings file first...
-                    string url = this.appConfig.SonarQubeUrl;
-                    if (string.IsNullOrWhiteSpace(url))
-                    {
-                        // ...otherwise look for the value in the runner-properties file
-                        url = GetUrlFromPropertiesFile();
-                    }
-                    this.sonarQubeUrl = url;
-                }
-
-                return this.sonarQubeUrl;
-            }
-        }
+        public string SonarQubeUrl {  get { return this.sonarQubeUrl; } }
 
         public string TempDirectory
         {
@@ -106,7 +81,7 @@ namespace SonarQube.Bootstrapper
             {
                 if (this.tempDir == null)
                 {
-                    this.tempDir = CalculateTempDir(this.appConfig, this.logger);
+                    this.tempDir = CalculateTempDir(this.logger);
                 }
                 return this.tempDir;
             }
@@ -126,8 +101,7 @@ namespace SonarQube.Bootstrapper
             {
                 if (this.preProcFilePath == null)
                 {
-                    Debug.Assert(this.appConfig.PreProcessExe != null, "Not expecting the PreProcessExe setting to be null - it should have a default value");
-                    this.preProcFilePath = this.EnsurePathIsAbsolute(this.appConfig.PreProcessExe);
+                    this.preProcFilePath = this.EnsurePathIsAbsolute(PreProcessorExeName);
                 }
                 return this.preProcFilePath;
             }
@@ -139,8 +113,7 @@ namespace SonarQube.Bootstrapper
             {
                 if (this.postProcFilePath == null)
                 {
-                    Debug.Assert(this.appConfig.PostProcessExe != null, "Not expecting the PostProcessExe setting to be null - it should have a default value");
-                    this.postProcFilePath = this.EnsurePathIsAbsolute(this.appConfig.PostProcessExe);
+                    this.postProcFilePath = this.EnsurePathIsAbsolute(PostProcessorExeName);
                 }                
                 return this.postProcFilePath;
             }
@@ -166,7 +139,7 @@ namespace SonarQube.Bootstrapper
 
         #region Private methods
 
-        private static string CalculateTempDir(Settings settings, ILogger logger)
+        private static string CalculateTempDir(ILogger logger)
         {
             logger.LogMessage(Resources.INFO_UsingEnvVarToGetDirectory);
             string rootDir = GetFirstEnvironmentVariable(DirectoryEnvVarNames, logger);
@@ -198,27 +171,7 @@ namespace SonarQube.Bootstrapper
             }
             return result;
         }
-
-        /// <summary>
-        /// Gets the URL from the sonar-runner.properties file. Throws if the
-        /// properties file cannot be located.
-        /// </summary>
-        private static string GetUrlFromPropertiesFile()
-        {
-            var sonarRunnerProperties = FileLocator.FindDefaultSonarRunnerProperties();
-            if (sonarRunnerProperties == null)
-            {
-                throw new ArgumentException(Resources.ERROR_CouldNotFindSonarRunnerProperties);
-            }
-
-            var propertiesProvider = new FilePropertiesProvider(sonarRunnerProperties);
-            var server = propertiesProvider.GetProperty(SonarProperties.HostUrl);
-
-            Debug.Assert(!string.IsNullOrWhiteSpace(server), "Not expecting the host url property in the sonar-runner.properties file to be null/empty");
-
-            return server;
-        }
-
+        
         private string EnsurePathIsAbsolute(string file)
         {
             string absPath;
