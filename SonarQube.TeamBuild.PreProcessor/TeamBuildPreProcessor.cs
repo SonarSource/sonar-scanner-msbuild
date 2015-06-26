@@ -82,6 +82,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             config.SonarConfigDir = teamBuildSettings.SonarConfigDirectory;
             config.SonarOutputDir = teamBuildSettings.SonarOutputDirectory;
             config.SonarBinDir = teamBuildSettings.SonarBinDirectory;
+            config.SonarQubeHostUrl = args.GetSetting(SonarProperties.HostUrl);
 
             // Create the directories
             logger.LogMessage(Resources.DIAG_CreatingFolders);
