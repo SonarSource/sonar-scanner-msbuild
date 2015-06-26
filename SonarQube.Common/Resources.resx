@@ -166,8 +166,8 @@
   <data name="ERROR_CmdLine_MissingRequiredArgument" xml:space="preserve">
     <value>A required argument is missing: {0}</value>
   </data>
-  <data name="ERROR_CmdLine_UnrecognisedArg" xml:space="preserve">
-    <value>Unrecognised command line argument: {0}</value>
+  <data name="ERROR_CmdLine_UnrecognizedArg" xml:space="preserve">
+    <value>Unrecognized command line argument: {0}</value>
   </data>
   <data name="DIAG_Runner_OverwritingEnvVar" xml:space="preserve">
     <value>Overwriting the value of environment variable '{0}'. Old value: {1}, new value: {2}</value>
@@ -213,5 +213,11 @@
   </data>
   <data name="ERROR_CmdLine_MustUseProjectVersion" xml:space="preserve">
     <value>Please use the parameter prefix '/v:' to define the version of the SonarQube project instead of injecting this version with the help of the 'sonar.projectVersion' property.</value>
+  </data>
+  <data name="ERROR_Parser_UniqueDescriptorIds" xml:space="preserve">
+    <value>Descriptor ids must be unique</value>
+  </data>
+  <data name="String1" xml:space="preserve">
+    <value />
   </data>
 </root>

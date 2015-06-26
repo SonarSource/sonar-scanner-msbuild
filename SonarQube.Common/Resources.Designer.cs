@@ -290,11 +290,20 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unrecognised command line argument: {0}.
+        ///   Looks up a localized string similar to Unrecognized command line argument: {0}.
         /// </summary>
-        internal static string ERROR_CmdLine_UnrecognisedArg {
+        internal static string ERROR_CmdLine_UnrecognizedArg {
             get {
-                return ResourceManager.GetString("ERROR_CmdLine_UnrecognisedArg", resourceCulture);
+                return ResourceManager.GetString("ERROR_CmdLine_UnrecognizedArg", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Descriptor ids must be unique.
+        /// </summary>
+        internal static string ERROR_Parser_UniqueDescriptorIds {
+            get {
+                return ResourceManager.GetString("ERROR_Parser_UniqueDescriptorIds", resourceCulture);
             }
         }
         
@@ -340,6 +349,15 @@ namespace SonarQube.Common {
         internal static string PropertyNotFoundInFileError {
             get {
                 return ResourceManager.GetString("PropertyNotFoundInFileError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string String1 {
+            get {
+                return ResourceManager.GetString("String1", resourceCulture);
             }
         }
     }

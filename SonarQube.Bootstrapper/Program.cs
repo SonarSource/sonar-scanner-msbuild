@@ -6,34 +6,40 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
-using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 
 namespace SonarQube.Bootstrapper
 {
     internal static class Program
     {
+        private const int ErrorCode = 1;
+
         private static int Main(string[] args)
         {
             var logger = new ConsoleLogger();
 
-            IBootstrapperSettings settings = new BootstrapperSettings(logger);
-
             int exitCode;
 
-            if (args.Any())
+            IBootstrapperSettings settings;
+            if (ArgumentProcessor.TryProcessArgs(args, logger, out settings))
             {
-                logger.LogMessage(Resources.INFO_PreProcessing, args.Length);
-                exitCode = PreProcess(logger, settings, args);
+                if (args.Any())
+                {
+                    logger.LogMessage(Resources.INFO_PreProcessing, args.Length);
+                    exitCode = PreProcess(logger, settings, args);
+                }
+                else
+                {
+                    logger.LogMessage(Resources.INFO_PostProcessing);
+                    exitCode = PostProcess(logger, settings);
+                }
             }
             else
             {
-                logger.LogMessage(Resources.INFO_PostProcessing);
-                exitCode = PostProcess(logger, settings);
+                // The argument processor will have logged errors
+                exitCode = ErrorCode;
             }
-
             return exitCode;
         }
 

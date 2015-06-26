@@ -19,7 +19,7 @@ namespace SonarQube.Common
     /// * order is unimportant
     /// * all arguments have a recognisable prefix e.g. /key= 
     /// * prefixes are case-insensitive
-    /// * unrecognised arguments are treated as errors
+    /// * unrecognized arguments are treated as errors
     /// * the command line arguments are those supplied in Main(args) i.e. they have been converted
     ///   from a string to an array by the runtime. This means that quoted arguments will already have
     ///   been partially processed so a command line of:
@@ -32,23 +32,33 @@ namespace SonarQube.Common
         /// </summary>
         private readonly IEnumerable<ArgumentDescriptor> descriptors;
 
-        public CommandLineParser(IEnumerable<ArgumentDescriptor> descriptors)
+        private readonly bool allowUnrecognized;
+
+        /// <summary>
+        /// Constructs a command line parser
+        /// </summary>
+        /// <param name="descriptors">List of descriptors that specify the valid argument types</param>
+        /// <param name="allowUnrecognized">True if unrecognized arguments should be ignored</param>
+        public CommandLineParser(IEnumerable<ArgumentDescriptor> descriptors, bool allowUnrecognized)
         {
             if (descriptors == null)
             {
                 throw new ArgumentNullException("descriptors");
             }
 
-            Debug.Assert(descriptors.All(d => d.Prefixes != null && d.Prefixes.Any()), "All descriptors must provide at least one prefix");
-            Debug.Assert(descriptors.Select(d => d.Id).Distinct(ArgumentDescriptor.IdComparer).Count() == descriptors.Count(), "All descriptors must have a unique id");
+            if (!(descriptors.Select(d => d.Id).Distinct(ArgumentDescriptor.IdComparer).Count() == descriptors.Count()))
+            {
+                throw new ArgumentException(Resources.ERROR_Parser_UniqueDescriptorIds, "descriptors");
+            }
 
             this.descriptors = descriptors;
+            this.allowUnrecognized = allowUnrecognized;
         }
 
         /// <summary>
-        /// Parses the supplied arguments. Logs errors for unrecognised, duplicate or missing arguments.
+        /// Parses the supplied arguments. Logs errors for unrecognized, duplicate or missing arguments.
         /// </summary>
-        /// <param name="argumentInstances">A list of argument instances that have been recognised</param>
+        /// <param name="argumentInstances">A list of argument instances that have been recognized</param>
         public bool ParseArguments(string[] commandLineArgs, ILogger logger, out IEnumerable<ArgumentInstance> argumentInstances)
         {
             if (commandLineArgs == null)
@@ -63,8 +73,8 @@ namespace SonarQube.Common
 
             bool parsedOk = true;
             
-            // List of values that have been recognised
-            IList<ArgumentInstance> arguments = new List<ArgumentInstance>();
+            // List of values that have been recognized
+            IList<ArgumentInstance> recognized = new List<ArgumentInstance>();
 
             foreach (string arg in commandLineArgs)
             {
@@ -75,10 +85,10 @@ namespace SonarQube.Common
                 {
                     string newId = descriptor.Id;
 
-                    if (!descriptor.AllowMultiple && IdExists(newId, arguments))
+                    if (!descriptor.AllowMultiple && IdExists(newId, recognized))
                     {
                         string existingValue;
-                        ArgumentInstance.TryGetArgumentValue(newId, arguments, out existingValue);
+                        ArgumentInstance.TryGetArgumentValue(newId, recognized, out existingValue);
                         logger.LogError(Resources.ERROR_CmdLine_DuplicateArg, arg, existingValue);
                         parsedOk = false;
                     }
@@ -86,21 +96,26 @@ namespace SonarQube.Common
                     {
                         // Store the argument
                         string argValue = arg.Substring(prefix.Length);
-                        arguments.Add(new ArgumentInstance(descriptor, argValue));
+                        recognized.Add(new ArgumentInstance(descriptor, argValue));
                     }
                 }
                 else
                 {
-                    logger.LogError(Resources.ERROR_CmdLine_UnrecognisedArg, arg);
-                    parsedOk = false;
+                    if (!this.allowUnrecognized)
+                    {
+                        logger.LogError(Resources.ERROR_CmdLine_UnrecognizedArg, arg);
+                        parsedOk = false;
+                    }
+
+                    Debug.WriteLineIf(this.allowUnrecognized, "Ignoring unrecognized argument: " + arg);
                 }
             }
 
-            argumentInstances = arguments;
-
-            // We'll for missing arguments this even if the parsing failed so we output as much detail
+            // We'll check for missing arguments this even if the parsing failed so we output as much detail
             // as possible about the failures.
-            parsedOk &= CheckRequiredArgumentsSupplied(argumentInstances, logger);
+            parsedOk &= CheckRequiredArgumentsSupplied(recognized, logger);
+
+            argumentInstances = parsedOk ? recognized : Enumerable.Empty<ArgumentInstance>();
 
             return parsedOk;
         }
@@ -134,10 +149,10 @@ namespace SonarQube.Common
 
         private static string TryGetMatchingPrefix(ArgumentDescriptor descriptor, string argument)
         {
-            Debug.Assert(descriptor.Prefixes.Where(p => argument.StartsWith(p, StringComparison.OrdinalIgnoreCase)).Count() < 2,
+            Debug.Assert(descriptor.Prefixes.Where(p => argument.StartsWith(p, ArgumentDescriptor.IdComparison)).Count() < 2,
                 "Not expecting the argument to match multiple prefixes");
 
-            string match = descriptor.Prefixes.FirstOrDefault(p => argument.StartsWith(p, StringComparison.OrdinalIgnoreCase));
+            string match = descriptor.Prefixes.FirstOrDefault(p => argument.StartsWith(p, ArgumentDescriptor.IdComparison));
             return match;
         }
 

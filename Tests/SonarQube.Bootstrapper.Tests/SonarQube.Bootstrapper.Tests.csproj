@@ -53,9 +53,9 @@
     <Compile Include="..\..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
+    <Compile Include="ArgumentProcessorTests.cs" />
     <Compile Include="BootstrapperSettingsTests.cs" />
     <Compile Include="BuildAgentUpdaterTests.cs" />
-    <Compile Include="Infrastructure\AppConfigWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -17,7 +17,7 @@ namespace SonarQube.Bootstrapper
     {
         private const string SonarQubeIntegrationFilename = "SonarQube.MSBuild.Runner.Implementation.zip";
         private const string IntegrationUrlFormat = "{0}/static/csharp/" + SonarQubeIntegrationFilename;
-        private ILogger logger;
+        private readonly ILogger logger;
 
         public BuildAgentUpdater(ILogger logger)
         {
@@ -89,7 +89,7 @@ namespace SonarQube.Bootstrapper
                 throw new ArgumentNullException("bootstrapperVersion");
             }
 
-            // The Boostrapper 1.0+ does not support versions of the C# plugin that don't have this file
+            // The Bootstrapper 1.0+ does not support versions of the C# plugin that don't have this file
             if (!File.Exists(versionFilePath))
             {
                 return false;
