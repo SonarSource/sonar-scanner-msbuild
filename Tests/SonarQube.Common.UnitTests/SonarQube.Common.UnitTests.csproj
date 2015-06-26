@@ -57,8 +57,6 @@
     <Compile Include="CmdLineArgsPropertiesProviderTests.cs" />
     <Compile Include="CommandLineParserTests.cs" />
     <Compile Include="ConsoleLoggerTests.cs" />
-    <Compile Include="FileLocatorTests.cs" />
-    <Compile Include="FilePropertiesProviderTests.cs" />
     <Compile Include="AnalysisConfigTests.cs" />
     <Compile Include="AnalysisPropertyFileProviderTests.cs" />
     <Compile Include="Infrastructure\OutputCaptureScope.cs" />

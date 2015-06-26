@@ -1,30 +1,42 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="FilePropertiesProvider.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="SQPropertiesFileReader.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
+using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace SonarQube.Common
+namespace TestUtilities
 {
     /// <summary>
-    /// Implementation of <see cref="ISonarPropertyProvider"/> that reads properties from
-    /// a standard format SonarQube properties file (e.g. sonar-runner.properties)
+    /// Utility class that reads properties from a standard format SonarQube properties file (e.g. sonar-runner.properties)
     /// </summary>
-    public class FilePropertiesProvider : ISonarPropertyProvider
+    public class SQPropertiesFileReader
     {
+        //TODO: this expression only works for single-line values
+        // Regular expression pattern: we're looking for matches that:
+        // * start at the beginning of a line
+        // * start with a character or number
+        // * are in the form [key]=[value],
+        // * where [key] can  
+        //   - starts with an alpanumeric character.
+        //   - can be followed by any number of alphanumeric characters or .
+        //   - whitespace is not allowed
+        // * [value] can contain anything
+        public const string KeyValueSettingPattern = @"^(?<key>\w[\w\d\.-]*)=(?<value>[^\r\n]+)";
+
         /// <summary>
         /// Mapping of property names to values
         /// </summary>
         private IDictionary<string, string> properties;
 
-        private string propertyFilePath;
+        private readonly string propertyFilePath;
 
         #region Public methods
 
@@ -33,7 +45,7 @@ namespace SonarQube.Common
         /// specified properties file
         /// </summary>
         /// <param name="fullPath">The full path to the SonarQube properties file. The file must exist.</param>
-        public FilePropertiesProvider(string fullPath)
+        public SQPropertiesFileReader(string fullPath)
         {
             if (string.IsNullOrWhiteSpace(fullPath))
             {
@@ -42,7 +54,7 @@ namespace SonarQube.Common
                         
             if (!File.Exists(fullPath))
             {
-                throw new FileNotFoundException(Resources.MissingSonarPropertiesFileError, fullPath);
+                throw new FileNotFoundException();
             }
 
             this.propertyFilePath = fullPath;
@@ -55,17 +67,12 @@ namespace SonarQube.Common
             return properties;
         }
 
-        #endregion
-
-        #region ISonarPropertyProvider interface
-
         public string GetProperty(string propertyName)
         {
             string value;
             if (!this.properties.TryGetValue(propertyName, out value))
             {
-                string message = string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.PropertyNotFoundInFileError, this.propertyFilePath, propertyName);
-                throw new ArgumentOutOfRangeException(propertyName, message);
+                throw new ArgumentOutOfRangeException("propertyName");
             }
             return value;
         }
@@ -91,7 +98,7 @@ namespace SonarQube.Common
             this.properties = new Dictionary<string, string>(AnalysisSetting.SettingKeyComparer);
             string allText = File.ReadAllText(fullPath);
 
-            foreach (Match match in Regex.Matches(allText, AnalysisSetting.KeyValueSettingPattern, RegexOptions.Multiline))
+            foreach (Match match in Regex.Matches(allText, KeyValueSettingPattern, RegexOptions.Multiline))
             {
                 string key = match.Groups["key"].Value;
                 string value = match.Groups["value"].Value;

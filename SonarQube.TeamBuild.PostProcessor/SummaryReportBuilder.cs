@@ -35,25 +35,23 @@ namespace SonarQube.TeamBuild.PostProcessor
         public /* for test purposes */ const string DashboardUrlFormat= "{0}/dashboard/index/{1}";
         public /* for test purposes */ const string SummaryMdFilename = "summary.md";
 
-        private AnalysisConfig config;
-        private ILogger logger;
-        private ProjectInfoAnalysisResult result;
-        private TeamBuildSettings settings;
-        private ISonarPropertyProvider sonarPropertyProvider;
+        private readonly AnalysisConfig config;
+        private readonly ILogger logger;
+        private readonly ProjectInfoAnalysisResult result;
+        private readonly TeamBuildSettings settings;
 
-        private SummaryReportBuilder(TeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ISonarPropertyProvider sonarPropertyProvider, ILogger logger)
+        private SummaryReportBuilder(TeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
             this.settings = settings;
             this.config = config;
             this.result = result;
             this.logger = logger;
-            this.sonarPropertyProvider = sonarPropertyProvider;
         }
 
         /// <summary>
         /// Generates summary reports for LegacyTeamBuild and for Build Vnext
         /// </summary>
-        public static void GenerateReports(TeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ISonarPropertyProvider sonarPropertyProvider, ILogger logger)
+        public static void GenerateReports(TeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
             if (settings == null)
             {
@@ -71,18 +69,14 @@ namespace SonarQube.TeamBuild.PostProcessor
             {
                 throw new ArgumentNullException("logger");
             }
-            if (sonarPropertyProvider == null)
-            {
-                throw new ArgumentNullException("sonarPropertyProvider");
-            }
 
-            SummaryReportBuilder reportBuilder = new SummaryReportBuilder(settings, config, result, sonarPropertyProvider, logger);
+            SummaryReportBuilder reportBuilder = new SummaryReportBuilder(settings, config, result, logger);
             reportBuilder.GenerateReports();
         }
 
         private void GenerateReports()
         {
-            SummaryReportData summaryData = CreateSummaryData(this.config, this.result, this.sonarPropertyProvider);
+            SummaryReportData summaryData = CreateSummaryData(this.config, this.result);
 
             if (this.settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
                 && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
@@ -95,8 +89,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         public /* for test purposes */ static SummaryReportData CreateSummaryData(
             AnalysisConfig config,
-            ProjectInfoAnalysisResult result, 
-            ISonarPropertyProvider sonarPropertyProvider)
+            ProjectInfoAnalysisResult result)
         {
             SummaryReportData summaryData = new SummaryReportData();
 
@@ -111,16 +104,16 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             summaryData.Succeeded = result.RanToCompletion;
 
-            summaryData.DashboardUrl = GetSonarDashboadUrl(config, sonarPropertyProvider);
+            summaryData.DashboardUrl = GetSonarDashboadUrl(config);
             summaryData.ProjectDescription = string.Format(System.Globalization.CultureInfo.CurrentCulture,
                 Resources.Report_SonarQubeProjectDescription, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
             return summaryData;
 
         }
 
-        private static string GetSonarDashboadUrl(AnalysisConfig config, ISonarPropertyProvider propertyProvider)
+        private static string GetSonarDashboadUrl(AnalysisConfig config)
         {
-            string hostUrl = propertyProvider.GetProperty(SonarProperties.HostUrl).TrimEnd('/');
+            string hostUrl = config.SonarQubeHostUrl.TrimEnd('/');
 
             string sonarUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture,
                 DashboardUrlFormat, hostUrl, config.SonarProjectKey);

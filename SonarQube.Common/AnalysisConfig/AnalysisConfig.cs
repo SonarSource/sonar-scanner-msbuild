@@ -28,14 +28,14 @@ namespace SonarQube.Common
 
         #region SonarQube project properties
 
+        public string SonarQubeHostUrl { get; set; }
+
         public string SonarProjectKey { get; set; }
 
         public string SonarProjectVersion { get; set; }
 
         public string SonarProjectName { get; set; }
-
-        public string SonarRunnerPropertiesPath { get; set; }
-
+        
         /// <summary>
         /// List of additional analysis settings
         /// </summary>

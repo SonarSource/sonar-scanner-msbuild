@@ -286,7 +286,7 @@ namespace SonarRunner.Shim.Tests
             // One valid project info file -> file created
             AssertPropertiesFilesCreated(result, logger);
 
-            FilePropertiesProvider provider = new FilePropertiesProvider(result.FullPropertiesFilePath);
+            SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
             AssertExpectedConfigSetting("key1", "value1", provider);
             AssertExpectedConfigSetting("key.2", "value two", provider);
             AssertExpectedConfigSetting("key.3", " ", provider);
@@ -351,7 +351,7 @@ namespace SonarRunner.Shim.Tests
             Assert.IsFalse(content.Contains(formattedPath), "File should not be referenced: {0}", formattedPath);
         }
  
-        private static void AssertExpectedConfigSetting(string key, string expectedValue, FilePropertiesProvider provider)
+        private static void AssertExpectedConfigSetting(string key, string expectedValue, SQPropertiesFileReader provider)
         {
             string actualValue = provider.GetProperty(key);
             Assert.AreEqual(expectedValue, actualValue, "Property does not have the expected value. Key: {0}", key);

@@ -333,32 +333,5 @@ namespace SonarQube.Common {
                 return ResourceManager.GetString("Logger_WarningPrefix", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The specfied properties file could not be found.
-        /// </summary>
-        internal static string MissingSonarPropertiesFileError {
-            get {
-                return ResourceManager.GetString("MissingSonarPropertiesFileError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The settings file &apos;{0}&apos; does not contain a value for the property &apos;{1}&apos;.
-        /// </summary>
-        internal static string PropertyNotFoundInFileError {
-            get {
-                return ResourceManager.GetString("PropertyNotFoundInFileError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string String1 {
-            get {
-                return ResourceManager.GetString("String1", resourceCulture);
-            }
-        }
     }
 }

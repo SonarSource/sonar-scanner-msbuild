@@ -48,8 +48,8 @@
     </Compile>
     <Compile Include="AssertException.cs" />
     <Compile Include="AssertIgnoreScope.cs" />
-    <Compile Include="ConfigurablePropertyProvider.cs" />
     <Compile Include="EnvironmentVariableScope.cs" />
+    <Compile Include="SQPropertiesFileReader.cs" />
     <Compile Include="ProjectDescriptor.cs" />
     <Compile Include="ProjectInfoAssertions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

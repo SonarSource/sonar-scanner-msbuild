@@ -142,12 +142,6 @@
   <data name="DIAG_RetryOperationSucceeded" xml:space="preserve">
     <value>Operation succeeded. Elapsed time (ms): {0}</value>
   </data>
-  <data name="MissingSonarPropertiesFileError" xml:space="preserve">
-    <value>The specfied properties file could not be found</value>
-  </data>
-  <data name="PropertyNotFoundInFileError" xml:space="preserve">
-    <value>The settings file '{0}' does not contain a value for the property '{1}'</value>
-  </data>
   <data name="Logger_WarningPrefix" xml:space="preserve">
     <value>WARNING: </value>
   </data>
@@ -216,8 +210,5 @@
   </data>
   <data name="ERROR_Parser_UniqueDescriptorIds" xml:space="preserve">
     <value>Descriptor ids must be unique</value>
-  </data>
-  <data name="String1" xml:space="preserve">
-    <value />
   </data>
 </root>

@@ -25,14 +25,12 @@ namespace SonarQube.TeamBuild.PostProcessorTests
         public void SummaryReport_NoProjects()
         {
             // Arrange
-            string hostUrl = "http://mySonar:9000";
+            string hostUrl = "http://mySonarQube:9000";
             ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult() { RanToCompletion = false };
-            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo" };
-            ConfigurablePropertyProvider provider = new ConfigurablePropertyProvider();
-            provider.PropertyBag[SonarProperties.HostUrl] = hostUrl;
+            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo" , SonarQubeHostUrl = hostUrl };
 
             // Act
-            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result, provider);
+            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result);
 
             // Assert
             VerifySummaryReportData(summaryReportData, result, hostUrl, config);
@@ -49,11 +47,9 @@ namespace SonarQube.TeamBuild.PostProcessorTests
         public void SummaryReport_AllTypesOfProjects()
         {
             // Arrange
-            string hostUrl = "http://mySonar:9000";
+            string hostUrl = "http://mySonarQube:9000";
             ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult() { RanToCompletion = true };
-            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "" };
-            ConfigurablePropertyProvider provider = new ConfigurablePropertyProvider();
-            provider.PropertyBag[SonarProperties.HostUrl] = hostUrl;
+            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "", SonarQubeHostUrl = hostUrl };
 
             AddProjectInfoToResult(result, ProjectInfoValidity.DuplicateGuid, count: 3);
             AddProjectInfoToResult(result, ProjectInfoValidity.ExcludeFlagSet, type: ProjectType.Product, count: 4);
@@ -65,7 +61,7 @@ namespace SonarQube.TeamBuild.PostProcessorTests
             AddProjectInfoToResult(result, ProjectInfoValidity.Valid, type: ProjectType.Test, count: 17);
 
             // Act
-            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result, provider);
+            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result);
 
             // Assert
             VerifySummaryReportData(summaryReportData, result, hostUrl, config);
@@ -82,18 +78,16 @@ namespace SonarQube.TeamBuild.PostProcessorTests
         public void SummaryReport_ReportIsGenerated()
         {
             // Arrange
-            string hostUrl = "http://mySonar:9000";
+            string hostUrl = "http://mySonarQube:9000";
             ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult();
-            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo" };
-            ConfigurablePropertyProvider provider = new ConfigurablePropertyProvider();
-            provider.PropertyBag[SonarProperties.HostUrl] = hostUrl;
+            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo" , SonarQubeHostUrl = hostUrl};
 
             TeamBuildSettings settings = new TeamBuildSettings();
             config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
             string expectedReportPath = Path.Combine(TestContext.TestDeploymentDir, SummaryReportBuilder.SummaryMdFilename);
 
             // Act
-            SummaryReportBuilder.GenerateReports(settings, config, result, provider, new TestLogger());
+            SummaryReportBuilder.GenerateReports(settings, config, result, new TestLogger());
 
             // Assert
             Assert.IsTrue(File.Exists(expectedReportPath) && (new FileInfo(expectedReportPath)).Length > 0, "The report file cannot be found or is empty");
