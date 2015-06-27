@@ -187,24 +187,6 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analysis setting key &quot;{0}&quot; set in the {1} is overridden by the value set in {2}.
-        /// </summary>
-        internal static string INFO_ConfigSettingOverridden {
-            get {
-                return ResourceManager.GetString("INFO_ConfigSettingOverridden", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Setting &quot;{0}&quot; is assigned the same value in multiple locations. Locations: {1}.
-        /// </summary>
-        internal static string INFO_DuplicateSettingWithSameValue {
-            get {
-                return ResourceManager.GetString("INFO_DuplicateSettingWithSameValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to {0} is not configured. Setting it to the default value of {1}.
         /// </summary>
         internal static string INFO_SonarRunnerOptsDefaultUsed {
@@ -286,29 +268,11 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Core setting &quot;{0}&quot; can only be set as a property in the analysis config file. The attempts to set the value in the following locations will be ignored: {1}.
-        /// </summary>
-        internal static string WARN_CoreSettingCannotBeSet {
-            get {
-                return ResourceManager.GetString("WARN_CoreSettingCannotBeSet", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Duplicate project GUID: &quot;{0}&quot;. Check that the project is only being built for a single platform/configuration and that that the project guid is unique. The project will not be analyzed by SonarQube. Project file: {1}.
         /// </summary>
         internal static string WARN_DuplicateProjectGuid {
             get {
                 return ResourceManager.GetString("WARN_DuplicateProjectGuid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Setting &quot;{0}&quot; is assigned different values in multiple locations. These assignments will be ignored. Locations: {1}.
-        /// </summary>
-        internal static string WARN_DuplicateSettingWithDifferentValue {
-            get {
-                return ResourceManager.GetString("WARN_DuplicateSettingWithDifferentValue", resourceCulture);
             }
         }
         
@@ -336,15 +300,6 @@ namespace SonarRunner.Shim {
         internal static string WARN_InvalidProjectGuid {
             get {
                 return ResourceManager.GetString("WARN_InvalidProjectGuid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Analysis setting key &quot;{0}&quot; is invalid and will be ignored. Source of the invalid key: {1}.
-        /// </summary>
-        internal static string WARN_InvalidSettingKey {
-            get {
-                return ResourceManager.GetString("WARN_InvalidSettingKey", resourceCulture);
             }
         }
     }

@@ -227,7 +227,8 @@ namespace SonarRunner.Shim.Tests
                 SonarProjectKey = "my_project_key",
                 SonarProjectName = "my_project_name",
                 SonarProjectVersion = "1.0",
-                SonarOutputDir = testDir
+                SonarOutputDir = testDir,
+                AdditionalSettings = new List<AnalysisSetting>()
             };
 
             // Act

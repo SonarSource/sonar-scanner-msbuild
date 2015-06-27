@@ -58,9 +58,8 @@ namespace SonarRunner.Shim
             if (validProjects.Any())
             {
                 // Handle global settings
-                IEnumerable<AnalysisSetting> globalSettings = GlobalSettingsHandler.GetGlobalSettings(config, validProjects, logger);
-                Debug.Assert(globalSettings != null, "Not expecting the list of global settings to be null");
-                writer.WriteGlobalSettings(globalSettings);
+                Debug.Assert(config.AdditionalSettings != null);
+                writer.WriteGlobalSettings(config.AdditionalSettings ?? Enumerable.Empty<AnalysisSetting>());
 
                 string contents = writer.Flush();
 

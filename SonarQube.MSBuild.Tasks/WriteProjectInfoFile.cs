@@ -71,7 +71,6 @@ namespace SonarQube.MSBuild.Tasks
                 pi.ProjectGuid = projectId;
                 pi.AnalysisResults = TryCreateAnalysisResults(this.AnalysisResults);
                 pi.AnalysisSettings = TryCreateAnalysisSettings(this.AnalysisSettings);
-                pi.GlobalAnalysisSettings = TryCreateAnalysisSettings(this.GlobalAnalysisSettings);
 
                 string outputFileName = Path.Combine(this.OutputFolder, FileConstants.ProjectInfoFileName);
                 pi.Save(outputFileName);

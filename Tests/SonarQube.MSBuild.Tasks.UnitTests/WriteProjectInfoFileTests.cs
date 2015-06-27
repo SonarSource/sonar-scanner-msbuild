@@ -170,78 +170,6 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             AssertAnalysisSettingExists(createdProjectInfo, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.sonar.projectName", "guid followed by key");
 
             AssertExpectedAnalysisSettingsCount(7, createdProjectInfo);
-            AssertExpectedGlobalAnalysisSettingsCount(0, createdProjectInfo);
-        }
-
-        [TestMethod]
-        [Description("Tests that global analysis settings are correctly handled")]
-        public void WriteProjectInfoFile_GlobalAnalysisSettings()
-        {
-            // Arrange
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
-
-            Guid projectGuid = Guid.NewGuid();
-
-            WriteProjectInfoFile task = new WriteProjectInfoFile();
-
-            DummyBuildEngine buildEngine = new DummyBuildEngine();
-            task.BuildEngine = buildEngine;
-            task.FullProjectPath = "x:\\analysisSettings.csproj";
-            task.IsTest = false;
-            task.OutputFolder = testFolder;
-            task.ProjectGuid = projectGuid.ToString("B");
-            task.ProjectName = "MyProject";
-
-            // Example of a valid global setting:
-            // <SonarQubeGlobalSetting Include="sonar.vso.team">
-            //    <Value>My Team Name</Value>
-            // </SonarQubeGlobalSetting>                
-
-            List<ITaskItem> globalSettingsInputs = new List<ITaskItem>();
-
-            // Add invalid task items
-            // Note: the TaskItem class won't allow the item spec or metadata values to be null,
-            // so we aren't testing those
-            globalSettingsInputs.Add(CreateMetadataItem("invalid.missing.value.metadata", "NotValueMetadata", "missing value 1")); // value field is missing
-            globalSettingsInputs.Add(CreateAnalysisSettingTaskItem(" ", "should be ignored - key is whitespace only")); // whitespace key
-            globalSettingsInputs.Add(CreateAnalysisSettingTaskItem("invalid spaces in key", "spaces.in.key")); // spaces in key
-            globalSettingsInputs.Add(CreateAnalysisSettingTaskItem(" invalid.key.has.leading.whitespace", "leading whitespace in key"));
-            globalSettingsInputs.Add(CreateAnalysisSettingTaskItem("invalid.key.has.trailing.whitespace ", "trailing whitespace in key"));
-            globalSettingsInputs.Add(CreateAnalysisSettingTaskItem(".invalid.non.alpha.first.character", "non alpha first character"));
-
-            // Add valid task items
-            globalSettingsInputs.Add(CreateAnalysisSettingTaskItem("valid.setting.1", @"c:\dir1\dir2\file.txt"));
-            globalSettingsInputs.Add(CreateAnalysisSettingTaskItem("valid.value.is.whitespace.only", " "));
-            globalSettingsInputs.Add(CreateMetadataItem("valid.metadata.name.is.case.insensitive", BuildTaskConstants.SettingValueMetadataName.ToUpperInvariant(), "uppercase metadata name")); // metadata name is in the wrong case
-            globalSettingsInputs.Add(CreateAnalysisSettingTaskItem("valid.value.has.whitespace", "valid setting with whitespace"));
-            globalSettingsInputs.Add(CreateAnalysisSettingTaskItem("X", "single character key"));
-            globalSettingsInputs.Add(CreateAnalysisSettingTaskItem("Y...", "single character followed by periods"));
-            globalSettingsInputs.Add(CreateAnalysisSettingTaskItem("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.sonar.projectName", "guid followed by key"));
-
-            task.GlobalAnalysisSettings = globalSettingsInputs.ToArray();
-
-            // Act
-            ProjectInfo createdProjectInfo;
-            createdProjectInfo = ExecuteAndCheckSucceeds(task, testFolder);
-
-            // Assert
-            buildEngine.AssertSingleWarningExists("invalid.missing.value.metadata");
-            // Can't easily check for the message complaining against the empty key
-            buildEngine.AssertSingleWarningExists("invalid spaces in key");
-            buildEngine.AssertSingleWarningExists(" invalid.key.has.leading.whitespace");
-            buildEngine.AssertSingleWarningExists("invalid.key.has.trailing.whitespace ");
-            buildEngine.AssertSingleWarningExists(".invalid.non.alpha.first.character");
-
-            AssertGlobalAnalysisSettingExists(createdProjectInfo, "valid.setting.1", @"c:\dir1\dir2\file.txt");
-            AssertGlobalAnalysisSettingExists(createdProjectInfo, "valid.value.is.whitespace.only", " ");
-            AssertGlobalAnalysisSettingExists(createdProjectInfo, "valid.value.has.whitespace", "valid setting with whitespace");
-            AssertGlobalAnalysisSettingExists(createdProjectInfo, "valid.metadata.name.is.case.insensitive", "uppercase metadata name");
-            AssertGlobalAnalysisSettingExists(createdProjectInfo, "X", "single character key");
-            AssertGlobalAnalysisSettingExists(createdProjectInfo, "Y...", "single character followed by periods");
-            AssertGlobalAnalysisSettingExists(createdProjectInfo, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.sonar.projectName", "guid followed by key");
-
-            AssertExpectedGlobalAnalysisSettingsCount(7, createdProjectInfo);
-            AssertExpectedAnalysisSettingsCount(0, createdProjectInfo);
         }
 
         [TestMethod]
@@ -354,31 +282,12 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             Assert.AreEqual(expectedValue, setting.Value, "Setting does not have the expected value");
         }
 
-        private static void AssertGlobalAnalysisSettingExists(ProjectInfo actual, string expectedId, string expectedValue)
-        {
-            Assert.IsNotNull(actual, "Supplied project info should not be null");
-            Assert.IsNotNull(actual.GlobalAnalysisSettings, "GlobalAnalysisSettings should not be null");
-
-            AnalysisSetting setting = actual.GlobalAnalysisSettings.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
-            Assert.IsNotNull(setting, "GlobalAnalysisSetting with the expected id does not exist. Id: {0}", expectedId);
-
-            Assert.AreEqual(expectedValue, setting.Value, "Setting does not have the expected value");
-        }
-
         private static void AssertExpectedAnalysisSettingsCount(int count, ProjectInfo actual)
         {
             Assert.IsNotNull(actual, "Supplied project info should not be null");
             Assert.IsNotNull(actual.AnalysisSettings, "AnalysisSettings should not be null");
 
             Assert.AreEqual(count, actual.AnalysisSettings.Count, "Unexpected number of AnalysisSettings items");
-        }
-
-        private static void AssertExpectedGlobalAnalysisSettingsCount(int count, ProjectInfo actual)
-        {
-            Assert.IsNotNull(actual, "Supplied project info should not be null");
-            Assert.IsNotNull(actual.GlobalAnalysisSettings, "GlobalAnalysisSettings should not be null");
-
-            Assert.AreEqual(count, actual.GlobalAnalysisSettings.Count, "Unexpected number of GlobalAnalysisSettings items");
         }
 
         #endregion

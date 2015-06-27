@@ -240,7 +240,6 @@
        IsExcluded="$(SonarQubeExclude)"
        AnalysisResults="@(AnalysisResults)"
        AnalysisSettings="@(SonarQubeSetting)"
-       GlobalAnalysisSettings="@(SonarQubeGlobalSetting)"
        OutputFolder="$(ProjectSpecificDir)" />
   </Target>
 

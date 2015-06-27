@@ -25,11 +25,6 @@ namespace SonarQube.MSBuild.Tasks
         public const string SettingItemName = "SonarQubeSetting";
 
         /// <summary>
-        /// Item name of the global analysis setting item type
-        /// </summary>
-        public const string GlobalSettingItemName = "SonarQubeGlobalSetting";
-
-        /// <summary>
         /// Name of the analysis setting "value" metadata item
         /// </summary>
         public const string SettingValueMetadataName = "Value";
