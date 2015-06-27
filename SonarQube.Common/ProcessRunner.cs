@@ -9,6 +9,7 @@ using SonarQube.Common;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -77,14 +78,7 @@ namespace SonarQube.Common
                 WorkingDirectory = workingDirectory
             };
 
-            if (envVariables != null)
-            {
-                foreach (KeyValuePair<string, string> envVariable in envVariables)
-                {
-                    Debug.Assert(!String.IsNullOrEmpty(envVariable.Key), "Env variable name cannot be null or empty");
-                    psi.EnvironmentVariables.Add(envVariable.Key, envVariable.Value);
-                }
-            }
+            SetEnvironmentVariables(psi, envVariables, logger);
 
             bool succeeded;
             Process process = null;
@@ -135,6 +129,29 @@ namespace SonarQube.Common
         #endregion
 
         #region Private methods
+
+        private static void SetEnvironmentVariables(ProcessStartInfo psi, IDictionary<string, string> envVariables, ILogger logger)
+        {
+            if (envVariables == null)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<string, string> envVariable in envVariables)
+            {
+                Debug.Assert(!String.IsNullOrEmpty(envVariable.Key), "Env variable name cannot be null or empty");
+
+                if (psi.EnvironmentVariables.ContainsKey(envVariable.Key))
+                {
+                    logger.LogMessage(Resources.DIAG_Runner_OverwritingEnvVar, envVariable.Key, psi.EnvironmentVariables[envVariable.Key], envVariable.Value);
+                }
+                else
+                {
+                    logger.LogMessage(Resources.DIAG_Runner_SettingEnvVar, envVariable.Key, envVariable.Value);
+                }
+                psi.EnvironmentVariables[envVariable.Key] = envVariable.Value;
+            }
+        }
 
         private void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
         {

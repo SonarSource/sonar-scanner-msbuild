@@ -92,13 +92,8 @@ namespace SonarRunner.Shim
 
             logger.LogMessage(Resources.DIAG_CallingSonarRunner);
 
-            string sonarRunnerOptsValue = GetSonarRunnerOptsValue(logger);
-
-            IDictionary<string, string> envVarsDictionary = new Dictionary<string, string>();
-            if (!String.IsNullOrEmpty(sonarRunnerOptsValue))
-            {
-                envVarsDictionary.Add(SonarRunnerOptsVariableName, sonarRunnerOptsValue);
-            }
+            IDictionary<string, string> envVarsDictionary = GetAdditionalEnvVariables(logger);
+            Debug.Assert(envVarsDictionary != null);
 
             ProcessRunner runner = new ProcessRunner();
             bool success = runner.Execute(
@@ -117,10 +112,25 @@ namespace SonarRunner.Shim
             }
             else
             {
-                // TODO: should be kill the process or leave it? Could we corrupt the data on the server if we kill the process?
                 logger.LogError(Resources.ERR_SonarRunnerExecutionFailed);
             }
             return success;
+        }
+
+        /// <summary>
+        /// Returns any additional environment variables that need to be passed to
+        /// the sonar-runner
+        /// </summary>
+        private static IDictionary<string, string> GetAdditionalEnvVariables(ILogger logger)
+        {
+            IDictionary<string, string> envVarsDictionary = new Dictionary<string, string>();
+
+            // Always set a value for SONAR_RUNNER_OPTS just in case it is set at process-level
+            // (which wouldn't be inherited by the child sonar-runner process.
+            string sonarRunnerOptsValue = GetSonarRunnerOptsValue(logger);
+            envVarsDictionary.Add(SonarRunnerOptsVariableName, sonarRunnerOptsValue);
+ 
+            return envVarsDictionary;
         }
 
         /// <summary>
@@ -133,6 +143,7 @@ namespace SonarRunner.Shim
 
             if (!String.IsNullOrWhiteSpace(existingValue))
             {
+                logger.LogMessage(Resources.INFO_SonarRunOptsAlreadySet, SonarRunnerOptsVariableName, existingValue);
                 return existingValue;
             }
             else
@@ -140,7 +151,6 @@ namespace SonarRunner.Shim
                 logger.LogMessage(Resources.INFO_SonarRunnerOptsDefaultUsed, SonarRunnerOptsVariableName, SonarRunnerOptsDefaultValue);
                 return SonarRunnerOptsDefaultValue;
             }
-
         }
 
         #endregion

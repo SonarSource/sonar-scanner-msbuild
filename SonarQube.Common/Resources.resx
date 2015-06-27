@@ -169,4 +169,10 @@
   <data name="ERROR_CmdLine_UnrecognisedArg" xml:space="preserve">
     <value>Unrecognised command line argument: {0}</value>
   </data>
+  <data name="DIAG_Runner_OverwritingEnvVar" xml:space="preserve">
+    <value>Overwriting the value of environment variable '{0}'. Old value: {1}, new value: {2}</value>
+  </data>
+  <data name="DIAG_Runner_SettingEnvVar" xml:space="preserve">
+    <value>Setting environment variable '{0}'. Value: {1}</value>
+  </data>
 </root>
