@@ -9,7 +9,7 @@
     <BootstrapperDirName>SonarQube.MSBuild.Runner-0.9</BootstrapperDirName>
     <!-- Needed to understand the output directory of referenced projects-->
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\</SourcesRoot>
+    <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\..\</SourcesRoot>
     <DeploymentDirectory>$(SourcesRoot)\DeploymentArtifacts\VsoBuildSteps\$(Configuration)\</DeploymentDirectory>
     <StepSourceDir>$(SourcesRoot)\VsoBuildStepSources\</StepSourceDir>
     <PreBuildStepDestinationDir>$(DeploymentDirectory)\SonarQubePreBuild\</PreBuildStepDestinationDir>
@@ -41,11 +41,11 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Reference to dependencies to ensure the build order is correct -->
-    <ProjectReference Include="$(SourcesRoot)\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj">
+    <ProjectReference Include="..\..\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj">
       <Project>{60aacbb4-1661-4eeb-a029-91289c1d3f7e}</Project>
       <Name>SonarQube.Bootstrapper</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj">
+    <ProjectReference Include="..\..\SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj">
       <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>
       <Name>SonarQube.MSBuild.Tasks</Name>
     </ProjectReference>
