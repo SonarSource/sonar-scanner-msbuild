@@ -96,20 +96,21 @@ xxx yyy
         public void ProcRunner_PassesEnvVariables()
         {
             // Arrange
+            TestLogger logger = new TestLogger();
+            ProcessRunner runner = new ProcessRunner();
+
             string exeName = WriteBatchFileForTest(
 @"echo %PROCESS_VAR%
 @echo %PROCESS_VAR2%
 @echo %PROCESS_VAR3%
 ");
-            TestLogger logger = new TestLogger();
-            ProcessRunner runner = new ProcessRunner();
             var envVariables = new Dictionary<string, string>() {
                 { "PROCESS_VAR", "PROCESS_VAR value" },
                 { "PROCESS_VAR2", "PROCESS_VAR2 value" },
                 { "PROCESS_VAR3", "PROCESS_VAR3 value" } };
 
             // Act
-            bool success = runner.Execute(exeName, null, null, 100, envVariables, logger);
+            bool success = runner.Execute(exeName, null, null, 150, envVariables, logger);
 
             // Assert
             Assert.IsTrue(success, "Expecting the process to have succeeded");
@@ -118,6 +119,61 @@ xxx yyy
             logger.AssertMessageLogged("PROCESS_VAR value");
             logger.AssertMessageLogged("PROCESS_VAR2 value");
             logger.AssertMessageLogged("PROCESS_VAR3 value");
+        }
+
+        [TestMethod]
+        public void ProcRunner_PassesEnvVariables_OverrideExisting()
+        {
+            // Tests that existing environment variables will be overwritten successfully
+
+            // Arrange
+            TestLogger logger = new TestLogger();
+            ProcessRunner runner = new ProcessRunner();
+
+            // We can't set machine-level variables from the test so use the PATH
+            string existingPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(existingPath), "Test setup error: %PATH% should not be null");
+
+            try
+            {
+                Environment.SetEnvironmentVariable("proc.runner.test.process", "existing process value", EnvironmentVariableTarget.Process);
+                Environment.SetEnvironmentVariable("proc.runner.test.user", "existing user value", EnvironmentVariableTarget.User);
+
+                string exeName = WriteBatchFileForTest(
+@"@echo file: %PATH%
+@echo file: %proc.runner.test.process%
+@echo file: %proc.runner.test.user%
+");
+
+                var envVariables = new Dictionary<string, string>() {
+                    { "PATH", "path override" },
+                    { "proc.runner.test.process", "process override" },
+                    { "proc.runner.test.user", "user override" } };
+  
+                // Act
+                bool success = runner.Execute(exeName, null, null, 150, envVariables, logger);
+
+                // Assert
+                Assert.IsTrue(success, "Expecting the process to have succeeded");
+                Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("proc.runner.test.process", null, EnvironmentVariableTarget.Process);
+                Environment.SetEnvironmentVariable("proc.runner.test.user", null, EnvironmentVariableTarget.User);
+            }
+
+            // Check the child process used expected values
+            logger.AssertMessageLogged("file: path override");
+            logger.AssertMessageLogged("file: process override");
+            logger.AssertMessageLogged("file: user override");
+
+            // Check the runner reported it was overwriting existing variables
+            // Note: the existing value won't be visible to the child process unless
+            // it was set *before* the test host launched, which won't be the case.
+            // Consequently, the log won't show the user variable as being overwritten.
+            logger.AssertSingleMessageExists("PATH", existingPath, "path override");
+            logger.AssertSingleMessageExists("proc.runner.test.process", "existing process value", "process override");
         }
 
         #endregion
