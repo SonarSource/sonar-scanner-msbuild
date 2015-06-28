@@ -1,22 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- 
-  This project packages the assemblies and targets files that form the payload that gets placed in a zip and then in a jar file on the server. 
-  Navigate to \DeploymentArtifacts\ServerPayload to pick them up. You still need to zip the files etc. 
+  This project packages the assemblies and targets files that form the payload that gets placed inside the CSharp pluging on the SonarQube server. 
+  Navigate to \DeploymentArtifacts to pick them up. You still need to zip the files etc. 
   -->
-  <!-- These seem to be needed otherwise VS does not recognize Release as a configuration option for this project
+  <!-- These PropertyGroups seem to be needed otherwise VS does not recognize Release as a configuration option for this project
   and it will default to Debug even if the solution is set to build in Release -->
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>bd2f0ad7-610a-4d7f-901c-d939d406997b</ProjectGuid>
+    <ProjectGuid>{87887805-9389-4158-9C3F-BAD53908CC12}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StepPackaging</RootNamespace>
-    <AssemblyName>StepPackaging</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -34,11 +31,13 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
-    <SourcesRoot>$(MSBuildThisFileFullPath)\..\..</SourcesRoot>
-    <DestinationDir>$(SourcesRoot)\DeploymentArtifacts\ServerPayload\$(Configuration)\</DestinationDir>
+    <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\..</SourcesRoot>
+    <DestinationDir>$(SourcesRoot)\DeploymentArtifacts\CSharpPlugingPayload\$(Configuration)\</DestinationDir>
     <!-- OutputPath is required by the Clean and Rebuild tasks -->
     <OutputPath>$(DestinationDir)</OutputPath>
-    <ProjectGuid>{87887805-9389-4158-9C3F-BAD53908CC12}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyName>CSharpPluginPayload</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SonarQube.MSBuild.PreProcessor.exe" />

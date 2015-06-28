@@ -9,7 +9,7 @@
     <BootstrapperDirName>SonarQube.MSBuild.Runner-0.9</BootstrapperDirName>
     <!-- Needed to understand the output directory of referenced projects-->
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\</SourcesRoot>
+    <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\..\</SourcesRoot>
     <DeploymentDirectory>$(SourcesRoot)\DeploymentArtifacts\VsoBuildSteps\$(Configuration)\</DeploymentDirectory>
     <StepSourceDir>$(SourcesRoot)\VsoBuildStepSources\</StepSourceDir>
     <PreBuildStepDestinationDir>$(DeploymentDirectory)\SonarQubePreBuild\</PreBuildStepDestinationDir>
@@ -51,7 +51,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <SonarQubeBootstrapperAssemblies Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\*" Exclude="$(MSBuildThisFileFullPath)\..\..\SonarQube.Bootstrapper\bin\$(Configuration)\*.pdb" />
+    <SonarQubeBootstrapperAssemblies Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\*" Exclude="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\*.pdb" />
     <OtherStepFiles Include="$(StepSourceDir)\**\*">
     </OtherStepFiles>
     <StepOutput Include="$(DeploymentDirectory)">
