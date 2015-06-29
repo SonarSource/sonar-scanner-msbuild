@@ -48,6 +48,8 @@
     </Compile>
     <Compile Include="AssertException.cs" />
     <Compile Include="AssertIgnoreScope.cs" />
+    <Compile Include="DummyExeHelper.cs" />
+    <EmbeddedResource Include="EmbeddedCode\DummyExe.cs" />
     <Compile Include="EnvironmentVariableScope.cs" />
     <Compile Include="SQPropertiesFileReader.cs" />
     <Compile Include="ProjectDescriptor.cs" />

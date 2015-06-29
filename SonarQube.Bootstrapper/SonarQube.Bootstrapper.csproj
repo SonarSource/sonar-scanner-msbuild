@@ -48,8 +48,9 @@
     <Compile Include="ArgumentProcessor.cs" />
     <Compile Include="BuildAgentUpdater.cs" />
     <Compile Include="BootstrapperSettings.cs" />
-    <Compile Include="IBootstrapperSettings.cs" />
     <Compile Include="BootstrapperSupportedVersions.cs" />
+    <Compile Include="IBootstrapperSettings.cs" />
+    <Compile Include="Interfaces\IBuildAgentUpdater.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">

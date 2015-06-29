@@ -11,14 +11,20 @@ using System.Linq;
 
 namespace SonarQube.Bootstrapper
 {
-    internal static class Program
+    public static class Program
     {
-        private const int ErrorCode = 1;
+        public const int ErrorCode = 1;
 
         private static int Main(string[] args)
         {
             var logger = new ConsoleLogger();
+            BuildAgentUpdater updater = new BuildAgentUpdater();
 
+            return Execute(args, updater, logger);
+        }
+
+        public static int Execute(string[] args, IBuildAgentUpdater updater, ILogger logger)
+        {
             int exitCode;
 
             IBootstrapperSettings settings;
@@ -27,7 +33,7 @@ namespace SonarQube.Bootstrapper
                 if (args.Any())
                 {
                     logger.LogMessage(Resources.INFO_PreProcessing, args.Length);
-                    exitCode = PreProcess(logger, settings, args);
+                    exitCode = PreProcess(args, updater, settings, logger);
                 }
                 else
                 {
@@ -43,7 +49,7 @@ namespace SonarQube.Bootstrapper
             return exitCode;
         }
 
-        private static int PreProcess(ILogger logger, IBootstrapperSettings settings, string[] args)
+        private static int PreProcess(string[] args, IBuildAgentUpdater updater, IBootstrapperSettings settings, ILogger logger)
         {
             string downloadBinPath = settings.DownloadDirectory;
 
@@ -54,14 +60,13 @@ namespace SonarQube.Bootstrapper
             Debug.Assert(!string.IsNullOrWhiteSpace(server), "Not expecting the server url to be null/empty");
             logger.LogMessage(Resources.INFO_ServerUrl, server);
 
-            BuildAgentUpdater updater = new BuildAgentUpdater(logger);
-            if (!updater.TryUpdate(server, downloadBinPath))
+            if (!updater.TryUpdate(server, downloadBinPath, logger))
             {
                 logger.LogError(Resources.ERROR_CouldNotFindIntegrationZip);
                 return 1;
             }
 
-            if (!BuildAgentUpdater.CheckBootstrapperVersion(settings.SupportedBootstrapperVersionsFilePath, settings.BootstrapperVersion))
+            if (!updater.CheckBootstrapperApiVersion(settings.SupportedBootstrapperVersionsFilePath, settings.BootstrapperVersion))
             {
                 logger.LogError(Resources.ERROR_VersionMismatch);
                 return 1;

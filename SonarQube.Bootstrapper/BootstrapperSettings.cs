@@ -7,30 +7,44 @@
 
 using SonarQube.Common;
 using System;
-using System.Diagnostics;
 using System.IO;
 
 namespace SonarQube.Bootstrapper
 {
     public class BootstrapperSettings : IBootstrapperSettings
     {
-        // Note: these constant values must be kept in sync with the targets files.
-        public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
-        public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
+        // FIX - should also include the sonar-runner.zip. Consider moving to SonarQube.Common.
+        #region Logical Bootstrapper Version values
 
-        public const string PreProcessorExeName = "SonarQube.MSBuild.PreProcessor.exe";
-        public const string PostProcessorExeName = "SonarQube.MSBuild.PostProcessor.exe";
+        // The following constants determine the "logical" api of the bootstrapper
+        // Server-side: specifies what it expects from the server - where to download the bits from, which exes to run.
+        // Client-side: specifies how the analysis working and bin directories are specified.
 
         /// <summary>
         /// The logical version of the bootstrapper API that the pre/post-processor must support
         /// </summary>
         /// <remarks>The version string should have at least a major and a minor component</remarks>
-        private const string BootstrapperLogicalVersionString = "1.0";
+        public const string LogicalVersionString = "1.0";
 
         /// <summary>
         /// The file name where the supported bootstrapper logical API versions are mentioned
         /// </summary>
-        private const string SupportedBootstrapperVersionsFilename = "SupportedBootstrapperVersions.xml";
+        public const string SupportedVersionsFilename = "SupportedBootstrapperVersions.xml";
+
+        // Download-related values
+        public const string SonarQubeIntegrationFilename = "SonarQube.MSBuild.Runner.Implementation.zip";
+        public const string IntegrationUrlSuffix = "/static/csharp/" + SonarQubeIntegrationFilename;
+
+        // Exes to launched by the bootstrapper
+        public const string PreProcessorExeName = "SonarQube.MSBuild.PreProcessor.exe";
+        public const string PostProcessorExeName = "SonarQube.MSBuild.PostProcessor.exe";
+
+        #region Working directory
+        // Variables used when calculating the working directory
+
+        // Note: these constant values must be kept in sync with the targets files.
+        public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
+        public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
 
         /// <summary>
         /// The list of environment variables that should be checked in order to find the
@@ -44,8 +58,12 @@ namespace SonarQube.Bootstrapper
         public const string RelativePathToTempDir = @".sonarqube";
         public const string RelativePathToDownloadDir = @"bin";
 
-        private readonly ILogger logger;
 
+        #endregion
+
+        #endregion
+
+        private readonly ILogger logger;
         private readonly string sonarQubeUrl;
         private string tempDir;
         private string preProcFilePath;
@@ -123,7 +141,7 @@ namespace SonarQube.Bootstrapper
         {
             get
             {
-                return this.EnsurePathIsAbsolute(SupportedBootstrapperVersionsFilename);
+                return this.EnsurePathIsAbsolute(SupportedVersionsFilename);
             }
         }
 
@@ -131,7 +149,7 @@ namespace SonarQube.Bootstrapper
         {
             get
             {
-                return new Version(BootstrapperLogicalVersionString);
+                return new Version(LogicalVersionString);
             }
         }
 

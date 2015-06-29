@@ -13,27 +13,13 @@ using System.Net;
 
 namespace SonarQube.Bootstrapper
 {
-    public class BuildAgentUpdater
+    public class BuildAgentUpdater : IBuildAgentUpdater
     {
-        private const string SonarQubeIntegrationFilename = "SonarQube.MSBuild.Runner.Implementation.zip";
-        private const string IntegrationUrlFormat = "{0}/static/csharp/" + SonarQubeIntegrationFilename;
-        private readonly ILogger logger;
-
-        public BuildAgentUpdater(ILogger logger)
-        {
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
-
-            this.logger = logger;
-        }
-
         /// <summary>
         /// Gets a zip file containing the pre/post processors from the server
         /// </summary>
         /// <param name="hostUrl">The server Url</param>
-        public bool TryUpdate(string hostUrl, string targetDir)
+        public bool TryUpdate(string hostUrl, string targetDir, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(hostUrl))
             {
@@ -43,15 +29,19 @@ namespace SonarQube.Bootstrapper
             {
                 throw new ArgumentNullException("targetDir");
             }
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
 
             string integrationUrl = GetDownloadZipUrl(hostUrl);
-            string downloadedZipFilePath = Path.Combine(targetDir, SonarQubeIntegrationFilename);
+            string downloadedZipFilePath = Path.Combine(targetDir, BootstrapperSettings.SonarQubeIntegrationFilename);
 
             using (WebClient client = new WebClient())
             {
                 try
                 {
-                    logger.LogMessage(Resources.INFO_Downloading, SonarQubeIntegrationFilename, integrationUrl, downloadedZipFilePath);
+                    logger.LogMessage(Resources.INFO_Downloading, BootstrapperSettings.SonarQubeIntegrationFilename, integrationUrl, downloadedZipFilePath);
                     client.DownloadFile(integrationUrl, downloadedZipFilePath);
                 }
                 catch (WebException e)
@@ -72,13 +62,13 @@ namespace SonarQube.Bootstrapper
         }
 
         /// <summary>
-        /// "Verifies that the pre/post-processors are compatible with this version of the bootstrapper
+        /// Verifies that the pre/post-processors are compatible with this version of the bootstrapper
         /// </summary>
         /// <remarks>Older C# plugins will not have the file containg the supported versions - 
         /// in this case we fail because we are not backwards compatible with those versions</remarks>
         /// <param name="versionFilePath">path to the XML file containing the supported versions</param>
         /// <param name="bootstrapperVersion">current version</param>
-        public static bool CheckBootstrapperVersion(string versionFilePath, Version bootstrapperVersion)
+        public bool CheckBootstrapperApiVersion(string versionFilePath, Version bootstrapperVersion)
         {
             if (string.IsNullOrWhiteSpace(versionFilePath))
             {
@@ -118,7 +108,7 @@ namespace SonarQube.Bootstrapper
                 downloadZipUrl = downloadZipUrl.Substring(0, downloadZipUrl.Length - 1);
             }
 
-            downloadZipUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture, IntegrationUrlFormat, downloadZipUrl);
+            downloadZipUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}", BootstrapperSettings.IntegrationUrlSuffix, downloadZipUrl);
 
             return downloadZipUrl;
         }

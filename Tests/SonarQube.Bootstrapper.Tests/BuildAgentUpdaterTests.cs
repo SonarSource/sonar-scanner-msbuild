@@ -18,35 +18,38 @@ namespace SonarQube.Bootstrapper.Tests
         [TestMethod]
         public void VersionsMatch()
         {
-            Assert.IsTrue(BuildAgentUpdater.CheckBootstrapperVersion(CreateVersionFile("1.0"), new Version("1.0")));
-            Assert.IsTrue(BuildAgentUpdater.CheckBootstrapperVersion(CreateVersionFile("1.0", "2.0", "3"), new Version("1.0")));
-            Assert.IsTrue(BuildAgentUpdater.CheckBootstrapperVersion(CreateVersionFile("2.0", "1.0"), new Version("1.0")));
-            Assert.IsTrue(BuildAgentUpdater.CheckBootstrapperVersion(CreateVersionFile("2.0", "001.0"), new Version("1.0")));
+            BuildAgentUpdater updater = new BuildAgentUpdater();
+            Assert.IsTrue(updater.CheckBootstrapperApiVersion(CreateVersionFile("1.0"), new Version("1.0")));
+            Assert.IsTrue(updater.CheckBootstrapperApiVersion(CreateVersionFile("1.0", "2.0", "3"), new Version("1.0")));
+            Assert.IsTrue(updater.CheckBootstrapperApiVersion(CreateVersionFile("2.0", "1.0"), new Version("1.0")));
+            Assert.IsTrue(updater.CheckBootstrapperApiVersion(CreateVersionFile("2.0", "001.0"), new Version("1.0")));
 
-            Assert.IsTrue(BuildAgentUpdater.CheckBootstrapperVersion(CreateVersionFile("bogus", "1.0.0.0"), new Version("1.0.0.0")));
-            Assert.IsTrue(BuildAgentUpdater.CheckBootstrapperVersion(CreateVersionFile("", "1.0.0.0"), new Version("1.0.0.0")));
-            Assert.IsTrue(BuildAgentUpdater.CheckBootstrapperVersion(CreateVersionFile("1.0", "2.0", "1.0"), new Version("1.0")));
+            Assert.IsTrue(updater.CheckBootstrapperApiVersion(CreateVersionFile("bogus", "1.0.0.0"), new Version("1.0.0.0")));
+            Assert.IsTrue(updater.CheckBootstrapperApiVersion(CreateVersionFile("", "1.0.0.0"), new Version("1.0.0.0")));
+            Assert.IsTrue(updater.CheckBootstrapperApiVersion(CreateVersionFile("1.0", "2.0", "1.0"), new Version("1.0")));
         }
 
         [TestMethod]
         public void VersionsDoNotMatch()
         {
-            Assert.IsFalse(BuildAgentUpdater.CheckBootstrapperVersion(CreateVersionFile("1"), new Version("1.0")));
-            Assert.IsFalse(BuildAgentUpdater.CheckBootstrapperVersion(CreateVersionFile("1.0.0"), new Version("1.0")));
-            Assert.IsFalse(BuildAgentUpdater.CheckBootstrapperVersion(CreateVersionFile("2.0", "3.0", "bogus"), new Version("1.0")));
+            BuildAgentUpdater updater = new BuildAgentUpdater();
+            Assert.IsFalse(updater.CheckBootstrapperApiVersion(CreateVersionFile("1"), new Version("1.0")));
+            Assert.IsFalse(updater.CheckBootstrapperApiVersion(CreateVersionFile("1.0.0"), new Version("1.0")));
+            Assert.IsFalse(updater.CheckBootstrapperApiVersion(CreateVersionFile("2.0", "3.0", "bogus"), new Version("1.0")));
 
         }
 
         [TestMethod]
         public void NoVersionFile()
         {
+            BuildAgentUpdater updater = new BuildAgentUpdater();
             string versionFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             if (File.Exists(versionFilePath))
             {
                 Assert.Inconclusive("Test setup problem: file should not exist");
             }
 
-            Assert.IsFalse(BuildAgentUpdater.CheckBootstrapperVersion(versionFilePath, new Version("1.0")));
+            Assert.IsFalse(updater.CheckBootstrapperApiVersion(versionFilePath, new Version("1.0")));
 
         }
 
@@ -60,8 +63,6 @@ namespace SonarQube.Bootstrapper.Tests
             return path;
         }
 
-
     }
 
-    
 }
