@@ -79,6 +79,84 @@ namespace SonarQube.Bootstrapper.Tests
             logger.AssertSingleErrorExists("key2 ");
         }
 
+        [TestMethod]
+        public void ArgProc_BeginVerb()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+            string validUrl = "/p:sonar.host.url=http://foo";
+
+            // 1. Minimal parameters -> valid
+            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, validUrl, "begin");
+            AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
+            logger.AssertWarningsLogged(0);
+
+            // 2. With additional parameters -> valid
+            settings = CheckProcessingSucceeds(logger, validUrl, "begin", "ignored", "k=2");
+            AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
+            logger.AssertWarningsLogged(0);
+
+            // 3. Multiple occurrences -> error
+            logger = CheckProcessingFails(validUrl, "begin", "begin");
+            logger.AssertSingleErrorExists(ArgumentProcessor.BeginVerb);
+
+            // 4. Missing -> valid with warning
+            logger = new TestLogger();
+            CheckProcessingSucceeds(logger, validUrl);
+            logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb);
+
+            // 5. Incorrect case -> treated as unrecognised argument -> valid with warning
+            logger = new TestLogger();
+            CheckProcessingSucceeds(logger, validUrl, "BEGIN"); // wrong case
+            logger.AssertWarningsLogged(1);
+            logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb);
+        }
+
+        [TestMethod]
+        public void ArgProc_EndVerb()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+            string validUrl = "/p:sonar.host.url=http://foo";
+
+            // 1. Minimal parameters -> valid
+            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "end");
+            AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
+
+            // 2. With additional parameters -> valid
+            logger = new TestLogger();
+            settings = CheckProcessingSucceeds(logger, "end", "ignored", "/p:key=value");
+            AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
+            logger.AssertWarningsLogged(0);
+
+            // 3. Multiple occurrences -> invalid
+            logger = CheckProcessingFails(validUrl, "end", "end");
+            logger.AssertSingleErrorExists(ArgumentProcessor.EndVerb);
+
+            // 4. Missing, no other arguments -> valid with warning
+            logger = new TestLogger();
+            settings = CheckProcessingSucceeds(logger);
+            AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
+            logger.AssertWarningsLogged(1);
+
+            // 5. Incorrect case -> unrecognised -> treated as preprocessing; fails because no URL
+            logger = CheckProcessingFails("END");
+            logger.AssertWarningsLogged(1);
+        }
+
+        [TestMethod]
+        public void ArgProc_BeginAndEndVerbs()
+        {
+            // Arrange
+            TestLogger logger;
+            string validUrl = "/p:sonar.host.url=http://foo";
+
+            // 1. Both present
+            logger = CheckProcessingFails(validUrl, "begin", "end");
+            logger.AssertErrorsLogged(1);
+            logger.AssertSingleErrorExists("begin", "end");
+        }
+
         #endregion
 
 
@@ -112,6 +190,11 @@ namespace SonarQube.Bootstrapper.Tests
         private static void AssertExpectedUrl(string expected, IBootstrapperSettings settings)
         {
             Assert.AreEqual(expected, settings.SonarQubeUrl, "Unexpected SonarQube URL");
+        }
+
+        private static void AssertExpectedPhase(AnalysisPhase expected, IBootstrapperSettings settings)
+        {
+            Assert.AreEqual(expected, settings.Phase, "Unexpected analysis phase");
         }
 
         #endregion

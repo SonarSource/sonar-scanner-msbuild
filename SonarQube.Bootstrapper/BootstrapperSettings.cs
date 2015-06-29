@@ -65,25 +65,27 @@ namespace SonarQube.Bootstrapper
 
         private readonly ILogger logger;
         private readonly string sonarQubeUrl;
+        private readonly AnalysisPhase analysisPhase;
+
         private string tempDir;
         private string preProcFilePath;
         private string postProcFilePath;
-
+        
         #region Constructor(s)
         
-        public BootstrapperSettings(string sonarQubeUrl, ILogger logger)
+        public BootstrapperSettings(string sonarQubeUrl, AnalysisPhase phase, ILogger logger)
         {
-            if (string.IsNullOrWhiteSpace(sonarQubeUrl))
+            if (sonarQubeUrl == null)
             {
                 throw new ArgumentNullException("sonarQubeUrl");
             }
-
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
             }
 
             this.sonarQubeUrl = sonarQubeUrl;
+            this.analysisPhase = phase;
             this.logger = logger;
         }
 
@@ -150,6 +152,14 @@ namespace SonarQube.Bootstrapper
             get
             {
                 return new Version(LogicalVersionString);
+            }
+        }
+
+        public AnalysisPhase Phase
+        {
+            get
+            {
+                return this.analysisPhase;
             }
         }
 

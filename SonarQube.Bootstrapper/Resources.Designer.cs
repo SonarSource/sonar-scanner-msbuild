@@ -61,6 +61,33 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to begin - perform pre-MSBuild analysis steps.
+        /// </summary>
+        internal static string CmdLine_ArgDescription_Begin {
+            get {
+                return ResourceManager.GetString("CmdLine_ArgDescription_Begin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to end - perform post-MSBuild/post-test steps.
+        /// </summary>
+        internal static string CmdLine_ArgDescription_End {
+            get {
+                return ResourceManager.GetString("CmdLine_ArgDescription_End", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid command line parameters. Please specify either &apos;begin&apos; or &apos;end&apos;, not both..
+        /// </summary>
+        internal static string ERROR_CmdLine_BothBeginAndEndSupplied {
+            get {
+                return ResourceManager.GetString("ERROR_CmdLine_BothBeginAndEndSupplied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The SonarQube URL must be specified in a settings file or on the command line (e.g. using /p:sonar.host.url=http://myserver:9000 ).
         /// </summary>
         internal static string ERROR_CmdLine_UrlRequired {
@@ -106,7 +133,7 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Post-processing (no arguments passed).
+        ///   Looks up a localized string similar to Post-processing ({0} argument(s) passed).
         /// </summary>
         internal static string INFO_PostProcessing {
             get {
@@ -115,7 +142,7 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pre-processing ({0} arguments passed).
+        ///   Looks up a localized string similar to Pre-processing ({0} argument(s) passed).
         /// </summary>
         internal static string INFO_PreProcessing {
             get {
@@ -147,6 +174,15 @@ namespace SonarQube.Bootstrapper {
         internal static string INFO_UsingEnvVarToGetDirectory {
             get {
                 return ResourceManager.GetString("INFO_UsingEnvVarToGetDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please specify the command &apos;begin&apos; or &apos;end&apos; to indicate whether pre- or post-processing is required. These parameters will become mandatory in a later release..
+        /// </summary>
+        internal static string WARN_CmdLine_v09_Compat {
+            get {
+                return ResourceManager.GetString("WARN_CmdLine_v09_Compat", resourceCulture);
             }
         }
     }

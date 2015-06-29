@@ -49,7 +49,7 @@
     <Compile Include="BuildAgentUpdater.cs" />
     <Compile Include="BootstrapperSettings.cs" />
     <Compile Include="BootstrapperSupportedVersions.cs" />
-    <Compile Include="IBootstrapperSettings.cs" />
+    <Compile Include="Interfaces\IBootstrapperSettings.cs" />
     <Compile Include="Interfaces\IBuildAgentUpdater.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

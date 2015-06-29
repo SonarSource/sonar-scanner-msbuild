@@ -227,7 +227,7 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A value has already been supplied for this argument:{0}. Existing: {1}.
+        ///   Looks up a localized string similar to A value has already been supplied for this argument: {0}. Existing: &apos;{1}&apos;.
         /// </summary>
         internal static string ERROR_CmdLine_DuplicateArg {
             get {

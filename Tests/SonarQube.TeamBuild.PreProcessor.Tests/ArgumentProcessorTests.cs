@@ -17,8 +17,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     [TestClass]
     public class ArgumentProcessorTests
     {
-        private const string ActualRunnerPropertiesFileName = "sonar-runner.properties";
-
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -95,14 +93,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             // 0. Setup
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string propertiesFilePath = Path.Combine(testDir, ActualRunnerPropertiesFileName);
+            string propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
 
             // 1. File exists -> args ok
             AnalysisProperties properties = new AnalysisProperties();
+            properties.Add(new Property() { Id = "key1", Value = "value1" });
             properties.Save(propertiesFilePath);
 
             ProcessedArgs result = CheckProcessingSucceeds("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
             AssertExpectedValues("key", "name", "version", result);
+            AssertExpectedPropertyValue("key1", "value1", result);
 
             // 2. File does not exist -> args not ok
             File.Delete(propertiesFilePath);
@@ -187,8 +187,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             AssertExpectedValues("my.key", "my name", "1.2", result);
 
-            AssertExpectedDynamicValue("key1", "value1", result);
-            AssertExpectedDynamicValue("key2", "value two with spaces", result);
+            AssertExpectedPropertyValue("key1", "value1", result);
+            AssertExpectedPropertyValue("key2", "value two with spaces", result);
 
             Assert.IsNotNull(result.GetAllProperties(), "GetAllProperties should not return null");
             Assert.AreEqual(5, result.GetAllProperties().Count(), "Unexpected number of properties");
@@ -309,7 +309,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual(version, actual.ProjectVersion, "Unexpected project version");
         }
 
-        private static void AssertExpectedDynamicValue(string key, string value, ProcessedArgs actual)
+        private static void AssertExpectedPropertyValue(string key, string value, ProcessedArgs actual)
         {
             // Test the GetSetting method
             string actualValue = actual.GetSetting(key);

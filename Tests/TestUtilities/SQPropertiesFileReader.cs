@@ -19,7 +19,7 @@ namespace TestUtilities
     /// </summary>
     public class SQPropertiesFileReader
     {
-        //TODO: this expression only works for single-line values
+        // NB: this expression only works for single-line values
         // Regular expression pattern: we're looking for matches that:
         // * start at the beginning of a line
         // * start with a character or number

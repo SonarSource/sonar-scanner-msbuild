@@ -9,6 +9,13 @@ using System;
 
 namespace SonarQube.Bootstrapper
 {
+    public enum AnalysisPhase
+    {
+        Unspecified = 0,
+        PreProcessing,
+        PostProcessing
+    }
+
     /// <summary>
     /// Returns the settings required by the bootstrapper
     /// </summary>
@@ -45,5 +52,7 @@ namespace SonarQube.Bootstrapper
         /// Logical version of the bootstrapper 
         /// </summary>
         Version BootstrapperVersion { get; }
+
+        AnalysisPhase Phase { get; }
     }
 }

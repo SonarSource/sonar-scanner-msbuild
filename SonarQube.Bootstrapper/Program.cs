@@ -30,14 +30,15 @@ namespace SonarQube.Bootstrapper
             IBootstrapperSettings settings;
             if (ArgumentProcessor.TryProcessArgs(args, logger, out settings))
             {
-                if (args.Any())
+                Debug.Assert(settings.Phase != AnalysisPhase.Unspecified, "Expecting the processing phase to be specified");
+                if (settings.Phase == AnalysisPhase.PreProcessing)
                 {
                     logger.LogMessage(Resources.INFO_PreProcessing, args.Length);
                     exitCode = PreProcess(args, updater, settings, logger);
                 }
                 else
                 {
-                    logger.LogMessage(Resources.INFO_PostProcessing);
+                    logger.LogMessage(Resources.INFO_PostProcessing, args.Length);
                     exitCode = PostProcess(logger, settings);
                 }
             }

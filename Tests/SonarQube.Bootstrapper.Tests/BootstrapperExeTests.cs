@@ -134,19 +134,19 @@ namespace SonarQube.Bootstrapper.Tests
             };
 
             // Act
-            CheckExecutionSucceeds(mockUpdater,
-                "/p:sonar.host.url=http://anotherHost");
+            TestLogger logger = CheckExecutionSucceeds(mockUpdater,
+                "/p:sonar.host.url=http://anotherHost", "begin");
 
             // Assert
             mockUpdater.AssertUpdateAttempted();
             mockUpdater.AssertVersionChecked();
+            logger.AssertWarningsLogged(0);
 
             string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-            DummyExeHelper.AssertExpectedLogContents(logPath, "/p:sonar.host.url=http://anotherHost\r\n");
+            DummyExeHelper.AssertExpectedLogContents(logPath, "/p:sonar.host.url=http://anotherHost\r\nbegin\r\n");
         }
 
         [TestMethod]
-        [Ignore] // FIX: "end" verb is not implemented
         public void Exe_PostProc_Fails()
         {
             // Arrange
@@ -160,18 +160,18 @@ namespace SonarQube.Bootstrapper.Tests
             MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://h:9000");
 
             // Act
-            CheckExecutionFails(mockUpdater, "end");
+            TestLogger logger = CheckExecutionFails(mockUpdater, "end");
 
             // Assert
             mockUpdater.AssertUpdateNotAttempted();
             mockUpdater.AssertVersionNotChecked();
+            logger.AssertWarningsLogged(0);
 
             string logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
-            DummyExeHelper.AssertExpectedLogContents(logPath, "Parameters: ");
+            DummyExeHelper.AssertExpectedLogContents(logPath, string.Empty);
         }
 
         [TestMethod]
-        [Ignore] // FIX: "end" verb is not implemented
         public void Exe_PostProc_Succeeds()
         {
             // Arrange
@@ -185,14 +185,15 @@ namespace SonarQube.Bootstrapper.Tests
             MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://h:9000");
 
             // Act
-            CheckExecutionSucceeds(mockUpdater, "end");
+            TestLogger logger = CheckExecutionSucceeds(mockUpdater, "end");
 
             // Assert
             mockUpdater.AssertUpdateNotAttempted();
             mockUpdater.AssertVersionNotChecked();
+            logger.AssertWarningsLogged(0);
 
             string logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
-            DummyExeHelper.AssertExpectedLogContents(logPath, "Parameters: ");
+            DummyExeHelper.AssertExpectedLogContents(logPath, string.Empty);
         }
 
         [TestMethod]
@@ -227,7 +228,9 @@ namespace SonarQube.Bootstrapper.Tests
             try
             {
                 // Call the pre-processor
-                CheckExecutionSucceeds(mockUpdater, "/v:version", "/n:name", "/k:key");
+                TestLogger logger = CheckExecutionSucceeds(mockUpdater, "/v:version", "/n:name", "/k:key");
+                logger.AssertWarningsLogged(1); // Should be warned once about the missing "begin" / "end"
+                logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb, ArgumentProcessor.EndVerb);
 
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionChecked();
@@ -239,9 +242,13 @@ namespace SonarQube.Bootstrapper.Tests
 
 
                 // Call the post-process (no arguments)
-                CheckExecutionSucceeds(mockUpdater);
+                logger = CheckExecutionSucceeds(mockUpdater);
+
                 logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
                 DummyExeHelper.AssertExpectedLogContents(logPath, string.Empty);
+
+                logger.AssertWarningsLogged(1); // Should be warned once about the missing "begin" / "end"
+                logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb, ArgumentProcessor.EndVerb);
             }
             finally
             {
@@ -308,7 +315,6 @@ namespace SonarQube.Bootstrapper.Tests
 
             Assert.AreEqual(0, exitCode, "Bootstrapper did not return the expected exit code");
             logger.AssertErrorsLogged(0);
-            logger.AssertWarningsLogged(0);
 
             return logger;
         }
