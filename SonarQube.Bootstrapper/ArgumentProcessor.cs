@@ -28,8 +28,10 @@ namespace SonarQube.Bootstrapper
 
         #region Arguments definitions
 
-        public const string BeginVerb = "begin";
+        private const string BeginId = "begin.id";
+        private const string EndId = "end.id";
 
+        public const string BeginVerb = "begin";
         public const string EndVerb = "end";
 
         private static IList<ArgumentDescriptor> Descriptors;
@@ -41,10 +43,10 @@ namespace SonarQube.Bootstrapper
             Descriptors = new List<ArgumentDescriptor>();
 
             Descriptors.Add(new ArgumentDescriptor(
-                id: "begin.id", prefixes: new string[] { BeginVerb }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_Begin));
+                id: BeginId, prefixes: new string[] { BeginVerb }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_Begin));
 
             Descriptors.Add(new ArgumentDescriptor(
-                id: "end.id", prefixes: new string[] { EndVerb }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_End));
+                id: EndId, prefixes: new string[] { EndVerb }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_End));
 
             Descriptors.Add(AnalysisPropertyFileProvider.Descriptor);
             Descriptors.Add(CmdLineArgPropertyProvider.Descriptor);
@@ -111,8 +113,8 @@ namespace SonarQube.Bootstrapper
         {
             // The command line parser will already have checked for duplicates
             ArgumentInstance argumentInstance;
-            bool hasBeginVerb = ArgumentInstance.TryGetArgument("begin", arguments, out argumentInstance);
-            bool hasEndVerb = ArgumentInstance.TryGetArgument("end", arguments, out argumentInstance);
+            bool hasBeginVerb = ArgumentInstance.TryGetArgument(BeginId, arguments, out argumentInstance);
+            bool hasEndVerb = ArgumentInstance.TryGetArgument(EndId, arguments, out argumentInstance);
 
             if (hasBeginVerb && hasEndVerb) // both
             {
