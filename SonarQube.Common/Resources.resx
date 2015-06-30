@@ -188,7 +188,7 @@
     <value>Unable to read the SonarQube analysis settings file '{0}'. Please fix the content of this file.</value>
   </data>
   <data name="CmdLine_ArgDescription_DynamicProperty" xml:space="preserve">
-    <value>/p:[key]=[value]</value>
+    <value>/d:[key]=[value]</value>
   </data>
   <data name="ERROR_CmdLine_CannotSetPropertyOnCommandLine" xml:space="preserve">
     <value>The property '{0}' is automatically set by the MSBuild Runner and cannot be overridden on the command line.</value>

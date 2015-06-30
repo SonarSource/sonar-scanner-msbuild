@@ -19,7 +19,7 @@ namespace SonarQube.Common
         public const string DynamicPropertyArgumentId = "dynamic.property";
 
         public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(
-            id: DynamicPropertyArgumentId, prefixes: new string[] { "/p:" }, required: false, allowMultiple: true, description: Resources.CmdLine_ArgDescription_DynamicProperty);
+            id: DynamicPropertyArgumentId, prefixes: new string[] { "/d:" }, required: false, allowMultiple: true, description: Resources.CmdLine_ArgDescription_DynamicProperty);
 
         private readonly IEnumerable<Property> properties;
            
@@ -99,7 +99,7 @@ namespace SonarQube.Common
         /// <param name="analysisProperties">The extracted analysis properties, if any</param>
         /// <returns>Returns false if any errors are encountered, otherwise true</returns>
         /// <remarks>
-        /// Analysis properties (/p:[key]=[value] arguments) need further processing. We need
+        /// Analysis properties (/d:[key]=[value] arguments) need further processing. We need
         /// to extract the key-value pairs and check for duplicate keys.
         /// </remarks>
         private static bool ExtractAndValidateProperties(IEnumerable<ArgumentInstance> arguments, ILogger logger, out IEnumerable<Property> analysisProperties)

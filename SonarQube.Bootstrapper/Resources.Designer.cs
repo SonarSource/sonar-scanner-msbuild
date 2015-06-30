@@ -88,7 +88,7 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The SonarQube URL must be specified in a settings file or on the command line (e.g. using /p:sonar.host.url=http://myserver:9000 ).
+        ///   Looks up a localized string similar to The SonarQube URL must be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000 ).
         /// </summary>
         internal static string ERROR_CmdLine_UrlRequired {
             get {

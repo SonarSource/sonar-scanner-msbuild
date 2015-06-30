@@ -127,7 +127,7 @@
     <value>Invalid command line parameters. Please specify either 'begin' or 'end', not both.</value>
   </data>
   <data name="ERROR_CmdLine_UrlRequired" xml:space="preserve">
-    <value>The SonarQube URL must be specified in a settings file or on the command line (e.g. using /p:sonar.host.url=http://myserver:9000 )</value>
+    <value>The SonarQube URL must be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000 )</value>
   </data>
   <data name="ERROR_CouldNotFindIntegrationZip" xml:space="preserve">
     <value>Could not find the SonarQube MSBuild Runner implementation. Verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted.</value>

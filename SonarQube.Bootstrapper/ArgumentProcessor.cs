@@ -17,7 +17,7 @@ namespace SonarQube.Bootstrapper
 {
     /// <summary>
     /// Processes the command line arguments.
-    /// Supports the standard property-related arguments automatically (i.e. /p: and /s:).
+    /// Supports the standard property-related arguments automatically (i.e. /d: and /s:).
     /// The appropriate "additionalDescriptors" should be supplied to provide support for other command line arguments.
     /// </summary>
     public static class ArgumentProcessor

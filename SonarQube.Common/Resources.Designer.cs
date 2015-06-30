@@ -61,7 +61,7 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /p:[key]=[value].
+        ///   Looks up a localized string similar to /d:[key]=[value].
         /// </summary>
         internal static string CmdLine_ArgDescription_DynamicProperty {
             get {

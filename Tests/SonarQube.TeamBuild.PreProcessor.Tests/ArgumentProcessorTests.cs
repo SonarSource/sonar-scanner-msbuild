@@ -64,7 +64,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             TestLogger logger;
 
             // 1. Additional unrecognised arguments
-            logger = CheckProcessingFails("unrecog2", "/key:k1", "/name:n1", "/version:v1", "unrecog1", string.Empty);
+            logger = CheckProcessingFails("unrecog2", "/key:k1", "/name:n1", "/version:v1", "unrecog1", "/p:key=value", string.Empty);
 
             logger.AssertErrorDoesNotExist("/key:");
             logger.AssertErrorDoesNotExist("/name:");
@@ -72,7 +72,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             logger.AssertSingleErrorExists("unrecog1");
             logger.AssertSingleErrorExists("unrecog2");
-            logger.AssertErrorsLogged(3); // unrecog1, unrecog2, and the empty string
+            logger.AssertSingleErrorExists("/p:key=value"); // /p: is no longer supported - should be /d:
+            logger.AssertErrorsLogged(4); // unrecog1, unrecog2, /p: and the empty string
 
             // 2. Arguments using the wrong separator i.e. /k=k1  instead of /k:k1
             logger = CheckProcessingFails("/key=k1", "/name=n1", "/version=v1");
@@ -183,7 +184,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // 1. Args ok            
             ProcessedArgs result = CheckProcessingSucceeds(
                 "/key:my.key", "/name:my name", "/version:1.2",
-                "/p:key1=value1", "/p:key2=value two with spaces");
+                "/d:key1=value1", "/d:key2=value two with spaces");
 
             AssertExpectedValues("my.key", "my name", "1.2", result);
 
@@ -202,11 +203,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // Act 
             logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2",
-                    "/p:invalid1 =aaa",
-                    "/p:notkeyvalue",
-                    "/p: spacebeforekey=bb",
-                    "/p:missingvalue=",
-                    "/p:validkey=validvalue");
+                    "/d:invalid1 =aaa",
+                    "/d:notkeyvalue",
+                    "/d: spacebeforekey=bb",
+                    "/d:missingvalue=",
+                    "/d:validkey=validvalue");
 
             // Assert
             logger.AssertSingleErrorExists("invalid1 =aaa");
@@ -225,8 +226,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // Act 
             logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2",
-                    "/p:dup1=value1", "/p:dup1=value2", "/p:dup2=value3", "/p:dup2=value4",
-                    "/p:unique=value5");
+                    "/d:dup1=value1", "/d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4",
+                    "/d:unique=value5");
 
             // Assert
             logger.AssertSingleErrorExists("dup1=value2", "value1");
@@ -243,32 +244,32 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // 1. Named arguments cannot be overridden
             logger = CheckProcessingFails(
                 "/key:my.key", "/name:my name", "/version:1.2",
-                "/p:sonar.projectKey=value1");
+                "/d:sonar.projectKey=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectKey, "/k");
 
 
             logger = CheckProcessingFails(
                 "/key:my.key", "/name:my name", "/version:1.2",
-                "/p:sonar.projectName=value1");
+                "/d:sonar.projectName=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectName, "/n");
 
 
             logger = CheckProcessingFails(
                 "/key:my.key", "/name:my name", "/version:1.2",
-                "/p:sonar.projectVersion=value1");
+                "/d:sonar.projectVersion=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectVersion, "/v");
 
 
             // 2. Other values that can't be set
             logger = CheckProcessingFails(
                 "/key:my.key", "/name:my name", "/version:1.2",
-                "/p:sonar.projectBaseDir=value1");
+                "/d:sonar.projectBaseDir=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectBaseDir);
 
 
             logger = CheckProcessingFails(
                 "/key:my.key", "/name:my name", "/version:1.2",
-                "/p:sonar.working.directory=value1");
+                "/d:sonar.working.directory=value1");
             logger.AssertSingleErrorExists(SonarProperties.WorkingDirectory);
 
         }

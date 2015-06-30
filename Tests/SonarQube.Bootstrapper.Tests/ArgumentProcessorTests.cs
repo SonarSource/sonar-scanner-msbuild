@@ -25,7 +25,7 @@ namespace SonarQube.Bootstrapper.Tests
             TestLogger logger = new TestLogger();
 
             // 1. Minimal command line settings with extra values
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/p:sonar.host.url=foo", "foo", "blah", "/xxxx");
+            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "foo", "blah", "/xxxx");
             AssertExpectedUrl("foo", settings);
         }
 
@@ -34,7 +34,7 @@ namespace SonarQube.Bootstrapper.Tests
         {
             TestLogger logger;
             
-            logger = CheckProcessingFails("/p:SONAR.host.url=foo"); // case-sensitive key name so won't be found
+            logger = CheckProcessingFails("/d:SONAR.host.url=foo"); // case-sensitive key name so won't be found
             logger.AssertSingleErrorExists("sonar.host.url");
         }
         
@@ -57,23 +57,23 @@ namespace SonarQube.Bootstrapper.Tests
             AssertExpectedUrl("http://settingsFile", settings);
 
             // 2. Both file and cmd line
-            settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath, "/p:sonar.host.url=http://cmdline");
+            settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath, "/d:sonar.host.url=http://cmdline");
             AssertExpectedUrl("http://cmdline", settings); // cmd line wins
 
             // 3. Cmd line only
-            settings = CheckProcessingSucceeds(logger, "/p:sonar.host.url=http://cmdline", "/p:other=property", "/p:a=b c");
+            settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=http://cmdline", "/d:other=property", "/d:a=b c");
             AssertExpectedUrl("http://cmdline", settings);
         }
 
         [TestMethod]
         public void ArgProc_InvalidCmdLineProperties()
         {
-            // Incorrectly formed /p:[key]=[value] arguments
+            // Incorrectly formed /d:[key]=[value] arguments
             TestLogger logger;
 
-            logger = CheckProcessingFails("/p:sonar.host.url=foo",
-                "/p: key1=space before",
-                "/p:key2 = space after)");
+            logger = CheckProcessingFails("/d:sonar.host.url=foo",
+                "/d: key1=space before",
+                "/d:key2 = space after)");
 
             logger.AssertSingleErrorExists(" key1");
             logger.AssertSingleErrorExists("key2 ");
@@ -84,7 +84,7 @@ namespace SonarQube.Bootstrapper.Tests
         {
             // Arrange
             TestLogger logger = new TestLogger();
-            string validUrl = "/p:sonar.host.url=http://foo";
+            string validUrl = "/d:sonar.host.url=http://foo";
 
             // 1. Minimal parameters -> valid
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, validUrl, "begin");
@@ -117,7 +117,7 @@ namespace SonarQube.Bootstrapper.Tests
         {
             // Arrange
             TestLogger logger = new TestLogger();
-            string validUrl = "/p:sonar.host.url=http://foo";
+            string validUrl = "/d:sonar.host.url=http://foo";
 
             // 1. Minimal parameters -> valid
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "end");
@@ -125,7 +125,7 @@ namespace SonarQube.Bootstrapper.Tests
 
             // 2. With additional parameters -> valid
             logger = new TestLogger();
-            settings = CheckProcessingSucceeds(logger, "end", "ignored", "/p:key=value");
+            settings = CheckProcessingSucceeds(logger, "end", "ignored", "/d:key=value");
             AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
             logger.AssertWarningsLogged(0);
 
@@ -149,7 +149,7 @@ namespace SonarQube.Bootstrapper.Tests
         {
             // Arrange
             TestLogger logger;
-            string validUrl = "/p:sonar.host.url=http://foo";
+            string validUrl = "/d:sonar.host.url=http://foo";
 
             // 1. Both present
             logger = CheckProcessingFails(validUrl, "begin", "end");

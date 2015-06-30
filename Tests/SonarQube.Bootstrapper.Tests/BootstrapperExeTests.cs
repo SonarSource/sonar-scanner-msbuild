@@ -32,7 +32,7 @@ namespace SonarQube.Bootstrapper.Tests
                 MockBuildAgentUpdater mockUpdater = new MockBuildAgentUpdater();
 
                 // Act
-                TestLogger logger = CheckExecutionFails(mockUpdater, "/p: badkey=123");
+                TestLogger logger = CheckExecutionFails(mockUpdater, "/d: badkey=123");
 
                 // Assert
                 mockUpdater.AssertUpdateNotAttempted();
@@ -57,7 +57,7 @@ namespace SonarQube.Bootstrapper.Tests
                 mockUpdater.TryUpdateReturnValue = false;
 
                 // Act
-                TestLogger logger = CheckExecutionFails(mockUpdater, "/p:sonar.host.url=http://host:9000");
+                TestLogger logger = CheckExecutionFails(mockUpdater, "/d:sonar.host.url=http://host:9000");
 
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
@@ -80,7 +80,7 @@ namespace SonarQube.Bootstrapper.Tests
                 mockUpdater.VersionCheckReturnValue = false;
 
                 // Act
-                TestLogger logger = CheckExecutionFails(mockUpdater, "/p:sonar.host.url=http://ahost");
+                TestLogger logger = CheckExecutionFails(mockUpdater, "/d:sonar.host.url=http://ahost");
 
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
@@ -111,15 +111,15 @@ namespace SonarQube.Bootstrapper.Tests
 
                 // Act
                 CheckExecutionFails(mockUpdater,
-                    "/p:sonar.host.url=http://host:9",
-                    "/p:another.key=will be ignored");
+                    "/d:sonar.host.url=http://host:9",
+                    "/d:another.key=will be ignored");
 
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionChecked();
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, "/p:sonar.host.url=http://host:9\r\n/p:another.key=will be ignored\r\n");
+                DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://host:9\r\n/d:another.key=will be ignored\r\n");
             }
         }
 
@@ -142,7 +142,7 @@ namespace SonarQube.Bootstrapper.Tests
 
                 // Act
                 TestLogger logger = CheckExecutionSucceeds(mockUpdater,
-                    "/p:sonar.host.url=http://anotherHost", "begin");
+                    "/d:sonar.host.url=http://anotherHost", "begin");
 
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
@@ -150,7 +150,7 @@ namespace SonarQube.Bootstrapper.Tests
                 logger.AssertWarningsLogged(0);
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, "/p:sonar.host.url=http://anotherHost\r\nbegin\r\n");
+                DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://anotherHost\r\nbegin\r\n");
             }
         }
 
