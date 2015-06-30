@@ -132,15 +132,9 @@ xxx yyy
 
             try
             {
-                try
-                {
-                    Environment.SetEnvironmentVariable("proc.runner.test.machine", "existing machine value", EnvironmentVariableTarget.Machine);
-                }
-                catch (System.Security.SecurityException)
-                {
-                    logger.LogWarning("Test setup error: user running the test doesn't have the permissions to set machine level variables");
-                }
-
+                // It's possible the user won't be have permissions to set machine level variables
+                // (e.g. when running on a build agent). Carry on with testing the other variables.
+                SafeSetEnvironmentVariable("proc.runner.test.machine", "existing machine value", EnvironmentVariableTarget.Machine, logger);
                 Environment.SetEnvironmentVariable("proc.runner.test.process", "existing process value", EnvironmentVariableTarget.Process);
                 Environment.SetEnvironmentVariable("proc.runner.test.user", "existing user value", EnvironmentVariableTarget.User);
 
@@ -164,7 +158,7 @@ xxx yyy
             }
             finally
             {
-                Environment.SetEnvironmentVariable("proc.runner.test.machine", null, EnvironmentVariableTarget.Machine);
+                SafeSetEnvironmentVariable("proc.runner.test.machine", null, EnvironmentVariableTarget.Machine, logger);
                 Environment.SetEnvironmentVariable("proc.runner.test.process", null, EnvironmentVariableTarget.Process);
                 Environment.SetEnvironmentVariable("proc.runner.test.user", null, EnvironmentVariableTarget.User);
             }
@@ -195,6 +189,19 @@ xxx yyy
             Assert.IsFalse(File.Exists(fileName), "Not expecting a batch file to already exist: {0}", fileName);
             File.WriteAllText(fileName, content);
             return fileName;
+        }
+
+        private static void SafeSetEnvironmentVariable(string key, string value, EnvironmentVariableTarget target, ILogger logger)
+        {
+            try
+            {
+                Environment.SetEnvironmentVariable(key, value, target);
+            }
+            catch (System.Security.SecurityException)
+            {
+                logger.LogWarning("Test setup error: user running the test doesn't have the permissions to set the environment variable. Key: {0}, value: {1}, target: {2}",
+                    key, value, target);
+            }
         }
 
         #endregion
