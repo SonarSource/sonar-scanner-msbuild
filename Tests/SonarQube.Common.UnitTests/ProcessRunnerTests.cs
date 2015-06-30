@@ -132,7 +132,15 @@ xxx yyy
 
             try
             {
-                Environment.SetEnvironmentVariable("proc.runner.test.machine", "existing machine value", EnvironmentVariableTarget.Machine);
+                try
+                {
+                    Environment.SetEnvironmentVariable("proc.runner.test.machine", "existing machine value", EnvironmentVariableTarget.Machine);
+                }
+                catch (System.Security.SecurityException)
+                {
+                    logger.LogWarning("Test setup error: user running the test doesn't have the permissions to set machine level variables");
+                }
+
                 Environment.SetEnvironmentVariable("proc.runner.test.process", "existing process value", EnvironmentVariableTarget.Process);
                 Environment.SetEnvironmentVariable("proc.runner.test.user", "existing user value", EnvironmentVariableTarget.User);
 
