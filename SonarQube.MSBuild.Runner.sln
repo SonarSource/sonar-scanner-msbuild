@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23023.0
+VisualStudioVersion = 14.0.22823.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.MSBuild.Tasks", "SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
 EndProject
@@ -36,11 +36,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Bootstrapper.Tests", "Tests\SonarQube.Bootstrapper.Tests\SonarQube.Bootstrapper.Tests.csproj", "{3410EA30-5F7A-4E0F-B5F6-8E83077A20DB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packaging", "Packaging", "{37FB4C72-0F3D-4BF2-9F78-2780A76746A2}"
-	ProjectSection(SolutionItems) = preProject
-		PackagingProjects\RepackageCSharpPlugin.ps1 = PackagingProjects\RepackageCSharpPlugin.ps1
-		PackagingProjects\RepackageCSharpPluging_Readme.txt = PackagingProjects\RepackageCSharpPluging_Readme.txt
-		PackagingProjects\RepackageCSharpPluginHelper.ps1 = PackagingProjects\RepackageCSharpPluginHelper.ps1
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StepPackaging", "PackagingProjects\BuildVNextSteps\StepPackaging.csproj", "{BD2F0AD7-610A-4D7F-901C-D939D406997B}"
 EndProject

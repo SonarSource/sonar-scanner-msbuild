@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- 
-  This project packages the assemblies and targets files that form the payload that gets placed inside the CSharp pluging on the SonarQube server. 
-  Navigate to \DeploymentArtifacts to pick them up. You still need to zip the files etc. 
+  This project packages the assemblies and targets files that form the payload that gets placed inside the CSharp plugin on the SonarQube server. 
+  Navigate to \DeploymentArtifacts to pick them up. It also calls a ps script that re-creates the plugin based on an existing one. 
   -->
   <!-- These PropertyGroups seem to be needed otherwise VS does not recognize Release as a configuration option for this project
   and it will default to Debug even if the solution is set to build in Release -->
@@ -32,7 +32,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\..</SourcesRoot>
-    <DestinationDir>$(SourcesRoot)\DeploymentArtifacts\CSharpPlugingPayload\$(Configuration)\</DestinationDir>
+    <DestinationDir>$(SourcesRoot)\DeploymentArtifacts\CSharpPluginPayload\$(Configuration)\</DestinationDir>
     <!-- OutputPath is required by the Clean and Rebuild tasks -->
     <OutputPath>$(DestinationDir)</OutputPath>
   </PropertyGroup>
@@ -41,6 +41,7 @@
   </PropertyGroup>
   <ItemGroup>
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SonarQube.MSBuild.PreProcessor.exe" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SupportedBootstrapperVersions.xml" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SupportedBootstrapperVersions.xml" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SonarQube.MSBuild.PreProcessor.exe.config" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\Newtonsoft.Json.dll" />
@@ -83,6 +84,12 @@
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\SonarQube.TeamBuild.Integration.pdb" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\SonarQube.MSBuild.Tasks.pdb" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="RepackageCSharpPlugin.ps1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="JarPackaging_Readme.txt" />
+  </ItemGroup>
   <Target Name="CreatePayload" AfterTargets="Build">
     <CallTarget Targets="CleanExistingPayload" />
     <CallTarget Targets="CopyPayloadFiles" />
@@ -93,6 +100,10 @@
   </Target>
   <Target Name="CleanExistingPayload" AfterTargets="Clean">
     <RemoveDir Directories="$(DestinationDir)" />
+  </Target>
+  <Target Name="PackageJar" AfterTargets="CreatePayload">
+    <!-- DO NOT introduce newlines in the command bellow as it will block powershell-->
+    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;&amp; invoke-command -scriptblock { &amp;'./RepackageCSharpPlugin.ps1' '$(Configuration)' } &quot;" />
   </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
