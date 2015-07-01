@@ -216,12 +216,16 @@ namespace SonarQube.Bootstrapper.Tests
 
         [TestMethod]
         public void Exe__Version0_9Compatibility()
-        { 
+        {
             // Tests compatibility with the bootstrapper API used in v0.9
             // The pre-processor should be called if any arguments are passed.
             // The post-processor should be called if no arguments are passed.
-            // However, there must be a default settings file next to the
-            // bootstrapper exe to supply the necessary settings.
+
+            // Default settings:
+            // There must be a default settings file next to the bootstrapper exe to supply 
+            // the necessary settings, and the bootstrapper should pass this settings path 
+            // to the pre-processor (since the pre-process is downloaded to a different
+            // directory).
 
             // Arrange
             string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
@@ -254,7 +258,7 @@ namespace SonarQube.Bootstrapper.Tests
                     mockUpdater.AssertVersionChecked();
 
                     string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-                    DummyExeHelper.AssertExpectedLogContents(logPath, "/v:version\r\n/n:name\r\n/k:key\r\n");
+                    DummyExeHelper.AssertExpectedLogContents(logPath, "/v:version\r\n/n:name\r\n/k:key\r\n/s:" + defaultPropertiesFilePath + "\r\n");
 
                     DummyExeHelper.AssertDummyPostProcLogDoesNotExist(binDir);
 
@@ -319,7 +323,7 @@ namespace SonarQube.Bootstrapper.Tests
             defaultProperties.Save(defaultPropertiesFilePath);
             return defaultPropertiesFilePath;
         }
-        
+
         #endregion
 
         #region Checks

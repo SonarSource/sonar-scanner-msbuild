@@ -61,12 +61,6 @@ namespace TestUtilities
             this.ExtractProperties(fullPath);
         }
 
-        // Should be dropped with SONARMSBRU-84
-        public IDictionary<string, string> GetProperties()
-        {
-            return properties;
-        }
-
         public string GetProperty(string propertyName)
         {
             string value;

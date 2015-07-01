@@ -129,9 +129,6 @@
   <data name="ERROR_CmdLine_UrlRequired" xml:space="preserve">
     <value>The SonarQube URL must be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000 )</value>
   </data>
-  <data name="ERROR_CouldNotFindSonarRunnerProperties" xml:space="preserve">
-    <value>Could not find the sonar-project.properties from the sonar-runner in %PATH%.</value>
-  </data>
   <data name="ERROR_FailedToUpdateRunnerBinaries" xml:space="preserve">
     <value>Failed to update the SonarQube MSBuild Runner binaries. Verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted.</value>
   </data>
@@ -148,7 +145,7 @@
     <value>Downloading {0} from {1} to {2}</value>
   </data>
   <data name="INFO_ProcessingStarted" xml:space="preserve">
-    <value>{0} ({1} argument(s) passed)</value>
+    <value>{0} started.</value>
   </data>
   <data name="INFO_ProcessingSucceeded" xml:space="preserve">
     <value>{0} succeeded.</value>

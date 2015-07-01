@@ -54,5 +54,10 @@ namespace SonarQube.Bootstrapper
         Version BootstrapperVersion { get; }
 
         AnalysisPhase Phase { get; }
+
+        /// <summary>
+        /// The command line arguments to pass to the child process
+        /// </summary>
+        string ChildCmdLineArgs { get; }
     }
 }

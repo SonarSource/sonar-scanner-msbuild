@@ -19,11 +19,14 @@ namespace SonarQube.Common
     {
         private const string DescriptorId = "properties.file.argument";
 
-        public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(DescriptorId, new string[] { "/s:" }, false, Resources.CmdLine_ArgDescription_PropertiesFilePath, false);
+        public const string Prefix = "/s:";
+
+        public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(DescriptorId, new string[] { Prefix }, false, Resources.CmdLine_ArgDescription_PropertiesFilePath, false);
 
         public const string DefaultFileName = "SonarQube.Analysis.xml";
 
         private readonly AnalysisProperties propertiesFile;
+        private readonly bool isDefaultPropertiesFile;
 
         #region Public methods
 
@@ -51,12 +54,11 @@ namespace SonarQube.Common
 
             // If the path to a properties file was specified on the command line, use that.
             // Otherwise, look for a default properties file in the default directory.
-
             string propertiesFilePath;
-            ArgumentInstance.TryGetArgumentValue(DescriptorId, commandLineArguments, out propertiesFilePath);
+            bool settingsFileArgExists = ArgumentInstance.TryGetArgumentValue(DescriptorId, commandLineArguments, out propertiesFilePath);
 
             AnalysisProperties locatedPropertiesFile;
-            if(ResolveFilePath(propertiesFilePath, defaultPropertiesFileDirectory, logger, out locatedPropertiesFile))
+            if (ResolveFilePath(propertiesFilePath, defaultPropertiesFileDirectory, logger, out locatedPropertiesFile))
             {
                 if (locatedPropertiesFile == null)
                 {
@@ -64,7 +66,7 @@ namespace SonarQube.Common
                 }
                 else
                 {
-                    provider = new FilePropertyProvider(locatedPropertiesFile);
+                    provider = new FilePropertyProvider(locatedPropertiesFile, !settingsFileArgExists);
                 }
                 return true;
             }
@@ -74,6 +76,8 @@ namespace SonarQube.Common
         }
 
         public AnalysisProperties PropertiesFile {  get { return this.propertiesFile; } }
+
+        public bool IsDefaultSettingsFile { get { return this.isDefaultPropertiesFile; } }
 
         #endregion
 
@@ -93,18 +97,19 @@ namespace SonarQube.Common
 
         #region Private methods
 
-        private FilePropertyProvider(AnalysisProperties properties)
+        private FilePropertyProvider(AnalysisProperties properties, bool isDefaultPropertiesFile)
         {
             if (properties == null)
             {
                 throw new ArgumentNullException("properties");
             }
             this.propertiesFile = properties;
+            this.isDefaultPropertiesFile = isDefaultPropertiesFile;
         }
 
         /// <summary>
         /// Attempt to find a properties file - either the one specified by the user, or the default properties file.
-        /// Returns false if a path is specified to a file that does not exist, otherwise returns true
+        /// Returns true if the path to a file could be resolved, othewise false.
         /// </summary>
         private static bool ResolveFilePath(string propertiesFilePath, string defaultPropertiesFileDirectory, ILogger logger, out AnalysisProperties properties)
         {

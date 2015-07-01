@@ -103,25 +103,19 @@ namespace SonarQube.Bootstrapper
                 Debug.Assert(globalFileProperties != null);
                 IAnalysisPropertyProvider properties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties);
 
-                parsedOk = TryCreatePhaseSpecificSettings(phase, properties, logger, out settings);
+                IList<string> baseChildArgs = RemoveBootstrapperArgs(commandLineArgs);
+
+                if (phase == AnalysisPhase.PreProcessing)
+                {
+                    settings = CreatePreProcessorSettings(baseChildArgs, properties, globalFileProperties, logger);
+                }
+                else
+                {
+                    settings = CreatePostProcessorSettings(baseChildArgs, properties, logger);
+                }
             }
 
             return settings != null;
-        }
-
-        /// <summary>
-        /// Strips out any arguments that are only relevant to the boot strapper from the user-supplied
-        /// command line arguments
-        /// </summary>
-        /// <remarks>We don't want to forward these arguments to the pre- or post- processor</remarks>
-        public static string[] RemoveBootstrapperArgs(string[] commandLineArgs)
-        {
-            if (commandLineArgs == null)
-            {
-                throw new ArgumentNullException("param");
-            }
-
-            return commandLineArgs.Except(new string[] { BeginVerb, EndVerb }).ToArray();
         }
 
         #endregion
@@ -155,25 +149,29 @@ namespace SonarQube.Bootstrapper
             return phase != AnalysisPhase.Unspecified;
         }
 
-        private static bool TryCreatePhaseSpecificSettings(AnalysisPhase phase, IAnalysisPropertyProvider properties, ILogger logger, out IBootstrapperSettings settings)
+        private static IBootstrapperSettings CreatePreProcessorSettings(IList<string> baseChildArgs, IAnalysisPropertyProvider properties, IAnalysisPropertyProvider globalFileProperties, ILogger logger)
         {
-            Debug.Assert(phase != AnalysisPhase.Unspecified);
-
-            settings = null;
-
-            if (phase == AnalysisPhase.PreProcessing)
+            IBootstrapperSettings settings = null;
+            string url;
+            if (TryGetUrl(properties, logger, out url))
             {
-                string url;
-                if (TryGetUrl(properties, logger, out url))
+                // If we're using the default properties file then we need to pass it
+                // explicitly to the pre-processor (it's in a different folder and won't
+                // be able to find it otherwise).
+                FilePropertyProvider fileProvider = globalFileProperties as FilePropertyProvider;
+                if (fileProvider != null && fileProvider.IsDefaultSettingsFile)
                 {
-                    settings = new BootstrapperSettings(url, AnalysisPhase.PreProcessing, logger);
+                    Debug.Assert(fileProvider.PropertiesFile != null);
+                    Debug.Assert(!string.IsNullOrEmpty(fileProvider.PropertiesFile.FilePath), "Expecting the properties file path to be set");
+                    baseChildArgs.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}", FilePropertyProvider.Prefix, fileProvider.PropertiesFile.FilePath));
                 }
+
+                string childArgs = GetChildProcCmdLineParams(baseChildArgs);
+
+                settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, childArgs, url, logger);
             }
-            else
-            {
-                settings = new BootstrapperSettings(string.Empty, AnalysisPhase.PostProcessing, logger);
-            }
-            return settings != null;
+
+            return settings;
         }
 
         private static bool TryGetUrl(IAnalysisPropertyProvider properties, ILogger logger, out string url)
@@ -187,6 +185,34 @@ namespace SonarQube.Bootstrapper
                 logger.LogError(Resources.ERROR_CmdLine_UrlRequired);
                 return false;
             }
+        }
+
+        private static IBootstrapperSettings CreatePostProcessorSettings(IList<string> baseChildArgs, IAnalysisPropertyProvider properties, ILogger logger)
+        {
+            string childArgs = GetChildProcCmdLineParams(baseChildArgs);
+            IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PostProcessing, childArgs, string.Empty, logger);
+            
+            return settings;
+        }
+
+        /// <summary>
+        /// Strips out any arguments that are only relevant to the boot strapper from the user-supplied
+        /// command line arguments
+        /// </summary>
+        /// <remarks>We don't want to forward these arguments to the pre- or post- processor</remarks>
+        private static List<string> RemoveBootstrapperArgs(string[] commandLineArgs)
+        {
+            if (commandLineArgs == null)
+            {
+                throw new ArgumentNullException("param");
+            }
+
+            return commandLineArgs.Except(new string[] { BeginVerb, EndVerb }).ToList();
+        }
+
+        private static string GetChildProcCmdLineParams(IList<string> args)
+        {
+            return string.Join(" ", args.Select(a => "\"" + a + "\""));
         }
 
         #endregion

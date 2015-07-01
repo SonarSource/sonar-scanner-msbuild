@@ -74,6 +74,7 @@ namespace SonarQube.Common.UnitTests
             // Assert
             AssertExpectedPropertiesFile(validPropertiesFile, provider, logger);
             AssertPropertyExists("key1", "value1", provider);
+            AssertIsDefaultPropertiesFile(provider);
         }
 
         [TestMethod]
@@ -99,6 +100,7 @@ namespace SonarQube.Common.UnitTests
             // Assert
             AssertExpectedPropertiesFile(validPropertiesFile, provider, logger);
             AssertPropertyExists("xxx", "value with spaces", provider);
+            AssertIsNotDefaultPropertiesFile(provider);
         }
 
         [TestMethod]
@@ -219,10 +221,7 @@ namespace SonarQube.Common.UnitTests
 
         private static void AssertExpectedPropertiesFile(string expectedFilePath, IAnalysisPropertyProvider actualProvider, TestLogger logger)
         {
-            Assert.IsNotNull(actualProvider, "Supplied provider should not be null");
-            Assert.IsInstanceOfType(actualProvider, typeof(FilePropertyProvider), "Expecting a file provider");
-
-            FilePropertyProvider fileProvider = (FilePropertyProvider)actualProvider;
+            FilePropertyProvider fileProvider = AssertIsFilePropertyProvider(actualProvider);
 
             Assert.IsNotNull(fileProvider.PropertiesFile, "Properties file object should not be null");
             Assert.AreEqual(expectedFilePath, fileProvider.PropertiesFile.FilePath, "Properties were not loaded from the expected location");
@@ -234,6 +233,26 @@ namespace SonarQube.Common.UnitTests
             bool exists = actualProvider.TryGetProperty(key, out actualProperty);
             Assert.IsTrue(exists, "Specified property does not exist. Key: {0}", key);
             Assert.AreEqual(expectedValue, actualProperty.Value, "Property does not have the expected value. Key: {0}", key);
+        }
+
+        private static void AssertIsDefaultPropertiesFile(IAnalysisPropertyProvider actualProvider)
+        {
+            FilePropertyProvider fileProvider = AssertIsFilePropertyProvider(actualProvider);
+            Assert.IsTrue(fileProvider.IsDefaultSettingsFile, "Expecting the provider to be marked as using the default properties file");
+        }
+
+        private static void AssertIsNotDefaultPropertiesFile(IAnalysisPropertyProvider actualProvider)
+        {
+            FilePropertyProvider fileProvider = AssertIsFilePropertyProvider(actualProvider);
+            Assert.IsFalse(fileProvider.IsDefaultSettingsFile, "Not expecting the provider to be marked as using the default properties file");
+        }
+
+        private static FilePropertyProvider AssertIsFilePropertyProvider(IAnalysisPropertyProvider actualProvider)
+        {
+            Assert.IsNotNull(actualProvider, "Supplied provider should not be null");
+            Assert.IsInstanceOfType(actualProvider, typeof(FilePropertyProvider), "Expecting a file provider");
+
+            return (FilePropertyProvider)actualProvider;
         }
 
         #endregion

@@ -7,7 +7,6 @@
 
 using SonarQube.Common;
 using System.Diagnostics;
-using System.Linq;
 
 namespace SonarQube.Bootstrapper
 {
@@ -30,24 +29,22 @@ namespace SonarQube.Bootstrapper
             IBootstrapperSettings settings;
             if (ArgumentProcessor.TryProcessArgs(args, logger, out settings))
             {
+                Debug.Assert(settings != null, "Bootstrapper settings should not be null");
                 Debug.Assert(settings.Phase != AnalysisPhase.Unspecified, "Expecting the processing phase to be specified");
 
-                string[] strippedArgs = ArgumentProcessor.RemoveBootstrapperArgs(args);
-                string cmdLineParams = GetChildProcCmdLineParams(strippedArgs);
+                AnalysisPhase phase = settings.Phase;
+                LogProcessingStarted(phase, logger);
 
-                LogProcessingStarted(settings.Phase, strippedArgs.Length, logger);
-
-                if (settings.Phase == AnalysisPhase.PreProcessing)
+                if (phase == AnalysisPhase.PreProcessing)
                 {
-                    exitCode = PreProcess(cmdLineParams, updater, settings, logger);
-                    
+                    exitCode = PreProcess(updater, settings, logger);
                 }
                 else
                 {
-                    exitCode = PostProcess(cmdLineParams, settings, logger);
+                    exitCode = PostProcess(settings, logger);
                 }
 
-                LogProcessingCompleted(settings.Phase, exitCode, logger);
+                LogProcessingCompleted(phase, exitCode, logger);
             }
             else
             {
@@ -57,7 +54,7 @@ namespace SonarQube.Bootstrapper
             return exitCode;
         }
 
-        private static int PreProcess(string args, IBuildAgentUpdater updater, IBootstrapperSettings settings, ILogger logger)
+        private static int PreProcess(IBuildAgentUpdater updater, IBootstrapperSettings settings, ILogger logger)
         {
             string downloadBinPath = settings.DownloadDirectory;
 
@@ -82,29 +79,24 @@ namespace SonarQube.Bootstrapper
 
             var preprocessorFilePath = settings.PreProcessorFilePath;
             var processRunner = new ProcessRunner();
-            processRunner.Execute(preprocessorFilePath, args, settings.TempDirectory, logger);
+            processRunner.Execute(preprocessorFilePath, settings.ChildCmdLineArgs, settings.TempDirectory, logger);
 
             return processRunner.ExitCode;
         }
 
-        private static int PostProcess(string args, IBootstrapperSettings settings, ILogger logger)
+        private static int PostProcess(IBootstrapperSettings settings, ILogger logger)
         {
             var postprocessorFilePath = settings.PostProcessorFilePath;
 
             var processRunner = new ProcessRunner();
-            processRunner.Execute(postprocessorFilePath, args , settings.TempDirectory, logger);
+            processRunner.Execute(postprocessorFilePath, settings.ChildCmdLineArgs, settings.TempDirectory, logger);
             return processRunner.ExitCode;
         }
 
-        private static string GetChildProcCmdLineParams(params string[] args)
-        {
-            return string.Join(" ", args.Select(a => "\"" + a + "\""));
-        }
-
-        private static void LogProcessingStarted(AnalysisPhase phase, int argumentCount, ILogger logger)
+        private static void LogProcessingStarted(AnalysisPhase phase, ILogger logger)
         {
             string phaseLabel = phase == AnalysisPhase.PreProcessing ? Resources.PhaseLabel_PreProcessing : Resources.PhaseLabel_PostProcessing;
-            logger.LogMessage(Resources.INFO_ProcessingStarted, phaseLabel, argumentCount);
+            logger.LogMessage(Resources.INFO_ProcessingStarted, phaseLabel);
         }
 
         private static void LogProcessingCompleted(AnalysisPhase phase, int exitCode, ILogger logger)

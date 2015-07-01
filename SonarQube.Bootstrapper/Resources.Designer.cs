@@ -97,15 +97,6 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find the sonar-project.properties from the sonar-runner in %PATH%..
-        /// </summary>
-        internal static string ERROR_CouldNotFindSonarRunnerProperties {
-            get {
-                return ResourceManager.GetString("ERROR_CouldNotFindSonarRunnerProperties", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to update the SonarQube MSBuild Runner binaries. Verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted..
         /// </summary>
         internal static string ERROR_FailedToUpdateRunnerBinaries {
@@ -151,7 +142,7 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} ({1} argument(s) passed).
+        ///   Looks up a localized string similar to {0} started..
         /// </summary>
         internal static string INFO_ProcessingStarted {
             get {
