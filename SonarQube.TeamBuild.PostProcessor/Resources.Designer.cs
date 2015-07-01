@@ -138,6 +138,15 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analysis results: {0}.
+        /// </summary>
+        internal static string Report_LinkToDashboard {
+            get {
+                return ResourceManager.GetString("Report_LinkToDashboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to __Analysis failed for SonarQube project {0}__.
         /// </summary>
         internal static string Report_MdSummaryAnalysisFailed {

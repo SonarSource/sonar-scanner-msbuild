@@ -85,12 +85,26 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
 
             CreateSummaryMdFile(summaryData);
+
+            // Write the dashboard link to the output. The sonar-runner will have written it out earlier,
+            // but writing it again here puts it very close to the end of the output - easier to find,
+            // especially when running from the command line.
+            this.logger.LogMessage(Resources.Report_LinkToDashboard, summaryData.DashboardUrl);
         }
 
         public /* for test purposes */ static SummaryReportData CreateSummaryData(
             AnalysisConfig config,
             ProjectInfoAnalysisResult result)
         {
+            if (config == null)
+            {
+                throw new ArgumentNullException("config");
+            }
+            if (result == null)
+            {
+                throw new ArgumentNullException("result");
+            }
+
             SummaryReportData summaryData = new SummaryReportData();
 
             summaryData.SkippedProjects = GetProjectsByStatus(result, ProjectInfoValidity.NoFilesToAnalyze).Count();
