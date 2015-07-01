@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="AnalysisPropertyFileProvider.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="FilePropertyProvider.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -15,7 +15,7 @@ namespace SonarQube.Common
     /// <summary>
     /// Handles locating an analysis properties file and returning the appropriate properties
     /// </summary>
-    public class AnalysisPropertyFileProvider : IAnalysisPropertyProvider
+    public class FilePropertyProvider : IAnalysisPropertyProvider
     {
         private const string DescriptorId = "properties.file.argument";
 
@@ -64,7 +64,7 @@ namespace SonarQube.Common
                 }
                 else
                 {
-                    provider = new AnalysisPropertyFileProvider(locatedPropertiesFile);
+                    provider = new FilePropertyProvider(locatedPropertiesFile);
                 }
                 return true;
             }
@@ -93,7 +93,7 @@ namespace SonarQube.Common
 
         #region Private methods
 
-        private AnalysisPropertyFileProvider(AnalysisProperties properties)
+        private FilePropertyProvider(AnalysisProperties properties)
         {
             if (properties == null)
             {

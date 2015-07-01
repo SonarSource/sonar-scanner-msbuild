@@ -51,7 +51,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             Descriptors.Add(new ArgumentDescriptor(
                 id: KeywordIds.ProjectVersion, prefixes: new string[] { "/version:", "/v:" }, required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion));
             
-            Descriptors.Add(AnalysisPropertyFileProvider.Descriptor);
+            Descriptors.Add(FilePropertyProvider.Descriptor);
             Descriptors.Add(CmdLineArgPropertyProvider.Descriptor);
 
             Debug.Assert(Descriptors.All(d => d.Prefixes != null && d.Prefixes.Any()), "All descriptors must provide at least one prefix");
@@ -88,7 +88,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             // Handler for property file
             IAnalysisPropertyProvider globalFileProperties;
             string asmPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            parsedOk &= AnalysisPropertyFileProvider.TryCreateProvider(arguments, asmPath, logger, out globalFileProperties);
+            parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out globalFileProperties);
 
             if (parsedOk)
             {

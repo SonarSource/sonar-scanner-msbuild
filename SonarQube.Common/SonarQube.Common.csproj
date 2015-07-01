@@ -70,7 +70,7 @@
     <Compile Include="AnalysisProperties\AggregatePropertiesProvider.cs" />
     <Compile Include="AnalysisProperties\AnalysisProperties.cs" />
     <Compile Include="AnalysisProperties\CmdLineArgPropertyProvider.cs" />
-    <Compile Include="AnalysisProperties\AnalysisPropertyFileProvider.cs" />
+    <Compile Include="AnalysisProperties\FilePropertyProvider.cs" />
     <Compile Include="AnalysisProperties\IAnalysisPropertyProvider.cs" />
     <Compile Include="AnalysisProperties\Property.cs" />
     <Compile Include="SonarProperties.cs" />
