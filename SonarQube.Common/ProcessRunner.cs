@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 
 namespace SonarQube.Common
@@ -18,6 +19,8 @@ namespace SonarQube.Common
     /// </summary>
     public sealed class ProcessRunner
     {
+        public const int ErrorCode = 1;
+
         private ILogger outputLogger;
 
         #region Public methods
@@ -59,6 +62,12 @@ namespace SonarQube.Common
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
+            }
+            if (!File.Exists(exeName))
+            {
+                logger.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, exeName);
+                this.ExitCode = ErrorCode;
+                return false;
             }
 
             this.outputLogger = logger;
@@ -108,10 +117,11 @@ namespace SonarQube.Common
                 }
                 else
                 {
+                    this.ExitCode = ErrorCode;
                     logger.LogWarning(Resources.DIAG_ExecutionTimedOut, timeoutInMilliseconds, exeName);
                 }
 
-                succeeded = succeeded && (process.ExitCode == 0);
+                succeeded = succeeded && (this.ExitCode == 0);
             }
             finally
             {

@@ -31,16 +31,23 @@ namespace SonarQube.Bootstrapper
             if (ArgumentProcessor.TryProcessArgs(args, logger, out settings))
             {
                 Debug.Assert(settings.Phase != AnalysisPhase.Unspecified, "Expecting the processing phase to be specified");
+
+                string[] strippedArgs = ArgumentProcessor.RemoveBootstrapperArgs(args);
+                string cmdLineParams = GetChildProcCmdLineParams(strippedArgs);
+
+                LogProcessingStarted(settings.Phase, strippedArgs.Length, logger);
+
                 if (settings.Phase == AnalysisPhase.PreProcessing)
                 {
-                    logger.LogMessage(Resources.INFO_PreProcessing, args.Length);
-                    exitCode = PreProcess(args, updater, settings, logger);
+                    exitCode = PreProcess(cmdLineParams, updater, settings, logger);
+                    
                 }
                 else
                 {
-                    logger.LogMessage(Resources.INFO_PostProcessing, args.Length);
-                    exitCode = PostProcess(logger, settings);
+                    exitCode = PostProcess(cmdLineParams, settings, logger);
                 }
+
+                LogProcessingCompleted(settings.Phase, exitCode, logger);
             }
             else
             {
@@ -50,7 +57,7 @@ namespace SonarQube.Bootstrapper
             return exitCode;
         }
 
-        private static int PreProcess(string[] args, IBuildAgentUpdater updater, IBootstrapperSettings settings, ILogger logger)
+        private static int PreProcess(string args, IBuildAgentUpdater updater, IBootstrapperSettings settings, ILogger logger)
         {
             string downloadBinPath = settings.DownloadDirectory;
 
@@ -63,7 +70,7 @@ namespace SonarQube.Bootstrapper
 
             if (!updater.TryUpdate(server, downloadBinPath, logger))
             {
-                logger.LogError(Resources.ERROR_CouldNotFindIntegrationZip);
+                logger.LogError(Resources.ERROR_FailedToUpdateRunnerBinaries);
                 return 1;
             }
 
@@ -75,20 +82,43 @@ namespace SonarQube.Bootstrapper
 
             var preprocessorFilePath = settings.PreProcessorFilePath;
             var processRunner = new ProcessRunner();
-            processRunner.Execute(preprocessorFilePath, string.Join(" ", args.Select(a => "\"" + a + "\"")), settings.TempDirectory, logger);
+            processRunner.Execute(preprocessorFilePath, args, settings.TempDirectory, logger);
 
             return processRunner.ExitCode;
         }
 
-        private static int PostProcess(ILogger logger, IBootstrapperSettings settings)
+        private static int PostProcess(string args, IBootstrapperSettings settings, ILogger logger)
         {
             var postprocessorFilePath = settings.PostProcessorFilePath;
 
             var processRunner = new ProcessRunner();
-            processRunner.Execute(postprocessorFilePath, "", settings.TempDirectory, logger);
+            processRunner.Execute(postprocessorFilePath, args , settings.TempDirectory, logger);
             return processRunner.ExitCode;
         }
 
+        private static string GetChildProcCmdLineParams(params string[] args)
+        {
+            return string.Join(" ", args.Select(a => "\"" + a + "\""));
+        }
+
+        private static void LogProcessingStarted(AnalysisPhase phase, int argumentCount, ILogger logger)
+        {
+            string phaseLabel = phase == AnalysisPhase.PreProcessing ? Resources.PhaseLabel_PreProcessing : Resources.PhaseLabel_PostProcessing;
+            logger.LogMessage(Resources.INFO_ProcessingStarted, phaseLabel, argumentCount);
+        }
+
+        private static void LogProcessingCompleted(AnalysisPhase phase, int exitCode, ILogger logger)
+        {
+            string phaseLabel = phase == AnalysisPhase.PreProcessing ? Resources.PhaseLabel_PreProcessing : Resources.PhaseLabel_PostProcessing;
+            if (exitCode == ProcessRunner.ErrorCode)
+            {
+                logger.LogError(Resources.ERROR_ProcessingFailed, phaseLabel, exitCode);
+            }
+            else
+            {
+                logger.LogMessage(Resources.INFO_ProcessingSucceeded, phaseLabel);
+            }
+        }
 
     }
 }

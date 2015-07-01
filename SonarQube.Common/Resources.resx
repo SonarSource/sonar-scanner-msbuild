@@ -211,4 +211,7 @@
   <data name="ERROR_Parser_UniqueDescriptorIds" xml:space="preserve">
     <value>Descriptor ids must be unique</value>
   </data>
+  <data name="ERROR_ProcessRunner_ExeNotFound" xml:space="preserve">
+    <value>Execution failed. The specified executable does not exist: {0}</value>
+  </data>
 </root>

@@ -129,11 +129,17 @@
   <data name="ERROR_CmdLine_UrlRequired" xml:space="preserve">
     <value>The SonarQube URL must be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000 )</value>
   </data>
-  <data name="ERROR_CouldNotFindIntegrationZip" xml:space="preserve">
-    <value>Could not find the SonarQube MSBuild Runner implementation. Verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted.</value>
-  </data>
   <data name="ERROR_CouldNotFindSonarRunnerProperties" xml:space="preserve">
     <value>Could not find the sonar-project.properties from the sonar-runner in %PATH%.</value>
+  </data>
+  <data name="ERROR_FailedToUpdateRunnerBinaries" xml:space="preserve">
+    <value>Failed to update the SonarQube MSBuild Runner binaries. Verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted.</value>
+  </data>
+  <data name="ERROR_ProcessingFailed" xml:space="preserve">
+    <value>{0} failed. Exit code: {1}</value>
+  </data>
+  <data name="ERROR_UrlNameResolutionFailed" xml:space="preserve">
+    <value>The name of the SonarQube server could not be resolved. Check the url is correct and that the server is available. Url: {0}</value>
   </data>
   <data name="ERROR_VersionMismatch" xml:space="preserve">
     <value>The C# plugin installed on the server is not compatible with the SonarQube.MSBuild.Runner.exe - either check the compatibility matrix or get the latest versions for both. </value>
@@ -141,11 +147,11 @@
   <data name="INFO_Downloading" xml:space="preserve">
     <value>Downloading {0} from {1} to {2}</value>
   </data>
-  <data name="INFO_PostProcessing" xml:space="preserve">
-    <value>Post-processing ({0} argument(s) passed)</value>
+  <data name="INFO_ProcessingStarted" xml:space="preserve">
+    <value>{0} ({1} argument(s) passed)</value>
   </data>
-  <data name="INFO_PreProcessing" xml:space="preserve">
-    <value>Pre-processing ({0} argument(s) passed)</value>
+  <data name="INFO_ProcessingSucceeded" xml:space="preserve">
+    <value>{0} succeeded.</value>
   </data>
   <data name="INFO_ServerUrl" xml:space="preserve">
     <value>SonarQube server url: {0}</value>
@@ -155,6 +161,12 @@
   </data>
   <data name="INFO_UsingEnvVarToGetDirectory" xml:space="preserve">
     <value>Using environment variables to determine the download directory...</value>
+  </data>
+  <data name="PhaseLabel_PostProcessing" xml:space="preserve">
+    <value>Post-processing</value>
+  </data>
+  <data name="PhaseLabel_PreProcessing" xml:space="preserve">
+    <value>Pre-processing</value>
   </data>
   <data name="WARN_CmdLine_v09_Compat" xml:space="preserve">
     <value>Please specify the command 'begin' or 'end' to indicate whether pre- or post-processing is required. These parameters will become mandatory in a later release.</value>

@@ -52,6 +52,12 @@ namespace SonarQube.Bootstrapper
                         return false;
                     }
 
+                    if (e.Status == WebExceptionStatus.NameResolutionFailure)
+                    {
+                        logger.LogError(Resources.ERROR_UrlNameResolutionFailed, hostUrl);
+                        return false;
+                    }
+
                     throw;
                 }
 
@@ -108,7 +114,7 @@ namespace SonarQube.Bootstrapper
                 downloadZipUrl = downloadZipUrl.Substring(0, downloadZipUrl.Length - 1);
             }
 
-            downloadZipUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}", BootstrapperSettings.IntegrationUrlSuffix, downloadZipUrl);
+            downloadZipUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}", downloadZipUrl, BootstrapperSettings.IntegrationUrlSuffix);
 
             return downloadZipUrl;
         }

@@ -57,11 +57,13 @@ namespace SonarQube.Bootstrapper.Tests
                 mockUpdater.TryUpdateReturnValue = false;
 
                 // Act
-                TestLogger logger = CheckExecutionFails(mockUpdater, "/d:sonar.host.url=http://host:9000");
+                TestLogger logger = CheckExecutionFails(mockUpdater, "/d:sonar.host.url=http://host:9000", "begin");
 
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionNotChecked();
+
+                logger.AssertWarningsLogged(0);
 
                 AssertDirectoryExists(binDir);
                 logger.AssertErrorsLogged();
@@ -80,7 +82,7 @@ namespace SonarQube.Bootstrapper.Tests
                 mockUpdater.VersionCheckReturnValue = false;
 
                 // Act
-                TestLogger logger = CheckExecutionFails(mockUpdater, "/d:sonar.host.url=http://ahost");
+                TestLogger logger = CheckExecutionFails(mockUpdater, "/d:sonar.host.url=http://ahost", "begin");
 
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
@@ -90,6 +92,7 @@ namespace SonarQube.Bootstrapper.Tests
                 DummyExeHelper.AssertDummyPreProcLogDoesNotExist(binDir);
                 DummyExeHelper.AssertDummyPostProcLogDoesNotExist(binDir);
                 logger.AssertErrorsLogged();
+                logger.AssertWarningsLogged(0);
             }
         }
 
@@ -110,13 +113,16 @@ namespace SonarQube.Bootstrapper.Tests
                 };
 
                 // Act
-                CheckExecutionFails(mockUpdater,
+                TestLogger logger = CheckExecutionFails(mockUpdater,
+                    "begin",
                     "/d:sonar.host.url=http://host:9",
                     "/d:another.key=will be ignored");
 
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionChecked();
+
+                logger.AssertWarningsLogged(0);
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
                 DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://host:9\r\n/d:another.key=will be ignored\r\n");
@@ -150,7 +156,7 @@ namespace SonarQube.Bootstrapper.Tests
                 logger.AssertWarningsLogged(0);
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://anotherHost\r\nbegin\r\n");
+                DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://anotherHost\r\n");
             }
         }
 
@@ -194,15 +200,17 @@ namespace SonarQube.Bootstrapper.Tests
                 MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://h:9000");
 
                 // Act
-                TestLogger logger = CheckExecutionSucceeds(mockUpdater, "end");
+                TestLogger logger = CheckExecutionSucceeds(mockUpdater, "end", "other params", "yet.more.params");
 
                 // Assert
                 mockUpdater.AssertUpdateNotAttempted();
                 mockUpdater.AssertVersionNotChecked();
                 logger.AssertWarningsLogged(0);
 
+                // The bootstrapper pass through any parameters it doesn't recognise so the post-processor
+                // can decide whether to handle them or not
                 string logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, string.Empty);
+                DummyExeHelper.AssertExpectedLogContents(logPath, "other params\r\nyet.more.params\r\n");
             }
         }
 
@@ -323,6 +331,7 @@ namespace SonarQube.Bootstrapper.Tests
             int exitCode = Bootstrapper.Program.Execute(args, updater, logger);
 
             Assert.AreEqual(Bootstrapper.Program.ErrorCode, exitCode, "Bootstrapper did not return the expected exit code");
+            logger.AssertErrorsLogged();
 
             return logger;
         }

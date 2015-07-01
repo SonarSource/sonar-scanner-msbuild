@@ -25,7 +25,6 @@ namespace SonarQube.Bootstrapper
         // FIX: this code is very similar to that in the pre-processor. Consider refactoring to avoid duplication
         // once the other argument and properties-writing tickets have been completed.
 
-
         #region Arguments definitions
 
         private const string BeginId = "begin.id";
@@ -57,6 +56,7 @@ namespace SonarQube.Bootstrapper
 
         #endregion
 
+        #region Public methods
 
         /// <summary>
         /// Attempts to process the supplied command line arguments and 
@@ -108,6 +108,25 @@ namespace SonarQube.Bootstrapper
 
             return settings != null;
         }
+
+        /// <summary>
+        /// Strips out any arguments that are only relevant to the boot strapper from the user-supplied
+        /// command line arguments
+        /// </summary>
+        /// <remarks>We don't want to forward these arguments to the pre- or post- processor</remarks>
+        public static string[] RemoveBootstrapperArgs(string[] commandLineArgs)
+        {
+            if (commandLineArgs == null)
+            {
+                throw new ArgumentNullException("param");
+            }
+
+            return commandLineArgs.Except(new string[] { BeginVerb, EndVerb }).ToArray();
+        }
+
+        #endregion
+
+        #region Private methods
 
         private static bool TryGetPhase(int originalArgCount, IEnumerable<ArgumentInstance> arguments, ILogger logger, out AnalysisPhase phase)
         {
@@ -169,5 +188,7 @@ namespace SonarQube.Bootstrapper
                 return false;
             }
         }
+
+        #endregion
     }
 }

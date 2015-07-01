@@ -308,6 +308,15 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Execution failed. The specified executable does not exist: {0}.
+        /// </summary>
+        internal static string ERROR_ProcessRunner_ExeNotFound {
+            get {
+                return ResourceManager.GetString("ERROR_ProcessRunner_ExeNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to find the SonarQube analysis settings file &apos;{0}&apos;. Please fix the path to this settings file..
         /// </summary>
         internal static string ERROR_Properties_GlobalPropertiesFileDoesNotExist {

@@ -80,7 +80,7 @@ xxx yyy
 
             // Assert
             Assert.IsFalse(success, "Expecting the process to have failed");
-            Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
+            Assert.AreEqual(ProcessRunner.ErrorCode, runner.ExitCode, "Unexpected exit code");
             logger.AssertMessageNotLogged("Hello world");
 
             // Give the spawned process a chance to terminate.
@@ -172,6 +172,24 @@ xxx yyy
             // Note: the existing non-process values won't be visible to the child process
             // unless they were set *before* the test host launched, which won't be the case.
             logger.AssertSingleMessageExists("proc.runner.test.process", "existing process value", "process override");
+        }
+
+        [TestMethod]
+        public void ProcRunner_MissingExe()
+        {
+            // Tests attempting to launch a non-existent exe
+
+            // Arrange
+            TestLogger logger = new TestLogger();
+            ProcessRunner runner = new ProcessRunner();
+
+            // Act
+            bool success = runner.Execute("missingExe.foo", null, null, 100, null, logger);
+
+            // Assert
+            Assert.IsFalse(success, "Expecting the process to have failed");
+            Assert.AreEqual(ProcessRunner.ErrorCode, runner.ExitCode, "Unexpected exit code");
+            logger.AssertSingleErrorExists("missingExe.foo");
         }
 
         #endregion

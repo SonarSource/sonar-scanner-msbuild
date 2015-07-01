@@ -7,6 +7,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System;
+using TestUtilities;
 
 namespace SonarQube.Bootstrapper.Tests
 {
@@ -51,6 +52,29 @@ namespace SonarQube.Bootstrapper.Tests
 
             Assert.IsFalse(updater.CheckBootstrapperApiVersion(versionFilePath, new Version("1.0")));
 
+        }
+
+        [TestMethod]
+        public void Updater_CheckDownloadUrl()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+            BuildAgentUpdater updater = new BuildAgentUpdater();
+
+            string downloadDir = this.TestContext.DeploymentDirectory;
+            string nonExistentUrl = "http://updater.checkdownload.url.dummy.url:9000";
+
+            string expectedUrl = nonExistentUrl + BootstrapperSettings.IntegrationUrlSuffix;
+            string expectedDownloadPath = Path.Combine(downloadDir, BootstrapperSettings.SonarQubeIntegrationFilename);
+
+            // Act
+            bool success = updater.TryUpdate(nonExistentUrl, downloadDir, logger);
+
+            // Assert
+            Assert.IsFalse(success, "Not expecting the update to succeed");
+            logger.AssertSingleMessageExists(expectedUrl, expectedDownloadPath);
+            logger.AssertSingleErrorExists(nonExistentUrl);
+            logger.AssertErrorsLogged(1);
         }
 
         private string CreateVersionFile(params string[] versionStrings)

@@ -97,20 +97,38 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find the SonarQube MSBuild Runner implementation. Verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted..
-        /// </summary>
-        internal static string ERROR_CouldNotFindIntegrationZip {
-            get {
-                return ResourceManager.GetString("ERROR_CouldNotFindIntegrationZip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Could not find the sonar-project.properties from the sonar-runner in %PATH%..
         /// </summary>
         internal static string ERROR_CouldNotFindSonarRunnerProperties {
             get {
                 return ResourceManager.GetString("ERROR_CouldNotFindSonarRunnerProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update the SonarQube MSBuild Runner binaries. Verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted..
+        /// </summary>
+        internal static string ERROR_FailedToUpdateRunnerBinaries {
+            get {
+                return ResourceManager.GetString("ERROR_FailedToUpdateRunnerBinaries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} failed. Exit code: {1}.
+        /// </summary>
+        internal static string ERROR_ProcessingFailed {
+            get {
+                return ResourceManager.GetString("ERROR_ProcessingFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the SonarQube server could not be resolved. Check the url is correct and that the server is available. Url: {0}.
+        /// </summary>
+        internal static string ERROR_UrlNameResolutionFailed {
+            get {
+                return ResourceManager.GetString("ERROR_UrlNameResolutionFailed", resourceCulture);
             }
         }
         
@@ -133,20 +151,20 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Post-processing ({0} argument(s) passed).
+        ///   Looks up a localized string similar to {0} ({1} argument(s) passed).
         /// </summary>
-        internal static string INFO_PostProcessing {
+        internal static string INFO_ProcessingStarted {
             get {
-                return ResourceManager.GetString("INFO_PostProcessing", resourceCulture);
+                return ResourceManager.GetString("INFO_ProcessingStarted", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pre-processing ({0} argument(s) passed).
+        ///   Looks up a localized string similar to {0} succeeded..
         /// </summary>
-        internal static string INFO_PreProcessing {
+        internal static string INFO_ProcessingSucceeded {
             get {
-                return ResourceManager.GetString("INFO_PreProcessing", resourceCulture);
+                return ResourceManager.GetString("INFO_ProcessingSucceeded", resourceCulture);
             }
         }
         
@@ -174,6 +192,24 @@ namespace SonarQube.Bootstrapper {
         internal static string INFO_UsingEnvVarToGetDirectory {
             get {
                 return ResourceManager.GetString("INFO_UsingEnvVarToGetDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Post-processing.
+        /// </summary>
+        internal static string PhaseLabel_PostProcessing {
+            get {
+                return ResourceManager.GetString("PhaseLabel_PostProcessing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pre-processing.
+        /// </summary>
+        internal static string PhaseLabel_PreProcessing {
+            get {
+                return ResourceManager.GetString("PhaseLabel_PreProcessing", resourceCulture);
             }
         }
         
