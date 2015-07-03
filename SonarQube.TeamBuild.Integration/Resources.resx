@@ -137,6 +137,9 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   <data name="CONV_ERROR_OutputFileNotFound" xml:space="preserve">
     <value>Failed to convert the binary coverage file to XML. The expected output file was not found: {0}</value>
   </data>
+  <data name="DOWN_DIAG_ConnectedToTFS" xml:space="preserve">
+    <value>Connected to {0}</value>
+  </data>
   <data name="DOWN_DIAG_DownloadCoverageReportFromTo" xml:space="preserve">
     <value>Downloading coverage file from {0} to {1}</value>
   </data>

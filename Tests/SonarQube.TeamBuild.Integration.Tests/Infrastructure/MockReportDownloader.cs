@@ -52,7 +52,7 @@ namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
 
         #region ICoverageReportDownloader interface
 
-        bool ICoverageReportDownloader.DownloadReport(string reportUrl, string newFullFileName, ILogger logger)
+        bool ICoverageReportDownloader.DownloadReport(string tfsUri, string reportUrl, string newFullFileName, ILogger logger)
         {
             this.callCount++;
             this.requestedUrls.Add(reportUrl);

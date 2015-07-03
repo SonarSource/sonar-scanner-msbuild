@@ -62,7 +62,7 @@ namespace SonarQube.TeamBuild.Integration
                     string url = urls.First();
 
                     string targetFileName = Path.Combine(config.SonarOutputDir, DownloadFileName);
-                    bool result = this.downloader.DownloadReport(url, targetFileName, logger);
+                    bool result = this.downloader.DownloadReport(config.GetTfsUri(), url, targetFileName, logger);
 
                     if (result)
                     {
