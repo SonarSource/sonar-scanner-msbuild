@@ -11,6 +11,14 @@ using System.Xml.Serialization;
 
 namespace SonarQube.Common
 {
+    public enum ProjectLanguage
+    {
+        [XmlEnum(Name = "cs")]
+        CS,
+        [XmlEnum(Name = "vbnet")]
+        VB,
+    }
+
     /// <summary>
     /// Data class to describe a single project
     /// </summary>
@@ -26,6 +34,15 @@ namespace SonarQube.Common
         /// The project file name
         /// </summary>
         public string ProjectName
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The project language
+        /// </summary>
+        public ProjectLanguage ProjectLanguage
         {
             get;
             set;

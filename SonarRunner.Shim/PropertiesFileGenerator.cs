@@ -96,7 +96,7 @@ namespace SonarRunner.Shim
                     {
                         string fxCopReport = TryGetFxCopReport(projectInfo, logger);
                         string vsCoverageReport = TryGetCodeCoverageReport(projectInfo, logger);
-                        writer.WriteSettingsForProject(projectInfo, files, fxCopReport, vsCoverageReport);
+                        writer.WriteSettingsForProject(projectInfo, files, projectInfo.ProjectLanguage, fxCopReport, vsCoverageReport);
                     }
                 }
 

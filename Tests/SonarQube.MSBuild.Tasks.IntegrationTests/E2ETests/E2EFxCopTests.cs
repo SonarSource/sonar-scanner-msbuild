@@ -176,7 +176,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
 
             preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
-            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
+            CreateValidFxCopRuleset(rootInputFolder, string.Format(TargetProperties.SonarQubeRulesetFormat, "cs"));
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
@@ -227,7 +227,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
 
             preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
-            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
+            CreateValidFxCopRuleset(rootInputFolder, string.Format(TargetProperties.SonarQubeRulesetFormat, "vbnet"));
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties, isVBProject: true);
 
@@ -283,7 +283,7 @@ End Class");
             preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
 
             preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
-            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
+            CreateValidFxCopRuleset(rootInputFolder, string.Format(TargetProperties.SonarQubeRulesetFormat, "cs"));
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
@@ -340,7 +340,7 @@ End Class");
             preImportProperties.SonarQubeExclude = "true";
 
             preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
-            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
+            CreateValidFxCopRuleset(rootInputFolder, string.Format(TargetProperties.SonarQubeRulesetFormat, "cs"));
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
@@ -365,7 +365,8 @@ End Class");
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.WriteProjectDataTarget);
 
-            logger.AssertTargetNotExecuted(TargetConstants.FxCopTarget);
+            logger.AssertTargetExecuted(TargetConstants.FxCopTarget);
+            logger.AssertTaskNotExecuted(TargetConstants.FxCopTask);
             logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
 
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
@@ -391,7 +392,7 @@ End Class");
             preImportProperties.SonarTestProject = "true";
 
             preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
-            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
+            CreateValidFxCopRuleset(rootInputFolder, string.Format(TargetProperties.SonarQubeRulesetFormat, "cs"));
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
@@ -442,7 +443,7 @@ End Class");
             preImportProperties.ProjectTypeGuids = "X;" + TargetConstants.MsTestProjectTypeGuid.ToUpperInvariant() + ";Y";
 
             preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
-            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
+            CreateValidFxCopRuleset(rootInputFolder, string.Format(TargetProperties.SonarQubeRulesetFormat, "cs"));
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
@@ -496,7 +497,7 @@ End Class");
             preImportProperties.SonarQubeConfigPath = rootInputFolder;
 
             preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
-            CreateValidFxCopRuleset(rootInputFolder, TargetProperties.SonarQubeRulesetName);
+            CreateValidFxCopRuleset(rootInputFolder, string.Format(TargetProperties.SonarQubeRulesetFormat, "cs"));
 
             // Create a config file in the config folder containing a reg ex to identify tests projects
             AnalysisConfig config = new AnalysisConfig();

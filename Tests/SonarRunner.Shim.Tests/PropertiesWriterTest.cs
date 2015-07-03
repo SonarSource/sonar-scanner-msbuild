@@ -77,8 +77,9 @@ namespace SonarRunner.Shim.Tests
             using (new AssertIgnoreScope()) // expecting the property writer to complain about the missing file
             {
                 PropertiesWriter writer = new PropertiesWriter(config);
-                writer.WriteSettingsForProject(product, new string[] { productFile, productChineseFile, missingFileOutsideProjectDir }, productFxCopFilePath, productCoverageFilePath);
-                writer.WriteSettingsForProject(test, new string[] { testFile }, null, null);
+                writer.WriteSettingsForProject(product, new string[] { productFile, productChineseFile, missingFileOutsideProjectDir }, ProjectLanguage.CS, productFxCopFilePath, productCoverageFilePath);
+                writer.WriteSettingsForProject(product, new string[] { productFile }, ProjectLanguage.VB, productFxCopFilePath, null);
+                writer.WriteSettingsForProject(test, new string[] { testFile }, ProjectLanguage.CS, null, null);
 
                 actual = writer.Flush();
             }
@@ -93,6 +94,13 @@ DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources=\
 {0}\\File.cs,\
 {0}\\\u4F60\u597D.cs,\
 {4}
+
+DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectKey=my_project_key:DB2E5521-3172-47B9-BA50-864F12E6DFFF
+DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName=\u4F60\u597D
+DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir={0}
+DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.vbnet.fxcop.reportPath={1}
+DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources=\
+{0}\\File.cs
 
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey=my_project_key:DA0FCD82-9C5C-4666-9370-C7388281D49B
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectName=my_test_project
@@ -110,7 +118,7 @@ sonar.working.directory=C:\\my_folder\\.sonar
 # FIXME: Encoding is hardcoded
 sonar.sourceEncoding=UTF-8
 
-sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388281D49B
+sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388281D49B
 
 ",
  PropertiesWriter.Escape(productBaseDir),
@@ -150,7 +158,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388
                 foreach (string projectPath in projectPaths)
                 {
                     var projectInfo = new ProjectInfo { FullPath = projectPath };
-                    writer.WriteSettingsForProject(projectInfo, Enumerable.Empty<string>(), "", "");
+                    writer.WriteSettingsForProject(projectInfo, Enumerable.Empty<string>(), ProjectLanguage.CS, "", "");
                 }
                 var actual = writer.Flush();
                 var expected = "\r\nsonar.projectBaseDir=" + PropertiesWriter.Escape(expectedProjectDir);
@@ -186,7 +194,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388
             writer.Flush();
             using (new AssertIgnoreScope())
             {
-                AssertException.Expects<InvalidOperationException>(() => writer.WriteSettingsForProject(new ProjectInfo(), new string[] { "file" }, "fxCopReport", "code coverage report"));
+                AssertException.Expects<InvalidOperationException>(() => writer.WriteSettingsForProject(new ProjectInfo(), new string[] { "file" }, ProjectLanguage.CS, "fxCopReport", "code coverage report"));
             }
         }
 
@@ -221,7 +229,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DA0FCD82-9C5C-4666-9370-C7388
             
             // Act
             PropertiesWriter writer = new PropertiesWriter(config);
-            writer.WriteSettingsForProject(product, new string[] { productFile }, null, null);          
+            writer.WriteSettingsForProject(product, new string[] { productFile }, ProjectLanguage.CS, null, null);          
             string fullActualPath = SaveToResultFile(projectBaseDir, "Actual.txt", writer.Flush());
 
             // Assert

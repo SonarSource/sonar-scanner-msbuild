@@ -26,6 +26,8 @@ namespace TestUtilities
 
         #region Public properties
 
+        public SonarQube.Common.ProjectLanguage ProjectLanguage { get; set; }
+
         public Guid ProjectGuid { get; set; }
 
         public IList<string> ManagedSourceFiles { get; set; }
@@ -102,6 +104,7 @@ namespace TestUtilities
             ProjectInfo info = new ProjectInfo()
             {
                 FullPath = this.FullFilePath,
+                ProjectLanguage = this.ProjectLanguage,
                 ProjectGuid = this.ProjectGuid,
                 ProjectName = this.ProjectName,
                 ProjectType = this.IsTestProject ? ProjectType.Test : ProjectType.Product,

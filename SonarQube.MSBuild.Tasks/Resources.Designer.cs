@@ -61,6 +61,15 @@ namespace SonarQube.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ProjectLanguage must be set to &quot;C#&quot; or &quot;VB&quot;, not: {0}.
+        /// </summary>
+        internal static string ERROR_InvalidProjectLanguage {
+            get {
+                return ResourceManager.GetString("ERROR_InvalidProjectLanguage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Config file could not be found.
         /// </summary>
         internal static string IsTest_ConfigFileNotFound {

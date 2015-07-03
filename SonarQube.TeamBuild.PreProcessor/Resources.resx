@@ -130,7 +130,7 @@
     <value>Creating config and output folders...</value>
   </data>
   <data name="DIAG_GeneratingRuleset" xml:space="preserve">
-    <value>Generating the FxCop ruleset...</value>
+    <value>Generating the FxCop ruleset: {0}</value>
   </data>
   <data name="DIAG_SavingConfigFile" xml:space="preserve">
     <value>Saving the config file to {0}</value>

@@ -235,6 +235,7 @@
 
     <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
        FullProjectPath="$(MSBuildProjectFullPath)"
+       ProjectLanguage="$(Language)"
        ProjectGuid="$(ProjectGuid)"
        IsTest="$(SonarQubeTestProject)"
        IsExcluded="$(SonarQubeExclude)"
@@ -267,27 +268,30 @@
   <!-- The FxCop targets are conditionally imported so we need to make sure the required condition
        is true early enough. -->
   <PropertyGroup Condition=" $(SonarQubeTempPath) != '' ">
-    <SonarQubeRulesetFileName Condition=" $(SonarQubeRulesetFileName) == ''">SonarQubeAnalysis.ruleset</SonarQubeRulesetFileName>
-    <SonarQubeRulesetFullName>$(SonarQubeConfigPath)\$(SonarQubeRulesetFileName)</SonarQubeRulesetFullName>
-    <SonarQubeRulesetExists>$([System.IO.File]::Exists($(SonarQubeRulesetFullName)))</SonarQubeRulesetExists>
-
-    <!-- If we are running a SonarQube analysis build then whether or not FxCop is run depends entirely on whether
-         the SonarQube settings -->
-    <SonarQubeRunMSCodeAnalysis>$(SonarQubeRulesetExists)</SonarQubeRunMSCodeAnalysis>
-    <SonarQubeRunMSCodeAnalysis Condition=" $(SonarQubeExclude) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
-    <!-- It's too early to be certain whether the project is a test project or not as the "categorise" target
-         hasn't run yet. We'll exclude test projects from FxCop analysis in "OverrideCodeAnalysisProperties". -->
-
-    <RunCodeAnalysisOnce>$(SonarQubeRunMSCodeAnalysis)</RunCodeAnalysisOnce>
+    <RunCodeAnalysisOnce>true</RunCodeAnalysisOnce>
   </PropertyGroup>
 
   <!-- We want to override any properties that have been set declaratively in the project -->
   <Target Name="OverrideCodeAnalysisProperties" Condition=" $(SonarQubeTempPath) != '' "
-          BeforeTargets="RunCodeAnalysis" >
+          BeforeTargets="RunCodeAnalysis;WriteSonarQubeProjectData" >
 
     <PropertyGroup>
-      <!-- We've determined by now whether the project is a test project or not. If it is, don't run FxCop. -->
-      <SonarQubeRunMSCodeAnalysis Condition="$(SonarQubeTestProject) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
+      <!-- Compute the ruleset filename -->
+      <SonarQubeRulesetFileName Condition=" $(SonarQubeRulesetFileName) == '' AND $(Language) == 'C#' ">SonarQubeFxCop-cs.ruleset</SonarQubeRulesetFileName>
+      <SonarQubeRulesetFileName Condition=" $(SonarQubeRulesetFileName) == '' AND $(Language) == 'VB' ">SonarQubeFxCop-vbnet.ruleset</SonarQubeRulesetFileName>
+
+      <!-- Check if the ruleset exists -->
+      <SonarQubeRulesetFullName>$(SonarQubeConfigPath)\$(SonarQubeRulesetFileName)</SonarQubeRulesetFullName>
+      <SonarQubeRulesetExists>$([System.IO.File]::Exists($(SonarQubeRulesetFullName)))</SonarQubeRulesetExists>
+
+      <!-- Run FxCop only if the ruleset exists (else it means no FxCop rule is enabled) -->
+      <SonarQubeRunMSCodeAnalysis>$(SonarQubeRulesetExists)</SonarQubeRunMSCodeAnalysis>
+
+      <!-- Don't run FxCop if the project is excluded -->
+      <SonarQubeRunMSCodeAnalysis Condition=" $(SonarQubeExclude) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
+
+      <!-- Don't run FxCop if the project is a test one -->
+      <SonarQubeRunMSCodeAnalysis Condition=" $(SonarQubeTestProject) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
     </PropertyGroup>
 
     <Message Condition="$(SonarQubeRulesetExists) != 'true' "

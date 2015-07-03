@@ -31,6 +31,9 @@ namespace SonarQube.MSBuild.Tasks
         [Required]
         public string FullProjectPath { get; set; }
 
+        [Required]
+        public string ProjectLanguage { get; set; }
+
         public string ProjectGuid { get; set; }
 
         [Required]
@@ -64,6 +67,19 @@ namespace SonarQube.MSBuild.Tasks
 
             pi.ProjectName = this.ProjectName;
             pi.FullPath = this.FullProjectPath;
+
+            switch (this.ProjectLanguage)
+            {
+                case "C#":
+                    pi.ProjectLanguage = SonarQube.Common.ProjectLanguage.CS;
+                    break;
+                case "VB":
+                    pi.ProjectLanguage = SonarQube.Common.ProjectLanguage.VB;
+                    break;
+                default:
+                    Log.LogError(Resources.ERROR_InvalidProjectLanguage, this.ProjectLanguage);
+                    return false;
+            }
 
             Guid projectId;
             if (Guid.TryParse(this.ProjectGuid, out projectId))

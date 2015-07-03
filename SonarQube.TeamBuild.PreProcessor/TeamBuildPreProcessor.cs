@@ -16,7 +16,8 @@ namespace SonarQube.TeamBuild.PreProcessor
     // was internal
     public class TeamBuildPreProcessor
     {
-        public const string FxCopRulesetFileName = "SonarQubeAnalysis.ruleset";
+        public const string FxCopCSharpRuleset = "SonarQubeFxCop-cs.ruleset";
+        public const string FxCopVBNetRuleset = "SonarQubeFxCop-vbnet.ruleset";
         private const string DefaultSonarServerUrl = "http://localhost:9000";
 
         private readonly IPropertiesFetcher propertiesFetcher;
@@ -89,16 +90,19 @@ namespace SonarQube.TeamBuild.PreProcessor
             Utilities.EnsureEmptyDirectory(config.SonarConfigDir, logger);
             Utilities.EnsureEmptyDirectory(config.SonarOutputDir, logger);
 
-            using (SonarWebService ws = GetSonarWebService(args))
+            using (var downloader = GetDownloader(args))
             {
+                var ws = new SonarWebService(downloader, GetServer(args));
+
                 // Fetch the SonarQube project properties
                 FetchSonarQubeProperties(config, ws);
 
                 // Merge in command line arguments
                 MergeSettingsFromCommandLine(config, args);
 
-                // Generate the FxCop ruleset
-                GenerateFxCopRuleset(config, ws, logger);
+                // Generate the FxCop rulesets
+                GenerateFxCopRuleset(config, ws, "csharp", "cs", "fxcop", Path.Combine(config.SonarConfigDir, FxCopCSharpRuleset), logger);
+                GenerateFxCopRuleset(config, ws, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(config.SonarConfigDir, FxCopVBNetRuleset), logger);
             }
 
             // Save the config file
@@ -112,13 +116,17 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #region Private methods
 
-        private static SonarWebService GetSonarWebService(ProcessedArgs args)
+        private static string GetServer(ProcessedArgs args)
         {
-            string server = args.GetSetting(SonarProperties.HostUrl, DefaultSonarServerUrl);
+            return args.GetSetting(SonarProperties.HostUrl, DefaultSonarServerUrl);
+        }
+
+        private static IDownloader GetDownloader(ProcessedArgs args)
+        {
             string username = args.GetSetting(SonarProperties.SonarUserName, null);
             string password = args.GetSetting(SonarProperties.SonarPassword, null);
 
-            return new SonarWebService(new WebClientDownloader(new WebClient(), username, password), server, "cs", "fxcop");
+            return new WebClientDownloader(new WebClient(), username, password);
         }
 
         private void FetchSonarQubeProperties(AnalysisConfig config, SonarWebService ws)
@@ -130,10 +138,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
         }
 
-        private void GenerateFxCopRuleset(AnalysisConfig config, SonarWebService ws, ILogger logger)
+        private void GenerateFxCopRuleset(AnalysisConfig config, SonarWebService ws, string requiredPluginKey, string language, string repository, string path, ILogger logger)
         {
-            logger.LogMessage(Resources.DIAG_GeneratingRuleset);
-            this.rulesetGenerator.Generate(ws, config.SonarProjectKey, Path.Combine(config.SonarConfigDir, FxCopRulesetFileName));
+            logger.LogMessage(Resources.DIAG_GeneratingRuleset, path);
+            this.rulesetGenerator.Generate(ws, requiredPluginKey, language, repository, config.SonarProjectKey, path);
         }
 
         private static void MergeSettingsFromCommandLine(AnalysisConfig config, ProcessedArgs args)

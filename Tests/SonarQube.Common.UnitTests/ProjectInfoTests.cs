@@ -48,6 +48,7 @@ namespace SonarQube.Common.UnitTests
 
             ProjectInfo originalProjectInfo = new ProjectInfo();
             originalProjectInfo.FullPath = "c:\\fullPath\\project.proj";
+            originalProjectInfo.ProjectLanguage = ProjectLanguage.VB;
             originalProjectInfo.ProjectType = ProjectType.Product;
             originalProjectInfo.ProjectGuid = projectGuid;
             originalProjectInfo.ProjectName = "MyProject";

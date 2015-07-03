@@ -77,8 +77,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockPropertiesFetcher.AssertFetchPropertiesCalled();
             mockPropertiesFetcher.CheckFetcherArguments("http://localhost:9000", "key");
 
-            mockRulesetGenerator.AssertGenerateCalled();
-            mockRulesetGenerator.CheckGeneratorArguments("http://localhost:9000", "key");
+            mockRulesetGenerator.AssertGenerateCalled(2);
+            mockRulesetGenerator.CheckGeneratorArguments("http://localhost:9000", "csharp", "cs", "fxcop", "key", "SonarQubeFxCop-cs.ruleset");
+            mockRulesetGenerator.CheckGeneratorArguments("http://localhost:9000", "vbnet", "vbnet", "fxcop-vbnet", "key", "SonarQubeFxCop-vbnet.ruleset");
         }
 
         [TestMethod]
@@ -117,8 +118,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockPropertiesFetcher.AssertFetchPropertiesCalled();
             mockPropertiesFetcher.CheckFetcherArguments("my url", "key");
 
-            mockRulesetGenerator.AssertGenerateCalled();
-            mockRulesetGenerator.CheckGeneratorArguments("my url", "key");
+            mockRulesetGenerator.AssertGenerateCalled(2);
+            mockRulesetGenerator.CheckGeneratorArguments("my url", "csharp", "cs", "fxcop", "key", "SonarQubeFxCop-cs.ruleset");
+            mockRulesetGenerator.CheckGeneratorArguments("my url", "vbnet", "vbnet", "fxcop-vbnet", "key", "SonarQubeFxCop-vbnet.ruleset");
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);

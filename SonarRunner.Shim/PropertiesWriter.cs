@@ -95,7 +95,7 @@ namespace SonarRunner.Shim
             return sb.ToString();
         }
 
-        public void WriteSettingsForProject(ProjectInfo project, IEnumerable<string> files, string fxCopReportFilePath, string codeCoverageFilePath)
+        public void WriteSettingsForProject(ProjectInfo project, IEnumerable<string> files, ProjectLanguage projectLanguage, string fxCopReportFilePath, string codeCoverageFilePath)
         {
             if (this.FinishedWriting)
             {
@@ -124,7 +124,16 @@ namespace SonarRunner.Shim
 
             if (fxCopReportFilePath != null)
             {
-                AppendKeyValue(sb, guid, "sonar.cs.fxcop.reportPath", fxCopReportFilePath);
+                string property;
+                if (projectLanguage == ProjectLanguage.CS)
+                {
+                    property = "sonar.cs.fxcop.reportPath";
+                }
+                else
+                {
+                    property = "sonar.vbnet.fxcop.reportPath";
+                }
+                AppendKeyValue(sb, guid, property, fxCopReportFilePath);
             }
 
             if (codeCoverageFilePath != null)

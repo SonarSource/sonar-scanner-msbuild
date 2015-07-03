@@ -6,6 +6,8 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -14,16 +16,25 @@ namespace SonarQube.TeamBuild.PreProcessor
 {
     public class RulesetGenerator : IRulesetGenerator
     {
-        private const string Language = "cs";
-        private const string Repository = "fxcop";
-
         #region Public methods
 
-        public void Generate(SonarWebService ws, string sonarProjectKey, string outputFilePath)
+        public void Generate(SonarWebService ws, string requiredPluginKey, string language, string fxcopRepositoryKey, string sonarProjectKey, string outputFilePath)
         {
             if (ws == null)
             {
                 throw new ArgumentNullException("ws");
+            }
+            if (string.IsNullOrWhiteSpace(requiredPluginKey))
+            {
+                throw new ArgumentNullException("requiredPluginKey");
+            }
+            if (string.IsNullOrWhiteSpace(language))
+            {
+                throw new ArgumentNullException("language");
+            }
+            if (string.IsNullOrWhiteSpace(fxcopRepositoryKey))
+            {
+                throw new ArgumentNullException("fxcopRepositoryKey");
             }
             if (string.IsNullOrWhiteSpace(sonarProjectKey))
             {
@@ -33,16 +44,24 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException("outputFilePath");
             }
-            
-            var qualityProfile = ws.GetQualityProfile(sonarProjectKey);
-            var activeRuleKeys = ws.GetActiveRuleKeys(qualityProfile);
+
+            IEnumerable<string> activeRuleKeys = Enumerable.Empty<string>();
+            if (ws.GetInstalledPlugins().Contains(requiredPluginKey))
+            {
+                string qualityProfile;
+                if (ws.TryGetQualityProfile(sonarProjectKey, language, out qualityProfile))
+                {
+                    activeRuleKeys = ws.GetActiveRuleKeys(qualityProfile, language, fxcopRepositoryKey);
+                }
+            }
+
             if (activeRuleKeys.Any())
             {
-                var internalKeys = ws.GetInternalKeys();
+                var internalKeys = ws.GetInternalKeys(fxcopRepositoryKey);
                 var ids = activeRuleKeys.Select(
                     k =>
                     {
-                        var fullKey = Repository + ':' + k;
+                        var fullKey = fxcopRepositoryKey + ':' + k;
                         return internalKeys.ContainsKey(fullKey) ? internalKeys[fullKey] : k;
                     });
 

@@ -15,14 +15,12 @@ using Newtonsoft.Json.Linq;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
-    public sealed class SonarWebService : IDisposable
+    public sealed class SonarWebService
     {
         public string Server { get; private set; }
-        private readonly string Language;
-        private readonly string Repository;
         private readonly IDownloader Downloader;
 
-        public SonarWebService(IDownloader downloader, string server, string language, string repository)
+        public SonarWebService(IDownloader downloader, string server)
         {
             if (downloader == null)
             {
@@ -32,45 +30,42 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException("server");
             }
-            if (string.IsNullOrWhiteSpace(language))
-            {
-                throw new ArgumentNullException("language");
-            }
-            if (string.IsNullOrWhiteSpace(repository))
-            {
-                throw new ArgumentNullException("repository");
-            }
             
             Downloader = downloader;
             Server = server.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? server.Substring(0, server.Length - 1) : server;
-            Language = language;
-            Repository = repository;
         }
 
         /// <summary>
         /// Get the name of the quality profile (of the given language) to be used by the given project key
         /// </summary>
-        public string GetQualityProfile(string projectKey)
+        public bool TryGetQualityProfile(string projectKey, string language, out string qualityProfile)
         {
             string contents;
-            var ws = GetUrl("/api/profiles/list?language={0}&project={1}", Language, projectKey);
+            var ws = GetUrl("/api/profiles/list?language={0}&project={1}", language, projectKey);
             if (!Downloader.TryDownloadIfExists(ws, out contents))
             {
-                ws = GetUrl("/api/profiles/list?language={0}", Language);
+                ws = GetUrl("/api/profiles/list?language={0}", language);
                 contents = Downloader.Download(ws);
             }
             var profiles = JArray.Parse(contents);
-            // TODO What is profiles is empty?
-            var profile = profiles.Count > 1 ? profiles.Where(p => "True".Equals(p["default"].ToString())).Single() : profiles[0];
-            return profile["name"].ToString();
+
+            if (!profiles.Any())
+            {
+                qualityProfile = null;
+                return false;
+            }
+
+            var profile = profiles.Count > 1 ? profiles.Where(p => "True".Equals(p["default"].ToString())).Single() : profiles.Single();
+            qualityProfile = profile["name"].ToString();
+            return true;
         }
 
         /// <summary>
         /// Get all the active rules (of the given language and repository) in the given quality profile name
         /// </summary>
-        public IEnumerable<string> GetActiveRuleKeys(string qualityProfile)
+        public IEnumerable<string> GetActiveRuleKeys(string qualityProfile, string language, string repository)
         {
-            var ws = GetUrl("/api/profiles/index?language={0}&name={1}", Language, qualityProfile);
+            var ws = GetUrl("/api/profiles/index?language={0}&name={1}", language, qualityProfile);
             var contents = Downloader.Download(ws);
 
             var profiles = JArray.Parse(contents);
@@ -80,7 +75,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             
             return rules
-                .Where(r => Repository.Equals(r["repo"].ToString()))
+                .Where(r => repository.Equals(r["repo"].ToString()))
                 .Select(
                 r =>
                 {
@@ -92,9 +87,9 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <summary>
         /// Get the key -> internal keys mapping (of the given language and repository)
         /// </summary>
-        public IDictionary<string, string> GetInternalKeys()
+        public IDictionary<string, string> GetInternalKeys(string repository)
         {
-            var ws = GetUrl("/api/rules/search?f=internalKey&ps={0}&repositories={1}", int.MaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture), Repository);
+            var ws = GetUrl("/api/rules/search?f=internalKey&ps={0}&repositories={1}", int.MaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture), repository);
             var contents = Downloader.Download(ws);
 
             var rules = JObject.Parse(contents);
@@ -114,13 +109,27 @@ namespace SonarQube.TeamBuild.PreProcessor
             var properties = JArray.Parse(contents);
             var result = properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
 
-            // http://jira.codehaus.org/browse/SONAR-5891
+            // http://jira.sonarsource.com/browse/SONAR-5891
             if (!result.ContainsKey("sonar.cs.msbuild.testProjectPattern"))
             {
                 result["sonar.cs.msbuild.testProjectPattern"] = ".*test.*";
             }
 
             return result;
+        }
+
+        // TODO Should be replaced by calls to api/languages/list after min(SQ version) >= 5.1
+        /// <summary>
+        /// Get all keys of all installed plugins
+        /// </summary>
+        public IEnumerable<string> GetInstalledPlugins()
+        {
+            var ws = GetUrl("/api/updatecenter/installed_plugins");
+            var contents = Downloader.Download(ws);
+
+            var plugins = JArray.Parse(contents);
+
+            return plugins.Select(plugin => plugin["key"].ToString());
         }
 
         private string GetUrl(string format, params string[] args)
@@ -132,30 +141,5 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             return Server + queryString;
         }
-
-        #region IDispose implementation
-
-        private bool disposed;
-
-        public void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (!this.disposed && disposing)
-            {
-                if (this.Downloader != null)
-                {
-                    this.Downloader.Dispose();
-                }
-            }
-
-            this.disposed = true;
-        }
-
-        #endregion
     }
 }

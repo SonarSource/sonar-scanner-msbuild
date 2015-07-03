@@ -50,7 +50,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public const string SonarQubeTestProject = "SonarQubeTestProject";
         public const string SonarQubeExcludeMetadata = "SonarQubeExclude";
-        public const string SonarQubeRulesetName = "SonarQubeAnalysis.ruleset";
+        public const string SonarQubeRulesetFormat = "SonarQubeFxCop-{0}.ruleset";
 
         // Non-SonarQube constants
         public const string ProjectGuid = "ProjectGuid";

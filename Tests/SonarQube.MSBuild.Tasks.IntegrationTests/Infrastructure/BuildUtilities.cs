@@ -68,6 +68,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             ProjectDescriptor descriptor = new ProjectDescriptor()
             {
+                ProjectLanguage = SonarQube.Common.ProjectLanguage.CS,
                 ProjectGuid = Guid.NewGuid(),
                 IsTestProject = false,
                 ParentDirectoryPath = parentDirectory,

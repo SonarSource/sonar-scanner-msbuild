@@ -13,8 +13,11 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// Retrieves settings from the SonarQube server and generates a an FxCop file on disc
         /// </summary>
         /// <param name="ws">SonarQube Web Service instance</param>
+        /// <param name="requiredPluginKey">The plugin key that defines the given language</param>
+        /// <param name="language">The language of the FxCop repository</param>
+        /// <param name="fxcopRepositoryKey">The key of the FxCop repository</param>
         /// <param name="sonarProjectKey">The key of the SonarQube project for which the ruleset should be generated</param>
         /// <param name="outputFilePath">The full path to the file to be generated</param>
-        void Generate(SonarWebService ws, string sonarProjectKey, string outputFilePath);
+        void Generate(SonarWebService ws, string requiredPluginKey, string language, string fxcopRepositoryKey, string sonarProjectKey, string outputFilePath);
     }
 }

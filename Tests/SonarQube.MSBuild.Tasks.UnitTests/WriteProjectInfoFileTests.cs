@@ -37,11 +37,13 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
             WriteProjectInfoFile task = new WriteProjectInfoFile();
             task.FullProjectPath = "c:\\fullPath\\project.proj";
+            task.ProjectLanguage = "cs";
             task.IsTest = true;
             task.IsExcluded = false;
             task.OutputFolder = testFolder;
             task.ProjectGuid = projectGuid.ToString("B");
             task.ProjectName = "MyProject";
+            task.ProjectLanguage = "C#";
             // No analysis results are supplied
 
             // Act
@@ -50,6 +52,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // Addition assertions
             ProjectInfoAssertions.AssertExpectedValues(
                 "c:\\fullPath\\project.proj",
+                ProjectLanguage.CS,
                 ProjectType.Test,
                 projectGuid,
                 "MyProject",
@@ -73,6 +76,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             task.OutputFolder = testFolder;
             task.ProjectGuid = projectGuid.ToString("B");
             task.ProjectName = "MyProject";
+            task.ProjectLanguage = "C#";
 
             List<ITaskItem> resultInputs = new List<ITaskItem>();
 
@@ -120,6 +124,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             task.OutputFolder = testFolder;
             task.ProjectGuid = projectGuid.ToString("B");
             task.ProjectName = "MyProject";
+            task.ProjectLanguage = "C#";
 
             // Example of a valid setting:
             // <SonarQubeSetting Include="sonar.resharper.projectname">
@@ -185,6 +190,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             task.IsTest = true;
             task.OutputFolder = testFolder;
             task.ProjectName = "ProjectWithoutProjectGuid";
+            task.ProjectLanguage = "C#";
             // No analysis results are supplied
 
             // Act
