@@ -25,7 +25,7 @@ namespace SonarQube.Common.UnitTests
         public void ProcRunner_ExecutionFailed()
         {
             // Arrange
-            string exeName = WriteBatchFileForTest("exit -2");
+            string exeName = TestUtils.WriteBatchFileForTest(TestContext, "exit -2");
 
             TestLogger logger = new TestLogger();
             ProcessRunner runner = new ProcessRunner();
@@ -42,7 +42,7 @@ namespace SonarQube.Common.UnitTests
         public void ProcRunner_ExecutionSucceeded()
         {
             // Arrange
-            string exeName = WriteBatchFileForTest(
+            string exeName = TestUtils.WriteBatchFileForTest(TestContext,
 @"@echo Hello world
 xxx yyy
 @echo Testing 1,2,3...
@@ -67,7 +67,7 @@ xxx yyy
         public void ProcRunner_FailsOnTimeout()
         {
             // Arrange
-            string exeName = WriteBatchFileForTest(
+            string exeName = TestUtils.WriteBatchFileForTest(TestContext,
 @"TIMEOUT 1
 @echo Hello world
 ");
@@ -99,7 +99,7 @@ xxx yyy
             TestLogger logger = new TestLogger();
             ProcessRunner runner = new ProcessRunner();
 
-            string exeName = WriteBatchFileForTest(
+            string exeName = TestUtils.WriteBatchFileForTest(TestContext,
 @"echo %PROCESS_VAR%
 @echo %PROCESS_VAR2%
 @echo %PROCESS_VAR3%
@@ -138,7 +138,7 @@ xxx yyy
                 Environment.SetEnvironmentVariable("proc.runner.test.process", "existing process value", EnvironmentVariableTarget.Process);
                 Environment.SetEnvironmentVariable("proc.runner.test.user", "existing user value", EnvironmentVariableTarget.User);
 
-                string exeName = WriteBatchFileForTest(
+                string exeName = TestUtils.WriteBatchFileForTest(TestContext,
 @"@echo file: %proc.runner.test.machine%
 @echo file: %proc.runner.test.process%
 @echo file: %proc.runner.test.user%
@@ -196,18 +196,6 @@ xxx yyy
 
 
         #region Private methods
-
-        /// <summary>
-        /// Creates a batch file with the name of the current test
-        /// </summary>
-        /// <returns>Returns the full file name of the new file</returns>
-        private string WriteBatchFileForTest(string content)
-        {
-            string fileName = Path.Combine(this.TestContext.DeploymentDirectory, this.TestContext.TestName + ".bat");
-            Assert.IsFalse(File.Exists(fileName), "Not expecting a batch file to already exist: {0}", fileName);
-            File.WriteAllText(fileName, content);
-            return fileName;
-        }
 
         private static void SafeSetEnvironmentVariable(string key, string value, EnvironmentVariableTarget target, ILogger logger)
         {

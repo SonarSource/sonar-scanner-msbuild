@@ -8,19 +8,27 @@
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Text;
 using System.Threading;
 
 namespace SonarRunner.Shim
 {
     public class SonarRunnerWrapper : ISonarRunner
     {
+        /// <summary>
+        /// Env variable that controls the amount of memory the JVM can use for the sonar-runner. 
+        /// </summary>
+        /// <remarks>Large projects error out with OutOfMemoryException if not set</remarks>
         private const string SonarRunnerOptsVariableName = "SONAR_RUNNER_OPTS";
+
+        /// <summary>
+        /// Env variable that locates the sonar-runner
+        /// </summary>
+        /// <remarks>We asked users to set this in the 0.9 version so that the sonar-runner is discoverable but 
+        /// in 1.0+ this is not needed and setting it can cause the sonar-runner to fail</remarks>
+        public const string SonarRunnerHomeVariableName = "SONAR_RUNNER_HOME";
 
         /// <summary>
         /// Default value for the SONAR_RUNNER_OPTS
@@ -66,7 +74,7 @@ namespace SonarRunner.Shim
             return result;
         }
 
-        #endregion
+        #endregion ISonarRunner interface
 
         #region Private methods
 
@@ -82,10 +90,12 @@ namespace SonarRunner.Shim
             return Path.Combine(sonarRunnerDestinationFolder, @"bin\sonar-runner.bat");
         }
 
-        private static bool ExecuteJavaRunner(ILogger logger, string exeFileName, string propertiesFileName)
+        public /* for test purposes */ static bool ExecuteJavaRunner(ILogger logger, string exeFileName, string propertiesFileName)
         {
             Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
             Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
+
+            WarnAgainstSettingSonarRunnerHome(logger);
 
             string args = string.Format(System.Globalization.CultureInfo.InvariantCulture,
                 "-Dproject.settings=\"{0}\"", propertiesFileName);
@@ -117,6 +127,14 @@ namespace SonarRunner.Shim
             return success;
         }
 
+        private static void WarnAgainstSettingSonarRunnerHome(ILogger logger)
+        {
+            if (!String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(SonarRunnerHomeVariableName)))
+            {
+                logger.LogWarning(Resources.WARN_SonarRunnerHomeIsSet);
+            }
+        }
+
         /// <summary>
         /// Returns any additional environment variables that need to be passed to
         /// the sonar-runner
@@ -126,15 +144,15 @@ namespace SonarRunner.Shim
             IDictionary<string, string> envVarsDictionary = new Dictionary<string, string>();
 
             // Always set a value for SONAR_RUNNER_OPTS just in case it is set at process-level
-            // (which wouldn't be inherited by the child sonar-runner process.
+            // which wouldn't be inherited by the child sonar-runner process.
             string sonarRunnerOptsValue = GetSonarRunnerOptsValue(logger);
             envVarsDictionary.Add(SonarRunnerOptsVariableName, sonarRunnerOptsValue);
- 
+
             return envVarsDictionary;
         }
 
         /// <summary>
-        /// Get the value of the SONAR_RUNNER_OPTS variable that controls the amount of memory available to the JDK so that the sonar-runner doesn't 
+        /// Get the value of the SONAR_RUNNER_OPTS variable that controls the amount of memory available to the JDK so that the sonar-runner doesn't
         /// hit OutOfMemory exceptions. If no env variable with this name is defined then a default value is used.
         /// </summary>
         private static string GetSonarRunnerOptsValue(ILogger logger)
@@ -153,6 +171,6 @@ namespace SonarRunner.Shim
             }
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

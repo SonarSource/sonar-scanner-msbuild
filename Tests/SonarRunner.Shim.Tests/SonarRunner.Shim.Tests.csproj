@@ -57,6 +57,7 @@
     <Compile Include="PropertiesWriterTest.cs" />
     <Compile Include="ProjectLoaderTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SonarRunnerWrapperTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\SonarQube.Common\SonarQube.Common.csproj">

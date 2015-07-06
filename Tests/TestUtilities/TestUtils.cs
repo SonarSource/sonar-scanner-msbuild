@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.IO;
 
 namespace TestUtilities
@@ -83,6 +84,19 @@ namespace TestUtilities
             return fullPath;
         }
 
+        /// <summary>
+        /// Creates a batch file with the name of the current test
+        /// </summary>
+        /// <returns>Returns the full file name of the new file</returns>
+        public static string WriteBatchFileForTest(TestContext context, string content)
+        {
+            string fileName = Path.Combine(context.DeploymentDirectory, context.TestName + ".bat");
+            Assert.IsFalse(File.Exists(fileName), "Not expecting a batch file to already exist: {0}", fileName);
+            File.WriteAllText(fileName, content);
+            return fileName;
+        }
+
+       
         #endregion
 
         #region Private methods
