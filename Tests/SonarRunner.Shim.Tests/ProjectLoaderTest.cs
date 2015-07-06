@@ -109,7 +109,7 @@ namespace SonarRunner.Shim.Tests
             Assert.AreEqual(1, projects.Count());
         }
 
-        #endregion
+        #endregion Tests
 
         #region Helper methods
 
@@ -125,7 +125,7 @@ namespace SonarRunner.Shim.Tests
             }
 
             ProjectInfo projectInfo = descriptor.CreateProjectInfo();
-            
+
             // Create the analysis file list if any input files have been specified
             if (descriptor.AllFiles.Any())
             {
@@ -164,7 +164,7 @@ namespace SonarRunner.Shim.Tests
             projectInfo.Save(Path.Combine(descriptor.FullDirectoryPath, FileConstants.ProjectInfoFileName));
         }
 
-        #endregion
+        #endregion Helper methods
 
         #region Assertions
 
@@ -175,6 +175,6 @@ namespace SonarRunner.Shim.Tests
             return actual;
         }
 
-        #endregion
+        #endregion Assertions
     }
 }

@@ -76,6 +76,12 @@ namespace TestUtilities
             Assert.IsFalse(found, "Not expecting the message to have been logged: '{0}'", message);
         }
 
+        public void AssertWarningNotLogged(string warning)
+        {
+            bool found = this.Warnings.Any(s => warning.Equals(s, System.StringComparison.CurrentCulture));
+            Assert.IsFalse(found, "Not expecting the warning to have been logged: '{0}'", warning);
+        }
+
         /// <summary>
         /// Checks that a single error exists that contains all of the specified strings
         /// </summary>
