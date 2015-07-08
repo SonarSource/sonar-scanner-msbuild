@@ -60,7 +60,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
                 // Act
                 ProcessedArgs args = new ProcessedArgs("key", "name", "ver", EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
-                preProcessor.Execute(args, logger);
+                bool executed = preProcessor.Execute(args, logger);
+                Assert.IsTrue(executed);
             }
 
             // Assert
@@ -109,7 +110,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
                 // Act
                 ProcessedArgs args = new ProcessedArgs("key", "name", "ver", new ListPropertiesProvider(), fileProperties);
-                preProcessor.Execute(args, logger);
+                bool executed = preProcessor.Execute(args, logger);
+                Assert.IsTrue(executed);
             }
 
             // Assert
@@ -124,6 +126,35 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
+        }
+
+        [TestMethod]
+        public void PreProc_DefaultHostUrl()
+        {
+            // Arrange
+            MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
+            mockPropertiesFetcher.FetchException = new System.Net.WebException();
+
+            MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
+            TestLogger logger = new TestLogger();
+            ProcessedArgs args = null;
+
+            using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", "build uri"))
+            {
+                TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(new ConsoleLogger());
+                Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
+
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
+
+                // Act
+                args = new ProcessedArgs("key", "name", "ver", new ListPropertiesProvider(), new ListPropertiesProvider());
+                bool executed = preProcessor.Execute(args, logger);
+                Assert.IsFalse(executed);
+            }
+
+            // Assert
+            mockPropertiesFetcher.AssertFetchPropertiesCalled();
+            logger.AssertErrorsLogged(1);
         }
 
         [TestMethod]
@@ -169,7 +200,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
                 // Act
                 ProcessedArgs args = new ProcessedArgs("key", "name", "ver", cmdLineProperties, fileProperties);
-                preProcessor.Execute(args, logger);
+                bool executed = preProcessor.Execute(args, logger);
+                Assert.IsTrue(executed);
             }
 
             // Assert

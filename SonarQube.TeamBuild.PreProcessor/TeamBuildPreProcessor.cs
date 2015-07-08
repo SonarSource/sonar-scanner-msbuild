@@ -49,7 +49,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         }
 
         #endregion
-        
+
         #region Public methods
 
         public bool Execute(ProcessedArgs args, ILogger logger)
@@ -62,7 +62,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException("logger");
             }
-            
+
             AnalysisConfig config = new AnalysisConfig();
             config.SonarProjectKey = args.ProjectKey;
             config.SonarProjectName = args.ProjectName;
@@ -90,19 +90,9 @@ namespace SonarQube.TeamBuild.PreProcessor
             Utilities.EnsureEmptyDirectory(config.SonarConfigDir, logger);
             Utilities.EnsureEmptyDirectory(config.SonarOutputDir, logger);
 
-            using (var downloader = GetDownloader(args))
+            if (!FetchArgumentsAndRulesets(args, config, logger))
             {
-                var ws = new SonarWebService(downloader, GetServer(args));
-
-                // Fetch the SonarQube project properties
-                FetchSonarQubeProperties(config, ws);
-
-                // Merge in command line arguments
-                MergeSettingsFromCommandLine(config, args);
-
-                // Generate the FxCop rulesets
-                GenerateFxCopRuleset(config, ws, "csharp", "cs", "fxcop", Path.Combine(config.SonarConfigDir, FxCopCSharpRuleset), logger);
-                GenerateFxCopRuleset(config, ws, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(config.SonarConfigDir, FxCopVBNetRuleset), logger);
+                return false;
             }
 
             // Save the config file
@@ -116,10 +106,55 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #region Private methods
 
+
+        private bool FetchArgumentsAndRulesets(ProcessedArgs args, AnalysisConfig config, ILogger logger)
+        {
+            try
+            {
+                using (var downloader = GetDownloader(args))
+                {
+                    SonarWebService ws = new SonarWebService(downloader, GetServer(args));
+
+                    // Fetch the SonarQube project properties
+                    this.FetchSonarQubeProperties(config, ws);
+
+                    // Merge in command line arguments
+                    MergeSettingsFromCommandLine(config, args);
+
+                    // Generate the FxCop rulesets
+                    GenerateFxCopRuleset(config, ws, "csharp", "cs", "fxcop", Path.Combine(config.SonarConfigDir, FxCopCSharpRuleset), logger);
+                    GenerateFxCopRuleset(config, ws, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(config.SonarConfigDir, FxCopVBNetRuleset), logger);
+                }
+            }
+            // The bootstrapper might call the preprocessor without a host url (e.g. the 0.9 bootstrapper) in which case 
+            // the default will be used. If unreachable present the user with an error message instead of an exception
+            catch (System.Net.WebException)
+            {
+                if (ServerIsDefault(args))
+                {
+                    logger.LogError(Resources.ERROR_UnreachableDefaultHostUrl, DefaultSonarServerUrl);
+                    return false;
+                }
+
+                throw;
+            }
+
+            return true;
+        }
+
         private static string GetServer(ProcessedArgs args)
         {
             return args.GetSetting(SonarProperties.HostUrl, DefaultSonarServerUrl);
         }
+
+        private static bool ServerIsDefault(ProcessedArgs args)
+        {
+            return String.Equals(
+                GetServer(args),
+                DefaultSonarServerUrl,
+                StringComparison.InvariantCultureIgnoreCase);
+        }
+
 
         private static IDownloader GetDownloader(ProcessedArgs args)
         {
