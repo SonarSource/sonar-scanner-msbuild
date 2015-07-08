@@ -100,6 +100,8 @@ namespace SonarQube.Bootstrapper.Tests
         public void Exe_PreProc_VersionCheckSucceeds_PreProcFails()
         {
             // Arrange
+            File.Delete(CreateDefaultPropertiesFile(new AnalysisProperties()));
+
             string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             using (InitializeNonTeamBuildEnvironment(rootDir))
             {
@@ -133,6 +135,8 @@ namespace SonarQube.Bootstrapper.Tests
         public void Exe_PreProc_VersionCheckSucceeds_PreProcSucceeds()
         {
             // Arrange
+            File.Delete(CreateDefaultPropertiesFile(new AnalysisProperties()));
+
             string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             using (InitializeNonTeamBuildEnvironment(rootDir))
             {
