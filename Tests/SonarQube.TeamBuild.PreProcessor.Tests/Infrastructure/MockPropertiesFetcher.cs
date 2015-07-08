@@ -8,6 +8,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Collections.Generic;
+using System;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
@@ -22,6 +23,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         #region Test helpers
 
         public IDictionary<string, string> PropertiesToReturn { get; set; }
+
+        public Exception FetchException { get; set; }
 
         #endregion
 
@@ -47,6 +50,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsFalse(string.IsNullOrWhiteSpace(sonarProjectKey), "Supplied project key should not be null");
 
             this.fetchPropertiesCalled = true;
+
+            if (FetchException != null)
+            {
+                throw FetchException;
+            }
 
             this.actualKey = sonarProjectKey;
             this.actualWs = ws;
