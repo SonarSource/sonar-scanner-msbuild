@@ -46,11 +46,13 @@ namespace SonarRunner.Shim.Tests
                 string path = Path.Combine(TestUtils.CreateTestSpecificFolder(TestContext), "analysis.properties");
                 File.CreateText(path);
                 Environment.SetEnvironmentVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName, "some_path");
-
                 // Act
                 SonarRunnerWrapper.ExecuteJavaRunner(testLogger, exePath, exePath);
 
                 // Assert
+                Assert.IsTrue(String.IsNullOrEmpty(
+                    Environment.GetEnvironmentVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName))
+                    , "Not expecting the env variable to still be set");
                 testLogger.AssertSingleWarningExists(SonarRunner.Shim.Resources.WARN_SonarRunnerHomeIsSet);
             }
             finally
