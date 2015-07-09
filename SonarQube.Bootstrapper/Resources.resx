@@ -126,11 +126,11 @@
   <data name="ERROR_CmdLine_BothBeginAndEndSupplied" xml:space="preserve">
     <value>Invalid command line parameters. Please specify either 'begin' or 'end', not both.</value>
   </data>
-  <data name="ERROR_CmdLine_UrlRequired" xml:space="preserve">
-    <value>The SonarQube URL must be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000 )</value>
+  <data name="ERROR_ConnectionFailed" xml:space="preserve">
+    <value>Could not connect to the SonarQube server. Check the url is correct and that the server is available. Url: {0}</value>
   </data>
   <data name="ERROR_FailedToUpdateRunnerBinaries" xml:space="preserve">
-    <value>Failed to update the SonarQube MSBuild Runner binaries. Verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted.</value>
+    <value>Failed to update the SonarQube MSBuild Runner binaries. Check the server url, verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted.</value>
   </data>
   <data name="ERROR_ProcessingFailed" xml:space="preserve">
     <value>{0} failed. Exit code: {1}</value>
@@ -164,6 +164,9 @@
   </data>
   <data name="PhaseLabel_PreProcessing" xml:space="preserve">
     <value>Pre-processing</value>
+  </data>
+  <data name="WARN_CmdLine_UrlRequired" xml:space="preserve">
+    <value>The SonarQube URL was not set so the default value {0} is going to be used. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000). </value>
   </data>
   <data name="WARN_CmdLine_v09_Compat" xml:space="preserve">
     <value>Please specify the command 'begin' or 'end' to indicate whether pre- or post-processing is required. These parameters will become mandatory in a later release.</value>

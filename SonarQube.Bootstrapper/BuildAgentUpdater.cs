@@ -58,6 +58,12 @@ namespace SonarQube.Bootstrapper
                         return false;
                     }
 
+                    if (e.Status == WebExceptionStatus.ConnectFailure)
+                    {
+                        logger.LogError(Resources.ERROR_ConnectionFailed, hostUrl);
+                        return false;
+                    }
+
                     throw;
                 }
 
@@ -70,7 +76,7 @@ namespace SonarQube.Bootstrapper
         /// <summary>
         /// Verifies that the pre/post-processors are compatible with this version of the bootstrapper
         /// </summary>
-        /// <remarks>Older C# plugins will not have the file containg the supported versions - 
+        /// <remarks>Older C# plugins will not have the file contain the supported versions - 
         /// in this case we fail because we are not backwards compatible with those versions</remarks>
         /// <param name="versionFilePath">path to the XML file containing the supported versions</param>
         /// <param name="bootstrapperVersion">current version</param>

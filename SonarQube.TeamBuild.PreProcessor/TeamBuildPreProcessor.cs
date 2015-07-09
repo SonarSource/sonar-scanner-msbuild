@@ -18,7 +18,6 @@ namespace SonarQube.TeamBuild.PreProcessor
     {
         public const string FxCopCSharpRuleset = "SonarQubeFxCop-cs.ruleset";
         public const string FxCopVBNetRuleset = "SonarQubeFxCop-vbnet.ruleset";
-        private const string DefaultSonarServerUrl = "http://localhost:9000";
 
         private readonly IPropertiesFetcher propertiesFetcher;
         private readonly IRulesetGenerator rulesetGenerator;
@@ -132,7 +131,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 if (ServerIsDefault(args))
                 {
-                    logger.LogError(Resources.ERROR_UnreachableDefaultHostUrl, DefaultSonarServerUrl);
+                    logger.LogError(Resources.ERROR_UnreachableDefaultHostUrl, DefaultSonarPropertyValues.HostUrl);
                     return false;
                 }
 
@@ -144,14 +143,14 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private static string GetServer(ProcessedArgs args)
         {
-            return args.GetSetting(SonarProperties.HostUrl, DefaultSonarServerUrl);
+            return args.GetSetting(SonarProperties.HostUrl, DefaultSonarPropertyValues.HostUrl);
         }
 
         private static bool ServerIsDefault(ProcessedArgs args)
         {
             return String.Equals(
                 GetServer(args),
-                DefaultSonarServerUrl,
+                DefaultSonarPropertyValues.HostUrl,
                 StringComparison.InvariantCultureIgnoreCase);
         }
 

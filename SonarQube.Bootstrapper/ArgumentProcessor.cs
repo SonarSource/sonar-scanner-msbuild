@@ -151,47 +151,43 @@ namespace SonarQube.Bootstrapper
 
         private static IBootstrapperSettings CreatePreProcessorSettings(IList<string> baseChildArgs, IAnalysisPropertyProvider properties, IAnalysisPropertyProvider globalFileProperties, ILogger logger)
         {
-            IBootstrapperSettings settings = null;
-            string url;
-            if (TryGetUrl(properties, logger, out url))
+            string hostUrl = GetHostUrl(properties, logger);
+
+            // If we're using the default properties file then we need to pass it
+            // explicitly to the pre-processor (it's in a different folder and won't
+            // be able to find it otherwise).
+            FilePropertyProvider fileProvider = globalFileProperties as FilePropertyProvider;
+            if (fileProvider != null && fileProvider.IsDefaultSettingsFile)
             {
-                // If we're using the default properties file then we need to pass it
-                // explicitly to the pre-processor (it's in a different folder and won't
-                // be able to find it otherwise).
-                FilePropertyProvider fileProvider = globalFileProperties as FilePropertyProvider;
-                if (fileProvider != null && fileProvider.IsDefaultSettingsFile)
-                {
-                    Debug.Assert(fileProvider.PropertiesFile != null);
-                    Debug.Assert(!string.IsNullOrEmpty(fileProvider.PropertiesFile.FilePath), "Expecting the properties file path to be set");
-                    baseChildArgs.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}", FilePropertyProvider.Prefix, fileProvider.PropertiesFile.FilePath));
-                }
-
-                string childArgs = GetChildProcCmdLineParams(baseChildArgs);
-
-                settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, childArgs, url, logger);
+                Debug.Assert(fileProvider.PropertiesFile != null);
+                Debug.Assert(!string.IsNullOrEmpty(fileProvider.PropertiesFile.FilePath), "Expecting the properties file path to be set");
+                baseChildArgs.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}", FilePropertyProvider.Prefix, fileProvider.PropertiesFile.FilePath));
             }
+
+            string childArgs = GetChildProcCmdLineParams(baseChildArgs);
+
+            IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, childArgs, hostUrl, logger);
 
             return settings;
         }
 
-        private static bool TryGetUrl(IAnalysisPropertyProvider properties, ILogger logger, out string url)
+        private static string GetHostUrl(IAnalysisPropertyProvider properties, ILogger logger)
         {
+            string url;
             if (properties.TryGetValue(SonarProperties.HostUrl, out url))
             {
-                return true;
+                return url;
             }
-            else
-            {
-                logger.LogError(Resources.ERROR_CmdLine_UrlRequired);
-                return false;
-            }
+
+            logger.LogWarning(Resources.WARN_CmdLine_UrlRequired, DefaultSonarPropertyValues.HostUrl);
+            return DefaultSonarPropertyValues.HostUrl;
         }
 
         private static IBootstrapperSettings CreatePostProcessorSettings(IList<string> baseChildArgs, IAnalysisPropertyProvider properties, ILogger logger)
         {
             string childArgs = GetChildProcCmdLineParams(baseChildArgs);
             IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PostProcessing, childArgs, string.Empty, logger);
-            
+
             return settings;
         }
 

@@ -55,14 +55,27 @@ namespace SonarQube.Bootstrapper.Tests
         }
 
         [TestMethod]
-        public void Updater_CheckDownloadUrl()
+        public void Updater_CheckDownloadUrl_ResoultionFailure()
+        {
+            // this URL produces a resolution failure
+            CheckInvalidUrlFails("http://updater.checkdownload.url.dummy.url:9000");
+        }
+
+        [TestMethod]
+        public void Updater_CheckDownloadUrl_ConnectionFailure()
+        {
+            // this URL produces a connection failure
+            CheckInvalidUrlFails("http://localhost:9000");
+        }
+
+        private void CheckInvalidUrlFails(string url)
         {
             // Arrange
             TestLogger logger = new TestLogger();
             BuildAgentUpdater updater = new BuildAgentUpdater();
 
             string downloadDir = this.TestContext.DeploymentDirectory;
-            string nonExistentUrl = "http://updater.checkdownload.url.dummy.url:9000";
+            string nonExistentUrl = url;
 
             string expectedUrl = nonExistentUrl + BootstrapperSettings.IntegrationUrlSuffix;
             string expectedDownloadPath = Path.Combine(downloadDir, BootstrapperSettings.SonarQubeIntegrationFilename);
