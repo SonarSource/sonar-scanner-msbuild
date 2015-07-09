@@ -24,6 +24,12 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
 
+            if (IsInvokedByBootstrapper0_9())
+            {
+                logger.LogError(Resources.ERROR_InvokedFromBootstrapper0_9);
+                return ErrorCode;
+            }
+
             bool success;
 
             ProcessedArgs processedArgs = ArgumentProcessor.TryProcessArgs(args, logger);
@@ -40,6 +46,11 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             return success ? 0 : ErrorCode;
+        }
+
+        static bool IsInvokedByBootstrapper0_9()
+        {
+            return ".sonarqube" != Path.GetFileName(Directory.GetCurrentDirectory());
         }
 
     }
