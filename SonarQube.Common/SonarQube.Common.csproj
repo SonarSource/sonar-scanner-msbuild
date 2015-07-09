@@ -49,7 +49,6 @@
     <Compile Include="CommandLine\ArgumentInstance.cs" />
     <Compile Include="CommandLine\ArgumentDescriptor.cs" />
     <Compile Include="CommandLine\CommandLineParser.cs" />
-    <Compile Include="NativeMethods.cs" />
     <Compile Include="ProcessRunner.cs" />
     <Compile Include="ProjectInfo\AnalysisResult.cs" />
     <Compile Include="ProjectInfo\AnalysisType.cs" />
