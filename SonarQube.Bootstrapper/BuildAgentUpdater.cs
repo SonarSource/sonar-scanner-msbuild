@@ -58,6 +58,12 @@ namespace SonarQube.Bootstrapper
                         return false;
                     }
 
+                    if (e.Status == WebExceptionStatus.ConnectFailure)
+                    {
+                        logger.LogError(Resources.ERROR_ConnectionFailed, hostUrl);
+                        return false;
+                    }
+
                     throw;
                 }
 

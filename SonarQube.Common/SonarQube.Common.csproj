@@ -73,6 +73,7 @@
     <Compile Include="AnalysisProperties\FilePropertyProvider.cs" />
     <Compile Include="AnalysisProperties\IAnalysisPropertyProvider.cs" />
     <Compile Include="AnalysisProperties\Property.cs" />
+    <Compile Include="DefaultSonarPropertyValues.cs" />
     <Compile Include="SonarProperties.cs" />
     <Compile Include="Utilities.cs" />
   </ItemGroup>

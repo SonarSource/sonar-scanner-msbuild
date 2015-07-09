@@ -32,10 +32,17 @@ namespace SonarQube.Bootstrapper.Tests
         [TestMethod]
         public void ArgProc_MissingUrl()
         {
-            TestLogger logger;
-            
-            logger = CheckProcessingFails("/d:SONAR.host.url=foo"); // case-sensitive key name so won't be found
-            logger.AssertSingleErrorExists("sonar.host.url");
+            // Arrange
+            TestLogger logger = new TestLogger();
+
+            // Act
+            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:SONAR.host.url=foo"); // case-sensitive key name so won't be found
+
+            // Assert
+            Assert.AreEqual(Common.DefaultSonarPropertyValues.HostUrl, settings.SonarQubeUrl, "Expecting the host url to be the default");
+            logger.AssertWarningsLogged(2);
+            logger.AssertSingleWarningExists(Common.DefaultSonarPropertyValues.HostUrl); // a warning about the default host url should have been logged
+            logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb); 
         }
         
         [TestMethod]
@@ -105,7 +112,8 @@ namespace SonarQube.Bootstrapper.Tests
             CheckProcessingSucceeds(logger, validUrl);
             logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb);
 
-            // 5. Incorrect case -> treated as unrecognised argument -> valid with warning
+            // 5. Incorrect case -> treated as unrecognised argument 
+            // -> valid with 2 warnings (no URL specified warning and no begin / end specified warning)
             logger = new TestLogger();
             CheckProcessingSucceeds(logger, validUrl, "BEGIN"); // wrong case
             logger.AssertWarningsLogged(1);
@@ -139,9 +147,13 @@ namespace SonarQube.Bootstrapper.Tests
             AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
             logger.AssertWarningsLogged(1);
 
-            // 5. Incorrect case -> unrecognised -> treated as preprocessing; fails because no URL
-            logger = CheckProcessingFails("END");
-            logger.AssertWarningsLogged(1);
+            // 5. Incorrect case -> unrecognised -> treated as preprocessing -> valid with 2 warnings 
+            logger = new TestLogger();
+            settings = CheckProcessingSucceeds(logger, "END");
+            AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
+            logger.AssertWarningsLogged(2);
+            logger.AssertSingleWarningExists(ArgumentProcessor.EndVerb);
+            logger.AssertSingleWarningExists(Common.DefaultSonarPropertyValues.HostUrl);
         }
 
         [TestMethod]

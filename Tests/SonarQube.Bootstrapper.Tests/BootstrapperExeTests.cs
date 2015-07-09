@@ -51,7 +51,6 @@ namespace SonarQube.Bootstrapper.Tests
             string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             using (InitializeNonTeamBuildEnvironment(rootDir))
             {
-
                 string binDir = CalculateBinDir(rootDir);
                 MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://host:9000");
                 mockUpdater.TryUpdateReturnValue = false;
@@ -165,6 +164,41 @@ namespace SonarQube.Bootstrapper.Tests
         }
 
         [TestMethod]
+        [Description("If the host url is not specified, a default is used")]
+        public void Exe_PreProc_DefaultHostUrl()
+        {
+            // Arrange
+            File.Delete(CreateDefaultPropertiesFile(new AnalysisProperties()));
+
+            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            using (InitializeNonTeamBuildEnvironment(rootDir))
+            {
+                string binDir = CalculateBinDir(rootDir);
+
+                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, Common.DefaultSonarPropertyValues.HostUrl);
+
+                mockUpdater.Updating += (sender, args) =>
+                {
+                    AssertDirectoryExists(args.TargetDir);
+                    DummyExeHelper.CreateDummyPreProcessor(args.TargetDir, 0 /* pre-proc succeeds */);
+                };
+
+                // Act
+                TestLogger logger = CheckExecutionSucceeds(mockUpdater, "begin");
+
+                // Assert
+                mockUpdater.AssertUpdateAttempted();
+                mockUpdater.AssertVersionChecked();
+
+                logger.AssertWarningsLogged(1);
+                logger.AssertSingleWarningExists(Common.DefaultSonarPropertyValues.HostUrl); // a warning about the default host url should have been logged
+
+                string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
+                DummyExeHelper.AssertExpectedLogContents(logPath, "");
+            }
+        }
+
+        [TestMethod]
         public void Exe_PostProc_Fails()
         {
             // Arrange
@@ -226,8 +260,8 @@ namespace SonarQube.Bootstrapper.Tests
             // The post-processor should be called if no arguments are passed.
 
             // Default settings:
-            // There must be a default settings file next to the bootstrapper exe to supply 
-            // the necessary settings, and the bootstrapper should pass this settings path 
+            // There must be a default settings file next to the bootstrapper exe to supply
+            // the necessary settings, and the bootstrapper should pass this settings path
             // to the pre-processor (since the pre-process is downloaded to a different
             // directory).
 
@@ -266,7 +300,6 @@ namespace SonarQube.Bootstrapper.Tests
 
                     DummyExeHelper.AssertDummyPostProcLogDoesNotExist(binDir);
 
-
                     // Call the post-process (no arguments)
                     logger = CheckExecutionSucceeds(mockUpdater);
 
@@ -283,7 +316,7 @@ namespace SonarQube.Bootstrapper.Tests
             }
         }
 
-        #endregion
+        #endregion Tests
 
         #region Private methods
 
@@ -328,7 +361,7 @@ namespace SonarQube.Bootstrapper.Tests
             return defaultPropertiesFilePath;
         }
 
-        #endregion
+        #endregion Private methods
 
         #region Checks
 
@@ -366,6 +399,6 @@ namespace SonarQube.Bootstrapper.Tests
             Assert.IsFalse(Directory.Exists(binDir), "Not expecting directory to exist. Directory: {0}", binDir);
         }
 
-        #endregion
+        #endregion Checks
     }
 }
