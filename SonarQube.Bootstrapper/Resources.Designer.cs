@@ -88,15 +88,6 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not connect to the SonarQube server. Check the url is correct and that the server is available. Url: {0}.
-        /// </summary>
-        internal static string ERROR_ConnectionFailed {
-            get {
-                return ResourceManager.GetString("ERROR_ConnectionFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to update the SonarQube MSBuild Runner binaries. Check the server url, verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted..
         /// </summary>
         internal static string ERROR_FailedToUpdateRunnerBinaries {
@@ -111,15 +102,6 @@ namespace SonarQube.Bootstrapper {
         internal static string ERROR_ProcessingFailed {
             get {
                 return ResourceManager.GetString("ERROR_ProcessingFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The name of the SonarQube server could not be resolved. Check the url is correct and that the server is available. Url: {0}.
-        /// </summary>
-        internal static string ERROR_UrlNameResolutionFailed {
-            get {
-                return ResourceManager.GetString("ERROR_UrlNameResolutionFailed", resourceCulture);
             }
         }
         

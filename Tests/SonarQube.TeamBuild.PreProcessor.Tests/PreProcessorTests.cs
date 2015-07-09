@@ -11,6 +11,7 @@ using SonarQube.TeamBuild.Integration;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -133,7 +134,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             // Arrange
             MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
-            mockPropertiesFetcher.FetchException = new System.Net.WebException();
+            mockPropertiesFetcher.FetchException = new System.Net.WebException("fail", WebExceptionStatus.ConnectFailure);
 
             MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
             TestLogger logger = new TestLogger();
@@ -155,13 +156,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Assert
             mockPropertiesFetcher.AssertFetchPropertiesCalled();
             logger.AssertErrorsLogged(1);
+            logger.AssertSingleErrorExists(Common.DefaultSonarPropertyValues.HostUrl); // the error message should contain the default url
         }
 
         [TestMethod]
         public void PreProc_LocalPropertiesOverrideServerSettings()
         {
             // Checks command line properties override those fetched from the server
-            
+
             // Arrange
             MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
             TestLogger logger = new TestLogger();
@@ -222,7 +224,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedAnalysisSetting(SonarProperties.HostUrl, "http://host", actualConfig);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Checks
 
@@ -240,6 +242,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual(expectedValue, setting.Value, "Unexpected setting value. Key: {0}", key);
         }
 
-        #endregion
+        #endregion Checks
     }
 }

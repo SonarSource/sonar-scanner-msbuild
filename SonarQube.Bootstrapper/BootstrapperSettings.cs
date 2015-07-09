@@ -48,14 +48,13 @@ namespace SonarQube.Bootstrapper
 
         /// <summary>
         /// The list of environment variables that should be checked in order to find the
-        /// root folder under which all analysis ouput will be written
+        /// root folder under which all analysis output will be written
         /// </summary>
         private static readonly string[] DirectoryEnvVarNames = {
                 BuildDirectory_Legacy,      // Legacy TeamBuild directory (TFS2013 and earlier)
                 BuildDirectory_TFS2015      // TeamBuild 2015 and later build directory
                };
 
-        public const string RelativePathToTempDir = @".sonarqube";
         public const string RelativePathToDownloadDir = @"bin";
 
 
@@ -175,7 +174,7 @@ namespace SonarQube.Bootstrapper
                 rootDir = Directory.GetCurrentDirectory();
             }
 
-            return Path.Combine(rootDir, RelativePathToTempDir);
+            return Path.Combine(rootDir, FileConstants.RelativePathToTempDir);
         }
 
         /// <summary>

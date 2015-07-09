@@ -148,7 +148,10 @@
 - SonarQube project version
 The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube.MSBuild.Runner.</value>
   </data>
-  <data name="ERROR_UnreachableDefaultHostUrl" xml:space="preserve">
-    <value>The SonarQube web server is unreachable at {0}. Either the SonarQube web server should be started locally, or this web server is available somewhere else and the property 'sonar.host.url' should be specified or you're still using the old and unsupported 0.9 version of the MSBuild Runner</value>
+  <data name="ERROR_InvokedFromBootstrapper0_9" xml:space="preserve">
+    <value>You are using MSBuild SonarQube Runner 0.9 which is not compatible with the current C# plugin. Please upgrade the MSBuild SonarQube Runner located on the build agent.</value>
+  </data>
+  <data name="ERROR_WebException" xml:space="preserve">
+    <value>An error occured while trying to connect to the SonarQube server. Please check that the web server is accessible. Url {0}</value>
   </data>
 </root>

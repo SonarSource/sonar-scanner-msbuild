@@ -44,23 +44,10 @@ namespace SonarQube.Bootstrapper
                     logger.LogMessage(Resources.INFO_Downloading, BootstrapperSettings.SonarQubeIntegrationFilename, integrationUrl, downloadedZipFilePath);
                     client.DownloadFile(integrationUrl, downloadedZipFilePath);
                 }
-                catch (WebException e)
+                catch (WebException ex)
                 {
-                    var response = e.Response as HttpWebResponse;
-                    if (response != null && response.StatusCode == HttpStatusCode.NotFound)
+                    if (Utilities.HandleHostUrlWebException(ex, hostUrl, logger))
                     {
-                        return false;
-                    }
-
-                    if (e.Status == WebExceptionStatus.NameResolutionFailure)
-                    {
-                        logger.LogError(Resources.ERROR_UrlNameResolutionFailed, hostUrl);
-                        return false;
-                    }
-
-                    if (e.Status == WebExceptionStatus.ConnectFailure)
-                    {
-                        logger.LogError(Resources.ERROR_ConnectionFailed, hostUrl);
                         return false;
                     }
 

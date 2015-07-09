@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
-using System.Diagnostics;
+using System;
 using System.IO;
 
 namespace SonarQube.TeamBuild.PreProcessor
@@ -20,9 +20,15 @@ namespace SonarQube.TeamBuild.PreProcessor
     {
         private const int ErrorCode = 1;
 
-        static int Main(string[] args)
+        private static int Main(string[] args)
         {
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
+
+            if (IsInvokedByBootstrapper0_9())
+            {
+                logger.LogError(Resources.ERROR_InvokedFromBootstrapper0_9);
+                return ErrorCode;
+            }
 
             bool success;
 
@@ -42,5 +48,16 @@ namespace SonarQube.TeamBuild.PreProcessor
             return success ? 0 : ErrorCode;
         }
 
+        /// <summary>
+        ///
+        /// </summary>
+        /// <remarks>The bootstrapper 0.9 downloads the preprocessor to "sqtemp" and the 1.0 to ".sonarqube"</remarks>
+        private static bool IsInvokedByBootstrapper0_9()
+        {
+            return !String.Equals(
+                FileConstants.RelativePathToTempDir,
+                Path.GetFileName(Directory.GetCurrentDirectory()),
+                StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

@@ -146,11 +146,20 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The SonarQube web server is unreachable at {0}. Either the SonarQube web server should be started locally, or this web server is available somewhere else and the property &apos;sonar.host.url&apos; should be specified or you&apos;re still using the old and unsupported 0.9 version of the MSBuild Runner.
+        ///   Looks up a localized string similar to You are using MSBuild SonarQube Runner 0.9 which is not compatible with the current C# plugin. Please upgrade the MSBuild SonarQube Runner located on the build agent..
         /// </summary>
-        internal static string ERROR_UnreachableDefaultHostUrl {
+        internal static string ERROR_InvokedFromBootstrapper0_9 {
             get {
-                return ResourceManager.GetString("ERROR_UnreachableDefaultHostUrl", resourceCulture);
+                return ResourceManager.GetString("ERROR_InvokedFromBootstrapper0_9", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occured while trying to connect to the SonarQube server. Please check that the web server is accessible. Url {0}.
+        /// </summary>
+        internal static string ERROR_WebException {
+            get {
+                return ResourceManager.GetString("ERROR_WebException", resourceCulture);
             }
         }
     }

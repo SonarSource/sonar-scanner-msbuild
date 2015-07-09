@@ -108,11 +108,13 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private bool FetchArgumentsAndRulesets(ProcessedArgs args, AnalysisConfig config, ILogger logger)
         {
+            string hostUrl = GetServer(args);
+
             try
             {
                 using (var downloader = GetDownloader(args))
                 {
-                    SonarWebService ws = new SonarWebService(downloader, GetServer(args));
+                    SonarWebService ws = new SonarWebService(downloader, hostUrl);
 
                     // Fetch the SonarQube project properties
                     this.FetchSonarQubeProperties(config, ws);
@@ -125,13 +127,10 @@ namespace SonarQube.TeamBuild.PreProcessor
                     GenerateFxCopRuleset(config, ws, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(config.SonarConfigDir, FxCopVBNetRuleset), logger);
                 }
             }
-            // The bootstrapper might call the preprocessor without a host url (e.g. the 0.9 bootstrapper) in which case 
-            // the default will be used. If unreachable present the user with an error message instead of an exception
-            catch (System.Net.WebException)
+            catch (WebException ex)
             {
-                if (ServerIsDefault(args))
+                if (Utilities.HandleHostUrlWebException(ex, hostUrl, logger))
                 {
-                    logger.LogError(Resources.ERROR_UnreachableDefaultHostUrl, DefaultSonarPropertyValues.HostUrl);
                     return false;
                 }
 
@@ -145,15 +144,6 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             return args.GetSetting(SonarProperties.HostUrl, DefaultSonarPropertyValues.HostUrl);
         }
-
-        private static bool ServerIsDefault(ProcessedArgs args)
-        {
-            return String.Equals(
-                GetServer(args),
-                DefaultSonarPropertyValues.HostUrl,
-                StringComparison.InvariantCultureIgnoreCase);
-        }
-
 
         private static IDownloader GetDownloader(ProcessedArgs args)
         {

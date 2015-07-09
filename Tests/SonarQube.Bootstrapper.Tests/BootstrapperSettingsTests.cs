@@ -17,7 +17,7 @@ namespace SonarQube.Bootstrapper.Tests
     {
         public TestContext TestContext { get; set; }
 
-        private static readonly string DownloadFolderRelativePath = Path.Combine(BootstrapperSettings.RelativePathToTempDir, BootstrapperSettings.RelativePathToDownloadDir);
+        private static readonly string DownloadFolderRelativePath = Path.Combine(FileConstants.RelativePathToTempDir, BootstrapperSettings.RelativePathToDownloadDir);
 
         #region Tests
 

@@ -8,6 +8,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 
 namespace SonarQube.Common
 {
@@ -113,6 +114,34 @@ namespace SonarQube.Common
             Directory.CreateDirectory(directory);
         }
 
+
+        /// <summary>
+        /// Common logic for handling web exceptions when connecting to the SonarQube server. Common exceptions 
+        /// are handled by logging user friendly errors.
+        /// </summary>
+        /// <returns>True if the exception was handled</returns>
+        public static bool HandleHostUrlWebException(WebException ex, string hostUrl, ILogger logger)
+        {
+            var response = ex.Response as HttpWebResponse;
+            if (response != null && response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return true;
+            }
+
+            if (ex.Status == WebExceptionStatus.NameResolutionFailure)
+            {
+                logger.LogError(Resources.ERROR_UrlNameResolutionFailed, hostUrl);
+                return true;
+            }
+
+            if (ex.Status == WebExceptionStatus.ConnectFailure)
+            {
+                logger.LogError(Resources.ERROR_ConnectionFailed, hostUrl);
+                return true;
+            }
+
+            return false;
+        }
         #endregion
 
     }

@@ -20,5 +20,10 @@ namespace SonarQube.Common
         /// </summary>
         public const string ConfigFileName = "SonarQubeAnalysisConfig.xml";
 
+        /// <summary>
+        /// The relative path to the temp directory where the C# plugin payload is downloaded
+        /// </summary>
+        public const string RelativePathToTempDir = @".sonarqube";
+
     }
 }

@@ -214,4 +214,10 @@
   <data name="ERROR_ProcessRunner_ExeNotFound" xml:space="preserve">
     <value>Execution failed. The specified executable does not exist: {0}</value>
   </data>
+  <data name="ERROR_ConnectionFailed" xml:space="preserve">
+    <value>Could not connect to the SonarQube server. Check the url is correct and that the server is available. Url: {0}</value>
+  </data>
+  <data name="ERROR_UrlNameResolutionFailed" xml:space="preserve">
+    <value>The name of the SonarQube server could not be resolved. Check the url is correct and that the server is available. Url: {0}</value>
+  </data>
 </root>
