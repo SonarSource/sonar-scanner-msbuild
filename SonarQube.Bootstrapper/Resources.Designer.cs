@@ -88,7 +88,7 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not connect to {0}. Check the url is correct and that the server is available. Url: {0}.
+        ///   Looks up a localized string similar to Could not connect to the SonarQube server. Check the url is correct and that the server is available. Url: {0}.
         /// </summary>
         internal static string ERROR_ConnectionFailed {
             get {
@@ -97,7 +97,7 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to update the SonarQube MSBuild Runner binaries. Verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted..
+        ///   Looks up a localized string similar to Failed to update the SonarQube MSBuild Runner binaries. Check the server url, verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted..
         /// </summary>
         internal static string ERROR_FailedToUpdateRunnerBinaries {
             get {
@@ -205,7 +205,7 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The SonarQube URL was not set so the default value {0} is goint to be used. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000). .
+        ///   Looks up a localized string similar to The SonarQube URL was not set so the default value {0} is going to be used. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000). .
         /// </summary>
         internal static string WARN_CmdLine_UrlRequired {
             get {
