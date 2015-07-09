@@ -95,7 +95,7 @@ namespace SonarRunner.Shim
             Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
             Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
 
-            WarnAgainstSettingSonarRunnerHome(logger);
+            IgnoreSonarRunnerHome(logger);
 
             string args = string.Format(System.Globalization.CultureInfo.InvariantCulture,
                 "-Dproject.settings=\"{0}\"", propertiesFileName);
@@ -127,11 +127,13 @@ namespace SonarRunner.Shim
             return success;
         }
 
-        private static void WarnAgainstSettingSonarRunnerHome(ILogger logger)
+        private static void IgnoreSonarRunnerHome(ILogger logger)
         {
-            if (!String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(SonarRunnerHomeVariableName)))
+            if (!String.IsNullOrWhiteSpace(
+                Environment.GetEnvironmentVariable(SonarRunnerHomeVariableName)))
             {
-                logger.LogWarning(Resources.WARN_SonarRunnerHomeIsSet);
+                logger.LogMessage(Resources.DIAG_SonarRunnerHomeIsSet);
+                Environment.SetEnvironmentVariable(SonarRunnerHomeVariableName, String.Empty);
             }
         }
 

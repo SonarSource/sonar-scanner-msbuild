@@ -32,7 +32,7 @@ namespace SonarRunner.Shim.Tests
             SonarRunnerWrapper.ExecuteJavaRunner(testLogger, exePath, exePath);
 
             // Assert
-            testLogger.AssertWarningNotLogged(SonarRunner.Shim.Resources.WARN_SonarRunnerHomeIsSet);
+            testLogger.AssertMessageNotLogged(SonarRunner.Shim.Resources.DIAG_SonarRunnerHomeIsSet);
         }
 
         [TestMethod]
@@ -46,12 +46,14 @@ namespace SonarRunner.Shim.Tests
                 string path = Path.Combine(TestUtils.CreateTestSpecificFolder(TestContext), "analysis.properties");
                 File.CreateText(path);
                 Environment.SetEnvironmentVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName, "some_path");
-
                 // Act
                 SonarRunnerWrapper.ExecuteJavaRunner(testLogger, exePath, exePath);
 
                 // Assert
-                testLogger.AssertSingleWarningExists(SonarRunner.Shim.Resources.WARN_SonarRunnerHomeIsSet);
+                Assert.IsTrue(String.IsNullOrEmpty(
+                    Environment.GetEnvironmentVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName))
+                    , "Not expecting the env variable to still be set");
+                testLogger.AssertMessageExists(SonarRunner.Shim.Resources.DIAG_SonarRunnerHomeIsSet);
             }
             finally
             {

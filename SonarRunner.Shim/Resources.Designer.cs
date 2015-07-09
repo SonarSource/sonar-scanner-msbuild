@@ -124,6 +124,15 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The SONAR_RUNNER_HOME environment variable is not supported and will be ignored..
+        /// </summary>
+        public static string DIAG_SonarRunnerHomeIsSet {
+            get {
+                return ResourceManager.GetString("DIAG_SonarRunnerHomeIsSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Writing processing summary to {0}.
         /// </summary>
         public static string DIAG_WritingSummary {
@@ -300,15 +309,6 @@ namespace SonarRunner.Shim {
         public static string WARN_InvalidProjectGuid {
             get {
                 return ResourceManager.GetString("WARN_InvalidProjectGuid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The enviroment variable SONAR_RUNNER_HOME is set and may cause errors. Please delete it if the analysis fails. .
-        /// </summary>
-        public static string WARN_SonarRunnerHomeIsSet {
-            get {
-                return ResourceManager.GetString("WARN_SonarRunnerHomeIsSet", resourceCulture);
             }
         }
     }

@@ -253,7 +253,7 @@ function CreateNewJar
     [System.IO.File]::Move($destinationPath, $destinatioPathAsJar);
 
 
-    WriteImporantMessage "Success!! The jar file can be found in $destinationPath"
+    WriteImporantMessage "Success!! The jar file can be found in $destinationDir"
     
 }
 
