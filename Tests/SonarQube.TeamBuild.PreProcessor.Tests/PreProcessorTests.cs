@@ -61,27 +61,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
                 // Act
                 ProcessedArgs args = new ProcessedArgs("key", "name", "ver", EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
+                
                 bool executed = preProcessor.Execute(args, logger);
-                Assert.IsTrue(executed);
+                // Assert
+                Assert.IsFalse(executed);
             }
 
-            // Assert
-            AssertConfigFileExists(expectedConfigFileName);
-            AnalysisConfig config = AnalysisConfig.Load(expectedConfigFileName);
-            Assert.IsTrue(Directory.Exists(config.SonarOutputDir), "Output directory was not created: {0}", config.SonarOutputDir);
-            Assert.IsTrue(Directory.Exists(config.SonarConfigDir), "Config directory was not created: {0}", config.SonarConfigDir);
-            Assert.AreEqual("key", config.SonarProjectKey);
-            Assert.AreEqual("name", config.SonarProjectName);
-            Assert.AreEqual("ver", config.SonarProjectVersion);
-            Assert.AreEqual("http://builduri", config.GetBuildUri());
-            Assert.AreEqual("tfs uri", config.GetTfsUri());
-
-            mockPropertiesFetcher.AssertFetchPropertiesCalled();
-            mockPropertiesFetcher.CheckFetcherArguments("http://localhost:9000", "key");
-
-            mockRulesetGenerator.AssertGenerateCalled(2);
-            mockRulesetGenerator.CheckGeneratorArguments("http://localhost:9000", "csharp", "cs", "fxcop", "key", "SonarQubeFxCop-cs.ruleset");
-            mockRulesetGenerator.CheckGeneratorArguments("http://localhost:9000", "vbnet", "vbnet", "fxcop-vbnet", "key", "SonarQubeFxCop-vbnet.ruleset");
+            mockRulesetGenerator.AssertGenerateCalled(0);
         }
 
         [TestMethod]
