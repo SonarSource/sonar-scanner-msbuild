@@ -109,6 +109,11 @@ namespace SonarQube.TeamBuild.PreProcessor
         private bool FetchArgumentsAndRulesets(ProcessedArgs args, AnalysisConfig config, ILogger logger)
         {
             string hostUrl = GetServer(args);
+            if (String.IsNullOrEmpty(hostUrl))
+            {
+                logger.LogError(Resources.ERROR_NoHostUrl);
+                return false;
+            }
 
             try
             {
@@ -142,7 +147,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private static string GetServer(ProcessedArgs args)
         {
-            return args.GetSetting(SonarProperties.HostUrl, DefaultSonarPropertyValues.HostUrl);
+            return args.GetSetting(SonarProperties.HostUrl);
         }
 
         private static IDownloader GetDownloader(ProcessedArgs args)

@@ -130,7 +130,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         }
 
         [TestMethod]
-        public void PreProc_DefaultHostUrl()
+        public void PreProc_NoHostUrl()
         {
             // Arrange
             MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
@@ -154,9 +154,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             }
 
             // Assert
-            mockPropertiesFetcher.AssertFetchPropertiesCalled();
             logger.AssertErrorsLogged(1);
-            logger.AssertSingleErrorExists(Common.DefaultSonarPropertyValues.HostUrl); // the error message should contain the default url
+            logger.AssertErrorLogged(PreProcessor.Resources.ERROR_NoHostUrl);
+                
         }
 
         [TestMethod]

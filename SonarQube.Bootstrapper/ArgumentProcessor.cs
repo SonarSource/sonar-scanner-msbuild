@@ -179,8 +179,8 @@ namespace SonarQube.Bootstrapper
                 return url;
             }
 
-            logger.LogWarning(Resources.WARN_CmdLine_UrlRequired, DefaultSonarPropertyValues.HostUrl);
-            return DefaultSonarPropertyValues.HostUrl;
+            logger.LogWarning(Resources.WARN_CmdLine_UrlRequired, BootstrapperSettings.DefaultHostUrl);
+            return BootstrapperSettings.DefaultHostUrl;
         }
 
         private static IBootstrapperSettings CreatePostProcessorSettings(IList<string> baseChildArgs, IAnalysisPropertyProvider properties, ILogger logger)

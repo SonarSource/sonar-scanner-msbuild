@@ -175,7 +175,7 @@ namespace SonarQube.Bootstrapper.Tests
             {
                 string binDir = CalculateBinDir(rootDir);
 
-                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, Common.DefaultSonarPropertyValues.HostUrl);
+                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, BootstrapperSettings.DefaultHostUrl);
 
                 mockUpdater.Updating += (sender, args) =>
                 {
@@ -191,7 +191,7 @@ namespace SonarQube.Bootstrapper.Tests
                 mockUpdater.AssertVersionChecked();
 
                 logger.AssertWarningsLogged(1);
-                logger.AssertSingleWarningExists(Common.DefaultSonarPropertyValues.HostUrl); // a warning about the default host url should have been logged
+                logger.AssertSingleWarningExists(BootstrapperSettings.DefaultHostUrl); // a warning about the default host url should have been logged
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
                 DummyExeHelper.AssertExpectedLogContents(logPath, "");

@@ -39,9 +39,9 @@ namespace SonarQube.Bootstrapper.Tests
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:SONAR.host.url=foo"); // case-sensitive key name so won't be found
 
             // Assert
-            Assert.AreEqual(Common.DefaultSonarPropertyValues.HostUrl, settings.SonarQubeUrl, "Expecting the host url to be the default");
+            Assert.AreEqual(BootstrapperSettings.DefaultHostUrl, settings.SonarQubeUrl, "Expecting the host url to be the default");
             logger.AssertWarningsLogged(2);
-            logger.AssertSingleWarningExists(Common.DefaultSonarPropertyValues.HostUrl); // a warning about the default host url should have been logged
+            logger.AssertSingleWarningExists(BootstrapperSettings.DefaultHostUrl); // a warning about the default host url should have been logged
             logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb); 
         }
         
@@ -153,7 +153,7 @@ namespace SonarQube.Bootstrapper.Tests
             AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
             logger.AssertWarningsLogged(2);
             logger.AssertSingleWarningExists(ArgumentProcessor.EndVerb);
-            logger.AssertSingleWarningExists(Common.DefaultSonarPropertyValues.HostUrl);
+            logger.AssertSingleWarningExists(BootstrapperSettings.DefaultHostUrl);
         }
 
         [TestMethod]
