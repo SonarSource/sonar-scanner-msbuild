@@ -117,7 +117,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             try
             {
-                using (var downloader = GetDownloader(args))
+                using (IDownloader downloader = GetDownloader(args))
                 {
                     SonarWebService ws = new SonarWebService(downloader, hostUrl);
 

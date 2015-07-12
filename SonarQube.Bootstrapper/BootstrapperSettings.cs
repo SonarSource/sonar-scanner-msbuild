@@ -57,6 +57,7 @@ namespace SonarQube.Bootstrapper
                 BuildDirectory_TFS2015      // TeamBuild 2015 and later build directory
                };
 
+        public const string RelativePathToTempDir = @".sonarqube";
         public const string RelativePathToDownloadDir = @"bin";
 
 
@@ -176,7 +177,7 @@ namespace SonarQube.Bootstrapper
                 rootDir = Directory.GetCurrentDirectory();
             }
 
-            return Path.Combine(rootDir, FileConstants.RelativePathToTempDir);
+            return Path.Combine(rootDir, RelativePathToTempDir);
         }
 
         /// <summary>

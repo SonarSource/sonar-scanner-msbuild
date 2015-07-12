@@ -20,6 +20,8 @@ namespace SonarQube.TeamBuild.PreProcessor
     {
         private const int ErrorCode = 1;
 
+        private const string V0_9Folder = "sqtemp";
+
         private static int Main(string[] args)
         {
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
@@ -49,13 +51,13 @@ namespace SonarQube.TeamBuild.PreProcessor
         }
 
         /// <summary>
-        ///
+        /// Attempts to work out whether the pre-processor was called by the v0.9 bootstrapper
         /// </summary>
         /// <remarks>The bootstrapper 0.9 downloads the preprocessor to "sqtemp" and the 1.0 to ".sonarqube"</remarks>
         private static bool IsInvokedByBootstrapper0_9()
         {
-            return !String.Equals(
-                FileConstants.RelativePathToTempDir,
+            return String.Equals(
+                V0_9Folder,
                 Path.GetFileName(Directory.GetCurrentDirectory()),
                 StringComparison.OrdinalIgnoreCase);
         }

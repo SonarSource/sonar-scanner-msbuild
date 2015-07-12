@@ -30,19 +30,20 @@ namespace SonarQube.Bootstrapper.Tests
         }
 
         [TestMethod]
-        public void ArgProc_MissingUrl()
+        public void ArgProc_DefaultUrlUsedIfNotSupplied()
         {
             // Arrange
             TestLogger logger = new TestLogger();
 
             // Act
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:SONAR.host.url=foo"); // case-sensitive key name so won't be found
+            IBootstrapperSettings settings = CheckProcessingSucceeds(logger,
+                ArgumentProcessor.BeginVerb,
+                "/d:SONAR.host.url=foo"); // case-sensitive key name so won't be found
 
             // Assert
             Assert.AreEqual(BootstrapperSettings.DefaultHostUrl, settings.SonarQubeUrl, "Expecting the host url to be the default");
-            logger.AssertWarningsLogged(2);
             logger.AssertSingleWarningExists(BootstrapperSettings.DefaultHostUrl); // a warning about the default host url should have been logged
-            logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb); 
+            logger.AssertWarningsLogged(1);
         }
         
         [TestMethod]

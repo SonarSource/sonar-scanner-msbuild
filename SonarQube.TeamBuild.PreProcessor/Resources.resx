@@ -152,7 +152,7 @@ The full path to a settings file can also be supplied. If it is not supplied, th
     <value>You are using MSBuild SonarQube Runner 0.9 which is not compatible with the current C# plugin. Please upgrade the MSBuild SonarQube Runner located on the build agent.</value>
   </data>
   <data name="ERROR_NoHostUrl" xml:space="preserve">
-    <value>A SonarQube server url was not configured. Do not call the PreProcessor executable directly - use the SonarQube.MSBuild.Runner.exe instead.</value>
+    <value>A SonarQube server url was not supplied</value>
   </data>
   <data name="ERROR_WebException" xml:space="preserve">
     <value>An error occured while trying to connect to the SonarQube server. Please check that the web server is accessible. Url {0}</value>

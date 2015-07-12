@@ -24,7 +24,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         #region Tests
 
         [TestMethod]
-        public void PreProc_InvalidArgsd()
+        public void PreProc_InvalidArgs()
         {
             // Arrange
             TestLogger validLogger = new TestLogger();
@@ -44,6 +44,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         [TestMethod]
         public void PreProc_FileProperties_NotSupplied()
         {
+            // No file properties are supplied; specifically, the SonarQube url is not supplied
+            // so execution should fail
+
             // Arrange
             MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
             MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
@@ -63,10 +66,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 ProcessedArgs args = new ProcessedArgs("key", "name", "ver", EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
                 
                 bool executed = preProcessor.Execute(args, logger);
+
                 // Assert
                 Assert.IsFalse(executed);
             }
 
+            logger.AssertErrorsLogged(1);
+            logger.AssertSingleErrorExists(SonarQube.TeamBuild.PreProcessor.Resources.ERROR_NoHostUrl);
             mockRulesetGenerator.AssertGenerateCalled(0);
         }
 
@@ -142,7 +148,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Assert
             logger.AssertErrorsLogged(1);
             logger.AssertErrorLogged(PreProcessor.Resources.ERROR_NoHostUrl);
-                
         }
 
         [TestMethod]
@@ -208,6 +213,24 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedAnalysisSetting("xxx", "server value xxx - lower case", actualConfig);
             AssertExpectedAnalysisSetting("XXX", "cmd line value XXX - upper case", actualConfig);
             AssertExpectedAnalysisSetting(SonarProperties.HostUrl, "http://host", actualConfig);
+        }
+
+        [TestMethod]
+        [Description("Checks that the pre-processor logs the expected message if it appears to be called from the 0.9 bootstrapper")]
+        public void PreProc_CalledFromV0_9()
+        {
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "sqtemp");
+            TestLogger logger = new TestLogger();
+
+            // Act
+            ProcessRunner runner = new ProcessRunner();
+            bool success = runner.Execute(typeof(TeamBuildPreProcessor).Assembly.Location , "begin", testDir, logger);
+
+            // Assert
+            Assert.IsFalse(success);
+            logger.AssertSingleErrorExists(SonarQube.TeamBuild.PreProcessor.Resources.ERROR_InvokedFromBootstrapper0_9);
+            logger.AssertErrorsLogged(1);
         }
 
         #endregion Tests
