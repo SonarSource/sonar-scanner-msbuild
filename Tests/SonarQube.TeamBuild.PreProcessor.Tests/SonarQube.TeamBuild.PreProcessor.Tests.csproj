@@ -59,6 +59,7 @@
     <Compile Include="PreProcessorExeTests.cs" />
     <Compile Include="PreProcessorTests.cs" />
     <Compile Include="Infrastructure\PreprocessTestUtils.cs" />
+    <Compile Include="ProcessedArgsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RulesetWriterTest.cs" />
     <Compile Include="SonarWebServiceTest.cs" />

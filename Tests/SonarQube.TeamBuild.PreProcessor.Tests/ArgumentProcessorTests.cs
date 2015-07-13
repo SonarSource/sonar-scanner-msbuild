@@ -58,6 +58,37 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         }
 
         [TestMethod]
+        public void PreArgProc_UrlIsRequired()
+        {
+            // 0. Setup
+            TestLogger logger;
+
+            // Create a valid settings file that contains a URL
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            string propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
+
+            AnalysisProperties properties = new AnalysisProperties();
+            properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://filehost" });
+            properties.Save(propertiesFilePath);
+
+
+            // 1. Url is not specified on the command line or in a properties file -> fail
+            logger = CheckProcessingFails("/key:k1", "/name:n1", "/version:1.0");
+
+            logger.AssertErrorLogged(SonarQube.TeamBuild.PreProcessor.Resources.ERROR_Args_UrlRequired);
+            logger.AssertErrorsLogged(1);
+
+
+            // 2. Url is specified in the file -> ok
+            ProcessedArgs processed = CheckProcessingSucceeds("/key:k1", "/name:n1", "/version:1.0", "/s:" + propertiesFilePath);
+            AssertExpectedPropertyValue(SonarProperties.HostUrl, "http://filehost", processed);
+
+            // 3. Url is specified on the command line too -> ok, and overrides the file setting
+            processed = CheckProcessingSucceeds("/key:k1", "/name:n1", "/version:1.0", "/s:" + propertiesFilePath, "/d:sonar.host.url=http://cmdlinehost");
+            AssertExpectedPropertyValue(SonarProperties.HostUrl, "http://cmdlinehost", processed);
+        }
+
+        [TestMethod]
         public void PreArgProc_UnrecognisedArguments()
         {
             // 0. Setup
@@ -99,6 +130,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // 1. File exists -> args ok
             AnalysisProperties properties = new AnalysisProperties();
             properties.Add(new Property() { Id = "key1", Value = "value1" });
+            properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "url" }); // required property
             properties.Save(propertiesFilePath);
 
             ProcessedArgs result = CheckProcessingSucceeds("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
@@ -118,25 +150,27 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // 0. Setup
             ProcessedArgs actual;
 
+            string validUrlArg = "/d:sonar.host.url=foo"; // this doesn't have an alias but does need to be supplied
+
             // Valid
             // Full names, no path
-            actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0");
+            actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg);
             AssertExpectedValues("my.key", "my name", "1.0", actual);
 
             // Aliases, no path, different order
-            actual = CheckProcessingSucceeds("/v:2.0", "/k:my.key", "/n:my name");
+            actual = CheckProcessingSucceeds("/v:2.0", "/k:my.key", "/n:my name", validUrlArg);
             AssertExpectedValues("my.key", "my name", "2.0", actual);
 
             // Full names
-            actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0");
+            actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg);
             AssertExpectedValues("my.key", "my name", "1.0", actual);
 
             // Aliases, different order
-            actual = CheckProcessingSucceeds("/v:2:0", "/k:my.key", "/n:my name");
+            actual = CheckProcessingSucceeds("/v:2:0", "/k:my.key", "/n:my name", validUrlArg);
             AssertExpectedValues("my.key", "my name", "2:0", actual);
 
             // Full names, wrong case -> ignored
-            TestLogger logger = CheckProcessingFails("/KEY:my.key", "/nAme:my name", "/versIOn:1.0");
+            TestLogger logger = CheckProcessingFails("/KEY:my.key", "/nAme:my name", "/versIOn:1.0", validUrlArg);
             logger.AssertSingleErrorExists("/KEY:my.key");
             logger.AssertSingleErrorExists("/nAme:my name");
             logger.AssertSingleErrorExists("/versIOn:1.0");
@@ -183,16 +217,22 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // 1. Args ok            
             ProcessedArgs result = CheckProcessingSucceeds(
+                // Non-dynamic values
                 "/key:my.key", "/name:my name", "/version:1.2",
-                "/d:key1=value1", "/d:key2=value two with spaces");
+                // Dynamic values
+                "/d:sonar.host.url=required value",
+                "/d:key1=value1",
+                "/d:key2=value two with spaces"
+                );
 
             AssertExpectedValues("my.key", "my name", "1.2", result);
 
+            AssertExpectedPropertyValue(SonarProperties.HostUrl, "required value", result);
             AssertExpectedPropertyValue("key1", "value1", result);
             AssertExpectedPropertyValue("key2", "value two with spaces", result);
 
             Assert.IsNotNull(result.GetAllProperties(), "GetAllProperties should not return null");
-            Assert.AreEqual(5, result.GetAllProperties().Count(), "Unexpected number of properties");
+            Assert.AreEqual(6, result.GetAllProperties().Count(), "Unexpected number of properties");
         }
 
         [TestMethod]

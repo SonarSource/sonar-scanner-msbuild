@@ -45,6 +45,33 @@ namespace SonarQube.Bootstrapper.Tests
         }
 
         [TestMethod]
+        public void Exe_PreProc_UrlIsRequired()
+        {
+            // Arrange
+            BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            using (InitializeNonTeamBuildEnvironment(rootDir))
+            {
+                string binDir = CalculateBinDir(rootDir);
+
+                MockBuildAgentUpdater mockUpdater = new MockBuildAgentUpdater();
+
+                // Act
+                TestLogger logger = CheckExecutionFails(mockUpdater, "begin");
+
+                // Assert
+                mockUpdater.AssertUpdateNotAttempted();
+                mockUpdater.AssertVersionNotChecked();
+
+                AssertDirectoryDoesNotExist(binDir);
+
+                logger.AssertErrorLogged(SonarQube.Bootstrapper.Resources.ERROR_Args_UrlRequired);
+                logger.AssertErrorsLogged(1);
+            }
+        }
+
+        [TestMethod]
         public void Exe_PreProc_UpdateFails()
         {
             // Arrange
@@ -99,7 +126,7 @@ namespace SonarQube.Bootstrapper.Tests
         public void Exe_PreProc_VersionCheckSucceeds_PreProcFails()
         {
             // Arrange
-            File.Delete(CreateDefaultPropertiesFile(new AnalysisProperties()));
+            BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
             string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             using (InitializeNonTeamBuildEnvironment(rootDir))
@@ -134,7 +161,7 @@ namespace SonarQube.Bootstrapper.Tests
         public void Exe_PreProc_VersionCheckSucceeds_PreProcSucceeds()
         {
             // Arrange
-            File.Delete(CreateDefaultPropertiesFile(new AnalysisProperties()));
+            BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
             string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             using (InitializeNonTeamBuildEnvironment(rootDir))
@@ -160,41 +187,6 @@ namespace SonarQube.Bootstrapper.Tests
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
                 DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://anotherHost\r\n");
-            }
-        }
-
-        [TestMethod]
-        [Description("If the host url is not specified, a default is used")]
-        public void Exe_PreProc_DefaultHostUrl()
-        {
-            // Arrange
-            File.Delete(CreateDefaultPropertiesFile(new AnalysisProperties()));
-
-            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            using (InitializeNonTeamBuildEnvironment(rootDir))
-            {
-                string binDir = CalculateBinDir(rootDir);
-
-                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, BootstrapperSettings.DefaultHostUrl);
-
-                mockUpdater.Updating += (sender, args) =>
-                {
-                    AssertDirectoryExists(args.TargetDir);
-                    DummyExeHelper.CreateDummyPreProcessor(args.TargetDir, 0 /* pre-proc succeeds */);
-                };
-
-                // Act
-                TestLogger logger = CheckExecutionSucceeds(mockUpdater, "begin");
-
-                // Assert
-                mockUpdater.AssertUpdateAttempted();
-                mockUpdater.AssertVersionChecked();
-
-                logger.AssertWarningsLogged(1);
-                logger.AssertSingleWarningExists(BootstrapperSettings.DefaultHostUrl); // a warning about the default host url should have been logged
-
-                string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, "");
             }
         }
 
@@ -356,7 +348,7 @@ namespace SonarQube.Bootstrapper.Tests
         {
             // NOTE: don't forget to delete this file when the test that uses it
             // completes, otherwise it may affect subsequent tests.
-            string defaultPropertiesFilePath = Path.Combine(Path.GetDirectoryName(typeof(Bootstrapper.Program).Assembly.Location), FilePropertyProvider.DefaultFileName);
+            string defaultPropertiesFilePath = BootstrapperTestUtils.GetDefaultPropertiesFilePath();
             defaultProperties.Save(defaultPropertiesFilePath);
             return defaultPropertiesFilePath;
         }

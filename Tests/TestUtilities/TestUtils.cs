@@ -41,7 +41,7 @@ namespace TestUtilities
         }
 
         /// <summary>
-        /// Ensures that the ImportBefore targets exist in the specified folder
+        /// Ensures that the ImportBefore targets exist in a test-specific folder
         /// </summary>
         public static string EnsureImportBeforeTargetsExists(TestContext testContext)
         {
@@ -60,7 +60,7 @@ namespace TestUtilities
         }
 
         /// <summary>
-        /// Ensures the analysis targets exist in the specified folder
+        /// Ensures the analysis targets exist in a test-specific folder
         /// </summary>
         public static string EnsureAnalysisTargetsExists(TestContext testContext)
         {
@@ -74,6 +74,25 @@ namespace TestUtilities
                 testContext.WriteLine("Extracting analysis target file to {0}", filePath);
                 EnsureTestSpecificFolder(testContext);
                 ExtractResourceToFile("TestUtilities.Embedded.SonarQube.Integration.targets", filePath);                
+            }
+            return filePath;
+        }
+
+        /// <summary>
+        /// Ensures the default properties file exists in the specified folder
+        /// </summary>
+        public static string EnsureDefaultPropertiesFileExists(string targetDir, TestContext testContext)
+        {
+            string filePath = Path.Combine(targetDir, SonarQube.Common.FilePropertyProvider.DefaultFileName);
+            if (File.Exists(filePath))
+            {
+                testContext.WriteLine("Default properties file already exists: {0}", filePath);
+            }
+            else
+            {
+                testContext.WriteLine("Extracting default properties file to {0}", filePath);
+                Directory.CreateDirectory(targetDir);
+                ExtractResourceToFile("TestUtilities.Embedded.SonarQube.Analysis.xml", filePath);
             }
             return filePath;
         }

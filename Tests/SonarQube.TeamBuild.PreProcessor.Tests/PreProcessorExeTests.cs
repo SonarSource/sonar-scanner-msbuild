@@ -6,12 +6,8 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
 using System;
 using System.Diagnostics;
-using System.IO;
-using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
@@ -74,17 +70,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Console.WriteLine("Error output: {0}", errorOutput);
 
             Assert.IsFalse(string.IsNullOrWhiteSpace(errorOutput), "Expecting error output if the process fails");
-        }
-
-        private static void CheckExecutionSucceeds(params string[] args)
-        {
-            Process p = Execute(args);
-
-            Assert.AreEqual(0, p.ExitCode, "Expecting a zero exit code");
-            string errorOutput = p.StandardError.ReadToEnd();
-            Console.WriteLine("Error output: {0}", errorOutput);
-
-            Assert.IsTrue(string.IsNullOrWhiteSpace(errorOutput), "Not expecting error output if the process succeeds");
         }
 
         private static Process Execute(string[] args)

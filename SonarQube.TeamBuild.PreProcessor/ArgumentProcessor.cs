@@ -96,11 +96,16 @@ namespace SonarQube.TeamBuild.PreProcessor
                 Debug.Assert(globalFileProperties != null);
 
                 processed = new ProcessedArgs(
-                    TryGetArgumentValue(KeywordIds.ProjectKey, arguments),
-                    TryGetArgumentValue(KeywordIds.ProjectName, arguments),
-                    TryGetArgumentValue(KeywordIds.ProjectVersion, arguments),
+                    GetArgumentValue(KeywordIds.ProjectKey, arguments),
+                    GetArgumentValue(KeywordIds.ProjectName, arguments),
+                    GetArgumentValue(KeywordIds.ProjectVersion, arguments),
                     cmdLineProperties,
                     globalFileProperties);
+
+                if (!AreParsedArgumentsValid(processed, logger))
+                {
+                    processed = null;
+                }
             }
 
             return processed;
@@ -110,12 +115,30 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #region Private methods
         
-        private static string TryGetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments)
+        private static string GetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments)
         {
-            ArgumentInstance argument = arguments.SingleOrDefault(a => a.Descriptor.Id == id);
-            return argument == null ? null : argument.Value;
+            ArgumentInstance argument = arguments.Single(a => a.Descriptor.Id == id);
+            return argument.Value;
         }
         
+        /// <summary>
+        /// Performs any additional validation on the parsed arguments and logs errors
+        /// if necessary.
+        /// </summary>
+        /// <returns>True if the arguments are valid, otherwise false</returns>
+        private static bool AreParsedArgumentsValid(ProcessedArgs args, ILogger logger)
+        {
+            bool areValid = true;
+            string hostUrl;
+            if (!args.TryGetSetting(SonarProperties.HostUrl, out hostUrl) || string.IsNullOrWhiteSpace(hostUrl))
+            {
+                logger.LogError(Resources.ERROR_Args_UrlRequired);
+                areValid = false;
+            }
+
+            return areValid;
+        }
+
         #endregion
     }
 }

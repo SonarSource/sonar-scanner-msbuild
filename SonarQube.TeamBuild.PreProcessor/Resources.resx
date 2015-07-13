@@ -135,6 +135,9 @@
   <data name="DIAG_SavingConfigFile" xml:space="preserve">
     <value>Saving the config file to {0}</value>
   </data>
+  <data name="ERROR_Args_UrlRequired" xml:space="preserve">
+    <value>The SonarQube URL must be supplied. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000).</value>
+  </data>
   <data name="ERROR_CannotPerformProcessing" xml:space="preserve">
     <value>SonarQube pre-processing cannot be performed - required settings are missing</value>
   </data>
@@ -151,8 +154,8 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   <data name="ERROR_InvokedFromBootstrapper0_9" xml:space="preserve">
     <value>You are using MSBuild SonarQube Runner 0.9 which is not compatible with the current C# plugin. Please upgrade the MSBuild SonarQube Runner located on the build agent.</value>
   </data>
-  <data name="ERROR_NoHostUrl" xml:space="preserve">
-    <value>A SonarQube server url was not supplied</value>
+  <data name="ERROR_MissingSetting" xml:space="preserve">
+    <value>Missing analysis setting: {0}</value>
   </data>
   <data name="ERROR_WebException" xml:space="preserve">
     <value>An error occured while trying to connect to the SonarQube server. Please check that the web server is accessible. Url {0}</value>

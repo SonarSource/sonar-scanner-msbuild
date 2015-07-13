@@ -123,6 +123,9 @@
   <data name="CmdLine_ArgDescription_End" xml:space="preserve">
     <value>end - perform post-MSBuild/post-test steps</value>
   </data>
+  <data name="ERROR_Args_UrlRequired" xml:space="preserve">
+    <value>The SonarQube URL must be supplied. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000).</value>
+  </data>
   <data name="ERROR_CmdLine_BothBeginAndEndSupplied" xml:space="preserve">
     <value>Invalid command line parameters. Please specify either 'begin' or 'end', not both.</value>
   </data>
@@ -158,9 +161,6 @@
   </data>
   <data name="PhaseLabel_PreProcessing" xml:space="preserve">
     <value>Pre-processing</value>
-  </data>
-  <data name="WARN_CmdLine_UrlRequired" xml:space="preserve">
-    <value>The SonarQube URL was not set so the default value {0} is going to be used. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000). </value>
   </data>
   <data name="WARN_CmdLine_v09_Compat" xml:space="preserve">
     <value>Please specify the command 'begin' or 'end' to indicate whether pre- or post-processing is required. These parameters will become mandatory in a later release.</value>

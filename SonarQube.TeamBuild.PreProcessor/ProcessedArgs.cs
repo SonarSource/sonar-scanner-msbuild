@@ -69,13 +69,25 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public IAnalysisPropertyProvider GlobalFileProperties { get { return this.globalFileProperties; } }
 
+        /// <summary>
+        /// Returns the value for the specified setting.
+        /// Throws if the setting does not exist.
+        /// </summary>
         public string GetSetting(string key)
         {
             string value;
-            this.aggProperties.TryGetValue(key, out value);
+            if (!this.aggProperties.TryGetValue(key, out value))
+            {
+                string message = string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.ERROR_MissingSetting, key);
+                throw new InvalidOperationException(message);
+            }
             return value;
         }
 
+        /// <summary>
+        /// Returns the value for the specified setting, or the supplied
+        /// default if the setting does not exist
+        /// </summary>
         public string GetSetting(string key, string defaultValue)
         {
             string value;
@@ -84,6 +96,11 @@ namespace SonarQube.TeamBuild.PreProcessor
                 value = defaultValue;
             }
             return value;
+        }
+
+        public bool TryGetSetting(string key, out string value)
+        {
+            return this.aggProperties.TryGetValue(key, out value);
         }
 
         public IEnumerable<Property> GetAllProperties()

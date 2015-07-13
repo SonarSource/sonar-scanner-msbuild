@@ -56,7 +56,9 @@
     <Compile Include="ArgumentProcessorTests.cs" />
     <Compile Include="BootstrapperExeTests.cs" />
     <Compile Include="BootstrapperSettingsTests.cs" />
+    <Compile Include="Infrastructure\BootstrapperTestUtils.cs" />
     <Compile Include="BuildAgentUpdaterTests.cs" />
+    <Compile Include="DefaultPropertiesFileTests.cs" />
     <Compile Include="Infrastructure\MockBuildAgentUpdater.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -46,8 +46,6 @@ namespace SonarQube.Bootstrapper
         public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
         public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
 
-        public const string DefaultHostUrl = "http://localhost:9000";
-
         /// <summary>
         /// The list of environment variables that should be checked in order to find the
         /// root folder under which all analysis output will be written

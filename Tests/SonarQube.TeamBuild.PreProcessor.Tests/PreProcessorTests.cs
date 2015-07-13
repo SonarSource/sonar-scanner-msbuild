@@ -37,43 +37,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Act and assert
             AssertException.Expects<ArgumentNullException>(() => preprocessor.Execute(null, validLogger));
             AssertException.Expects<ArgumentNullException>(() => preprocessor.Execute(validArgs, null));
-
-            string expectedConfigFileName;
-        }
-
-        [TestMethod]
-        public void PreProc_FileProperties_NotSupplied()
-        {
-            // No file properties are supplied; specifically, the SonarQube url is not supplied
-            // so execution should fail
-
-            // Arrange
-            MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
-            MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
-            TestLogger logger = new TestLogger();
-
-            string expectedConfigFileName;
-
-            using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", "http://builduri"))
-            {
-                TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(new ConsoleLogger());
-                Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
-                expectedConfigFileName = settings.AnalysisConfigFilePath;
-
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
-
-                // Act
-                ProcessedArgs args = new ProcessedArgs("key", "name", "ver", EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
-                
-                bool executed = preProcessor.Execute(args, logger);
-
-                // Assert
-                Assert.IsFalse(executed);
-            }
-
-            logger.AssertErrorsLogged(1);
-            logger.AssertSingleErrorExists(SonarQube.TeamBuild.PreProcessor.Resources.ERROR_NoHostUrl);
-            mockRulesetGenerator.AssertGenerateCalled(0);
         }
 
         [TestMethod]
@@ -119,35 +82,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
-        }
-
-        [TestMethod]
-        public void PreProc_NoHostUrl()
-        {
-            // Arrange
-            MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
-            mockPropertiesFetcher.FetchException = new System.Net.WebException("fail", WebExceptionStatus.ConnectFailure);
-
-            MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
-            TestLogger logger = new TestLogger();
-            ProcessedArgs args = null;
-
-            using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", "build uri"))
-            {
-                TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(new ConsoleLogger());
-                Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
-
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
-
-                // Act
-                args = new ProcessedArgs("key", "name", "ver", new ListPropertiesProvider(), new ListPropertiesProvider());
-                bool executed = preProcessor.Execute(args, logger);
-                Assert.IsFalse(executed);
-            }
-
-            // Assert
-            logger.AssertErrorsLogged(1);
-            logger.AssertErrorLogged(PreProcessor.Resources.ERROR_NoHostUrl);
         }
 
         [TestMethod]

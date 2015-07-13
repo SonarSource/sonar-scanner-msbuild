@@ -15,6 +15,17 @@ namespace SonarQube.Bootstrapper.Tests
     [TestClass]
     public class ArgumentProcessorTests
     {
+        [TestInitialize]
+        public void Initialize()
+        {
+            // The project setup means the default properties file will automatically
+            // be copied alongside the product binaries.st of these tests assume
+            // the default properties file does not exist so we'll ensure it doesn't.
+            // Any tests that do require default properties file should re-create it
+            // with known content.
+            BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+        }
+
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -29,23 +40,41 @@ namespace SonarQube.Bootstrapper.Tests
             AssertExpectedUrl("foo", settings);
         }
 
+
         [TestMethod]
-        public void ArgProc_DefaultUrlUsedIfNotSupplied()
+        public void ArgProc_UrlIsRequired()
         {
-            // Arrange
-            TestLogger logger = new TestLogger();
+            // 0. Setup
+            TestLogger logger;
 
-            // Act
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger,
-                ArgumentProcessor.BeginVerb,
-                "/d:SONAR.host.url=foo"); // case-sensitive key name so won't be found
+            // Create a valid settings file that contains a URL
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            string propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
 
-            // Assert
-            Assert.AreEqual(BootstrapperSettings.DefaultHostUrl, settings.SonarQubeUrl, "Expecting the host url to be the default");
-            logger.AssertSingleWarningExists(BootstrapperSettings.DefaultHostUrl); // a warning about the default host url should have been logged
-            logger.AssertWarningsLogged(1);
+            AnalysisProperties properties = new AnalysisProperties();
+            properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://filehost" });
+            properties.Save(propertiesFilePath);
+
+
+            // 1. Url is not specified on the command line or in a properties file -> fail
+            logger = CheckProcessingFails("/key:k1", "/name:n1", "/version:1.0");
+
+            logger.AssertErrorLogged(SonarQube.Bootstrapper.Resources.ERROR_Args_UrlRequired);
+            logger.AssertErrorsLogged(1);
+
+
+            // 2. Url is specified in the file -> ok
+            logger = new TestLogger();
+            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/key:k1", "/name:n1", "/version:1.0", "/s:" + propertiesFilePath);
+            AssertExpectedUrl("http://filehost", settings);
+
+            // 3. Url is specified on the command line too -> ok, and overrides the file setting
+            logger = new TestLogger();
+            settings = CheckProcessingSucceeds(logger, "/key:k1", "/name:n1", "/version:1.0", "/s:" + propertiesFilePath, "/d:sonar.host.url=http://cmdlinehost");
+            AssertExpectedUrl("http://cmdlinehost", settings);
         }
-        
+
+
         [TestMethod]
         public void ArgProc_PropertyOverriding()
         {
@@ -114,7 +143,7 @@ namespace SonarQube.Bootstrapper.Tests
             logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb);
 
             // 5. Incorrect case -> treated as unrecognised argument 
-            // -> valid with 2 warnings (no URL specified warning and no begin / end specified warning)
+            // -> valid with 1 warning (no begin / end specified warning)
             logger = new TestLogger();
             CheckProcessingSucceeds(logger, validUrl, "BEGIN"); // wrong case
             logger.AssertWarningsLogged(1);
@@ -148,13 +177,9 @@ namespace SonarQube.Bootstrapper.Tests
             AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
             logger.AssertWarningsLogged(1);
 
-            // 5. Incorrect case -> unrecognised -> treated as preprocessing -> valid with 2 warnings 
-            logger = new TestLogger();
-            settings = CheckProcessingSucceeds(logger, "END");
-            AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-            logger.AssertWarningsLogged(2);
-            logger.AssertSingleWarningExists(ArgumentProcessor.EndVerb);
-            logger.AssertSingleWarningExists(BootstrapperSettings.DefaultHostUrl);
+            // 5. Incorrect case -> unrecognised -> treated as preprocessing -> fails (URL not supplied)
+            logger = CheckProcessingFails("END");
+            logger.AssertErrorsLogged();
         }
 
         [TestMethod]
@@ -172,8 +197,7 @@ namespace SonarQube.Bootstrapper.Tests
 
         #endregion
 
-
-        #region Checks methods
+        #region Checks
 
         private static IBootstrapperSettings CheckProcessingSucceeds(TestLogger logger, params string[] cmdLineArgs)
         {

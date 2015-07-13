@@ -74,6 +74,9 @@
     <EmbeddedResource Include="..\..\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.targets">
       <Link>Embedded\SonarQube.Integration.targets</Link>
     </EmbeddedResource>
+    <EmbeddedResource Include="..\..\SonarQube.Bootstrapper\SonarQube.Analysis.xml">
+      <Link>Embedded\SonarQube.Analysis.xml</Link>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

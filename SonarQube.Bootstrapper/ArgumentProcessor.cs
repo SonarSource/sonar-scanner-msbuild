@@ -151,7 +151,11 @@ namespace SonarQube.Bootstrapper
 
         private static IBootstrapperSettings CreatePreProcessorSettings(IList<string> baseChildArgs, IAnalysisPropertyProvider properties, IAnalysisPropertyProvider globalFileProperties, ILogger logger)
         {
-            string hostUrl = GetHostUrl(properties, logger);
+            string hostUrl = TryGetHostUrl(properties, logger);
+            if (hostUrl == null)
+            {
+                return null; // URL is a required parameter in the pre-process phase
+            }
 
             // If we're using the default properties file then we need to pass it
             // explicitly to the pre-processor (it's in a different folder and won't
@@ -171,7 +175,7 @@ namespace SonarQube.Bootstrapper
             return settings;
         }
 
-        private static string GetHostUrl(IAnalysisPropertyProvider properties, ILogger logger)
+        private static string TryGetHostUrl(IAnalysisPropertyProvider properties, ILogger logger)
         {
             string url;
             if (properties.TryGetValue(SonarProperties.HostUrl, out url))
@@ -179,8 +183,8 @@ namespace SonarQube.Bootstrapper
                 return url;
             }
 
-            logger.LogWarning(Resources.WARN_CmdLine_UrlRequired, BootstrapperSettings.DefaultHostUrl);
-            return BootstrapperSettings.DefaultHostUrl;
+            logger.LogError(Resources.ERROR_Args_UrlRequired);
+            return null;
         }
 
         private static IBootstrapperSettings CreatePostProcessorSettings(IList<string> baseChildArgs, IAnalysisPropertyProvider properties, ILogger logger)
