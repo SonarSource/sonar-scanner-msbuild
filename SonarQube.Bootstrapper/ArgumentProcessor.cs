@@ -88,7 +88,7 @@ namespace SonarQube.Bootstrapper
 
             // Handler for property file
             IAnalysisPropertyProvider globalFileProperties;
-            string asmPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string asmPath = Path.GetDirectoryName(typeof(Bootstrapper.ArgumentProcessor).Assembly.Location);
             parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out globalFileProperties);
 
             AnalysisPhase phase;

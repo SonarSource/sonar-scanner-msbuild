@@ -88,6 +88,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionNotChecked();
+                mockUpdater.AssertTargetsNotInjected();
 
                 logger.AssertWarningsLogged(0);
 
@@ -113,6 +114,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionChecked();
+                mockUpdater.AssertTargetsNotInjected();
 
                 AssertDirectoryExists(binDir);
                 DummyExeHelper.AssertDummyPreProcLogDoesNotExist(binDir);
@@ -149,6 +151,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionChecked();
+                mockUpdater.AssertTargetsInjected();
 
                 logger.AssertWarningsLogged(0);
 
@@ -183,10 +186,48 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionChecked();
+                mockUpdater.AssertTargetsInjected();
+
                 logger.AssertWarningsLogged(0);
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
                 DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://anotherHost\r\n");
+            }
+        }
+
+        [TestMethod]
+        [Description("If the host url is not specified, a default is used")]
+        public void Exe_PreProc_DefaultHostUrl()
+        {
+            // Arrange
+            File.Delete(CreateDefaultPropertiesFile(new AnalysisProperties()));
+
+            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            using (InitializeNonTeamBuildEnvironment(rootDir))
+            {
+                string binDir = CalculateBinDir(rootDir);
+
+                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, BootstrapperSettings.DefaultHostUrl);
+
+                mockUpdater.Updating += (sender, args) =>
+                {
+                    AssertDirectoryExists(args.TargetDir);
+                    DummyExeHelper.CreateDummyPreProcessor(args.TargetDir, 0 /* pre-proc succeeds */);
+                };
+
+                // Act
+                TestLogger logger = CheckExecutionSucceeds(mockUpdater, "begin");
+
+                // Assert
+                mockUpdater.AssertUpdateAttempted();
+                mockUpdater.AssertVersionChecked();
+                mockUpdater.AssertTargetsInjected();
+
+                logger.AssertWarningsLogged(1);
+                logger.AssertSingleWarningExists(BootstrapperSettings.DefaultHostUrl); // a warning about the default host url should have been logged
+
+                string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
+                DummyExeHelper.AssertExpectedLogContents(logPath, "");
             }
         }
 
@@ -209,6 +250,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateNotAttempted();
                 mockUpdater.AssertVersionNotChecked();
+                mockUpdater.AssertTargetsNotInjected();
                 logger.AssertWarningsLogged(0);
 
                 string logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
@@ -235,6 +277,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateNotAttempted();
                 mockUpdater.AssertVersionNotChecked();
+                mockUpdater.AssertTargetsNotInjected();
                 logger.AssertWarningsLogged(0);
 
                 // The bootstrapper pass through any parameters it doesn't recognise so the post-processor
@@ -286,6 +329,7 @@ namespace SonarQube.Bootstrapper.Tests
 
                     mockUpdater.AssertUpdateAttempted();
                     mockUpdater.AssertVersionChecked();
+                    mockUpdater.AssertTargetsInjected();
 
                     string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
                     DummyExeHelper.AssertExpectedLogContents(logPath, "/v:version\r\n/n:name\r\n/k:key\r\n/s:" + defaultPropertiesFilePath + "\r\n");

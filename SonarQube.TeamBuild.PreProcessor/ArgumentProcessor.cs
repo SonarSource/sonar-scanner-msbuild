@@ -87,7 +87,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             // Handler for property file
             IAnalysisPropertyProvider globalFileProperties;
-            string asmPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string asmPath = Path.GetDirectoryName(typeof(PreProcessor.ArgumentProcessor).Assembly.Location);
             parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out globalFileProperties);
 
             if (parsedOk)

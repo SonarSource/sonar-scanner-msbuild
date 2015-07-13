@@ -77,6 +77,8 @@ namespace SonarQube.Bootstrapper
                 return 1;
             }
 
+            updater.InstallLoaderTargets(logger);
+
             var preprocessorFilePath = settings.PreProcessorFilePath;
             var processRunner = new ProcessRunner();
             processRunner.Execute(preprocessorFilePath, settings.ChildCmdLineArgs, settings.TempDirectory, logger);

@@ -133,6 +133,33 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Installed {0} to {1}.
+        /// </summary>
+        internal static string INFO_InstallTargets_Copy {
+            get {
+                return ResourceManager.GetString("INFO_InstallTargets_Copy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file {0} was overwritten at {1}.
+        /// </summary>
+        internal static string INFO_InstallTargets_Overwrite {
+            get {
+                return ResourceManager.GetString("INFO_InstallTargets_Overwrite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file {0} is up to date at {1}.
+        /// </summary>
+        internal static string INFO_InstallTargets_UpToDate {
+            get {
+                return ResourceManager.GetString("INFO_InstallTargets_UpToDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} started..
         /// </summary>
         public static string INFO_ProcessingStarted {
@@ -201,6 +228,15 @@ namespace SonarQube.Bootstrapper {
         public static string WARN_CmdLine_v09_Compat {
             get {
                 return ResourceManager.GetString("WARN_CmdLine_v09_Compat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This version of the bootstrapper automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
+        /// </summary>
+        internal static string WARN_ExistingGlobalTargets {
+            get {
+                return ResourceManager.GetString("WARN_ExistingGlobalTargets", resourceCulture);
             }
         }
     }
