@@ -15,6 +15,7 @@ namespace SonarQube.Bootstrapper.Tests
     {
         private bool tryUpdateCalled;
         private bool checkVersionCalled;
+        private bool injectTargetsCalled;
 
         public class UpdatingEventArgs : EventArgs
         {
@@ -73,6 +74,17 @@ namespace SonarQube.Bootstrapper.Tests
             Assert.IsFalse(this.checkVersionCalled, "Not expecting IBuildUpdater.CheckBootstrapperVersion to be been called");
         }
 
+        public void AssertTargetsInjected()
+        {
+            Assert.IsTrue(this.injectTargetsCalled, "Expecting IBuildUpdater.InjectLoaderTargets to be been called");
+        }
+
+        public void AssertTargetsNotInjected()
+        {
+            Assert.IsFalse(this.injectTargetsCalled, "Not expecting IBuildUpdater.InjectLoaderTargets to be been called");
+        }
+
+
         #endregion
 
         #region IBuildAgentUpdater interface
@@ -110,6 +122,11 @@ namespace SonarQube.Bootstrapper.Tests
             }
 
             return this.TryUpdateReturnValue;
+        }
+
+        void IBuildAgentUpdater.InjectLoaderTargets(ILogger logger)
+        {
+            this.injectTargetsCalled = true;
         }
 
         #endregion

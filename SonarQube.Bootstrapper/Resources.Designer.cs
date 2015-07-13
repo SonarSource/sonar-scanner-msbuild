@@ -115,6 +115,15 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Copied {0} to {1}.
+        /// </summary>
+        internal static string INFO_CopiedTargets {
+            get {
+                return ResourceManager.GetString("INFO_CopiedTargets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Downloading {0} from {1} to {2}.
         /// </summary>
         internal static string INFO_Downloading {
@@ -201,6 +210,15 @@ namespace SonarQube.Bootstrapper {
         internal static string WARN_CmdLine_v09_Compat {
             get {
                 return ResourceManager.GetString("WARN_CmdLine_v09_Compat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This version of the bootstrapper automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
+        /// </summary>
+        internal static string WARN_ExistingGlobalTargets {
+            get {
+                return ResourceManager.GetString("WARN_ExistingGlobalTargets", resourceCulture);
             }
         }
     }

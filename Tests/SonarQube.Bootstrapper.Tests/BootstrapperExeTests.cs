@@ -61,6 +61,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionNotChecked();
+                mockUpdater.AssertTargetsNotInjected();
 
                 logger.AssertWarningsLogged(0);
 
@@ -86,6 +87,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionChecked();
+                mockUpdater.AssertTargetsNotInjected();
 
                 AssertDirectoryExists(binDir);
                 DummyExeHelper.AssertDummyPreProcLogDoesNotExist(binDir);
@@ -122,6 +124,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionChecked();
+                mockUpdater.AssertTargetsInjected();
 
                 logger.AssertWarningsLogged(0);
 
@@ -156,6 +159,8 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionChecked();
+                mockUpdater.AssertTargetsInjected();
+
                 logger.AssertWarningsLogged(0);
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
@@ -189,6 +194,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionChecked();
+                mockUpdater.AssertTargetsInjected();
 
                 logger.AssertWarningsLogged(1);
                 logger.AssertSingleWarningExists(BootstrapperSettings.DefaultHostUrl); // a warning about the default host url should have been logged
@@ -217,6 +223,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateNotAttempted();
                 mockUpdater.AssertVersionNotChecked();
+                mockUpdater.AssertTargetsNotInjected();
                 logger.AssertWarningsLogged(0);
 
                 string logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
@@ -243,6 +250,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateNotAttempted();
                 mockUpdater.AssertVersionNotChecked();
+                mockUpdater.AssertTargetsNotInjected();
                 logger.AssertWarningsLogged(0);
 
                 // The bootstrapper pass through any parameters it doesn't recognise so the post-processor
@@ -294,6 +302,7 @@ namespace SonarQube.Bootstrapper.Tests
 
                     mockUpdater.AssertUpdateAttempted();
                     mockUpdater.AssertVersionChecked();
+                    mockUpdater.AssertTargetsInjected();
 
                     string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
                     DummyExeHelper.AssertExpectedLogContents(logPath, "/v:version\r\n/n:name\r\n/k:key\r\n/s:" + defaultPropertiesFilePath + "\r\n");

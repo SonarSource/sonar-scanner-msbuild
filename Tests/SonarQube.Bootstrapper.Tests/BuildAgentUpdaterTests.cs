@@ -8,6 +8,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System;
 using TestUtilities;
+using System.Reflection;
+using System.Linq;
 
 namespace SonarQube.Bootstrapper.Tests
 {
@@ -66,6 +68,96 @@ namespace SonarQube.Bootstrapper.Tests
         {
             // this URL produces a connection failure
             CheckInvalidUrlFails("http://localhost:9000");
+        }
+
+        [TestMethod]
+        [Description("The targets file should be copied if none are present. The files should not be copied if they already exist and have not been changed.")]
+        public void InjectTargetsFile_Copy()
+        {
+            // In case the dummy targets file somehow does not get deleted (e.g. when debugging) , make sure its content is valid XML 
+            string sourceTargetsContent = @"<Project ToolsVersion=""4.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"" />";
+            CreateDummySourceTargetsFile(sourceTargetsContent);
+
+            try
+            {
+                InjectTargetsFileAndAssert(sourceTargetsContent, expectCopy: true);
+
+                // if we try to inject again, the targets should not be copied because they have the same content
+                InjectTargetsFileAndAssert(sourceTargetsContent, expectCopy: false);
+            }
+            finally
+            {
+                foreach (string destinationDir in BuildAgentUpdater.DestinationDirs)
+                {
+                    string path = Path.Combine(destinationDir, BuildAgentUpdater.LoaderTargetsName);
+                    File.Delete(path);
+                }
+            }
+        }
+
+        [TestMethod]
+        [Description("The targets should be copied if they don't exist. If they have been changed, the updater should overwrite them")]
+        public void InjectTargetsFile_Overwrite()
+        {
+            // In case the dummy targets file somehow does not get deleted (e.g. when debugging), make sure its content valid XML
+            string sourceTargetsContent1 = @"<Project ToolsVersion=""4.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"" />";
+            string sourceTargetsContent2 = @"<Project ToolsVersion=""12.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"" />";
+
+            CreateDummySourceTargetsFile(sourceTargetsContent1);
+
+            try
+            {
+                InjectTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
+                Assert.IsTrue(BuildAgentUpdater.DestinationDirs.Count >= 2, "Expecting at least 2 destination directories");
+
+                string path = Path.Combine(BuildAgentUpdater.DestinationDirs[0], BuildAgentUpdater.LoaderTargetsName);
+                File.Delete(path);
+
+                CreateDummySourceTargetsFile(sourceTargetsContent2);
+                InjectTargetsFileAndAssert(sourceTargetsContent2, expectCopy: true);
+
+            }
+            finally
+            {
+                foreach (string destinationDir in BuildAgentUpdater.DestinationDirs)
+                {
+                    string path = Path.Combine(destinationDir, BuildAgentUpdater.LoaderTargetsName);
+                    File.Delete(path);
+                }
+            }
+        }
+
+        private static void CreateDummySourceTargetsFile(string sourceTargetsContent1)
+        {
+            string bootstrapperLocation = Path.GetDirectoryName(typeof(BuildAgentUpdater).Assembly.Location);
+            string dummyLoaderTargets = Path.Combine(bootstrapperLocation, BuildAgentUpdater.LoaderTargetsName);
+
+            if (File.Exists(dummyLoaderTargets))
+            {
+                File.Delete(dummyLoaderTargets);
+            }
+
+            File.AppendAllText(dummyLoaderTargets, sourceTargetsContent1);
+        }
+
+        private static void InjectTargetsFileAndAssert(string sourceTargetsContent, bool expectCopy)
+        {
+            BuildAgentUpdater updater = new BuildAgentUpdater();
+            TestLogger logger = new TestLogger();
+            updater.InjectLoaderTargets(logger);
+
+            foreach (string destinationDir in BuildAgentUpdater.DestinationDirs)
+            {
+                string path = Path.Combine(destinationDir, BuildAgentUpdater.LoaderTargetsName);
+                Assert.IsTrue(File.Exists(path), "Targets file not found at: " + path);
+                Assert.AreEqual(sourceTargetsContent, File.ReadAllText(path));
+
+                if (expectCopy)
+                {
+                    Assert.AreEqual(BuildAgentUpdater.DestinationDirs.Count, logger.Messages.Count, "All destinations should have been covered");
+                    Assert.IsTrue(logger.Messages.Any(m => m.Contains(destinationDir)));
+                }
+            }
         }
 
         private void CheckInvalidUrlFails(string url)
