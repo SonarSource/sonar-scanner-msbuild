@@ -27,8 +27,14 @@ namespace SonarQube.Common
         private readonly bool required;
         private readonly string description;
         private readonly bool allowMultiple;
+        private readonly bool isVerb;
 
         public ArgumentDescriptor(string id, string[] prefixes, bool required, string description, bool allowMultiple)
+            : this(id, prefixes, required, description, allowMultiple, false /* not a verb */)
+        {
+        }
+
+        public ArgumentDescriptor(string id, string[] prefixes, bool required, string description, bool allowMultiple, bool isVerb)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -48,6 +54,7 @@ namespace SonarQube.Common
             this.required = required;
             this.description = description;
             this.allowMultiple = allowMultiple;
+            this.isVerb = isVerb;
         }
 
         #region Properties
@@ -79,6 +86,12 @@ namespace SonarQube.Common
         /// false if it can be specified at most once
         /// </summary>
         public bool AllowMultiple { get { return this.allowMultiple; } }
+
+        /// <summary>
+        /// False if the argument has a value that follows the prefix,
+        /// true if the argument is just single word (e.g. "begin")
+        /// </summary>
+        public bool IsVerb { get { return this.isVerb; } }
 
         #endregion
     }

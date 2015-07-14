@@ -18,8 +18,8 @@ namespace SonarQube.Common
     /// <remarks>The command line parsing makes a number of simplying assumptions:
     /// * order is unimportant
     /// * all arguments have a recognisable prefix e.g. /key= 
-    /// * prefixes are case-insensitive
-    /// * unrecognized arguments are treated as errors
+    /// * the first matching prefix will be used (so if descriptors have overlapping prefixes they need
+    ///   to be supplied to the parser in the correct order on construction)
     /// * the command line arguments are those supplied in Main(args) i.e. they have been converted
     ///   from a string to an array by the runtime. This means that quoted arguments will already have
     ///   been partially processed so a command line of:
@@ -152,7 +152,17 @@ namespace SonarQube.Common
             Debug.Assert(descriptor.Prefixes.Where(p => argument.StartsWith(p, ArgumentDescriptor.IdComparison)).Count() < 2,
                 "Not expecting the argument to match multiple prefixes");
 
-            string match = descriptor.Prefixes.FirstOrDefault(p => argument.StartsWith(p, ArgumentDescriptor.IdComparison));
+            string match = null;
+            if (descriptor.IsVerb)
+            {
+                // Verbs match the whole argument
+                match = descriptor.Prefixes.FirstOrDefault(p => ArgumentDescriptor.IdComparer.Equals(p, argument));
+            }
+            else
+            {
+                // Prefixes only match the start
+                match = descriptor.Prefixes.FirstOrDefault(p => argument.StartsWith(p, ArgumentDescriptor.IdComparison));
+            }
             return match;
         }
 

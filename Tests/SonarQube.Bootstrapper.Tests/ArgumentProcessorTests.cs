@@ -8,6 +8,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using System.IO;
+using System.Linq;
 using TestUtilities;
 
 namespace SonarQube.Bootstrapper.Tests
@@ -107,7 +108,6 @@ namespace SonarQube.Bootstrapper.Tests
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "begingX");
         }
 
-
         [TestMethod]
         public void ArgProc_UrlIsRequired()
         {
@@ -146,7 +146,6 @@ namespace SonarQube.Bootstrapper.Tests
                 "http://cmdlinehost",
                 true);
         }
-
 
         [TestMethod]
         public void ArgProc_PropertyOverriding()
@@ -200,11 +199,13 @@ namespace SonarQube.Bootstrapper.Tests
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, validUrl, "begin");
             AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
             logger.AssertWarningsLogged(0);
+            AssertExpectedChildArguments(settings, validUrl);
 
             // 2. With additional parameters -> valid
             settings = CheckProcessingSucceeds(logger, validUrl, "begin", "ignored", "k=2");
             AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
             logger.AssertWarningsLogged(0);
+            AssertExpectedChildArguments(settings, validUrl, "ignored", "k=2");
 
             // 3. Multiple occurrences -> error
             logger = CheckProcessingFails(validUrl, "begin", "begin");
@@ -212,15 +213,39 @@ namespace SonarQube.Bootstrapper.Tests
 
             // 4. Missing -> valid with warning
             logger = new TestLogger();
-            CheckProcessingSucceeds(logger, validUrl);
+            settings = CheckProcessingSucceeds(logger, validUrl);
             logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb);
+            AssertExpectedChildArguments(settings, validUrl);
 
             // 5. Incorrect case -> treated as unrecognised argument 
             // -> valid with 1 warning (no begin / end specified warning)
             logger = new TestLogger();
-            CheckProcessingSucceeds(logger, validUrl, "BEGIN"); // wrong case
+            settings = CheckProcessingSucceeds(logger, validUrl, "BEGIN"); // wrong case
             logger.AssertWarningsLogged(1);
             logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb);
+            AssertExpectedChildArguments(settings, validUrl, "BEGIN");
+        }
+
+        [TestMethod]
+        public void ArgProc_BeginVerb_MatchesOnlyCompleteWord()
+        {
+            // Arrange
+            TestLogger logger;
+            string validUrl = "/d:sonar.host.url=http://foo";
+
+            // 1. "beginx" -> valid, child argument "beginx"
+            logger = new TestLogger();
+            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, validUrl, "beginX");
+            AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
+            logger.AssertWarningsLogged(1); // Expecting a warning because "beginX" should not be recognised as "begin"
+            AssertExpectedChildArguments(settings, validUrl, "beginX");
+
+            // 2. "begin", "beginx" should not be treated as duplicates
+            logger = new TestLogger();
+            settings = CheckProcessingSucceeds(logger, validUrl, "begin", "beginX");
+            AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
+            logger.AssertWarningsLogged(0);
+            AssertExpectedChildArguments(settings, validUrl, "beginX");
         }
 
         [TestMethod]
@@ -233,12 +258,14 @@ namespace SonarQube.Bootstrapper.Tests
             // 1. Minimal parameters -> valid
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "end");
             AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
+            AssertExpectedChildArguments(settings);
 
             // 2. With additional parameters -> valid
             logger = new TestLogger();
             settings = CheckProcessingSucceeds(logger, "end", "ignored", "/d:key=value");
             AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
             logger.AssertWarningsLogged(0);
+            AssertExpectedChildArguments(settings, "ignored", "/d:key=value");
 
             // 3. Multiple occurrences -> invalid
             logger = CheckProcessingFails(validUrl, "end", "end");
@@ -249,16 +276,39 @@ namespace SonarQube.Bootstrapper.Tests
             settings = CheckProcessingSucceeds(logger);
             AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
             logger.AssertWarningsLogged(1);
+            AssertExpectedChildArguments(settings);
 
             // 5. Incorrect case -> unrecognised -> treated as preprocessing -> fails (URL not supplied)
             logger = CheckProcessingFails("END");
             logger.AssertErrorsLogged();
+
+            // 6. Partial match -> unrecognised -> treated as preprocessing -> fails (URL not supplied)
+            logger = CheckProcessingFails("endX");
+            logger.AssertErrorsLogged();
+        }
+
+        [TestMethod]
+        public void ArgProc_EndVerb_MatchesOnlyCompleteWord()
+        {
+            // Arrange
+            TestLogger logger;
+            IBootstrapperSettings settings;
+            logger = new TestLogger();
+
+            // Act
+            // "end", "endx" should not be treated as duplicates
+            settings = CheckProcessingSucceeds(logger, "end", "endX", "endXXX");
+            
+            // Assert
+            AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
+            logger.AssertWarningsLogged(0);
+            AssertExpectedChildArguments(settings, "endX", "endXXX");
         }
 
         [TestMethod]
         public void ArgProc_BeginAndEndVerbs()
         {
-            // Arrange
+            // 0. Setup
             TestLogger logger;
             string validUrl = "/d:sonar.host.url=http://foo";
 
@@ -313,6 +363,12 @@ namespace SonarQube.Bootstrapper.Tests
         private static void AssertExpectedPhase(AnalysisPhase expected, IBootstrapperSettings settings)
         {
             Assert.AreEqual(expected, settings.Phase, "Unexpected analysis phase");
+        }
+
+        private static void AssertExpectedChildArguments(IBootstrapperSettings actualSettings, params string[] expected)
+        {
+            string expectedSingleArgs = string.Join(" ", expected.Select(a => "\"" + a + "\""));
+            Assert.AreEqual(expectedSingleArgs, actualSettings.ChildCmdLineArgs, "Unexpected child command line arguments");
         }
 
         #endregion

@@ -44,10 +44,10 @@ namespace SonarQube.Bootstrapper
             Descriptors = new List<ArgumentDescriptor>();
 
             Descriptors.Add(new ArgumentDescriptor(
-                id: BeginId, prefixes: new string[] { BeginVerb }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_Begin));
+                id: BeginId, prefixes: new string[] { BeginVerb }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_Begin, isVerb: true));
 
             Descriptors.Add(new ArgumentDescriptor(
-                id: EndId, prefixes: new string[] { EndVerb }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_End));
+                id: EndId, prefixes: new string[] { EndVerb }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_End, isVerb: true));
 
             Descriptors.Add(new ArgumentDescriptor(
                 id: InstallTargetsId, prefixes: new string[] { InstallTargetsPrefix }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets));
