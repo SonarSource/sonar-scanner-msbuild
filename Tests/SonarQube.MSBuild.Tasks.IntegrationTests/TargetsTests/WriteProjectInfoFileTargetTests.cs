@@ -477,8 +477,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #endregion
         
-        #region Project settings tests
-
+        #region Miscellaneous tests
 
         [TestMethod]
         [TestCategory("ProjectInfo")]
@@ -513,6 +512,107 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertSettingExists(projectInfo, "common.setting.name", "local value");
             // Additional settings might be added by other targets so we won't check the total number of settings
         }
+
+
+        [TestMethod]
+        public void WriteProjectInfo_BareProject()
+        {
+            // Checks the WriteProjectInfo target handles non-VB/C# project types
+            // that don't import the standard targets or set the expected properties
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            BuildLogger logger = new BuildLogger();
+
+            string sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(this.TestContext);
+            string projectFilePath = Path.Combine(rootInputFolder, "project.txt");
+            Guid projectGuid = Guid.NewGuid();
+
+            string projectXml = @"<?xml version='1.0' encoding='utf-8'?>
+<Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+
+  <PropertyGroup>
+    <ProjectGuid>{0}</ProjectGuid>
+
+    <SonarQubeTempPath>{1}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{1}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{2}</SonarQubeBuildTasksAssemblyFile>
+  </PropertyGroup>
+
+  <Import Project='{3}' />
+</Project>
+";
+            ProjectRootElement projectRoot = projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, this.TestContext, projectXml,
+                projectGuid.ToString(),
+                rootOutputFolder,
+                typeof(WriteProjectInfoFile).Assembly.Location,
+                sqTargetFile);
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger,
+                TargetConstants.WriteProjectDataTarget);
+
+            // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.WriteProjectDataTarget);
+
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+
+            Assert.AreEqual(projectGuid, projectInfo.ProjectGuid, "Unexpected project guid");
+            Assert.IsNull(projectInfo.ProjectLanguage, "Expecting the project language to be null");
+            Assert.IsFalse(projectInfo.IsExcluded, "Project should not be marked as excluded");
+            Assert.AreEqual(ProjectType.Product, projectInfo.ProjectType, "Project should be marked as a product project");
+            Assert.AreEqual(0, projectInfo.AnalysisResults.Count, "Not expecting any analysis results to have been created");
+        }
+
+        [TestMethod]
+        public void WriteProjectInfo_UnrecognisedLanguage()
+        {
+            // Checks the WriteProjectInfo target handles projects with unrecognised languages
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            BuildLogger logger = new BuildLogger();
+
+            string sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(this.TestContext);
+            string projectFilePath = Path.Combine(rootInputFolder, "unrecognisedLanguage.proj.txt");
+
+            string projectXml = @"<?xml version='1.0' encoding='utf-8'?>
+<Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+
+  <PropertyGroup>
+    <Language>my.special.language</Language>
+    <ProjectGuid>670DAF47-CBD4-4735-B7A3-42C0A02B1CB9</ProjectGuid>
+
+    <SonarQubeTempPath>{0}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{0}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{1}</SonarQubeBuildTasksAssemblyFile>
+  </PropertyGroup>
+
+  <Import Project='{2}' />
+</Project>
+";
+            ProjectRootElement projectRoot = projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, this.TestContext, projectXml,
+                rootOutputFolder,
+                typeof(WriteProjectInfoFile).Assembly.Location,
+                sqTargetFile);
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger,
+                TargetConstants.WriteProjectDataTarget);
+
+            // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.WriteProjectDataTarget);
+
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+
+            Assert.AreEqual("my.special.language", projectInfo.ProjectLanguage, "Unexpected project language");
+            Assert.AreEqual(0, projectInfo.AnalysisResults.Count, "Not expecting any analysis results to have been created");
+        }
+
 
         #endregion
 

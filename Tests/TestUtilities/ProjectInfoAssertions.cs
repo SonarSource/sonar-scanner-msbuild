@@ -58,7 +58,7 @@ namespace TestUtilities
         /// </summary>
         public static void AssertExpectedValues(
             string expectedFullProjectPath,
-            ProjectLanguage expectedProjectLanguage,
+            string expectedProjectLanguage,
             ProjectType expectedProjectType,
             Guid expectedProjectGuid,
             string expectedProjectName,

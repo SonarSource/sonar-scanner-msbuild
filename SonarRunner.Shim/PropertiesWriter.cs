@@ -95,7 +95,7 @@ namespace SonarRunner.Shim
             return sb.ToString();
         }
 
-        public void WriteSettingsForProject(ProjectInfo project, IEnumerable<string> files, ProjectLanguage projectLanguage, string fxCopReportFilePath, string codeCoverageFilePath)
+        public void WriteSettingsForProject(ProjectInfo project, IEnumerable<string> files, string fxCopReportFilePath, string codeCoverageFilePath)
         {
             if (this.FinishedWriting)
             {
@@ -112,7 +112,7 @@ namespace SonarRunner.Shim
             }
 
             Debug.Assert(files.Any(), "Expecting a project to have files to analyze");
-            Debug.Assert(files.All(f => File.Exists(f)), "Expecting all of the specified files to exiest");
+            Debug.Assert(files.All(f => File.Exists(f)), "Expecting all of the specified files to exist");
 
             this.projects.Add(project);
 
@@ -124,16 +124,21 @@ namespace SonarRunner.Shim
 
             if (fxCopReportFilePath != null)
             {
-                string property;
-                if (projectLanguage == ProjectLanguage.CS)
+                string property = null;
+                if (ProjectLanguages.IsCSharpProject(project.ProjectLanguage))
                 {
                     property = "sonar.cs.fxcop.reportPath";
                 }
-                else
+                else if (ProjectLanguages.IsVbProject(project.ProjectLanguage))
                 {
                     property = "sonar.vbnet.fxcop.reportPath";
                 }
-                AppendKeyValue(sb, guid, property, fxCopReportFilePath);
+
+                Debug.Assert(property != null, "FxCopReportFilePath is set but the language is unrecognised. Language: " + project.ProjectLanguage);
+                if (property != null)
+                {
+                    AppendKeyValue(sb, guid, property, fxCopReportFilePath);
+                }
             }
 
             if (codeCoverageFilePath != null)

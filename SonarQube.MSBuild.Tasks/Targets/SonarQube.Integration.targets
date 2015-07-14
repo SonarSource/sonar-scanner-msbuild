@@ -228,11 +228,6 @@
     <Message Importance="low" Condition=" $(SonarQubeTestProject) == 'true' "
              Text="SonarQube: project will be treated as a test project : $(MSBuildProjectName)" />
 
-    <PropertyGroup >
-      <!-- Ensure SonarQubeExclude has a value -->
-      <SonarQubeExclude Condition=" $(SonarQubeExclude) == '' ">false</SonarQubeExclude>
-    </PropertyGroup>
-
     <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
        FullProjectPath="$(MSBuildProjectFullPath)"
        ProjectLanguage="$(Language)"
@@ -369,7 +364,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <SonarQubeSetting Include="sonar.stylecop.projectFilePath" Condition=" $(SonarStyleProjectFilePathSpecified) != true ">
+      <SonarQubeSetting Include="sonar.stylecop.projectFilePath" Condition=" $(SonarStyleProjectFilePathSpecified) != 'true' ">
         <Value>$(MSBuildProjectFullPath)</Value>
       </SonarQubeSetting>
     </ItemGroup>
