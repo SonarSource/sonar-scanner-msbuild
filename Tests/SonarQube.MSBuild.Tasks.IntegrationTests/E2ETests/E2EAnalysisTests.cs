@@ -255,7 +255,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
-            descriptor.ProjectLanguage = ProjectLanguage.VB;
+            descriptor.ProjectLanguage = ProjectLanguages.VisualBasic;
 
             AddEmptyCodeFile(descriptor, rootInputFolder, ".vb");
             AddEmptyCodeFile(descriptor, rootInputFolder, ".vb");

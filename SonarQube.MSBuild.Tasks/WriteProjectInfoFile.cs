@@ -12,14 +12,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace SonarQube.MSBuild.Tasks
 {
     /// <summary>
     /// MSBuild task to write a ProjectInfo file to disk in XML format
     /// </summary>
+    /// <remarks>The task does not make any assumptions about the type of project from which it is
+    /// being called so it should work for projects of any type - C#, VB, UML, C++, and any new project types
+    /// that are created.</remarks>
     public class WriteProjectInfoFile : Task
     {
         #region Input properties
@@ -31,18 +32,17 @@ namespace SonarQube.MSBuild.Tasks
         [Required]
         public string FullProjectPath { get; set; }
 
-        [Required]
+        /// <summary>
+        /// Optional, in case we are imported into a project type that does not have a language specified
+        /// </summary>
         public string ProjectLanguage { get; set; }
 
         public string ProjectGuid { get; set; }
 
-        [Required]
         public bool IsTest { get; set; }
 
-        [Required]
         public bool IsExcluded { get; set; }
 
-        [Required]
         public ITaskItem[] AnalysisResults { get; set; }
 
         public ITaskItem[] AnalysisSettings { get; set; }
@@ -67,19 +67,7 @@ namespace SonarQube.MSBuild.Tasks
 
             pi.ProjectName = this.ProjectName;
             pi.FullPath = this.FullProjectPath;
-
-            switch (this.ProjectLanguage)
-            {
-                case "C#":
-                    pi.ProjectLanguage = SonarQube.Common.ProjectLanguage.CS;
-                    break;
-                case "VB":
-                    pi.ProjectLanguage = SonarQube.Common.ProjectLanguage.VB;
-                    break;
-                default:
-                    Log.LogError(Resources.ERROR_InvalidProjectLanguage, this.ProjectLanguage);
-                    return false;
-            }
+            pi.ProjectLanguage = this.ProjectLanguage;
 
             Guid projectId;
             if (Guid.TryParse(this.ProjectGuid, out projectId))

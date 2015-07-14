@@ -26,7 +26,7 @@ namespace TestUtilities
 
         #region Public properties
 
-        public SonarQube.Common.ProjectLanguage ProjectLanguage { get; set; }
+        public string ProjectLanguage { get; set; }
 
         public Guid ProjectGuid { get; set; }
 

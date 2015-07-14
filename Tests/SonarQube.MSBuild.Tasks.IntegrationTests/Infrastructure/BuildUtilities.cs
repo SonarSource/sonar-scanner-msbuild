@@ -68,7 +68,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             ProjectDescriptor descriptor = new ProjectDescriptor()
             {
-                ProjectLanguage = SonarQube.Common.ProjectLanguage.CS,
+                ProjectLanguage = SonarQube.Common.ProjectLanguages.CSharp,
                 ProjectGuid = Guid.NewGuid(),
                 IsTestProject = false,
                 ParentDirectoryPath = parentDirectory,
@@ -233,6 +233,24 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             root.AddProperty("OutputType", "library"); // build a library so we don't need a Main method
 
             return root;
+        }
+
+        /// <summary>
+        /// Creates and returns a new MSBuild project using the supplied template
+        /// </summary>
+        public static ProjectRootElement CreateProjectFromTemplate(string projectFilePath, TestContext testContext, string templateXml, params object[] args)
+        {
+            string projectXml = templateXml;
+            if (args != null && args.Any())
+            {
+                projectXml = string.Format(System.Globalization.CultureInfo.CurrentCulture, templateXml, args);
+            }
+
+            File.WriteAllText(projectFilePath, projectXml);
+            testContext.AddResultFile(projectFilePath);
+
+            ProjectRootElement projectRoot = ProjectRootElement.Open(projectFilePath);
+            return projectRoot;
         }
 
         /// <summary>

@@ -57,6 +57,7 @@
     <Compile Include="Interfaces\ILogger.cs" />
     <Compile Include="ProjectInfo\ProjectInfo.cs" />
     <Compile Include="ProjectInfo\ProjectInfoExtensions.cs" />
+    <Compile Include="ProjectInfo\ProjectLanguages.cs" />
     <Compile Include="ProjectInfo\ProjectType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">

@@ -43,7 +43,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             task.OutputFolder = testFolder;
             task.ProjectGuid = projectGuid.ToString("B");
             task.ProjectName = "MyProject";
-            task.ProjectLanguage = "C#";
+            task.ProjectLanguage = ProjectLanguages.CSharp;
             // No analysis results are supplied
 
             // Act
@@ -52,7 +52,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // Addition assertions
             ProjectInfoAssertions.AssertExpectedValues(
                 "c:\\fullPath\\project.proj",
-                ProjectLanguage.CS,
+                ProjectLanguages.CSharp,
                 ProjectType.Test,
                 projectGuid,
                 "MyProject",
@@ -198,12 +198,42 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             task.BuildEngine = engine;
             bool success = task.Execute();
 
+            // Assert
             Assert.IsTrue(success, "Not expecting the task to fail as this would fail the build");
             engine.AssertNoErrors();
             Assert.AreEqual(1, engine.Warnings.Count, "Expecting a build warning as the ProjectGuid is missing");
 
             BuildWarningEventArgs firstWarning = engine.Warnings[0];
             Assert.IsNotNull(firstWarning.Message, "Warning message should not be null");
+
+            string projectInfoFilePath = Path.Combine(testFolder, ExpectedProjectInfoFileName);
+            Assert.IsFalse(File.Exists(projectInfoFilePath), "Not expecting the project info file to have been created");
+        }
+
+        [TestMethod]
+        [Description("Tests that project info files are created for unrecognised languages")]
+        public void WriteProjectInfoFile_UnrecognisedLanguages()
+        {
+            // Arrange
+            WriteProjectInfoFile task = new WriteProjectInfoFile();
+            task.FullProjectPath = "c:\\fullPath\\project.proj";
+            task.IsTest = true;
+            task.ProjectName = "UnrecognisedLanguageProject";
+            task.ProjectGuid = Guid.NewGuid().ToString("B");
+           
+            // 1. Null language
+            task.ProjectLanguage = null;
+            task.OutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "null.language");
+
+            ProjectInfo actual = ExecuteAndCheckSucceeds(task, task.OutputFolder);
+            Assert.IsNull(actual.ProjectLanguage, "Expecting the language to be null");
+        
+            // 2. Unrecognised language
+            task.ProjectLanguage = "unrecognised language";
+            task.OutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "unrecog.language");
+
+            actual = ExecuteAndCheckSucceeds(task, task.OutputFolder);
+            Assert.AreEqual("unrecognised language", actual.ProjectLanguage, "Unexpected value for project language");
         }
 
         #endregion
