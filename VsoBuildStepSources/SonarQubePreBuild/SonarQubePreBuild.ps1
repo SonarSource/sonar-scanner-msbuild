@@ -27,7 +27,7 @@ Write-Verbose -Verbose "serverUrl = $($serviceEndpoint.Url)"
 Write-Verbose -Verbose "serverUsername = $($serviceEndpoint.Authorization.Parameters.UserName)"
 
 #
-# These variables need to be updated when deploying different versions of sonar-runner / sonarqube.msbuild.runner
+# These variables need to be updated when deploying different versions of sonar-runner / MSBuild.SonarQube.Runner
 #
 $currentDir = (Get-Item -Path ".\" -Verbose).FullName
 $sonarRunnerDir = [System.IO.Path]::Combine($currentDir, "sonar-runner-dist-2.4", "sonar-runner-2.4", "bin")

@@ -12,13 +12,13 @@ namespace SonarQube.Bootstrapper
 {
     /// <summary>
     /// Component that prepares the machine for the analysis. 
-    /// It copies targets files, downloads the SonarQube.MSBuild.Runner binaries from the SonarQube server, checks versions 
+    /// It copies targets files, downloads the MSBuild.SonarQube.Runner binaries from the SonarQube server, checks versions 
     /// </summary>
     /// <remarks>This interface was introduced to support testing</remarks>
     public interface IBuildAgentUpdater
     {
         /// <summary>
-        /// Attempts to update the SonarQube.MSBuild.Runner binaries on the local machine
+        /// Attempts to update the MSBuild.SonarQube.Runner binaries on the local machine
         /// </summary>
         /// <param name="hostUrl">Address of the SonarQube server</param>
         /// <param name="targetDir">Directory to which the new binaries to copied</param>
