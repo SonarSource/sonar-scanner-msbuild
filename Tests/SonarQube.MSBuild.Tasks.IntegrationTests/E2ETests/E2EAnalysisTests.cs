@@ -401,9 +401,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             logger.AssertExpectedTargetOrdering(
                 TargetConstants.CategoriseProjectTarget,
-                TargetConstants.CoreCompileTarget,
-                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.DefaultBuildTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.WriteProjectDataTarget);
 
             // Check expected folder structure exists

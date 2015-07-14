@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+  <Nodes>
+    <Node Id="29d04db7-5772-4c70-8ef7-ac632b9cd46b1" Category="Comment" Bounds="-722.478554936717,-376.164310839144,205.296666666667,57.88" Label="Any targets that set analysis results&#xD;&#xA;must be run before WriteSonarQubeProjectData" UseManualLocation="True" />
+    <Node Id="501b465f-82df-4507-908d-0ff7655254b41" Category="Comment" Bounds="-631.396821289062,-184.451540374756,240.666666666667,89.8" Label="These two targets are &quot;utility&quot; targets:&#xD;&#xA;they set properties that are used by other targets. Any targets that need use those properties should &quot;DependOn&quot; this target so that it is executed." UseManualLocation="True" />
+    <Node Id="Build" Category="External" Bounds="-246.52978515625,-472.551005908203,50,25.96" UseManualLocation="True" />
+    <Node Id="CalculateSonarQubeFilesToAnalyze" Bounds="-595.916821289063,-240.411655883789,205.186666666667,25.96" Label="CalculateSonarQubeFilesToAnalyze" UseManualLocation="True" />
+    <Node Id="ClCompile" Category="External" Bounds="-26.3547926076253,-539.216977490234,74.2766666666667,25.96" UseManualLocation="True" />
+    <Node Id="CoreBuildDependsOn" Category="DependOnVariable" Bounds="-204.471456654867,-528.511105908203,134.266666666667,25.96" UseManualLocation="True" />
+    <Node Id="CoreCompile1" Category="External" Bounds="-40.2047966003418,-595.177077490235,88.85,25.96" Label="CoreCompile" UseManualLocation="True" />
+    <Node Id="OverrideCodeAnalysisProperties" Bounds="-77.627074686686,-210.271388598633,189.683333333333,25.96" UseManualLocation="True" />
+    <Node Id="PrepareForRunDependsOn" Category="DependOnVariable" Bounds="-29.8729290517173,-483.256877490234,161.406666666667,25.96" UseManualLocation="True" />
+    <Node Id="RunCodeAnalysis" Category="External" Bounds="-32.9878841654458,-420.296777490234,111.003333333333,25.96" UseManualLocation="True" />
+    <Node Id="SetFxCopAnalysisResult" Bounds="-227.977051544189,-336.231488598633,144.35,25.96" UseManualLocation="True" />
+    <Node Id="SetStyleCopAnalysisSettings" Bounds="-548.278554936717,-439.780689697266,168.743333333333,25.96" Label="SetStyleCopAnalysisSettings" UseManualLocation="True" />
+    <Node Id="SkippingSonarQubeAnalysis" Bounds="-471.385366923014,-525.512501220703,168.196666666667,25.9600000000003" UseManualLocation="True" />
+    <Node Id="SonarQubeCategoriseProject" Bounds="-360.730154622396,-196.304424743652,172.783333333333,25.96" UseManualLocation="True" />
+    <Node Id="WriteSonarQubeProjectData" Bounds="-473.278554936717,-354.820591430664,169.683333333333,25.96" UseManualLocation="True" />
+    <Node Id="baf2b497-4bd9-41cc-82aa-3951ea656c171" Category="Comment" Bounds="-710.305366923014,-577.392575683594,193.92,57.8800000000001" Label="It doesn't matter too much when&#xD;&#xA;this target is run: it only provides diagnostic info." UseManualLocation="True" />
+  </Nodes>
+  <Links>
+    <Link Source="29d04db7-5772-4c70-8ef7-ac632b9cd46b1" Target="WriteSonarQubeProjectData" Bounds="-517.18188827005,-344.836040544344,34.9057683356788,0.812136027212091" />
+    <Link Source="501b465f-82df-4507-908d-0ff7655254b41" Target="CalculateSonarQubeFilesToAnalyze" Bounds="-501.999708335206,-205.629609611,4.27513034177019,21.1780692362436" />
+    <Link Source="501b465f-82df-4507-908d-0ff7655254b41" Target="SonarQubeCategoriseProject" Bounds="-390.730154622395,-168.707973757053,37.3454852306232,6.90556386820316" />
+    <Link Source="Build" Target="CoreBuildDependsOn" Category="DependsOn" Bounds="-202.001446739867,-497.569143368371,37.6396498358819,25.0181374601681" />
+    <Link Source="ClCompile" Target="CoreBuildDependsOn" Bounds="-61.2282064831226,-523.552709594685,34.8734138754973,2.5205650569726" />
+    <Link Source="CoreCompile1" Target="CoreBuildDependsOn" Bounds="-101.63417616852,-569.217077490234,78.2926859899158,36.8714303155384" />
+    <Link Source="OverrideCodeAnalysisProperties" Target="RunCodeAnalysis" Category="RunBefore" Bounds="17.5420928120396,-385.339651110668,4.41718040368477,175.068262512035" />
+    <Link Source="OverrideCodeAnalysisProperties" Target="SonarQubeCategoriseProject" Category="DependsOn" Bounds="-178.957130716466,-192.747961615898,101.33005602978,4.85425580241932" />
+    <Link Source="PrepareForRunDependsOn" Target="CoreBuildDependsOn" Bounds="-74.616373551351,-500.446625910247,71.4755231309625,17.1897484200128" />
+    <Link Source="RunCodeAnalysis" Target="PrepareForRunDependsOn" Category="External" Bounds="28.3516043901138,-449.088825275413,12.9493672625898,28.7920375556861" />
+    <Link Source="SetFxCopAnalysisResult" Target="RunCodeAnalysis" Category="RunAfter" Bounds="-128.269412630059,-390.498935440501,115.10986276494,54.2674468418683" />
+    <Link Source="SetFxCopAnalysisResult" Target="WriteSonarQubeProjectData" Category="RunBefore" Bounds="-294.623817661845,-334.344290184176,66.6467661176558,5.3255290833477" />
+    <Link Source="SetStyleCopAnalysisSettings" Target="WriteSonarQubeProjectData" Category="RunBefore" Bounds="-452.376762717158,-413.820689697266,46.4326906101985,52.2714450380971" />
+    <Link Source="SkippingSonarQubeAnalysis" Target="Build" Category="RunBefore" Bounds="-346.662642563007,-499.552501220703,91.5598274222757,29.2544970742381" />
+    <Link Source="WriteSonarQubeProjectData" Target="Build" Category="RunAfter" Bounds="-370.035065699125,-441.403397372007,122.748954747722,86.5828059413433" />
+    <Link Source="WriteSonarQubeProjectData" Target="CalculateSonarQubeFilesToAnalyze" Category="DependsOn" Bounds="-475.341930819969,-328.860591430664,75.0053770437894,81.8148874459473" />
+    <Link Source="WriteSonarQubeProjectData" Target="SonarQubeCategoriseProject" Category="DependsOn" Bounds="-379.094010082717,-328.860591430664,90.1549102220433,125.251631372927" />
+    <Link Source="baf2b497-4bd9-41cc-82aa-3951ea656c171" Target="SkippingSonarQubeAnalysis" Bounds="-516.385366923014,-533.045885756187,38.7001806533279,6.14935729641559" />
+  </Links>
+  <Categories>
+    <Category Id="Comment" Label="Comment" Description="Represents a user defined comment on the diagram" CanBeDataDriven="True" IsProviderRoot="False" NavigationActionLabel="Comments" />
+    <Category Id="DependOnVariable" Label="DependOnVariable" IsTag="True" />
+    <Category Id="DependsOn" Label="DependsOn" IsTag="True" />
+    <Category Id="External" Label="DependsOn" IsTag="True" />
+    <Category Id="RunAfter" Label="RunAfter" IsTag="True" />
+    <Category Id="RunBefore" Label="RunBefore" IsTag="True" />
+  </Categories>
+  <Properties>
+    <Property Id="Bounds" DataType="System.Windows.Rect" />
+    <Property Id="CanBeDataDriven" Label="CanBeDataDriven" Description="CanBeDataDriven" DataType="System.Boolean" />
+    <Property Id="Expression" DataType="System.String" />
+    <Property Id="GroupLabel" DataType="System.String" />
+    <Property Id="IsEnabled" DataType="System.Boolean" />
+    <Property Id="IsProviderRoot" Label="IsProviderRoot" Description="IsProviderRoot" DataType="System.Boolean" />
+    <Property Id="IsTag" DataType="System.Boolean" />
+    <Property Id="Label" Label="Label" Description="Displayable label of an Annotatable object" DataType="System.String" />
+    <Property Id="NavigationActionLabel" Label="NavigationActionLabel" Description="NavigationActionLabel" DataType="System.String" />
+    <Property Id="TargetType" DataType="System.Type" />
+    <Property Id="UseManualLocation" DataType="System.Boolean" />
+    <Property Id="Value" DataType="System.String" />
+    <Property Id="ValueLabel" DataType="System.String" />
+  </Properties>
+  <Styles>
+    <Style TargetType="Node" GroupLabel="DependOnVariable" ValueLabel="True">
+      <Condition Expression="HasCategory('DependOnVariable')" />
+      <Setter Property="Stroke" Value="#FFD9D532" />
+      <Setter Property="Background" Value="#FFDAE239" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="External" ValueLabel="True">
+      <Condition Expression="HasCategory('External')" />
+      <Setter Property="Background" Value="#FFA180D6" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="RunBefore" ValueLabel="True">
+      <Condition Expression="HasCategory('RunBefore')" />
+      <Setter Property="Stroke" Value="#FFD4202D" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="RunAfter" ValueLabel="True">
+      <Condition Expression="HasCategory('RunAfter')" />
+      <Setter Property="Stroke" Value="#FF1DC72E" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="DependsOn" ValueLabel="True">
+      <Condition Expression="HasCategory('DependsOn')" />
+      <Setter Property="Background" />
+      <Setter Property="Stroke" Value="#FF1B86EC" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Comment" ValueLabel="Has comment">
+      <Condition Expression="HasCategory('Comment')" />
+      <Setter Property="Background" Value="#FFFFFACD" />
+      <Setter Property="Stroke" Value="#FFE5C365" />
+      <Setter Property="StrokeThickness" Value="1" />
+      <Setter Property="NodeRadius" Value="2" />
+      <Setter Property="MaxWidth" Value="250" />
+    </Style>
+  </Styles>
+</DirectedGraph>
