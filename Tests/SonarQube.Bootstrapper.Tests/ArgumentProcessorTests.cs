@@ -100,15 +100,6 @@ namespace SonarQube.Bootstrapper.Tests
         }
 
         [TestMethod]
-        [Ignore] // SONARMSBRU-101
-        public void ArgProc_ArgumentsWithWellKnownVerb()
-        {
-            TestLogger logger = new TestLogger();
-
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "begingX");
-        }
-
-        [TestMethod]
         public void ArgProc_UrlIsRequired()
         {
             // 0. Setup
