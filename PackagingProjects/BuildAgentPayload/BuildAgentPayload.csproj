@@ -39,13 +39,13 @@
   </PropertyGroup>
   <ItemGroup>
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Common.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.MSBuild.Runner.exe" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\MSBuild.SonarQube.Runner.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Analysis.xml" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.ImportBefore.targets" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration)== 'Debug'">
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Common.pdb" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.MSBuild.Runner.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\MSBuild.SonarQube.Runner.pdb" />
   </ItemGroup>
   <!-- Reference to dependencies to ensure the build order is correct -->
   <ItemGroup>
