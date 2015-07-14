@@ -67,6 +67,7 @@ namespace SonarQube.Bootstrapper
         private readonly string sonarQubeUrl;
         private readonly AnalysisPhase analysisPhase;
         private readonly string childCmdLineArgs;
+        private readonly bool installLoaderTargets;
 
         private string tempDir;
         private string preProcFilePath;
@@ -74,7 +75,7 @@ namespace SonarQube.Bootstrapper
         
         #region Constructor(s)
         
-        public BootstrapperSettings(AnalysisPhase phase, string childCmdLineArgs, string sonarQubeUrl, ILogger logger)
+        public BootstrapperSettings(AnalysisPhase phase, string childCmdLineArgs, string sonarQubeUrl, bool installLoaderTargets, ILogger logger)
         {
             if (sonarQubeUrl == null)
             {
@@ -89,6 +90,7 @@ namespace SonarQube.Bootstrapper
             this.analysisPhase = phase;
             this.childCmdLineArgs = childCmdLineArgs;
             this.logger = logger;
+            this.installLoaderTargets = installLoaderTargets;
         }
 
         #endregion
@@ -154,6 +156,11 @@ namespace SonarQube.Bootstrapper
         public AnalysisPhase Phase
         {
             get { return this.analysisPhase; }
+        }
+
+        public bool InstallLoaderTargets
+        {
+            get { return this.installLoaderTargets; }
         }
 
         public string ChildCmdLineArgs

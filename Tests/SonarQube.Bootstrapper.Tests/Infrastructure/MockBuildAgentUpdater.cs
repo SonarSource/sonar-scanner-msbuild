@@ -79,7 +79,7 @@ namespace SonarQube.Bootstrapper.Tests
             Assert.IsTrue(this.injectTargetsCalled, "Expecting IBuildUpdater.InjectLoaderTargets to be been called");
         }
 
-        public void AssertTargetsNotInjected()
+        public void AssertTargetsNotInstalled()
         {
             Assert.IsFalse(this.injectTargetsCalled, "Not expecting IBuildUpdater.InjectLoaderTargets to be been called");
         }

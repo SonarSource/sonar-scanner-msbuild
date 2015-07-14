@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace SonarQube.Common
@@ -14,6 +15,7 @@ namespace SonarQube.Common
     /// <summary>
     /// Data class for an instance of an argument
     /// </summary>
+    [DebuggerDisplay("{descriptor.Id}={value}")]
     public class ArgumentInstance
     {
         private readonly ArgumentDescriptor descriptor;
