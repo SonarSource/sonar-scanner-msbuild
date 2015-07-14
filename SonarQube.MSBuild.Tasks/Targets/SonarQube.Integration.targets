@@ -114,7 +114,7 @@
   <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
 
-  <Target Name="SkippingSonarQubeAnalysis" BeforeTargets="CoreCompile"
+  <Target Name="SkippingSonarQubeAnalysis" BeforeTargets="Build"
           Condition=" $(SonarQubeTempPath) == '' ">
     <Message Importance="high" Text="Skipping dumping compile outputs because SonarQubeTempPath has not been specified" />
   </Target>
@@ -130,9 +130,11 @@
           * check if it has one of the expected project types guids.
          If either is true then the project is a test project, otherwise
          it is a product project.
+         
+         This target is a utility target: it won't be executed unless a target that
+         depends on it is executed.
     -->
   <Target Name="SonarQubeCategoriseProject"
-          BeforeTargets="CoreCompile"
           Condition=" $(SonarQubeTempPath) != '' " >
 
     <!-- Fakes detection -->
@@ -163,7 +165,10 @@
   <!-- **************************************************************************** -->
   <!-- Calculate the set of files to be analyzed -->
   <!-- **************************************************************************** -->
-  <Target Name="CalculateSonarQubeFilesToAnalyze" AfterTargets="CoreCompile" BeforeTargets="RunCodeAnalysis"
+  <!-- This target is a utility target: it won't be executed unless a target that
+       depends on it is executed.
+  -->
+  <Target Name="CalculateSonarQubeFilesToAnalyze"
         Condition=" $(SonarQubeTempPath) != '' ">
 
     <!-- Include all of contents of the specified item groups, but exclude 
@@ -188,8 +193,10 @@
        otherwise those results will not appear in the project info file.
   -->
   <!-- **************************************************************************** -->
-  <Target Name="WriteSonarQubeProjectData" AfterTargets="Build"
-        Condition=" $(SonarQubeTempPath) != '' ">
+  <Target Name="WriteSonarQubeProjectData"
+          DependsOnTargets="SonarQubeCategoriseProject;CalculateSonarQubeFilesToAnalyze"
+          AfterTargets="Build"
+          Condition=" $(SonarQubeTempPath) != '' ">
 
     <!-- **************************************************************************** -->
     <!-- Create the project-specific directory -->
@@ -268,7 +275,8 @@
 
   <!-- We want to override any properties that have been set declaratively in the project -->
   <Target Name="OverrideCodeAnalysisProperties" Condition=" $(SonarQubeTempPath) != '' "
-          BeforeTargets="RunCodeAnalysis;WriteSonarQubeProjectData" >
+          DependsOnTargets="SonarQubeCategoriseProject"
+          BeforeTargets="RunCodeAnalysis" >
 
     <PropertyGroup>
       <!-- Compute the ruleset filename -->

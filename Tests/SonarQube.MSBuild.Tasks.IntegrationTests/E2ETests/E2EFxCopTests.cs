@@ -194,8 +194,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             logger.AssertExpectedTargetOrdering(
                 TargetConstants.CategoriseProjectTarget,
-                TargetConstants.CoreCompileTarget,
-                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 TargetConstants.FxCopTarget,
                 TargetConstants.SetFxCopResultsTarget,
@@ -252,12 +250,12 @@ End Class");
 
             logger.AssertExpectedTargetOrdering(
                 TargetConstants.CategoriseProjectTarget,
-                TargetConstants.CoreCompileTarget,
-                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 TargetConstants.FxCopTarget,
                 TargetConstants.SetFxCopResultsTarget,
-                TargetConstants.DefaultBuildTarget);
+                TargetConstants.DefaultBuildTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
+                TargetConstants.WriteProjectDataTarget);
 
             AssertAllFxCopTargetsExecuted(logger);
             Assert.IsTrue(File.Exists(fxCopLogFile), "FxCop log file should have been produced");
@@ -306,14 +304,13 @@ End Class");
 
             logger.AssertExpectedTargetOrdering(
                 TargetConstants.CategoriseProjectTarget,
-                TargetConstants.CoreCompileTarget,
-                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 
                 TargetConstants.FxCopTarget,
                 TargetConstants.SetFxCopResultsTarget, // should set the FxCop results after the platform "run Fx Cop" target
                 
                 TargetConstants.DefaultBuildTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.WriteProjectDataTarget);
 
             logger.AssertTargetExecuted(TargetConstants.SetFxCopResultsTarget);
@@ -359,8 +356,6 @@ End Class");
 
             logger.AssertExpectedTargetOrdering(
                 TargetConstants.CategoriseProjectTarget,
-                TargetConstants.CoreCompileTarget,
-                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.WriteProjectDataTarget);
@@ -411,10 +406,10 @@ End Class");
 
             logger.AssertExpectedTargetOrdering(
                 TargetConstants.CategoriseProjectTarget, // should always be run so we can detect Fakes
-                TargetConstants.CoreCompileTarget,
-                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
+                TargetConstants.FxCopTarget,
                 TargetConstants.DefaultBuildTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.WriteProjectDataTarget);
 
             logger.AssertTargetExecuted(TargetConstants.FxCopTarget);
@@ -462,10 +457,10 @@ End Class");
 
             logger.AssertExpectedTargetOrdering(
                 TargetConstants.CategoriseProjectTarget,
-                TargetConstants.CoreCompileTarget,
-                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
+                TargetConstants.FxCopTarget,
                 TargetConstants.DefaultBuildTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.WriteProjectDataTarget);
 
             // We expect the FxCop target to be executed...
@@ -525,10 +520,10 @@ End Class");
 
             logger.AssertExpectedTargetOrdering(
                 TargetConstants.CategoriseProjectTarget,
-                TargetConstants.CoreCompileTarget,
-                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
+                TargetConstants.FxCopTarget,
                 TargetConstants.DefaultBuildTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.WriteProjectDataTarget);
 
             // We expect the FxCop target to be executed...
