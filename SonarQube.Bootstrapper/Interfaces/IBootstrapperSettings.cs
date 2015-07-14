@@ -56,6 +56,11 @@ namespace SonarQube.Bootstrapper
         AnalysisPhase Phase { get; }
 
         /// <summary>
+        /// If true copy the loader targets file before analysis
+        /// </summary>
+        bool InstallLoaderTargets { get; }
+
+        /// <summary>
         /// The command line arguments to pass to the child process
         /// </summary>
         string ChildCmdLineArgs { get; }

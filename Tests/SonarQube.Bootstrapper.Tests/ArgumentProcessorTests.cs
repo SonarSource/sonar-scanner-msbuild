@@ -37,7 +37,74 @@ namespace SonarQube.Bootstrapper.Tests
 
             // 1. Minimal command line settings with extra values
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "foo", "blah", "/xxxx");
-            AssertExpectedUrl("foo", settings);
+            AssertCommonSettings(settings, "foo", true, "\"/d:sonar.host.url=foo\" \"foo\" \"blah\" \"/xxxx\"");
+        }
+
+        [TestMethod]
+        public void ArgProc_InstallTargets()
+        {
+            TestLogger logger = new TestLogger();
+
+            //  No argument passed -> install targets
+            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo");
+            AssertCommonSettings(settings, "foo", true, "\"/d:sonar.host.url=foo\"");
+
+            // "true"-> install targets
+            settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "/install:true");
+            AssertCommonSettings(settings, "foo", true, "\"/d:sonar.host.url=foo\"");
+
+            // Case insensitive "TrUe"-> install targets
+            settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "/install:TrUe");
+            AssertCommonSettings(settings, "foo", true, "\"/d:sonar.host.url=foo\"");
+
+            // "false"-> don't install targets
+            settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "/install:false");
+            AssertCommonSettings(settings, "foo", false, "\"/d:sonar.host.url=foo\"");
+
+            // Case insensitive "falSE" 
+            settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "/install:falSE");
+            AssertCommonSettings(settings, "foo", false, "\"/d:sonar.host.url=foo\"");
+
+            // Invalid value -> parsing should fail
+            logger = CheckProcessingFails("/d:sonar.host.url=foo", "/install:1");
+            logger.AssertErrorsLogged(1);
+            logger.AssertSingleErrorExists("/install");
+
+            // Invalid value -> parsing should fail
+            logger = CheckProcessingFails("/d:sonar.host.url=foo", "/install:");
+            logger.AssertErrorsLogged(1);
+            logger.AssertSingleErrorExists("/install");
+
+            // Invalid value -> parsing should fail
+            logger = CheckProcessingFails("/d:sonar.host.url=foo", @"/install:"" """);
+            logger.AssertErrorsLogged(1);
+            logger.AssertSingleErrorExists("/install");
+
+            // Duplicate value -> parsing should fail
+            logger = CheckProcessingFails("/d:sonar.host.url=foo", "/install:true", "/install:false");
+            logger.AssertErrorsLogged(1);
+            logger.AssertSingleErrorExists("/install");
+        }
+
+        [TestMethod]
+        public void ArgProc_StripVerbsAndPrefixes()
+        {
+            TestLogger logger = new TestLogger();
+            
+            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "/begin:true", "/install:true");
+            AssertCommonSettings(settings, "foo", true, "\"/d:sonar.host.url=foo\" \"/begin:true\"");
+
+            settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "/installXXX:true");
+            AssertCommonSettings(settings, "foo", true, "\"/d:sonar.host.url=foo\" \"/installXXX:true\"");
+        }
+
+        [TestMethod]
+        [Ignore] // SONARMSBRU-101
+        public void ArgProc_ArgumentsWithWellKnownVerb()
+        {
+            TestLogger logger = new TestLogger();
+
+            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "begingX");
         }
 
 
@@ -66,12 +133,18 @@ namespace SonarQube.Bootstrapper.Tests
             // 2. Url is specified in the file -> ok
             logger = new TestLogger();
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/key:k1", "/name:n1", "/version:1.0", "/s:" + propertiesFilePath);
-            AssertExpectedUrl("http://filehost", settings);
+            AssertCommonSettings(
+                settings,
+                "http://filehost",
+                true);
 
             // 3. Url is specified on the command line too -> ok, and overrides the file setting
             logger = new TestLogger();
             settings = CheckProcessingSucceeds(logger, "/key:k1", "/name:n1", "/version:1.0", "/s:" + propertiesFilePath, "/d:sonar.host.url=http://cmdlinehost");
-            AssertExpectedUrl("http://cmdlinehost", settings);
+            AssertCommonSettings(
+                settings,
+                "http://cmdlinehost",
+                true);
         }
 
 
@@ -91,15 +164,15 @@ namespace SonarQube.Bootstrapper.Tests
 
             // 1. Settings file only
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath);
-            AssertExpectedUrl("http://settingsFile", settings);
+            AssertCommonSettings(settings, "http://settingsFile", true);
 
-            // 2. Both file and cmd line
+            //// 2. Both file and cmd line
             settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath, "/d:sonar.host.url=http://cmdline");
-            AssertExpectedUrl("http://cmdline", settings); // cmd line wins
+            AssertCommonSettings(settings, "http://cmdline", true); // cmd line wins
 
-            // 3. Cmd line only
+            //// 3. Cmd line only
             settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=http://cmdline", "/d:other=property", "/d:a=b c");
-            AssertExpectedUrl("http://cmdline", settings);
+            AssertCommonSettings(settings, "http://cmdline", true); // cmd line wins
         }
 
         [TestMethod]
@@ -205,7 +278,7 @@ namespace SonarQube.Bootstrapper.Tests
             bool success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, logger, out settings);
 
             Assert.IsTrue(success, "Expecting processing to succeed");
-            Assert.IsNotNull(settings, "Settings should not be null if processing succeds");
+            Assert.IsNotNull(settings, "Settings should not be null if processing succeeds");
             logger.AssertErrorsLogged(0);
 
             return settings;
@@ -224,9 +297,17 @@ namespace SonarQube.Bootstrapper.Tests
             return logger;
         }
 
-        private static void AssertExpectedUrl(string expected, IBootstrapperSettings settings)
+        private void AssertCommonSettings(IBootstrapperSettings settings, string expectedUrl, bool expectedInstallLoaderTargets, string expectedCmdLineArgs)
         {
-            Assert.AreEqual(expected, settings.SonarQubeUrl, "Unexpected SonarQube URL");
+            Assert.AreEqual(expectedUrl, settings.SonarQubeUrl, "Unexpected SonarQube URL");
+            Assert.AreEqual(expectedInstallLoaderTargets, settings.InstallLoaderTargets, "Unexpected Install Targets setting");
+            Assert.AreEqual(expectedCmdLineArgs, settings.ChildCmdLineArgs, "Unexpected child command line arguments");
+        }
+
+        private void AssertCommonSettings(IBootstrapperSettings settings, string expectedUrl, bool expectedInstallLoaderTargets)
+        {
+            Assert.AreEqual(expectedUrl, settings.SonarQubeUrl, "Unexpected SonarQube URL");
+            Assert.AreEqual(expectedInstallLoaderTargets, settings.InstallLoaderTargets, "Unexpected Install Targets setting");
         }
 
         private static void AssertExpectedPhase(AnalysisPhase expected, IBootstrapperSettings settings)

@@ -77,7 +77,14 @@ namespace SonarQube.Bootstrapper
                 return 1;
             }
 
-            updater.InstallLoaderTargets(logger);
+            if (settings.InstallLoaderTargets)
+            {
+                updater.InstallLoaderTargets(logger);
+            }
+            else
+            {
+                logger.LogMessage(Resources.INFO_NotCopyingTargets);
+            }
 
             var preprocessorFilePath = settings.PreProcessorFilePath;
             var processRunner = new ProcessRunner();

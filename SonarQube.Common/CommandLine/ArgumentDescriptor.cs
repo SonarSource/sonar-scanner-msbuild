@@ -6,12 +6,14 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 
 namespace SonarQube.Common
 {
     /// <summary>
     /// Data class that describes a single valid command line argument - id, prefixes, multiplicity etc
     /// </summary>
+    [DebuggerDisplay("{id}")]
     public class ArgumentDescriptor
     {
         // https://msdn.microsoft.com/en-us/library/ms973919.aspx

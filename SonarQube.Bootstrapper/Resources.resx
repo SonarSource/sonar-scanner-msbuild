@@ -123,11 +123,17 @@
   <data name="CmdLine_ArgDescription_End" xml:space="preserve">
     <value>end - perform post-MSBuild/post-test steps</value>
   </data>
+  <data name="CmdLine_ArgDescription_InstallTargets" xml:space="preserve">
+    <value>/install:[true|false] - install standard MSBuild targets required for analysis (default true)</value>
+  </data>
   <data name="ERROR_Args_UrlRequired" xml:space="preserve">
     <value>The SonarQube URL must be supplied. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000).</value>
   </data>
   <data name="ERROR_CmdLine_BothBeginAndEndSupplied" xml:space="preserve">
     <value>Invalid command line parameters. Please specify either 'begin' or 'end', not both.</value>
+  </data>
+  <data name="ERROR_CmdLine_InvalidInstallTargetsValue" xml:space="preserve">
+    <value>Invalid value for /install: {0}. Valid values are "true" or "false".</value>
   </data>
   <data name="ERROR_FailedToUpdateRunnerBinaries" xml:space="preserve">
     <value>Failed to update the SonarQube MSBuild Runner binaries. Check the server url, verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted.</value>
@@ -149,6 +155,9 @@
   </data>
   <data name="INFO_InstallTargets_UpToDate" xml:space="preserve">
     <value>The file {0} is up to date at {1}</value>
+  </data>
+  <data name="INFO_NotCopyingTargets" xml:space="preserve">
+    <value>Not installing the targets file. </value>
   </data>
   <data name="INFO_ProcessingStarted" xml:space="preserve">
     <value>{0} started.</value>
