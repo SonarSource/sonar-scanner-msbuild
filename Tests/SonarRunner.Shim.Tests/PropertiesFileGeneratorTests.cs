@@ -270,9 +270,9 @@ namespace SonarRunner.Shim.Tests
             
 
             // Add additional properties
-            config.SetValue("key1", "value1");
-            config.SetValue("key.2", "value two");
-            config.SetValue("key.3", " ");
+            config.SetExplicitValue("key1", "value1");
+            config.SetExplicitValue("key.2", "value two");
+            config.SetExplicitValue("key.3", " ");
 
             // Act
             PropertiesFileGenerator.GenerateFile(config, logger);

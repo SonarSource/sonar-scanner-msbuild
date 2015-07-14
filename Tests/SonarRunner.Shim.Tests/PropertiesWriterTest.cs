@@ -255,9 +255,10 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DB2E5521-3172-47B9-BA50-864F1
 
             IList<AnalysisSetting> globalSettings = new List<AnalysisSetting>();
 
-            globalSettings.Add(new AnalysisSetting() { Id = "my.setting1", Value = "setting1" });
-            globalSettings.Add(new AnalysisSetting() { Id = "my.setting2", Value = "setting 2 with spaces" });
-            globalSettings.Add(new AnalysisSetting() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" }); // path that will be escaped
+            globalSettings.Add(new AnalysisSetting() { Id = "my.setting1", Value = "setting1", Inherited = false });
+            globalSettings.Add(new AnalysisSetting() { Id = "my.setting2", Value = "setting 2 with spaces", Inherited = false });
+            globalSettings.Add(new AnalysisSetting() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt", Inherited = false }); // path that will be escaped
+            globalSettings.Add(new AnalysisSetting() { Id = "my.setting.4", Value = "not to be written out", Inherited = true });
 
             // Act
             PropertiesWriter writer = new PropertiesWriter(config);
@@ -270,6 +271,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DB2E5521-3172-47B9-BA50-864F1
             AssertSettingExists(propertyReader, "my.setting1", "setting1");
             AssertSettingExists(propertyReader, "my.setting2", "setting 2 with spaces");
             AssertSettingExists(propertyReader, "my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
+            AssertSettingDoesNotExists(propertyReader, "my.setting.4");
         }
 
         #endregion
@@ -280,6 +282,19 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,DB2E5521-3172-47B9-BA50-864F1
         {
             string actualValue = propertyReader.GetProperty(expectedId); // will throw if the property is missing
             Assert.AreEqual(expectedValue, actualValue, "Property does not have the expected value. Property: {0}", expectedId);
+        }
+
+        private static void AssertSettingDoesNotExists(SQPropertiesFileReader propertyReader, string expectedId)
+        {
+            try
+            {
+                var actualValue = propertyReader.GetProperty(expectedId); // will throw if the property is missing
+                Assert.Fail("The property {0} was expected not to be set, but actually has the value: {1}", expectedId, actualValue);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // ignore, expected
+            }
         }
 
         #endregion

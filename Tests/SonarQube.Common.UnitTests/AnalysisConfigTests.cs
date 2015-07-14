@@ -100,13 +100,13 @@ namespace SonarQube.Common.UnitTests
             Assert.AreEqual("123", config.GetSetting("missing", "123"), "Expecting the default setting to be returned");
 
             // 2. Set and get a previously new setting
-            config.SetValue("id1", "value1");
+            config.SetExplicitValue("id1", "value1");
             Assert.IsTrue(config.TryGetSetting("id1", out setting), "Setting should have been found");
             Assert.AreEqual("value1", setting.Value, "Unexpected value returned for setting");
             Assert.AreEqual("value1", config.GetSetting("id1", "123"), "Unexpected value returned for setting");
 
             // 3. Update and refetch the setting
-            config.SetValue("id1", "updated value");
+            config.SetExplicitValue("id1", "updated value");
             Assert.IsTrue(config.TryGetSetting("id1", out setting), "Setting should have been found");
             Assert.AreEqual("updated value", setting.Value, "Unexpected value returned for setting");
             Assert.AreEqual("updated value", config.GetSetting("id1", "123"), "Unexpected value returned for setting");        

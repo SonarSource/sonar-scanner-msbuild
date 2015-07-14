@@ -69,7 +69,23 @@ namespace SonarQube.Common
         /// <summary>
         /// Sets the value of the additional setting. The setting will be added if it does not already exist.
         /// </summary>
-        public static void SetValue(this AnalysisConfig config, string settingId, string value)
+        public static void SetInheritedValue(this AnalysisConfig config, string settingId, string value)
+        {
+            SetValue(config, settingId, value, true);
+        }
+
+        /// <summary>
+        /// Sets the value of the additional setting. The setting will be added if it does not already exist.
+        /// </summary>
+        public static void SetExplicitValue(this AnalysisConfig config, string settingId, string value)
+        {
+            SetValue(config, settingId, value, false);
+        }
+
+        /// <summary>
+        /// Sets the value of the additional setting. The setting will be added if it does not already exist.
+        /// </summary>
+        private static void SetValue(this AnalysisConfig config, string settingId, string value, bool inherited)
         {
             if (config == null)
             {
@@ -84,13 +100,15 @@ namespace SonarQube.Common
             if (config.TryGetSetting(settingId, out setting))
             {
                 setting.Value = value;
+                setting.Inherited = inherited;
             }
             else
             {
                 setting = new AnalysisSetting()
                 {
                     Id = settingId,
-                    Value = value
+                    Value = value,
+                    Inherited = inherited
                 };
             }
 

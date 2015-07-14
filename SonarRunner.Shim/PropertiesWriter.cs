@@ -179,7 +179,10 @@ namespace SonarRunner.Shim
 
             foreach(AnalysisSetting setting in settings)
             {
-                AppendKeyValue(this.sb, setting.Id, setting.Value);
+                if (!setting.Inherited)
+                {
+                    AppendKeyValue(this.sb, setting.Id, setting.Value);
+                }
             }
             sb.AppendLine();
         }

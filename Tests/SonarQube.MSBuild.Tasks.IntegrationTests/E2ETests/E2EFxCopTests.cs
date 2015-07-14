@@ -501,7 +501,7 @@ End Class");
 
             // Create a config file in the config folder containing a reg ex to identify tests projects
             AnalysisConfig config = new AnalysisConfig();
-            config.SetValue(IsTestFileByName.TestRegExSettingId, ".testp.");
+            config.SetExplicitValue(IsTestFileByName.TestRegExSettingId, ".testp.");
             string configFullPath = Path.Combine(rootInputFolder, FileConstants.ConfigFileName);
             config.Save(configFullPath);
 

@@ -33,6 +33,12 @@ namespace SonarQube.Common
         [XmlAttribute]
         public string Value { get; set; }
 
+        /// <summary>
+        /// Whether or not this settings was inherited from SonarQube's portal
+        /// </summary>
+        [XmlAttribute]
+        public bool Inherited { get; set; }
+
         #endregion
 
         #region Static helper methods

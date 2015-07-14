@@ -153,7 +153,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             var properties = this.propertiesFetcher.FetchProperties(ws, config.SonarProjectKey);
             foreach (var property in properties)
             {
-                config.SetValue(property.Key, property.Value);
+                config.SetInheritedValue(property.Key, property.Value);
             }
         }
 
@@ -172,7 +172,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             foreach (Property item in args.GetAllProperties())
             {
-                config.SetValue(item.Id, item.Value); // this will overwrite the setting if it already exists
+                config.SetExplicitValue(item.Id, item.Value); // this will overwrite the setting if it already exists
             }
         }
 

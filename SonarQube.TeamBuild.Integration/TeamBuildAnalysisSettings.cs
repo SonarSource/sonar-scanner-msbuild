@@ -26,7 +26,7 @@ namespace SonarQube.TeamBuild.Integration
 
         public static void SetTfsUri(this AnalysisConfig config, string uri)
         {
-            config.SetValue(TfsUriSettingId, uri);
+            config.SetExplicitValue(TfsUriSettingId, uri);
         }
 
         public static string GetBuildUri(this AnalysisConfig config)
@@ -36,7 +36,7 @@ namespace SonarQube.TeamBuild.Integration
 
         public static void SetBuildUri(this AnalysisConfig config, string uri)
         {
-            config.SetValue(BuildUriSettingId, uri);
+            config.SetExplicitValue(BuildUriSettingId, uri);
         }
 
         #endregion
