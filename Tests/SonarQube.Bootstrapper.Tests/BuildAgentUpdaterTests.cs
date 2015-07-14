@@ -64,7 +64,7 @@ namespace SonarQube.Bootstrapper.Tests
         public void Updater_CheckDownloadUrl_ConnectionFailure()
         {
             // this URL produces a connection failure
-            CheckInvalidUrlFails("http://localhost:9000");
+            CheckInvalidUrlFails("http://nonexistent.localhost:9000");
         }
 
         [TestMethod]

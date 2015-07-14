@@ -220,4 +220,8 @@
   <data name="ERROR_UrlNameResolutionFailed" xml:space="preserve">
     <value>The name of the SonarQube server could not be resolved. Check the url is correct and that the server is available. Url: {0}</value>
   </data>
+  <data name="ERROR_CannotCreateEmptyDirectory" xml:space="preserve">
+    <value>Failed to create an empty directory. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.
+  Detailed error message: {0}</value>
+  </data>
 </root>

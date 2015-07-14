@@ -114,6 +114,36 @@ namespace SonarQube.Common
             Directory.CreateDirectory(directory);
         }
 
+        /// <summary>
+        /// Attempts to ensure the specified empty directories exist.
+        /// Handles the common types of failure and logs a more helpful error message.
+        /// </summary>
+        public static bool TryEnsureEmptyDirectories(ILogger logger, params string[] directories)
+        {
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+            Debug.Assert(directories.Length > 0);
+
+            foreach (string directory in directories)
+            {
+                try
+                {
+                    EnsureEmptyDirectory(directory, logger);
+                }
+                catch (Exception ex)
+                {
+                    if (ex is UnauthorizedAccessException || ex is IOException)
+                    {
+                        logger.LogError(Resources.ERROR_CannotCreateEmptyDirectory, ex.Message);
+                        return false;
+                    }
+                    throw;
+                }
+            }
+            return true;
+        }
 
         /// <summary>
         /// Common logic for handling web exceptions when connecting to the SonarQube server. Common exceptions 

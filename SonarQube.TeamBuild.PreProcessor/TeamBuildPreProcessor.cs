@@ -86,8 +86,12 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             // Create the directories
             logger.LogMessage(Resources.DIAG_CreatingFolders);
-            Utilities.EnsureEmptyDirectory(config.SonarConfigDir, logger);
-            Utilities.EnsureEmptyDirectory(config.SonarOutputDir, logger);
+            if (!Utilities.TryEnsureEmptyDirectories(logger,
+                config.SonarConfigDir,
+                config.SonarOutputDir))
+            {
+                return false;
+            }
 
             if (!FetchArgumentsAndRulesets(args, config, logger))
             {

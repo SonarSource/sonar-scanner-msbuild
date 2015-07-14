@@ -89,7 +89,10 @@ namespace SonarQube.TeamBuild.PostProcessor
             // Write the dashboard link to the output. The sonar-runner will have written it out earlier,
             // but writing it again here puts it very close to the end of the output - easier to find,
             // especially when running from the command line.
-            this.logger.LogMessage(Resources.Report_LinkToDashboard, summaryData.DashboardUrl);
+            if (this.result.RanToCompletion)
+            {
+                this.logger.LogMessage(Resources.Report_LinkToDashboard, summaryData.DashboardUrl);
+            }
         }
 
         public /* for test purposes */ static SummaryReportData CreateSummaryData(

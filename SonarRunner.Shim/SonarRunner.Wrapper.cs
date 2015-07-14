@@ -80,14 +80,19 @@ namespace SonarRunner.Shim
 
         private static string FindRunnerExe(AnalysisConfig config, ILogger logger)
         {
-            var binFolder = config.SonarBinDir;
+            string fullPath = null;
 
+            var binFolder = config.SonarBinDir;
             var sonarRunnerZip = Path.Combine(binFolder, "sonar-runner.zip");
             var sonarRunnerDestinationFolder = Path.Combine(binFolder, "sonar-runner");
-            Utilities.EnsureEmptyDirectory(sonarRunnerDestinationFolder, logger);
-            ZipFile.ExtractToDirectory(sonarRunnerZip, sonarRunnerDestinationFolder);
 
-            return Path.Combine(sonarRunnerDestinationFolder, @"bin\sonar-runner.bat");
+            if (Utilities.TryEnsureEmptyDirectories(logger, sonarRunnerDestinationFolder))
+            {
+                ZipFile.ExtractToDirectory(sonarRunnerZip, sonarRunnerDestinationFolder);
+                fullPath = Path.Combine(sonarRunnerDestinationFolder, @"bin\sonar-runner.bat");
+            }
+
+            return fullPath;
         }
 
         public /* for test purposes */ static bool ExecuteJavaRunner(ILogger logger, string exeFileName, string propertiesFileName)

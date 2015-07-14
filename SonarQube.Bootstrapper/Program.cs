@@ -58,8 +58,12 @@ namespace SonarQube.Bootstrapper
         {
             string downloadBinPath = settings.DownloadDirectory;
 
-            Utilities.EnsureEmptyDirectory(settings.TempDirectory, logger);
-            Utilities.EnsureEmptyDirectory(downloadBinPath, logger);
+            if (!Utilities.TryEnsureEmptyDirectories(logger,
+                settings.TempDirectory,
+                downloadBinPath))
+            {
+                return ErrorCode;
+            }
 
             string server = settings.SonarQubeUrl;
             Debug.Assert(!string.IsNullOrWhiteSpace(server), "Not expecting the server url to be null/empty");
@@ -68,13 +72,13 @@ namespace SonarQube.Bootstrapper
             if (!updater.TryUpdate(server, downloadBinPath, logger))
             {
                 logger.LogError(Resources.ERROR_FailedToUpdateRunnerBinaries);
-                return 1;
+                return ErrorCode;
             }
 
             if (!updater.CheckBootstrapperApiVersion(settings.SupportedBootstrapperVersionsFilePath, settings.BootstrapperVersion))
             {
                 logger.LogError(Resources.ERROR_VersionMismatch);
-                return 1;
+                return ErrorCode;
             }
 
             updater.InstallLoaderTargets(logger);
