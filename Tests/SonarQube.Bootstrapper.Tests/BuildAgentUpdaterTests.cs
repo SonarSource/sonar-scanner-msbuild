@@ -124,7 +124,10 @@ namespace SonarQube.Bootstrapper.Tests
             foreach (string destinationDir in BuildAgentUpdater.DestinationDirs)
             {
                 string path = Path.Combine(destinationDir, BuildAgentUpdater.LoaderTargetsName);
-                File.Delete(path);
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
             }
         }
 
