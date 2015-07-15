@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -27,17 +26,15 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// </summary>
         private static class KeywordIds
         {
-            public const string ProjectKey = "1";
-            public const string ProjectName = "2";
-            public const string ProjectVersion = "3";
-            public const string InstallLoaderTargets = "4";
-            public const string RunnerPropertiesPath = "5";
-            public const string DynamicSetting = "6";
+            public const string ProjectKey = "projectKey.id";
+            public const string ProjectName = "projectName.id";
+            public const string ProjectVersion = "projectVersion.id";
+            public const string InstallLoaderTargets = "installLoaderTargets.id";
+            public const string RunnerPropertiesPath = "runnerPropertiesPath.id";
+            public const string DynamicSetting = "dynamicSetting.id";
         }
 
         private static IList<ArgumentDescriptor> Descriptors;
-
-        //public const string InstallTargetsPrefix = "/install:";
 
         static ArgumentProcessor()
         {
@@ -46,11 +43,11 @@ namespace SonarQube.TeamBuild.PreProcessor
             Descriptors = new List<ArgumentDescriptor>();
 
             Descriptors.Add(new ArgumentDescriptor(
-                id: KeywordIds.ProjectKey, prefixes: new string[] { "/key:", "/k:" }, required: true, allowMultiple:false, description:Resources.CmdLine_ArgDescription_ProjectKey));
+                id: KeywordIds.ProjectKey, prefixes: new string[] { "/key:", "/k:" }, required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectKey));
 
             Descriptors.Add(new ArgumentDescriptor(
                 id: KeywordIds.ProjectName, prefixes: new string[] { "/name:", "/n:" }, required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectName));
-            
+
             Descriptors.Add(new ArgumentDescriptor(
                 id: KeywordIds.ProjectVersion, prefixes: new string[] { "/version:", "/v:" }, required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion));
 
@@ -64,12 +61,12 @@ namespace SonarQube.TeamBuild.PreProcessor
             Debug.Assert(Descriptors.Select(d => d.Id).Distinct().Count() == Descriptors.Count, "All descriptors must have a unique id");
         }
 
-        #endregion
+        #endregion Argument definitions
 
         #region Public methods
 
         /// <summary>
-        /// Attempts to process the supplied command line arguments and 
+        /// Attempts to process the supplied command line arguments and
         /// reports any errors using the logger.
         /// Returns null unless all of the properties are valid.
         /// </summary>
@@ -122,16 +119,16 @@ namespace SonarQube.TeamBuild.PreProcessor
             return processed;
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Private methods
-        
+
         private static string GetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments)
         {
             ArgumentInstance argument = arguments.Single(a => a.Descriptor.Id == id);
             return argument.Value;
         }
-        
+
         /// <summary>
         /// Performs any additional validation on the parsed arguments and logs errors
         /// if necessary.
@@ -173,6 +170,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             return true;
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ITargetsInstaller.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="TargetsInstaller.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -57,7 +57,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             string sourceTargetsPath = Path.Combine(Path.GetDirectoryName(typeof(TeamBuildPreProcessor).Assembly.Location), "Targets", LoaderTargetsName);
             Debug.Assert(File.Exists(sourceTargetsPath),
-                String.Format("Could not find the {0} file in the directory of the executing assembly", LoaderTargetsName));
+                String.Format("Could not find the loader .targets file at {0}", sourceTargetsPath));
 
             CopyIfDifferent(sourceTargetsPath, DestinationDirs, logger);
         }
