@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 
 namespace SonarQube.Bootstrapper
 {
@@ -29,11 +28,9 @@ namespace SonarQube.Bootstrapper
 
         private const string BeginId = "begin.id";
         private const string EndId = "end.id";
-        private const string InstallTargetsId = "installTargets.id";
 
         public const string BeginVerb = "begin";
         public const string EndVerb = "end";
-        public const string InstallTargetsPrefix = "/install:";
 
         private static IList<ArgumentDescriptor> Descriptors;
 
@@ -49,9 +46,6 @@ namespace SonarQube.Bootstrapper
             Descriptors.Add(new ArgumentDescriptor(
                 id: EndId, prefixes: new string[] { EndVerb }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_End, isVerb: true));
 
-            Descriptors.Add(new ArgumentDescriptor(
-                id: InstallTargetsId, prefixes: new string[] { InstallTargetsPrefix }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets));
-
             Descriptors.Add(FilePropertyProvider.Descriptor);
             Descriptors.Add(CmdLineArgPropertyProvider.Descriptor);
 
@@ -59,12 +53,12 @@ namespace SonarQube.Bootstrapper
             Debug.Assert(Descriptors.Select(d => d.Id).Distinct().Count() == Descriptors.Count, "All descriptors must have a unique id");
         }
 
-        #endregion
+        #endregion Arguments definitions
 
         #region Public methods
 
         /// <summary>
-        /// Attempts to process the supplied command line arguments and 
+        /// Attempts to process the supplied command line arguments and
         /// reports any errors using the logger.
         /// Returns false if any parsing errors were encountered.
         /// </summary>
@@ -99,9 +93,6 @@ namespace SonarQube.Bootstrapper
             AnalysisPhase phase;
             parsedOk &= TryGetPhase(commandLineArgs.Length, arguments, logger, out phase);
 
-            bool installLoaderTargets = true;
-            parsedOk &= TryGetInstallTargetsEnabled(arguments, logger, out installLoaderTargets);
-
             Debug.Assert(!parsedOk || cmdLineProperties != null);
             Debug.Assert(!parsedOk || globalFileProperties != null);
 
@@ -115,18 +106,18 @@ namespace SonarQube.Bootstrapper
 
                 if (phase == AnalysisPhase.PreProcessing)
                 {
-                    settings = CreatePreProcessorSettings(baseChildArgs, properties, globalFileProperties, installLoaderTargets, logger);
+                    settings = CreatePreProcessorSettings(baseChildArgs, properties, globalFileProperties, logger);
                 }
                 else
                 {
-                    settings = CreatePostProcessorSettings(baseChildArgs, properties, installLoaderTargets, logger);
+                    settings = CreatePostProcessorSettings(baseChildArgs, properties, logger);
                 }
             }
 
             return settings != null;
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Private methods
 
@@ -147,7 +138,6 @@ namespace SonarQube.Bootstrapper
                 // Backwards compatibility - decide the phase based on the number of arguments passed
                 phase = originalArgCount == 0 ? AnalysisPhase.PostProcessing : AnalysisPhase.PreProcessing;
                 logger.LogWarning(Resources.WARN_CmdLine_v09_Compat);
-
             }
             else // begin or end
             {
@@ -157,31 +147,7 @@ namespace SonarQube.Bootstrapper
             return phase != AnalysisPhase.Unspecified;
         }
 
-        private static bool TryGetInstallTargetsEnabled(IEnumerable<ArgumentInstance> arguments, ILogger logger, out bool installTargetsEnabled)
-        {
-            ArgumentInstance argumentInstance;
-            bool hasInstallTargetsVerb = ArgumentInstance.TryGetArgument(InstallTargetsId, arguments, out argumentInstance);
-
-            if (hasInstallTargetsVerb)
-            {
-                bool canParse = bool.TryParse(argumentInstance.Value, out installTargetsEnabled);
-
-                if (!canParse)
-                {
-                    logger.LogError(Resources.ERROR_CmdLine_InvalidInstallTargetsValue, argumentInstance.Value);
-                    return false;
-                }
-            }
-            else
-            {
-                // default to installing the targets
-                installTargetsEnabled = true;
-            }
-
-            return true;
-        }
-
-        private static IBootstrapperSettings CreatePreProcessorSettings(IList<string> baseChildArgs, IAnalysisPropertyProvider properties, IAnalysisPropertyProvider globalFileProperties, bool installLoaderTargets, ILogger logger)
+        private static IBootstrapperSettings CreatePreProcessorSettings(IList<string> baseChildArgs, IAnalysisPropertyProvider properties, IAnalysisPropertyProvider globalFileProperties, ILogger logger)
         {
             string hostUrl = TryGetHostUrl(properties, logger);
             if (hostUrl == null)
@@ -206,7 +172,6 @@ namespace SonarQube.Bootstrapper
                 AnalysisPhase.PreProcessing,
                 childArgs,
                 hostUrl,
-                installLoaderTargets,
                 logger);
 
             return settings;
@@ -224,14 +189,13 @@ namespace SonarQube.Bootstrapper
             return null;
         }
 
-        private static IBootstrapperSettings CreatePostProcessorSettings(IList<string> baseChildArgs, IAnalysisPropertyProvider properties, bool installLoaderTargets, ILogger logger)
+        private static IBootstrapperSettings CreatePostProcessorSettings(IList<string> baseChildArgs, IAnalysisPropertyProvider properties, ILogger logger)
         {
             string childArgs = GetChildProcCmdLineParams(baseChildArgs);
             IBootstrapperSettings settings = new BootstrapperSettings(
                 AnalysisPhase.PostProcessing,
                 childArgs,
                 string.Empty,
-                installLoaderTargets,
                 logger);
 
             return settings;
@@ -250,7 +214,7 @@ namespace SonarQube.Bootstrapper
             }
 
             var excludedVerbs = new string[] { BeginVerb, EndVerb };
-            var excludedPrefixes = new string[] { InstallTargetsPrefix };
+            var excludedPrefixes = new string[] { };
 
             return commandLineArgs
                 .Except(excludedVerbs)
@@ -263,6 +227,6 @@ namespace SonarQube.Bootstrapper
             return string.Join(" ", args.Select(a => "\"" + a + "\""));
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

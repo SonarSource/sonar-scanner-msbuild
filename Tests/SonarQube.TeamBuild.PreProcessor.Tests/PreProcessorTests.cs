@@ -23,16 +23,20 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region Tests
 
+
+      
+
         [TestMethod]
         public void PreProc_InvalidArgs()
         {
             // Arrange
             TestLogger validLogger = new TestLogger();
-            ProcessedArgs validArgs = new ProcessedArgs("key", "name", "ver", EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
+            ProcessedArgs validArgs = new ProcessedArgs("key", "name", "ver", true, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
 
             MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
             MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
-            TeamBuildPreProcessor preprocessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
+            MockTargetsInstaller mockTargetsInstaller = new MockTargetsInstaller();
+            TeamBuildPreProcessor preprocessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator, mockTargetsInstaller);
 
             // Act and assert
             AssertException.Expects<ArgumentNullException>(() => preprocessor.Execute(null, validLogger));
@@ -46,6 +50,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
             MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
+            MockTargetsInstaller mockTargetsInstaller = new MockTargetsInstaller();
             TestLogger logger = new TestLogger();
 
             // Create the list of file properties
@@ -62,10 +67,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 expectedConfigFilePath = settings.AnalysisConfigFilePath;
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator, mockTargetsInstaller);
 
                 // Act
-                ProcessedArgs args = new ProcessedArgs("key", "name", "ver", new ListPropertiesProvider(), fileProperties);
+                ProcessedArgs args = new ProcessedArgs("key", "name", "ver", true, new ListPropertiesProvider(), fileProperties);
                 bool executed = preProcessor.Execute(args, logger);
                 Assert.IsTrue(executed);
             }
@@ -79,6 +84,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockRulesetGenerator.AssertGenerateCalled(2);
             mockRulesetGenerator.CheckGeneratorArguments("my url", "csharp", "cs", "fxcop", "key", "SonarQubeFxCop-cs.ruleset");
             mockRulesetGenerator.CheckGeneratorArguments("my url", "vbnet", "vbnet", "fxcop-vbnet", "key", "SonarQubeFxCop-vbnet.ruleset");
+
+            mockTargetsInstaller.AssertsTargetsCopied();
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
@@ -95,6 +102,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
             mockPropertiesFetcher.PropertiesToReturn = new Dictionary<string, string>();
+
+            MockTargetsInstaller mockTargetsInstaller = new MockTargetsInstaller();
 
             // The set of server properties to return
             mockPropertiesFetcher.PropertiesToReturn.Add("shared.key1", "server value 1 - should be overridden by cmd line");
@@ -123,10 +132,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 configFilePath = settings.AnalysisConfigFilePath;
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator);
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator, mockTargetsInstaller);
 
                 // Act
-                ProcessedArgs args = new ProcessedArgs("key", "name", "ver", cmdLineProperties, fileProperties);
+                ProcessedArgs args = new ProcessedArgs("key", "name", "ver", true, cmdLineProperties, fileProperties);
                 bool executed = preProcessor.Execute(args, logger);
                 Assert.IsTrue(executed);
             }
@@ -134,6 +143,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Assert
             AssertConfigFileExists(configFilePath);
             mockPropertiesFetcher.AssertFetchPropertiesCalled();
+            mockTargetsInstaller.AssertsTargetsCopied();
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);

@@ -79,15 +79,6 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /install:[true|false] - install standard MSBuild targets required for analysis (default true).
-        /// </summary>
-        public static string CmdLine_ArgDescription_InstallTargets {
-            get {
-                return ResourceManager.GetString("CmdLine_ArgDescription_InstallTargets", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The SonarQube URL must be supplied. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000)..
         /// </summary>
         public static string ERROR_Args_UrlRequired {
@@ -102,15 +93,6 @@ namespace SonarQube.Bootstrapper {
         public static string ERROR_CmdLine_BothBeginAndEndSupplied {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_BothBeginAndEndSupplied", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid value for /install: {0}. Valid values are &quot;true&quot; or &quot;false&quot;..
-        /// </summary>
-        public static string ERROR_CmdLine_InvalidInstallTargetsValue {
-            get {
-                return ResourceManager.GetString("ERROR_CmdLine_InvalidInstallTargetsValue", resourceCulture);
             }
         }
         
@@ -147,42 +129,6 @@ namespace SonarQube.Bootstrapper {
         public static string INFO_Downloading {
             get {
                 return ResourceManager.GetString("INFO_Downloading", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Installed {0} to {1}.
-        /// </summary>
-        public static string INFO_InstallTargets_Copy {
-            get {
-                return ResourceManager.GetString("INFO_InstallTargets_Copy", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The file {0} was overwritten at {1}.
-        /// </summary>
-        public static string INFO_InstallTargets_Overwrite {
-            get {
-                return ResourceManager.GetString("INFO_InstallTargets_Overwrite", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The file {0} is up to date at {1}.
-        /// </summary>
-        public static string INFO_InstallTargets_UpToDate {
-            get {
-                return ResourceManager.GetString("INFO_InstallTargets_UpToDate", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Not installing the targets file. .
-        /// </summary>
-        public static string INFO_NotCopyingTargets {
-            get {
-                return ResourceManager.GetString("INFO_NotCopyingTargets", resourceCulture);
             }
         }
         
@@ -255,15 +201,6 @@ namespace SonarQube.Bootstrapper {
         public static string WARN_CmdLine_v09_Compat {
             get {
                 return ResourceManager.GetString("WARN_CmdLine_v09_Compat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This version of the bootstrapper automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
-        /// </summary>
-        public static string WARN_ExistingGlobalTargets {
-            get {
-                return ResourceManager.GetString("WARN_ExistingGlobalTargets", resourceCulture);
             }
         }
     }

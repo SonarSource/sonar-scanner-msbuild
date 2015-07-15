@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CmdLine_ArgDescription_InstallTargets" xml:space="preserve">
+    <value>/install:[true|false] - install standard MSBuild targets required for analysis (default true)</value>
+  </data>
   <data name="CmdLine_ArgDescription_ProjectKey" xml:space="preserve">
     <value>/key:{SonarQube project key}</value>
   </data>
@@ -141,6 +144,9 @@
   <data name="ERROR_CannotPerformProcessing" xml:space="preserve">
     <value>SonarQube pre-processing cannot be performed - required settings are missing</value>
   </data>
+  <data name="ERROR_CmdLine_InvalidInstallTargetsValue" xml:space="preserve">
+    <value>Invalid value for /install: {0}. Valid values are "true" or "false".</value>
+  </data>
   <data name="ERROR_DuplicateCheckId" xml:space="preserve">
     <value>The following CheckId should not appear multiple times: {0}</value>
   </data>
@@ -159,5 +165,20 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   </data>
   <data name="ERROR_WebException" xml:space="preserve">
     <value>An error occured while trying to connect to the SonarQube server. Please check that the web server is accessible. Url {0}</value>
+  </data>
+  <data name="INFO_InstallTargets_Copy" xml:space="preserve">
+    <value>Installed {0} to {1}</value>
+  </data>
+  <data name="INFO_InstallTargets_Overwrite" xml:space="preserve">
+    <value>The file {0} was overwritten at {1}</value>
+  </data>
+  <data name="INFO_InstallTargets_UpToDate" xml:space="preserve">
+    <value>The file {0} is up to date at {1}</value>
+  </data>
+  <data name="INFO_NotCopyingTargets" xml:space="preserve">
+    <value>Not installing the targets file. </value>
+  </data>
+  <data name="WARN_ExistingGlobalTargets" xml:space="preserve">
+    <value>This version of the bootstrapper automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional.</value>
   </data>
 </root>

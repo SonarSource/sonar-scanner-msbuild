@@ -28,8 +28,8 @@ namespace SonarQube.Bootstrapper.Tests
             ILogger validLogger = new TestLogger();
             string validArgs = string.Empty;
 
-            AssertException.Expects<ArgumentNullException>(() => new BootstrapperSettings(AnalysisPhase.PostProcessing, validArgs, null, true, validLogger));
-            AssertException.Expects<ArgumentNullException>(() => new BootstrapperSettings(AnalysisPhase.PreProcessing, validArgs, validUrl, true, null));
+            AssertException.Expects<ArgumentNullException>(() => new BootstrapperSettings(AnalysisPhase.PostProcessing, validArgs, null, validLogger));
+            AssertException.Expects<ArgumentNullException>(() => new BootstrapperSettings(AnalysisPhase.PreProcessing, validArgs, validUrl, null));
         }
 
         [TestMethod]
@@ -45,7 +45,7 @@ namespace SonarQube.Bootstrapper.Tests
                 envScope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
 
                 // 1. Default value -> relative to download dir
-                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, string.Empty, "http://sq", true, logger);
+                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, string.Empty, "http://sq", logger);
                 AssertExpectedServerUrl("http://sq", settings);
                 AssertExpectedPreProcessPath(Path.Combine(@"c:\temp", DownloadFolderRelativePath, BootstrapperSettings.PreProcessorExeName), settings);
                 AssertExpectedPostProcessPath(Path.Combine(@"c:\temp", DownloadFolderRelativePath, BootstrapperSettings.PostProcessorExeName), settings);
@@ -63,8 +63,8 @@ namespace SonarQube.Bootstrapper.Tests
             {
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, "legacy tf build");
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
-                
-                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, string.Empty, "http://sq", true, logger);
+
+                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, string.Empty, "http://sq", logger);
                 AssertExpectedDownloadDir(Path.Combine("legacy tf build", DownloadFolderRelativePath), settings);
             }
 
@@ -73,8 +73,8 @@ namespace SonarQube.Bootstrapper.Tests
             {
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, null);
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, "tfs build");
-                
-                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, string.Empty, "http://sq", true, logger);
+
+                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, string.Empty, "http://sq", logger);
                 AssertExpectedDownloadDir(Path.Combine("tfs build", DownloadFolderRelativePath), settings);
             }
 
@@ -84,12 +84,12 @@ namespace SonarQube.Bootstrapper.Tests
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, null);
                 scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
 
-                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, "http://sq", string.Empty, true, logger);
+                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, "http://sq", string.Empty, logger);
                 AssertExpectedDownloadDir(Path.Combine(Directory.GetCurrentDirectory(), DownloadFolderRelativePath), settings);
             }
         }
 
-        #endregion
+        #endregion Tests
 
         #region Checks
 
@@ -117,6 +117,6 @@ namespace SonarQube.Bootstrapper.Tests
             Assert.AreEqual(expected, actual, true /* ignore case */, "Unexpected server url");
         }
 
-        #endregion
+        #endregion Checks
     }
 }

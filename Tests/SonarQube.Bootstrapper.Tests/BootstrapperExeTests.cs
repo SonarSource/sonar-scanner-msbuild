@@ -88,7 +88,6 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionNotChecked();
-                mockUpdater.AssertTargetsNotInstalled();
 
                 logger.AssertWarningsLogged(0);
 
@@ -114,7 +113,6 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionChecked();
-                mockUpdater.AssertTargetsNotInstalled();
 
                 AssertDirectoryExists(binDir);
                 DummyExeHelper.AssertDummyPreProcLogDoesNotExist(binDir);
@@ -145,88 +143,18 @@ namespace SonarQube.Bootstrapper.Tests
                 // Act
                 TestLogger logger = CheckExecutionFails(mockUpdater,
                     "begin",
-                    "/install:true",
+                    "/install:true",  // this argument should just pass through
                     "/d:sonar.host.url=http://host:9",
                     "/d:another.key=will be ignored");
 
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionChecked();
-                mockUpdater.AssertTargetsInjected();
 
                 logger.AssertWarningsLogged(0);
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://host:9\r\n/d:another.key=will be ignored\r\n");
-            }
-        }
-
-        [TestMethod]
-        [Description("Check that if the /install:false switch is set then the targets will not be installed")]
-        public void Exe_PreProc_NoTargetInstall_PreProcessorPhase()
-        {
-            // Arrange
-            BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
-
-            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            using (InitializeNonTeamBuildEnvironment(rootDir))
-            {
-                string binDir = CalculateBinDir(rootDir);
-                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://host:9");
-
-                mockUpdater.Updating += (sender, args) =>
-                {
-                    AssertDirectoryExists(args.TargetDir);
-                    DummyExeHelper.CreateDummyPreProcessor(args.TargetDir, 0 /* success */);
-                };
-
-                // Act
-                TestLogger logger = CheckExecutionSucceeds(mockUpdater,
-                    "begin",
-                    "/install:false",
-                    "/d:sonar.host.url=http://host:9",
-                    "/d:another.key=will be ignored");
-
-                // Assert
-                mockUpdater.AssertUpdateAttempted();
-                mockUpdater.AssertVersionChecked();
-                mockUpdater.AssertTargetsNotInstalled();
-
-                logger.AssertWarningsLogged(0);
-                logger.AssertErrorsLogged(0);
-
-                string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://host:9\r\n/d:another.key=will be ignored\r\n");
-            }
-        }
-
-        [TestMethod]
-        [Description("Check that if the /install:false switch is set then the targets will not be installed, even in the post processor phase")]
-        public void Exe_PreProc_NoTargetInstall_PostProcessorPhase()
-        {
-            // Arrange
-            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            using (InitializeNonTeamBuildEnvironment(rootDir))
-            {
-                string binDir = CalculateBinDir(rootDir);
-                Directory.CreateDirectory(binDir);
-                DummyExeHelper.CreateDummyPostProcessor(binDir, 0 /* success exit code */);
-
-                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://h:9000");
-
-                // Act
-                TestLogger logger = CheckExecutionSucceeds(mockUpdater, "end", "other params", "/install:false");
-
-                // Assert
-                mockUpdater.AssertUpdateNotAttempted();
-                mockUpdater.AssertVersionNotChecked();
-                mockUpdater.AssertTargetsNotInstalled();
-                logger.AssertWarningsLogged(0);
-
-                // The bootstrapper pass through any parameters it doesn't recognise so the post-processor
-                // can decide whether to handle them or not
-                string logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, "other params\r\n");
+                DummyExeHelper.AssertExpectedLogContents(logPath, "/install:true\r\n/d:sonar.host.url=http://host:9\r\n/d:another.key=will be ignored\r\n");
             }
         }
 
@@ -256,7 +184,6 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateAttempted();
                 mockUpdater.AssertVersionChecked();
-                mockUpdater.AssertTargetsInjected();
 
                 logger.AssertWarningsLogged(0);
 
@@ -284,7 +211,6 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateNotAttempted();
                 mockUpdater.AssertVersionNotChecked();
-                mockUpdater.AssertTargetsNotInstalled();
                 logger.AssertWarningsLogged(0);
 
                 string logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
@@ -311,7 +237,6 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 mockUpdater.AssertUpdateNotAttempted();
                 mockUpdater.AssertVersionNotChecked();
-                mockUpdater.AssertTargetsNotInstalled();
                 logger.AssertWarningsLogged(0);
 
                 // The bootstrapper pass through any parameters it doesn't recognise so the post-processor
@@ -363,7 +288,6 @@ namespace SonarQube.Bootstrapper.Tests
 
                     mockUpdater.AssertUpdateAttempted();
                     mockUpdater.AssertVersionChecked();
-                    mockUpdater.AssertTargetsInjected();
 
                     string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
                     DummyExeHelper.AssertExpectedLogContents(logPath, "/v:version\r\n/n:name\r\n/k:key\r\n/s:" + defaultPropertiesFilePath + "\r\n");

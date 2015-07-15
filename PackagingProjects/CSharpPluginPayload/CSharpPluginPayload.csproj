@@ -50,6 +50,7 @@
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\TeamBuild.SonarQube.Integration.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\SonarQube.Integration.Tasks.dll" />
     <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.targets" />
+    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.ImportBefore.targets" />
     <!-- Reference to dependencies to ensure the build order is correct -->
     <ProjectReference Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj">
       <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>
