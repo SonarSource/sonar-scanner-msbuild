@@ -79,6 +79,11 @@
   <!-- **************************************************************************** -->
   <!-- SonarQube MSBuild Integration implementation logic -->
   <!-- **************************************************************************** -->
+  <!-- Note: where possible, these targets avoid taking dependencies on specific
+        managed or C++- targets e.g. they use
+           "AfterTargets='Build'" which is general rather than
+           "AfterTargets='CoreCompile'" which is specific to managed projects.
+  -->
 
   <!-- Safeguard against importing this .targets file multiple times -->
   <PropertyGroup>
