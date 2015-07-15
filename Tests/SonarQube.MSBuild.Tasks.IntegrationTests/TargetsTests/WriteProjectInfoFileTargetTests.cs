@@ -544,7 +544,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
   <Import Project='{3}' />
 </Project>
 ";
-            ProjectRootElement projectRoot = projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, this.TestContext, projectXml,
+            ProjectRootElement projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, this.TestContext, projectXml,
                 projectGuid.ToString(),
                 rootOutputFolder,
                 typeof(WriteProjectInfoFile).Assembly.Location,
@@ -595,7 +595,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
   <Import Project='{2}' />
 </Project>
 ";
-            ProjectRootElement projectRoot = projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, this.TestContext, projectXml,
+            ProjectRootElement projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, this.TestContext, projectXml,
                 rootOutputFolder,
                 typeof(WriteProjectInfoFile).Assembly.Location,
                 sqTargetFile);

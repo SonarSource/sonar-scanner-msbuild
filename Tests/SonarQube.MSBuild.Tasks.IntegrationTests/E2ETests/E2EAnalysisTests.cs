@@ -329,10 +329,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
         [TestMethod]
         [TestCategory("E2E"), TestCategory("Targets")]
-        public void E2E_BareProject()
+        public void E2E_BareProject_FilesToAnalyse()
         {
             // Checks the integration targets handle non-VB/C# project types
             // that don't import the standard targets or set the expected properties
+            // The project info should be created as normal and the correct files to analyse detected.
 
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
@@ -377,7 +378,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
 </Project>
 ";
-            ProjectRootElement projectRoot = projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, this.TestContext, projectXml,
+            ProjectRootElement projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, this.TestContext, projectXml,
                 projectGuid.ToString(),
                 rootOutputFolder,
                 typeof(WriteProjectInfoFile).Assembly.Location,
@@ -423,9 +424,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
         [TestMethod]
         [TestCategory("E2E"), TestCategory("Targets")]
-        public void E2E_BareProject_CanBeExcluded()
+        public void E2E_BareProject_CorrectlyCategorised()
         {
-            // Checks that projects that don't include the standard managed targets can be marked as excluded
+            // Checks that projects that don't include the standard managed targets are still
+            // processed correctly e.g. can be excluded, marked as test projects etc
+            
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
@@ -442,6 +445,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
   <PropertyGroup>
     <SonarQubeExclude>true</SonarQubeExclude>
     <Language>my.language</Language>
+    <ProjectTypeGuid>{4}</ProjectTypeGuid>
 
     <ProjectGuid>{0}</ProjectGuid>
 
@@ -462,11 +466,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
 </Project>
 ";
-            ProjectRootElement projectRoot = projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, this.TestContext, projectXml,
+            ProjectRootElement projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, this.TestContext, projectXml,
                 projectGuid.ToString(),
                 rootOutputFolder,
                 typeof(WriteProjectInfoFile).Assembly.Location,
-                sqTargetFile
+                sqTargetFile,
+                TargetConstants.MsTestProjectTypeGuid
                 );
 
             // Act
@@ -482,11 +487,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
                 TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.WriteProjectDataTarget);
 
-            // Check the project info is created and the project is excluded
+            // Check the project info
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+
             Assert.IsTrue(projectInfo.IsExcluded, "Expecting the project to be marked as excluded");
             Assert.AreEqual("my.language", projectInfo.ProjectLanguage, "Unexpected project language");
-            Assert.AreEqual(ProjectType.Product, projectInfo.ProjectType, "Project should be marked as a product project");
+            Assert.AreEqual(ProjectType.Test, projectInfo.ProjectType, "Project should be marked as a test project");
             Assert.AreEqual(0, projectInfo.AnalysisResults.Count, "Unexpected number of analysis results created");
         }
 

@@ -22,7 +22,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string OverrideFxCopSettingsTarget = "OverrideCodeAnalysisProperties";
         public const string SetFxCopResultsTarget = "SetFxCopAnalysisResult";
 
-        public const string CoreCompileTarget = "CoreCompile";
         public const string DefaultBuildTarget = "Build";
         
         // FxCop
