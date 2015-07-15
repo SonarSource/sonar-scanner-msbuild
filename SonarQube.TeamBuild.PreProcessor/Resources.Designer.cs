@@ -227,7 +227,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Not installing the targets file. .
+        ///   Looks up a localized string similar to Skipping installing the ImportsBefore targets file.
         /// </summary>
         public static string INFO_NotCopyingTargets {
             get {
@@ -236,7 +236,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This version of the bootstrapper automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
+        ///   Looks up a localized string similar to This version of the MSBuild SonarQube Runner automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
         /// </summary>
         public static string WARN_ExistingGlobalTargets {
             get {
