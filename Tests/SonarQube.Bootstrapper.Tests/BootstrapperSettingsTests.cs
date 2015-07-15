@@ -47,8 +47,8 @@ namespace SonarQube.Bootstrapper.Tests
                 // 1. Default value -> relative to download dir
                 IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, string.Empty, "http://sq", true, logger);
                 AssertExpectedServerUrl("http://sq", settings);
-                AssertExpectedPreProcessPath(Path.Combine(@"c:\temp", DownloadFolderRelativePath, "SonarQube.MSBuild.PreProcessor.exe"), settings);
-                AssertExpectedPostProcessPath(Path.Combine(@"c:\temp", DownloadFolderRelativePath, "SonarQube.MSBuild.PostProcessor.exe"), settings);
+                AssertExpectedPreProcessPath(Path.Combine(@"c:\temp", DownloadFolderRelativePath, BootstrapperSettings.PreProcessorExeName), settings);
+                AssertExpectedPostProcessPath(Path.Combine(@"c:\temp", DownloadFolderRelativePath, BootstrapperSettings.PostProcessorExeName), settings);
             }
         }
 

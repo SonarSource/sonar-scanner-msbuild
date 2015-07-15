@@ -9,6 +9,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("SonarQube.MSBuild.PreProcessor")]
-[assembly: AssemblyProduct("SonarQube.MSBuild.PreProcessor")]
+[assembly: AssemblyTitle("MSBuild.SonarQube.Internal.PreProcess")]
+[assembly: AssemblyProduct("MSBuild.SonarQube.Internal.PreProcess")]
 [assembly: AssemblyDescription("")]

@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SonarQube.MSBuild.Tasks</RootNamespace>
-    <AssemblyName>SonarQube.MSBuild.Tasks</AssemblyName>
+    <AssemblyName>SonarQube.Integration.Tasks</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

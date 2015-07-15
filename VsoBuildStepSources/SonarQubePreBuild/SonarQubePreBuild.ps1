@@ -32,8 +32,8 @@ Write-Verbose -Verbose "serverUsername = $($serviceEndpoint.Authorization.Parame
 $currentDir = (Get-Item -Path ".\" -Verbose).FullName
 $sonarRunnerDir = [System.IO.Path]::Combine($currentDir, "sonar-runner-dist-2.4", "sonar-runner-2.4", "bin")
 $sonarRunnerPath = [System.IO.Path]::Combine($sonarRunnerDir, "sonar-runner.bat")
-$sonarMsBuildRunnerDir = [System.IO.Path]::Combine($currentDir, "SonarQube.MSBuild.Runner-0.9")
-$sonarMsBuildRunnerPath = [System.IO.Path]::Combine($sonarMsBuildRunnerDir, "SonarQube.MSBuild.Runner.exe")
+$sonarMsBuildRunnerDir = [System.IO.Path]::Combine($currentDir, "MSBuild.SonarQube.Runner-1.0")
+$sonarMsBuildRunnerPath = [System.IO.Path]::Combine($sonarMsBuildRunnerDir, "MSBuild.SonarQube.Runner.exe")
 
 $targetsFileInitialPath = [System.IO.Path]::Combine($sonarMsBuildRunnerDir, "SonarQube.Integration.ImportBefore.targets")
 $propertiesFileDir = [System.IO.Path]::Combine($sonarRunnerDir, "..\", "conf")
