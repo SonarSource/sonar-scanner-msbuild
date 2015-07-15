@@ -29,11 +29,5 @@ namespace SonarQube.Bootstrapper
         /// Verifies that the pre/post-processors are compatible with this version of the bootstrapper
         /// </summary>
         bool CheckBootstrapperApiVersion(string versionFilePath, Version bootstrapperVersion);
-
-        /// <summary>
-        /// Copies the loader targets file - SonarQube.Integration.ImportBefore.targets - to a user specific location 
-        /// from where MsBuild can automatically import it. Also gives a warning if such a file is present in the non-user specific directory.
-        /// </summary>
-        void InstallLoaderTargets(ILogger logger);
     }
 }

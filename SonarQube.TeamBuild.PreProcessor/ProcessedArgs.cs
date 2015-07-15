@@ -23,7 +23,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private readonly IAnalysisPropertyProvider aggProperties;
 
-        public ProcessedArgs(string key, string name, string version, IAnalysisPropertyProvider cmdLineProperties, IAnalysisPropertyProvider globalFileProperties)
+        public ProcessedArgs(string key, string name, string version, bool installLoaderTargets, IAnalysisPropertyProvider cmdLineProperties, IAnalysisPropertyProvider globalFileProperties)
         {
             if (string.IsNullOrWhiteSpace(key))
             {
@@ -48,6 +48,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             this.cmdLineProperties = cmdLineProperties;
             this.globalFileProperties = globalFileProperties;
+            this.InstallLoaderTargets = installLoaderTargets;
 
             this.projectSettingsProvider = new ListPropertiesProvider();
             this.projectSettingsProvider.AddProperty(SonarProperties.ProjectKey, key);
@@ -62,6 +63,11 @@ namespace SonarQube.TeamBuild.PreProcessor
         public string ProjectName { get { return this.GetSetting(SonarProperties.ProjectName); } }
 
         public string ProjectVersion { get { return this.GetSetting(SonarProperties.ProjectVersion); } }
+
+        /// <summary>
+        /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up
+        /// </summary>
+        public bool InstallLoaderTargets { get; private set; }
 
         public IAnalysisPropertyProvider ProjectSettingsProvider { get { return this.projectSettingsProvider; } }
 

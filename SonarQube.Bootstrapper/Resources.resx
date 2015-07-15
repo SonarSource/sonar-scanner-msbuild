@@ -123,17 +123,11 @@
   <data name="CmdLine_ArgDescription_End" xml:space="preserve">
     <value>end - perform post-MSBuild/post-test steps</value>
   </data>
-  <data name="CmdLine_ArgDescription_InstallTargets" xml:space="preserve">
-    <value>/install:[true|false] - install standard MSBuild targets required for analysis (default true)</value>
-  </data>
   <data name="ERROR_Args_UrlRequired" xml:space="preserve">
     <value>The SonarQube URL must be supplied. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000).</value>
   </data>
   <data name="ERROR_CmdLine_BothBeginAndEndSupplied" xml:space="preserve">
     <value>Invalid command line parameters. Please specify either 'begin' or 'end', not both.</value>
-  </data>
-  <data name="ERROR_CmdLine_InvalidInstallTargetsValue" xml:space="preserve">
-    <value>Invalid value for /install: {0}. Valid values are "true" or "false".</value>
   </data>
   <data name="ERROR_FailedToUpdateRunnerBinaries" xml:space="preserve">
     <value>Failed to update the SonarQube MSBuild Runner binaries. Check the server url, verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted.</value>
@@ -146,18 +140,6 @@
   </data>
   <data name="INFO_Downloading" xml:space="preserve">
     <value>Downloading {0} from {1} to {2}</value>
-  </data>
-  <data name="INFO_InstallTargets_Copy" xml:space="preserve">
-    <value>Installed {0} to {1}</value>
-  </data>
-  <data name="INFO_InstallTargets_Overwrite" xml:space="preserve">
-    <value>The file {0} was overwritten at {1}</value>
-  </data>
-  <data name="INFO_InstallTargets_UpToDate" xml:space="preserve">
-    <value>The file {0} is up to date at {1}</value>
-  </data>
-  <data name="INFO_NotCopyingTargets" xml:space="preserve">
-    <value>Not installing the targets file. </value>
   </data>
   <data name="INFO_ProcessingStarted" xml:space="preserve">
     <value>{0} started.</value>
@@ -182,8 +164,5 @@
   </data>
   <data name="WARN_CmdLine_v09_Compat" xml:space="preserve">
     <value>Please specify the command 'begin' or 'end' to indicate whether pre- or post-processing is required. These parameters will become mandatory in a later release.</value>
-  </data>
-  <data name="WARN_ExistingGlobalTargets" xml:space="preserve">
-    <value>This version of the bootstrapper automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional.</value>
   </data>
 </root>

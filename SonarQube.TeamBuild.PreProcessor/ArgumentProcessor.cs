@@ -30,11 +30,14 @@ namespace SonarQube.TeamBuild.PreProcessor
             public const string ProjectKey = "1";
             public const string ProjectName = "2";
             public const string ProjectVersion = "3";
-            public const string RunnerPropertiesPath = "4";
-            public const string DynamicSetting = "5";
+            public const string InstallLoaderTargets = "4";
+            public const string RunnerPropertiesPath = "5";
+            public const string DynamicSetting = "6";
         }
 
         private static IList<ArgumentDescriptor> Descriptors;
+
+        //public const string InstallTargetsPrefix = "/install:";
 
         static ArgumentProcessor()
         {
@@ -50,7 +53,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             
             Descriptors.Add(new ArgumentDescriptor(
                 id: KeywordIds.ProjectVersion, prefixes: new string[] { "/version:", "/v:" }, required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion));
-            
+
+            Descriptors.Add(new ArgumentDescriptor(
+              id: KeywordIds.InstallLoaderTargets, prefixes: new string[] { "/install:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets));
+
             Descriptors.Add(FilePropertyProvider.Descriptor);
             Descriptors.Add(CmdLineArgPropertyProvider.Descriptor);
 
@@ -81,6 +87,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             CommandLineParser parser = new CommandLineParser(Descriptors, false /* don't allow unrecognized */);
             bool parsedOk = parser.ParseArguments(commandLineArgs, logger, out arguments);
 
+            // Handle the /install: command line only argument
+            bool installLoaderTargets;
+            parsedOk &= TryGetInstallTargetsEnabled(arguments, logger, out installLoaderTargets);
+
             // Handler for command line analysis properties
             IAnalysisPropertyProvider cmdLineProperties;
             parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out cmdLineProperties);
@@ -99,6 +109,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                     GetArgumentValue(KeywordIds.ProjectKey, arguments),
                     GetArgumentValue(KeywordIds.ProjectName, arguments),
                     GetArgumentValue(KeywordIds.ProjectVersion, arguments),
+                    installLoaderTargets,
                     cmdLineProperties,
                     globalFileProperties);
 
@@ -137,6 +148,29 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             return areValid;
+        }
+
+        private static bool TryGetInstallTargetsEnabled(IEnumerable<ArgumentInstance> arguments, ILogger logger, out bool installTargetsEnabled)
+        {
+            ArgumentInstance argumentInstance;
+            bool hasInstallTargetsVerb = ArgumentInstance.TryGetArgument(KeywordIds.InstallLoaderTargets, arguments, out argumentInstance);
+
+            if (hasInstallTargetsVerb)
+            {
+                bool canParse = bool.TryParse(argumentInstance.Value, out installTargetsEnabled);
+
+                if (!canParse)
+                {
+                    logger.LogError(Resources.ERROR_CmdLine_InvalidInstallTargetsValue, argumentInstance.Value);
+                    return false;
+                }
+            }
+            else
+            {
+                installTargetsEnabled = TargetsInstaller.DefaultInstallSetting;
+            }
+
+            return true;
         }
 
         #endregion

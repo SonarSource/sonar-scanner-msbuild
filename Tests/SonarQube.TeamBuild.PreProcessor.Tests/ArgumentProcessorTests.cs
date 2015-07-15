@@ -30,7 +30,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // 1. Null logger
             AssertException.Expects<ArgumentNullException>(() => ArgumentProcessor.TryProcessArgs(null, null));
 
-
             // 2. All required arguments missing
             logger = CheckProcessingFails(/* no command line args */);
             logger.AssertSingleErrorExists("/key:"); // we expect errors with info about the missing required parameters, which should include the primary alias
@@ -71,13 +70,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://filehost" });
             properties.Save(propertiesFilePath);
 
-
             // 1. Url is not specified on the command line or in a properties file -> fail
             logger = CheckProcessingFails("/key:k1", "/name:n1", "/version:1.0");
 
             logger.AssertErrorLogged(SonarQube.TeamBuild.PreProcessor.Resources.ERROR_Args_UrlRequired);
             logger.AssertErrorsLogged(1);
-
 
             // 2. Url is specified in the file -> ok
             ProcessedArgs processed = CheckProcessingSucceeds("/key:k1", "/name:n1", "/version:1.0", "/s:" + propertiesFilePath);
@@ -121,6 +118,55 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         }
 
         [TestMethod]
+        public void ArgProc_InstallTargets()
+        {
+            ProcessedArgs actual;
+
+            string validUrlArg = "/d:sonar.host.url=foo";
+
+            // Valid
+            // No install argument passed -> install targets
+            actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg);
+            AssertExpectedInstallTargets(TargetsInstaller.DefaultInstallSetting, actual);
+
+            // "true"-> install targets
+            actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg, "/install:true");
+            AssertExpectedInstallTargets(true, actual);
+
+            // Case insensitive "TrUe"-> install targets
+            actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg, "/install:TrUe");
+            AssertExpectedInstallTargets(true, actual);
+
+            // "false"-> don't install targets
+            actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg, "/install:false");
+            AssertExpectedInstallTargets(false, actual);
+
+            // Case insensitive "falSE"
+            actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg, "/install:falSE");
+            AssertExpectedInstallTargets(false, actual);
+
+            // Invalid value (only true and false are supported)
+            TestLogger logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/install:1");
+            logger.AssertErrorsLogged(1);
+            logger.AssertSingleErrorExists("/install"); // we expect the error to include the first value and the duplicate argument
+
+            // No value
+            logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/install:");
+            logger.AssertErrorsLogged(1);
+            logger.AssertSingleErrorExists("/install"); // we expect the error to include the first value and the duplicate argument
+
+            // Empty value -> parsing should fail
+            logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", @"/install:"" """);
+            logger.AssertErrorsLogged(1);
+            logger.AssertSingleErrorExists("/install"); // we expect the error to include the first value and the duplicate argument
+
+            // Duplicate value -> parsing should fail
+            logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/install:true", "/install:false");
+            logger.AssertErrorsLogged(1);
+            logger.AssertSingleErrorExists("/install"); // we expect the error to include the first value and the duplicate argument
+        }
+
+        [TestMethod]
         public void PreArgProc_PropertiesFileSpecifiedOnCommandLine()
         {
             // 0. Setup
@@ -139,7 +185,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // 2. File does not exist -> args not ok
             File.Delete(propertiesFilePath);
-            
+
             TestLogger logger = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
             logger.AssertErrorsLogged(1);
         }
@@ -215,7 +261,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             // 0. Setup - none
 
-            // 1. Args ok            
+            // 1. Args ok
             ProcessedArgs result = CheckProcessingSucceeds(
                 // Non-dynamic values
                 "/key:my.key", "/name:my name", "/version:1.2",
@@ -241,7 +287,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Arrange
             TestLogger logger;
 
-            // Act 
+            // Act
             logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2",
                     "/d:invalid1 =aaa",
                     "/d:notkeyvalue",
@@ -264,7 +310,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Arrange
             TestLogger logger;
 
-            // Act 
+            // Act
             logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2",
                     "/d:dup1=value1", "/d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4",
                     "/d:unique=value5");
@@ -287,18 +333,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 "/d:sonar.projectKey=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectKey, "/k");
 
-
             logger = CheckProcessingFails(
                 "/key:my.key", "/name:my name", "/version:1.2",
                 "/d:sonar.projectName=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectName, "/n");
 
-
             logger = CheckProcessingFails(
                 "/key:my.key", "/name:my name", "/version:1.2",
                 "/d:sonar.projectVersion=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectVersion, "/v");
-
 
             // 2. Other values that can't be set
             logger = CheckProcessingFails(
@@ -306,15 +349,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 "/d:sonar.projectBaseDir=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectBaseDir);
 
-
             logger = CheckProcessingFails(
                 "/key:my.key", "/name:my name", "/version:1.2",
                 "/d:sonar.working.directory=value1");
             logger.AssertSingleErrorExists(SonarProperties.WorkingDirectory);
-
         }
 
-        #endregion
+        #endregion Tests
 
         #region Checks
 
@@ -337,9 +378,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             result = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
 
             Assert.IsNotNull(result, "Expecting the arguments to be processed succesfully");
-            
+
             logger.AssertErrorsLogged(0);
-            
+
             return result;
         }
 
@@ -365,6 +406,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual(value, match.Value, "Property does not have the expected value");
         }
 
-        #endregion
+        private static void AssertExpectedInstallTargets(bool expected, ProcessedArgs actual)
+        {
+            Assert.AreEqual(expected, actual.InstallLoaderTargets);
+        }
+
+        #endregion Checks
     }
 }

@@ -49,9 +49,10 @@
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
     <Compile Include="ArgumentProcessor.cs" />
-    <Compile Include="IDownloader.cs" />
-    <Compile Include="IPropertiesFetcher.cs" />
-    <Compile Include="IRulesetGenerator.cs" />
+    <Compile Include="Interfaces\IDownloader.cs" />
+    <Compile Include="Interfaces\IPropertiesFetcher.cs" />
+    <Compile Include="Interfaces\IRulesetGenerator.cs" />
+    <Compile Include="Interfaces\ITargetsInstaller.cs" />
     <Compile Include="ProcessedArgs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="RulesetGenerator.cs" />
     <Compile Include="RulesetWriter.cs" />
     <Compile Include="SonarWebService.cs" />
+    <Compile Include="TargetsInstaller.cs" />
     <Compile Include="TeamBuildPreProcessor.cs" />
     <Compile Include="WebClientDownloader.cs" />
   </ItemGroup>

@@ -81,15 +81,6 @@ namespace SonarQube.Bootstrapper
                 return ErrorCode;
             }
 
-            if (settings.InstallLoaderTargets)
-            {
-                updater.InstallLoaderTargets(logger);
-            }
-            else
-            {
-                logger.LogMessage(Resources.INFO_NotCopyingTargets);
-            }
-
             var preprocessorFilePath = settings.PreProcessorFilePath;
             var processRunner = new ProcessRunner();
             processRunner.Execute(preprocessorFilePath, settings.ChildCmdLineArgs, settings.TempDirectory, logger);
@@ -124,6 +115,5 @@ namespace SonarQube.Bootstrapper
                 logger.LogMessage(Resources.INFO_ProcessingSucceeded, phaseLabel);
             }
         }
-
     }
 }

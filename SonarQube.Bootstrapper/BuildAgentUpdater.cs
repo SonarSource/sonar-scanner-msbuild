@@ -18,21 +18,8 @@ namespace SonarQube.Bootstrapper
 {
     public class BuildAgentUpdater : IBuildAgentUpdater
     {
-        public /* for test purposes */ const string LoaderTargetsName = "SonarQube.Integration.ImportBefore.targets";
+        
 
-        public /* for test purposes */ static IReadOnlyList<string> DestinationDirs
-        {
-            get
-            {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                return new string[]
-                    {
-                        Path.Combine(appData, "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-                        Path.Combine(appData, "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-                        Path.Combine(appData, "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore")
-                    };
-            }
-        }
 
         /// <summary>
         /// Gets a zip file containing the pre/post processors from the server
@@ -118,89 +105,6 @@ namespace SonarQube.Bootstrapper
         }
 
 
-        public void InstallLoaderTargets(ILogger logger)
-        {
-            WarnOnGlobalTargetsFile(logger);
-            InternalCopyTargetsFile(logger);
-        }
-
-        private static void InternalCopyTargetsFile(ILogger logger)
-        {
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
-
-            string sourceTargetsPath = Path.Combine(Path.GetDirectoryName(typeof(BuildAgentUpdater).Assembly.Location), LoaderTargetsName);
-            Debug.Assert(File.Exists(sourceTargetsPath), 
-                String.Format("Could not find the {0} file in the directory of the executing assembly", LoaderTargetsName));
-
-            CopyIfDifferent(sourceTargetsPath, DestinationDirs, logger);
-        }
-
-        private static void CopyIfDifferent(string sourcePath, IEnumerable<string> destinationDirs, ILogger logger)
-        {
-            string sourceContent = GetReadOnlyFileContent(sourcePath);
-            string fileName = Path.GetFileName(sourcePath);
-
-            foreach (string destinationDir in destinationDirs)
-            {
-                string destinationPath = Path.Combine(destinationDir, fileName);
-
-                if (!File.Exists(destinationPath))
-                {
-                    Directory.CreateDirectory(destinationDir); // creates all the directories in the path if needed
-                    File.Copy(sourcePath, destinationPath, overwrite: false);
-                    logger.LogMessage(Resources.INFO_InstallTargets_Copy, fileName, destinationDir);
-                }
-                else
-                {
-                    string destinationContent = GetReadOnlyFileContent(destinationPath);
-
-                    if (!String.Equals(sourceContent, destinationContent, StringComparison.Ordinal))
-                    {
-                        File.Copy(sourcePath, destinationPath, overwrite: true);
-                        logger.LogMessage(Resources.INFO_InstallTargets_Overwrite, fileName, destinationDir);
-                    }
-                    else
-                    {
-                        logger.LogMessage(Resources.INFO_InstallTargets_UpToDate, fileName, destinationDir);
-                    }
-                }
-            }
-        }
-
-        private static string GetReadOnlyFileContent(string path)
-        {
-            using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                using (StreamReader sr = new StreamReader(fs))
-                {
-                    return sr.ReadToEnd();
-                }
-            }
-        }
-
-        private static void WarnOnGlobalTargetsFile(ILogger logger)
-        {
-            // Giving a warning is best effort - if the user has installed MSBUILD in a non-standard location then this will not work
-            string[] globalMsbuildTargetsDirs = new string[]
-            {
-                Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "MSBuild", "14.0", "Microsoft.Common.Targets", "ImportBefore"),
-                Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "MSBuild", "12.0", "Microsoft.Common.Targets", "ImportBefore"),
-                Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "MSBuild", "4.0", "Microsoft.Common.Targets", "ImportBefore"),
-            };
-
-            foreach (string globalMsbuildTargetDir in globalMsbuildTargetsDirs)
-            {
-                string existingFile = Path.Combine(globalMsbuildTargetDir, LoaderTargetsName);
-
-                if (File.Exists(existingFile))
-                {
-                    logger.LogWarning(Resources.WARN_ExistingGlobalTargets, LoaderTargetsName, globalMsbuildTargetDir);
-                }
-            }
-        }
 
         private static string GetDownloadZipUrl(string url)
         {

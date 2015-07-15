@@ -21,18 +21,19 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private readonly IPropertiesFetcher propertiesFetcher;
         private readonly IRulesetGenerator rulesetGenerator;
+        private readonly ITargetsInstaller targetInstaller;
 
         #region Constructor(s)
 
         public TeamBuildPreProcessor()
-            : this(new PropertiesFetcher(), new RulesetGenerator())
+            : this(new PropertiesFetcher(), new RulesetGenerator(), new TargetsInstaller())
         {
         }
 
         /// <summary>
         /// Internal constructor for testing
         /// </summary>
-        public TeamBuildPreProcessor(IPropertiesFetcher propertiesFetcher, IRulesetGenerator rulesetGenerator) // was internal
+        public TeamBuildPreProcessor(IPropertiesFetcher propertiesFetcher, IRulesetGenerator rulesetGenerator, ITargetsInstaller targetInstaller) // was internal
         {
             if (propertiesFetcher == null)
             {
@@ -42,12 +43,17 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException("rulesetGenerator");
             }
+            if (targetInstaller == null)
+            {
+                throw new ArgumentNullException("rulesetGenerator");
+            }
 
             this.propertiesFetcher = propertiesFetcher;
             this.rulesetGenerator = rulesetGenerator;
+            this.targetInstaller = targetInstaller;
         }
 
-        #endregion
+        #endregion Constructor(s)
 
         #region Public methods
 
@@ -61,6 +67,8 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException("logger");
             }
+
+            InstallLoaderTargets(args, logger);
 
             AnalysisConfig config = new AnalysisConfig();
             config.SonarProjectKey = args.ProjectKey;
@@ -105,10 +113,21 @@ namespace SonarQube.TeamBuild.PreProcessor
             return true;
         }
 
-        #endregion
+        private void InstallLoaderTargets(ProcessedArgs args, ILogger logger)
+        {
+            if (args.InstallLoaderTargets)
+            {
+                this.targetInstaller.InstallLoaderTargets(logger);
+            }
+            else
+            {
+                logger.LogMessage(Resources.INFO_NotCopyingTargets);
+            }
+        }
+
+        #endregion Public methods
 
         #region Private methods
-
 
         private bool FetchArgumentsAndRulesets(ProcessedArgs args, AnalysisConfig config, ILogger logger)
         {
@@ -180,7 +199,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
         }
 
-        #endregion
+        #endregion Private methods
     }
 }
-
