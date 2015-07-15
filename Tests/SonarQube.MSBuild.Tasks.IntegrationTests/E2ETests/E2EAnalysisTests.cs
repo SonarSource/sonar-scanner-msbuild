@@ -327,16 +327,176 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             CheckProjectOutputFolder(descriptor, projectDir);
         }
 
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_BareProject()
+        {
+            // Checks the integration targets handle non-VB/C# project types
+            // that don't import the standard targets or set the expected properties
+
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            BuildLogger logger = new BuildLogger();
+
+            string sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(this.TestContext);
+            string projectFilePath = Path.Combine(rootInputFolder, "project.txt");
+            Guid projectGuid = Guid.NewGuid();
+
+            string codeFile = CreateEmptyFile(rootInputFolder, "cpp");
+            string contentFile = CreateEmptyFile(rootInputFolder, ".js");
+            string unanalysedFile = CreateEmptyFile(rootInputFolder, ".shouldnotbeanalysed");
+            string excludedFile = CreateEmptyFile(rootInputFolder, "excluded.cpp");
+
+            string projectXml = @"<?xml version='1.0' encoding='utf-8'?>
+<Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+
+  <PropertyGroup>
+    <ProjectGuid>{0}</ProjectGuid>
+
+    <SonarQubeTempPath>{1}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{1}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{2}</SonarQubeBuildTasksAssemblyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ClCompile Include='{4}' />
+    <Content Include='{5}' />
+    <ShouldBeIgnored Include='{6}' />
+    <ClCompile Include='{7}'>
+      <SonarQubeExclude>true</SonarQubeExclude>
+    </ClCompile>
+  </ItemGroup>
+
+  <Import Project='{3}' />
+
+  <Target Name='Build'>
+    <Message Importance='high' Text='In dummy build target' />
+  </Target>
+
+</Project>
+";
+            ProjectRootElement projectRoot = projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, this.TestContext, projectXml,
+                projectGuid.ToString(),
+                rootOutputFolder,
+                typeof(WriteProjectInfoFile).Assembly.Location,
+                sqTargetFile,
+                codeFile,
+                contentFile,
+                unanalysedFile,
+                excludedFile
+                );
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger,
+                TargetConstants.DefaultBuildTarget);
+
+            // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertExpectedTargetOrdering(
+                TargetConstants.DefaultBuildTarget,
+                TargetConstants.CategoriseProjectTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
+                TargetConstants.WriteProjectDataTarget);
+
+            // Not expecting the FxCop targets to execute as they should not be imported
+            logger.AssertTargetNotExecuted(TargetConstants.OverrideFxCopSettingsTarget);
+            logger.AssertTargetNotExecuted(TargetConstants.FxCopTarget);
+            logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
+
+            // Check the content of the project info xml
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+
+            Assert.AreEqual(projectGuid, projectInfo.ProjectGuid, "Unexpected project guid");
+            Assert.IsNull(projectInfo.ProjectLanguage, "Expecting the project language to be null");
+            Assert.IsFalse(projectInfo.IsExcluded, "Project should not be marked as excluded");
+            Assert.AreEqual(ProjectType.Product, projectInfo.ProjectType, "Project should be marked as a product project");
+            Assert.AreEqual(1, projectInfo.AnalysisResults.Count, "Unexpected number of analysis results created");
+
+            // Check the correct list of files to analyse were returned
+            AnalysisResult filesToAnalyse = ProjectInfoAssertions.AssertAnalysisResultExists(projectInfo, AnalysisType.FilesToAnalyze.ToString());
+            string[] actualFilesToAnalyse = File.ReadAllLines(filesToAnalyse.Location);
+            CollectionAssert.AreEquivalent(new string[] { codeFile, contentFile }, actualFilesToAnalyse, "Unexpected list of files to analyse");
+        }
+
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_BareProject_CanBeExcluded()
+        {
+            // Checks that projects that don't include the standard managed targets can be marked as excluded
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            BuildLogger logger = new BuildLogger();
+
+            string sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(this.TestContext);
+            string projectFilePath = Path.Combine(rootInputFolder, "project.txt");
+            Guid projectGuid = Guid.NewGuid();
+
+            string projectXml = @"<?xml version='1.0' encoding='utf-8'?>
+<Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+
+  <PropertyGroup>
+    <SonarQubeExclude>true</SonarQubeExclude>
+    <Language>my.language</Language>
+
+    <ProjectGuid>{0}</ProjectGuid>
+
+    <SonarQubeTempPath>{1}</SonarQubeTempPath>
+    <SonarQubeOutputPath>{1}</SonarQubeOutputPath>
+    <SonarQubeBuildTasksAssemblyFile>{2}</SonarQubeBuildTasksAssemblyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- no recognised content -->
+  </ItemGroup>
+
+  <Import Project='{3}' />
+
+  <Target Name='Build'>
+    <Message Importance='high' Text='In dummy build target' />
+  </Target>
+
+</Project>
+";
+            ProjectRootElement projectRoot = projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, this.TestContext, projectXml,
+                projectGuid.ToString(),
+                rootOutputFolder,
+                typeof(WriteProjectInfoFile).Assembly.Location,
+                sqTargetFile
+                );
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger,
+                TargetConstants.DefaultBuildTarget);
+
+            // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertExpectedTargetOrdering(
+                TargetConstants.DefaultBuildTarget,
+                TargetConstants.CategoriseProjectTarget,
+                TargetConstants.CalculateFilesToAnalyzeTarget,
+                TargetConstants.WriteProjectDataTarget);
+
+            // Check the project info is created and the project is excluded
+            ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+            Assert.IsTrue(projectInfo.IsExcluded, "Expecting the project to be marked as excluded");
+            Assert.AreEqual("my.language", projectInfo.ProjectLanguage, "Unexpected project language");
+            Assert.AreEqual(ProjectType.Product, projectInfo.ProjectType, "Project should be marked as a product project");
+            Assert.AreEqual(0, projectInfo.AnalysisResults.Count, "Unexpected number of analysis results created");
+        }
+
         #endregion
 
         #region Private methods
 
         private void AddEmptyCodeFile(ProjectDescriptor descriptor, string projectFolder, string extension = "cs")
         {
-            string emptyCodeFilePath = Path.Combine(projectFolder, "empty_" + Guid.NewGuid().ToString() + ".xxx");
-            emptyCodeFilePath = Path.ChangeExtension(emptyCodeFilePath, extension);
-            File.WriteAllText(emptyCodeFilePath, string.Empty);
-            
+            string emptyCodeFilePath = CreateEmptyFile(projectFolder, extension);
             if (descriptor.ManagedSourceFiles == null)
             {
                 descriptor.ManagedSourceFiles = new List<string>();
@@ -346,14 +506,21 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
         private static void AddEmptyContentFile(ProjectDescriptor descriptor, string projectFolder)
         {
-            string emptyFilePath = Path.Combine(projectFolder, "emptyContent_" + Guid.NewGuid().ToString() + ".txt");
-            File.WriteAllText(emptyFilePath, string.Empty);
-
+            string emptyFilePath = CreateEmptyFile(projectFolder, "txt");
             if (descriptor.ContentFiles == null)
             {
                 descriptor.ContentFiles = new List<string>();
             }
             descriptor.ContentFiles.Add(emptyFilePath);
+        }
+
+        private static string CreateEmptyFile(string folder, string extension)
+        {
+            string emptyFilePath = Path.Combine(folder, "empty_" + Guid.NewGuid().ToString() + ".xxx");
+            emptyFilePath = Path.ChangeExtension(emptyFilePath, extension);
+            File.WriteAllText(emptyFilePath, string.Empty);
+
+            return emptyFilePath;
         }
 
         /// <summary>
