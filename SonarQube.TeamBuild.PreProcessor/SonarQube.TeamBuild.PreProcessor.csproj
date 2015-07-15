@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SonarQube.TeamBuild.PreProcessor</RootNamespace>
-    <AssemblyName>SonarQube.MSBuild.PreProcessor</AssemblyName>
+    <AssemblyName>MSBuild.SonarQube.Internal.PreProcess</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

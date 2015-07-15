@@ -36,8 +36,8 @@ namespace SonarQube.Bootstrapper
         public const string IntegrationUrlSuffix = "/static/csharp/" + SonarQubeIntegrationFilename;
 
         // Exes to launched by the bootstrapper
-        public const string PreProcessorExeName = "SonarQube.MSBuild.PreProcessor.exe";
-        public const string PostProcessorExeName = "SonarQube.MSBuild.PostProcessor.exe";
+        public const string PreProcessorExeName = "MSBuild.SonarQube.Internal.PreProcess.exe";
+        public const string PostProcessorExeName = "MSBuild.SonarQube.Internal.PostProcess.exe";
 
         #region Working directory
         // Variables used when calculating the working directory

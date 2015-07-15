@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SonarQube.TeamBuild.PostProcessor</RootNamespace>
-    <AssemblyName>SonarQube.MSBuild.PostProcessor</AssemblyName>
+    <AssemblyName>MSBuild.SonarQube.Internal.PostProcess</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

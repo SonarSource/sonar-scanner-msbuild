@@ -9,6 +9,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("SonarQube.MSBuild.Tasks.IntegrationTests")]
-[assembly: AssemblyProduct("SonarQube.MSBuild.Tasks.IntegrationTests")]
+[assembly: AssemblyTitle("SonarQube.Integration.Tasks.IntegrationTests")]
+[assembly: AssemblyProduct("SonarQube.Integration.Tasks.IntegrationTests")]
 [assembly: AssemblyDescription("")]

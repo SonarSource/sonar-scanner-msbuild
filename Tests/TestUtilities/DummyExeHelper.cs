@@ -20,8 +20,8 @@ namespace TestUtilities
     public static class DummyExeHelper
     {
         // FIX: should be using constants in the product code
-        public const string PreProcessorExeName = "SonarQube.MSBuild.PreProcessor.exe";
-        public const string PostProcessorExeName = "SonarQube.MSBuild.PostProcessor.exe";
+        public const string PreProcessorExeName = "MSBuild.SonarQube.Internal.PreProcess.exe";
+        public const string PostProcessorExeName = "MSBuild.SonarQube.Internal.PostProcess.exe";
 
         #region Public methods
 
