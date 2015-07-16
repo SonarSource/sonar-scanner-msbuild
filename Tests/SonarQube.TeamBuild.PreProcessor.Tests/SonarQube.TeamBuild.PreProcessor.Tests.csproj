@@ -65,6 +65,7 @@
     <Compile Include="RulesetWriterTest.cs" />
     <Compile Include="SonarWebServiceTest.cs" />
     <Compile Include="TargetsInstallerTests.cs" />
+    <Compile Include="V0_9UpgradeMessageTests.cs" />
     <Compile Include="WebClientDownloaderTest.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +80,10 @@
     <ProjectReference Include="..\..\SonarQube.TeamBuild.PreProcessor\SonarQube.TeamBuild.PreProcessor.csproj">
       <Project>{f43364bb-e460-4ac4-87e9-de460a9f55f5}</Project>
       <Name>SonarQube.TeamBuild.PreProcessor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\V0_9UpgradeMessageExe\V0_9UpgradeMessageExe.csproj">
+      <Project>{d35af999-a91e-4de2-93d7-858dfb4dd063}</Project>
+      <Name>V0_9UpgradeMessageExe</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj">
       <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>

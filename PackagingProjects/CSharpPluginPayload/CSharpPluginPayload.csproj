@@ -40,6 +40,7 @@
     <AssemblyName>CSharpPluginPayload</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <FilesToCopy Include="$(SourcesRoot)\V0_9UpgradeMessageExe\bin\$(Configuration)\SonarQube.MSBuild.PreProcessor.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\MSBuild.SonarQube.Internal.PreProcess.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SupportedBootstrapperVersions.xml" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\Newtonsoft.Json.dll" />

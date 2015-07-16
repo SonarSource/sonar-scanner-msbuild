@@ -159,24 +159,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedAnalysisSetting(SonarProperties.HostUrl, "http://host", actualConfig);
         }
 
-        [TestMethod]
-        [Description("Checks that the pre-processor logs the expected message if it appears to be called from the 0.9 bootstrapper")]
-        public void PreProc_CalledFromV0_9()
-        {
-            // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "sqtemp");
-            TestLogger logger = new TestLogger();
-
-            // Act
-            ProcessRunner runner = new ProcessRunner();
-            bool success = runner.Execute(typeof(TeamBuildPreProcessor).Assembly.Location , "begin", testDir, logger);
-
-            // Assert
-            Assert.IsFalse(success);
-            logger.AssertSingleErrorExists(SonarQube.TeamBuild.PreProcessor.Resources.ERROR_InvokedFromBootstrapper0_9);
-            logger.AssertErrorsLogged(1);
-        }
-
         #endregion Tests
 
         #region Checks
