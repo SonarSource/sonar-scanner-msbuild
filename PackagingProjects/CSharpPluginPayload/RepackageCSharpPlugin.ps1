@@ -231,7 +231,7 @@ function CreateNewJar
     $sourceDir = GetWorkingDir
     $tempJarDir = GetTempJarFolder
 
-    $newJarFilename = [System.IO.Path]::GetFileNameWithoutExtension($sourceJarPath) + "." + $env:USERNAME + ".zip"
+    $newJarFilename = [System.IO.Path]::GetFileNameWithoutExtension($sourceJarPath) + "." + $buildConfiguration + "." + $env:USERNAME + ".zip"
 
 	$destinationDir = GetNewJarDestinationDir
     $destinationPath = [System.IO.Path]::Combine($destinationDir, $newJarFilename);
