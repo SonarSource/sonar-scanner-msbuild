@@ -9,6 +9,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("SonarQube.TeamBuild.PostProcessor")]
-[assembly: AssemblyProduct("SonarQube.TeamBuild.PostProcessor")]
+[assembly: AssemblyTitle("MSBuild.SonarQube.Internal.PostProcess")]
+[assembly: AssemblyProduct("MSBuild.SonarQube.Internal.PostProcess")]
 [assembly: AssemblyDescription("")]
