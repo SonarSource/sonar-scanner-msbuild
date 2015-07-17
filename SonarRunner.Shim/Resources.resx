@@ -199,6 +199,6 @@
     <value>The project has an invalid GUID "{0}". The project will not be analyzed by SonarQube. Project file: {1}</value>
   </data>
   <data name="DIAG_SonarRunnerHomeIsSet" xml:space="preserve">
-    <value>The SONAR_RUNNER_HOME environment variable is not supported and will be ignored.</value>
+    <value>The SONAR_RUNNER_HOME environment variable is not required and will be ignored.</value>
   </data>
 </root>
