@@ -57,7 +57,7 @@
         single character wildcard and "*" is the multi-character wildcard (zero to many).
 
     2) MSTest projects will be treated as test projects.
-        The $(ProjectTypeGuid) of MS Test projects contains a specific guid
+        The $(ProjectTypeGuids) property of MS Test projects contains a specific guid
         ("3AC096D0-A1C2-E12C-1390-A8335801FDAB")
 
 
@@ -154,7 +154,7 @@
     <PropertyGroup Condition=" $(SonarQubeTestProject) == '' ">
       <!-- The MS Test project type guid-->
       <SonarQubeMsTestProjectTypeGuid>3AC096D0-A1C2-E12C-1390-A8335801FDAB</SonarQubeMsTestProjectTypeGuid>
-      <SonarQubeTestProject Condition=" $(ProjectTypeGuid.ToUpperInvariant().Contains('$(SonarQubeMsTestProjectTypeGuid)')) ">true</SonarQubeTestProject>
+      <SonarQubeTestProject Condition=" $(ProjectTypeGuids.ToUpperInvariant().Contains('$(SonarQubeMsTestProjectTypeGuid)')) ">true</SonarQubeTestProject>
     </PropertyGroup>
 
     <!-- If we haven't already determined whether the project is a test project then check

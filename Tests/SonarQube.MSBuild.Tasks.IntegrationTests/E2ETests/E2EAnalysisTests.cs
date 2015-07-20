@@ -445,7 +445,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
   <PropertyGroup>
     <SonarQubeExclude>true</SonarQubeExclude>
     <Language>my.language</Language>
-    <ProjectTypeGuid>{4}</ProjectTypeGuid>
+    <ProjectTypeGuids>{4}</ProjectTypeGuids>
 
     <ProjectGuid>{0}</ProjectGuid>
 

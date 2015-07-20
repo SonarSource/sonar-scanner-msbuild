@@ -53,7 +53,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         // Non-SonarQube constants
         public const string ProjectGuid = "ProjectGuid";
-        public const string ProjectTypeGuid = "ProjectTypeGuid";
+        public const string ProjectTypeGuids = "ProjectTypeGuids";
 
         public const string RunCodeAnalysis = "RunCodeAnalysis";
         public const string CodeAnalysisRuleset = "CodeAnalysisRuleSet";

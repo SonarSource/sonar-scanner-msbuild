@@ -96,8 +96,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public string ProjectTypeGuids
         {
-            get { return this.GetValueOrNull(TargetProperties.ProjectTypeGuid); }
-            set { this[TargetProperties.ProjectTypeGuid] = value; }
+            get { return this.GetValueOrNull(TargetProperties.ProjectTypeGuids); }
+            set { this[TargetProperties.ProjectTypeGuids] = value; }
         }
 
         #endregion
