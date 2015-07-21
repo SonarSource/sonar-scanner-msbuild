@@ -6,7 +6,6 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.IO;
 using TestUtilities;
 
@@ -20,7 +19,7 @@ namespace SonarRunner.Shim.Tests
         #region Tests
 
         [TestMethod]
-        public void SonarRunnerHome_NoWarning()
+        public void SonarRunnerHome_NoMessageIfNotAlreadySet()
         {
             // Arrange
             TestLogger testLogger = new TestLogger();
@@ -28,36 +27,36 @@ namespace SonarRunner.Shim.Tests
             string path = Path.Combine(TestUtils.CreateTestSpecificFolder(TestContext), "analysis.properties");
             File.CreateText(path);
 
-            // Act
-            SonarRunnerWrapper.ExecuteJavaRunner(testLogger, exePath, exePath);
+            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            {
+                scope.SetVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName, null);
+
+                // Act
+                SonarRunnerWrapper.ExecuteJavaRunner(testLogger, exePath, exePath);
+            }
 
             // Assert
             testLogger.AssertMessageNotLogged(SonarRunner.Shim.Resources.DIAG_SonarRunnerHomeIsSet);
         }
 
         [TestMethod]
-        public void SonarRunnerHome_Warning()
+        public void SonarRunnerHome_MessageLoggedIfAlreadySet()
         {
-            try
+            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
+                scope.SetVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName, "some_path");
+
                 // Arrange
                 TestLogger testLogger = new TestLogger();
                 string exePath = TestUtils.WriteBatchFileForTest(TestContext, "exit 0");
                 string path = Path.Combine(TestUtils.CreateTestSpecificFolder(TestContext), "analysis.properties");
                 File.CreateText(path);
-                Environment.SetEnvironmentVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName, "some_path");
+
                 // Act
                 SonarRunnerWrapper.ExecuteJavaRunner(testLogger, exePath, exePath);
 
                 // Assert
-                Assert.IsTrue(String.IsNullOrEmpty(
-                    Environment.GetEnvironmentVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName))
-                    , "Not expecting the env variable to still be set");
                 testLogger.AssertMessageExists(SonarRunner.Shim.Resources.DIAG_SonarRunnerHomeIsSet);
-            }
-            finally
-            {
-                Environment.SetEnvironmentVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName, String.Empty);
             }
         }
 

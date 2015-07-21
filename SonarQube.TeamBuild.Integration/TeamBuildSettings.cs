@@ -39,10 +39,12 @@ namespace SonarQube.TeamBuild.Integration
             // Legacy TeamBuild environment variables (XAML Builds)
             public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
             public const string BuildUri_Legacy = "TF_BUILD_BUILDURI";
+            public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
 
             // TFS 2015 Environment variables
             public const string TfsCollectionUri_TFS2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
             public const string BuildUri_TFS2015 = "BUILD_BUILDURI";
+            public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
         }
 
         #region Public static methods
@@ -72,7 +74,8 @@ namespace SonarQube.TeamBuild.Integration
                         BuildEnvironment = env,
                         BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_Legacy),
                         TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUri_Legacy),
-                        BuildDirectory = Directory.GetCurrentDirectory()
+                        BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectory_Legacy),
+                        AnalysisBaseDirectory = Directory.GetCurrentDirectory()
                     };
 
                     break;
@@ -84,7 +87,8 @@ namespace SonarQube.TeamBuild.Integration
                         BuildEnvironment = env,
                         BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_TFS2015),
                         TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUri_TFS2015),
-                        BuildDirectory = Directory.GetCurrentDirectory()
+                        BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectory_TFS2015),
+                        AnalysisBaseDirectory = Directory.GetCurrentDirectory()
                     };
                     
                     break;
@@ -95,13 +99,14 @@ namespace SonarQube.TeamBuild.Integration
                     settings = new TeamBuildSettings()
                     {
                         BuildEnvironment = env,
-                        BuildDirectory = Directory.GetCurrentDirectory()
+                        AnalysisBaseDirectory = Directory.GetCurrentDirectory()
                     };
 
                     break;
             }
 
             logger.LogMessage(Resources.SETTING_DumpSettings,
+                settings.AnalysisBaseDirectory,
                 settings.BuildDirectory,
                 settings.SonarBinDirectory,
                 settings.SonarConfigDirectory,
@@ -112,7 +117,7 @@ namespace SonarQube.TeamBuild.Integration
         }
 
         /// <summary>
-        /// Returns the type of the current build enviroment: not under TeamBuild, legacy TeamBuild, "new" TeamBuild
+        /// Returns the type of the current build environment: not under TeamBuild, legacy TeamBuild, "new" TeamBuild
         /// </summary>
         public static BuildEnvironment GetBuildEnvironment()
         {
@@ -184,6 +189,19 @@ namespace SonarQube.TeamBuild.Integration
             private set;
         }
 
+        /// <summary>
+        /// The base working directory under which the various analysis
+        /// sub-directories (bin, conf, out) should be created
+        /// </summary>
+        public string AnalysisBaseDirectory
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// The build directory as specified by the build system
+        /// </summary>
         public string BuildDirectory
         {
             get;
@@ -198,7 +216,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             get
             {
-                return Path.Combine(this.BuildDirectory, "conf");
+                return Path.Combine(this.AnalysisBaseDirectory, "conf");
             }
         }
 
@@ -206,7 +224,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             get
             {
-                return Path.Combine(this.BuildDirectory, "out");
+                return Path.Combine(this.AnalysisBaseDirectory, "out");
             }
         }
 
@@ -214,7 +232,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             get
             {
-                return Path.Combine(this.BuildDirectory, "bin");
+                return Path.Combine(this.AnalysisBaseDirectory, "bin");
             }
         }
 

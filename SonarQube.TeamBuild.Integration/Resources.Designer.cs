@@ -179,10 +179,11 @@ namespace SonarQube.TeamBuild.Integration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Build directory: {0}
-        ///Bin directory: {1}
-        ///Config directory: {2}
-        ///Output directory: {3}
+        ///   Looks up a localized string similar to Analysis base directory: {0}
+        ///Build directory: {1}
+        ///Bin directory: {2}
+        ///Config directory: {3}
+        ///Output directory: {4}
         ///Config file: {4}.
         /// </summary>
         internal static string SETTING_DumpSettings {

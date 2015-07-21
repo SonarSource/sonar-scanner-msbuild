@@ -168,10 +168,11 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
     <value>Not running under TeamBuild</value>
   </data>
   <data name="SETTING_DumpSettings" xml:space="preserve">
-    <value>Build directory: {0}
-Bin directory: {1}
-Config directory: {2}
-Output directory: {3}
+    <value>Analysis base directory: {0}
+Build directory: {1}
+Bin directory: {2}
+Config directory: {3}
+Output directory: {4}
 Config file: {4}</value>
   </data>
   <data name="SonarQubeSummarySectionHeader" xml:space="preserve">
