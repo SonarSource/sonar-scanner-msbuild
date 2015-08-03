@@ -68,7 +68,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             AnalysisProperties properties = new AnalysisProperties();
             properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://filehost" });
-            properties.Save(propertiesFilePath);
+            properties.Save(propertiesFilePath, new TestLogger());
 
             // 1. Url is not specified on the command line or in a properties file -> fail
             logger = CheckProcessingFails("/key:k1", "/name:n1", "/version:1.0");
@@ -177,7 +177,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AnalysisProperties properties = new AnalysisProperties();
             properties.Add(new Property() { Id = "key1", Value = "value1" });
             properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "url" }); // required property
-            properties.Save(propertiesFilePath);
+            properties.Save(propertiesFilePath, new TestLogger());
 
             ProcessedArgs result = CheckProcessingSucceeds("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
             AssertExpectedValues("key", "name", "version", result);

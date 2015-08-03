@@ -41,14 +41,14 @@ namespace SonarQube.Bootstrapper
         /// <summary>
         /// Saves the versions to the specified file as XML
         /// </summary>
-        public /* for testing purposes */ void Save(string fileName)
+        public /* for testing purposes */ void Save(string fileName, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException("fileName");
             }
 
-            Serializer.SaveModel(this, fileName);
+            Serializer.SaveModel(this, fileName, logger);
         }
 
 

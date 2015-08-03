@@ -71,7 +71,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // Arrange
             string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
             string invalidRegEx = "Invalid regex ((";
-            EnsureAnalysisConfig(testFolder, invalidRegEx);
+            EnsureAnalysisConfig(testFolder, invalidRegEx, new TestLogger());
 
             DummyBuildEngine dummyEngine = new DummyBuildEngine();
             IsTestFileByName task = new IsTestFileByName();
@@ -97,7 +97,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
             string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
-            string configFile = EnsureAnalysisConfig(testFolder, ".XX.");
+            string configFile = EnsureAnalysisConfig(testFolder, ".XX.", new TestLogger());
 
             DummyBuildEngine dummyEngine = new DummyBuildEngine();
             IsTestFileByName task = new IsTestFileByName();
@@ -140,7 +140,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // We'll lock the file and sleep for long enough for the task to timeout
             string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
-            string configFile = EnsureAnalysisConfig(testFolder, ".XX.");
+            string configFile = EnsureAnalysisConfig(testFolder, ".XX.", new TestLogger());
 
             DummyBuildEngine dummyEngine = new DummyBuildEngine();
             IsTestFileByName task = new IsTestFileByName();
@@ -174,29 +174,30 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         {
             // 0. Setup
             string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            TestLogger logger = new TestLogger();
 
             // 1a. Check the config setting is used if valid
-            EnsureAnalysisConfig(testFolder, ".A.");
+            EnsureAnalysisConfig(testFolder, ".A.", logger);
             CheckFilePathIsNotTest(testFolder, "c:\\test\\mytest.proj");
             CheckFilePathIsTest(testFolder, "c:\\aProject.proj");
 
             // 1b. Check another config valid config setting
-            EnsureAnalysisConfig(testFolder, ".TEST.");
+            EnsureAnalysisConfig(testFolder, ".TEST.", logger);
             CheckFilePathIsTest(testFolder, "c:\\test\\mytest.proj");
             CheckFilePathIsNotTest(testFolder, "c:\\aProject.proj");
 
             // 2. Check the default is used if the setting is missing
-            EnsureAnalysisConfig(testFolder, null);
+            EnsureAnalysisConfig(testFolder, null, logger);
             CheckFilePathIsNotTest(testFolder, "c:\\test\\mytest.proj");
             CheckFilePathIsNotTest(testFolder, "c:\\aProject.proj");
 
             // 3a. Check the default is used if the setting is empty
-            EnsureAnalysisConfig(testFolder, "");
+            EnsureAnalysisConfig(testFolder, "", logger);
             CheckFilePathIsNotTest(testFolder, "c:\\test\\mytest.proj");
             CheckFilePathIsNotTest(testFolder, "c:\\aProject.proj");
 
             // 3b. Check the default is used if the setting contains only whitespaces
-            EnsureAnalysisConfig(testFolder, " ");
+            EnsureAnalysisConfig(testFolder, " ", logger);
             CheckFilePathIsNotTest(testFolder, "c:\\test\\mytest.proj");
             CheckFilePathIsNotTest(testFolder, "c:\\aProject.proj");
         }
@@ -211,7 +212,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         /// If the supplied "regExExpression" is not null then the appropriate setting
         /// entry will be created in the file
         /// </summary>
-        private static string EnsureAnalysisConfig(string parentDir, string regExExpression)
+        private static string EnsureAnalysisConfig(string parentDir, string regExExpression, TestLogger logger)
         {
             AnalysisConfig config = new AnalysisConfig();
             if (regExExpression != null)
@@ -224,7 +225,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             {
                 File.Delete(fullPath);
             }
-            config.Save(fullPath);
+            config.Save(fullPath, logger);
             return fullPath;
         }
 

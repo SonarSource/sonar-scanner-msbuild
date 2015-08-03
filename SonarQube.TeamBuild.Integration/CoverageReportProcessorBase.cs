@@ -9,6 +9,7 @@ using SonarQube.Common;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace SonarQube.TeamBuild.Integration
 {
@@ -78,7 +79,7 @@ namespace SonarQube.TeamBuild.Integration
             if (success)
             {
                 logger.LogMessage(Resources.PROC_DIAG_UpdatingProjectInfoFiles);
-                InsertCoverageAnalysisResults(context.SonarOutputDir, xmlFileName);
+                InsertCoverageAnalysisResults(context.SonarOutputDir, xmlFileName, logger);
             }
 
             return success;
@@ -87,7 +88,7 @@ namespace SonarQube.TeamBuild.Integration
         /// <summary>
         /// Insert code coverage results information into each projectinfo file
         /// </summary>
-        private static void InsertCoverageAnalysisResults(string sonarOutputDir, string coverageFilePath)
+        private static void InsertCoverageAnalysisResults(string sonarOutputDir, string coverageFilePath, ILogger logger)
         {
             foreach (string projectFolderPath in Directory.GetDirectories(sonarOutputDir))
             {
@@ -99,7 +100,7 @@ namespace SonarQube.TeamBuild.Integration
                 {
                     projectInfo = ProjectInfo.Load(projectInfoPath);
                     projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisType.VisualStudioCodeCoverage.ToString(), Location = coverageFilePath });
-                    projectInfo.Save(projectInfoPath);
+                    projectInfo.Save(projectInfoPath, logger);
                 }
             }
         }

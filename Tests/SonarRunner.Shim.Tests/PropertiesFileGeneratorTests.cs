@@ -219,9 +219,9 @@ namespace SonarRunner.Shim.Tests
 
             string projectInfoDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "ProjectInfo1Dir");
             string projectInfoFilePath = Path.Combine(projectInfoDir, FileConstants.ProjectInfoFileName);
-            projectInfo.Save(projectInfoFilePath);
-
             TestLogger logger = new TestLogger();
+            projectInfo.Save(projectInfoFilePath, logger);
+
             AnalysisConfig config = new AnalysisConfig()
             {
                 SonarProjectKey = "my_project_key",
@@ -410,7 +410,7 @@ namespace SonarRunner.Shim.Tests
             };
 
             string filePath = Path.Combine(newDir, FileConstants.ProjectInfoFileName);
-            project.Save(filePath);
+            project.Save(filePath, new TestLogger());
             return filePath;
         }
 
@@ -418,7 +418,7 @@ namespace SonarRunner.Shim.Tests
         {
             ProjectInfo projectInfo = ProjectInfo.Load(projectInfoFile);
             projectInfo.AddAnalyzerResult(resultType, location);
-            projectInfo.Save(projectInfoFile);
+            projectInfo.Save(projectInfoFile, new TestLogger());
         }
 
         private static string CreateFileList(string parentDir, string fileName, params string[] files)

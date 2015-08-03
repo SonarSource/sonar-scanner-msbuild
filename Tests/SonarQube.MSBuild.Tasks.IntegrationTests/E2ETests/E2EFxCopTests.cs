@@ -498,7 +498,7 @@ End Class");
             AnalysisConfig config = new AnalysisConfig();
             config.SetExplicitValue(IsTestFileByName.TestRegExSettingId, ".testp.");
             string configFullPath = Path.Combine(rootInputFolder, FileConstants.ConfigFileName);
-            config.Save(configFullPath);
+            config.Save(configFullPath, new TestLogger());
 
             // Create a project with a file name that will match the reg ex
             ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "MyTestProject.proj");

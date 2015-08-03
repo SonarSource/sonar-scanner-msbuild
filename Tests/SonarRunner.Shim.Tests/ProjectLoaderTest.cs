@@ -161,7 +161,7 @@ namespace SonarRunner.Shim.Tests
             }
 
             // Save a project info file in the target directory
-            projectInfo.Save(Path.Combine(descriptor.FullDirectoryPath, FileConstants.ProjectInfoFileName));
+            projectInfo.Save(Path.Combine(descriptor.FullDirectoryPath, FileConstants.ProjectInfoFileName), new TestLogger());
         }
 
         #endregion Helper methods

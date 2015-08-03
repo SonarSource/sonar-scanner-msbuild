@@ -66,7 +66,7 @@ namespace SonarQube.Bootstrapper.Tests
 
             AnalysisProperties properties = new AnalysisProperties();
             properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://filehost" });
-            properties.Save(propertiesFilePath);
+            properties.Save(propertiesFilePath, new TestLogger());
 
 
             // 1. Url is not specified on the command line or in a properties file -> fail
@@ -95,11 +95,10 @@ namespace SonarQube.Bootstrapper.Tests
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "settings");
             string fullPropertiesPath = Path.Combine(testDir, "settings.txt");
+            TestLogger logger = new TestLogger();
             AnalysisProperties properties = new AnalysisProperties();
             properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://settingsFile" });
-            properties.Save(fullPropertiesPath);
-
-            TestLogger logger = new TestLogger();
+            properties.Save(fullPropertiesPath, logger);            
 
             // 1. Settings file only
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath);
