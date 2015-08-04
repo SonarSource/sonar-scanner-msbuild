@@ -66,7 +66,7 @@ namespace SonarQube.Common
             XmlSerializer ser = new XmlSerializer(typeof(T));
 
             object o = null;
-            using (FileStream fs = File.Open(fileName, FileMode.Open, FileAccess.Read))
+            using (FileStream fs = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 o = ser.Deserialize(fs);
             }
