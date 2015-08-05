@@ -82,7 +82,6 @@ namespace SonarQube.Common.UnitTests
             SaveAndReloadConfig(originalConfig, Path.Combine(testFolder, "AnalysisConfig_NonEmptyList.xml"));
         }
 
-
         [TestMethod]
         [Description("Checks the extension methods for getting and setting values")]
         public void ProjectInfo_ExtensionMethods_GetAndSet()
@@ -110,6 +109,24 @@ namespace SonarQube.Common.UnitTests
             Assert.IsTrue(config.TryGetSetting("id1", out setting), "Setting should have been found");
             Assert.AreEqual("updated value", setting.Value, "Unexpected value returned for setting");
             Assert.AreEqual("updated value", config.GetSetting("id1", "123"), "Unexpected value returned for setting");        
+        }
+
+        [TestMethod]
+        [Description("Checks the serializer does not take an exclusive read lock")]
+        [WorkItem(120)] // Regression test for http://jira.sonarsource.com/browse/SONARMSBRU-120
+        public void AnalysisConfig_SharedReadAllowed()
+        {
+            // 0. Setup
+            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            string filePath = Path.Combine(testFolder, "config.txt");
+
+            AnalysisConfig config = new AnalysisConfig();
+            config.Save(filePath);
+
+            using (FileStream lockingStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                AnalysisConfig reloadedConfig = AnalysisConfig.Load(filePath);
+            }
         }
 
         #endregion
