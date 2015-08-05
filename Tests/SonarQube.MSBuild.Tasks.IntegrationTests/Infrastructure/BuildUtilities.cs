@@ -23,6 +23,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string MSBuildToolsVersionForTestProjects = "12.0"; // use this line for VS2013
         //public const string MSBuildToolsVersionForTestProjects = "14.0"; // use this line for VS2013
 
+        private const string StandardImportBeforePropertyName = "ImportByWildcardBeforeMicrosoftCommonTargets";
+        private const string StandardImportAfterPropertyName = "ImportByWildcardAfterMicrosoftCommonTargets";
+        private const string UserImportBeforePropertyName = "ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets";
+        private const string UserImportAfterPropertyName = "ImportUserLocationsByWildcardAfterMicrosoftCommonTargets";
+
         #region Public methods
 
         /// <summary>
@@ -129,7 +134,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
             // Disable the standard "ImportBefore/ImportAfter" behaviour if the caller
             // hasn't defined what they want to happen explicitly
-            if (!properties.ContainsKey("ImportByWildcardBeforeMicrosoftCommonTargets"))
+            if (!properties.ContainsKey(StandardImportBeforePropertyName))
             {
                 DisableStandardTargetsWildcardImporting(properties);
             }
@@ -172,8 +177,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         }
 
         /// <summary>
-        /// Sets properties to sisable the normal ImportAfter/Import before behaviour to 
-        /// prevent any additionaltargets from being picked up.
+        /// Sets properties to disable the normal ImportAfter/ImportBefore behaviour to 
+        /// prevent any additional targets from being picked up.
         /// This is necessary so the tests run correctly on machines that have
         /// the installation targets installed.
         /// See the Microsoft Common targets for more info e.g. C:\Program Files (x86)\MSBuild\12.0\Bin\Microsoft.Common.CurrentVersion.targets
@@ -186,8 +191,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 throw new ArgumentNullException("properties");
             }
             
-            properties["ImportByWildcardBeforeMicrosoftCommonTargets"] = "false";
-            properties["ImportByWildcardAfterMicrosoftCommonTargets"] = "false";
+            properties[StandardImportBeforePropertyName] = "false";
+            properties[StandardImportAfterPropertyName] = "false";
+            properties[UserImportBeforePropertyName] = "false";
+            properties[UserImportAfterPropertyName] = "false";
         }
 
         /// <summary>
