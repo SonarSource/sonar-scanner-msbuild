@@ -31,6 +31,11 @@ namespace SonarRunner.Shim
         public const string SonarRunnerHomeVariableName = "SONAR_RUNNER_HOME";
 
         /// <summary>
+        /// Additional arguments that will always be passed to the runner
+        /// </summary>
+        public const string AdditionalRunnerArguments = "-e"; // -e = produce execution errors to assist with troubleshooting
+
+        /// <summary>
         /// Default value for the SONAR_RUNNER_OPTS
         /// </summary>
         /// <remarks>Reserving more than is available on the agent will cause the sonar-runner to fail</remarks>
@@ -103,7 +108,10 @@ namespace SonarRunner.Shim
             IgnoreSonarRunnerHome(logger);
 
             string args = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                "-Dproject.settings=\"{0}\"", propertiesFileName);
+                "-Dproject.settings=\"{0}\" {1}",
+                propertiesFileName,
+                AdditionalRunnerArguments
+                );
 
             logger.LogMessage(Resources.DIAG_CallingSonarRunner);
 

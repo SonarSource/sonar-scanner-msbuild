@@ -32,11 +32,12 @@ namespace SonarRunner.Shim.Tests
                 scope.SetVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName, null);
 
                 // Act
-                SonarRunnerWrapper.ExecuteJavaRunner(testLogger, exePath, exePath);
-            }
+                bool success = SonarRunnerWrapper.ExecuteJavaRunner(testLogger, exePath, exePath);
+                Assert.IsTrue(success, "Expecting execution to succeed");
 
-            // Assert
-            testLogger.AssertMessageNotLogged(SonarRunner.Shim.Resources.DIAG_SonarRunnerHomeIsSet);
+                // Assert
+                testLogger.AssertMessageNotLogged(SonarRunner.Shim.Resources.DIAG_SonarRunnerHomeIsSet);
+            }
         }
 
         [TestMethod]
@@ -53,11 +54,28 @@ namespace SonarRunner.Shim.Tests
                 File.CreateText(path);
 
                 // Act
-                SonarRunnerWrapper.ExecuteJavaRunner(testLogger, exePath, exePath);
+                bool success = SonarRunnerWrapper.ExecuteJavaRunner(testLogger, exePath, exePath);
 
                 // Assert
+                Assert.IsTrue(success, "Expecting execution to succeed");
                 testLogger.AssertMessageExists(SonarRunner.Shim.Resources.DIAG_SonarRunnerHomeIsSet);
             }
+        }
+
+        [TestMethod]
+        public void SonarRunner_AdditionalArgumentsPassed()
+        {
+
+            // Arrange
+            TestLogger logger = new TestLogger();
+            string exePath = TestUtils.WriteBatchFileForTest(this.TestContext, "@echo Command line args: %*");
+            string propertiesFilePath = Path.Combine(TestUtils.CreateTestSpecificFolder(this.TestContext), "analysis.properties");
+            File.CreateText(propertiesFilePath);
+
+            // Act
+            bool success = SonarRunnerWrapper.ExecuteJavaRunner(logger, exePath, propertiesFilePath);
+            Assert.IsTrue(success, "Expecting execution to succeed");
+            logger.AssertSingleMessageExists("Command line args:", SonarRunnerWrapper.AdditionalRunnerArguments);
         }
 
         #endregion Tests
