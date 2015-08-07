@@ -15,7 +15,7 @@ function WriteMessage
    Write-Host -ForegroundColor Green $message
 }
 
-function WriteImporantMessage
+function WriteImportantMessage
 {
    param([string][Parameter(Mandatory=$true)] $message)
 
@@ -108,13 +108,13 @@ function GetSourceJarPath
 
     if ($sourceJarPath.Count -eq 0)
     {
-        WriteImporantMessage "Before using this script please copy a CSharp plugin (the jar file) to the same directory as the script: $sourceDir"
+        WriteImportantMessage "Before using this script please copy a CSharp plugin (the jar file) to the same directory as the script: $sourceDir"
 		exit
     }
 
     if ($sourceJarPath.Count > 1)
     {
-        WriteImporantMessage "Too many jar files in the same directory as the script. Expecting only one"
+        WriteImportantMessage "Too many jar files in the same directory as the script. Expecting only one"
 		exit 
     }
 
@@ -253,7 +253,7 @@ function CreateNewJar
     [System.IO.File]::Move($destinationPath, $destinatioPathAsJar);
 
 
-    WriteImporantMessage "Success!! The jar file can be found in $destinationDir"
+    WriteImportantMessage "Success! The jar file can be found in $destinationDir"
     
 }
 

@@ -29,12 +29,14 @@
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
+    <NoWarn>CS2008</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\..</SourcesRoot>
     <DestinationDir>$(SourcesRoot)\DeploymentArtifacts\CSharpPluginPayload\$(Configuration)\</DestinationDir>
     <!-- OutputPath is required by the Clean and Rebuild tasks -->
-    <OutputPath>$(DestinationDir)</OutputPath>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyName>CSharpPluginPayload</AssemblyName>
