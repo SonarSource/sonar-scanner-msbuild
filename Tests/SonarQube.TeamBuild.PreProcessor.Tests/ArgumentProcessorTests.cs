@@ -86,6 +86,27 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         }
 
         [TestMethod]
+        [WorkItem(102)] // http://jira.sonarsource.com/browse/SONARMSBRU-102
+        public void PreArgProc_InvalidProjectKey()
+        {
+            // 0. Setup - none
+
+            // 1. Invalid - invalid characters
+            CheckProjectKeyIsInvalid("spaces in name");
+            CheckProjectKeyIsInvalid("+a");
+            CheckProjectKeyIsInvalid("~");
+            CheckProjectKeyIsInvalid(",");
+
+            // 2. Valid - all valid characters
+            ProcessedArgs result = CheckProcessingSucceeds("/key:0123456789.abcdefghijklmnopqrstuvwxyz:@_ABCDEFGHIJKLMNOPQRSTUVWXYZ", "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid");
+            AssertExpectedPropertyValue(SonarProperties.ProjectKey, "0123456789.abcdefghijklmnopqrstuvwxyz:@_ABCDEFGHIJKLMNOPQRSTUVWXYZ", result);
+
+            // 3. Valid: single character
+            result = CheckProcessingSucceeds("/key:0", "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid");
+            AssertExpectedPropertyValue(SonarProperties.ProjectKey, "0", result);
+        }
+
+        [TestMethod]
         public void PreArgProc_UnrecognisedArguments()
         {
             // 0. Setup
@@ -369,6 +390,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertErrorsLogged();
             return logger;
         }
+
+        private static void CheckProjectKeyIsInvalid(string projectKey)
+        {
+            TestLogger logger;
+
+            string[] commandLineArgs = new string[] { "/k:" + projectKey, "/n:valid_name", "/v:1.0", "/d:" + SonarProperties.HostUrl + "=http://validUrl" };
+
+            logger = CheckProcessingFails(commandLineArgs);
+            logger.AssertErrorsLogged(1);
+            logger.AssertSingleErrorExists(SonarQube.TeamBuild.PreProcessor.Resources.ERROR_InvalidProjectKeyArg);
+        }
+
 
         private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs)
         {

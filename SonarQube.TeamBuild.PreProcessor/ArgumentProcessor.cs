@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -19,6 +20,12 @@ namespace SonarQube.TeamBuild.PreProcessor
     /// </summary>
     public static class ArgumentProcessor // was internal
     {
+        /// <summary>
+        /// Regular expression to validate a project key.
+        /// See http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
+        /// </summary>
+        private static readonly Regex ProjectKeyRegEx = new Regex(@"^[0-9a-zA-Z:-_\.]+$", RegexOptions.Compiled | RegexOptions.Singleline);
+
         #region Argument definitions
 
         /// <summary>
@@ -144,6 +151,13 @@ namespace SonarQube.TeamBuild.PreProcessor
                 areValid = false;
             }
 
+            string projectKey = args.GetSetting(SonarProperties.ProjectKey);
+            if (!IsValidProjectKey(projectKey))
+            {
+                logger.LogError(Resources.ERROR_InvalidProjectKeyArg);
+                areValid = false;
+            }
+
             return areValid;
         }
 
@@ -168,6 +182,11 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             return true;
+        }
+
+        private static bool IsValidProjectKey(string projectKey)
+        {
+            return ProjectKeyRegEx.IsMatch(projectKey);
         }
 
         #endregion Private methods
