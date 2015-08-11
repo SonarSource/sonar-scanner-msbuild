@@ -173,7 +173,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid project key. The project key must match the following regular expression: [0-9a-zA-Z:-_\.]+.
+        ///   Looks up a localized string similar to Invalid project key. Allowed characters are alphanumeric, &apos;-&apos;, &apos;_&apos;, &apos;.&apos; and &apos;:&apos;, with at least one non-digit..
         /// </summary>
         public static string ERROR_InvalidProjectKeyArg {
             get {

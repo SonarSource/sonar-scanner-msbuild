@@ -87,23 +87,47 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         [TestMethod]
         [WorkItem(102)] // http://jira.sonarsource.com/browse/SONARMSBRU-102
-        public void PreArgProc_InvalidProjectKey()
+        public void PreArgProc_ProjectKeyValidity()
         {
             // 0. Setup - none
 
-            // 1. Invalid - invalid characters
+            // 1. Invalid characters
+            // Whitespace
             CheckProjectKeyIsInvalid("spaces in name");
-            CheckProjectKeyIsInvalid("+a");
-            CheckProjectKeyIsInvalid("~");
-            CheckProjectKeyIsInvalid(",");
+            CheckProjectKeyIsInvalid("a\tb");
+            CheckProjectKeyIsInvalid("a\rb");
+            CheckProjectKeyIsInvalid("a\r\nb");
 
-            // 2. Valid - all valid characters
-            ProcessedArgs result = CheckProcessingSucceeds("/key:0123456789.abcdefghijklmnopqrstuvwxyz:@_ABCDEFGHIJKLMNOPQRSTUVWXYZ", "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid");
-            AssertExpectedPropertyValue(SonarProperties.ProjectKey, "0123456789.abcdefghijklmnopqrstuvwxyz:@_ABCDEFGHIJKLMNOPQRSTUVWXYZ", result);
+            // invalid non-alpha characters
+            CheckProjectKeyIsInvalid("+a"); 
+            CheckProjectKeyIsInvalid("b@");
+            CheckProjectKeyIsInvalid("c~");
+            CheckProjectKeyIsInvalid("d,");
 
-            // 3. Valid: single character
-            result = CheckProcessingSucceeds("/key:0", "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid");
-            AssertExpectedPropertyValue(SonarProperties.ProjectKey, "0", result);
+            CheckProjectKeyIsInvalid("0"); // single numeric is not ok
+            CheckProjectKeyIsInvalid("0123456789"); // all numeric is not ok
+
+
+            // 2. Valid
+            CheckProjectKeyIsValid("0123456789.abcdefghijklmnopqrstuvwxyz:-._ABCDEFGHIJKLMNOPQRSTUVWXYZ"); // all valid characters
+            
+            CheckProjectKeyIsValid("a"); // single alpha character
+            CheckProjectKeyIsValid("_"); // single non-alpha character
+            CheckProjectKeyIsValid(":"); // single non-alpha character
+            CheckProjectKeyIsValid("-"); // single non-alpha character
+            CheckProjectKeyIsValid("."); // single non-alpha character
+
+            CheckProjectKeyIsValid(".-_:"); // all non-alpha characters
+
+            CheckProjectKeyIsValid("0.1"); // numerics with with any other valid character is ok
+            CheckProjectKeyIsValid("_0"); // numeric with with any other valid character is ok
+            CheckProjectKeyIsValid("0."); // numeric with with any other valid character is ok
+
+            // 3. More realistic valid options
+            CheckProjectKeyIsValid("myproject");
+            CheckProjectKeyIsValid("my.Project");
+            CheckProjectKeyIsValid("my_second_Project");
+            CheckProjectKeyIsValid("my-other_Project");
         }
 
         [TestMethod]
@@ -402,6 +426,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertSingleErrorExists(SonarQube.TeamBuild.PreProcessor.Resources.ERROR_InvalidProjectKeyArg);
         }
 
+        private static void CheckProjectKeyIsValid(string projectKey)
+        {
+            ProcessedArgs result = CheckProcessingSucceeds("/key:" + projectKey, "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid");
+            AssertExpectedPropertyValue(SonarProperties.ProjectKey, projectKey, result);
+        }
 
         private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs)
         {

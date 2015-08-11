@@ -158,7 +158,7 @@
 The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the MSBuild.SonarQube.Runner.</value>
   </data>
   <data name="ERROR_InvalidProjectKeyArg" xml:space="preserve">
-    <value>Invalid project key. The project key must match the following regular expression: [0-9a-zA-Z:-_\.]+</value>
+    <value>Invalid project key. Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit.</value>
   </data>
   <data name="ERROR_MissingSetting" xml:space="preserve">
     <value>Missing analysis setting: {0}</value>
