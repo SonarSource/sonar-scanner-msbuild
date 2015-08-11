@@ -134,7 +134,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private string GetUrl(string format, params string[] args)
         {
-            var queryString = string.Format(System.Globalization.CultureInfo.InvariantCulture, format, args.Select(a => Uri.EscapeUriString(a)).ToArray());
+            var queryString = string.Format(System.Globalization.CultureInfo.InvariantCulture, format, args.Select(a => WebUtility.UrlEncode(a)).ToArray());
             if (!queryString.StartsWith("/", StringComparison.OrdinalIgnoreCase))
             {
                 queryString = '/' + queryString;
