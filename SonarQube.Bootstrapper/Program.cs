@@ -82,19 +82,30 @@ namespace SonarQube.Bootstrapper
             }
 
             var preprocessorFilePath = settings.PreProcessorFilePath;
-            var processRunner = new ProcessRunner();
-            processRunner.Execute(preprocessorFilePath, settings.ChildCmdLineArgs, settings.TempDirectory, logger);
 
-            return processRunner.ExitCode;
+            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(preprocessorFilePath, logger)
+            {
+                CmdLineArgs = settings.ChildCmdLineArgs,
+                WorkingDirectory = settings.TempDirectory,
+            };
+            ProcessRunner runner = new ProcessRunner();
+            runner.Execute(runnerArgs);
+
+            return runner.ExitCode;
         }
 
         private static int PostProcess(IBootstrapperSettings settings, ILogger logger)
         {
-            var postprocessorFilePath = settings.PostProcessorFilePath;
+            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(settings.PostProcessorFilePath, logger)
+            {
+                CmdLineArgs = settings.ChildCmdLineArgs,
+                WorkingDirectory = settings.TempDirectory
+            };
 
-            var processRunner = new ProcessRunner();
-            processRunner.Execute(postprocessorFilePath, settings.ChildCmdLineArgs, settings.TempDirectory, logger);
-            return processRunner.ExitCode;
+            ProcessRunner runner = new ProcessRunner();
+            runner.Execute(runnerArgs);
+
+            return runner.ExitCode;
         }
 
         private static void LogProcessingStarted(AnalysisPhase phase, ILogger logger)

@@ -22,10 +22,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             // Arrange
             TestLogger logger = new TestLogger();
+            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(typeof(V0_9UpgradeMessageExe.Program).Assembly.Location, logger)
+            {
+                WorkingDirectory = this.TestContext.DeploymentDirectory
+            };
 
             // Act
             ProcessRunner runner = new ProcessRunner();
-            bool success = runner.Execute(typeof(V0_9UpgradeMessageExe.Program).Assembly.Location, "", this.TestContext.DeploymentDirectory, logger);
+            bool success = runner.Execute(runnerArgs);
 
             // Assert
             Assert.IsFalse(success);

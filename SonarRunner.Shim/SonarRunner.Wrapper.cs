@@ -118,14 +118,15 @@ namespace SonarRunner.Shim
             IDictionary<string, string> envVarsDictionary = GetAdditionalEnvVariables(logger);
             Debug.Assert(envVarsDictionary != null);
 
+            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(exeFileName, logger)
+            {
+                CmdLineArgs = args,
+                WorkingDirectory = Path.GetDirectoryName(exeFileName),
+                EnvironmentVariables = envVarsDictionary
+            };
             ProcessRunner runner = new ProcessRunner();
-            bool success = runner.Execute(
-                exeFileName,
-                args,
-                Path.GetDirectoryName(exeFileName),
-                Timeout.Infinite,
-                envVarsDictionary,
-                logger);
+
+            bool success = runner.Execute(runnerArgs);
 
             success = success && !runner.ErrorsLogged;
 

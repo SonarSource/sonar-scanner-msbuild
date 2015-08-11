@@ -28,10 +28,11 @@ namespace SonarQube.Common.UnitTests
             string exeName = TestUtils.WriteBatchFileForTest(TestContext, "exit -2");
 
             TestLogger logger = new TestLogger();
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, logger);
             ProcessRunner runner = new ProcessRunner();
 
             // Act
-            bool success = runner.Execute(exeName, null, null, 5000, logger);
+            bool success = runner.Execute(args);
 
             // Assert
             Assert.IsFalse(success, "Expecting the process to have failed");
@@ -49,10 +50,11 @@ xxx yyy
 ");
 
             TestLogger logger = new TestLogger();
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, logger);
             ProcessRunner runner = new ProcessRunner();
 
             // Act
-            bool success = runner.Execute(exeName, null, null, 1000, logger);
+            bool success = runner.Execute(args);
 
             // Assert
             Assert.IsTrue(success, "Expecting the process to have succeeded");
@@ -73,10 +75,14 @@ xxx yyy
 ");
 
             TestLogger logger = new TestLogger();
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, logger)
+            {
+                TimeoutInMilliseconds = 100
+            };
             ProcessRunner runner = new ProcessRunner();
 
             // Act
-            bool success = runner.Execute(exeName, null, null, 100, logger);
+            bool success = runner.Execute(args);
 
             // Assert
             Assert.IsFalse(success, "Expecting the process to have failed");
@@ -109,8 +115,13 @@ xxx yyy
                 { "PROCESS_VAR2", "PROCESS_VAR2 value" },
                 { "PROCESS_VAR3", "PROCESS_VAR3 value" } };
 
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, logger)
+            {
+                EnvironmentVariables = envVariables
+            };
+
             // Act
-            bool success = runner.Execute(exeName, null, null, 150, envVariables, logger);
+            bool success = runner.Execute(args);
 
             // Assert
             Assert.IsTrue(success, "Expecting the process to have succeeded");
@@ -148,9 +159,14 @@ xxx yyy
                     { "proc.runner.test.machine", "machine override" },
                     { "proc.runner.test.process", "process override" },
                     { "proc.runner.test.user", "user override" } };
-  
+
+                ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, logger)
+                {
+                    EnvironmentVariables = envVariables
+                };
+
                 // Act
-                bool success = runner.Execute(exeName, null, null, 200, envVariables, logger);
+                bool success = runner.Execute(args);
 
                 // Assert
                 Assert.IsTrue(success, "Expecting the process to have succeeded");
@@ -181,10 +197,11 @@ xxx yyy
 
             // Arrange
             TestLogger logger = new TestLogger();
+            ProcessRunnerArguments args = new ProcessRunnerArguments("missingExe.foo", logger);
             ProcessRunner runner = new ProcessRunner();
 
             // Act
-            bool success = runner.Execute("missingExe.foo", null, null, 100, null, logger);
+            bool success = runner.Execute(args);
 
             // Assert
             Assert.IsFalse(success, "Expecting the process to have failed");

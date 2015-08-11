@@ -189,8 +189,16 @@ namespace SonarQube.TeamBuild.Integration
                 @"analyze /output:""{0}"" ""{1}""",
                 outputXmlFilePath, inputBinaryFilePath);
 
+
+            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(converterExeFilePath, logger)
+            {
+                WorkingDirectory = Path.GetDirectoryName(outputXmlFilePath),
+                CmdLineArgs = args,
+                TimeoutInMilliseconds = ConversionTimeoutInMs
+            };
+
             ProcessRunner runner = new ProcessRunner();
-            bool success = runner.Execute(converterExeFilePath, args, Path.GetDirectoryName(outputXmlFilePath), ConversionTimeoutInMs, logger);
+            bool success = runner.Execute(runnerArgs);
 
             if (success)
             {

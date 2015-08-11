@@ -50,6 +50,7 @@
     <Compile Include="CommandLine\ArgumentDescriptor.cs" />
     <Compile Include="CommandLine\CommandLineParser.cs" />
     <Compile Include="ProcessRunner.cs" />
+    <Compile Include="ProcessRunnerArgs.cs" />
     <Compile Include="ProjectInfo\AnalysisResult.cs" />
     <Compile Include="ProjectInfo\AnalysisType.cs" />
     <Compile Include="ConsoleLogger.cs" />

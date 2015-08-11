@@ -7,10 +7,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 
 namespace SonarQube.Common
 {
@@ -30,61 +28,40 @@ namespace SonarQube.Common
         public int ExitCode { get; private set; }
 
         /// <summary>
-        /// Runs the specified executable with timeout
-        /// </summary>
-        /// <returns>True if the process exited successfully, otherwise false</returns>
-        public bool Execute(string exeName, string args, string workingDirectory, int timeoutInMilliseconds, ILogger logger)
-        {
-            return Execute(exeName, args, workingDirectory, timeoutInMilliseconds, null, logger);
-        }
-
-        /// <summary>
-        /// Runs the specified executable without timeout 
-        /// </summary>
-        /// <returns>True if the process exited successfully, otherwise false</returns>
-        public bool Execute(string exeName, string args, string workingDirectory, ILogger logger)
-        {
-            return Execute(exeName, args, workingDirectory, Timeout.Infinite, null, logger);
-        }
-
-        /// <summary>
         /// Runs the specified executable and returns a boolean indicating success or failure
         /// </summary>
-        /// <param name="exeName">Name of the file to execute. This can be a full name or just the file name (if the file is on the %PATH%).</param>
-        /// <param name="envVariables">Names and values of process env variables to be passed to the new process. Can be null.</param>
         /// <remarks>The standard and error output will be streamed to the logger. Child processes do not inherit the env variables from the parent autmatically</remarks>
-        public bool Execute(string exeName, string args, string workingDirectory, int timeoutInMilliseconds, IDictionary<string, string> envVariables, ILogger logger)
+        public bool Execute(ProcessRunnerArguments runnerArgs)
         {
-            if (string.IsNullOrWhiteSpace(exeName))
+            if (runnerArgs == null)
             {
-                throw new ArgumentNullException("exeName");
+                throw new ArgumentNullException("runnerArgs");
             }
-            if (logger == null)
+            Debug.Assert(!string.IsNullOrWhiteSpace(runnerArgs.ExeName), "Process runner exe name should not be null/emty");
+            Debug.Assert( runnerArgs.Logger!= null, "Process runner logger should not be null/empty");
+
+            this.outputLogger = runnerArgs.Logger;
+
+            if (!File.Exists(runnerArgs.ExeName))
             {
-                throw new ArgumentNullException("logger");
-            }
-            if (!File.Exists(exeName))
-            {
-                logger.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, exeName);
+                this.outputLogger.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
                 this.ExitCode = ErrorCode;
                 return false;
             }
 
-            this.outputLogger = logger;
-
             ProcessStartInfo psi = new ProcessStartInfo()
             {
-                FileName = exeName,
+                FileName = runnerArgs.ExeName,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 UseShellExecute = false, // required if we want to capture the error output
                 ErrorDialog = false,
                 CreateNoWindow = true,
-                Arguments = args,
-                WorkingDirectory = workingDirectory
+                Arguments = runnerArgs.CmdLineArgs,
+                WorkingDirectory = runnerArgs.WorkingDirectory
             };
 
-            SetEnvironmentVariables(psi, envVariables, logger);
+            SetEnvironmentVariables(psi, runnerArgs.EnvironmentVariables, runnerArgs.Logger);
 
             bool succeeded;
             Process process = null;
@@ -100,9 +77,9 @@ namespace SonarQube.Common
                 process.BeginErrorReadLine();
                 process.BeginOutputReadLine();
 
-                logger.LogMessage(Resources.DIAG_ExecutingFile, exeName, args, workingDirectory, timeoutInMilliseconds, process.Id);
+                this.outputLogger.LogMessage(Resources.DIAG_ExecutingFile, runnerArgs.ExeName, runnerArgs.CmdLineArgs, runnerArgs.WorkingDirectory, runnerArgs.TimeoutInMilliseconds, process.Id);
 
-                succeeded = process.WaitForExit(timeoutInMilliseconds);
+                succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
                 if (succeeded)
                 {
                     process.WaitForExit(); // Give any asynchronous events the chance to complete
@@ -112,13 +89,13 @@ namespace SonarQube.Common
                 // true: we might still have timed out, but the process ended when we asked it to
                 if (succeeded)
                 {
-                    logger.LogMessage(Resources.DIAG_ExecutionExitCode, process.ExitCode);
+                    this.outputLogger.LogMessage(Resources.DIAG_ExecutionExitCode, process.ExitCode);
                     this.ExitCode = process.ExitCode;
                 }
                 else
                 {
                     this.ExitCode = ErrorCode;
-                    logger.LogWarning(Resources.DIAG_ExecutionTimedOut, timeoutInMilliseconds, exeName);
+                    this.outputLogger.LogWarning(Resources.DIAG_ExecutionTimedOut, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
                 }
 
                 succeeded = succeeded && (this.ExitCode == 0);
