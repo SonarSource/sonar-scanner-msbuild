@@ -108,7 +108,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             // Save the config file
             logger.LogMessage(Resources.DIAG_SavingConfigFile, teamBuildSettings.AnalysisConfigFilePath);
-            config.Save(teamBuildSettings.AnalysisConfigFilePath);
+            config.Save(teamBuildSettings.AnalysisConfigFilePath, logger);
 
             return true;
         }

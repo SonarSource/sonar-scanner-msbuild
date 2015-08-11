@@ -94,7 +94,7 @@ namespace SonarQube.Bootstrapper.Tests
             BootstrapperSupportedVersions versions = new BootstrapperSupportedVersions();
             versions.Versions.AddRange(versionStrings);
             string path = Path.Combine(TestContext.TestRunDirectory, "versions.xml");
-            versions.Save(path);
+            versions.Save(path, new TestLogger());
 
             return path;
         }

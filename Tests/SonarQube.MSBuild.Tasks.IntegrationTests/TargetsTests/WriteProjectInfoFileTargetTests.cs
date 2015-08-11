@@ -784,7 +784,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             {
                 File.Delete(fullPath);
             }
-            config.Save(fullPath);
+            config.Save(fullPath, new TestLogger());
         }
 
         private static ProjectItemElement AddItem(ProjectRootElement projectRoot, string itemTypeName, string include, params string[] idAndValuePairs)

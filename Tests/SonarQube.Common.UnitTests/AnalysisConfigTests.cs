@@ -26,11 +26,12 @@ namespace SonarQube.Common.UnitTests
         {
             // 0. Setup
             AnalysisConfig config = new AnalysisConfig();
+            TestLogger testLogger = new TestLogger();
 
             // 1a. Missing file name - save
-            AssertException.Expects<ArgumentNullException>(() => config.Save(null));
-            AssertException.Expects<ArgumentNullException>(() => config.Save(string.Empty));
-            AssertException.Expects<ArgumentNullException>(() => config.Save("\r\t "));
+            AssertException.Expects<ArgumentNullException>(() => config.Save(null, testLogger));
+            AssertException.Expects<ArgumentNullException>(() => config.Save(string.Empty, testLogger));
+            AssertException.Expects<ArgumentNullException>(() => config.Save("\r\t ", testLogger));
 
             // 1b. Missing file name - load
             AssertException.Expects<ArgumentNullException>(() => ProjectInfo.Load(null));
@@ -136,7 +137,7 @@ namespace SonarQube.Common.UnitTests
         private AnalysisConfig SaveAndReloadConfig(AnalysisConfig original, string outputFileName)
         {
             Assert.IsFalse(File.Exists(outputFileName), "Test error: file should not exist at the start of the test. File: {0}", outputFileName);
-            original.Save(outputFileName);
+            original.Save(outputFileName, new TestLogger());
             Assert.IsTrue(File.Exists(outputFileName), "Failed to create the output file. File: {0}", outputFileName);
             this.TestContext.AddResultFile(outputFileName);
 

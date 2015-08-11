@@ -62,9 +62,10 @@ namespace SonarQube.Common.UnitTests
         public void FileProvider_UseDefaultPropertiesFile()
         {
             // Arrange
-            string defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string validPropertiesFile = CreateValidPropertiesFile(defaultPropertiesDir, FilePropertyProvider.DefaultFileName, "key1", "value1");
             TestLogger logger = new TestLogger();
+            string defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            string validPropertiesFile = CreateValidPropertiesFile(defaultPropertiesDir, FilePropertyProvider.DefaultFileName, "key1", "value1", logger);
+            
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
 
@@ -82,8 +83,9 @@ namespace SonarQube.Common.UnitTests
         public void FileProvider_UseSpecifiedPropertiesFile()
         {
             // Arrange
+            TestLogger logger = new TestLogger();
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string validPropertiesFile = CreateValidPropertiesFile(testDir, "myPropertiesFile.xml", "xxx", "value with spaces");
+            string validPropertiesFile = CreateValidPropertiesFile(testDir, "myPropertiesFile.xml", "xxx", "value with spaces", logger);
 
             string defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "Default");
             CreateFile(defaultPropertiesDir, FilePropertyProvider.DefaultFileName, "invalid file - will error if this file is loaded");
@@ -91,8 +93,6 @@ namespace SonarQube.Common.UnitTests
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
 
             args.Add(new ArgumentInstance(FilePropertyProvider.Descriptor, validPropertiesFile));
-
-            TestLogger logger = new TestLogger();
 
             // Act
             IAnalysisPropertyProvider provider = CheckProcessingSucceeds(args, defaultPropertiesDir, logger);
@@ -175,7 +175,7 @@ namespace SonarQube.Common.UnitTests
         /// <summary>
         /// Creates a valid properties file with a single property
         /// </summary>
-        private static string CreateValidPropertiesFile(string path, string fileName, string property, string value)
+        private static string CreateValidPropertiesFile(string path, string fileName, string property, string value, TestLogger logger)
         {
             string fullPath = Path.Combine(path, fileName);
 
@@ -184,7 +184,7 @@ namespace SonarQube.Common.UnitTests
             properties = new AnalysisProperties();
             properties.Add(new Property() { Id = property, Value = value });
 
-            properties.Save(fullPath);
+            properties.Save(fullPath, logger);
             return fullPath;
         }
 

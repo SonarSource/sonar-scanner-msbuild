@@ -17,12 +17,17 @@ namespace SonarQube.Common
     /// </summary>
     public static class Serializer
     {
+        // Workaround for the file locking issue: retry after a short period.
+        public static int MaxConfigRetryPeriodInMilliseconds = 2500; // Maximum time to spend trying to access the file
+        public static int DelayBetweenRetriesInMilliseconds = 499; // Period to wait between retries
+
+
         #region Serialisation methods
 
         /// <summary>
         /// Save the object as XML
         /// </summary>
-        public static void SaveModel<T>(T model, string fileName)
+        public static void SaveModel<T>(T model, string fileName, ILogger logger)
         {
             if (model == null)
             {
@@ -43,9 +48,9 @@ namespace SonarQube.Common
             settings.NamespaceHandling = NamespaceHandling.OmitDuplicates;
             settings.OmitXmlDeclaration = false;
 
-            using (XmlWriter writer = XmlWriter.Create(fileName, settings))
+            if (!Utilities.Retry(MaxConfigRetryPeriodInMilliseconds, DelayBetweenRetriesInMilliseconds, logger, () => SaveModelInternal(model, serializer, fileName, settings, logger)))
             {
-                serializer.Serialize(writer, model);
+                throw new InvalidOperationException(string.Format(Resources.Utilities_ErrorWritingFile, fileName));
             }
         }
 
@@ -77,5 +82,26 @@ namespace SonarQube.Common
 
         #endregion
 
+        /// <summary>
+        /// Attempts to save the file, suppressing any IO errors that occur.
+        /// This method is expected to be called inside a "retry"
+        /// </summary>
+        private static bool SaveModelInternal<T>(T model, XmlSerializer serializer, string fileName, XmlWriterSettings settings, ILogger logger)
+        {
+            try
+            {
+                using (XmlWriter writer = XmlWriter.Create(fileName, settings))
+                {
+                    serializer.Serialize(writer, model);
+                }
+            }
+            catch (IOException e)
+            {
+                // Log this as a message for info. We'll log an error if all of the re-tries failed
+                logger.LogMessage(Resources.Utilities_ErrorWritingFile, e.Message);
+                return false;
+            }
+            return true;
+        }
     }
 }

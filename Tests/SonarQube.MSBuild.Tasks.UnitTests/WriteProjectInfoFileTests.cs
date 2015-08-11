@@ -35,7 +35,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
             Guid projectGuid = Guid.NewGuid();
 
+            DummyBuildEngine dummyEngine = new DummyBuildEngine();
             WriteProjectInfoFile task = new WriteProjectInfoFile();
+            task.BuildEngine = dummyEngine;
             task.FullProjectPath = "c:\\fullPath\\project.proj";
             task.ProjectLanguage = "cs";
             task.IsTest = true;
@@ -215,7 +217,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_UnrecognisedLanguages()
         {
             // Arrange
+            DummyBuildEngine dummyEngine = new DummyBuildEngine();
             WriteProjectInfoFile task = new WriteProjectInfoFile();
+            task.BuildEngine = dummyEngine;
             task.FullProjectPath = "c:\\fullPath\\project.proj";
             task.IsTest = true;
             task.ProjectName = "UnrecognisedLanguageProject";
@@ -276,7 +280,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         {
             string expectedOutputFile = Path.Combine(testFolder, ExpectedProjectInfoFileName);
             Assert.IsFalse(File.Exists(expectedOutputFile), "Test error: output file should not exist before the task is executed");
-
+            
             bool result = task.Execute();
 
             Assert.IsTrue(result, "Expecting the task execution to succeed");

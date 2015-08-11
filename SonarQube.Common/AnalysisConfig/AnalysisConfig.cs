@@ -48,14 +48,14 @@ namespace SonarQube.Common
         /// <summary>
         /// Saves the project to the specified file as XML
         /// </summary>
-        public void Save(string fileName)
+        public void Save(string fileName, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException("fileName");
             }
 
-            Serializer.SaveModel(this, fileName);
+            Serializer.SaveModel(this, fileName, logger);
         }
 
         /// <summary>

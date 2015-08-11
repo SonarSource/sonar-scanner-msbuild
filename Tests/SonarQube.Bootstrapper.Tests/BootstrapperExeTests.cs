@@ -351,7 +351,7 @@ namespace SonarQube.Bootstrapper.Tests
             // NOTE: don't forget to delete this file when the test that uses it
             // completes, otherwise it may affect subsequent tests.
             string defaultPropertiesFilePath = BootstrapperTestUtils.GetDefaultPropertiesFilePath();
-            defaultProperties.Save(defaultPropertiesFilePath);
+            defaultProperties.Save(defaultPropertiesFilePath, new TestLogger());
             return defaultPropertiesFilePath;
         }
 
