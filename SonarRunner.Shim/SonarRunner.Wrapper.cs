@@ -107,11 +107,9 @@ namespace SonarRunner.Shim
 
             IgnoreSonarRunnerHome(logger);
 
-            string args = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                "-Dproject.settings=\"{0}\" {1}",
-                propertiesFileName,
-                AdditionalRunnerArguments
-                );
+            List<string> args = new List<string>();
+            args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "-Dproject.settings=\"{0}\"", propertiesFileName));
+            args.Add(AdditionalRunnerArguments);
 
             logger.LogMessage(Resources.DIAG_CallingSonarRunner);
 

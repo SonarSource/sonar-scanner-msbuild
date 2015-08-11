@@ -25,14 +25,14 @@ namespace TestUtilities
 
         #region Public methods
 
-        public static void CreateDummyPreProcessor(string dummyBinDir, int exitCode)
+        public static string CreateDummyPreProcessor(string dummyBinDir, int exitCode)
         {
-            CreateDummyExe(dummyBinDir, PreProcessorExeName, exitCode);
+            return CreateDummyExe(dummyBinDir, PreProcessorExeName, exitCode);
         }
 
-        public static void CreateDummyPostProcessor(string dummyBinDir, int exitCode)
+        public static string CreateDummyPostProcessor(string dummyBinDir, int exitCode)
         {
-            CreateDummyExe(dummyBinDir, PostProcessorExeName, exitCode);
+            return CreateDummyExe(dummyBinDir, PostProcessorExeName, exitCode);
         }
 
         #endregion
@@ -58,13 +58,14 @@ namespace TestUtilities
         {
             return AssertLogFileDoesNotExist(dummyBinDir, PostProcessorExeName);
         }
-
-        public static void AssertExpectedLogContents(string logPath, string expected)
+        
+        public static void AssertExpectedLogContents(string logPath, params string[] expected)
         {
             Assert.IsTrue(File.Exists(logPath), "Expected log file does not exist: {0}", logPath);
 
-            string actual = File.ReadAllText(logPath);
-            Assert.AreEqual(expected, actual, "Log file does not have the expected content");
+            string[] actualLines = File.ReadAllLines(logPath);
+
+            CollectionAssert.AreEqual(expected ?? new string[] { }, actualLines, "Log file does not have the expected content");
         }
 
         private static string AssertLogFileExists(string dummyBinDir, string exeName, TestContext testContext)
@@ -128,7 +129,10 @@ namespace TestUtilities
 
             if (result.Errors.Count > 0)
             {
-                Console.WriteLine(result.Output.ToString());
+                foreach(string item in result.Output)
+                {
+                    Console.WriteLine(item);
+                }
                 Assert.Fail("Test setup error: failed to create dynamic assembly. See the test output for compiler output");
             }
         }

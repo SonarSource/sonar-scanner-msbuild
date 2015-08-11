@@ -9,7 +9,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using TestUtilities;
 
 namespace SonarQube.Common.UnitTests
@@ -207,6 +206,44 @@ xxx yyy
             Assert.IsFalse(success, "Expecting the process to have failed");
             Assert.AreEqual(ProcessRunner.ErrorCode, runner.ExitCode, "Unexpected exit code");
             logger.AssertSingleErrorExists("missingExe.foo");
+        }
+
+        [TestMethod]
+        public void ProcRunner_ArgumentQuoting()
+        {
+            // Checks arguments passed to the child process are correctly quoted
+
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            // Create a dummy exe that will produce a log file showing any input args
+            string exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
+
+            TestLogger logger = new TestLogger();
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, logger);
+            args.CmdLineArgs = new string[] {
+                "unquoted",
+                "\"quoted\"",
+                "\"quoted with spaces\"",
+                "/test:\"quoted arg\"",
+                "unquoted with spaces" };
+
+            ProcessRunner runner = new ProcessRunner();
+
+            // Act
+            bool success = runner.Execute(args);
+
+            // Assert
+            Assert.IsTrue(success, "Expecting the process to have succeeded");
+            Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
+
+            // Check that the public and private arguments are passed to the child process
+            string exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, this.TestContext);
+            DummyExeHelper.AssertExpectedLogContents(exeLogFile,
+                "unquoted",
+                "quoted",
+                "quoted with spaces",
+                "/test:quoted arg",
+                "unquoted with spaces");
         }
 
         #endregion

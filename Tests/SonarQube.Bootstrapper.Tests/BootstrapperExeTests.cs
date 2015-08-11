@@ -154,7 +154,10 @@ namespace SonarQube.Bootstrapper.Tests
                 logger.AssertWarningsLogged(0);
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, "/install:true\r\n/d:sonar.host.url=http://host:9\r\n/d:another.key=will be ignored\r\n");
+                DummyExeHelper.AssertExpectedLogContents(logPath,
+                    "/install:true",
+                    "/d:sonar.host.url=http://host:9",
+                    "/d:another.key=will be ignored");
             }
         }
 
@@ -188,7 +191,7 @@ namespace SonarQube.Bootstrapper.Tests
                 logger.AssertWarningsLogged(0);
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://anotherHost\r\n");
+                DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://anotherHost");
             }
         }
 
@@ -214,7 +217,7 @@ namespace SonarQube.Bootstrapper.Tests
                 logger.AssertWarningsLogged(0);
 
                 string logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, string.Empty);
+                DummyExeHelper.AssertExpectedLogContents(logPath, null);
             }
         }
 
@@ -242,7 +245,9 @@ namespace SonarQube.Bootstrapper.Tests
                 // The bootstrapper pass through any parameters it doesn't recognise so the post-processor
                 // can decide whether to handle them or not
                 string logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, "other params\r\nyet.more.params\r\n");
+                DummyExeHelper.AssertExpectedLogContents(logPath,
+                    "other params",
+                    "yet.more.params");
             }
         }
 
@@ -290,7 +295,11 @@ namespace SonarQube.Bootstrapper.Tests
                     mockUpdater.AssertVersionChecked();
 
                     string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-                    DummyExeHelper.AssertExpectedLogContents(logPath, "/v:version\r\n/n:name\r\n/k:key\r\n/s:" + defaultPropertiesFilePath + "\r\n");
+                    DummyExeHelper.AssertExpectedLogContents(logPath,
+                        "/v:version",
+                        "/n:name",
+                        "/k:key",
+                        "/s:" + defaultPropertiesFilePath);
 
                     DummyExeHelper.AssertDummyPostProcLogDoesNotExist(binDir);
 
@@ -298,7 +307,7 @@ namespace SonarQube.Bootstrapper.Tests
                     logger = CheckExecutionSucceeds(mockUpdater);
 
                     logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
-                    DummyExeHelper.AssertExpectedLogContents(logPath, string.Empty);
+                    DummyExeHelper.AssertExpectedLogContents(logPath, null);
 
                     logger.AssertWarningsLogged(1); // Should be warned once about the missing "begin" / "end"
                     logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb, ArgumentProcessor.EndVerb);

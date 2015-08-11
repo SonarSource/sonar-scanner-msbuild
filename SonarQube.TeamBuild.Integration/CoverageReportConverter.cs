@@ -184,10 +184,11 @@ namespace SonarQube.TeamBuild.Integration
             Debug.Assert(Path.IsPathRooted(inputBinaryFilePath), "Expecting the input file name to be a full absolute path");
             Debug.Assert(File.Exists(inputBinaryFilePath), "Expecting the input file to exist: " + inputBinaryFilePath);
             Debug.Assert(Path.IsPathRooted(outputXmlFilePath), "Expecting the output file name to be a full absolute path");
-
-            string args = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                @"analyze /output:""{0}"" ""{1}""",
-                outputXmlFilePath, inputBinaryFilePath);
+            
+            List<string> args = new List<string>();
+            args.Add("analyze");
+            args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, @"/output:""{0}""", outputXmlFilePath));
+            args.Add(inputBinaryFilePath);
 
 
             ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(converterExeFilePath, logger)

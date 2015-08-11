@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 
 namespace SonarQube.Bootstrapper
 {
@@ -58,6 +59,6 @@ namespace SonarQube.Bootstrapper
         /// <summary>
         /// The command line arguments to pass to the child process
         /// </summary>
-        string ChildCmdLineArgs { get; }
+        IEnumerable<string> ChildCmdLineArgs { get; }
     }
 }

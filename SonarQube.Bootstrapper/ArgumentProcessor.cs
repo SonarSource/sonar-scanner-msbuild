@@ -147,7 +147,7 @@ namespace SonarQube.Bootstrapper
             return phase != AnalysisPhase.Unspecified;
         }
 
-        private static IBootstrapperSettings CreatePreProcessorSettings(IList<string> baseChildArgs, IAnalysisPropertyProvider properties, IAnalysisPropertyProvider globalFileProperties, ILogger logger)
+        private static IBootstrapperSettings CreatePreProcessorSettings(IList<string> childArgs, IAnalysisPropertyProvider properties, IAnalysisPropertyProvider globalFileProperties, ILogger logger)
         {
             string hostUrl = TryGetHostUrl(properties, logger);
             if (hostUrl == null)
@@ -163,10 +163,8 @@ namespace SonarQube.Bootstrapper
             {
                 Debug.Assert(fileProvider.PropertiesFile != null);
                 Debug.Assert(!string.IsNullOrEmpty(fileProvider.PropertiesFile.FilePath), "Expecting the properties file path to be set");
-                baseChildArgs.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}", FilePropertyProvider.Prefix, fileProvider.PropertiesFile.FilePath));
+                childArgs.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}\"{1}\"", FilePropertyProvider.Prefix, fileProvider.PropertiesFile.FilePath));
             }
-
-            string childArgs = GetChildProcCmdLineParams(baseChildArgs);
 
             IBootstrapperSettings settings = new BootstrapperSettings(
                 AnalysisPhase.PreProcessing,
@@ -189,9 +187,8 @@ namespace SonarQube.Bootstrapper
             return null;
         }
 
-        private static IBootstrapperSettings CreatePostProcessorSettings(IList<string> baseChildArgs, IAnalysisPropertyProvider properties, ILogger logger)
+        private static IBootstrapperSettings CreatePostProcessorSettings(IList<string> childArgs, IAnalysisPropertyProvider properties, ILogger logger)
         {
-            string childArgs = GetChildProcCmdLineParams(baseChildArgs);
             IBootstrapperSettings settings = new BootstrapperSettings(
                 AnalysisPhase.PostProcessing,
                 childArgs,
@@ -220,11 +217,6 @@ namespace SonarQube.Bootstrapper
                 .Except(excludedVerbs)
                 .Where(arg => !excludedPrefixes.Any(e => arg.StartsWith(e, ArgumentDescriptor.IdComparison)))
                 .ToList();
-        }
-
-        private static string GetChildProcCmdLineParams(IList<string> args)
-        {
-            return string.Join(" ", args.Select(a => "\"" + a + "\""));
         }
 
         #endregion Private methods

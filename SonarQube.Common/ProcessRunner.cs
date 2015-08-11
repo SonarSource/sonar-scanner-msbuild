@@ -57,7 +57,7 @@ namespace SonarQube.Common
                 UseShellExecute = false, // required if we want to capture the error output
                 ErrorDialog = false,
                 CreateNoWindow = true,
-                Arguments = runnerArgs.CmdLineArgs,
+                Arguments = runnerArgs.GetQuotedCommandLineArgs(),
                 WorkingDirectory = runnerArgs.WorkingDirectory
             };
 

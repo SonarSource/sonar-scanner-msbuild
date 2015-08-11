@@ -7,6 +7,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 namespace SonarQube.Common
@@ -43,7 +45,7 @@ namespace SonarQube.Common
         /// <summary>
         /// Non-sensitive command line arguments (i.e. ones that can safely be logged). Optional.
         /// </summary>
-        public string CmdLineArgs { get; set; }
+        public IEnumerable<string> CmdLineArgs { get; set; }
 
         public string WorkingDirectory { get; set; }
 
@@ -56,6 +58,36 @@ namespace SonarQube.Common
 
         public ILogger Logger { get { return this.logger; } }
 
+        public string GetQuotedCommandLineArgs()
+        {
+            if (this.CmdLineArgs != null)
+            {
+                return string.Join(" ", this.CmdLineArgs.Select(a => GetQuotedArg(a)));
+            }
+            return null;
+        }
+
         #endregion
+
+        #region Private methods
+
+        private static string GetQuotedArg(string arg)
+        {
+            Debug.Assert(arg != null, "Not expecting an argument to be null");
+
+            string quotedArg = arg;
+
+            // If an argument contains a quote then we assume it has been correctly quoted.
+            // Otherwise, quote strings that contain spaces.
+            if (quotedArg != null && arg.Contains(' ') && !arg.Contains('"'))
+            {
+                quotedArg = "\"" + arg + "\"";
+            }
+
+            return quotedArg;
+        }
+
+        #endregion
+
     }
 }

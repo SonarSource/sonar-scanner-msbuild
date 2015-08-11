@@ -7,6 +7,7 @@
 
 using SonarQube.Common;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace SonarQube.Bootstrapper
@@ -66,7 +67,7 @@ namespace SonarQube.Bootstrapper
         private readonly ILogger logger;
         private readonly string sonarQubeUrl;
         private readonly AnalysisPhase analysisPhase;
-        private readonly string childCmdLineArgs;
+        private readonly IEnumerable<string> childCmdLineArgs;
 
         private string tempDir;
         private string preProcFilePath;
@@ -74,7 +75,7 @@ namespace SonarQube.Bootstrapper
         
         #region Constructor(s)
         
-        public BootstrapperSettings(AnalysisPhase phase, string childCmdLineArgs, string sonarQubeUrl, ILogger logger)
+        public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, string sonarQubeUrl, ILogger logger)
         {
             if (sonarQubeUrl == null)
             {
@@ -88,6 +89,7 @@ namespace SonarQube.Bootstrapper
             this.sonarQubeUrl = sonarQubeUrl;
             this.analysisPhase = phase;
             this.childCmdLineArgs = childCmdLineArgs;
+
             this.logger = logger;
         }
 
@@ -156,7 +158,7 @@ namespace SonarQube.Bootstrapper
             get { return this.analysisPhase; }
         }
 
-        public string ChildCmdLineArgs
+        public IEnumerable<string> ChildCmdLineArgs
         {
             get { return this.childCmdLineArgs; }
         }
