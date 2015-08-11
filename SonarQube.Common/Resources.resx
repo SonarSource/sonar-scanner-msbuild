@@ -236,4 +236,7 @@
   <data name="INFO_SonarVerboseWasSpecified" xml:space="preserve">
     <value>sonar.verbose={0} was specified - setting the log verbosity to '{1}'</value>
   </data>
+  <data name="ERROR_FileNotFound" xml:space="preserve">
+    <value>Could not find a file on the SonarQube server. Url: {0}</value>
+  </data>
 </root>

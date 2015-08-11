@@ -155,6 +155,7 @@ namespace SonarQube.Common
             var response = ex.Response as HttpWebResponse;
             if (response != null && response.StatusCode == HttpStatusCode.NotFound)
             {
+                logger.LogError(Resources.ERROR_FileNotFound, response.ResponseUri);
                 return true;
             }
 

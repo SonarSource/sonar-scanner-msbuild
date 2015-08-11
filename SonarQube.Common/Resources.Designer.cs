@@ -318,6 +318,15 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not find a file on the SonarQube server. Url: {0}.
+        /// </summary>
+        internal static string ERROR_FileNotFound {
+            get {
+                return ResourceManager.GetString("ERROR_FileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Descriptor ids must be unique.
         /// </summary>
         public static string ERROR_Parser_UniqueDescriptorIds {
