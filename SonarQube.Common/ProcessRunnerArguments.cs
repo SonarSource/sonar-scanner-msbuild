@@ -110,6 +110,16 @@ namespace SonarQube.Common
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Determines whether the text contains sensitive data that
+        /// should not be logged/written to file
+        /// </summary>
+        public static bool ContainsSensitiveData(string text)
+        {
+            if (SensitiveDataMarkers == null) { return false; }
+            return SensitiveDataMarkers.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) > -1);
+        }
+
         #endregion
 
         #region Private methods
@@ -128,12 +138,6 @@ namespace SonarQube.Common
             }
 
             return quotedArg;
-        }
-
-        private static bool ContainsSensitiveData(string text)
-        {
-            if (SensitiveDataMarkers == null) { return false; }
-            return SensitiveDataMarkers.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) > -1);
         }
 
         #endregion

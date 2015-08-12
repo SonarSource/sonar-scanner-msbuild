@@ -46,6 +46,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Checks command line properties override those fetched from the server
 
             // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
             TestLogger logger = new TestLogger();
 
@@ -68,7 +69,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 "/d:sonar.host.url=http://host" };
 
             string configFilePath;
-            using (PreprocessTestUtils.CreateValidLegacyTeamBuildScope("tfs uri", "build uri"))
+            using (new WorkingDirectoryScope(testDir))
             {
                 TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
@@ -77,8 +78,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator, mockTargetsInstaller);
 
                 // Act
-                bool executed = preProcessor.Execute(validArgs, logger);
-                Assert.IsTrue(executed);
+                bool success = preProcessor.Execute(validArgs, logger);
+                Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
             }
 
             // Assert
@@ -98,13 +99,67 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedAnalysisSetting(SonarProperties.HostUrl, "http://host", actualConfig);
         }
 
+        [TestMethod]
+        [WorkItem(127)] // Do not store the db and server credentials in the config files: http://jira.sonarsource.com/browse/SONARMSBRU-127
+        public void PreProc_AnalysisConfigDoesNotContainSensitiveData()
+        {
+            // Arrange
+            string configFilePath;
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            TestLogger logger = new TestLogger();
+
+            TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(new MockPropertiesFetcher(), new MockRulesetGenerator(), new MockTargetsInstaller());
+            
+            string[] validArgs = new string[] {
+                // Public args - should be written to the config file
+                "/k:key", "/n:name", "/v:1.0",
+                "/d:sonar.host.url=http://host",
+
+                // Sensitive values - should not be written to the config file
+                "/d:sonar.login=secret login",
+                "/d:sonar.password=secret password",
+                "/d:sonar.jdbc.username=secret db password",
+                "/d:sonar.jdbc.password=secret db password"
+            };
+
+            using (new WorkingDirectoryScope(testDir))
+            {
+                configFilePath = TeamBuildSettings.GetSettingsFromEnvironment(logger).AnalysisConfigFilePath;
+
+                // Act
+                bool success = preProcessor.Execute(validArgs, logger);
+                Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
+            }
+
+            // Assert
+            AssertConfigFileExists(configFilePath);
+            logger.AssertErrorsLogged(0);
+            logger.AssertWarningsLogged(0);
+
+            // Check the config
+            AnalysisConfig actualConfig = AnalysisConfig.Load(configFilePath);
+
+            // "Public" arguments should be in the file
+            AssertExpectedAnalysisSetting(SonarProperties.ProjectKey, "key", actualConfig);
+            AssertExpectedAnalysisSetting(SonarProperties.ProjectName, "name", actualConfig);
+            AssertExpectedAnalysisSetting(SonarProperties.ProjectVersion, "1.0", actualConfig);
+            AssertExpectedAnalysisSetting(SonarProperties.HostUrl, "http://host", actualConfig);
+
+            // Sensitive arguments should be in the file
+            AssertSettingDoesNotExist(SonarProperties.SonarUserName, actualConfig);
+            AssertSettingDoesNotExist(SonarProperties.SonarPassword, actualConfig);
+            AssertSettingDoesNotExist(SonarProperties.DbUserName, actualConfig);
+            AssertSettingDoesNotExist(SonarProperties.DbPassword, actualConfig);
+        }
+
         #endregion Tests
 
         #region Checks
 
-        private static void AssertConfigFileExists(string filePath)
+        private void AssertConfigFileExists(string filePath)
         {
             Assert.IsTrue(File.Exists(filePath), "Expecting the analysis config file to exist. Path: {0}", filePath);
+            this.TestContext.AddResultFile(filePath);
         }
 
         private static void AssertExpectedAnalysisSetting(string key, string expectedValue, AnalysisConfig actualConfig)
@@ -114,6 +169,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             Assert.IsNotNull(setting, "Failed to retrieve the expected setting. Key: {0}", key);
             Assert.AreEqual(expectedValue, setting.Value, "Unexpected setting value. Key: {0}", key);
+        }
+
+        private static void AssertSettingDoesNotExist(string key, AnalysisConfig actualConfig)
+        {
+            AnalysisSetting setting;
+            bool found = actualConfig.TryGetSetting(key, out setting);
+            Assert.IsFalse(found, "The setting should not exist. Key: {0}", key);
         }
 
         #endregion Checks

@@ -219,7 +219,10 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             foreach (Property item in args.GetAllProperties())
             {
-                config.SetExplicitValue(item.Id, item.Value); // this will overwrite the setting if it already exists
+                if (!ProcessRunnerArguments.ContainsSensitiveData(item.Id) && !ProcessRunnerArguments.ContainsSensitiveData(item.Value))
+                {
+                    config.SetExplicitValue(item.Id, item.Value); // this will overwrite the setting if it already exists
+                }
             }
         }
 
