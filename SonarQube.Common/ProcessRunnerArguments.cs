@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace SonarQube.Common
@@ -21,7 +22,18 @@ namespace SonarQube.Common
         private readonly string exeName;
         private readonly ILogger logger;
 
-        public ProcessRunnerArguments(string exeName, ILogger logger)
+        /// <summary>
+        /// Strings that are used to indicate arguments that contain
+        /// sensitive data that should not be logged
+        /// </summary>
+        public static readonly string[] SensitiveDataMarkers = new string[] {
+            SonarProperties.SonarPassword,
+            SonarProperties.SonarUserName,
+            SonarProperties.DbPassword,
+            SonarProperties.DbUserName
+        };
+    
+            public ProcessRunnerArguments(string exeName, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(exeName))
             {
@@ -60,11 +72,42 @@ namespace SonarQube.Common
 
         public string GetQuotedCommandLineArgs()
         {
-            if (this.CmdLineArgs != null)
+            if (this.CmdLineArgs == null) { return null; }
+
+            return string.Join(" ", this.CmdLineArgs.Select(a => GetQuotedArg(a)));
+        }
+
+        /// <summary>
+        /// Returns the string that should be used when logging command line arguments
+        /// (sensitive data will have been removed)
+        /// </summary>
+        public string GetCommandLineArgsLogText()
+        {
+            if (this.CmdLineArgs == null) { return null; }
+
+            bool hasSensitiveData = false;
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (string arg in this.CmdLineArgs)
             {
-                return string.Join(" ", this.CmdLineArgs.Select(a => GetQuotedArg(a)));
+                if (ContainsSensitiveData(arg))
+                {
+                    hasSensitiveData = true;
+                }
+                else
+                {
+                    sb.Append(arg);
+                    sb.Append(" ");
+                }
             }
-            return null;
+
+            if (hasSensitiveData)
+            {
+                sb.Append(Resources.INFO_CmdLine_SensitiveCmdLineArgsAlternativeText);
+            }
+
+            return sb.ToString();
         }
 
         #endregion
@@ -85,6 +128,12 @@ namespace SonarQube.Common
             }
 
             return quotedArg;
+        }
+
+        private static bool ContainsSensitiveData(string text)
+        {
+            if (SensitiveDataMarkers == null) { return false; }
+            return SensitiveDataMarkers.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) > -1);
         }
 
         #endregion

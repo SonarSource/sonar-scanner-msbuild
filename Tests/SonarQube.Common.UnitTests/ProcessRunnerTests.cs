@@ -9,6 +9,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TestUtilities;
 
 namespace SonarQube.Common.UnitTests
@@ -246,6 +247,74 @@ xxx yyy
                 "unquoted with spaces");
         }
 
+
+        [TestMethod]
+        [WorkItem(126)] // Exclude secrets from log data: http://jira.sonarsource.com/browse/SONARMSBRU-126
+        public void ProcRunner_DoNotLogSensitiveData()
+        {
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            // Create a dummy exe that will produce a log file showing any input args
+            string exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
+
+            TestLogger logger = new TestLogger();
+
+            // Public args - should appear in the log
+            string[] publicArgs = new string[]
+            {
+                "public1",
+                "public2",
+                "/d:sonar.projectKey=my.key"
+            };
+
+            string[] sensitiveArgs = new string[] {
+                // Public args - should appear in the log
+                "public1", "public2", "/dmy.key=value",
+
+                // Sensitive args - should not appear in the log
+                "/d:sonar.password=secret data password",
+                "/d:sonar.login=secret data login",
+                "/d:sonar.jdbc.password=secret data db password",
+                "/d:sonar.jdbc.username=secret data db user name",
+
+                // Sensitive args - different cases -> exclude to be on the safe side
+                "/d:SONAR.jdbc.password=secret data db password upper",
+                "/d:sonar.PASSWORD=secret data password upper",
+
+                // Sensitive args - parameter format is slightly incorrect -> exclude to be on the safe side
+                "/dsonar.login =secret data key typo",
+                "sonar.password=secret data password typo"
+            };
+
+            string[] allArgs = sensitiveArgs.Union(publicArgs).ToArray();
+
+            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(exeName, logger)
+            {
+                CmdLineArgs = allArgs
+            };
+            ProcessRunner runner = new ProcessRunner();
+
+            // Act
+            bool success = runner.Execute(runnerArgs);
+
+            // Assert
+            Assert.IsTrue(success, "Expecting the process to have succeeded");
+            Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
+
+            // Check public arguments are logged but private ones are not
+            foreach(string arg in publicArgs)
+            {
+                logger.AssertSingleMessageExists(arg);
+            }
+
+            logger.AssertSingleMessageExists(SonarQube.Common.Resources.INFO_CmdLine_SensitiveCmdLineArgsAlternativeText);
+            AssertTextDoesNotAppearInLog("secret", logger);
+
+            // Check that the public and private arguments are passed to the child process
+            string exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, this.TestContext);
+            DummyExeHelper.AssertExpectedLogContents(exeLogFile, allArgs); 
+        }
+
         #endregion
 
 
@@ -262,6 +331,18 @@ xxx yyy
                 logger.LogWarning("Test setup error: user running the test doesn't have the permissions to set the environment variable. Key: {0}, value: {1}, target: {2}",
                     key, value, target);
             }
+        }
+
+        private static void AssertTextDoesNotAppearInLog(string text, TestLogger logger)
+        {
+            AssertTextDoesNotAppearInLog(text, logger.Messages);
+            AssertTextDoesNotAppearInLog(text, logger.Errors);
+            AssertTextDoesNotAppearInLog(text, logger.Warnings);
+        }
+
+        private static void AssertTextDoesNotAppearInLog(string text, IList<string> logEntries)
+        {
+            Assert.IsFalse(logEntries.Any(e => e.IndexOf(text, StringComparison.OrdinalIgnoreCase) > -1), "Specified text should not appear anywhere in the log file: {0}", text);
         }
 
         #endregion

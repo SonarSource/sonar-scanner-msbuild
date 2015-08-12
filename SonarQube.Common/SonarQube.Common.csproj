@@ -50,7 +50,7 @@
     <Compile Include="CommandLine\ArgumentDescriptor.cs" />
     <Compile Include="CommandLine\CommandLineParser.cs" />
     <Compile Include="ProcessRunner.cs" />
-    <Compile Include="ProcessRunnerArgs.cs" />
+    <Compile Include="ProcessRunnerArguments.cs" />
     <Compile Include="ProjectInfo\AnalysisResult.cs" />
     <Compile Include="ProjectInfo\AnalysisType.cs" />
     <Compile Include="ConsoleLogger.cs" />
@@ -79,7 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>

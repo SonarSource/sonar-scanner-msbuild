@@ -224,4 +224,7 @@
     <value>Failed to create an empty directory. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.
   Detailed error message: {0}</value>
   </data>
+  <data name="INFO_CmdLine_SensitiveCmdLineArgsAlternativeText" xml:space="preserve">
+    <value>&lt;sensitive data removed&gt;</value>
+  </data>
 </root>

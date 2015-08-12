@@ -72,12 +72,19 @@ namespace SonarQube.Common
                 process.StartInfo = psi;
                 process.ErrorDataReceived += OnErrorDataReceived;
                 process.OutputDataReceived += OnOutputDataReceived;
-
+                
                 process.Start();
                 process.BeginErrorReadLine();
                 process.BeginOutputReadLine();
 
-                this.outputLogger.LogMessage(Resources.DIAG_ExecutingFile, runnerArgs.ExeName, runnerArgs.CmdLineArgs, runnerArgs.WorkingDirectory, runnerArgs.TimeoutInMilliseconds, process.Id);
+                // Warning: do not log the raw command line args as they
+                // may contain sensitive data
+                this.outputLogger.LogMessage(Resources.DIAG_ExecutingFile,
+                    runnerArgs.ExeName,
+                    runnerArgs.GetCommandLineArgsLogText(),
+                    runnerArgs.WorkingDirectory,
+                    runnerArgs.TimeoutInMilliseconds,
+                    process.Id);
 
                 succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
                 if (succeeded)
