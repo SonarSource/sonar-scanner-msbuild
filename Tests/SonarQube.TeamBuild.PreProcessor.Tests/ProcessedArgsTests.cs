@@ -15,6 +15,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     [TestClass]
     public class ProcessedArgsTests
     {
+        #region Tests
+
         [TestMethod]
         public void ProcArgs_GetSetting()
         {
@@ -102,5 +104,49 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual(true, args.InstallLoaderTargets);
         }
 
+        [TestMethod]
+        public void ProcArgs_CmdLinePropertiesOverrideFileSettings()
+        {
+            // Checks command line properties override those from files
+
+            // Arrange
+            // The set of command line properties to supply
+            ListPropertiesProvider cmdLineProperties = new ListPropertiesProvider();
+            cmdLineProperties.AddProperty("shared.key1", "cmd line value1 - should override server value");
+            cmdLineProperties.AddProperty("cmd.line.only", "cmd line value4 - only on command line");
+            cmdLineProperties.AddProperty("xxx", "cmd line value XXX - lower case");
+            cmdLineProperties.AddProperty(SonarProperties.HostUrl, "http://host");
+
+            // The set of file properties to supply
+            ListPropertiesProvider fileProperties = new ListPropertiesProvider();
+            fileProperties.AddProperty("shared.key1", "file value1 - should be overridden");
+            fileProperties.AddProperty("file.only", "file value3 - only in file");
+            fileProperties.AddProperty("XXX", "file line value XXX - upper case");
+
+            // Act
+            ProcessedArgs args = new ProcessedArgs("key", "name", "version", false, cmdLineProperties, fileProperties);
+
+            AssertExpectedValue("shared.key1", "cmd line value1 - should override server value", args);
+            AssertExpectedValue("cmd.line.only", "cmd line value4 - only on command line", args);
+            AssertExpectedValue("file.only", "file value3 - only in file", args);
+            AssertExpectedValue("xxx", "cmd line value XXX - lower case", args);
+            AssertExpectedValue("XXX", "file line value XXX - upper case", args);
+            AssertExpectedValue(SonarProperties.HostUrl, "http://host", args);
+        }
+
+        #endregion
+
+        #region Checks
+
+        private static void AssertExpectedValue(string key, string expectedValue, ProcessedArgs args)
+        {
+            string actualValue;
+            bool found = args.TryGetSetting(key, out actualValue);
+
+            Assert.IsTrue(found, "Expected setting was not found. Key: {0}", key);
+            Assert.AreEqual(expectedValue, actualValue, "Setting does not have the expected value. Key: {0}", key);
+        }
+
+        #endregion
     }
 }

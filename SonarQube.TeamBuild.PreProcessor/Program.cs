@@ -6,41 +6,24 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
-using System;
-using System.IO;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
     /// <summary>
-    /// Wrapper around the pre-processor class. This class is responsible for
-    /// checking the command line arguments and returning the appropriate exit
-    /// code. The rest of the work is done by the pre-processor class.
+    /// Entry point for the executable. All work is delegated to the pre-processor class.
     /// </summary>
-    public class Program // was internal
+    public static class Program // was internal
     {
         private const int ErrorCode = 1;
 
-        private static int Main(string[] args)
+        public static int Main(string[] args)
         {
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
 
-            bool success;
-
-            ProcessedArgs processedArgs = ArgumentProcessor.TryProcessArgs(args, logger);
-
-            if (processedArgs == null)
-            {
-                success = false;
-                logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
-            }
-            else
-            {
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor();
-                success = preProcessor.Execute(processedArgs, logger);
-            }
-
+            TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor();
+            bool success = preProcessor.Execute(args, logger);
+           
             return success ? 0 : ErrorCode;
         }
-
     }
 }

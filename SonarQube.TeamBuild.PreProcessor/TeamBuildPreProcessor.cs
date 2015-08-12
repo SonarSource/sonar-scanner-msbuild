@@ -57,7 +57,31 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #region Public methods
 
-        public bool Execute(ProcessedArgs args, ILogger logger)
+        public bool Execute(string[] args, ILogger logger)
+        {
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+
+            bool success;
+
+            ProcessedArgs processedArgs = ArgumentProcessor.TryProcessArgs(args, logger);
+
+            if (processedArgs == null)
+            {
+                success = false;
+                logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
+            }
+            else
+            {
+                success = DoExecute(processedArgs, logger);
+            }
+
+            return success;
+        }
+
+        private bool DoExecute(ProcessedArgs args, ILogger logger)
         {
             if (args == null)
             {
