@@ -16,7 +16,7 @@ namespace SonarQube.TeamBuild.PreProcessor
     {
         private const int ErrorCode = 1;
 
-        public static int Main(string[] args)
+        private static int Main(string[] args)
         {
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
 
