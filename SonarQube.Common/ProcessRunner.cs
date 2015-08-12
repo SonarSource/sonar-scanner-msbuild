@@ -30,14 +30,14 @@ namespace SonarQube.Common
         /// <summary>
         /// Runs the specified executable and returns a boolean indicating success or failure
         /// </summary>
-        /// <remarks>The standard and error output will be streamed to the logger. Child processes do not inherit the env variables from the parent autmatically</remarks>
+        /// <remarks>The standard and error output will be streamed to the logger. Child processes do not inherit the env variables from the parent automatically</remarks>
         public bool Execute(ProcessRunnerArguments runnerArgs)
         {
             if (runnerArgs == null)
             {
                 throw new ArgumentNullException("runnerArgs");
             }
-            Debug.Assert(!string.IsNullOrWhiteSpace(runnerArgs.ExeName), "Process runner exe name should not be null/emty");
+            Debug.Assert(!string.IsNullOrWhiteSpace(runnerArgs.ExeName), "Process runner exe name should not be null/empty");
             Debug.Assert( runnerArgs.Logger!= null, "Process runner logger should not be null/empty");
 
             this.outputLogger = runnerArgs.Logger;
@@ -72,14 +72,14 @@ namespace SonarQube.Common
                 process.StartInfo = psi;
                 process.ErrorDataReceived += OnErrorDataReceived;
                 process.OutputDataReceived += OnOutputDataReceived;
-                
+
                 process.Start();
                 process.BeginErrorReadLine();
                 process.BeginOutputReadLine();
 
                 // Warning: do not log the raw command line args as they
                 // may contain sensitive data
-                this.outputLogger.LogMessage(Resources.DIAG_ExecutingFile,
+                this.outputLogger.LogInfo(Resources.DIAG_ExecutingFile,
                     runnerArgs.ExeName,
                     runnerArgs.GetCommandLineArgsLogText(),
                     runnerArgs.WorkingDirectory,
@@ -96,7 +96,7 @@ namespace SonarQube.Common
                 // true: we might still have timed out, but the process ended when we asked it to
                 if (succeeded)
                 {
-                    this.outputLogger.LogMessage(Resources.DIAG_ExecutionExitCode, process.ExitCode);
+                    this.outputLogger.LogInfo(Resources.DIAG_ExecutionExitCode, process.ExitCode);
                     this.ExitCode = process.ExitCode;
                 }
                 else
@@ -134,11 +134,11 @@ namespace SonarQube.Common
 
                 if (psi.EnvironmentVariables.ContainsKey(envVariable.Key))
                 {
-                    logger.LogMessage(Resources.DIAG_Runner_OverwritingEnvVar, envVariable.Key, psi.EnvironmentVariables[envVariable.Key], envVariable.Value);
+                    logger.LogDebug(Resources.DIAG_Runner_OverwritingEnvVar, envVariable.Key, psi.EnvironmentVariables[envVariable.Key], envVariable.Value);
                 }
                 else
                 {
-                    logger.LogMessage(Resources.DIAG_Runner_SettingEnvVar, envVariable.Key, envVariable.Value);
+                    logger.LogDebug(Resources.DIAG_Runner_SettingEnvVar, envVariable.Key, envVariable.Value);
                 }
                 psi.EnvironmentVariables[envVariable.Key] = envVariable.Value;
             }
@@ -148,7 +148,7 @@ namespace SonarQube.Common
         {
             if (e.Data != null)
             {
-                this.outputLogger.LogMessage(e.Data);
+                this.outputLogger.LogDebug(e.Data);
             }
         }
 

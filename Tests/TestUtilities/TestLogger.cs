@@ -19,6 +19,11 @@ namespace TestUtilities
         public List<string> Warnings { get; private set; }
         public List<string> Errors { get; private set; }
 
+        public LoggerVerbosity Verbosity
+        {
+            get; set;
+        }
+
         public TestLogger()
         {
             // Write out a separator. Many tests create more than one TestLogger.
@@ -30,6 +35,8 @@ namespace TestUtilities
             Messages = new List<string>();
             Warnings = new List<string>();
             Errors = new List<string>();
+
+            this.Verbosity = LoggerVerbosity.Debug;
         }
 
         #region Public methods
@@ -135,10 +142,9 @@ namespace TestUtilities
 
         #region ILogger interface
 
-        public void LogMessage(string message, params object[] args)
+        public void LogInfo(string message, params object[] args)
         {
-            Messages.Add(GetFormattedMessage(message, args));
-            WriteLine("MESSAGE: " + message, args);
+            LogMessage(LoggerVerbosity.Info, message, args);
         }
 
         public void LogWarning(string message, params object[] args)
@@ -153,6 +159,12 @@ namespace TestUtilities
             WriteLine("ERROR: " + message, args);
         }
 
+        public void LogDebug(string message, params object[] args)
+        {
+            LogMessage(LoggerVerbosity.Debug, message, args);
+        }
+
+
         #endregion
 
         #region Private methods
@@ -165,6 +177,12 @@ namespace TestUtilities
         private static string GetFormattedMessage(string message, params object[] args)
         {
             return string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args);
+        }
+
+        private void LogMessage(LoggerVerbosity verbosity, string message, params object[] args)
+        {
+            Messages.Add(GetFormattedMessage(message, args));
+            WriteLine(verbosity.ToString() + ": " + message, args);
         }
 
         #endregion

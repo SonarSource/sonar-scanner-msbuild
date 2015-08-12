@@ -75,7 +75,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                 {
                     Directory.CreateDirectory(destinationDir); // creates all the directories in the path if needed
                     File.Copy(sourcePath, destinationPath, overwrite: false);
-                    logger.LogMessage(Resources.INFO_InstallTargets_Copy, fileName, destinationDir);
+                    logger.LogDebug(Resources.INFO_InstallTargets_Copy, fileName, destinationDir);
                 }
                 else
                 {
@@ -84,11 +84,11 @@ namespace SonarQube.TeamBuild.PreProcessor
                     if (!String.Equals(sourceContent, destinationContent, StringComparison.Ordinal))
                     {
                         File.Copy(sourcePath, destinationPath, overwrite: true);
-                        logger.LogMessage(Resources.INFO_InstallTargets_Overwrite, fileName, destinationDir);
+                        logger.LogDebug(Resources.INFO_InstallTargets_Overwrite, fileName, destinationDir);
                     }
                     else
                     {
-                        logger.LogMessage(Resources.INFO_InstallTargets_UpToDate, fileName, destinationDir);
+                        logger.LogDebug(Resources.INFO_InstallTargets_UpToDate, fileName, destinationDir);
                     }
                 }
             }

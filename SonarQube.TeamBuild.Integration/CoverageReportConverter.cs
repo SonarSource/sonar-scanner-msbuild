@@ -55,7 +55,7 @@ namespace SonarQube.TeamBuild.Integration
             else
             {
                 Debug.Assert(File.Exists(this.conversionToolPath), "Expecting the code coverage exe to exist. Full name: " + this.conversionToolPath);
-                logger.LogMessage(Resources.CONV_DIAG_CommandLineToolInfo, this.conversionToolPath);
+                logger.LogDebug(Resources.CONV_DIAG_CommandLineToolInfo, this.conversionToolPath);
                 success = true;
             }
             return success;
@@ -87,7 +87,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             string toolPath = null;
 
-            logger.LogMessage(Resources.CONV_DIAG_LocatingCodeCoverageTool);
+            logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageTool);
             using (RegistryKey key = Registry.LocalMachine.OpenSubKey(VisualStudioRegistryPath, false))
             {
                 string[] keys = key.GetSubKeyNames();
@@ -101,7 +101,7 @@ namespace SonarQube.TeamBuild.Integration
                 
                 if (versionToolMap.Count > 1)
                 {
-                    logger.LogMessage(Resources.CONV_DIAG_MultipleVsVersionsInstalled, string.Join(", ", versionToolMap.Keys));
+                    logger.LogDebug(Resources.CONV_DIAG_MultipleVsVersionsInstalled, string.Join(", ", versionToolMap.Keys));
                 }
 
                 if (versionToolMap.Count > 0)

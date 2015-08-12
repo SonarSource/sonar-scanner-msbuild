@@ -12,10 +12,23 @@ namespace SonarQube.Common
     /// </summary>
     public interface ILogger
     {
-        void LogMessage(string message, params object[] args);
+        /// <summary>
+        /// Log a message with the Debug verbosity
+        /// </summary>
+        void LogDebug(string message, params object[] args);
+
+        /// <summary>
+        /// Log a message with the Info verbosity
+        /// </summary>
+        void LogInfo(string message, params object[] args);
         
         void LogWarning(string message, params object[] args);
         
         void LogError(string message, params object[] args);
+
+        /// <summary>
+        /// Gets or sets the level of detail to show in the log
+        /// </summary>
+        LoggerVerbosity Verbosity { get; set; }
     }
 }

@@ -49,6 +49,7 @@
     <Compile Include="CommandLine\ArgumentInstance.cs" />
     <Compile Include="CommandLine\ArgumentDescriptor.cs" />
     <Compile Include="CommandLine\CommandLineParser.cs" />
+    <Compile Include="Interfaces\LoggerVerbosity.cs" />
     <Compile Include="ProcessRunner.cs" />
     <Compile Include="ProcessRunnerArguments.cs" />
     <Compile Include="ProjectInfo\AnalysisResult.cs" />

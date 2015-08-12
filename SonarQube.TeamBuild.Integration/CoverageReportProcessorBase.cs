@@ -48,7 +48,7 @@ namespace SonarQube.TeamBuild.Integration
             }
 
             // Fetch all of the report URLs
-            logger.LogMessage(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
+            logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
 
             string binaryFilePath;
             bool continueProcessing = this.TryGetBinaryReportFile(context, settings, logger, out binaryFilePath);
@@ -77,7 +77,7 @@ namespace SonarQube.TeamBuild.Integration
 
             if (success)
             {
-                logger.LogMessage(Resources.PROC_DIAG_UpdatingProjectInfoFiles);
+                logger.LogDebug(Resources.PROC_DIAG_UpdatingProjectInfoFiles);
                 InsertCoverageAnalysisResults(context.SonarOutputDir, xmlFileName);
             }
 

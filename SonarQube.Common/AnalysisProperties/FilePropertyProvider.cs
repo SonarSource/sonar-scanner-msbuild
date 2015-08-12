@@ -124,7 +124,7 @@ namespace SonarQube.Common
                 {
                     try
                     {
-                        logger.LogMessage(Resources.DIAG_Properties_LoadingPropertiesFromFile, resolvedPath);
+                        logger.LogDebug(Resources.DIAG_Properties_LoadingPropertiesFromFile, resolvedPath);
                         properties = AnalysisProperties.Load(resolvedPath);
                     }
                     catch (InvalidOperationException)
@@ -147,12 +147,12 @@ namespace SonarQube.Common
             string fullPath = Path.Combine(defaultDirectory, DefaultFileName);
             if (File.Exists(fullPath))
             {
-                logger.LogMessage(Resources.DIAG_Properties_DefaultPropertiesFileFound, fullPath);
+                logger.LogDebug(Resources.DIAG_Properties_DefaultPropertiesFileFound, fullPath);
                 return fullPath;
             }
             else
             {
-                logger.LogMessage(Resources.DIAG_Properties_DefaultPropertiesFileNotFound, fullPath);
+                logger.LogDebug(Resources.DIAG_Properties_DefaultPropertiesFileNotFound, fullPath);
 
                 return null;
             }

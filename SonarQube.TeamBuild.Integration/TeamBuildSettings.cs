@@ -68,7 +68,7 @@ namespace SonarQube.TeamBuild.Integration
             {
                 case BuildEnvironment.LegacyTeamBuild:
 
-                    logger.LogMessage(Resources.SETTINGS_InLegacyTeamBuild);
+                    logger.LogInfo(Resources.SETTINGS_InLegacyTeamBuild);
                     settings = new TeamBuildSettings()
                     {
                         BuildEnvironment = env,
@@ -81,7 +81,7 @@ namespace SonarQube.TeamBuild.Integration
                     break;
 
                 case BuildEnvironment.TeamBuild:
-                    logger.LogMessage(Resources.SETTINGS_InTeamBuild);
+                    logger.LogInfo(Resources.SETTINGS_InTeamBuild);
                     settings = new TeamBuildSettings()
                     {
                         BuildEnvironment = env,
@@ -94,7 +94,7 @@ namespace SonarQube.TeamBuild.Integration
                     break;
 
                 default:
-                    logger.LogMessage(Resources.SETTINGS_NotInTeamBuild);
+                    logger.LogInfo(Resources.SETTINGS_NotInTeamBuild);
 
                     settings = new TeamBuildSettings()
                     {
@@ -105,7 +105,7 @@ namespace SonarQube.TeamBuild.Integration
                     break;
             }
 
-            logger.LogMessage(Resources.SETTING_DumpSettings,
+            logger.LogDebug(Resources.SETTING_DumpSettings,
                 settings.AnalysisBaseDirectory,
                 settings.BuildDirectory,
                 settings.SonarBinDirectory,

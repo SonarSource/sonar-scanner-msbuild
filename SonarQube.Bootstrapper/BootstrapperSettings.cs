@@ -169,7 +169,7 @@ namespace SonarQube.Bootstrapper
 
         private static string CalculateTempDir(ILogger logger)
         {
-            logger.LogMessage(Resources.INFO_UsingEnvVarToGetDirectory);
+            logger.LogDebug(Resources.INFO_UsingEnvVarToGetDirectory);
             string rootDir = GetFirstEnvironmentVariable(DirectoryEnvVarNames, logger);
 
             if (string.IsNullOrWhiteSpace(rootDir))
@@ -192,7 +192,7 @@ namespace SonarQube.Bootstrapper
                 string value = Environment.GetEnvironmentVariable(varName);
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    logger.LogMessage(Resources.INFO_UsingBuildEnvironmentVariable, varName, value);
+                    logger.LogDebug(Resources.INFO_UsingBuildEnvironmentVariable, varName, value);
                     result = value;
                     break;
                 }

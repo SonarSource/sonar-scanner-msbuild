@@ -71,7 +71,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
                 if (File.Exists(configFilePath))
                 {
-                    logger.LogMessage(Resources.DIAG_LoadingConfig, configFilePath);
+                    logger.LogInfo(Resources.DIAG_LoadingConfig, configFilePath);
                     config = AnalysisConfig.Load(teamBuildSettings.AnalysisConfigFilePath);
                 }
                 else
@@ -120,7 +120,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private static void UpdateTeamBuildSummary(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
-            logger.LogMessage(Resources.Report_UpdatingTeamBuildSummary);
+            logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
 
             int skippedProjectCount = result.GetProjectsByStatus(ProjectInfoValidity.NoFilesToAnalyze).Count();
             int invalidProjectCount = result.GetProjectsByStatus(ProjectInfoValidity.InvalidGuid).Count();

@@ -98,7 +98,7 @@ namespace SonarQube.TeamBuild.Integration
             Debug.Assert(!string.IsNullOrEmpty(buildRootDirectory));
             Debug.Assert(Directory.Exists(buildRootDirectory), "The specified build root directory should exist: " + buildRootDirectory);
 
-            logger.LogMessage(Resources.TRX_DIAG_LocatingTrx);
+            logger.LogInfo(Resources.TRX_DIAG_LocatingTrx);
             string trxFilePath = null;
 
             string testResultsPath = Path.Combine(buildRootDirectory, TestResultsFolderName);
@@ -110,12 +110,12 @@ namespace SonarQube.TeamBuild.Integration
                 switch (trxFiles.Length)
                 {
                     case 0:
-                        logger.LogMessage(Resources.TRX_DIAG_NoTestResultsFound);
+                        logger.LogInfo(Resources.TRX_DIAG_NoTestResultsFound);
                         break;
 
                     case 1:
                         trxFilePath = trxFiles[0];
-                        logger.LogMessage(Resources.TRX_DIAG_SingleTrxFileFound, trxFilePath);
+                        logger.LogInfo(Resources.TRX_DIAG_SingleTrxFileFound, trxFilePath);
                         break;
 
                     default:
@@ -125,7 +125,7 @@ namespace SonarQube.TeamBuild.Integration
             }
             else
             {
-                logger.LogMessage(Resources.TRX_DIAG_TestResultsDirectoryNotFound, testResultsPath);
+                logger.LogInfo(Resources.TRX_DIAG_TestResultsDirectoryNotFound, testResultsPath);
             }
             return trxFilePath;
         }
@@ -142,16 +142,16 @@ namespace SonarQube.TeamBuild.Integration
                 switch (attachmentUris.Count())
                 {
                     case 0:
-                        logger.LogMessage(Resources.TRX_DIAG_NoCodeCoverageInfo);
+                        logger.LogDebug(Resources.TRX_DIAG_NoCodeCoverageInfo);
                         break;
                     case 1:
                         coverageFilePath = attachmentUris.First();
-                        logger.LogMessage(Resources.TRX_DIAG_SingleCodeCoverageAttachmentFound, coverageFilePath);
+                        logger.LogDebug(Resources.TRX_DIAG_SingleCodeCoverageAttachmentFound, coverageFilePath);
 
                         if (!Path.IsPathRooted(coverageFilePath))
                         {
                             coverageFilePath = Path.Combine(Path.GetDirectoryName(trxFilePath), Path.GetFileNameWithoutExtension(trxFilePath), "In", coverageFilePath);
-                            logger.LogMessage(Resources.TRX_DIAG_AbsoluteTrxPath, coverageFilePath);
+                            logger.LogDebug(Resources.TRX_DIAG_AbsoluteTrxPath, coverageFilePath);
                         }
 
                         break;

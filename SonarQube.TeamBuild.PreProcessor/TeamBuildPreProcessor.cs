@@ -93,7 +93,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             config.SonarQubeHostUrl = args.GetSetting(SonarProperties.HostUrl);
 
             // Create the directories
-            logger.LogMessage(Resources.DIAG_CreatingFolders);
+            logger.LogDebug(Resources.DIAG_CreatingFolders);
             if (!Utilities.TryEnsureEmptyDirectories(logger,
                 config.SonarConfigDir,
                 config.SonarOutputDir))
@@ -107,7 +107,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             // Save the config file
-            logger.LogMessage(Resources.DIAG_SavingConfigFile, teamBuildSettings.AnalysisConfigFilePath);
+            logger.LogDebug(Resources.DIAG_SavingConfigFile, teamBuildSettings.AnalysisConfigFilePath);
             config.Save(teamBuildSettings.AnalysisConfigFilePath);
 
             return true;
@@ -121,7 +121,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             else
             {
-                logger.LogMessage(Resources.INFO_NotCopyingTargets);
+                logger.LogDebug(Resources.INFO_NotCopyingTargets);
             }
         }
 
@@ -182,7 +182,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private void GenerateFxCopRuleset(AnalysisConfig config, SonarWebService ws, string requiredPluginKey, string language, string repository, string path, ILogger logger)
         {
-            logger.LogMessage(Resources.DIAG_GeneratingRuleset, path);
+            logger.LogDebug(Resources.DIAG_GeneratingRuleset, path);
             this.rulesetGenerator.Generate(ws, requiredPluginKey, language, repository, config.SonarProjectKey, path);
         }
 

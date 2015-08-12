@@ -15,6 +15,8 @@ namespace SonarQube.Common
     /// </summary>
     public class ConsoleLogger : ILogger
     {
+        private const LoggerVerbosity DefaultVerbosity = LoggerVerbosity.Info;
+
         #region Public methods
 
         public ConsoleLogger() : this(includeTimestamp: false)
@@ -24,6 +26,7 @@ namespace SonarQube.Common
         public ConsoleLogger(bool includeTimestamp)
         {
             this.IncludeTimestamp = includeTimestamp;
+            this.Verbosity = DefaultVerbosity;
         }
 
         /// <summary>
@@ -31,15 +34,9 @@ namespace SonarQube.Common
         /// </summary>
         public bool IncludeTimestamp { get; private set; }
 
-        #endregion
+        #endregion Public methods
 
         #region ILogger interface
-
-        public void LogMessage(string message, params object[] args)
-        {
-            string finalMessage = this.GetFormattedMessage(message, args);
-            Console.WriteLine(finalMessage);
-        }
 
         public void LogWarning(string message, params object[] args)
         {
@@ -53,7 +50,22 @@ namespace SonarQube.Common
             Console.Error.WriteLine(finalMessage);
         }
 
-        #endregion
+        public void LogDebug(string message, params object[] args)
+        {
+            LogMessage(LoggerVerbosity.Debug, message, args);
+        }
+
+        public void LogInfo(string message, params object[] args)
+        {
+            LogMessage(LoggerVerbosity.Info, message, args);
+        }
+
+        public LoggerVerbosity Verbosity
+        {
+            get; set;
+        }
+
+        #endregion ILogger interface
 
         #region Private methods
 
@@ -72,6 +84,16 @@ namespace SonarQube.Common
             return finalMessage;
         }
 
-        #endregion
+        private void LogMessage(LoggerVerbosity messageVerbosity, string message, params object[] args)
+        {
+            if ((messageVerbosity == LoggerVerbosity.Info || 
+                (messageVerbosity == LoggerVerbosity.Debug && this.Verbosity == LoggerVerbosity.Debug)))
+            {
+                string finalMessage = this.GetFormattedMessage(message, args);
+                Console.WriteLine(finalMessage);
+            }
+        }
+
+        #endregion Private methods
     }
 }

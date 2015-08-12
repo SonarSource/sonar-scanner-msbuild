@@ -18,7 +18,6 @@ namespace SonarQube.Bootstrapper
         {
             var logger = new ConsoleLogger();
             BuildAgentUpdater updater = new BuildAgentUpdater();
-
             return Execute(args, updater, logger);
         }
 
@@ -67,7 +66,7 @@ namespace SonarQube.Bootstrapper
 
             string server = settings.SonarQubeUrl;
             Debug.Assert(!string.IsNullOrWhiteSpace(server), "Not expecting the server url to be null/empty");
-            logger.LogMessage(Resources.INFO_ServerUrl, server);
+            logger.LogInfo(Resources.INFO_ServerUrl, server);
 
             if (!updater.TryUpdate(server, downloadBinPath, logger))
             {
@@ -111,7 +110,7 @@ namespace SonarQube.Bootstrapper
         private static void LogProcessingStarted(AnalysisPhase phase, ILogger logger)
         {
             string phaseLabel = phase == AnalysisPhase.PreProcessing ? Resources.PhaseLabel_PreProcessing : Resources.PhaseLabel_PostProcessing;
-            logger.LogMessage(Resources.INFO_ProcessingStarted, phaseLabel);
+            logger.LogInfo(Resources.INFO_ProcessingStarted, phaseLabel);
         }
 
         private static void LogProcessingCompleted(AnalysisPhase phase, int exitCode, ILogger logger)
@@ -123,7 +122,7 @@ namespace SonarQube.Bootstrapper
             }
             else
             {
-                logger.LogMessage(Resources.INFO_ProcessingSucceeded, phaseLabel);
+                logger.LogInfo(Resources.INFO_ProcessingSucceeded, phaseLabel);
             }
         }
     }

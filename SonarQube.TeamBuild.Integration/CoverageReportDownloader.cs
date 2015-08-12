@@ -49,7 +49,7 @@ namespace SonarQube.TeamBuild.Integration
             VssHttpMessageHandler vssHttpMessageHandler = GetHttpHandler(tfsUri, logger);
             HttpClient httpClient = new HttpClient(vssHttpMessageHandler);
 
-            logger.LogMessage(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, reportDestinationPath);
+            logger.LogInfo(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, reportDestinationPath);
             using (HttpResponseMessage response = httpClient.GetAsync(reportUrl).Result)
             {
                 if (response.IsSuccessStatusCode)
@@ -73,7 +73,7 @@ namespace SonarQube.TeamBuild.Integration
                 collection.ClientCredentials.AllowInteractive = false;
                 collection.EnsureAuthenticated();
 
-                logger.LogMessage(Resources.DOWN_DIAG_ConnectedToTFS, tfsUri);
+                logger.LogInfo(Resources.DOWN_DIAG_ConnectedToTFS, tfsUri);
 
                 // We need VSS credentials that encapsulate all types of credentials (NetworkCredentials for TFS, OAuth for VSO)
                 TfsConnection connection = collection as TfsConnection;

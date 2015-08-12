@@ -91,7 +91,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             // especially when running from the command line.
             if (this.result.RanToCompletion)
             {
-                this.logger.LogMessage(Resources.Report_LinkToDashboard, summaryData.DashboardUrl);
+                this.logger.LogInfo(Resources.Report_LinkToDashboard, summaryData.DashboardUrl);
             }
         }
 
@@ -144,7 +144,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private void CreateSummaryMdFile(SummaryReportData summaryData)
         {
-            this.logger.LogMessage(Resources.Report_CreatingSummaryMarkdown);
+            this.logger.LogInfo(Resources.Report_CreatingSummaryMarkdown);
 
             Debug.Assert(!String.IsNullOrEmpty(this.config.SonarOutputDir), "Could not find the output directory");
             string summaryMdPath = Path.Combine(this.config.SonarOutputDir, SummaryMdFilename);
@@ -169,7 +169,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private void UpdateLegacyTeamBuildSummary(SummaryReportData summaryData)
         {
-            this.logger.LogMessage(Resources.Report_UpdatingTeamBuildSummary);
+            this.logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
 
             using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(this.config.GetTfsUri(), this.config.GetBuildUri()))
             {

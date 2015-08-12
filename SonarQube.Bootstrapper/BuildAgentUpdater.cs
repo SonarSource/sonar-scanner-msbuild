@@ -18,9 +18,6 @@ namespace SonarQube.Bootstrapper
 {
     public class BuildAgentUpdater : IBuildAgentUpdater
     {
-        
-
-
         /// <summary>
         /// Gets a zip file containing the pre/post processors from the server
         /// </summary>
@@ -47,7 +44,7 @@ namespace SonarQube.Bootstrapper
             {
                 try
                 {
-                    logger.LogMessage(Resources.INFO_Downloading, BootstrapperSettings.SonarQubeIntegrationFilename, integrationUrl, downloadedZipFilePath);
+                    logger.LogInfo(Resources.INFO_Downloading, BootstrapperSettings.SonarQubeIntegrationFilename, integrationUrl, downloadedZipFilePath);
                     client.DownloadFile(integrationUrl, downloadedZipFilePath);
                 }
                 catch (WebException ex)

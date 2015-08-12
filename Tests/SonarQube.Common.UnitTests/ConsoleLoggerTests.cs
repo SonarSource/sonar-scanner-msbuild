@@ -13,7 +13,7 @@ namespace SonarQube.Common.UnitTests
     public class ConsoleLoggerTests
     {
         #region Tests
-
+       
         [TestMethod]
         [Description("Regression test: checks the logger does not fail on null message")]
         public void CLogger_NoExceptionOnNullMessage()
@@ -21,9 +21,9 @@ namespace SonarQube.Common.UnitTests
             // 1. Logger without timestamps
             ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
 
-            logger.LogMessage(null);
-            logger.LogMessage(null, null);
-            logger.LogMessage(null, "abc");
+            logger.LogInfo(null);
+            logger.LogInfo(null, null);
+            logger.LogInfo(null, "abc");
 
             logger.LogWarning(null);
             logger.LogWarning(null, null);
@@ -36,9 +36,9 @@ namespace SonarQube.Common.UnitTests
             // 2. Logger without timestamps
             logger = new ConsoleLogger(includeTimestamp: true);
 
-            logger.LogMessage(null);
-            logger.LogMessage(null, null);
-            logger.LogMessage(null, "abc");
+            logger.LogInfo(null);
+            logger.LogInfo(null, null);
+            logger.LogInfo(null, "abc");
 
             logger.LogWarning(null);
             logger.LogWarning(null, null);
@@ -57,8 +57,8 @@ namespace SonarQube.Common.UnitTests
             // 1. Logger without timestamps
             ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
 
-            logger.LogMessage(null, null);
-            logger.LogMessage("123", null);
+            logger.LogInfo(null, null);
+            logger.LogInfo("123", null);
 
             logger.LogWarning(null, null);
             logger.LogWarning("123", null);
@@ -69,8 +69,8 @@ namespace SonarQube.Common.UnitTests
             // 2. Logger without timestamps
             logger = new ConsoleLogger(includeTimestamp: true);
 
-            logger.LogMessage(null, null);
-            logger.LogMessage("123", null);
+            logger.LogInfo(null, null);
+            logger.LogInfo("123", null);
 
             logger.LogWarning(null, null);
             logger.LogWarning("123", null);
@@ -87,25 +87,25 @@ namespace SonarQube.Common.UnitTests
                 // 1. Logger without timestamps
                 ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
 
-                logger.LogMessage("message1");
+                logger.LogInfo("message1");
                 output.AssertExpectedLastMessage("message1");
 
-                logger.LogMessage("message2", null);
+                logger.LogInfo("message2", null);
                 output.AssertExpectedLastMessage("message2");
 
-                logger.LogMessage("message3 {0}", "xxx");
+                logger.LogInfo("message3 {0}", "xxx");
                 output.AssertExpectedLastMessage("message3 xxx");
 
                 // 2. Logger with timestamps
                 logger = new ConsoleLogger(includeTimestamp: true);
 
-                logger.LogMessage("message4");
+                logger.LogInfo("message4");
                 output.AssertLastMessageEndsWith("message4");
 
-                logger.LogMessage("message5{0}{1}", null, null);
+                logger.LogInfo("message5{0}{1}", null, null);
                 output.AssertLastMessageEndsWith("message5");
 
-                logger.LogMessage("message6 {0}{1}", "xxx", "yyy", "zzz");
+                logger.LogInfo("message6 {0}{1}", "xxx", "yyy", "zzz");
                 output.AssertLastMessageEndsWith("message6 xxxyyy");
             }
         }
@@ -186,40 +186,71 @@ namespace SonarQube.Common.UnitTests
                 // 1. Logger without timestamps
                 ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
 
-                logger.LogMessage("{ }");
+                logger.LogInfo("{ }");
                 output.AssertExpectedLastMessage("{ }");
 
-                logger.LogMessage("}{");
+                logger.LogInfo("}{");
                 output.AssertExpectedLastMessage("}{");
 
-                logger.LogMessage("a{1}2", null);
+                logger.LogInfo("a{1}2", null);
                 output.AssertExpectedLastMessage("a{1}2");
 
-                logger.LogMessage("{0}", "123");
+                logger.LogInfo("{0}", "123");
                 output.AssertExpectedLastMessage("123");
 
-                logger.LogMessage("a{0}{{{1}}}", "11", "22");
+                logger.LogInfo("a{0}{{{1}}}", "11", "22");
                 output.AssertExpectedLastMessage("a11{22}");
 
                 // 2. Logger with timestamps
                 logger = new ConsoleLogger(includeTimestamp: true);
 
-                logger.LogMessage("{ }");
+                logger.LogInfo("{ }");
                 output.AssertLastMessageEndsWith("{ }");
 
-                logger.LogMessage("}{");
+                logger.LogInfo("}{");
                 output.AssertLastMessageEndsWith("}{");
 
-                logger.LogMessage("a{1}2", null);
+                logger.LogInfo("a{1}2", null);
                 output.AssertLastMessageEndsWith("a{1}2");
 
-                logger.LogMessage("{0}", "123");
+                logger.LogInfo("{0}", "123");
                 output.AssertLastMessageEndsWith("123");
 
-                logger.LogMessage("a{0}{{{1}}}", "11", "22");
+                logger.LogInfo("a{0}{{{1}}}", "11", "22");
                 output.AssertLastMessageEndsWith("a11{22}");
             }
         }
+
+        [TestMethod]
+        public void CLogger_Verbosity()
+        {
+            ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
+            Assert.AreEqual(logger.Verbosity, LoggerVerbosity.Info, "Default verbosity should be INFO");
+
+            using (OutputCaptureScope output = new OutputCaptureScope())
+            {
+                logger.Verbosity = LoggerVerbosity.Info;
+                logger.LogInfo("info1");
+                output.AssertExpectedLastMessage("info1");
+                logger.LogInfo("info2");
+                output.AssertExpectedLastMessage("info2");
+                logger.LogDebug("debug1");
+                output.AssertExpectedLastMessage("info2"); // the debug message should not have been logged
+          
+                logger.Verbosity = LoggerVerbosity.Debug;
+                logger.LogDebug("debug");
+                output.AssertExpectedLastMessage("debug");
+                logger.LogInfo("info3");
+                output.AssertExpectedLastMessage("info3");
+
+                logger.Verbosity = LoggerVerbosity.Info;
+                logger.LogInfo("info4");
+                output.AssertExpectedLastMessage("info4");
+                logger.LogDebug("debug2");
+                output.AssertExpectedLastMessage("info4");
+            }
+        }
+
 
         #endregion
     }

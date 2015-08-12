@@ -48,16 +48,16 @@ namespace SonarQube.TeamBuild.Integration
 
             List<string> urls = new List<string>();
 
-            logger.LogMessage(Resources.URL_DIAG_ConnectingToTfs);
+            logger.LogDebug(Resources.URL_DIAG_ConnectingToTfs);
             using (TfsTeamProjectCollection collection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(tfsUri)))
             {
                 IBuildServer buildServer = collection.GetService<IBuildServer>();
 
-                logger.LogMessage(Resources.URL_DIAG_FetchingBuildInfo);
+                logger.LogDebug(Resources.URL_DIAG_FetchingBuildInfo);
                 IBuildDetail build = buildServer.GetMinimalBuildDetails(new Uri(buildUri));
                 string projectName = build.TeamProject;
 
-                logger.LogMessage(Resources.URL_DIAG_FetchingCoverageReportInfo);
+                logger.LogDebug(Resources.URL_DIAG_FetchingCoverageReportInfo);
                 ITestManagementService tcm = collection.GetService<ITestManagementService>();
                 ITestManagementTeamProject testProject = tcm.GetTeamProject(projectName);
 
@@ -69,7 +69,7 @@ namespace SonarQube.TeamBuild.Integration
 
                 foreach (IBuildCoverage coverage in coverages)
                 {
-                    logger.LogMessage(Resources.URL_DIAG_CoverageReportInfo, coverage.Configuration.Id, coverage.Configuration.BuildPlatform, coverage.Configuration.BuildPlatform);
+                    logger.LogDebug(Resources.URL_DIAG_CoverageReportInfo, coverage.Configuration.Id, coverage.Configuration.BuildPlatform, coverage.Configuration.BuildPlatform);
 
                     string coverageFileUrl = CoverageReportUrlProvider.GetCoverageUri(build, coverage);
                     Debug.WriteLine(coverageFileUrl);
@@ -77,7 +77,7 @@ namespace SonarQube.TeamBuild.Integration
                 }
             }
 
-            logger.LogMessage(Resources.URL_DIAG_Finished);
+            logger.LogDebug(Resources.URL_DIAG_Finished);
             return urls;
         }
 

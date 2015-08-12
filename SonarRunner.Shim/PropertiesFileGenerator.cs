@@ -40,7 +40,7 @@ namespace SonarRunner.Shim
             }
             
             string fileName = Path.Combine(config.SonarOutputDir, ProjectPropertiesFileName);
-            logger.LogMessage(Resources.DIAG_GeneratingProjectProperties, fileName);
+            logger.LogInfo(Resources.DIAG_GeneratingProjectProperties, fileName);
 
             IEnumerable<ProjectInfo> projects = ProjectLoader.LoadFrom(config.SonarOutputDir);
             if (projects == null || !projects.Any())
@@ -109,7 +109,7 @@ namespace SonarRunner.Shim
         {
             if (projectInfo.IsExcluded)
             {
-                logger.LogMessage(Resources.DIAG_ProjectIsExcluded, projectInfo.FullPath);
+                logger.LogInfo(Resources.DIAG_ProjectIsExcluded, projectInfo.FullPath);
                 return ProjectInfoValidity.ExcludeFlagSet;
             }
 

@@ -31,6 +31,7 @@ namespace SonarQube.MSBuild.Tasks
 
         // Workaround for the file locking issue: retry after a short period.
         public static int MaxConfigRetryPeriodInMilliseconds = 2500; // Maximum time to spend trying to access the config file
+
         public static int DelayBetweenRetriesInMilliseconds = 499; // Period to wait between retries
 
         #region Input properties
@@ -52,8 +53,8 @@ namespace SonarQube.MSBuild.Tasks
         /// </summary>
         [Output]
         public bool IsTest { get; private set; }
-        
-        #endregion
+
+        #endregion Input properties
 
         #region Overrides
 
@@ -81,14 +82,14 @@ namespace SonarQube.MSBuild.Tasks
             return !this.Log.HasLoggedErrors && taskSuccess;
         }
 
-        #endregion
+        #endregion Overrides
 
         #region Private methods
 
         private string TryGetRegularExpression(AnalysisConfig config)
         {
             Debug.Assert(config != null, "Not expecting the supplied config to be null");
-            
+
             AnalysisSetting setting;
             string regEx = null;
             if (config.TryGetSetting(TestRegExSettingId, out setting))
@@ -103,7 +104,7 @@ namespace SonarQube.MSBuild.Tasks
 
             return regEx;
         }
-        
+
         private AnalysisConfig TryGetConfig()
         {
             AnalysisConfig config = null;
@@ -154,15 +155,22 @@ namespace SonarQube.MSBuild.Tasks
             return true;
         }
 
+        private void LogMessage(Common.LoggerVerbosity verbosity, string message, params object[] args)
+        {
+            // We need to adapt between the ILogger verbosity and the MsBuild logger verbosity
+            if (verbosity == Common.LoggerVerbosity.Info)
+            {
+                this.Log.LogMessage(MessageImportance.Normal, message, args);
+            }
+            else
+            {
+                this.Log.LogMessage(MessageImportance.Low, message, args);
+            }
+        }
 
-        #endregion
+        #endregion Private methods
 
         #region ILogger interface
-
-        void Common.ILogger.LogMessage(string message, params object[] args)
-        {
-            this.Log.LogMessage(MessageImportance.Low, message, args);
-        }
 
         void Common.ILogger.LogWarning(string message, params object[] args)
         {
@@ -174,6 +182,21 @@ namespace SonarQube.MSBuild.Tasks
             this.Log.LogError(message, args);
         }
 
-        #endregion
+        public void LogDebug(string message, params object[] args)
+        {
+            LogMessage(Common.LoggerVerbosity.Debug, message, args);
+        }
+
+        void Common.ILogger.LogInfo(string message, params object[] args)
+        {
+            LogMessage(Common.LoggerVerbosity.Info, message, args);
+        }
+
+        public Common.LoggerVerbosity Verbosity
+        {
+            get; set;
+        }
+
+        #endregion ILogger interface
     }
 }

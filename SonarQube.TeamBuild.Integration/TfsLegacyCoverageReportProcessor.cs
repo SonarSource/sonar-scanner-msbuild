@@ -55,7 +55,7 @@ namespace SonarQube.TeamBuild.Integration
             switch (urls.Count())
             {
                 case 0:
-                    logger.LogMessage(Resources.PROC_DIAG_NoCodeCoverageReportsFound);
+                    logger.LogInfo(Resources.PROC_DIAG_NoCodeCoverageReportsFound);
                     break;
 
                 case 1:

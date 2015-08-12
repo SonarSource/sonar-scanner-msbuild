@@ -41,14 +41,14 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("op");
             }
             
-            logger.LogMessage(Resources.DIAG_BeginningRetry, timeoutInMilliseconds, pauseBetweenTriesInMilliseconds);
+            logger.LogDebug(Resources.DIAG_BeginningRetry, timeoutInMilliseconds, pauseBetweenTriesInMilliseconds);
 
             Stopwatch timer = Stopwatch.StartNew();
             bool succeeded = op();
 
             while (!succeeded && timer.ElapsedMilliseconds < timeoutInMilliseconds)
             {
-                logger.LogMessage(Resources.DIAG_RetryingOperation);
+                logger.LogDebug(Resources.DIAG_RetryingOperation);
                 System.Threading.Thread.Sleep(pauseBetweenTriesInMilliseconds);
                 succeeded = op();
             }
@@ -57,11 +57,11 @@ namespace SonarQube.Common
 
             if (succeeded)
             {
-                logger.LogMessage(Resources.DIAG_RetryOperationSucceeded, timer.ElapsedMilliseconds);
+                logger.LogDebug(Resources.DIAG_RetryOperationSucceeded, timer.ElapsedMilliseconds);
             }
             else
             {
-                logger.LogMessage(Resources.DIAG_RetryOperationFailed, timer.ElapsedMilliseconds);
+                logger.LogDebug(Resources.DIAG_RetryOperationFailed, timer.ElapsedMilliseconds);
             }
             return succeeded;
         }
@@ -82,11 +82,11 @@ namespace SonarQube.Common
 
             if (Directory.Exists(directory))
             {
-                logger.LogMessage(Resources.DIAG_DirectoryAlreadyExists, directory);
+                logger.LogDebug(Resources.DIAG_DirectoryAlreadyExists, directory);
             }
             else
             {
-                logger.LogMessage(Resources.DIAG_CreatingDirectory, directory);
+                logger.LogDebug(Resources.DIAG_CreatingDirectory, directory);
                 Directory.CreateDirectory(directory);
             }
         }
@@ -107,10 +107,10 @@ namespace SonarQube.Common
 
             if (Directory.Exists(directory))
             {
-                logger.LogMessage(Resources.DIAG_DeletingDirectory, directory);
+                logger.LogDebug(Resources.DIAG_DeletingDirectory, directory);
                 Directory.Delete(directory, true);
             }
-            logger.LogMessage(Resources.DIAG_CreatingDirectory, directory);
+            logger.LogDebug(Resources.DIAG_CreatingDirectory, directory);
             Directory.CreateDirectory(directory);
         }
 
