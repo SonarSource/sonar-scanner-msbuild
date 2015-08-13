@@ -148,6 +148,8 @@ namespace SonarQube.Common
         {
             if (e.Data != null)
             {
+                // It's important to log this as an important message because
+                // this the log redirection pipeline of the child process
                 this.outputLogger.LogInfo(e.Data);
             }
         }

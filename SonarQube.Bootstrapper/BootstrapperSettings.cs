@@ -15,6 +15,7 @@ namespace SonarQube.Bootstrapper
     public class BootstrapperSettings : IBootstrapperSettings
     {
         // FIX - should also include the sonar-runner.zip. Consider moving to SonarQube.Common.
+
         #region Logical Bootstrapper Version values
 
         // The following constants determine the "logical" api of the bootstrapper
@@ -34,17 +35,21 @@ namespace SonarQube.Bootstrapper
 
         // Download-related values
         public const string SonarQubeIntegrationFilename = "SonarQube.MSBuild.Runner.Implementation.zip";
+
         public const string IntegrationUrlSuffix = "/static/csharp/" + SonarQubeIntegrationFilename;
 
         // Exes to launched by the bootstrapper
         public const string PreProcessorExeName = "MSBuild.SonarQube.Internal.PreProcess.exe";
+
         public const string PostProcessorExeName = "MSBuild.SonarQube.Internal.PostProcess.exe";
 
         #region Working directory
+
         // Variables used when calculating the working directory
 
         // Note: these constant values must be kept in sync with the targets files.
         public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
+
         public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
 
         /// <summary>
@@ -59,19 +64,23 @@ namespace SonarQube.Bootstrapper
         public const string RelativePathToTempDir = @".sonarqube";
         public const string RelativePathToDownloadDir = @"bin";
 
+        #endregion Working directory
 
-        #endregion
-
-        #endregion
+        #endregion Logical Bootstrapper Version values
 
         private readonly ILogger logger;
+
+        private readonly string sonarQubeUrl;
+        private readonly AnalysisPhase analysisPhase;
+        private readonly IEnumerable<string> childCmdLineArgs;
+        private readonly LoggerVerbosity verbosity;
 
         private string tempDir;
         private string preProcFilePath;
         private string postProcFilePath;
-        
+
         #region Constructor(s)
-        
+
         public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, string sonarQubeUrl, LoggerVerbosity verbosity, ILogger logger)
         {
             if (sonarQubeUrl == null)
@@ -83,19 +92,19 @@ namespace SonarQube.Bootstrapper
                 throw new ArgumentNullException("logger");
             }
 
-            this.SonarQubeUrl = sonarQubeUrl;
-            this.Phase = phase;
-            this.ChildCmdLineArgs = childCmdLineArgs;
-            this.LoggingVerbosity = verbosity;
+            this.sonarQubeUrl = sonarQubeUrl;
+            this.analysisPhase = phase;
+            this.childCmdLineArgs = childCmdLineArgs;
+            this.verbosity = verbosity;
 
             this.logger = logger;
         }
 
-        #endregion
+        #endregion Constructor(s)
 
         #region IBootstrapperSettings
 
-        public string SonarQubeUrl { get; private set; }
+        public string SonarQubeUrl { get { return this.sonarQubeUrl; } }
 
         public string TempDirectory
         {
@@ -136,7 +145,7 @@ namespace SonarQube.Bootstrapper
                 if (this.postProcFilePath == null)
                 {
                     this.postProcFilePath = this.EnsurePathIsAbsolute(PostProcessorExeName);
-                }                
+                }
                 return this.postProcFilePath;
             }
         }
@@ -153,20 +162,20 @@ namespace SonarQube.Bootstrapper
 
         public AnalysisPhase Phase
         {
-            get; private set;
+            get { return this.analysisPhase; }
         }
 
         public IEnumerable<string> ChildCmdLineArgs
         {
-            get; private set;
+            get { return this.childCmdLineArgs; }
         }
 
         public LoggerVerbosity LoggingVerbosity
         {
-            get; private set;
+            get { return this.verbosity; }
         }
 
-        #endregion
+        #endregion IBootstrapperSettings
 
         #region Private methods
 
@@ -202,7 +211,7 @@ namespace SonarQube.Bootstrapper
             }
             return result;
         }
-        
+
         private string EnsurePathIsAbsolute(string file)
         {
             string absPath;
@@ -220,6 +229,6 @@ namespace SonarQube.Bootstrapper
             return absPath;
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

@@ -15,12 +15,12 @@ using System.Linq;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
-    public class Program
+    internal class Program
     {
         private const int SuccessCode = 0;
         private const int ErrorCode = 1;
 
-        public static int Main()
+        private static int Main()
         {
             ILogger logger = new ConsoleLogger(includeTimestamp: true);
 

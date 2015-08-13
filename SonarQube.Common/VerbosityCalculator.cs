@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DefaultSettings.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="VerbosityCalculator.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -9,6 +9,13 @@ using System;
 
 namespace SonarQube.Common
 {
+    /// <summary>
+    /// The integration assemblies use the SonarQube log specific settings to determine verbosity. These settings are:
+    /// sonar.log.level is a flag enum with the values INFO, DEBUG and TRACE - and a valid value is INFO|DEBUG
+    /// sonar.verbosity can be true or false and will override sonar.log.level by setting it to INFO|DEBUG or to INFO 
+    /// The integration assemblies only support INFO and DEBUG. A simplifying assumption has been made that if the log level value contains "DEBUG" 
+    /// then it is treated as INFO|DEBUG.
+    /// </summary>
     public static class VerbosityCalculator
     {
         /// <summary>
@@ -25,6 +32,8 @@ namespace SonarQube.Common
         /// The verbosity of loggers if no settings have been specified
         /// </summary>
         public const LoggerVerbosity DefaultLoggingVerbosity = LoggerVerbosity.Info;
+
+        private const string SonarLogDebugValue = "DEBUG";
 
         /// <summary>
         /// Computes verbosity based on the available properties. 
@@ -67,16 +76,10 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("logger");
             }
 
-            AnalysisSetting sonarVerboseSetting;
-            config.TryGetSetting(SonarProperties.Verbose, out sonarVerboseSetting);
+            string sonarVerboseSettingValue = config.GetSetting(SonarProperties.Verbose, String.Empty);
+            string sonarLogLevelSettingValue = config.GetSetting(SonarProperties.LogLevel, String.Empty);
 
-            AnalysisSetting sonarLogLevelSetting;
-            config.TryGetSetting(SonarProperties.LogLevel, out sonarLogLevelSetting);
-
-            return ComputeVerbosity(
-                sonarVerboseSetting == null ? null : sonarVerboseSetting.Value,
-                sonarLogLevelSetting == null ? null : sonarLogLevelSetting.Value,
-                logger);
+            return ComputeVerbosity(sonarVerboseSettingValue, sonarLogLevelSettingValue, logger);
         }
 
         private static LoggerVerbosity ComputeVerbosity(string sonarVerboseValue, string sonarLogValue, ILogger logger)
@@ -87,7 +90,7 @@ namespace SonarQube.Common
                 if (bool.TryParse(sonarVerboseValue, out isVerbose))
                 {
                     LoggerVerbosity verbosity = isVerbose ? LoggerVerbosity.Debug : LoggerVerbosity.Info;
-                    logger.LogInfo("sonar.verbose={0} was specified - setting the log verbosity to {1}", sonarVerboseValue, verbosity);
+                    logger.LogDebug("sonar.verbose={0} was specified - setting the log verbosity to {1}", sonarVerboseValue, verbosity);
                     return verbosity;
                 }
                 else
@@ -97,9 +100,9 @@ namespace SonarQube.Common
             }
 
             if (!String.IsNullOrWhiteSpace(sonarLogValue) &&
-                sonarLogValue.IndexOf("DEBUG", StringComparison.OrdinalIgnoreCase) > -1) //todo: move to a const
+                sonarLogValue.IndexOf(SonarLogDebugValue, StringComparison.OrdinalIgnoreCase) > -1) 
             {
-                logger.LogInfo("sonar.log.level={0} was specified - setting the log verbosity to DEBUG", sonarLogValue);
+                logger.LogDebug("sonar.log.level={0} was specified - setting the log verbosity to DEBUG", sonarLogValue);
                 return LoggerVerbosity.Debug;
             }
 

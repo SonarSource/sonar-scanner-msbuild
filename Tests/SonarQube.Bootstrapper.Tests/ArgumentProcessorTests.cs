@@ -257,23 +257,6 @@ namespace SonarQube.Bootstrapper.Tests
         }
 
         [TestMethod]
-        public void ArgProc_Verbosity()
-        {
-            CheckVerbosity(VerbosityCalculator.DefaultLoggingVerbosity, "Default verbosity does not match");
-            CheckVerbosity(VerbosityCalculator.DefaultLoggingVerbosity, "Settings are case sensitive", "/d:sonar.VERBOSE=true");
-            CheckVerbosity(VerbosityCalculator.DefaultLoggingVerbosity, "Trace and Debug are independent SonarQube verbosity settings. We only track Debug", "/d:sonar.log.level=trace");
-
-            CheckVerbosity(LoggerVerbosity.Debug, "", "/d:sonar.verbose=true");
-            CheckVerbosity(LoggerVerbosity.Debug, "", "/d:sonar.verbose=TRue");
-            CheckVerbosity(LoggerVerbosity.Info, "", "/d:sonar.verbose=false");
-            CheckVerbosity(LoggerVerbosity.Debug, "", "/d:sonar.log.level=debug");
-            CheckVerbosity(LoggerVerbosity.Debug, "", "/d:sonar.log.level=INFO|DEBUG|TRACE");
-            CheckVerbosity(LoggerVerbosity.Debug, "", "/d:sonar.log.level=***debug***");
-            CheckVerbosity(LoggerVerbosity.Debug, "sonar.verbose takes precedence over sonar.log.level", "/d:sonar.verbose=true", "/d:sonar.log.level=INFO");
-            CheckVerbosity(LoggerVerbosity.Info, "sonar.verbose takes precedence over sonar.log.level", "/d:sonar.verbose=FALSE", "/d:sonar.log.level=DEBUG");
-        }
-
-        [TestMethod]
         public void ArgProc_SonarVerbose_IsBool()
         {
             TestLogger logger = new TestLogger();
@@ -307,21 +290,7 @@ namespace SonarQube.Bootstrapper.Tests
 
         #endregion Tests
 
-            #region Checks
-
-        private static void CheckVerbosity(LoggerVerbosity expectedVerbosity, string errorMessage, params string[] args)
-        {
-            TestLogger logger = new TestLogger();
-            IList<string> newArgs = new List<string>(args);
-            newArgs.Add("/d:sonar.host.url=foo");
-            newArgs.Add("begin");
-
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, newArgs.ToArray());
-            Assert.AreEqual(expectedVerbosity, settings.LoggingVerbosity, errorMessage);
-
-            logger.AssertErrorsLogged(0);
-            logger.AssertWarningsLogged(0);
-        }
+        #region Checks
 
         private static IBootstrapperSettings CheckProcessingSucceeds(TestLogger logger, params string[] cmdLineArgs)
         {
