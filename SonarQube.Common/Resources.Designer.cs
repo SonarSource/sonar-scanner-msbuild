@@ -379,5 +379,14 @@ namespace SonarQube.Common {
                 return ResourceManager.GetString("Logger_WarningPrefix", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expecting the sonar.verbose property to be set to either true or false but it was set to {0}..
+        /// </summary>
+        public static string WARN_SonarVerboseNotBool {
+            get {
+                return ResourceManager.GetString("WARN_SonarVerboseNotBool", resourceCulture);
+            }
+        }
     }
 }

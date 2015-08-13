@@ -6,8 +6,6 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
-using System;
-using System.IO;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -41,6 +39,5 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             return success ? 0 : ErrorCode;
         }
-
     }
 }

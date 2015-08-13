@@ -148,7 +148,7 @@ namespace SonarQube.Common
         {
             if (e.Data != null)
             {
-                this.outputLogger.LogDebug(e.Data);
+                this.outputLogger.LogInfo(e.Data);
             }
         }
 

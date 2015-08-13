@@ -65,9 +65,6 @@ namespace SonarQube.Bootstrapper
         #endregion
 
         private readonly ILogger logger;
-        private readonly string sonarQubeUrl;
-        private readonly AnalysisPhase analysisPhase;
-        private readonly IEnumerable<string> childCmdLineArgs;
 
         private string tempDir;
         private string preProcFilePath;
@@ -75,7 +72,7 @@ namespace SonarQube.Bootstrapper
         
         #region Constructor(s)
         
-        public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, string sonarQubeUrl, ILogger logger)
+        public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, string sonarQubeUrl, LoggerVerbosity verbosity, ILogger logger)
         {
             if (sonarQubeUrl == null)
             {
@@ -86,9 +83,10 @@ namespace SonarQube.Bootstrapper
                 throw new ArgumentNullException("logger");
             }
 
-            this.sonarQubeUrl = sonarQubeUrl;
-            this.analysisPhase = phase;
-            this.childCmdLineArgs = childCmdLineArgs;
+            this.SonarQubeUrl = sonarQubeUrl;
+            this.Phase = phase;
+            this.ChildCmdLineArgs = childCmdLineArgs;
+            this.LoggingVerbosity = verbosity;
 
             this.logger = logger;
         }
@@ -97,7 +95,7 @@ namespace SonarQube.Bootstrapper
 
         #region IBootstrapperSettings
 
-        public string SonarQubeUrl {  get { return this.sonarQubeUrl; } }
+        public string SonarQubeUrl { get; private set; }
 
         public string TempDirectory
         {
@@ -155,12 +153,17 @@ namespace SonarQube.Bootstrapper
 
         public AnalysisPhase Phase
         {
-            get { return this.analysisPhase; }
+            get; private set;
         }
 
         public IEnumerable<string> ChildCmdLineArgs
         {
-            get { return this.childCmdLineArgs; }
+            get; private set;
+        }
+
+        public LoggerVerbosity LoggingVerbosity
+        {
+            get; private set;
         }
 
         #endregion

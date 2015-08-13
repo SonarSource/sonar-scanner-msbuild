@@ -144,6 +144,7 @@ namespace SonarQube.Bootstrapper.Tests
                 TestLogger logger = CheckExecutionFails(mockUpdater,
                     "begin",
                     "/install:true",  // this argument should just pass through
+                    "/d:sonar.verbose=true",
                     "/d:sonar.host.url=http://host:9",
                     "/d:another.key=will be ignored");
 
@@ -152,10 +153,12 @@ namespace SonarQube.Bootstrapper.Tests
                 mockUpdater.AssertVersionChecked();
 
                 logger.AssertWarningsLogged(0);
+                logger.AssertVerbosity(LoggerVerbosity.Debug); // sonar.verbose=true was specified
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
                 DummyExeHelper.AssertExpectedLogContents(logPath,
                     "/install:true",
+                    "/d:sonar.verbose=true",
                     "/d:sonar.host.url=http://host:9",
                     "/d:another.key=will be ignored");
             }
@@ -189,6 +192,7 @@ namespace SonarQube.Bootstrapper.Tests
                 mockUpdater.AssertVersionChecked();
 
                 logger.AssertWarningsLogged(0);
+                logger.AssertVerbosity(VerbosityCalculator.DefaultLoggingVerbosity);
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
                 DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://anotherHost");

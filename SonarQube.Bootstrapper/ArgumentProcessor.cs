@@ -117,6 +117,8 @@ namespace SonarQube.Bootstrapper
             return settings != null;
         }
 
+
+
         #endregion Public methods
 
         #region Private methods
@@ -170,6 +172,7 @@ namespace SonarQube.Bootstrapper
                 AnalysisPhase.PreProcessing,
                 childArgs,
                 hostUrl,
+                VerbosityCalculator.ComputeVerbosity(properties, logger),
                 logger);
 
             return settings;
@@ -193,10 +196,12 @@ namespace SonarQube.Bootstrapper
                 AnalysisPhase.PostProcessing,
                 childArgs,
                 string.Empty,
+                VerbosityCalculator.ComputeVerbosity(properties, logger),
                 logger);
 
             return settings;
         }
+
 
         /// <summary>
         /// Strips out any arguments that are only relevant to the boot strapper from the user-supplied

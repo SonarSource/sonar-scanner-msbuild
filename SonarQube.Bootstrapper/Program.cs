@@ -31,6 +31,8 @@ namespace SonarQube.Bootstrapper
                 Debug.Assert(settings != null, "Bootstrapper settings should not be null");
                 Debug.Assert(settings.Phase != AnalysisPhase.Unspecified, "Expecting the processing phase to be specified");
 
+                logger.Verbosity = settings.LoggingVerbosity;
+
                 AnalysisPhase phase = settings.Phase;
                 LogProcessingStarted(phase, logger);
 

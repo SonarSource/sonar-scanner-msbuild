@@ -47,7 +47,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void PreProc_FileProperties_Supplied()
         {
             // Arrange
-
             MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
             MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
             MockTargetsInstaller mockTargetsInstaller = new MockTargetsInstaller();
@@ -58,6 +57,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             fileProperties.AddProperty(SonarProperties.HostUrl, "my url");
             fileProperties.AddProperty(SonarProperties.SonarUserName, "my user name");
             fileProperties.AddProperty(SonarProperties.SonarPassword, "my password");
+            fileProperties.AddProperty(SonarProperties.LogLevel, "INFO|DEBUG");
 
             string expectedConfigFilePath;
 
@@ -73,6 +73,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 ProcessedArgs args = new ProcessedArgs("key", "name", "ver", true, new ListPropertiesProvider(), fileProperties);
                 bool executed = preProcessor.Execute(args, logger);
                 Assert.IsTrue(executed);
+                logger.AssertVerbosity(LoggerVerbosity.Debug);
             }
 
             // Assert
@@ -116,6 +117,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             cmdLineProperties.AddProperty("shared.key1", "cmd line value1 - should override server value");
             cmdLineProperties.AddProperty("cmd.line.only", "cmd line value4 - only on command line");
             cmdLineProperties.AddProperty("XXX", "cmd line value XXX - upper case");
+            cmdLineProperties.AddProperty(SonarProperties.Verbose, "true");
             cmdLineProperties.AddProperty(SonarProperties.HostUrl, "http://host");
 
             // The set of file properties to supply
@@ -138,6 +140,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 ProcessedArgs args = new ProcessedArgs("key", "name", "ver", true, cmdLineProperties, fileProperties);
                 bool executed = preProcessor.Execute(args, logger);
                 Assert.IsTrue(executed);
+                logger.AssertVerbosity(LoggerVerbosity.Debug);
             }
 
             // Assert

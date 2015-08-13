@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 
@@ -60,5 +61,11 @@ namespace SonarQube.Bootstrapper
         /// The command line arguments to pass to the child process
         /// </summary>
         IEnumerable<string> ChildCmdLineArgs { get; }
+
+        /// <summary>
+        /// The level of detail that should be logged
+        /// </summary>
+        /// <remarks>Should be in sync with the SQ components</remarks>
+        LoggerVerbosity LoggingVerbosity { get; }
     }
 }
