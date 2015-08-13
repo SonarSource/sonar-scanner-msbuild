@@ -82,7 +82,7 @@ namespace SonarQube.TeamBuild.PostProcessorTests
             ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult();
             AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo" , SonarQubeHostUrl = hostUrl};
 
-            TeamBuildSettings settings = new TeamBuildSettings();
+            TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettings(this.TestContext.DeploymentDirectory);
             config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
             string expectedReportPath = Path.Combine(TestContext.TestDeploymentDir, SummaryReportBuilder.SummaryMdFilename);
 

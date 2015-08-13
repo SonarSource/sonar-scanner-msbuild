@@ -7,7 +7,6 @@
 
 using SonarQube.Common;
 using System;
-using System.Collections;
 using System.IO;
 
 namespace SonarQube.TeamBuild.Integration
@@ -48,6 +47,25 @@ namespace SonarQube.TeamBuild.Integration
         }
 
         #region Public static methods
+
+        /// <summary>
+        /// Creates and returns settings for a non-TeamBuild environment
+        /// </summary>
+        public static TeamBuildSettings CreateNonTeamBuildSettings(string analysisBaseDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(analysisBaseDirectory))
+            {
+                throw new ArgumentNullException("analysisBaseDirectory");
+            }
+
+            TeamBuildSettings settings = new TeamBuildSettings()
+            {
+                BuildEnvironment = BuildEnvironment.NotTeamBuild,
+                AnalysisBaseDirectory = analysisBaseDirectory,
+            };
+
+            return settings;
+        }
 
         /// <summary>
         /// Factory method to create and return a new set of team build settings
@@ -244,6 +262,13 @@ namespace SonarQube.TeamBuild.Integration
         #endregion
 
         #region Private methods
+
+        /// <summary>
+        /// Private constructor to prevent direct creation
+        /// </summary>
+        private TeamBuildSettings()
+        { }
+
 
         private static bool TryGetBoolEnvironmentVariable(string envVar, bool defaultValue)
         {

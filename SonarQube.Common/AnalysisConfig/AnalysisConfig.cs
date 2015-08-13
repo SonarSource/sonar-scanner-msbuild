@@ -45,6 +45,9 @@ namespace SonarQube.Common
 
         #region Serialization
 
+        [XmlIgnore]
+        public string FileName { get; private set; }
+
         /// <summary>
         /// Saves the project to the specified file as XML
         /// </summary>
@@ -56,6 +59,7 @@ namespace SonarQube.Common
             }
 
             Serializer.SaveModel(this, fileName);
+            this.FileName = fileName;
         }
 
         /// <summary>
@@ -69,6 +73,7 @@ namespace SonarQube.Common
             }
 
             AnalysisConfig model = Serializer.LoadModel<AnalysisConfig>(fileName);
+            model.FileName = fileName;
             return model;
         }
 

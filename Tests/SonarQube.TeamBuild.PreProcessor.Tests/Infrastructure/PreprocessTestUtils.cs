@@ -13,18 +13,21 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     internal static class PreprocessTestUtils
     {
         /// <summary>
-        /// Creates and returns an environment scope that contains all of the required
-        /// legacy TeamBuild environment variables
+        /// Creates and returns an environment scope configured as if it
+        /// is not running under TeamBuild
         /// </summary>
-        public static EnvironmentVariableScope CreateValidLegacyTeamBuildScope(string tfsUri, string buildUri)
+        public static EnvironmentVariableScope CreateValidNonTeamBuildScope()
         {
             EnvironmentVariableScope scope = new EnvironmentVariableScope();
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, "true");
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, tfsUri);
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, buildUri);
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, "false");
+
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, null);
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, null);
+
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, null);
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, null);
 
             return scope;
         }
-
     }
 }

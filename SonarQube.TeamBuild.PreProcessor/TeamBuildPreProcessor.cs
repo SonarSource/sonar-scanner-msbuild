@@ -8,6 +8,7 @@
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 
@@ -94,11 +95,6 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             InstallLoaderTargets(args, logger);
 
-            AnalysisConfig config = new AnalysisConfig();
-            config.SonarProjectKey = args.ProjectKey;
-            config.SonarProjectName = args.ProjectName;
-            config.SonarProjectVersion = args.ProjectVersion;
-
             TeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
 
             // We're checking the args and environment variables so we can report all
@@ -109,33 +105,29 @@ namespace SonarQube.TeamBuild.PreProcessor
                 return false;
             }
 
-            config.SetBuildUri(teamBuildSettings.BuildUri);
-            config.SetTfsUri(teamBuildSettings.TfsUri);
-            config.SonarConfigDir = teamBuildSettings.SonarConfigDirectory;
-            config.SonarOutputDir = teamBuildSettings.SonarOutputDirectory;
-            config.SonarBinDir = teamBuildSettings.SonarBinDirectory;
-            config.SonarQubeHostUrl = args.GetSetting(SonarProperties.HostUrl);
-
             // Create the directories
             logger.LogDebug(Resources.DIAG_CreatingFolders);
             if (!Utilities.TryEnsureEmptyDirectories(logger,
-                config.SonarConfigDir,
-                config.SonarOutputDir))
+                teamBuildSettings.SonarConfigDirectory,
+                teamBuildSettings.SonarOutputDirectory))
             {
                 return false;
             }
 
-            if (!FetchArgumentsAndRulesets(args, config, logger))
+            IDictionary<string, string> serverSettings;
+            if (!FetchArgumentsAndRulesets(args, teamBuildSettings.SonarConfigDirectory, logger, out serverSettings))
             {
                 return false;
             }
 
-            // Save the config file
-            logger.LogDebug(Resources.DIAG_SavingConfigFile, teamBuildSettings.AnalysisConfigFilePath);
-            config.Save(teamBuildSettings.AnalysisConfigFilePath);
+            AnalysisConfigGenerator.GenerateFile(args, teamBuildSettings, serverSettings, logger);
 
             return true;
         }
+
+        #endregion Public methods
+
+        #region Private methods
 
         private void InstallLoaderTargets(ProcessedArgs args, ILogger logger)
         {
@@ -149,13 +141,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
         }
 
-        #endregion Public methods
-
-        #region Private methods
-
-        private bool FetchArgumentsAndRulesets(ProcessedArgs args, AnalysisConfig config, ILogger logger)
+        private bool FetchArgumentsAndRulesets(ProcessedArgs args, string configDir, ILogger logger, out IDictionary<string, string> serverSettings)
         {
             string hostUrl = args.GetSetting(SonarProperties.HostUrl);
+            serverSettings = null;
 
             try
             {
@@ -164,14 +153,11 @@ namespace SonarQube.TeamBuild.PreProcessor
                     SonarWebService ws = new SonarWebService(downloader, hostUrl);
 
                     // Fetch the SonarQube project properties
-                    this.FetchSonarQubeProperties(config, ws);
-
-                    // Merge in command line arguments
-                    MergeSettingsFromCommandLine(config, args);
+                    serverSettings = this.propertiesFetcher.FetchProperties(ws, args.ProjectKey);
 
                     // Generate the FxCop rulesets
-                    GenerateFxCopRuleset(config, ws, "csharp", "cs", "fxcop", Path.Combine(config.SonarConfigDir, FxCopCSharpRuleset), logger);
-                    GenerateFxCopRuleset(config, ws, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(config.SonarConfigDir, FxCopVBNetRuleset), logger);
+                    GenerateFxCopRuleset(ws, args.ProjectKey, "csharp", "cs", "fxcop", Path.Combine(configDir, FxCopCSharpRuleset), logger);
+                    GenerateFxCopRuleset(ws, args.ProjectKey, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(configDir, FxCopVBNetRuleset), logger);
                 }
             }
             catch (WebException ex)
@@ -195,35 +181,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             return new WebClientDownloader(new WebClient(), username, password);
         }
 
-        private void FetchSonarQubeProperties(AnalysisConfig config, SonarWebService ws)
-        {
-            var properties = this.propertiesFetcher.FetchProperties(ws, config.SonarProjectKey);
-            foreach (var property in properties)
-            {
-                config.SetInheritedValue(property.Key, property.Value);
-            }
-        }
-
-        private void GenerateFxCopRuleset(AnalysisConfig config, SonarWebService ws, string requiredPluginKey, string language, string repository, string path, ILogger logger)
+        private void GenerateFxCopRuleset(SonarWebService ws, string projectKey, string requiredPluginKey, string language, string repository, string path, ILogger logger)
         {
             logger.LogDebug(Resources.DIAG_GeneratingRuleset, path);
-            this.rulesetGenerator.Generate(ws, requiredPluginKey, language, repository, config.SonarProjectKey, path);
-        }
-
-        private static void MergeSettingsFromCommandLine(AnalysisConfig config, ProcessedArgs args)
-        {
-            if (args == null)
-            {
-                return;
-            }
-
-            foreach (Property item in args.GetAllProperties())
-            {
-                if (!ProcessRunnerArguments.ContainsSensitiveData(item.Id) && !ProcessRunnerArguments.ContainsSensitiveData(item.Value))
-                {
-                    config.SetExplicitValue(item.Id, item.Value); // this will overwrite the setting if it already exists
-                }
-            }
+            this.rulesetGenerator.Generate(ws, requiredPluginKey, language, repository, projectKey, path);
         }
 
         #endregion Private methods
