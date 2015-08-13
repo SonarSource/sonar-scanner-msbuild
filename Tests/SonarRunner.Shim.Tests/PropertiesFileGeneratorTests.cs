@@ -121,23 +121,8 @@ namespace SonarRunner.Shim.Tests
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
             CreateProjectInfoInSubDir(testDir, "withoutFiles", Guid.NewGuid(), ProjectType.Product, false, null); // not excluded
-
-            string projectWithContentDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "projectWithContent");
-            string contentProjectPath = Path.Combine(projectWithContentDir, "contentProject.proj");
-            string contentProjectInfo = CreateProjectInfoInSubDir(testDir, "withContentFiles", Guid.NewGuid(), ProjectType.Product, false, contentProjectPath); // not excluded
-
-            string managedProjectDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "managedProject");
-            string managedProjectPath = Path.Combine(managedProjectDir, "managedProject.proj");
-            string managedProjectInfo = CreateProjectInfoInSubDir(testDir, "withManagedFiles", Guid.NewGuid(), ProjectType.Product, false, managedProjectPath); // not excluded
-
-            // Create the content files under the relevant project directories
-            string contentFile = CreateEmptyFile(projectWithContentDir, "contentFile1.txt");
-            string contentFileList = CreateFile(projectWithContentDir, "contentList.txt", contentFile);
-            AddAnalysisResult(contentProjectInfo, AnalysisType.FilesToAnalyze, contentFileList);
-
-            string managedFile = CreateEmptyFile(managedProjectDir, "managedFile1.cs");
-            string managedFileList = CreateFile(managedProjectDir, "managedList.txt", managedFile);
-            AddAnalysisResult(managedProjectInfo, AnalysisType.FilesToAnalyze, managedFileList);
+            CreateProjectWithFiles("withFiles1", testDir);
+            CreateProjectWithFiles("withFiles2", testDir);
 
             TestLogger logger = new TestLogger();
             AnalysisConfig config = CreateValidConfig(testDir);
@@ -147,8 +132,8 @@ namespace SonarRunner.Shim.Tests
 
             // Assert
             AssertExpectedStatus("withoutFiles", ProjectInfoValidity.NoFilesToAnalyze, result);
-            AssertExpectedStatus("withContentFiles", ProjectInfoValidity.Valid, result);
-            AssertExpectedStatus("withManagedFiles", ProjectInfoValidity.Valid, result);
+            AssertExpectedStatus("withFiles1", ProjectInfoValidity.Valid, result);
+            AssertExpectedStatus("withFiles2", ProjectInfoValidity.Valid, result);
             AssertExpectedProjectCount(3, result);
 
             // One valid project info file -> file created
@@ -251,31 +236,17 @@ namespace SonarRunner.Shim.Tests
         [Description("Checks that the generated properties file contains additional properties")]
         public void FileGen_AdditionalProperties()
         {
-
             // 0. Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-
-            // Must have valid project otherwise the properties file won't be created
-            string projectWithContentDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "projectWithContent");
-            string contentProjectPath = Path.Combine(projectWithContentDir, "contentProject.proj");
-            string contentProjectInfo = CreateProjectInfoInSubDir(testDir, "withContentFiles", Guid.NewGuid(), ProjectType.Product, false, contentProjectPath); // not excluded
-
-            // Create the content files under the relevant project directories
-            string contentFile = CreateEmptyFile(projectWithContentDir, "contentFile1.txt");
-            string contentFileList = CreateFile(projectWithContentDir, "contentList.txt", contentFile);
-            AddAnalysisResult(contentProjectInfo, AnalysisType.FilesToAnalyze, contentFileList);
-
+            string analysisRootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             TestLogger logger = new TestLogger();
-            AnalysisConfig config = CreateValidConfig(testDir);
-            
 
+            CreateProjectWithFiles("project1", analysisRootDir);
+            AnalysisConfig config = CreateValidConfig(analysisRootDir);
+            
             // Add additional properties
             config.SetExplicitValue("key1", "value1");
             config.SetExplicitValue("key.2", "value two");
             config.SetExplicitValue("key.3", " ");
-
-            // Act
-            PropertiesFileGenerator.GenerateFile(config, logger);
 
             // Act
             ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
@@ -360,6 +331,28 @@ namespace SonarRunner.Shim.Tests
         #endregion
 
         #region Private methods
+
+        /// <summary>
+        /// Creates a project info under the specified analysis root directory
+        /// together with the supporting project and content files
+        /// </summary>
+        private void CreateProjectWithFiles(string projectName, string analysisRootPath, bool createContentFiles = true)
+        {
+            // Create a project with content files in a new subdirectory
+            string projectDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, Path.Combine("projects", projectName));
+            string projectFilePath = Path.Combine(projectDir, Path.ChangeExtension(projectName, "proj"));
+
+            // Create a project info file in the correct location under the analysis root
+            string contentProjectInfo = CreateProjectInfoInSubDir(analysisRootPath, projectName, Guid.NewGuid(), ProjectType.Product, false, projectFilePath); // not excluded
+
+            // Create content / managed files if required
+            if (createContentFiles)
+            {
+                string contentFile = CreateEmptyFile(projectDir, "contentFile1.txt");
+                string contentFileList = CreateFile(projectDir, "contentList.txt", contentFile);
+                AddAnalysisResult(contentProjectInfo, AnalysisType.FilesToAnalyze, contentFileList);
+            }
+        }
 
         private static AnalysisConfig CreateValidConfig(string outputDir)
         {
