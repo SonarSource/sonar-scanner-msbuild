@@ -8,7 +8,6 @@
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarRunner.Shim;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -29,6 +28,9 @@ namespace SonarQube.TeamBuild.PostProcessor
             Debug.Assert(settings != null, "Settings should not be null");
 
             AnalysisConfig config = GetAnalysisConfig(settings, logger);
+
+            logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config, logger);
+
             if (config == null)
             {
                 logger.LogError(Resources.ERROR_MissingSettings);
@@ -51,7 +53,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             ProjectInfoAnalysisResult result = InvokeSonarRunner(config, logger);
 
             SummaryReportBuilder.GenerateReports(settings, config, result, logger);
-            
+
             return result.RanToCompletion ? SuccessCode : ErrorCode;
         }
 
@@ -156,9 +158,8 @@ namespace SonarQube.TeamBuild.PostProcessor
                 summaryLogger.WriteMessage(Resources.Report_ProductAndTestMessage, productProjectCount, testProjectCount);
                 summaryLogger.WriteMessage(Resources.Report_InvalidSkippedAndExcludedMessage, invalidProjectCount, skippedProjectCount, excludedProjectCount);
             }
-
         }
-     
+
         /// <summary>
         /// Factory method to create a coverage report processor for the current build environment.
         /// TODO: replace with a general purpose pre- and post- processing extension mechanism.

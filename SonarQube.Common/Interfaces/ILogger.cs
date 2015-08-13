@@ -8,6 +8,27 @@
 namespace SonarQube.Common
 {
     /// <summary>
+    /// Level of detail for the log messages.
+    /// </summary>
+    /// <remarks>
+    /// Does not cover warnings and errors.
+    /// The levels are in step with the SonarQube verbosity levels (http://docs.sonarqube.org/display/SONAR/Server+Log+Management):
+    /// Info, Debug (for advanced logs), Trace (for advanced logs and logs that might have a perf impact)
+    /// </remarks>
+    public enum LoggerVerbosity
+    {
+        /// <summary>
+        /// Important messages that always get logged
+        /// </summary>
+        Info = 0,
+
+        /// <summary>
+        /// Advanced information messages that help in debugging scenarios
+        /// </summary>
+        Debug = 1
+    }
+
+    /// <summary>
     /// Simple logging interface
     /// </summary>
     public interface ILogger

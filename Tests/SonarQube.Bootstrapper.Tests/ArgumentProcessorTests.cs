@@ -7,6 +7,7 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TestUtilities;
@@ -45,12 +46,12 @@ namespace SonarQube.Bootstrapper.Tests
         public void ArgProc_StripVerbsAndPrefixes()
         {
             TestLogger logger = new TestLogger();
-            
+
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "/begin:true", "/install:true");
             AssertUrlAndChildCmdLineArgs(settings, "foo", "/d:sonar.host.url=foo", "/begin:true", "/install:true");
 
             settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "/installXXX:true");
-            AssertUrlAndChildCmdLineArgs(settings, "foo",  "/d:sonar.host.url=foo", "/installXXX:true");
+            AssertUrlAndChildCmdLineArgs(settings, "foo", "/d:sonar.host.url=foo", "/installXXX:true");
         }
 
         [TestMethod]
@@ -67,13 +68,11 @@ namespace SonarQube.Bootstrapper.Tests
             properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://filehost" });
             properties.Save(propertiesFilePath);
 
-
             // 1. Url is not specified on the command line or in a properties file -> fail
             logger = CheckProcessingFails("/key:k1", "/name:n1", "/version:1.0");
 
             logger.AssertErrorLogged(SonarQube.Bootstrapper.Resources.ERROR_Args_UrlRequired);
             logger.AssertErrorsLogged(1);
-
 
             // 2. Url is specified in the file -> ok
             logger = new TestLogger();
@@ -156,7 +155,7 @@ namespace SonarQube.Bootstrapper.Tests
             logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb);
             AssertExpectedChildArguments(settings, validUrl);
 
-            // 5. Incorrect case -> treated as unrecognised argument 
+            // 5. Incorrect case -> treated as unrecognised argument
             // -> valid with 1 warning (no begin / end specified warning)
             logger = new TestLogger();
             settings = CheckProcessingSucceeds(logger, validUrl, "BEGIN"); // wrong case
@@ -237,7 +236,7 @@ namespace SonarQube.Bootstrapper.Tests
             // Act
             // "end", "endx" should not be treated as duplicates
             settings = CheckProcessingSucceeds(logger, "end", "endX", "endXXX");
-            
+
             // Assert
             AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
             logger.AssertWarningsLogged(0);
@@ -257,7 +256,39 @@ namespace SonarQube.Bootstrapper.Tests
             logger.AssertSingleErrorExists("begin", "end");
         }
 
-        #endregion
+        [TestMethod]
+        public void ArgProc_SonarVerbose_IsBool()
+        {
+            TestLogger logger = new TestLogger();
+
+            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "/d:sonar.verbose=yes");
+            Assert.AreEqual(VerbosityCalculator.DefaultLoggingVerbosity, settings.LoggingVerbosity, "Only expecting true or false");
+
+            logger.AssertErrorsLogged(0);
+            logger.AssertSingleWarningExists("yes");
+        }
+
+        [TestMethod]
+        public void ArgProc_SonarVerbose_CmdAndFile()
+        {
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "settings");
+            string fullPropertiesPath = Path.Combine(testDir, "settings.txt");
+            AnalysisProperties properties = new AnalysisProperties();
+            properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://settingsFile" });
+            properties.Add(new Property() { Id = SonarProperties.LogLevel, Value = "INFO|DEBUG" });
+            properties.Save(fullPropertiesPath);
+
+            TestLogger logger = new TestLogger();
+
+            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath);
+            Assert.AreEqual(LoggerVerbosity.Debug, settings.LoggingVerbosity);
+
+            settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath, "/d:sonar.verbose=false");
+            Assert.AreEqual(LoggerVerbosity.Info, settings.LoggingVerbosity, "sonar.verbose takes precedence");
+        }
+
+        #endregion Tests
 
         #region Checks
 
@@ -308,6 +339,6 @@ namespace SonarQube.Bootstrapper.Tests
             CollectionAssert.AreEqual(expected, actualSettings.ChildCmdLineArgs.ToList(), "Unexpected child command line arguments");
         }
 
-        #endregion
+        #endregion Checks
     }
 }

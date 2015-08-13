@@ -93,6 +93,8 @@ namespace SonarQube.TeamBuild.PreProcessor
                 throw new ArgumentNullException("logger");
             }
 
+            logger.Verbosity = VerbosityCalculator.ComputeVerbosity(args.AggregateProperties, logger);
+
             InstallLoaderTargets(args, logger);
 
             TeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);

@@ -372,11 +372,38 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to sonar.log.level={0} was specified - setting the log verbosity to &apos;DEBUG&apos;.
+        /// </summary>
+        public static string INFO_SonarLogLevelWasSpecified {
+            get {
+                return ResourceManager.GetString("INFO_SonarLogLevelWasSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to sonar.verbose={0} was specified - setting the log verbosity to &apos;{1}&apos;.
+        /// </summary>
+        public static string INFO_SonarVerboseWasSpecified {
+            get {
+                return ResourceManager.GetString("INFO_SonarVerboseWasSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to WARNING: .
         /// </summary>
         public static string Logger_WarningPrefix {
             get {
                 return ResourceManager.GetString("Logger_WarningPrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expecting the sonar.verbose property to be set to either true or false but it was set to &apos;{0}&apos;..
+        /// </summary>
+        public static string WARN_SonarVerboseNotBool {
+            get {
+                return ResourceManager.GetString("WARN_SonarVerboseNotBool", resourceCulture);
             }
         }
     }

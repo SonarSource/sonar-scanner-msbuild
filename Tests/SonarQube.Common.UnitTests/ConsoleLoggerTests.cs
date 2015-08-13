@@ -225,7 +225,7 @@ namespace SonarQube.Common.UnitTests
         public void CLogger_Verbosity()
         {
             ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
-            Assert.AreEqual(logger.Verbosity, LoggerVerbosity.Info, "Default verbosity should be INFO");
+            Assert.AreEqual(logger.Verbosity, LoggerVerbosity.Debug, "Default verbosity should be Debug");
 
             using (OutputCaptureScope output = new OutputCaptureScope())
             {

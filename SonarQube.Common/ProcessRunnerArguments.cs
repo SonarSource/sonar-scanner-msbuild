@@ -32,8 +32,8 @@ namespace SonarQube.Common
             SonarProperties.DbPassword,
             SonarProperties.DbUserName
         };
-    
-            public ProcessRunnerArguments(string exeName, ILogger logger)
+
+        public ProcessRunnerArguments(string exeName, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(exeName))
             {

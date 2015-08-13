@@ -65,9 +65,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             string[] validArgs = new string[] {
                 "/k:key", "/n:name", "/v:1.0",
-
                 "/d:cmd.line1=cmdline.value.1",
-                "/d:sonar.host.url=http://host" };
+                "/d:sonar.host.url=http://host",
+                "/d:sonar.log.level=INFO|DEBUG"};
 
             TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
@@ -96,6 +96,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
+            logger.AssertVerbosity(LoggerVerbosity.Debug);
 
             AssertConfigFileExists(settings.AnalysisConfigFilePath);
             AnalysisConfig actualConfig = AnalysisConfig.Load(settings.AnalysisConfigFilePath);

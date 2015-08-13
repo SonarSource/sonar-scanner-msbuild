@@ -137,6 +137,10 @@ namespace TestUtilities
             Assert.AreEqual(0, matches.Count(), "Not expecting any errors to contain the specified strings: {0}", string.Join(",", expected));
         }
 
+        public void AssertVerbosity(LoggerVerbosity expected)
+        {
+            Assert.AreEqual(expected, this.Verbosity, "Logger verbosity mismatch");
+        }
 
         #endregion
 

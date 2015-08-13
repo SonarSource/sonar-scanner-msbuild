@@ -15,7 +15,7 @@ namespace SonarQube.Common
     /// </summary>
     public class ConsoleLogger : ILogger
     {
-        private const LoggerVerbosity DefaultVerbosity = LoggerVerbosity.Info;
+        private const LoggerVerbosity DefaultVerbosity = VerbosityCalculator.InitialLoggingVerbosity;
 
         #region Public methods
 

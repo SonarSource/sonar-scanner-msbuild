@@ -75,6 +75,8 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public IAnalysisPropertyProvider GlobalFileProperties { get { return this.globalFileProperties; } }
 
+        public IAnalysisPropertyProvider AggregateProperties { get { return this.aggProperties; } }
+
         /// <summary>
         /// Returns the value for the specified setting.
         /// Throws if the setting does not exist.
