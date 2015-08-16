@@ -14,6 +14,8 @@ namespace SonarQube.Common.UnitTests
     [TestClass]
     public class VerbosityCalculatorTests
     {
+        #region Tests
+
         [TestMethod]
         public void FromAnalysisConfig_Verbose()
         {
@@ -60,25 +62,28 @@ namespace SonarQube.Common.UnitTests
         }
 
         [TestMethod]
-        public void FromAnalysisProvider()
+        [Description("Looks at how verbosity is computed when various combinations of <<verbose>> and <<log.level>> values are passed in. <<verbose>> takes precendence over <<log.level>>")]
+        public void FromAnalysisProvider_Precedence()
         {
             CheckVerbosity("Default verbosity does not match", VerbosityCalculator.DefaultLoggingVerbosity);
-            CheckVerbosity("Trace and Debug are independent SonarQube verbosity settings. We only track Debug", VerbosityCalculator.DefaultLoggingVerbosity, "trace");
+            CheckVerbosity("Trace and Debug are independent SonarQube verbosity settings. We only track Debug", VerbosityCalculator.DefaultLoggingVerbosity, null, "trace");
 
             CheckVerbosity("", LoggerVerbosity.Debug, "true");
             CheckVerbosity("", LoggerVerbosity.Debug, "TRue");
             CheckVerbosity("", LoggerVerbosity.Info, "false");
-            CheckVerbosity("", LoggerVerbosity.Debug, "debug");
-            CheckVerbosity("", LoggerVerbosity.Debug, "INFO|DEBUG|TRACE");
-            CheckVerbosity("", LoggerVerbosity.Debug, "***debug***");
+            CheckVerbosity("", LoggerVerbosity.Debug, null, "debug");
+            CheckVerbosity("", LoggerVerbosity.Debug, null, "INFO|DEBUG|TRACE");
+            CheckVerbosity("", LoggerVerbosity.Debug, null, "***debug***");
 
             CheckVerbosity("sonar.verbose takes precedence over sonar.log.level", LoggerVerbosity.Debug, "true", "INFO");
             CheckVerbosity("sonar.verbose takes precedence over sonar.log.level", LoggerVerbosity.Info, "FALSE", "DEBUG");
         }
 
+        #endregion Tests
+
         private static void CheckVerbosity(string errorMessage, LoggerVerbosity expectedVerbosity, string verbosity = null, string logLevel = null)
         {
-            var provider = CreateProvider(verbosity, logLevel);
+            var provider = CreatePropertiesProvider(verbosity, logLevel);
             TestLogger logger = new TestLogger();
 
             var actualVerbosity = VerbosityCalculator.ComputeVerbosity(provider, logger);
@@ -89,14 +94,14 @@ namespace SonarQube.Common.UnitTests
             logger.AssertWarningsLogged(0);
         }
 
-        private static ListPropertiesProvider CreateProvider(string verbosity, string logLevel)
+        private static ListPropertiesProvider CreatePropertiesProvider(string verbosity, string logLevel)
         {
             ListPropertiesProvider propertyProvider = new ListPropertiesProvider();
-            if (verbosity!=null)
+            if (verbosity != null)
             {
                 propertyProvider.AddProperty(SonarProperties.Verbose, verbosity);
             }
-            if (logLevel!=null)
+            if (logLevel != null)
             {
                 propertyProvider.AddProperty(SonarProperties.LogLevel, logLevel);
             }
