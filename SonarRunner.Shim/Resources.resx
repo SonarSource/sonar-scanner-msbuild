@@ -144,9 +144,6 @@
   <data name="ERR_ErrorLoadingConfigFile" xml:space="preserve">
     <value>An error occurred loading the analysis config file. Please check that it is a valid file and try again. Error: {0}</value>
   </data>
-  <data name="ERR_InvalidAnalysisConfigFilePath" xml:space="preserve">
-    <value>The specified analysis config file does not exist: {0}</value>
-  </data>
   <data name="ERR_InvalidCommandLineArgs" xml:space="preserve">
     <value>Expected to be called with one argument: the full path to the analysis config file</value>
   </data>

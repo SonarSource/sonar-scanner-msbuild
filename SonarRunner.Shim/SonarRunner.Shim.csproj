@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{C28A09BF-6025-4EA1-90D7-4D5EC0AF815D}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SonarRunner.Shim</RootNamespace>
     <AssemblyName>SonarRunner.Shim</AssemblyName>
@@ -31,6 +31,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -47,7 +50,6 @@
     </Compile>
     <Compile Include="ISonarRunner.cs" />
     <Compile Include="ProjectInfoAnalysisResult.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="PropertiesFileGenerator.cs" />
     <Compile Include="PropertiesWriter.cs" />
     <Compile Include="ProjectLoader.cs" />
