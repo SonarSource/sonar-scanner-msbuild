@@ -196,6 +196,8 @@ namespace SonarRunner.Shim
         /// </summary>
         private static IEnumerable<string> GetAllCmdLineArgs(string projectSettingsFilePath, IEnumerable<string> userCmdLineArguments)
         {
+            // We don't know what all of the valid command line arguments are so we'll
+            // just pass them on for the sonar-runner to validate.
             List<string> args = new List<string>(userCmdLineArguments);
 
             // Add the project settings file and the standard options.

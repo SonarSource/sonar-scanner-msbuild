@@ -89,12 +89,15 @@ namespace SonarRunner.Shim.Tests
             string propertiesFilePath = Path.Combine(TestUtils.CreateTestSpecificFolder(this.TestContext), "analysis.properties");
             File.CreateText(propertiesFilePath);
 
-            string[] userArgs = new string[] { "/Dsonar.login=me", "/Dsonar.password=my.pwd" };
+            string[] userArgs = new string[] { "-Dsonar.login=me", "-Dsonar.password=my.pwd" };
 
             // Act
             bool success = SonarRunnerWrapper.ExecuteJavaRunner(logger, exePath, propertiesFilePath, userArgs);
             Assert.IsTrue(success, "Expecting execution to succeed");
-            string message = logger.AssertSingleMessageExists("Command line args:", "/Dsonar.login=me", "/Dsonar.password=my.pwd");
+            string message = logger.AssertSingleMessageExists("Command line args:",
+                "-Dsonar.login=me", "-Dsonar.password=my.pwd",
+                "-Dproject.settings=\"" + propertiesFilePath + "\"",
+                SonarRunnerWrapper.StandardAdditionalRunnerArguments);
 
             int loginIndex = message.IndexOf("login=me");
             int pwdIndex = message.IndexOf("password=my.pwd");
