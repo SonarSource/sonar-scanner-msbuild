@@ -154,7 +154,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                 areValid = false;
             }
 
-            string projectKey = args.GetSetting(SonarProperties.ProjectKey);
+            string projectKey = args.ProjectKey;
             if (!IsValidProjectKey(projectKey))
             {
                 logger.LogError(Resources.ERROR_InvalidProjectKeyArg);

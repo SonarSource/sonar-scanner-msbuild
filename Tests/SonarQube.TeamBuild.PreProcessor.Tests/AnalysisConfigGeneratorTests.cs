@@ -118,9 +118,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Check the config
 
             // "Public" arguments should be in the file
-            AssertExpectedAnalysisSetting(SonarProperties.ProjectKey, "key", config);
-            AssertExpectedAnalysisSetting(SonarProperties.ProjectName, "name", config);
-            AssertExpectedAnalysisSetting(SonarProperties.ProjectVersion, "1.0", config);
+            Assert.AreEqual("key", config.SonarProjectKey, "Unexpected project key");
+            Assert.AreEqual("name", config.SonarProjectName, "Unexpected project name");
+            Assert.AreEqual("1.0", config.SonarProjectVersion, "Unexpected project version");
+
             AssertExpectedAnalysisSetting(SonarProperties.HostUrl, "http://host", config);
 
             // Sensitive arguments should not be in the file
