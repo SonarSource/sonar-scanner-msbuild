@@ -31,9 +31,14 @@ namespace SonarRunner.Shim
         public const string SonarRunnerHomeVariableName = "SONAR_RUNNER_HOME";
 
         /// <summary>
+        /// Name of the command line argument used to specify the generated project settings file to use
+        /// </summary>
+        public const string ProjectSettingsFileArgName = "project.settings";
+
+        /// <summary>
         /// Additional arguments that will always be passed to the runner
         /// </summary>
-        public const string AdditionalRunnerArguments = "-e"; // -e = produce execution errors to assist with troubleshooting
+        public const string StandardAdditionalRunnerArguments = "-e"; // -e = produce execution errors to assist with troubleshooting
 
         /// <summary>
         /// Default value for the SONAR_RUNNER_OPTS
@@ -43,11 +48,15 @@ namespace SonarRunner.Shim
 
         #region ISonarRunner interface
 
-        public ProjectInfoAnalysisResult Execute(AnalysisConfig config, ILogger logger)
+        public ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger)
         {
             if (config == null)
             {
                 throw new ArgumentNullException("config");
+            }
+            if (userCmdLineArguments == null)
+            {
+                throw new ArgumentNullException("cmdLineArguments");
             }
             if (logger == null)
             {
@@ -72,7 +81,7 @@ namespace SonarRunner.Shim
                 string exeFileName = FindRunnerExe(config, logger);
                 if (exeFileName != null)
                 {
-                    result.RanToCompletion = ExecuteJavaRunner(logger, exeFileName, result.FullPropertiesFilePath);
+                    result.RanToCompletion = ExecuteJavaRunner(logger, exeFileName, result.FullPropertiesFilePath, userCmdLineArguments);
                 }
             }
 
@@ -100,25 +109,22 @@ namespace SonarRunner.Shim
             return fullPath;
         }
 
-        public /* for test purposes */ static bool ExecuteJavaRunner(ILogger logger, string exeFileName, string propertiesFileName)
+        public /* for test purposes */ static bool ExecuteJavaRunner(ILogger logger, string exeFileName, string propertiesFileName, IEnumerable<string> userCmdLineArguments)
         {
             Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
             Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
 
             IgnoreSonarRunnerHome(logger);
 
-            List<string> args = new List<string>();
-            args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "-Dproject.settings=\"{0}\"", propertiesFileName));
-            args.Add(AdditionalRunnerArguments);
-
-            logger.LogInfo(Resources.DIAG_CallingSonarRunner);
+            IEnumerable<string> allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments);
 
             IDictionary<string, string> envVarsDictionary = GetAdditionalEnvVariables(logger);
             Debug.Assert(envVarsDictionary != null);
 
+            logger.LogInfo(Resources.DIAG_CallingSonarRunner);
             ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(exeFileName, logger)
             {
-                CmdLineArgs = args,
+                CmdLineArgs = allCmdLineArgs,
                 WorkingDirectory = Path.GetDirectoryName(exeFileName),
                 EnvironmentVariables = envVarsDictionary
             };
@@ -183,6 +189,23 @@ namespace SonarRunner.Shim
                 logger.LogInfo(Resources.INFO_SonarRunnerOptsDefaultUsed, SonarRunnerOptsVariableName, SonarRunnerOptsDefaultValue);
                 return SonarRunnerOptsDefaultValue;
             }
+        }
+
+        /// <summary>
+        /// Returns all of the command line arguments to pass to sonar-runner
+        /// </summary>
+        private static IEnumerable<string> GetAllCmdLineArgs(string projectSettingsFilePath, IEnumerable<string> userCmdLineArguments)
+        {
+            List<string> args = new List<string>(userCmdLineArguments);
+
+            // Add the project settings file and the standard options.
+            // Experimentation suggests that the sonar-runner won't error if duplicate arguments
+            // are supplied - it will just use the last argument.
+            // So we'll set our additional properties last to make sure they take precedence.
+            args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "-D{0}=\"{1}\"", ProjectSettingsFileArgName, projectSettingsFilePath));
+            args.Add(StandardAdditionalRunnerArguments);
+
+            return args;
         }
 
         #endregion Private methods

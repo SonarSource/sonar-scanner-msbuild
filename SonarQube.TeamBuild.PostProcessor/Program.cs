@@ -116,7 +116,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         private static ProjectInfoAnalysisResult InvokeSonarRunner(AnalysisConfig config, ILogger logger)
         {
             ISonarRunner runner = new SonarRunnerWrapper();
-            ProjectInfoAnalysisResult result = runner.Execute(config, logger);
+            ProjectInfoAnalysisResult result = runner.Execute(config, Enumerable.Empty<string>() /* todo */, logger);
             return result;
         }
 

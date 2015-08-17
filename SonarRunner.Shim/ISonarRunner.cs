@@ -14,9 +14,9 @@ namespace SonarRunner.Shim
     /// Encapsulate the interaction with the sonar-runner
     /// </summary>
     /// <remarks>Accepts the ProjectInfo.xml files as input, generates a sonar-runner.properties 
-    /// file from them, then executes the Java sonar-runnerr.</remarks>
+    /// file from them, then executes the Java sonar-runner</remarks>
     public interface ISonarRunner
     {
-        ProjectInfoAnalysisResult Execute(AnalysisConfig config, ILogger logger);
+        ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger);
     }
 }
