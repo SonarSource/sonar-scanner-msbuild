@@ -323,7 +323,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedPropertyValue("key2", "value two with spaces", result);
 
             Assert.IsNotNull(result.GetAllProperties(), "GetAllProperties should not return null");
-            Assert.AreEqual(6, result.GetAllProperties().Count(), "Unexpected number of properties");
+            Assert.AreEqual(3, result.GetAllProperties().Count(), "Unexpected number of properties");
         }
 
         [TestMethod]
@@ -429,7 +429,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         private static void CheckProjectKeyIsValid(string projectKey)
         {
             ProcessedArgs result = CheckProcessingSucceeds("/key:" + projectKey, "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid");
-            AssertExpectedPropertyValue(SonarProperties.ProjectKey, projectKey, result);
+            Assert.AreEqual(projectKey, result.ProjectKey, "Unexpected project key");
         }
 
         private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs)

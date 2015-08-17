@@ -101,11 +101,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertConfigFileExists(settings.AnalysisConfigFilePath);
             AnalysisConfig actualConfig = AnalysisConfig.Load(settings.AnalysisConfigFilePath);
 
-            AssertExpectedAnalysisSetting("sonar.projectKey", "key", actualConfig);
-            AssertExpectedAnalysisSetting("sonar.projectName", "name", actualConfig);
-            AssertExpectedAnalysisSetting("sonar.projectVersion", "1.0", actualConfig);
-            AssertExpectedAnalysisSetting(SonarProperties.HostUrl, "http://host", actualConfig);
+            Assert.AreEqual("key", actualConfig.SonarProjectKey, "Unexpected project key");
+            Assert.AreEqual("name", actualConfig.SonarProjectName, "Unexpected project name");
+            Assert.AreEqual("1.0", actualConfig.SonarProjectVersion, "Unexpected project version");
 
+            AssertExpectedAnalysisSetting(SonarProperties.HostUrl, "http://host", actualConfig);
             AssertExpectedAnalysisSetting("cmd.line1", "cmdline.value.1", actualConfig);
             AssertExpectedAnalysisSetting("server.key", "server value 1", actualConfig);
         }

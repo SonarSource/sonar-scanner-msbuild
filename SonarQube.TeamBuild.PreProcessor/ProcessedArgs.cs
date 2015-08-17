@@ -17,7 +17,10 @@ namespace SonarQube.TeamBuild.PreProcessor
     /// </summary>
     public class ProcessedArgs
     {
-        private readonly ListPropertiesProvider projectSettingsProvider;
+        private readonly string projectKey;
+        private readonly string projectName;
+        private readonly string projectVersion;
+
         private readonly IAnalysisPropertyProvider cmdLineProperties;
         private readonly IAnalysisPropertyProvider globalFileProperties;
 
@@ -46,34 +49,27 @@ namespace SonarQube.TeamBuild.PreProcessor
                 throw new ArgumentNullException("globalFileProperties");
             }
 
+            this.projectKey = key;
+            this.projectName = name;
+            this.projectVersion = version;
+
             this.cmdLineProperties = cmdLineProperties;
             this.globalFileProperties = globalFileProperties;
             this.InstallLoaderTargets = installLoaderTargets;
 
-            this.projectSettingsProvider = new ListPropertiesProvider();
-            this.projectSettingsProvider.AddProperty(SonarProperties.ProjectKey, key);
-            this.projectSettingsProvider.AddProperty(SonarProperties.ProjectName, name);
-            this.projectSettingsProvider.AddProperty(SonarProperties.ProjectVersion, version);
-
-            this.aggProperties = new AggregatePropertiesProvider(projectSettingsProvider, cmdLineProperties, globalFileProperties);
+            this.aggProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties);
         }
 
-        public string ProjectKey { get { return this.GetSetting(SonarProperties.ProjectKey); } }
+        public string ProjectKey { get { return this.projectKey; } }
 
-        public string ProjectName { get { return this.GetSetting(SonarProperties.ProjectName); } }
+        public string ProjectName { get { return this.projectName; } }
 
-        public string ProjectVersion { get { return this.GetSetting(SonarProperties.ProjectVersion); } }
+        public string ProjectVersion { get { return this.projectVersion; } }
 
         /// <summary>
         /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up
         /// </summary>
         public bool InstallLoaderTargets { get; private set; }
-
-        public IAnalysisPropertyProvider ProjectSettingsProvider { get { return this.projectSettingsProvider; } }
-
-        public IAnalysisPropertyProvider CmdLineProperties {  get { return this.cmdLineProperties; } }
-
-        public IAnalysisPropertyProvider GlobalFileProperties { get { return this.globalFileProperties; } }
 
         public IAnalysisPropertyProvider AggregateProperties { get { return this.aggProperties; } }
 
