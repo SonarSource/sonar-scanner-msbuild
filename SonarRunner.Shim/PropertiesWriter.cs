@@ -175,19 +175,16 @@ namespace SonarRunner.Shim
         /// <summary>
         /// Write the supplied global settings into the file
         /// </summary>
-        public void WriteGlobalSettings(IEnumerable<AnalysisSetting> settings)
+        public void WriteGlobalSettings(AnalysisProperties properties)
         {
-            if (settings == null)
+            if (properties == null)
             {
-                throw new ArgumentNullException("settings");
+                throw new ArgumentNullException("properties");
             }
 
-            foreach(AnalysisSetting setting in settings)
+            foreach(Property setting in properties)
             {
-                if (!setting.Inherited)
-                {
-                    AppendKeyValue(this.sb, setting.Id, setting.Value);
-                }
+                AppendKeyValue(this.sb, setting.Id, setting.Value);
             }
             sb.AppendLine();
         }

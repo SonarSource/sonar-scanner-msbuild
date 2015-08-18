@@ -47,34 +47,31 @@ namespace SonarQube.TeamBuild.PreProcessor
 
 
             // Add the server properties to the config
+            config.ServerSettings = new AnalysisProperties();
             foreach (var property in serverProperties)
             {
-                config.SetInheritedValue(property.Key, property.Value);
+                AddSetting(config.ServerSettings, property.Key, property.Value);
             }
 
-            // Merge in command line arguments
-            MergeSettingsFromCommandLine(config, args);
+            // Add command line and file arguments
+            config.LocalSettings = new AnalysisProperties();
+            foreach (var property in args.GetAllProperties())
+            {
+                AddSetting(config.LocalSettings, property.Id, property.Value);
+            }
 
             config.Save(settings.AnalysisConfigFilePath);
 
             return config;
         }
-
-        private static void MergeSettingsFromCommandLine(AnalysisConfig config, ProcessedArgs args)
+        
+        private static void AddSetting(AnalysisProperties properties, string id, string value)
         {
-            if (args == null)
+            if (!ProcessRunnerArguments.ContainsSensitiveData(id) && !ProcessRunnerArguments.ContainsSensitiveData(value))
             {
-                return;
+                properties.Add(new Property() { Id = id, Value = value });
             }
 
-            foreach (Property item in args.GetAllProperties())
-            {
-                if (!ProcessRunnerArguments.ContainsSensitiveData(item.Id) && !ProcessRunnerArguments.ContainsSensitiveData(item.Value))
-                {
-                    config.SetExplicitValue(item.Id, item.Value); // this will overwrite the setting if it already exists
-                }
-            }
         }
-
     }
 }

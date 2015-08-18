@@ -69,14 +69,6 @@ namespace SonarQube.Common
         /// <summary>
         /// Sets the value of the additional setting. The setting will be added if it does not already exist.
         /// </summary>
-        public static void SetInheritedValue(this AnalysisConfig config, string settingId, string value)
-        {
-            SetValue(config, settingId, value, true);
-        }
-
-        /// <summary>
-        /// Sets the value of the additional setting. The setting will be added if it does not already exist.
-        /// </summary>
         public static void SetExplicitValue(this AnalysisConfig config, string settingId, string value)
         {
             SetValue(config, settingId, value, false);

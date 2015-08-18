@@ -70,7 +70,7 @@ xxx yyy
         {
             // Arrange
             string exeName = TestUtils.WriteBatchFileForTest(TestContext,
-@"TIMEOUT 1
+@"TIMEOUT 2
 @echo Hello world
 ");
 

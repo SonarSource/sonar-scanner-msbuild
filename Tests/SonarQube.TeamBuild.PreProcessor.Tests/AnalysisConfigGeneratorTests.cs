@@ -23,7 +23,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         #region Tests
 
         [TestMethod]
-        public void AnalysisConfGen_LocalPropertiesOverrideServerSettings()
+        public void AnalysisConfGen_CmdLinePropertiesOverrideFileSettings()
         {
             // Checks command line properties override those fetched from the server
 
@@ -34,22 +34,20 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             
             // The set of server properties to return
             Dictionary<string, string> serverSettings = new Dictionary<string, string>();
-            serverSettings.Add("shared.key1", "server value 1 - should be overridden by cmd line");
-            serverSettings.Add("shared.key2", "server value 2 - should be overridden by file");
-            serverSettings.Add("server.only", "server value 3 - only on server");
+            serverSettings.Add("shared.key1", "server value 1");
+            serverSettings.Add("server.only", "server value 3");
             serverSettings.Add("xxx", "server value xxx - lower case");
 
             // The set of command line properties to supply
             ListPropertiesProvider cmdLineProperties = new ListPropertiesProvider();
-            cmdLineProperties.AddProperty("shared.key1", "cmd line value1 - should override server value");
-            cmdLineProperties.AddProperty("cmd.line.only", "cmd line value4 - only on command line");
-            cmdLineProperties.AddProperty("XXX", "cmd line value XXX - upper case");
+            cmdLineProperties.AddProperty("shared.key1", "cmd line value1 - should override file");
+            cmdLineProperties.AddProperty("cmd.line.only", "cmd line value4 - only in file");
+            cmdLineProperties.AddProperty("XXX", "cmd line value XXX");
             cmdLineProperties.AddProperty(SonarProperties.HostUrl, "http://host");
 
             // The set of file properties to supply
             ListPropertiesProvider fileProperties = new ListPropertiesProvider();
-            fileProperties.AddProperty("shared.key1", "file value1 - should be overridden");
-            fileProperties.AddProperty("shared.key2", "file value2 - should override server value");
+            fileProperties.AddProperty("shared.key1", "file value1 - should be overridden by the cmd line");
             fileProperties.AddProperty("file.only", "file value3 - only in file");
             fileProperties.AddProperty("XXX", "cmd line value XXX - upper case");
 
@@ -62,21 +60,30 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Act
             AnalysisConfig actualConfig =  AnalysisConfigGenerator.GenerateFile(args, settings, serverSettings, logger);
 
-
             // Assert
             AssertConfigFileExists(actualConfig);
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
 
-            AssertExpectedAnalysisSetting("shared.key1", "cmd line value1 - should override server value", actualConfig);
-            AssertExpectedAnalysisSetting("shared.key2", "file value2 - should override server value", actualConfig);
-            AssertExpectedAnalysisSetting("server.only", "server value 3 - only on server", actualConfig);
+            AssertExpectedServerSetting("shared.key1", "server value 1", actualConfig);
+            AssertExpectedServerSetting("server.only", "server value 3", actualConfig);
+            AssertExpectedServerSetting("xxx", "server value xxx - lower case", actualConfig);
+
+            AssertExpectedLocalSetting("shared.key1", "cmd line value1 - should override file", actualConfig);
+            AssertExpectedLocalSetting("cmd.line.only", "cmd line value4 - only in file", actualConfig);
+            AssertExpectedLocalSetting("XXX", "cmd line value XXX", actualConfig);
+            AssertExpectedLocalSetting(SonarProperties.HostUrl, "http://host", actualConfig);
+
+            //fileProperties.AddProperty("shared.key1", "file value1 - should be overridden by the cmd line");
+            //fileProperties.AddProperty("file.only", "file value3 - only in file");
+            //fileProperties.AddProperty("XXX", "cmd line value XXX - upper case");
+
+
             AssertExpectedAnalysisSetting("cmd.line.only", "cmd line value4 - only on command line", actualConfig);
             AssertExpectedAnalysisSetting("file.only", "file value3 - only in file", actualConfig);
             AssertExpectedAnalysisSetting("xxx", "server value xxx - lower case", actualConfig);
             AssertExpectedAnalysisSetting("XXX", "cmd line value XXX - upper case", actualConfig);
             AssertExpectedAnalysisSetting(SonarProperties.HostUrl, "http://host", actualConfig);
-
         }
 
         [TestMethod]
@@ -133,7 +140,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #endregion
 
-
         #region Checks
 
         private void AssertConfigFileExists(AnalysisConfig config)
@@ -161,6 +167,24 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AnalysisSetting setting;
             bool found = actualConfig.TryGetSetting(key, out setting);
             Assert.IsFalse(found, "The setting should not exist. Key: {0}", key);
+        }
+
+        private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig acutalConfig)
+        {
+            Property property;
+            bool found = Property.TryGetProperty(key, acutalConfig.ServerSettings, out property);
+
+            Assert.IsTrue(found, "Expected server property was not found. Key: {0}", key);
+            Assert.AreEqual(expectedValue, property.Value, "Unexpected server value. Key: {0}", key);
+        }
+
+        private static void AssertExpectedLocalSetting(string key, string expectedValue, AnalysisConfig acutalConfig)
+        {
+            Property property;
+            bool found = Property.TryGetProperty(key, acutalConfig.LocalSettings, out property);
+
+            Assert.IsTrue(found, "Expected local property was not found. Key: {0}", key);
+            Assert.AreEqual(expectedValue, property.Value, "Unexpected local value. Key: {0}", key);
         }
 
         #endregion

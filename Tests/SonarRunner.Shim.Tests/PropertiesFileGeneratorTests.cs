@@ -242,11 +242,15 @@ namespace SonarRunner.Shim.Tests
 
             CreateProjectWithFiles("project1", analysisRootDir);
             AnalysisConfig config = CreateValidConfig(analysisRootDir);
-            
+
             // Add additional properties
-            config.SetExplicitValue("key1", "value1");
-            config.SetExplicitValue("key.2", "value two");
-            config.SetExplicitValue("key.3", " ");
+            config.LocalSettings = new AnalysisProperties();
+            config.LocalSettings.Add(new Property() { Id = "key1", Value = "value1" });
+            config.LocalSettings.Add(new Property() { Id = "key.2", Value = "value two" });
+            config.LocalSettings.Add(new Property() { Id = "key.3", Value = " " });
+
+            config.ServerSettings = new AnalysisProperties();
+            config.ServerSettings.Add(new Property() { Id = "server.key", Value = "should not be added" });
 
             // Act
             ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
@@ -261,6 +265,8 @@ namespace SonarRunner.Shim.Tests
             AssertExpectedConfigSetting("key1", "value1", provider);
             AssertExpectedConfigSetting("key.2", "value two", provider);
             AssertExpectedConfigSetting("key.3", " ", provider);
+
+            AssertSettingDoesNotExist("server.key", provider);
         }
 
         #endregion
@@ -326,6 +332,12 @@ namespace SonarRunner.Shim.Tests
         {
             string actualValue = provider.GetProperty(key);
             Assert.AreEqual(expectedValue, actualValue, "Property does not have the expected value. Key: {0}", key);
+        }
+
+        private static void AssertSettingDoesNotExist(string key, SQPropertiesFileReader provider)
+        {
+            string value = provider.GetProperty(key, null);
+            Assert.IsNull(value, "Unexpected value for property. Key: {0}", key);
         }
 
         #endregion

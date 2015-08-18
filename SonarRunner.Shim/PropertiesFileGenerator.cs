@@ -58,8 +58,8 @@ namespace SonarRunner.Shim
             if (validProjects.Any())
             {
                 // Handle global settings
-                Debug.Assert(config.AdditionalSettings != null);
-                writer.WriteGlobalSettings(config.AdditionalSettings ?? Enumerable.Empty<AnalysisSetting>());
+                Debug.Assert(config.LocalSettings != null);
+                writer.WriteGlobalSettings(config.LocalSettings ?? new AnalysisProperties());
 
                 string contents = writer.Flush();
 

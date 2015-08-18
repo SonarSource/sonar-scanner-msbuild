@@ -35,11 +35,15 @@ namespace SonarQube.Common
         public string SonarProjectVersion { get; set; }
 
         public string SonarProjectName { get; set; }
-        
+
         /// <summary>
         /// List of additional analysis settings
         /// </summary>
         public List<AnalysisSetting> AdditionalSettings { get; set; }
+
+        public AnalysisProperties ServerSettings{ get; set; }
+
+        public AnalysisProperties LocalSettings { get; set; }
 
         #endregion
 

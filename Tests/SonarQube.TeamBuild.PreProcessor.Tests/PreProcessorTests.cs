@@ -105,9 +105,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual("name", actualConfig.SonarProjectName, "Unexpected project name");
             Assert.AreEqual("1.0", actualConfig.SonarProjectVersion, "Unexpected project version");
 
-            AssertExpectedAnalysisSetting(SonarProperties.HostUrl, "http://host", actualConfig);
-            AssertExpectedAnalysisSetting("cmd.line1", "cmdline.value.1", actualConfig);
-            AssertExpectedAnalysisSetting("server.key", "server value 1", actualConfig);
+            AssertExpectedLocalSetting(SonarProperties.HostUrl, "http://host", actualConfig);
+            AssertExpectedLocalSetting("cmd.line1", "cmdline.value.1", actualConfig);
+            AssertExpectedServerSetting("server.key", "server value 1", actualConfig);
         }
 
         #endregion Tests
@@ -120,13 +120,22 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             this.TestContext.AddResultFile(filePath);
         }
 
-        private static void AssertExpectedAnalysisSetting(string key, string expectedValue, AnalysisConfig actualConfig)
+        private static void AssertExpectedLocalSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
-            AnalysisSetting setting;
-            actualConfig.TryGetSetting(key, out setting);
+            Property actualProperty;
+            bool found = Property.TryGetProperty(key, actualConfig.LocalSettings, out actualProperty);
 
-            Assert.IsNotNull(setting, "Failed to retrieve the expected setting. Key: {0}", key);
-            Assert.AreEqual(expectedValue, setting.Value, "Unexpected setting value. Key: {0}", key);
+            Assert.IsTrue(found, "Failed to find the expected local setting: {0}", key);
+            Assert.AreEqual(expectedValue, actualProperty.Value, "Unexpected property value. Key: {0}", key);
+        }
+
+        private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig actualConfig)
+        {
+            Property actualProperty;
+            bool found = Property.TryGetProperty(key, actualConfig.ServerSettings, out actualProperty);
+
+            Assert.IsTrue(found, "Failed to find the expected server setting: {0}", key);
+            Assert.AreEqual(expectedValue, actualProperty.Value, "Unexpected property value. Key: {0}", key);
         }
 
         private static void AssertDirectoryExists(string path)

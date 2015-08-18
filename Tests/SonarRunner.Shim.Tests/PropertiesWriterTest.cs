@@ -307,12 +307,10 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
                 SonarOutputDir = @"C:\my_folder"
             };
 
-            IList<AnalysisSetting> globalSettings = new List<AnalysisSetting>();
-
-            globalSettings.Add(new AnalysisSetting() { Id = "my.setting1", Value = "setting1", Inherited = false });
-            globalSettings.Add(new AnalysisSetting() { Id = "my.setting2", Value = "setting 2 with spaces", Inherited = false });
-            globalSettings.Add(new AnalysisSetting() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt", Inherited = false }); // path that will be escaped
-            globalSettings.Add(new AnalysisSetting() { Id = "my.setting.4", Value = "not to be written out", Inherited = true });
+            AnalysisProperties globalSettings = new AnalysisProperties();
+            globalSettings.Add(new Property() { Id = "my.setting1", Value = "setting1" });
+            globalSettings.Add(new Property() { Id = "my.setting2", Value = "setting 2 with spaces" });
+            globalSettings.Add(new Property() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" }); // path that will be escaped
 
             // Act
             PropertiesWriter writer = new PropertiesWriter(config);
@@ -325,7 +323,6 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             AssertSettingExists(propertyReader, "my.setting1", "setting1");
             AssertSettingExists(propertyReader, "my.setting2", "setting 2 with spaces");
             AssertSettingExists(propertyReader, "my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
-            AssertSettingDoesNotExists(propertyReader, "my.setting.4");
         }
 
         #endregion
