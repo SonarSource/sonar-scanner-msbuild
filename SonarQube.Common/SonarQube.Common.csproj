@@ -42,7 +42,7 @@
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-    <Compile Include="AnalysisConfig\AnalysisSetting.cs" />
+    <Compile Include="AnalysisConfig\ConfigSetting.cs" />
     <Compile Include="AnalysisConfig\AnalysisConfigExtensions.cs" />
     <Compile Include="AnalysisProperties\EmptyPropertyProvider.cs" />
     <Compile Include="AnalysisProperties\ListSettingsProvider.cs" />

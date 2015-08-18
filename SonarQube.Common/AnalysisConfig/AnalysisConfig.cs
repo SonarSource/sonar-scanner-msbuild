@@ -37,12 +37,21 @@ namespace SonarQube.Common
         public string SonarProjectName { get; set; }
 
         /// <summary>
-        /// List of additional analysis settings
+        /// List of additional configuration-related settings
+        /// e.g. the build system identifier, if appropriate.
         /// </summary>
-        public List<AnalysisSetting> AdditionalSettings { get; set; }
+        /// <remarks>These settings will not be supplied to the sonar-runner.</remarks>
+        public List<ConfigSetting> AdditionalConfig { get; set; }
 
+        /// <summary>
+        /// List of analysis settings inherited from the SonarQube server
+        /// </summary>
         public AnalysisProperties ServerSettings{ get; set; }
 
+        /// <summary>
+        /// List of analysis settings supplied locally (either on the
+        /// command line or in a file)
+        /// </summary>
         public AnalysisProperties LocalSettings { get; set; }
 
         #endregion

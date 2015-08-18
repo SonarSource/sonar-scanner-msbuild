@@ -61,28 +61,6 @@ namespace SonarQube.Common
             return ComputeVerbosity(sonarVerboseValue, sonarLogLevelValue, logger);
         }
 
-        /// <summary>
-        /// Computes verbosity based on the analysis config file settings. 
-        /// </summary>
-        /// <remarks>If no verbosity setting is present, the default verbosity (info) is used</remarks>
-        public static LoggerVerbosity ComputeVerbosity(AnalysisConfig config, ILogger logger)
-        {
-            if (config == null)
-            {
-                throw new ArgumentNullException("config");
-            }
-
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
-
-            string sonarVerboseSettingValue = config.GetSetting(SonarProperties.Verbose, String.Empty);
-            string sonarLogLevelSettingValue = config.GetSetting(SonarProperties.LogLevel, String.Empty);
-
-            return ComputeVerbosity(sonarVerboseSettingValue, sonarLogLevelSettingValue, logger);
-        }
-
         private static LoggerVerbosity ComputeVerbosity(string sonarVerboseValue, string sonarLogValue, ILogger logger)
         {
             if (!String.IsNullOrWhiteSpace(sonarVerboseValue))

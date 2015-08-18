@@ -89,7 +89,7 @@ namespace TestUtilities
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(fullPath), "fullPath should be specified");
 
-            this.properties = new Dictionary<string, string>(AnalysisSetting.SettingKeyComparer);
+            this.properties = new Dictionary<string, string>(ConfigSetting.SettingKeyComparer);
             string allText = File.ReadAllText(fullPath);
 
             foreach (Match match in Regex.Matches(allText, KeyValueSettingPattern, RegexOptions.Multiline))

@@ -17,52 +17,7 @@ namespace SonarQube.Common.UnitTests
         #region Tests
 
         [TestMethod]
-        public void FromAnalysisConfig_Verbose()
-        {
-            // Arrange
-            AnalysisConfig config = new AnalysisConfig();
-            config.AdditionalSettings = new List<AnalysisSetting>();
-            config.AdditionalSettings.Add(new AnalysisSetting() { Id = SonarProperties.Verbose, Value = "true", Inherited = false });
-            config.AdditionalSettings.Add(new AnalysisSetting() { Id = SonarProperties.LogLevel, Value = "INFO", Inherited = false });
-
-            // Act
-            var verbosity = VerbosityCalculator.ComputeVerbosity(config, new TestLogger());
-
-            // Assert
-            Assert.AreEqual(LoggerVerbosity.Debug, verbosity);
-        }
-
-        [TestMethod]
-        public void FromAnalysisConfig_LogLevel()
-        {
-            // Arrange
-            AnalysisConfig config = new AnalysisConfig();
-            config.AdditionalSettings = new List<AnalysisSetting>();
-            config.AdditionalSettings.Add(new AnalysisSetting() { Id = SonarProperties.LogLevel, Value = "DEBUG|INFO", Inherited = false });
-
-            // Act
-            var verbosity = VerbosityCalculator.ComputeVerbosity(config, new TestLogger());
-
-            // Assert
-            Assert.AreEqual(LoggerVerbosity.Debug, verbosity);
-        }
-
-        [TestMethod]
-        public void FromAnalysisConfig_NoSetting()
-        {
-            // Arrange
-            AnalysisConfig config = new AnalysisConfig();
-            config.AdditionalSettings = new List<AnalysisSetting>();
-
-            // Act
-            var verbosity = VerbosityCalculator.ComputeVerbosity(config, new TestLogger());
-
-            // Assert
-            Assert.AreEqual(LoggerVerbosity.Info, verbosity);
-        }
-
-        [TestMethod]
-        [Description("Looks at how verbosity is computed when various combinations of <<verbose>> and <<log.level>> values are passed in. <<verbose>> takes precendence over <<log.level>>")]
+        [Description("Looks at how verbosity is computed when various combinations of <<verbose>> and <<log.level>> values are passed in. <<verbose>> takes precedence over <<log.level>>")]
         public void FromAnalysisProvider_Precedence()
         {
             CheckVerbosity("Default verbosity does not match", VerbosityCalculator.DefaultLoggingVerbosity);

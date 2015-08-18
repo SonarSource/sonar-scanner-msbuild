@@ -21,22 +21,22 @@ namespace SonarQube.TeamBuild.Integration
 
         public static string GetTfsUri(this AnalysisConfig config)
         {
-            return config.GetSetting(TfsUriSettingId, null);
+            return config.GetConfigValue(TfsUriSettingId, null);
         }
 
         public static void SetTfsUri(this AnalysisConfig config, string uri)
         {
-            config.SetExplicitValue(TfsUriSettingId, uri);
+            config.SetConfigValue(TfsUriSettingId, uri);
         }
 
         public static string GetBuildUri(this AnalysisConfig config)
         {
-            return config.GetSetting(BuildUriSettingId, null);
+            return config.GetConfigValue(BuildUriSettingId, null);
         }
 
         public static void SetBuildUri(this AnalysisConfig config, string uri)
         {
-            config.SetExplicitValue(BuildUriSettingId, uri);
+            config.SetConfigValue(BuildUriSettingId, uri);
         }
 
         #endregion

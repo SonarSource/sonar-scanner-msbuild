@@ -776,7 +776,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             AnalysisConfig config = new AnalysisConfig();
             if (regExExpression != null)
             {
-                config.SetExplicitValue(IsTestFileByName.TestRegExSettingId, regExExpression);
+                config.LocalSettings = new AnalysisProperties();
+                config.LocalSettings.Add(new Property() { Id = IsTestFileByName.TestRegExSettingId, Value = regExExpression });
             }
 
             string fullPath = Path.Combine(parentDir, FileConstants.ConfigFileName);
@@ -866,7 +867,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         private void AssertSettingExists(ProjectInfo projectInfo, string expectedId, string expectedValue)
         {
-            AnalysisSetting actualSetting;
+            ConfigSetting actualSetting;
             bool found = projectInfo.TryGetAnalysisSetting(expectedId, out actualSetting);
             Assert.IsTrue(found, "Expecting the analysis setting to be found. Id: {0}", expectedId);
 

@@ -152,17 +152,17 @@ namespace SonarQube.MSBuild.Tasks
         }
 
         /// <summary>
-        /// Attempts to convert the supplied task items into a list of <see cref="AnalysisSetting"/> objects
+        /// Attempts to convert the supplied task items into a list of <see cref="ConfigSetting"/> objects
         /// </summary>
-        private List<AnalysisSetting> TryCreateAnalysisSettings(ITaskItem[] resultItems)
+        private List<ConfigSetting> TryCreateAnalysisSettings(ITaskItem[] resultItems)
         {
-            List<AnalysisSetting> settings = new List<AnalysisSetting>();
+            List<ConfigSetting> settings = new List<ConfigSetting>();
 
             if (resultItems != null)
             {
                 foreach (ITaskItem resultItem in resultItems)
                 {
-                    AnalysisSetting result = TryCreateSettingFromItem(resultItem);
+                    ConfigSetting result = TryCreateSettingFromItem(resultItem);
                     if (result != null)
                     {
                         settings.Add(result);
@@ -173,14 +173,14 @@ namespace SonarQube.MSBuild.Tasks
         }
 
         /// <summary>
-        /// Attempts to create an <see cref="AnalysisSetting"/> from the supplied task item.
+        /// Attempts to create an <see cref="ConfigSetting"/> from the supplied task item.
         /// Returns null if the task item does not have the required metadata.
         /// </summary>
-        private AnalysisSetting TryCreateSettingFromItem(ITaskItem taskItem)
+        private ConfigSetting TryCreateSettingFromItem(ITaskItem taskItem)
         {
             Debug.Assert(taskItem != null, "Supplied task item should not be null");
 
-            AnalysisSetting setting = null;
+            ConfigSetting setting = null;
 
             string settingId;
 
@@ -192,7 +192,7 @@ namespace SonarQube.MSBuild.Tasks
 
                 if (TryGetSettingValue(taskItem, out settingValue))
                 {
-                    setting = new AnalysisSetting()
+                    setting = new ConfigSetting()
                     {
                         Id = settingId,
                         Value = settingValue
@@ -212,7 +212,7 @@ namespace SonarQube.MSBuild.Tasks
 
             string possibleKey = taskItem.ItemSpec;
 
-            bool isValid = AnalysisSetting.IsValidKey(possibleKey);
+            bool isValid = Property.IsValidKey(possibleKey);
             if (isValid)
             {
                 settingId = possibleKey;

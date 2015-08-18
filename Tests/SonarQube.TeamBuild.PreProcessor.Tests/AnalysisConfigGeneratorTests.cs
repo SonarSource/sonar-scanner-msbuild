@@ -31,14 +31,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             string analysisDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
             TestLogger logger = new TestLogger();
-            
-            // The set of server properties to return
+
+            // The set of server properties to return.
+            // Server settings are stored separately from user-supplied settings so
+            // all of them should appear in the file
             Dictionary<string, string> serverSettings = new Dictionary<string, string>();
             serverSettings.Add("shared.key1", "server value 1");
             serverSettings.Add("server.only", "server value 3");
             serverSettings.Add("xxx", "server value xxx - lower case");
 
-            // The set of command line properties to supply
+            // The set of command line properties to supply.
+            // The command line settings should override the file settings
             ListPropertiesProvider cmdLineProperties = new ListPropertiesProvider();
             cmdLineProperties.AddProperty("shared.key1", "cmd line value1 - should override file");
             cmdLineProperties.AddProperty("cmd.line.only", "cmd line value4 - only in file");
@@ -49,7 +52,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             ListPropertiesProvider fileProperties = new ListPropertiesProvider();
             fileProperties.AddProperty("shared.key1", "file value1 - should be overridden by the cmd line");
             fileProperties.AddProperty("file.only", "file value3 - only in file");
-            fileProperties.AddProperty("XXX", "cmd line value XXX - upper case");
+            fileProperties.AddProperty("XXX", "file value XXX - upper case");
 
             ProcessedArgs args = new ProcessedArgs("key", "name", "version", false, cmdLineProperties, fileProperties);
 
@@ -65,25 +68,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
 
+            // Server
             AssertExpectedServerSetting("shared.key1", "server value 1", actualConfig);
             AssertExpectedServerSetting("server.only", "server value 3", actualConfig);
             AssertExpectedServerSetting("xxx", "server value xxx - lower case", actualConfig);
 
+            // Cmd-line
             AssertExpectedLocalSetting("shared.key1", "cmd line value1 - should override file", actualConfig);
             AssertExpectedLocalSetting("cmd.line.only", "cmd line value4 - only in file", actualConfig);
             AssertExpectedLocalSetting("XXX", "cmd line value XXX", actualConfig);
             AssertExpectedLocalSetting(SonarProperties.HostUrl, "http://host", actualConfig);
 
-            //fileProperties.AddProperty("shared.key1", "file value1 - should be overridden by the cmd line");
-            //fileProperties.AddProperty("file.only", "file value3 - only in file");
-            //fileProperties.AddProperty("XXX", "cmd line value XXX - upper case");
-
-
-            AssertExpectedAnalysisSetting("cmd.line.only", "cmd line value4 - only on command line", actualConfig);
-            AssertExpectedAnalysisSetting("file.only", "file value3 - only in file", actualConfig);
-            AssertExpectedAnalysisSetting("xxx", "server value xxx - lower case", actualConfig);
-            AssertExpectedAnalysisSetting("XXX", "cmd line value XXX - upper case", actualConfig);
-            AssertExpectedAnalysisSetting(SonarProperties.HostUrl, "http://host", actualConfig);
+            // Non-overridden file values
+            AssertExpectedLocalSetting("file.only", "file value3 - only in file", actualConfig);
         }
 
         [TestMethod]
@@ -101,12 +98,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             cmdLineArgs.AddProperty("public.key", "public value");
 
             // Sensitive values - should not be written to the config file
-            cmdLineArgs.AddProperty("sonar.login", "secret login");
-            cmdLineArgs.AddProperty("sonar.password", "secret password");
             cmdLineArgs.AddProperty("sonar.jdbc.username", "secret db password");
             cmdLineArgs.AddProperty("sonar.jdbc.password", "secret db password");
 
-            ProcessedArgs args = new ProcessedArgs("key", "name", "1.0", false, cmdLineArgs, EmptyPropertyProvider.Instance);
+            ListPropertiesProvider fileSettings = new ListPropertiesProvider();
+            // Public args - should be written to the config file
+            fileSettings.AddProperty("file.public.key", "file public value");
+            
+            // Sensitive values - should not be written to the config file
+            fileSettings.AddProperty("sonar.jdbc.username", "secret db password");
+            fileSettings.AddProperty("sonar.jdbc.password", "secret db password");
+
+            ProcessedArgs args = new ProcessedArgs("key", "name", "1.0", false, cmdLineArgs, fileSettings);
 
             IDictionary<string, string> serverProperties = new Dictionary<string, string>();
 
@@ -129,7 +132,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual("name", config.SonarProjectName, "Unexpected project name");
             Assert.AreEqual("1.0", config.SonarProjectVersion, "Unexpected project version");
 
-            AssertExpectedAnalysisSetting(SonarProperties.HostUrl, "http://host", config);
+            AssertExpectedLocalSetting(SonarProperties.HostUrl, "http://host", config);
+            AssertExpectedLocalSetting("file.public.key", "file public value", config);
 
             // Sensitive arguments should not be in the file
             AssertSettingDoesNotExist(SonarProperties.SonarUserName, config);
@@ -153,26 +157,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         }
 
-        private static void AssertExpectedAnalysisSetting(string key, string expectedValue, AnalysisConfig actualConfig)
-        {
-            AnalysisSetting setting;
-            actualConfig.TryGetSetting(key, out setting);
-
-            Assert.IsNotNull(setting, "Failed to retrieve the expected setting. Key: {0}", key);
-            Assert.AreEqual(expectedValue, setting.Value, "Unexpected setting value. Key: {0}", key);
-        }
-
         private static void AssertSettingDoesNotExist(string key, AnalysisConfig actualConfig)
         {
-            AnalysisSetting setting;
-            bool found = actualConfig.TryGetSetting(key, out setting);
+            Property setting;
+            bool found = actualConfig.GetAnalysisSettings(true).TryGetProperty(key, out setting);
             Assert.IsFalse(found, "The setting should not exist. Key: {0}", key);
         }
 
-        private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig acutalConfig)
+        private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
             Property property;
-            bool found = Property.TryGetProperty(key, acutalConfig.ServerSettings, out property);
+            bool found = Property.TryGetProperty(key, actualConfig.ServerSettings, out property);
 
             Assert.IsTrue(found, "Expected server property was not found. Key: {0}", key);
             Assert.AreEqual(expectedValue, property.Value, "Unexpected server value. Key: {0}", key);

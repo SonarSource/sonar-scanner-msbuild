@@ -29,7 +29,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             AnalysisConfig config = GetAnalysisConfig(settings, logger);
 
-            logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config, logger);
+            logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.GetAnalysisSettings(true), logger);
 
             if (config == null)
             {

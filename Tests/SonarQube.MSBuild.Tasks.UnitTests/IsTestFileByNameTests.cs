@@ -216,7 +216,8 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             AnalysisConfig config = new AnalysisConfig();
             if (regExExpression != null)
             {
-                config.SetExplicitValue(IsTestFileByName.TestRegExSettingId, regExExpression);
+                config.LocalSettings = new AnalysisProperties();
+                config.LocalSettings.Add(new Property() { Id = IsTestFileByName.TestRegExSettingId, Value = regExExpression });
             }
 
             string fullPath = Path.Combine(parentDir, FileConstants.ConfigFileName);

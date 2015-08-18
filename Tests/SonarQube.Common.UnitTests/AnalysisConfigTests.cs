@@ -54,6 +54,13 @@ namespace SonarQube.Common.UnitTests
             originalConfig.SonarProjectName = @"My project";
             originalConfig.SonarProjectVersion = @"1.0";
 
+
+            originalConfig.LocalSettings = new AnalysisProperties();
+            originalConfig.LocalSettings.Add(new Property() { Id = "local.key", Value = "local.value" });
+
+            originalConfig.ServerSettings = new AnalysisProperties();
+            originalConfig.ServerSettings.Add(new Property() { Id = "server.key", Value = "server.value" });
+
             string fileName = Path.Combine(testFolder, "config1.xml");
 
             SaveAndReloadConfig(originalConfig, fileName);
@@ -61,7 +68,7 @@ namespace SonarQube.Common.UnitTests
 
         [TestMethod]
         [Description("Checks additional analysis settings can be serialized and deserialized")]
-        public void ProjectInfo_Serialization_AdditionalSettings()
+        public void AnalysisConfig_Serialization_AdditionalConfig()
         {
             // 0. Setup
             string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
@@ -72,43 +79,14 @@ namespace SonarQube.Common.UnitTests
             SaveAndReloadConfig(originalConfig, Path.Combine(testFolder, "AnalysisConfig_NullAdditionalSettings.xml"));
 
             // 2. Empty list
-            originalConfig.AdditionalSettings = new List<AnalysisSetting>();
+            originalConfig.AdditionalConfig = new List<ConfigSetting>();
             SaveAndReloadConfig(originalConfig, Path.Combine(testFolder, "AnalysisConfig_EmptyAdditionalSettings.xml"));
 
             // 3. Non-empty list
-            originalConfig.AdditionalSettings.Add(new AnalysisSetting() { Id = string.Empty, Value = string.Empty }); // empty item
-            originalConfig.AdditionalSettings.Add(new AnalysisSetting() { Id = "Id1", Value = "http://www.foo.xxx" });
-            originalConfig.AdditionalSettings.Add(new AnalysisSetting() { Id = "Id2", Value = "value 2" });
+            originalConfig.AdditionalConfig.Add(new ConfigSetting() { Id = string.Empty, Value = string.Empty }); // empty item
+            originalConfig.AdditionalConfig.Add(new ConfigSetting() { Id = "Id1", Value = "http://www.foo.xxx" });
+            originalConfig.AdditionalConfig.Add(new ConfigSetting() { Id = "Id2", Value = "value 2" });
             SaveAndReloadConfig(originalConfig, Path.Combine(testFolder, "AnalysisConfig_NonEmptyList.xml"));
-        }
-
-        [TestMethod]
-        [Description("Checks the extension methods for getting and setting values")]
-        public void ProjectInfo_ExtensionMethods_GetAndSet()
-        {
-            // 0. Setup
-            AnalysisConfig config = new AnalysisConfig();
-
-            AnalysisSetting setting;
-            string result;
-
-            // 1. Get/TryGet missing setting
-            result = config.GetSetting("missing", "123");
-
-            Assert.IsFalse(config.TryGetSetting("missing", out setting), "Setting should not have been found");
-            Assert.AreEqual("123", config.GetSetting("missing", "123"), "Expecting the default setting to be returned");
-
-            // 2. Set and get a previously new setting
-            config.SetExplicitValue("id1", "value1");
-            Assert.IsTrue(config.TryGetSetting("id1", out setting), "Setting should have been found");
-            Assert.AreEqual("value1", setting.Value, "Unexpected value returned for setting");
-            Assert.AreEqual("value1", config.GetSetting("id1", "123"), "Unexpected value returned for setting");
-
-            // 3. Update and refetch the setting
-            config.SetExplicitValue("id1", "updated value");
-            Assert.IsTrue(config.TryGetSetting("id1", out setting), "Setting should have been found");
-            Assert.AreEqual("updated value", setting.Value, "Unexpected value returned for setting");
-            Assert.AreEqual("updated value", config.GetSetting("id1", "123"), "Unexpected value returned for setting");        
         }
 
         [TestMethod]
@@ -161,26 +139,26 @@ namespace SonarQube.Common.UnitTests
 
         private static void CompareAdditionalSettings(AnalysisConfig expected, AnalysisConfig actual)
         {
-            Assert.IsNotNull(actual.AdditionalSettings, "Not expecting the AdditionalSettings to be null for a reloaded file");
+            Assert.IsNotNull(actual.AdditionalConfig, "Not expecting the AdditionalSettings to be null for a reloaded file");
 
-            if (expected.AdditionalSettings == null || expected.AdditionalSettings.Count == 0)
+            if (expected.AdditionalConfig == null || expected.AdditionalConfig.Count == 0)
             {
-                Assert.AreEqual(0, actual.AdditionalSettings.Count, "Not expecting any additional items. Count: {0}", actual.AdditionalSettings.Count);
+                Assert.AreEqual(0, actual.AdditionalConfig.Count, "Not expecting any additional items. Count: {0}", actual.AdditionalConfig.Count);
                 return;
             }
 
-            foreach(AnalysisSetting expectedSetting in expected.AdditionalSettings)
+            foreach(ConfigSetting expectedSetting in expected.AdditionalConfig)
             {
                 AssertSettingExists(expectedSetting.Id, expectedSetting.Value, actual);
             }
-            Assert.AreEqual(expected.AdditionalSettings.Count, actual.AdditionalSettings.Count, "Unexpected number of additional settings");
+            Assert.AreEqual(expected.AdditionalConfig.Count, actual.AdditionalConfig.Count, "Unexpected number of additional settings");
         }
 
         private static void AssertSettingExists(string settingId, string expectedValue, AnalysisConfig actual)
         {
-            Assert.IsNotNull(actual.AdditionalSettings, "Not expecting the additional settings to be null");
+            Assert.IsNotNull(actual.AdditionalConfig, "Not expecting the additional settings to be null");
 
-            AnalysisSetting actualSetting = actual.AdditionalSettings.FirstOrDefault(s => string.Equals(settingId, s.Id, StringComparison.InvariantCultureIgnoreCase));
+            ConfigSetting actualSetting = actual.AdditionalConfig.FirstOrDefault(s => string.Equals(settingId, s.Id, StringComparison.InvariantCultureIgnoreCase));
             Assert.IsNotNull(actualSetting, "Expected setting not found: {0}", settingId);
             Assert.AreEqual(expectedValue, actualSetting.Value, "Setting does not have the expected value. SettingId: {0}", settingId);
         }

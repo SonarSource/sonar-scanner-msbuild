@@ -51,7 +51,27 @@ namespace SonarQube.Common
         public const string KeyValuePropertyPattern = @"^(?<key>\w[\w\d\.-]*)=(?<value>[^\r\n]+)";
 
         private static readonly Regex SingleLinePropertyRegEx = new Regex(KeyValuePropertyPattern, RegexOptions.Compiled);
-        
+
+        /// <summary>
+        /// Regular expression to validate setting ids.
+        /// </summary>
+        /// <remarks>
+        /// Validation rules:
+        /// Must start with an alpanumeric character.
+        /// Can be followed by any number of alphanumeric characters or .
+        /// Whitespace is not allowed
+        /// </remarks>
+        private static readonly Regex ValidSettingKeyRegEx = new Regex(@"^\w[\w\d\.-]*$", RegexOptions.Compiled);
+
+        /// <summary>
+        /// Returns true if the supplied string is a valid key for a sonar-XXX.properties file, otherwise false
+        /// </summary>
+        public static bool IsValidKey(string key)
+        {
+            bool isValid = ValidSettingKeyRegEx.IsMatch(key);
+            return isValid;
+        }
+
         /// <summary>
         /// Attempts to parse the supplied string into a key and value
         /// </summary>

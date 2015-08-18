@@ -312,7 +312,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             Assert.IsNotNull(actual, "Supplied project info should not be null");
             Assert.IsNotNull(actual.AnalysisSettings, "AnalysisSettings should not be null");
 
-            AnalysisSetting setting = actual.AnalysisSettings.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
+            ConfigSetting setting = actual.AnalysisSettings.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
             Assert.IsNotNull(setting, "AnalysisSetting with the expected id does not exist. Id: {0}", expectedId);
 
             Assert.AreEqual(expectedValue, setting.Value, "Setting does not have the expected value");

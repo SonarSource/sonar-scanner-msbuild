@@ -212,8 +212,7 @@ namespace SonarRunner.Shim.Tests
                 SonarProjectKey = "my_project_key",
                 SonarProjectName = "my_project_name",
                 SonarProjectVersion = "1.0",
-                SonarOutputDir = testDir,
-                AdditionalSettings = new List<AnalysisSetting>()
+                SonarOutputDir = testDir
             };
 
             // Act
@@ -377,8 +376,7 @@ namespace SonarRunner.Shim.Tests
                 SonarProjectKey = dummyProjectKey,
                 SonarProjectName = dummyProjectKey,
                 SonarConfigDir = Path.Combine(outputDir, "config"),
-                SonarProjectVersion = "1.0",
-                AdditionalSettings = new List<AnalysisSetting>()
+                SonarProjectVersion = "1.0"
             };
 
             return config;
