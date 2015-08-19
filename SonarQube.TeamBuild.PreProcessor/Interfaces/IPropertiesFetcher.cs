@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-
+using SonarQube.Common;
 using System.Collections.Generic;
 
 namespace SonarQube.TeamBuild.PreProcessor
@@ -17,6 +17,6 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// </summary>
         /// <param name="ws">SonarQube Web Service instance</param>
         /// <param name="sonarProjectKey">The key of the SonarQube project for which the properties should be fetched</param>
-        IDictionary<string, string> FetchProperties(SonarWebService ws, string sonarProjectKey);
+        IDictionary<string, string> FetchProperties(SonarWebService ws, string sonarProjectKey, ILogger logger);
     }
 }

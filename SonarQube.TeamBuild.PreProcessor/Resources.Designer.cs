@@ -97,24 +97,6 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Creating config and output folders....
-        /// </summary>
-        public static string DIAG_CreatingFolders {
-            get {
-                return ResourceManager.GetString("DIAG_CreatingFolders", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generating the FxCop ruleset: {0}.
-        /// </summary>
-        public static string DIAG_GeneratingRuleset {
-            get {
-                return ResourceManager.GetString("DIAG_GeneratingRuleset", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Saving the config file to {0}.
         /// </summary>
         public static string DIAG_SavingConfigFile {
@@ -200,38 +182,92 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creating config and output folders....
+        /// </summary>
+        public static string MSG_CreatingFolders {
+            get {
+                return ResourceManager.GetString("MSG_CreatingFolders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetching analysis configuration settings....
+        /// </summary>
+        public static string MSG_FetchingAnalysisConfiguration {
+            get {
+                return ResourceManager.GetString("MSG_FetchingAnalysisConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetching properties for project &apos;{0}&apos; from {1}....
+        /// </summary>
+        public static string MSG_FetchingProjectProperties {
+            get {
+                return ResourceManager.GetString("MSG_FetchingProjectProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generating the FxCop ruleset: {0}.
+        /// </summary>
+        public static string MSG_GeneratingRuleset {
+            get {
+                return ResourceManager.GetString("MSG_GeneratingRuleset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generating rulesets....
+        /// </summary>
+        public static string MSG_GeneratingRulesets {
+            get {
+                return ResourceManager.GetString("MSG_GeneratingRulesets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Installed {0} to {1}.
         /// </summary>
-        public static string INFO_InstallTargets_Copy {
+        public static string MSG_InstallTargets_Copy {
             get {
-                return ResourceManager.GetString("INFO_InstallTargets_Copy", resourceCulture);
+                return ResourceManager.GetString("MSG_InstallTargets_Copy", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The file {0} was overwritten at {1}.
         /// </summary>
-        public static string INFO_InstallTargets_Overwrite {
+        public static string MSG_InstallTargets_Overwrite {
             get {
-                return ResourceManager.GetString("INFO_InstallTargets_Overwrite", resourceCulture);
+                return ResourceManager.GetString("MSG_InstallTargets_Overwrite", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The file {0} is up to date at {1}.
         /// </summary>
-        public static string INFO_InstallTargets_UpToDate {
+        public static string MSG_InstallTargets_UpToDate {
             get {
-                return ResourceManager.GetString("INFO_InstallTargets_UpToDate", resourceCulture);
+                return ResourceManager.GetString("MSG_InstallTargets_UpToDate", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Skipping installing the ImportsBefore targets file.
         /// </summary>
-        public static string INFO_NotCopyingTargets {
+        public static string MSG_NotCopyingTargets {
             get {
-                return ResourceManager.GetString("INFO_NotCopyingTargets", resourceCulture);
+                return ResourceManager.GetString("MSG_NotCopyingTargets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating build integration targets....
+        /// </summary>
+        public static string MSG_UpdatingMSBuildTargets {
+            get {
+                return ResourceManager.GetString("MSG_UpdatingMSBuildTargets", resourceCulture);
             }
         }
         

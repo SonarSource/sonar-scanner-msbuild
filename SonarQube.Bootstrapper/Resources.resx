@@ -138,22 +138,31 @@
   <data name="ERROR_VersionMismatch" xml:space="preserve">
     <value>The C# plugin installed on the server is not compatible with the MSBuild.SonarQube.Runner.exe - either check the compatibility matrix or get the latest versions for both. </value>
   </data>
-  <data name="INFO_Downloading" xml:space="preserve">
+  <data name="MSG_CheckingForUpdates" xml:space="preserve">
+    <value>Checking for updates...</value>
+  </data>
+  <data name="MSG_DownloadingZip" xml:space="preserve">
     <value>Downloading {0} from {1} to {2}</value>
   </data>
-  <data name="INFO_ProcessingStarted" xml:space="preserve">
+  <data name="MSG_ExtractingFiles" xml:space="preserve">
+    <value>Extracting files to {0}...</value>
+  </data>
+  <data name="MSG_PreparingDirectories" xml:space="preserve">
+    <value>Preparing working directories...</value>
+  </data>
+  <data name="MSG_ProcessingStarted" xml:space="preserve">
     <value>{0} started.</value>
   </data>
-  <data name="INFO_ProcessingSucceeded" xml:space="preserve">
+  <data name="MSG_ProcessingSucceeded" xml:space="preserve">
     <value>{0} succeeded.</value>
   </data>
-  <data name="INFO_ServerUrl" xml:space="preserve">
+  <data name="MSG_ServerUrl" xml:space="preserve">
     <value>SonarQube server url: {0}</value>
   </data>
-  <data name="INFO_UsingBuildEnvironmentVariable" xml:space="preserve">
+  <data name="MSG_UsingBuildEnvironmentVariable" xml:space="preserve">
     <value>Using environment variable '{0}', value '{1}'</value>
   </data>
-  <data name="INFO_UsingEnvVarToGetDirectory" xml:space="preserve">
+  <data name="MSG_UsingEnvVarToGetDirectory" xml:space="preserve">
     <value>Using environment variables to determine the download directory...</value>
   </data>
   <data name="PhaseLabel_PostProcessing" xml:space="preserve">

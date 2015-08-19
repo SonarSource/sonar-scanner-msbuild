@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Collections.Generic;
 using System;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
@@ -45,7 +46,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region IPropertiesFetcher interface
 
-        IDictionary<string, string> IPropertiesFetcher.FetchProperties(SonarWebService ws, string sonarProjectKey)
+        IDictionary<string, string> IPropertiesFetcher.FetchProperties(SonarWebService ws, string sonarProjectKey, ILogger logger)
         {
             Assert.IsFalse(string.IsNullOrWhiteSpace(sonarProjectKey), "Supplied project key should not be null");
 

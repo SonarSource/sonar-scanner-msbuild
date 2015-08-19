@@ -104,7 +104,7 @@ namespace SonarQube.Common
 
             if (hasSensitiveData)
             {
-                sb.Append(Resources.INFO_CmdLine_SensitiveCmdLineArgsAlternativeText);
+                sb.Append(Resources.MSG_CmdLine_SensitiveCmdLineArgsAlternativeText);
             }
 
             return sb.ToString();

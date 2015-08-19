@@ -84,7 +84,7 @@ namespace SonarQube.Bootstrapper.Tests
 
             // Assert
             Assert.IsFalse(success, "Not expecting the update to succeed");
-            logger.AssertSingleMessageExists(expectedUrl, expectedDownloadPath);
+            logger.AssertSingleDebugMessageExists(expectedUrl, expectedDownloadPath);
             logger.AssertSingleErrorExists(nonExistentUrl);
             logger.AssertErrorsLogged(1);
         }

@@ -6,10 +6,8 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.IO;
-using System.Linq;
-using System.Net;
 using System.Collections.Generic;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -17,7 +15,7 @@ namespace SonarQube.TeamBuild.PreProcessor
     {
         #region Public methods
 
-        public IDictionary<string, string> FetchProperties(SonarWebService ws, string sonarProjectKey)
+        public IDictionary<string, string> FetchProperties(SonarWebService ws, string sonarProjectKey, ILogger logger)
         {
             if (ws == null)
             {
@@ -26,9 +24,13 @@ namespace SonarQube.TeamBuild.PreProcessor
             if (string.IsNullOrWhiteSpace(sonarProjectKey))
             {
                 throw new ArgumentNullException("sonarProjectKey");
-            }         
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
 
-            return ws.GetProperties(sonarProjectKey);
+            return ws.GetProperties(sonarProjectKey, logger);
         }
 
         #endregion

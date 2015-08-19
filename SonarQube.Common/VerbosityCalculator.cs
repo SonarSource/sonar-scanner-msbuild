@@ -69,7 +69,7 @@ namespace SonarQube.Common
                 if (bool.TryParse(sonarVerboseValue, out isVerbose))
                 {
                     LoggerVerbosity verbosity = isVerbose ? LoggerVerbosity.Debug : LoggerVerbosity.Info;
-                    logger.LogDebug(Resources.INFO_SonarVerboseWasSpecified, sonarVerboseValue, verbosity);
+                    logger.LogDebug(Resources.MSG_SonarVerboseWasSpecified, sonarVerboseValue, verbosity);
                     return verbosity;
                 }
                 else
@@ -81,7 +81,7 @@ namespace SonarQube.Common
             if (!String.IsNullOrWhiteSpace(sonarLogValue) &&
                 sonarLogValue.IndexOf(SonarLogDebugValue, StringComparison.OrdinalIgnoreCase) > -1) 
             {
-                logger.LogDebug(Resources.INFO_SonarLogLevelWasSpecified, sonarLogValue);
+                logger.LogDebug(Resources.MSG_SonarLogLevelWasSpecified, sonarLogValue);
                 return LoggerVerbosity.Debug;
             }
 

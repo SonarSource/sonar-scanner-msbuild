@@ -87,7 +87,7 @@ namespace SonarRunner.Shim
             WriteGroupSpacer();
 
             string reportFileName = Path.Combine(config.SonarOutputDir, ReportFileName);
-            logger.LogDebug(Resources.DIAG_WritingSummary, reportFileName);
+            logger.LogDebug(Resources.MSG_WritingSummary, reportFileName);
             File.WriteAllText(reportFileName, sb.ToString());
         }
 

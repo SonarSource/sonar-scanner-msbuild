@@ -74,7 +74,7 @@ namespace SonarRunner.Shim
             {
                 // We expect a detailed error message to have been logged explaining
                 // why the properties file generation could not be performed
-                logger.LogInfo(Resources.DIAG_PropertiesGenerationFailed);
+                logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
             }
             else
             {
@@ -121,7 +121,7 @@ namespace SonarRunner.Shim
             IDictionary<string, string> envVarsDictionary = GetAdditionalEnvVariables(logger);
             Debug.Assert(envVarsDictionary != null);
 
-            logger.LogInfo(Resources.DIAG_CallingSonarRunner);
+            logger.LogInfo(Resources.MSG_CallingSonarRunner);
             ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(exeFileName, logger)
             {
                 CmdLineArgs = allCmdLineArgs,
@@ -136,7 +136,7 @@ namespace SonarRunner.Shim
 
             if (success)
             {
-                logger.LogInfo(Resources.DIAG_SonarRunnerCompleted);
+                logger.LogInfo(Resources.MSG_SonarRunnerCompleted);
             }
             else
             {
@@ -150,7 +150,7 @@ namespace SonarRunner.Shim
             if (!String.IsNullOrWhiteSpace(
                 Environment.GetEnvironmentVariable(SonarRunnerHomeVariableName)))
             {
-                logger.LogInfo(Resources.DIAG_SonarRunnerHomeIsSet);
+                logger.LogInfo(Resources.MSG_SonarRunnerHomeIsSet);
                 Environment.SetEnvironmentVariable(SonarRunnerHomeVariableName, String.Empty);
             }
         }
@@ -181,12 +181,12 @@ namespace SonarRunner.Shim
 
             if (!String.IsNullOrWhiteSpace(existingValue))
             {
-                logger.LogInfo(Resources.INFO_SonarRunOptsAlreadySet, SonarRunnerOptsVariableName, existingValue);
+                logger.LogInfo(Resources.MSG_SonarRunOptsAlreadySet, SonarRunnerOptsVariableName, existingValue);
                 return existingValue;
             }
             else
             {
-                logger.LogInfo(Resources.INFO_SonarRunnerOptsDefaultUsed, SonarRunnerOptsVariableName, SonarRunnerOptsDefaultValue);
+                logger.LogInfo(Resources.MSG_SonarRunnerOptsDefaultUsed, SonarRunnerOptsVariableName, SonarRunnerOptsDefaultValue);
                 return SonarRunnerOptsDefaultValue;
             }
         }

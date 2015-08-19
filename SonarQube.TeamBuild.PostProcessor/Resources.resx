@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="DIAG_LoadingConfig" xml:space="preserve">
-    <value>Loading the SonarQube analysis config from {0}</value>
-  </data>
   <data name="ERROR_BuildUrisDontMatch" xml:space="preserve">
     <value>Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
 Build Uri from environment: {0}
@@ -133,6 +130,9 @@ Expected location: {0}</value>
   </data>
   <data name="ERROR_MissingSettings" xml:space="preserve">
     <value>SonarQube post-processing cannot be performed - required settings are missing</value>
+  </data>
+  <data name="MSG_LoadingConfig" xml:space="preserve">
+    <value>Loading the SonarQube analysis config from {0}</value>
   </data>
   <data name="Report_AnalysisFailed" xml:space="preserve">
     <value>Analysis failed for SonarQube project {0}</value>
@@ -172,5 +172,22 @@ Expected location: {0}</value>
   </data>
   <data name="Report_UpdatingTeamBuildSummary" xml:space="preserve">
     <value>Updating the TeamBuild summary...</value>
+  </data>
+  <data name="SETTINGS_InLegacyTeamBuild" xml:space="preserve">
+    <value>Legacy TeamBuild environment detected</value>
+  </data>
+  <data name="SETTINGS_InTeamBuild" xml:space="preserve">
+    <value>TeamBuild environment detected</value>
+  </data>
+  <data name="SETTINGS_NotInTeamBuild" xml:space="preserve">
+    <value>Not running under TeamBuild</value>
+  </data>
+  <data name="SETTING_DumpSettings" xml:space="preserve">
+    <value>Analysis base directory: {0}
+Build directory: {1}
+Bin directory: {2}
+Config directory: {3}
+Output directory: {4}
+Config file: {4}</value>
   </data>
 </root>

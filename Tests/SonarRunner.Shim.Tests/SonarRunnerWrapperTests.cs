@@ -37,7 +37,7 @@ namespace SonarRunner.Shim.Tests
                 Assert.IsTrue(success, "Expecting execution to succeed");
 
                 // Assert
-                testLogger.AssertMessageNotLogged(SonarRunner.Shim.Resources.DIAG_SonarRunnerHomeIsSet);
+                testLogger.AssertMessageNotLogged(SonarRunner.Shim.Resources.MSG_SonarRunnerHomeIsSet);
             }
         }
 
@@ -59,7 +59,7 @@ namespace SonarRunner.Shim.Tests
 
                 // Assert
                 Assert.IsTrue(success, "Expecting execution to succeed");
-                testLogger.AssertMessageExists(SonarRunner.Shim.Resources.DIAG_SonarRunnerHomeIsSet);
+                testLogger.AssertInfoMessageExists(SonarRunner.Shim.Resources.MSG_SonarRunnerHomeIsSet);
             }
         }
 
@@ -75,7 +75,7 @@ namespace SonarRunner.Shim.Tests
             // Act
             bool success = SonarRunnerWrapper.ExecuteJavaRunner(logger, exePath, propertiesFilePath, Enumerable.Empty<string>());
             Assert.IsTrue(success, "Expecting execution to succeed");
-            logger.AssertSingleMessageExists("Command line args:", SonarRunnerWrapper.StandardAdditionalRunnerArguments);
+            logger.AssertSingleInfoMessageExists("Command line args:", SonarRunnerWrapper.StandardAdditionalRunnerArguments);
         }
         
         [TestMethod]
@@ -94,7 +94,7 @@ namespace SonarRunner.Shim.Tests
             // Act
             bool success = SonarRunnerWrapper.ExecuteJavaRunner(logger, exePath, propertiesFilePath, userArgs);
             Assert.IsTrue(success, "Expecting execution to succeed");
-            string message = logger.AssertSingleMessageExists("Command line args:",
+            string message = logger.AssertSingleInfoMessageExists("Command line args:",
                 "-Dsonar.login=me", "-Dsonar.password=my.pwd",
                 "-Dproject.settings=\"" + propertiesFilePath + "\"",
                 SonarRunnerWrapper.StandardAdditionalRunnerArguments);

@@ -179,47 +179,6 @@ namespace SonarQube.TeamBuild.Integration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analysis base directory: {0}
-        ///Build directory: {1}
-        ///Bin directory: {2}
-        ///Config directory: {3}
-        ///Output directory: {4}
-        ///Config file: {4}.
-        /// </summary>
-        internal static string SETTING_DumpSettings {
-            get {
-                return ResourceManager.GetString("SETTING_DumpSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Legacy TeamBuild environment detected.
-        /// </summary>
-        internal static string SETTINGS_InLegacyTeamBuild {
-            get {
-                return ResourceManager.GetString("SETTINGS_InLegacyTeamBuild", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to TeamBuild environment detected.
-        /// </summary>
-        internal static string SETTINGS_InTeamBuild {
-            get {
-                return ResourceManager.GetString("SETTINGS_InTeamBuild", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Not running under TeamBuild.
-        /// </summary>
-        internal static string SETTINGS_NotInTeamBuild {
-            get {
-                return ResourceManager.GetString("SETTINGS_NotInTeamBuild", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarQube Analysis Summary.
         /// </summary>
         internal static string SonarQubeSummarySectionHeader {

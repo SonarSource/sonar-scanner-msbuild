@@ -55,6 +55,8 @@ namespace SonarQube.TeamBuild.PreProcessor
                 throw new ArgumentNullException("logger");
             }
 
+            logger.LogInfo(Resources.MSG_UpdatingMSBuildTargets);
+
             string sourceTargetsPath = Path.Combine(Path.GetDirectoryName(typeof(TeamBuildPreProcessor).Assembly.Location), "Targets", LoaderTargetsName);
             Debug.Assert(File.Exists(sourceTargetsPath),
                 String.Format("Could not find the loader .targets file at {0}", sourceTargetsPath));
@@ -75,7 +77,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                 {
                     Directory.CreateDirectory(destinationDir); // creates all the directories in the path if needed
                     File.Copy(sourcePath, destinationPath, overwrite: false);
-                    logger.LogDebug(Resources.INFO_InstallTargets_Copy, fileName, destinationDir);
+                    logger.LogDebug(Resources.MSG_InstallTargets_Copy, fileName, destinationDir);
                 }
                 else
                 {
@@ -84,11 +86,11 @@ namespace SonarQube.TeamBuild.PreProcessor
                     if (!String.Equals(sourceContent, destinationContent, StringComparison.Ordinal))
                     {
                         File.Copy(sourcePath, destinationPath, overwrite: true);
-                        logger.LogDebug(Resources.INFO_InstallTargets_Overwrite, fileName, destinationDir);
+                        logger.LogDebug(Resources.MSG_InstallTargets_Overwrite, fileName, destinationDir);
                     }
                     else
                     {
-                        logger.LogDebug(Resources.INFO_InstallTargets_UpToDate, fileName, destinationDir);
+                        logger.LogDebug(Resources.MSG_InstallTargets_UpToDate, fileName, destinationDir);
                     }
                 }
             }

@@ -59,6 +59,7 @@ namespace SonarQube.Bootstrapper
         {
             string downloadBinPath = settings.DownloadDirectory;
 
+            logger.LogInfo(Resources.MSG_PreparingDirectories);
             if (!Utilities.TryEnsureEmptyDirectories(logger,
                 settings.TempDirectory,
                 downloadBinPath))
@@ -68,8 +69,9 @@ namespace SonarQube.Bootstrapper
 
             string server = settings.SonarQubeUrl;
             Debug.Assert(!string.IsNullOrWhiteSpace(server), "Not expecting the server url to be null/empty");
-            logger.LogInfo(Resources.INFO_ServerUrl, server);
+            logger.LogDebug(Resources.MSG_ServerUrl, server);
 
+            logger.LogInfo(Resources.MSG_CheckingForUpdates);
             if (!updater.TryUpdate(server, downloadBinPath, logger))
             {
                 logger.LogError(Resources.ERROR_FailedToUpdateRunnerBinaries);
@@ -112,7 +114,7 @@ namespace SonarQube.Bootstrapper
         private static void LogProcessingStarted(AnalysisPhase phase, ILogger logger)
         {
             string phaseLabel = phase == AnalysisPhase.PreProcessing ? Resources.PhaseLabel_PreProcessing : Resources.PhaseLabel_PostProcessing;
-            logger.LogInfo(Resources.INFO_ProcessingStarted, phaseLabel);
+            logger.LogInfo(Resources.MSG_ProcessingStarted, phaseLabel);
         }
 
         private static void LogProcessingCompleted(AnalysisPhase phase, int exitCode, ILogger logger)
@@ -124,7 +126,7 @@ namespace SonarQube.Bootstrapper
             }
             else
             {
-                logger.LogInfo(Resources.INFO_ProcessingSucceeded, phaseLabel);
+                logger.LogInfo(Resources.MSG_ProcessingSucceeded, phaseLabel);
             }
         }
     }

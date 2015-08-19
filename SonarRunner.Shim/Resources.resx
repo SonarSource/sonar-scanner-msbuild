@@ -117,28 +117,28 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="DIAG_CallingSonarRunner" xml:space="preserve">
+  <data name="MSG_CallingSonarRunner" xml:space="preserve">
     <value>Calling the sonar-runner...</value>
   </data>
-  <data name="DIAG_FileIsOutsideProjectDirectory" xml:space="preserve">
+  <data name="WARN_FileIsOutsideProjectDirectory" xml:space="preserve">
     <value>File is not under the project directory and cannot currently be analysed by SonarQube. File: {0}, project: {1}</value>
   </data>
-  <data name="DIAG_GeneratingProjectProperties" xml:space="preserve">
+  <data name="MSG_GeneratingProjectProperties" xml:space="preserve">
     <value>Generating SonarQube project properties file to {0}</value>
   </data>
-  <data name="DIAG_NoFilesToAnalyze" xml:space="preserve">
+  <data name="MSG_NoFilesToAnalyze" xml:space="preserve">
     <value>The project does not contain any files that can analyzed by SonarQube. Project file: {0}</value>
   </data>
-  <data name="DIAG_ProjectIsExcluded" xml:space="preserve">
+  <data name="MSG_ProjectIsExcluded" xml:space="preserve">
     <value>The exclude flag has been set so the project will not be analyzed by SonarQube. Project file: {0}</value>
   </data>
-  <data name="DIAG_PropertiesGenerationFailed" xml:space="preserve">
+  <data name="MSG_PropertiesGenerationFailed" xml:space="preserve">
     <value>Generation of the sonar-properties file failed. Unable to complete SonarQube analysis.</value>
   </data>
-  <data name="DIAG_SonarRunnerCompleted" xml:space="preserve">
+  <data name="MSG_SonarRunnerCompleted" xml:space="preserve">
     <value>The sonar-runner has finished</value>
   </data>
-  <data name="DIAG_WritingSummary" xml:space="preserve">
+  <data name="MSG_WritingSummary" xml:space="preserve">
     <value>Writing processing summary to {0}</value>
   </data>
   <data name="ERR_ErrorLoadingConfigFile" xml:space="preserve">
@@ -156,10 +156,10 @@
   <data name="ERR_SonarRunnerExecutionFailed" xml:space="preserve">
     <value>The sonar-runner did not complete successfully</value>
   </data>
-  <data name="INFO_SonarRunnerOptsDefaultUsed" xml:space="preserve">
+  <data name="MSG_SonarRunnerOptsDefaultUsed" xml:space="preserve">
     <value>{0} is not configured. Setting it to the default value of {1}</value>
   </data>
-  <data name="INFO_SonarRunOptsAlreadySet" xml:space="preserve">
+  <data name="MSG_SonarRunOptsAlreadySet" xml:space="preserve">
     <value>{0} is already set. Value: {1}</value>
   </data>
   <data name="REPORT_ExcludedProjectsTitle" xml:space="preserve">
@@ -195,7 +195,7 @@
   <data name="WARN_InvalidProjectGuid" xml:space="preserve">
     <value>The project has an invalid GUID "{0}". The project will not be analyzed by SonarQube. Project file: {1}</value>
   </data>
-  <data name="DIAG_SonarRunnerHomeIsSet" xml:space="preserve">
+  <data name="MSG_SonarRunnerHomeIsSet" xml:space="preserve">
     <value>The SONAR_RUNNER_HOME environment variable is not required and will be ignored.</value>
   </data>
 </root>

@@ -15,7 +15,8 @@ namespace TestUtilities
 {
     public class TestLogger : ILogger
     {
-        public List<string> Messages { get; private set; }
+        public List<string> DebugMessages { get; private set; }
+        public List<string> InfoMessages { get; private set; }
         public List<string> Warnings { get; private set; }
         public List<string> Errors { get; private set; }
 
@@ -31,8 +32,9 @@ namespace TestUtilities
             WriteLine("");
             WriteLine("------------------------------------------------------------- (new TestLogger created)");
             WriteLine("");
-            
-            Messages = new List<string>();
+
+            DebugMessages = new List<string>();
+            InfoMessages = new List<string>();
             Warnings = new List<string>();
             Errors = new List<string>();
 
@@ -48,7 +50,7 @@ namespace TestUtilities
 
         public void AssertMessagesLogged()
         {
-            Assert.IsTrue(this.Messages.Count > 0, "Expecting at least one message to be logged");
+            Assert.IsTrue(this.InfoMessages.Count > 0, "Expecting at least one message to be logged");
         }
 
         public void AssertErrorsLogged(int expectedCount)
@@ -62,12 +64,12 @@ namespace TestUtilities
         }
         public void AssertMessagesLogged(int expectedCount)
         {
-            Assert.AreEqual(expectedCount, this.Messages.Count, "Unexpected number of messages logged");
+            Assert.AreEqual(expectedCount, this.InfoMessages.Count, "Unexpected number of messages logged");
         }
 
         public void AssertMessageLogged(string expected)
         {
-            bool found = this.Messages.Any(s => expected.Equals(s, System.StringComparison.CurrentCulture));
+            bool found = this.InfoMessages.Any(s => expected.Equals(s, System.StringComparison.CurrentCulture));
             Assert.IsTrue(found, "Expected message was not found: '{0}'", expected);
         }
 
@@ -79,7 +81,7 @@ namespace TestUtilities
 
         public void AssertMessageNotLogged(string message)
         {
-            bool found = this.Messages.Any(s => message.Equals(s, System.StringComparison.CurrentCulture));
+            bool found = this.InfoMessages.Any(s => message.Equals(s, System.StringComparison.CurrentCulture));
             Assert.IsFalse(found, "Not expecting the message to have been logged: '{0}'", message);
         }
 
@@ -110,23 +112,43 @@ namespace TestUtilities
         }
 
         /// <summary>
-        /// Checks that a single message exists that contains all of the specified strings
+        /// Checks that a single INFO message exists that contains all of the specified strings
         /// </summary>
-        public string AssertSingleMessageExists(params string[] expected)
+        public string AssertSingleInfoMessageExists(params string[] expected)
         {
-            IEnumerable<string> matches = this.Messages.Where(m => expected.All(e => m.Contains(e)));
-            Assert.AreNotEqual(0, matches.Count(), "No message contains the expected strings: {0}", string.Join(",", expected));
-            Assert.AreEqual(1, matches.Count(), "More than one message contains the expected strings: {0}", string.Join(",", expected));
+            IEnumerable<string> matches = this.InfoMessages.Where(m => expected.All(e => m.Contains(e)));
+            Assert.AreNotEqual(0, matches.Count(), "No INFO message contains the expected strings: {0}", string.Join(",", expected));
+            Assert.AreEqual(1, matches.Count(), "More than one INFO message contains the expected strings: {0}", string.Join(",", expected));
             return matches.First();
         }
 
         /// <summary>
-        /// Checks that at least one message exists that contains all of the specified strings
+        /// Checks that a single DEBUG message exists that contains all of the specified strings
         /// </summary>
-        public void AssertMessageExists(params string[] expected)
+        public string AssertSingleDebugMessageExists(params string[] expected)
         {
-            IEnumerable<string> matches = this.Messages.Where(m => expected.All(e => m.Contains(e)));
-            Assert.AreNotEqual(0, matches.Count(), "No message contains the expected strings: {0}", string.Join(",", expected));
+            IEnumerable<string> matches = this.DebugMessages.Where(m => expected.All(e => m.Contains(e)));
+            Assert.AreNotEqual(0, matches.Count(), "No debug message contains the expected strings: {0}", string.Join(",", expected));
+            Assert.AreEqual(1, matches.Count(), "More than one DEBUG message contains the expected strings: {0}", string.Join(",", expected));
+            return matches.First();
+        }
+
+        /// <summary>
+        /// Checks that at least one INFO message exists that contains all of the specified strings
+        /// </summary>
+        public void AssertInfoMessageExists(params string[] expected)
+        {
+            IEnumerable<string> matches = this.InfoMessages.Where(m => expected.All(e => m.Contains(e)));
+            Assert.AreNotEqual(0, matches.Count(), "No INFO message contains the expected strings: {0}", string.Join(",", expected));
+        }
+
+        /// <summary>
+        /// Checks that at least one DEBUG message exists that contains all of the specified strings
+        /// </summary>
+        public void AssertDebugMessageExists(params string[] expected)
+        {
+            IEnumerable<string> matches = this.DebugMessages.Where(m => expected.All(e => m.Contains(e)));
+            Assert.AreNotEqual(0, matches.Count(), "No DEBUG message contains the expected strings: {0}", string.Join(",", expected));
         }
 
         /// <summary>
@@ -149,7 +171,8 @@ namespace TestUtilities
 
         public void LogInfo(string message, params object[] args)
         {
-            LogMessage(LoggerVerbosity.Info, message, args);
+            InfoMessages.Add(GetFormattedMessage(message, args));
+            WriteLine("INFO: " + message, args);
         }
 
         public void LogWarning(string message, params object[] args)
@@ -166,7 +189,8 @@ namespace TestUtilities
 
         public void LogDebug(string message, params object[] args)
         {
-            LogMessage(LoggerVerbosity.Debug, message, args);
+            DebugMessages.Add(GetFormattedMessage(message, args));
+            WriteLine("DEBUG: " + message, args);
         }
 
 
@@ -182,12 +206,6 @@ namespace TestUtilities
         private static string GetFormattedMessage(string message, params object[] args)
         {
             return string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args);
-        }
-
-        private void LogMessage(LoggerVerbosity verbosity, string message, params object[] args)
-        {
-            Messages.Add(GetFormattedMessage(message, args));
-            WriteLine(verbosity.ToString() + ": " + message, args);
         }
 
         #endregion

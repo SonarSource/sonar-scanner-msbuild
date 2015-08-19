@@ -61,87 +61,6 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Calling the sonar-runner....
-        /// </summary>
-        public static string DIAG_CallingSonarRunner {
-            get {
-                return ResourceManager.GetString("DIAG_CallingSonarRunner", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to File is not under the project directory and cannot currently be analysed by SonarQube. File: {0}, project: {1}.
-        /// </summary>
-        public static string DIAG_FileIsOutsideProjectDirectory {
-            get {
-                return ResourceManager.GetString("DIAG_FileIsOutsideProjectDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generating SonarQube project properties file to {0}.
-        /// </summary>
-        public static string DIAG_GeneratingProjectProperties {
-            get {
-                return ResourceManager.GetString("DIAG_GeneratingProjectProperties", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The project does not contain any files that can analyzed by SonarQube. Project file: {0}.
-        /// </summary>
-        public static string DIAG_NoFilesToAnalyze {
-            get {
-                return ResourceManager.GetString("DIAG_NoFilesToAnalyze", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The exclude flag has been set so the project will not be analyzed by SonarQube. Project file: {0}.
-        /// </summary>
-        public static string DIAG_ProjectIsExcluded {
-            get {
-                return ResourceManager.GetString("DIAG_ProjectIsExcluded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generation of the sonar-properties file failed. Unable to complete SonarQube analysis..
-        /// </summary>
-        public static string DIAG_PropertiesGenerationFailed {
-            get {
-                return ResourceManager.GetString("DIAG_PropertiesGenerationFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The sonar-runner has finished.
-        /// </summary>
-        public static string DIAG_SonarRunnerCompleted {
-            get {
-                return ResourceManager.GetString("DIAG_SonarRunnerCompleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The SONAR_RUNNER_HOME environment variable is not required and will be ignored..
-        /// </summary>
-        public static string DIAG_SonarRunnerHomeIsSet {
-            get {
-                return ResourceManager.GetString("DIAG_SonarRunnerHomeIsSet", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Writing processing summary to {0}.
-        /// </summary>
-        public static string DIAG_WritingSummary {
-            get {
-                return ResourceManager.GetString("DIAG_WritingSummary", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to An error occurred loading the analysis config file. Please check that it is a valid file and try again. Error: {0}.
         /// </summary>
         public static string ERR_ErrorLoadingConfigFile {
@@ -187,20 +106,92 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Calling the sonar-runner....
+        /// </summary>
+        public static string MSG_CallingSonarRunner {
+            get {
+                return ResourceManager.GetString("MSG_CallingSonarRunner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generating SonarQube project properties file to {0}.
+        /// </summary>
+        public static string MSG_GeneratingProjectProperties {
+            get {
+                return ResourceManager.GetString("MSG_GeneratingProjectProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The project does not contain any files that can analyzed by SonarQube. Project file: {0}.
+        /// </summary>
+        public static string MSG_NoFilesToAnalyze {
+            get {
+                return ResourceManager.GetString("MSG_NoFilesToAnalyze", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The exclude flag has been set so the project will not be analyzed by SonarQube. Project file: {0}.
+        /// </summary>
+        public static string MSG_ProjectIsExcluded {
+            get {
+                return ResourceManager.GetString("MSG_ProjectIsExcluded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generation of the sonar-properties file failed. Unable to complete SonarQube analysis..
+        /// </summary>
+        public static string MSG_PropertiesGenerationFailed {
+            get {
+                return ResourceManager.GetString("MSG_PropertiesGenerationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The sonar-runner has finished.
+        /// </summary>
+        public static string MSG_SonarRunnerCompleted {
+            get {
+                return ResourceManager.GetString("MSG_SonarRunnerCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The SONAR_RUNNER_HOME environment variable is not required and will be ignored..
+        /// </summary>
+        public static string MSG_SonarRunnerHomeIsSet {
+            get {
+                return ResourceManager.GetString("MSG_SonarRunnerHomeIsSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} is not configured. Setting it to the default value of {1}.
         /// </summary>
-        public static string INFO_SonarRunnerOptsDefaultUsed {
+        public static string MSG_SonarRunnerOptsDefaultUsed {
             get {
-                return ResourceManager.GetString("INFO_SonarRunnerOptsDefaultUsed", resourceCulture);
+                return ResourceManager.GetString("MSG_SonarRunnerOptsDefaultUsed", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to {0} is already set. Value: {1}.
         /// </summary>
-        public static string INFO_SonarRunOptsAlreadySet {
+        public static string MSG_SonarRunOptsAlreadySet {
             get {
-                return ResourceManager.GetString("INFO_SonarRunOptsAlreadySet", resourceCulture);
+                return ResourceManager.GetString("MSG_SonarRunOptsAlreadySet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Writing processing summary to {0}.
+        /// </summary>
+        public static string MSG_WritingSummary {
+            get {
+                return ResourceManager.GetString("MSG_WritingSummary", resourceCulture);
             }
         }
         
@@ -282,6 +273,15 @@ namespace SonarRunner.Shim {
         public static string WARN_FileDoesNotExist {
             get {
                 return ResourceManager.GetString("WARN_FileDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File is not under the project directory and cannot currently be analysed by SonarQube. File: {0}, project: {1}.
+        /// </summary>
+        public static string WARN_FileIsOutsideProjectDirectory {
+            get {
+                return ResourceManager.GetString("WARN_FileIsOutsideProjectDirectory", resourceCulture);
             }
         }
         

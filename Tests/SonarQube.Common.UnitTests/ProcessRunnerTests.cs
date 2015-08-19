@@ -187,7 +187,7 @@ xxx yyy
             // Check the runner reported it was overwriting existing variables
             // Note: the existing non-process values won't be visible to the child process
             // unless they were set *before* the test host launched, which won't be the case.
-            logger.AssertSingleMessageExists("proc.runner.test.process", "existing process value", "process override");
+            logger.AssertSingleDebugMessageExists("proc.runner.test.process", "existing process value", "process override");
         }
 
         [TestMethod]
@@ -304,10 +304,10 @@ xxx yyy
             // Check public arguments are logged but private ones are not
             foreach(string arg in publicArgs)
             {
-                logger.AssertSingleMessageExists(arg);
+                logger.AssertSingleDebugMessageExists(arg);
             }
 
-            logger.AssertSingleMessageExists(SonarQube.Common.Resources.INFO_CmdLine_SensitiveCmdLineArgsAlternativeText);
+            logger.AssertSingleDebugMessageExists(SonarQube.Common.Resources.MSG_CmdLine_SensitiveCmdLineArgsAlternativeText);
             AssertTextDoesNotAppearInLog("secret", logger);
 
             // Check that the public and private arguments are passed to the child process
@@ -335,7 +335,7 @@ xxx yyy
 
         private static void AssertTextDoesNotAppearInLog(string text, TestLogger logger)
         {
-            AssertTextDoesNotAppearInLog(text, logger.Messages);
+            AssertTextDoesNotAppearInLog(text, logger.InfoMessages);
             AssertTextDoesNotAppearInLog(text, logger.Errors);
             AssertTextDoesNotAppearInLog(text, logger.Warnings);
         }

@@ -79,145 +79,6 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Commencing retry-able operation. Max wait (milliseconds): {0}, pause between tries (milliseconds): {1}.
-        /// </summary>
-        public static string DIAG_BeginningRetry {
-            get {
-                return ResourceManager.GetString("DIAG_BeginningRetry", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Creating directory: {0}.
-        /// </summary>
-        public static string DIAG_CreatingDirectory {
-            get {
-                return ResourceManager.GetString("DIAG_CreatingDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Removing the existing directory: {0}.
-        /// </summary>
-        public static string DIAG_DeletingDirectory {
-            get {
-                return ResourceManager.GetString("DIAG_DeletingDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The directory already exists: {0}.
-        /// </summary>
-        public static string DIAG_DirectoryAlreadyExists {
-            get {
-                return ResourceManager.GetString("DIAG_DirectoryAlreadyExists", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Executing file {0}
-        ///  Args: {1}
-        ///  Working directory: {2}
-        ///  Timeout (ms):{3}
-        ///  Process id: {4}.
-        /// </summary>
-        public static string DIAG_ExecutingFile {
-            get {
-                return ResourceManager.GetString("DIAG_ExecutingFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Process returned exit code {0}.
-        /// </summary>
-        public static string DIAG_ExecutionExitCode {
-            get {
-                return ResourceManager.GetString("DIAG_ExecutionExitCode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Timed out after waiting {0} ms for process {1} to complete. The process may still be running..
-        /// </summary>
-        public static string DIAG_ExecutionTimedOut {
-            get {
-                return ResourceManager.GetString("DIAG_ExecutionTimedOut", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Default properties file was found at {0}.
-        /// </summary>
-        public static string DIAG_Properties_DefaultPropertiesFileFound {
-            get {
-                return ResourceManager.GetString("DIAG_Properties_DefaultPropertiesFileFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Default properties file was not found at {0}.
-        /// </summary>
-        public static string DIAG_Properties_DefaultPropertiesFileNotFound {
-            get {
-                return ResourceManager.GetString("DIAG_Properties_DefaultPropertiesFileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Loading analysis properties from {0}.
-        /// </summary>
-        public static string DIAG_Properties_LoadingPropertiesFromFile {
-            get {
-                return ResourceManager.GetString("DIAG_Properties_LoadingPropertiesFromFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Retrying....
-        /// </summary>
-        public static string DIAG_RetryingOperation {
-            get {
-                return ResourceManager.GetString("DIAG_RetryingOperation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Operation timed out, Elapsed time (ms): {0}.
-        /// </summary>
-        public static string DIAG_RetryOperationFailed {
-            get {
-                return ResourceManager.GetString("DIAG_RetryOperationFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Operation succeeded. Elapsed time (ms): {0}.
-        /// </summary>
-        public static string DIAG_RetryOperationSucceeded {
-            get {
-                return ResourceManager.GetString("DIAG_RetryOperationSucceeded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Overwriting the value of environment variable &apos;{0}&apos;. Old value: {1}, new value: {2}.
-        /// </summary>
-        public static string DIAG_Runner_OverwritingEnvVar {
-            get {
-                return ResourceManager.GetString("DIAG_Runner_OverwritingEnvVar", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Setting environment variable &apos;{0}&apos;. Value: {1}.
-        /// </summary>
-        public static string DIAG_Runner_SettingEnvVar {
-            get {
-                return ResourceManager.GetString("DIAG_Runner_SettingEnvVar", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to create an empty directory. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.
         ///  Detailed error message: {0}.
         /// </summary>
@@ -320,7 +181,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Could not find a file on the SonarQube server. Url: {0}.
         /// </summary>
-        internal static string ERROR_FileNotFound {
+        public static string ERROR_FileNotFound {
             get {
                 return ResourceManager.GetString("ERROR_FileNotFound", resourceCulture);
             }
@@ -372,38 +233,177 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to WARNING: .
+        /// </summary>
+        public static string Logger_WarningPrefix {
+            get {
+                return ResourceManager.GetString("Logger_WarningPrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commencing retry-able operation. Max wait (milliseconds): {0}, pause between tries (milliseconds): {1}.
+        /// </summary>
+        public static string MSG_BeginningRetry {
+            get {
+                return ResourceManager.GetString("MSG_BeginningRetry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;sensitive data removed&gt;.
         /// </summary>
-        public static string INFO_CmdLine_SensitiveCmdLineArgsAlternativeText {
+        public static string MSG_CmdLine_SensitiveCmdLineArgsAlternativeText {
             get {
-                return ResourceManager.GetString("INFO_CmdLine_SensitiveCmdLineArgsAlternativeText", resourceCulture);
+                return ResourceManager.GetString("MSG_CmdLine_SensitiveCmdLineArgsAlternativeText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creating directory: {0}.
+        /// </summary>
+        public static string MSG_CreatingDirectory {
+            get {
+                return ResourceManager.GetString("MSG_CreatingDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removing the existing directory: {0}.
+        /// </summary>
+        public static string MSG_DeletingDirectory {
+            get {
+                return ResourceManager.GetString("MSG_DeletingDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The directory already exists: {0}.
+        /// </summary>
+        public static string MSG_DirectoryAlreadyExists {
+            get {
+                return ResourceManager.GetString("MSG_DirectoryAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Executing file {0}
+        ///  Args: {1}
+        ///  Working directory: {2}
+        ///  Timeout (ms):{3}
+        ///  Process id: {4}.
+        /// </summary>
+        public static string MSG_ExecutingFile {
+            get {
+                return ResourceManager.GetString("MSG_ExecutingFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Process returned exit code {0}.
+        /// </summary>
+        public static string MSG_ExecutionExitCode {
+            get {
+                return ResourceManager.GetString("MSG_ExecutionExitCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default properties file was found at {0}.
+        /// </summary>
+        public static string MSG_Properties_DefaultPropertiesFileFound {
+            get {
+                return ResourceManager.GetString("MSG_Properties_DefaultPropertiesFileFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default properties file was not found at {0}.
+        /// </summary>
+        public static string MSG_Properties_DefaultPropertiesFileNotFound {
+            get {
+                return ResourceManager.GetString("MSG_Properties_DefaultPropertiesFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading analysis properties from {0}.
+        /// </summary>
+        public static string MSG_Properties_LoadingPropertiesFromFile {
+            get {
+                return ResourceManager.GetString("MSG_Properties_LoadingPropertiesFromFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Retrying....
+        /// </summary>
+        public static string MSG_RetryingOperation {
+            get {
+                return ResourceManager.GetString("MSG_RetryingOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation timed out, Elapsed time (ms): {0}.
+        /// </summary>
+        public static string MSG_RetryOperationFailed {
+            get {
+                return ResourceManager.GetString("MSG_RetryOperationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation succeeded. Elapsed time (ms): {0}.
+        /// </summary>
+        public static string MSG_RetryOperationSucceeded {
+            get {
+                return ResourceManager.GetString("MSG_RetryOperationSucceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Overwriting the value of environment variable &apos;{0}&apos;. Old value: {1}, new value: {2}.
+        /// </summary>
+        public static string MSG_Runner_OverwritingEnvVar {
+            get {
+                return ResourceManager.GetString("MSG_Runner_OverwritingEnvVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Setting environment variable &apos;{0}&apos;. Value: {1}.
+        /// </summary>
+        public static string MSG_Runner_SettingEnvVar {
+            get {
+                return ResourceManager.GetString("MSG_Runner_SettingEnvVar", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to sonar.log.level={0} was specified - setting the log verbosity to &apos;DEBUG&apos;.
         /// </summary>
-        public static string INFO_SonarLogLevelWasSpecified {
+        public static string MSG_SonarLogLevelWasSpecified {
             get {
-                return ResourceManager.GetString("INFO_SonarLogLevelWasSpecified", resourceCulture);
+                return ResourceManager.GetString("MSG_SonarLogLevelWasSpecified", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to sonar.verbose={0} was specified - setting the log verbosity to &apos;{1}&apos;.
         /// </summary>
-        public static string INFO_SonarVerboseWasSpecified {
+        public static string MSG_SonarVerboseWasSpecified {
             get {
-                return ResourceManager.GetString("INFO_SonarVerboseWasSpecified", resourceCulture);
+                return ResourceManager.GetString("MSG_SonarVerboseWasSpecified", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WARNING: .
+        ///   Looks up a localized string similar to Timed out after waiting {0} ms for process {1} to complete. The process may still be running..
         /// </summary>
-        public static string Logger_WarningPrefix {
+        public static string WARN_ExecutionTimedOut {
             get {
-                return ResourceManager.GetString("Logger_WarningPrefix", resourceCulture);
+                return ResourceManager.GetString("WARN_ExecutionTimedOut", resourceCulture);
             }
         }
         

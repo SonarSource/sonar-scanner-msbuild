@@ -79,7 +79,7 @@ namespace SonarQube.Common
 
                 // Warning: do not log the raw command line args as they
                 // may contain sensitive data
-                this.outputLogger.LogInfo(Resources.DIAG_ExecutingFile,
+                this.outputLogger.LogDebug(Resources.MSG_ExecutingFile,
                     runnerArgs.ExeName,
                     runnerArgs.GetCommandLineArgsLogText(),
                     runnerArgs.WorkingDirectory,
@@ -96,13 +96,13 @@ namespace SonarQube.Common
                 // true: we might still have timed out, but the process ended when we asked it to
                 if (succeeded)
                 {
-                    this.outputLogger.LogInfo(Resources.DIAG_ExecutionExitCode, process.ExitCode);
+                    this.outputLogger.LogDebug(Resources.MSG_ExecutionExitCode, process.ExitCode);
                     this.ExitCode = process.ExitCode;
                 }
                 else
                 {
                     this.ExitCode = ErrorCode;
-                    this.outputLogger.LogWarning(Resources.DIAG_ExecutionTimedOut, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+                    this.outputLogger.LogWarning(Resources.WARN_ExecutionTimedOut, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
                 }
 
                 succeeded = succeeded && (this.ExitCode == 0);
@@ -134,11 +134,11 @@ namespace SonarQube.Common
 
                 if (psi.EnvironmentVariables.ContainsKey(envVariable.Key))
                 {
-                    logger.LogDebug(Resources.DIAG_Runner_OverwritingEnvVar, envVariable.Key, psi.EnvironmentVariables[envVariable.Key], envVariable.Value);
+                    logger.LogDebug(Resources.MSG_Runner_OverwritingEnvVar, envVariable.Key, psi.EnvironmentVariables[envVariable.Key], envVariable.Value);
                 }
                 else
                 {
-                    logger.LogDebug(Resources.DIAG_Runner_SettingEnvVar, envVariable.Key, envVariable.Value);
+                    logger.LogDebug(Resources.MSG_Runner_SettingEnvVar, envVariable.Key, envVariable.Value);
                 }
                 psi.EnvironmentVariables[envVariable.Key] = envVariable.Value;
             }

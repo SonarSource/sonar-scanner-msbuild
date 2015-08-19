@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using Newtonsoft.Json.Linq;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -101,9 +102,19 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <summary>
         /// Get all the properties of a project
         /// </summary>
-        public IDictionary<string, string> GetProperties(string projectKey)
+        public IDictionary<string, string> GetProperties(string projectKey, ILogger logger)
         {
-            var ws = GetUrl("/api/properties?resource={0}", projectKey);
+            if (string.IsNullOrWhiteSpace(projectKey))
+            {
+                throw new ArgumentNullException("projectKey");
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+           
+            string ws = GetUrl("/api/properties?resource={0}", projectKey);
+            logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectKey, ws);
             var contents = Downloader.Download(ws);
 
             var properties = JArray.Parse(contents);

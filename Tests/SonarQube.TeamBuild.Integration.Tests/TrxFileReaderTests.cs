@@ -105,7 +105,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // Not finding attachment info in the file shouldn't cause a warning/error
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
-            logger.AssertMessageExists(trxFile); // should be a message referring to the trx
+            logger.AssertInfoMessageExists(trxFile); // should be a message referring to the trx
         }
 
         [TestMethod, TestCategory("CodeCoverage")]
@@ -198,7 +198,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             Assert.AreEqual(expected, coverageFilePath);
 
-            logger.AssertMessageExists(coverageFileName);
+            logger.AssertDebugMessageExists(coverageFileName);
         }
 
         [TestMethod, TestCategory("CodeCoverage")]
@@ -239,7 +239,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             // Assert
             Assert.AreEqual(coverageFilePath, coverageFilePath);
-            logger.AssertMessageExists(coverageFileName);
+            logger.AssertDebugMessageExists(coverageFileName);
         }
 
         #endregion

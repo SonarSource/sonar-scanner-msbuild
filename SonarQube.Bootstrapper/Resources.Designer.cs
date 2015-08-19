@@ -124,56 +124,83 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Checking for updates....
+        /// </summary>
+        public static string MSG_CheckingForUpdates {
+            get {
+                return ResourceManager.GetString("MSG_CheckingForUpdates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Downloading {0} from {1} to {2}.
         /// </summary>
-        public static string INFO_Downloading {
+        public static string MSG_DownloadingZip {
             get {
-                return ResourceManager.GetString("INFO_Downloading", resourceCulture);
+                return ResourceManager.GetString("MSG_DownloadingZip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extracting files to {0}....
+        /// </summary>
+        public static string MSG_ExtractingFiles {
+            get {
+                return ResourceManager.GetString("MSG_ExtractingFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preparing working directories....
+        /// </summary>
+        public static string MSG_PreparingDirectories {
+            get {
+                return ResourceManager.GetString("MSG_PreparingDirectories", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to {0} started..
         /// </summary>
-        public static string INFO_ProcessingStarted {
+        public static string MSG_ProcessingStarted {
             get {
-                return ResourceManager.GetString("INFO_ProcessingStarted", resourceCulture);
+                return ResourceManager.GetString("MSG_ProcessingStarted", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to {0} succeeded..
         /// </summary>
-        public static string INFO_ProcessingSucceeded {
+        public static string MSG_ProcessingSucceeded {
             get {
-                return ResourceManager.GetString("INFO_ProcessingSucceeded", resourceCulture);
+                return ResourceManager.GetString("MSG_ProcessingSucceeded", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to SonarQube server url: {0}.
         /// </summary>
-        public static string INFO_ServerUrl {
+        public static string MSG_ServerUrl {
             get {
-                return ResourceManager.GetString("INFO_ServerUrl", resourceCulture);
+                return ResourceManager.GetString("MSG_ServerUrl", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Using environment variable &apos;{0}&apos;, value &apos;{1}&apos;.
         /// </summary>
-        public static string INFO_UsingBuildEnvironmentVariable {
+        public static string MSG_UsingBuildEnvironmentVariable {
             get {
-                return ResourceManager.GetString("INFO_UsingBuildEnvironmentVariable", resourceCulture);
+                return ResourceManager.GetString("MSG_UsingBuildEnvironmentVariable", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Using environment variables to determine the download directory....
         /// </summary>
-        public static string INFO_UsingEnvVarToGetDirectory {
+        public static string MSG_UsingEnvVarToGetDirectory {
             get {
-                return ResourceManager.GetString("INFO_UsingEnvVarToGetDirectory", resourceCulture);
+                return ResourceManager.GetString("MSG_UsingEnvVarToGetDirectory", resourceCulture);
             }
         }
         

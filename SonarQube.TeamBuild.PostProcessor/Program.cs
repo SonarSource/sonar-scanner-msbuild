@@ -15,7 +15,7 @@ using System.Linq;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
-    internal class Program
+    internal static class Program
     {
         private const int SuccessCode = 0;
         private const int ErrorCode = 1;
@@ -29,13 +29,15 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             AnalysisConfig config = GetAnalysisConfig(settings, logger);
 
-            logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.GetAnalysisSettings(true), logger);
-
             if (config == null)
             {
+                LogStartupSettings(config, settings, logger);
                 logger.LogError(Resources.ERROR_MissingSettings);
                 return ErrorCode;
             }
+
+            logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.GetAnalysisSettings(true), logger);
+            LogStartupSettings(config, settings, logger);
 
             if (!CheckEnvironmentConsistency(config, settings, logger))
             {
@@ -73,7 +75,6 @@ namespace SonarQube.TeamBuild.PostProcessor
 
                 if (File.Exists(configFilePath))
                 {
-                    logger.LogInfo(Resources.DIAG_LoadingConfig, configFilePath);
                     config = AnalysisConfig.Load(teamBuildSettings.AnalysisConfigFilePath);
                 }
                 else
@@ -82,6 +83,35 @@ namespace SonarQube.TeamBuild.PostProcessor
                 }
             }
             return config;
+        }
+
+        private static void LogStartupSettings(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
+        {
+            logger.LogDebug(Resources.MSG_LoadingConfig, config.FileName);
+
+            switch (settings.BuildEnvironment)
+            {
+                case BuildEnvironment.LegacyTeamBuild:
+                    logger.LogDebug(Resources.SETTINGS_InLegacyTeamBuild);
+
+                    break;
+                case BuildEnvironment.TeamBuild:
+                    logger.LogDebug(Resources.SETTINGS_InTeamBuild);
+                    break;
+                case BuildEnvironment.NotTeamBuild:
+                    logger.LogDebug(Resources.SETTINGS_NotInTeamBuild);
+                    break;
+                default:
+                    break;
+            }
+
+            logger.LogDebug(Resources.SETTING_DumpSettings,
+                settings.AnalysisBaseDirectory,
+                settings.BuildDirectory,
+                settings.SonarBinDirectory,
+                settings.SonarConfigDirectory,
+                settings.SonarOutputDirectory,
+                settings.AnalysisConfigFilePath);
         }
 
         /// <summary>

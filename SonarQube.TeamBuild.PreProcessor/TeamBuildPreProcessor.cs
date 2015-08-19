@@ -108,7 +108,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             // Create the directories
-            logger.LogDebug(Resources.DIAG_CreatingFolders);
+            logger.LogDebug(Resources.MSG_CreatingFolders);
             if (!Utilities.TryEnsureEmptyDirectories(logger,
                 teamBuildSettings.SonarConfigDirectory,
                 teamBuildSettings.SonarOutputDirectory))
@@ -139,7 +139,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             else
             {
-                logger.LogDebug(Resources.INFO_NotCopyingTargets);
+                logger.LogDebug(Resources.MSG_NotCopyingTargets);
             }
         }
 
@@ -155,9 +155,11 @@ namespace SonarQube.TeamBuild.PreProcessor
                     SonarWebService ws = new SonarWebService(downloader, hostUrl);
 
                     // Fetch the SonarQube project properties
-                    serverSettings = this.propertiesFetcher.FetchProperties(ws, args.ProjectKey);
+                    logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
+                    serverSettings = this.propertiesFetcher.FetchProperties(ws, args.ProjectKey, logger);
 
                     // Generate the FxCop rulesets
+                    logger.LogInfo(Resources.MSG_GeneratingRulesets);
                     GenerateFxCopRuleset(ws, args.ProjectKey, "csharp", "cs", "fxcop", Path.Combine(configDir, FxCopCSharpRuleset), logger);
                     GenerateFxCopRuleset(ws, args.ProjectKey, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(configDir, FxCopVBNetRuleset), logger);
                 }
@@ -185,7 +187,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private void GenerateFxCopRuleset(SonarWebService ws, string projectKey, string requiredPluginKey, string language, string repository, string path, ILogger logger)
         {
-            logger.LogDebug(Resources.DIAG_GeneratingRuleset, path);
+            logger.LogDebug(Resources.MSG_GeneratingRuleset, path);
             this.rulesetGenerator.Generate(ws, requiredPluginKey, language, repository, projectKey, path);
         }
 

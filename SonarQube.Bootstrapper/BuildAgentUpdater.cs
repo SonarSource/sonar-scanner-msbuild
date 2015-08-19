@@ -44,7 +44,7 @@ namespace SonarQube.Bootstrapper
             {
                 try
                 {
-                    logger.LogInfo(Resources.INFO_Downloading, BootstrapperSettings.SonarQubeIntegrationFilename, integrationUrl, downloadedZipFilePath);
+                    logger.LogDebug(Resources.MSG_DownloadingZip, BootstrapperSettings.SonarQubeIntegrationFilename, integrationUrl, downloadedZipFilePath);
                     client.DownloadFile(integrationUrl, downloadedZipFilePath);
                 }
                 catch (WebException ex)
@@ -57,6 +57,7 @@ namespace SonarQube.Bootstrapper
                     throw;
                 }
 
+                logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
                 ZipFile.ExtractToDirectory(downloadedZipFilePath, targetDir);
                 return true;
             }

@@ -114,13 +114,13 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                     File.ReadAllText(path),
                     ".targets does not have expected content at " + path);
 
-                Assert.IsTrue(logger.Messages.Any(m => m.Contains(destinationDir)));
+                Assert.IsTrue(logger.DebugMessages.Any(m => m.Contains(destinationDir)));
 
                 if (expectCopy)
                 {
                     Assert.AreEqual(
                         TargetsInstaller.DestinationDirs.Count, 
-                        logger.Messages.Count, 
+                        logger.DebugMessages.Count,
                         "All destinations should have been covered");
                 }
             }
