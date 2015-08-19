@@ -261,11 +261,58 @@ namespace SonarRunner.Shim.Tests
             AssertPropertiesFilesCreated(result, logger);
 
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            AssertExpectedConfigSetting("key1", "value1", provider);
-            AssertExpectedConfigSetting("key.2", "value two", provider);
-            AssertExpectedConfigSetting("key.3", " ", provider);
+            provider.AssertSettingExists("key1", "value1");
+            provider.AssertSettingExists("key.2", "value two");
+            provider.AssertSettingExists("key.3", " ");
 
-            AssertSettingDoesNotExist("server.key", provider);
+            provider.AssertSettingDoesNotExist("server.key");
+        }
+
+        [TestMethod] // Old VS Bootstrapper should be forceably disabled: https://jira.sonarsource.com/browse/SONARMSBRU-122
+        public void FileGen_VSBootstrapperIsDisabled()
+        {
+            // 0. Arrange
+            string analysisRootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            TestLogger logger = new TestLogger();
+
+            CreateProjectWithFiles("project1", analysisRootDir);
+            AnalysisConfig config = CreateValidConfig(analysisRootDir);
+
+            // Act
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+
+            // Assert
+            AssertExpectedProjectCount(1, result);
+            AssertPropertiesFilesCreated(result, logger);
+
+            SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+            provider.AssertSettingExists("sonar.visualstudio.enable", "false");
+        }
+
+        [TestMethod]
+        public void FileGen_VSBootstrapperIsDisabled_OverrideUserSettings()
+        {
+            // 0. Arrange
+            string analysisRootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            TestLogger logger = new TestLogger();
+
+            CreateProjectWithFiles("project1", analysisRootDir);
+            AnalysisConfig config = CreateValidConfig(analysisRootDir);
+
+            // Try to explicitly enable the setting
+            config.LocalSettings = new AnalysisProperties();
+            config.LocalSettings.Add(new Property() { Id = "sonar.visualstudio.enable", Value = "true" });
+
+            // Act
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+
+            // Assert
+            AssertExpectedProjectCount(1, result);
+            AssertPropertiesFilesCreated(result, logger);
+
+            SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+            provider.AssertSettingExists("sonar.visualstudio.enable", "false");
+            logger.AssertSingleWarningExists("sonar.visualstudio.enable");
         }
 
         #endregion
@@ -282,11 +329,12 @@ namespace SonarRunner.Shim.Tests
             logger.AssertErrorsLogged();
         }
 
-        private static void AssertPropertiesFilesCreated(ProjectInfoAnalysisResult result, TestLogger logger)
+        private void AssertPropertiesFilesCreated(ProjectInfoAnalysisResult result, TestLogger logger)
         {
             Assert.IsNotNull(result.FullPropertiesFilePath, "Expecting the sonar-runner properties file to have been set");
 
             AssertValidProjectsExist(result);
+            this.TestContext.AddResultFile(result.FullPropertiesFilePath);
 
             logger.AssertErrorsLogged(0);
         }
@@ -327,18 +375,6 @@ namespace SonarRunner.Shim.Tests
             Assert.IsFalse(content.Contains(formattedPath), "File should not be referenced: {0}", formattedPath);
         }
  
-        private static void AssertExpectedConfigSetting(string key, string expectedValue, SQPropertiesFileReader provider)
-        {
-            string actualValue = provider.GetProperty(key);
-            Assert.AreEqual(expectedValue, actualValue, "Property does not have the expected value. Key: {0}", key);
-        }
-
-        private static void AssertSettingDoesNotExist(string key, SQPropertiesFileReader provider)
-        {
-            string value = provider.GetProperty(key, null);
-            Assert.IsNull(value, "Unexpected value for property. Key: {0}", key);
-        }
-
         #endregion
 
         #region Private methods

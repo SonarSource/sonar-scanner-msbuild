@@ -289,9 +289,9 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             // Assert
             SQPropertiesFileReader propertyReader = new SQPropertiesFileReader(fullActualPath);
 
-            AssertSettingExists(propertyReader, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting1", "setting1");
-            AssertSettingExists(propertyReader, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting2", "setting 2 with spaces");
-            AssertSettingExists(propertyReader, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
+            propertyReader.AssertSettingExists("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting1", "setting1");
+            propertyReader.AssertSettingExists("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting2", "setting 2 with spaces");
+            propertyReader.AssertSettingExists("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
         }
 
         [TestMethod]
@@ -320,32 +320,9 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             // Assert
             SQPropertiesFileReader propertyReader = new SQPropertiesFileReader(fullActualPath);
 
-            AssertSettingExists(propertyReader, "my.setting1", "setting1");
-            AssertSettingExists(propertyReader, "my.setting2", "setting 2 with spaces");
-            AssertSettingExists(propertyReader, "my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
-        }
-
-        #endregion
-
-        #region Checks
-
-        private static void AssertSettingExists(SQPropertiesFileReader propertyReader, string expectedId, string expectedValue)
-        {
-            string actualValue = propertyReader.GetProperty(expectedId); // will throw if the property is missing
-            Assert.AreEqual(expectedValue, actualValue, "Property does not have the expected value. Property: {0}", expectedId);
-        }
-
-        private static void AssertSettingDoesNotExists(SQPropertiesFileReader propertyReader, string expectedId)
-        {
-            try
-            {
-                var actualValue = propertyReader.GetProperty(expectedId); // will throw if the property is missing
-                Assert.Fail("The property {0} was expected not to be set, but actually has the value: {1}", expectedId, actualValue);
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                // ignore, expected
-            }
+            propertyReader.AssertSettingExists("my.setting1", "setting1");
+            propertyReader.AssertSettingExists("my.setting2", "setting 2 with spaces");
+            propertyReader.AssertSettingExists("my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
         }
 
         #endregion

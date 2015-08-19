@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;
@@ -61,24 +62,21 @@ namespace TestUtilities
             this.ExtractProperties(fullPath);
         }
 
-        public string GetProperty(string propertyName)
+        public void AssertSettingExists(string key, string expectedValue)
         {
-            string value;
-            if (!this.properties.TryGetValue(propertyName, out value))
-            {
-                throw new ArgumentOutOfRangeException("propertyName");
-            }
-            return value;
+            string actualValue;
+            bool found = this.properties.TryGetValue(key, out actualValue);
+
+            Assert.IsTrue(found, "Expected setting was not found. Key: {0}", key);
+            Assert.AreEqual(expectedValue, actualValue, "Property does not have the expected value. Key: {0}", key);
         }
 
-        public string GetProperty(string propertyName, string defaultValue)
+        public void AssertSettingDoesNotExist(string key)
         {
-            string value;
-            if (!this.properties.TryGetValue(propertyName, out value))
-            {
-                value = defaultValue;
-            }
-            return value;
+            string actualValue;
+            bool found = this.properties.TryGetValue(key, out actualValue);
+
+            Assert.IsFalse(found, "Not expecting setting to be found. Key: {0}, value: {1}", key, actualValue);
         }
 
         #endregion

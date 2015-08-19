@@ -19,6 +19,8 @@ namespace SonarRunner.Shim
     {
         private const string ProjectPropertiesFileName = "sonar-project.properties";
 
+        private const string VSBootstrapperPropertyKey = "sonar.visualstudio.enable";
+
         #region Public methods
 
         /// <summary>
@@ -58,7 +60,8 @@ namespace SonarRunner.Shim
             if (validProjects.Any())
             {
                 // Handle global settings
-                writer.WriteGlobalSettings(config.LocalSettings ?? new AnalysisProperties());
+                AnalysisProperties properties = GetAnalysisProperties(config, logger);
+                writer.WriteGlobalSettings(properties);
 
                 string contents = writer.Flush();
 
@@ -202,6 +205,33 @@ namespace SonarRunner.Shim
                 }
             }
             return vsCoverageReport;
+        }
+
+        private static AnalysisProperties GetAnalysisProperties(AnalysisConfig config, ILogger logger)
+        {
+            AnalysisProperties properties = config.LocalSettings ?? new AnalysisProperties();
+
+            // There are some properties we want to override regardless of what the user sets
+            AddOrSetProperty(VSBootstrapperPropertyKey, "false", properties, logger);
+
+            return properties;
+        }
+
+        private static void AddOrSetProperty(string key, string value, AnalysisProperties properties, ILogger logger)
+        {
+            Property property;
+            Property.TryGetProperty(key, properties, out property);
+            if (property == null)
+            {
+                logger.LogDebug(Resources.MSG_SettingAnalysisProperty, key, value);
+                property = new Property() { Id = key, Value = value };
+                properties.Add(property);
+            }
+            else
+            {
+                logger.LogWarning(Resources.WARN_OverridingAnalysisProperty, key, value);
+                property.Value = value;
+            }
         }
 
         #endregion

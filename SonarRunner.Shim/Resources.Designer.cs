@@ -151,6 +151,15 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Setting analysis property: {0}={1}.
+        /// </summary>
+        public static string MSG_SettingAnalysisProperty {
+            get {
+                return ResourceManager.GetString("MSG_SettingAnalysisProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The sonar-runner has finished.
         /// </summary>
         public static string MSG_SonarRunnerCompleted {
@@ -300,6 +309,15 @@ namespace SonarRunner.Shim {
         public static string WARN_InvalidProjectGuid {
             get {
                 return ResourceManager.GetString("WARN_InvalidProjectGuid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Overriding analysis property: {0}={1}.
+        /// </summary>
+        public static string WARN_OverridingAnalysisProperty {
+            get {
+                return ResourceManager.GetString("WARN_OverridingAnalysisProperty", resourceCulture);
             }
         }
     }

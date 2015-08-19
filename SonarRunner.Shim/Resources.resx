@@ -198,4 +198,10 @@
   <data name="MSG_SonarRunnerHomeIsSet" xml:space="preserve">
     <value>The SONAR_RUNNER_HOME environment variable is not required and will be ignored.</value>
   </data>
+  <data name="MSG_SettingAnalysisProperty" xml:space="preserve">
+    <value>Setting analysis property: {0}={1}</value>
+  </data>
+  <data name="WARN_OverridingAnalysisProperty" xml:space="preserve">
+    <value>Overriding analysis property: {0}={1}</value>
+  </data>
 </root>
