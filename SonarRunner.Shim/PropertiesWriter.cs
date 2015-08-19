@@ -163,7 +163,7 @@ namespace SonarRunner.Shim
 
             if (project.AnalysisSettings != null && project.AnalysisSettings.Any())
             {
-                foreach(ConfigSetting setting in project.AnalysisSettings)
+                foreach(Property setting in project.AnalysisSettings)
                 {
                     sb.AppendFormat("{0}.{1}={2}", guid, setting.Id, Escape(setting.Value));
                     sb.AppendLine();

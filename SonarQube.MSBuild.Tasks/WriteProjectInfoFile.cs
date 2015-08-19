@@ -154,15 +154,15 @@ namespace SonarQube.MSBuild.Tasks
         /// <summary>
         /// Attempts to convert the supplied task items into a list of <see cref="ConfigSetting"/> objects
         /// </summary>
-        private List<ConfigSetting> TryCreateAnalysisSettings(ITaskItem[] resultItems)
+        private AnalysisProperties TryCreateAnalysisSettings(ITaskItem[] resultItems)
         {
-            List<ConfigSetting> settings = new List<ConfigSetting>();
+            AnalysisProperties settings = new AnalysisProperties();
 
             if (resultItems != null)
             {
                 foreach (ITaskItem resultItem in resultItems)
                 {
-                    ConfigSetting result = TryCreateSettingFromItem(resultItem);
+                    Property result = TryCreateSettingFromItem(resultItem);
                     if (result != null)
                     {
                         settings.Add(result);
@@ -176,11 +176,11 @@ namespace SonarQube.MSBuild.Tasks
         /// Attempts to create an <see cref="ConfigSetting"/> from the supplied task item.
         /// Returns null if the task item does not have the required metadata.
         /// </summary>
-        private ConfigSetting TryCreateSettingFromItem(ITaskItem taskItem)
+        private Property TryCreateSettingFromItem(ITaskItem taskItem)
         {
             Debug.Assert(taskItem != null, "Supplied task item should not be null");
 
-            ConfigSetting setting = null;
+            Property setting = null;
 
             string settingId;
 
@@ -192,7 +192,7 @@ namespace SonarQube.MSBuild.Tasks
 
                 if (TryGetSettingValue(taskItem, out settingValue))
                 {
-                    setting = new ConfigSetting()
+                    setting = new Property()
                     {
                         Id = settingId,
                         Value = settingValue

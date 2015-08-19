@@ -167,7 +167,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             buildEngine.AssertSingleWarningExists(".invalid.non.alpha.first.character");
 
             AssertAnalysisSettingExists(createdProjectInfo, "valid.setting.1", @"c:\dir1\dir2\file.txt");
-            AssertAnalysisSettingExists(createdProjectInfo, "valid.value.is.whitespace.only", " ");
+            AssertAnalysisSettingExists(createdProjectInfo, "valid.value.is.whitespace.only", null);
             AssertAnalysisSettingExists(createdProjectInfo, "valid.value.has.whitespace", "valid setting with whitespace");
             AssertAnalysisSettingExists(createdProjectInfo, "valid.metadata.name.is.case.insensitive", "uppercase metadata name");
             AssertAnalysisSettingExists(createdProjectInfo, "X", "single character key");
@@ -312,7 +312,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             Assert.IsNotNull(actual, "Supplied project info should not be null");
             Assert.IsNotNull(actual.AnalysisSettings, "AnalysisSettings should not be null");
 
-            ConfigSetting setting = actual.AnalysisSettings.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
+            Property setting = actual.AnalysisSettings.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
             Assert.IsNotNull(setting, "AnalysisSetting with the expected id does not exist. Id: {0}", expectedId);
 
             Assert.AreEqual(expectedValue, setting.Value, "Setting does not have the expected value");

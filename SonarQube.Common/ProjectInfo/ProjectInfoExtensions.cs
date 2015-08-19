@@ -53,7 +53,7 @@ namespace SonarQube.Common
         /// Attempts to find and return the analysis setting with the specified id
         /// </summary>
         /// <returns>True if the setting was found, otherwise false</returns>
-        public static bool TryGetAnalysisSetting(this ProjectInfo projectInfo, string id, out ConfigSetting result)
+        public static bool TryGetAnalysisSetting(this ProjectInfo projectInfo, string id, out Property result)
         {
             if (projectInfo == null)
             {
@@ -64,7 +64,7 @@ namespace SonarQube.Common
 
             if (projectInfo.AnalysisSettings != null)
             {
-                result = projectInfo.AnalysisSettings.FirstOrDefault(ar => ConfigSetting.SettingKeyComparer.Equals(id, ar.Id));
+                result = projectInfo.AnalysisSettings.FirstOrDefault(ar => Property.PropertyKeyComparer.Equals(id, ar.Id));
             }
             return result != null;
         }

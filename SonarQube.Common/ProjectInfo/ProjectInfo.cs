@@ -85,7 +85,7 @@ namespace SonarQube.Common
         /// <summary>
         /// List of additional analysis settings
         /// </summary>
-        public List<ConfigSetting> AnalysisSettings { get; set; }
+        public AnalysisProperties AnalysisSettings { get; set; }
 
         #endregion
 

@@ -867,7 +867,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         private void AssertSettingExists(ProjectInfo projectInfo, string expectedId, string expectedValue)
         {
-            ConfigSetting actualSetting;
+            Property actualSetting;
             bool found = projectInfo.TryGetAnalysisSetting(expectedId, out actualSetting);
             Assert.IsTrue(found, "Expecting the analysis setting to be found. Id: {0}", expectedId);
 

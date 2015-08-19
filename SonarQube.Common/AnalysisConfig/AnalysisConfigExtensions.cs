@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace SonarQube.Common
@@ -35,7 +36,7 @@ namespace SonarQube.Common
             string result = defaultValue;
 
             ConfigSetting setting;
-            if (config.TryGetSetting(settingId, out setting))
+            if (config.TryGetConfigSetting(settingId, out setting))
             {
                 result = setting.Value;
             }
@@ -98,16 +99,10 @@ namespace SonarQube.Common
         /// Attempts to find and return the config setting with the specified id
         /// </summary>
         /// <returns>True if the setting was found, otherwise false</returns>
-        private static bool TryGetSetting(this AnalysisConfig config, string settingId, out ConfigSetting result)
+        private static bool TryGetConfigSetting(this AnalysisConfig config, string settingId, out ConfigSetting result)
         {
-            if (config == null)
-            {
-                throw new ArgumentNullException("config");
-            }
-            if (string.IsNullOrWhiteSpace(settingId))
-            {
-                throw new ArgumentNullException("settingId");
-            }
+            Debug.Assert(config != null, "Supplied config should not be null");
+            Debug.Assert(!string.IsNullOrWhiteSpace(settingId), "Setting id should not be null/empty");
 
             result = null;
 
@@ -133,7 +128,7 @@ namespace SonarQube.Common
             }
 
             ConfigSetting setting;
-            if (config.TryGetSetting(settingId, out setting))
+            if (config.TryGetConfigSetting(settingId, out setting))
             {
                 setting.Value = value;
             }

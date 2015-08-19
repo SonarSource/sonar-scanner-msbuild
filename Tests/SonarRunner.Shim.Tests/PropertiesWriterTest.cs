@@ -275,11 +275,11 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
                 SonarOutputDir = @"C:\my_folder"
             };
 
-            // These are the settings we are going to check. The other config values are not checked.
-            product.AnalysisSettings = new List<ConfigSetting>();
-            product.AnalysisSettings.Add(new ConfigSetting() { Id = "my.setting1", Value = "setting1" });
-            product.AnalysisSettings.Add(new ConfigSetting() { Id = "my.setting2", Value = "setting 2 with spaces" });
-            product.AnalysisSettings.Add(new ConfigSetting() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" }); // path that will be escaped
+            // These are the settings we are going to check. The other analysis values are not checked.
+            product.AnalysisSettings = new AnalysisProperties();
+            product.AnalysisSettings.Add(new Property() { Id = "my.setting1", Value = "setting1" });
+            product.AnalysisSettings.Add(new Property() { Id = "my.setting2", Value = "setting 2 with spaces" });
+            product.AnalysisSettings.Add(new Property() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" }); // path that will be escaped
             
             // Act
             PropertiesWriter writer = new PropertiesWriter(config);
