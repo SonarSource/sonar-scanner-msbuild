@@ -22,7 +22,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private static int Main()
         {
-            ILogger logger = new ConsoleLogger(includeTimestamp: true);
+            ConsoleLogger logger = new ConsoleLogger(includeTimestamp: true);
 
             TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
             Debug.Assert(settings != null, "Settings should not be null");
@@ -143,10 +143,12 @@ namespace SonarQube.TeamBuild.PostProcessor
             return true;
         }
 
-        private static ProjectInfoAnalysisResult InvokeSonarRunner(AnalysisConfig config, ILogger logger)
+        private static ProjectInfoAnalysisResult InvokeSonarRunner(AnalysisConfig config, ConsoleLogger logger)
         {
             ISonarRunner runner = new SonarRunnerWrapper();
+            logger.IncludeTimestamp = false;
             ProjectInfoAnalysisResult result = runner.Execute(config, Enumerable.Empty<string>() /* todo */, logger);
+            logger.IncludeTimestamp = true;
             return result;
         }
 

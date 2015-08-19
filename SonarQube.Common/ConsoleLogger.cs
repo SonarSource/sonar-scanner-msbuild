@@ -32,7 +32,7 @@ namespace SonarQube.Common
         /// <summary>
         /// Indicates whether logged messages should be prefixed with timestamps or not
         /// </summary>
-        public bool IncludeTimestamp { get; private set; }
+        public bool IncludeTimestamp { get; set; }
 
         #endregion Public methods
 
@@ -79,7 +79,7 @@ namespace SonarQube.Common
 
             if (this.IncludeTimestamp)
             {
-                finalMessage = string.Format(CultureInfo.CurrentCulture, "{0}  {1}", System.DateTime.Now.ToString("T", CultureInfo.CurrentCulture), finalMessage);
+                finalMessage = string.Format(CultureInfo.CurrentCulture, "{0}  {1}", System.DateTime.Now.ToString("HH:mm:ss.FFF", CultureInfo.InvariantCulture), finalMessage);
             }
             return finalMessage;
         }
