@@ -408,7 +408,7 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expecting the sonar.verbose property to be set to either true or false but it was set to &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Expecting the sonar.verbose property to be set to either &apos;true&apos; or &apos;false&apos; (case sensitive) but it was set to &apos;{0}&apos;..
         /// </summary>
         public static string WARN_SonarVerboseNotBool {
             get {

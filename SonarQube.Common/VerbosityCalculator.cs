@@ -6,15 +6,14 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Linq;
 
 namespace SonarQube.Common
 {
     /// <summary>
     /// The integration assemblies use the SonarQube log specific settings to determine verbosity. These settings are:
     /// sonar.log.level is a flag enum with the values INFO, DEBUG and TRACE - and a valid value is INFO|DEBUG
-    /// sonar.verbosity can be true or false and will override sonar.log.level by setting it to INFO|DEBUG or to INFO 
-    /// The integration assemblies only support INFO and DEBUG. A simplifying assumption has been made that if the log level value contains "DEBUG" 
-    /// then it is treated as INFO|DEBUG.
+    /// sonar.verbosity can be true or false (case insensitive) and will override sonar.log.level by setting it to INFO|DEBUG or to INFO 
     /// The calculator ignores invalid values.
     /// </summary>
     public static class VerbosityCalculator
@@ -65,12 +64,15 @@ namespace SonarQube.Common
         {
             if (!String.IsNullOrWhiteSpace(sonarVerboseValue))
             {
-                bool isVerbose;
-                if (bool.TryParse(sonarVerboseValue, out isVerbose))
+                if (sonarVerboseValue.Equals("true", StringComparison.Ordinal))
                 {
-                    LoggerVerbosity verbosity = isVerbose ? LoggerVerbosity.Debug : LoggerVerbosity.Info;
-                    logger.LogDebug(Resources.MSG_SonarVerboseWasSpecified, sonarVerboseValue, verbosity);
-                    return verbosity;
+                    logger.LogDebug(Resources.MSG_SonarVerboseWasSpecified, sonarVerboseValue, LoggerVerbosity.Debug);
+                    return LoggerVerbosity.Debug;
+                }
+                else if (sonarVerboseValue.Equals("false", StringComparison.Ordinal))
+                {
+                    logger.LogDebug(Resources.MSG_SonarVerboseWasSpecified, sonarVerboseValue, LoggerVerbosity.Debug);
+                    return LoggerVerbosity.Info;
                 }
                 else
                 {
@@ -78,11 +80,13 @@ namespace SonarQube.Common
                 }
             }
 
-            if (!String.IsNullOrWhiteSpace(sonarLogValue) &&
-                sonarLogValue.IndexOf(SonarLogDebugValue, StringComparison.OrdinalIgnoreCase) > -1) 
+            if (!String.IsNullOrWhiteSpace(sonarLogValue))
             {
-                logger.LogDebug(Resources.MSG_SonarLogLevelWasSpecified, sonarLogValue);
-                return LoggerVerbosity.Debug;
+                if (sonarLogValue.Split('|').Any(s => s.Equals(SonarLogDebugValue, StringComparison.Ordinal)))
+                {
+                    logger.LogDebug(Resources.MSG_SonarLogLevelWasSpecified, sonarLogValue);
+                    return LoggerVerbosity.Debug;
+                }
             }
 
             return DefaultLoggingVerbosity;
