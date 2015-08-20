@@ -8,7 +8,6 @@
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -19,7 +18,7 @@ namespace SonarRunner.Shim
     {
         private const string ProjectPropertiesFileName = "sonar-project.properties";
 
-        private const string VSBootstrapperPropertyKey = "sonar.visualstudio.enable";
+        public const string VSBootstrapperPropertyKey = "sonar.visualstudio.enable";
 
         #region Public methods
 
@@ -146,7 +145,7 @@ namespace SonarRunner.Shim
         /// </summary>
         private static IEnumerable<string> GetFilesToAnalyze(ProjectInfo projectInfo, ILogger logger)
         {
-            // We're only interested in files exist and that are under the project root
+            // We're only interested in files that exist and that are under the project root
             var result = new List<string>();
             var baseDir = projectInfo.GetProjectDirectory();
 
@@ -229,8 +228,15 @@ namespace SonarRunner.Shim
             }
             else
             {
-                logger.LogWarning(Resources.WARN_OverridingAnalysisProperty, key, value);
-                property.Value = value;
+                if (string.Equals(property.Value, value, StringComparison.InvariantCulture))
+                {
+                    logger.LogDebug(Resources.MSG_MandatorySettingIsCorrectlySpecified, key, value);
+                }
+                else
+                {
+                    logger.LogWarning(Resources.WARN_OverridingAnalysisProperty, key, value);
+                    property.Value = value;
+                }
             }
         }
 

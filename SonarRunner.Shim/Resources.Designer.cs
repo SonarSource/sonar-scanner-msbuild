@@ -124,6 +124,15 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analysis property is already correctly set: {0}={1}.
+        /// </summary>
+        public static string MSG_MandatorySettingIsCorrectlySpecified {
+            get {
+                return ResourceManager.GetString("MSG_MandatorySettingIsCorrectlySpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The project does not contain any files that can analyzed by SonarQube. Project file: {0}.
         /// </summary>
         public static string MSG_NoFilesToAnalyze {
@@ -313,7 +322,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Overriding analysis property: {0}={1}.
+        ///   Looks up a localized string similar to Overriding analysis property. Effective value: {0}={1}.
         /// </summary>
         public static string WARN_OverridingAnalysisProperty {
             get {

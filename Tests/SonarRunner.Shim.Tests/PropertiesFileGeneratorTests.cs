@@ -31,8 +31,8 @@ namespace SonarRunner.Shim.Tests
             string subDir1 = TestUtils.EnsureTestSpecificFolder(this.TestContext, "dir1");
             string subDir2 = TestUtils.EnsureTestSpecificFolder(this.TestContext, "dir2");
 
-            string file1 = CreateEmptyFile(subDir1, "file1.txt");
-            string file2 = CreateEmptyFile(subDir2, "file2.txt");
+            CreateEmptyFile(subDir1, "file1.txt");
+            CreateEmptyFile(subDir2, "file2.txt");
 
             TestLogger logger = new TestLogger();
             AnalysisConfig config = new AnalysisConfig() { SonarOutputDir = testDir };
@@ -272,52 +272,82 @@ namespace SonarRunner.Shim.Tests
         public void FileGen_VSBootstrapperIsDisabled()
         {
             // 0. Arrange
-            string analysisRootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             TestLogger logger = new TestLogger();
-
-            CreateProjectWithFiles("project1", analysisRootDir);
-            AnalysisConfig config = CreateValidConfig(analysisRootDir);
-
+         
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            ProjectInfoAnalysisResult result = ExecuteAndCheckSucceeds("disableBootstrapper", logger);
 
             // Assert
-            AssertExpectedProjectCount(1, result);
-            AssertPropertiesFilesCreated(result, logger);
-
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingExists("sonar.visualstudio.enable", "false");
+            provider.AssertSettingExists(PropertiesFileGenerator.VSBootstrapperPropertyKey, "false");
+            logger.AssertWarningsLogged(0);
         }
 
         [TestMethod]
-        public void FileGen_VSBootstrapperIsDisabled_OverrideUserSettings()
+        public void FileGen_VSBootstrapperIsDisabled_OverrideUserSettings_DifferentValue()
         {
             // 0. Arrange
-            string analysisRootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             TestLogger logger = new TestLogger();
 
-            CreateProjectWithFiles("project1", analysisRootDir);
-            AnalysisConfig config = CreateValidConfig(analysisRootDir);
-
-            // Try to explicitly enable the setting
-            config.LocalSettings = new AnalysisProperties();
-            config.LocalSettings.Add(new Property() { Id = "sonar.visualstudio.enable", Value = "true" });
+            // Try to explicitly enable the setting            
+            Property bootstrapperProperty = new Property() { Id = PropertiesFileGenerator.VSBootstrapperPropertyKey, Value = "true" };
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            ProjectInfoAnalysisResult result = ExecuteAndCheckSucceeds("disableBootstrapperDiff", logger, bootstrapperProperty);
 
             // Assert
-            AssertExpectedProjectCount(1, result);
-            AssertPropertiesFilesCreated(result, logger);
-
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingExists("sonar.visualstudio.enable", "false");
-            logger.AssertSingleWarningExists("sonar.visualstudio.enable");
+            provider.AssertSettingExists(PropertiesFileGenerator.VSBootstrapperPropertyKey, "false");
+            logger.AssertSingleWarningExists(PropertiesFileGenerator.VSBootstrapperPropertyKey);
+        }
+
+        [TestMethod]
+        public void FileGen_VSBootstrapperIsDisabled_OverrideUserSettings_SameValue()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+            Property bootstrapperProperty = new Property() { Id = PropertiesFileGenerator.VSBootstrapperPropertyKey, Value = "false" };
+
+            // Act
+            ProjectInfoAnalysisResult result = ExecuteAndCheckSucceeds("disableBootstrapperSame", logger, bootstrapperProperty);
+
+            // Assert
+            SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+            provider.AssertSettingExists(PropertiesFileGenerator.VSBootstrapperPropertyKey, "false");
+            logger.AssertSingleDebugMessageExists(PropertiesFileGenerator.VSBootstrapperPropertyKey);
+            logger.AssertWarningsLogged(0); // not expecting a warning if the user has supplied the value we want
         }
 
         #endregion
 
         #region Assertions
+
+        /// <summary>
+        /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.
+        /// Checks that a property file is created.
+        /// </summary>
+        private ProjectInfoAnalysisResult ExecuteAndCheckSucceeds(string projectName, TestLogger logger, params Property[] localSettings)
+        {
+            string analysisRootDir = TestUtils.CreateTestSpecificFolder(this.TestContext, projectName);
+
+            CreateProjectWithFiles(projectName, analysisRootDir);
+            AnalysisConfig config = CreateValidConfig(analysisRootDir);
+
+            config.LocalSettings = new AnalysisProperties();
+            foreach (Property property in localSettings)
+            {
+                config.LocalSettings.Add(property);
+            }
+
+            // Act
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+
+            // Assert
+            AssertExpectedProjectCount(1, result);
+            AssertPropertiesFilesCreated(result, logger);
+
+            return result;
+        }
 
         private static void AssertFailedToCreatePropertiesFiles(ProjectInfoAnalysisResult result, TestLogger logger)
         {

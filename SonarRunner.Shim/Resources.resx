@@ -202,6 +202,9 @@
     <value>Setting analysis property: {0}={1}</value>
   </data>
   <data name="WARN_OverridingAnalysisProperty" xml:space="preserve">
-    <value>Overriding analysis property: {0}={1}</value>
+    <value>Overriding analysis property. Effective value: {0}={1}</value>
+  </data>
+  <data name="MSG_MandatorySettingIsCorrectlySpecified" xml:space="preserve">
+    <value>Analysis property is already correctly set: {0}={1}</value>
   </data>
 </root>
