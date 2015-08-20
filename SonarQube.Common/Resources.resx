@@ -228,7 +228,7 @@
     <value>&lt;sensitive data removed&gt;</value>
   </data>
   <data name="WARN_SonarVerboseNotBool" xml:space="preserve">
-    <value>Expecting the sonar.verbose property to be set to either true or false but it was set to '{0}'.</value>
+    <value>Expecting the sonar.verbose property to be set to either 'true' or 'false' (case-sensitive) but it was set to '{0}'.</value>
   </data>
   <data name="MSG_SonarLogLevelWasSpecified" xml:space="preserve">
     <value>sonar.log.level={0} was specified - setting the log verbosity to 'DEBUG'</value>
