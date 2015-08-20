@@ -18,7 +18,7 @@ namespace SonarQube.TeamBuild.PostProcessor
     /// <summary>
     /// Generates summary reports for various build systems
     /// </summary>
-    public class SummaryReportBuilder
+    public class SummaryReportBuilder : ISummaryReportBuilder
     {
         public class SummaryReportData
         {
@@ -35,23 +35,17 @@ namespace SonarQube.TeamBuild.PostProcessor
         public /* for test purposes */ const string DashboardUrlFormat= "{0}/dashboard/index/{1}";
         public /* for test purposes */ const string SummaryMdFilename = "summary.md";
 
-        private readonly AnalysisConfig config;
-        private readonly ILogger logger;
-        private readonly ProjectInfoAnalysisResult result;
-        private readonly TeamBuildSettings settings;
+        private AnalysisConfig config;
+        private ILogger logger;
+        private ProjectInfoAnalysisResult result;
+        private TeamBuildSettings settings;
 
-        private SummaryReportBuilder(TeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
-        {
-            this.settings = settings;
-            this.config = config;
-            this.result = result;
-            this.logger = logger;
-        }
+        #region IReportBuilder interface methods
 
         /// <summary>
         /// Generates summary reports for LegacyTeamBuild and for Build Vnext
         /// </summary>
-        public static void GenerateReports(TeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+        public void GenerateReports(TeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
             if (settings == null)
             {
@@ -70,9 +64,15 @@ namespace SonarQube.TeamBuild.PostProcessor
                 throw new ArgumentNullException("logger");
             }
 
-            SummaryReportBuilder reportBuilder = new SummaryReportBuilder(settings, config, result, logger);
-            reportBuilder.GenerateReports();
+            this.settings = settings;
+            this.config = config;
+            this.result = result;
+            this.logger = logger;
+
+            this.GenerateReports();
         }
+
+        #endregion
 
         private void GenerateReports()
         {
@@ -187,6 +187,5 @@ namespace SonarQube.TeamBuild.PostProcessor
                 summaryLogger.WriteMessage(Resources.Report_InvalidSkippedAndExcludedMessage, summaryData.InvalidProjects, summaryData.SkippedProjects, summaryData.ExcludedProjects);
             }
         }
-
     }
 }

@@ -87,7 +87,8 @@ namespace SonarQube.TeamBuild.PostProcessorTests
             string expectedReportPath = Path.Combine(TestContext.TestDeploymentDir, SummaryReportBuilder.SummaryMdFilename);
 
             // Act
-            SummaryReportBuilder.GenerateReports(settings, config, result, new TestLogger());
+            SummaryReportBuilder builder = new SummaryReportBuilder();
+            builder.GenerateReports(settings, config, result, new TestLogger());
 
             // Assert
             Assert.IsTrue(File.Exists(expectedReportPath) && (new FileInfo(expectedReportPath)).Length > 0, "The report file cannot be found or is empty");

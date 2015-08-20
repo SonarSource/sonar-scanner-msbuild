@@ -25,6 +25,11 @@ namespace TestUtilities
             get; set;
         }
 
+        public bool IncludeTimestamp
+        {
+            get; set;
+        }
+
         public TestLogger()
         {
             // Write out a separator. Many tests create more than one TestLogger.

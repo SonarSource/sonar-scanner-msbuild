@@ -14,6 +14,7 @@ namespace SonarQube.TeamBuild.PreProcessor
     /// </summary>
     public static class Program // was internal
     {
+        private const int SuccessCode = 0;
         private const int ErrorCode = 1;
 
         private static int Main(string[] args)
@@ -23,7 +24,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor();
             bool success = preProcessor.Execute(args, logger);
            
-            return success ? 0 : ErrorCode;
+            return success ? SuccessCode : ErrorCode;
         }
     }
 }

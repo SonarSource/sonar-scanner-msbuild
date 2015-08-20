@@ -51,5 +51,10 @@ namespace SonarQube.Common
         /// Gets or sets the level of detail to show in the log
         /// </summary>
         LoggerVerbosity Verbosity { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether log entries are prefixed with timestamps
+        /// </summary>
+        bool IncludeTimestamp { get; set; }
     }
 }

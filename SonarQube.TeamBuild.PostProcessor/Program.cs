@@ -8,17 +8,15 @@
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarRunner.Shim;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
     internal static class Program
     {
-        private const int SuccessCode = 0;
         private const int ErrorCode = 1;
+        private const int SuccessCode = 0;
 
         private static int Main()
         {
@@ -29,34 +27,10 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             AnalysisConfig config = GetAnalysisConfig(settings, logger);
 
-            if (config == null)
-            {
-                LogStartupSettings(config, settings, logger);
-                logger.LogError(Resources.ERROR_MissingSettings);
-                return ErrorCode;
-            }
+            MSBuildPostProcessor postProcessor = new MSBuildPostProcessor(new CoverageReportProcessor(), new SonarRunnerWrapper(), new SummaryReportBuilder());
 
-            logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.GetAnalysisSettings(true), logger);
-            LogStartupSettings(config, settings, logger);
-
-            if (!CheckEnvironmentConsistency(config, settings, logger))
-            {
-                return ErrorCode;
-            }
-
-            // Handle code coverage reports
-            ICoverageReportProcessor coverageReportProcessor = TryCreateCoverageReportProcessor(settings);
-            if (coverageReportProcessor != null &&
-                !coverageReportProcessor.ProcessCoverageReports(config, settings, logger))
-            {
-                return ErrorCode;
-            }
-
-            ProjectInfoAnalysisResult result = InvokeSonarRunner(config, logger);
-
-            SummaryReportBuilder.GenerateReports(settings, config, result, logger);
-
-            return result.RanToCompletion ? SuccessCode : ErrorCode;
+            bool succeeded = postProcessor.Execute(config, settings, logger);
+            return succeeded ? SuccessCode : ErrorCode;
         }
 
         /// <summary>
@@ -85,131 +59,5 @@ namespace SonarQube.TeamBuild.PostProcessor
             return config;
         }
 
-        private static void LogStartupSettings(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
-        {
-            logger.LogDebug(Resources.MSG_LoadingConfig, config.FileName);
-
-            switch (settings.BuildEnvironment)
-            {
-                case BuildEnvironment.LegacyTeamBuild:
-                    logger.LogDebug(Resources.SETTINGS_InLegacyTeamBuild);
-
-                    break;
-                case BuildEnvironment.TeamBuild:
-                    logger.LogDebug(Resources.SETTINGS_InTeamBuild);
-                    break;
-                case BuildEnvironment.NotTeamBuild:
-                    logger.LogDebug(Resources.SETTINGS_NotInTeamBuild);
-                    break;
-                default:
-                    break;
-            }
-
-            logger.LogDebug(Resources.SETTING_DumpSettings,
-                settings.AnalysisBaseDirectory,
-                settings.BuildDirectory,
-                settings.SonarBinDirectory,
-                settings.SonarConfigDirectory,
-                settings.SonarOutputDirectory,
-                settings.AnalysisConfigFilePath);
-        }
-
-        /// <summary>
-        /// Returns a boolean indicating whether the information in the environment variables
-        /// matches that in the analysis config file.
-        /// Used to detect invalid setups on the build agent.
-        /// </summary>
-        private static bool CheckEnvironmentConsistency(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
-        {
-            // Currently we're only checking that the build uris match as this is the most likely error
-            // - it probably means that an old analysis config file has been left behind somehow
-            // e.g. a build definition used to include analysis but has changed so that it is no
-            // longer an analysis build, but there is still an old analysis config on disc.
-
-            if (settings.BuildEnvironment == BuildEnvironment.NotTeamBuild)
-            {
-                return true;
-            }
-
-            string configUri = config.GetBuildUri();
-            string environmentUi = settings.BuildUri;
-
-            if (!string.Equals(configUri, environmentUi, System.StringComparison.OrdinalIgnoreCase))
-            {
-                logger.LogError(Resources.ERROR_BuildUrisDontMatch, environmentUi, configUri, settings.AnalysisConfigFilePath);
-                return false;
-            }
-
-            return true;
-        }
-
-        private static ProjectInfoAnalysisResult InvokeSonarRunner(AnalysisConfig config, ConsoleLogger logger)
-        {
-            ISonarRunner runner = new SonarRunnerWrapper();
-            logger.IncludeTimestamp = false;
-            ProjectInfoAnalysisResult result = runner.Execute(config, Enumerable.Empty<string>() /* todo */, logger);
-            logger.IncludeTimestamp = true;
-            return result;
-        }
-
-        private static void UpdateTeamBuildSummary(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
-        {
-            logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
-
-            int skippedProjectCount = result.GetProjectsByStatus(ProjectInfoValidity.NoFilesToAnalyze).Count();
-            int invalidProjectCount = result.GetProjectsByStatus(ProjectInfoValidity.InvalidGuid).Count();
-            invalidProjectCount += result.GetProjectsByStatus(ProjectInfoValidity.DuplicateGuid).Count();
-
-            int excludedProjectCount = result.GetProjectsByStatus(ProjectInfoValidity.ExcludeFlagSet).Count();
-
-            IEnumerable<ProjectInfo> validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
-            int productProjectCount = validProjects.Count(p => p.ProjectType == ProjectType.Product);
-            int testProjectCount = validProjects.Count(p => p.ProjectType == ProjectType.Test);
-
-            using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
-            {
-                string projectDescription = string.Format(System.Globalization.CultureInfo.CurrentCulture,
-                    Resources.Report_SonarQubeProjectDescription, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
-
-                // Add a link to SonarQube dashboard if analysis succeeded
-                if (result.RanToCompletion)
-                {
-                    string hostUrl = config.SonarQubeHostUrl.TrimEnd('/');
-
-                    string sonarUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                        "{0}/dashboard/index/{1}", hostUrl, config.SonarProjectKey);
-
-                    summaryLogger.WriteMessage(Resources.Report_AnalysisSucceeded, projectDescription, sonarUrl);
-                }
-
-                if (!result.RanToCompletion)
-                {
-                    summaryLogger.WriteMessage(Resources.Report_AnalysisFailed, projectDescription);
-                }
-
-                summaryLogger.WriteMessage(Resources.Report_ProductAndTestMessage, productProjectCount, testProjectCount);
-                summaryLogger.WriteMessage(Resources.Report_InvalidSkippedAndExcludedMessage, invalidProjectCount, skippedProjectCount, excludedProjectCount);
-            }
-        }
-
-        /// <summary>
-        /// Factory method to create a coverage report processor for the current build environment.
-        /// TODO: replace with a general purpose pre- and post- processing extension mechanism.
-        /// </summary>
-        private static ICoverageReportProcessor TryCreateCoverageReportProcessor(TeamBuildSettings settings)
-        {
-            ICoverageReportProcessor processor = null;
-
-            if (settings.BuildEnvironment == BuildEnvironment.TeamBuild)
-            {
-                processor = new BuildVNextCoverageReportProcessor();
-            }
-            else if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
-                && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
-            {
-                processor = new TfsLegacyCoverageReportProcessor();
-            }
-            return processor;
-        }
     }
 }

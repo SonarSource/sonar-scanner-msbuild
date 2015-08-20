@@ -188,7 +188,12 @@ namespace SonarQube.MSBuild.Tasks
             LogMessage(Common.LoggerVerbosity.Info, message, args);
         }
 
-        public Common.LoggerVerbosity Verbosity
+        Common.LoggerVerbosity Common.ILogger.Verbosity
+        {
+            get; set;
+        }
+
+        bool Common.ILogger.IncludeTimestamp
         {
             get; set;
         }
