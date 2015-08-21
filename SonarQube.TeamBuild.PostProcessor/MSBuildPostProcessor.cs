@@ -39,8 +39,12 @@ namespace SonarQube.TeamBuild.PostProcessor
             this.reportBuilder = reportBuilder;
         }
 
-        public bool Execute(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
+        public bool Execute(string[] args, AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
         {
+            if (args == null)
+            {
+                throw new ArgumentNullException("args");
+            }
             if (settings == null)
             {
                 throw new ArgumentNullException("settings");
@@ -48,6 +52,12 @@ namespace SonarQube.TeamBuild.PostProcessor
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
+            }
+
+            IAnalysisPropertyProvider provider;
+            if (!ArgumentProcessor.TryProcessArgs(args, logger, out provider))
+            {
+                return false;
             }
 
             if (config == null)
@@ -71,7 +81,7 @@ namespace SonarQube.TeamBuild.PostProcessor
                 return false;
             }
 
-            ProjectInfoAnalysisResult result = InvokeSonarRunner(config, logger);
+            ProjectInfoAnalysisResult result = InvokeSonarRunner(args, config, logger);
 
             this.reportBuilder.GenerateReports(settings, config, result, logger);
 
@@ -137,10 +147,10 @@ namespace SonarQube.TeamBuild.PostProcessor
             return true;
         }
 
-        private ProjectInfoAnalysisResult InvokeSonarRunner(AnalysisConfig config, ILogger logger)
+        private ProjectInfoAnalysisResult InvokeSonarRunner(string[] args, AnalysisConfig config, ILogger logger)
         {
             logger.IncludeTimestamp = false;
-            ProjectInfoAnalysisResult result = this.sonarRunner.Execute(config, Enumerable.Empty<string>() /* todo */, logger);
+            ProjectInfoAnalysisResult result = this.sonarRunner.Execute(config, args, logger);
             logger.IncludeTimestamp = true;
             return result;
         }

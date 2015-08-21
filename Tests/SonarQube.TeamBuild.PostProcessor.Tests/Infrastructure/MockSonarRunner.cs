@@ -20,6 +20,8 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         public ProjectInfoAnalysisResult ValueToReturn { get; set; }
 
+        public IEnumerable<string> SuppliedCommandLineArgs { get; set; }
+
         #endregion
 
         #region ISonarRunner interface
@@ -28,6 +30,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             Assert.IsFalse(this.methodCalled, "Runner should only be called once");
             this.methodCalled = true;
+            this.SuppliedCommandLineArgs = userCmdLineArguments;
 
             return this.ValueToReturn;
         }

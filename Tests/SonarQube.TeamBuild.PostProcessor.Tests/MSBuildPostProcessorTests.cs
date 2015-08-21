@@ -9,6 +9,7 @@ using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarRunner.Shim;
 using TestUtilities;
+using System.Linq;
 
 namespace SonarQube.TeamBuild.PostProcessor.Tests
 {
@@ -100,9 +101,61 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             context.Runner.AssertExecuted();
             context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-runner fails
 
+            CollectionAssert.AreEqual(new string[] { }, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
+
             context.Logger.AssertErrorsLogged(0);
         }
 
+        [TestMethod]
+        public void PostProc_FailsOnInvalidArgs()
+        {
+            // Arrange
+            PostProcTestContext context = new PostProcTestContext(this.TestContext);
+
+            // Act
+            bool success = Execute(context, "/d:sonar.foo=bar");
+
+            // Assert
+            Assert.IsFalse(success, "Expecting post-processor to have failed");
+
+            context.CodeCoverage.AssertNotExecuted();
+            context.Runner.AssertNotExecuted();
+            context.ReportBuilder.AssertNotExecuted();
+
+            context.Logger.AssertErrorsLogged(1);
+        }
+
+        [TestMethod]
+        public void PostProc_ValidArgsPassedThrough()
+        {
+            // Arrange
+            PostProcTestContext context = new PostProcTestContext(this.TestContext);
+            context.CodeCoverage.ValueToReturn = true;
+            context.Runner.ValueToReturn = new ProjectInfoAnalysisResult();
+            context.Runner.ValueToReturn.RanToCompletion = true;
+
+            string[] suppliedArgs = new string[]
+            {
+                "/d:sonar.jdbc.password=dbpwd",
+                "/d:sonar.jdbc.username=dbuser",
+                "/d:sonar.password=pwd",
+                "/d:sonar.login=login"
+            };
+
+            // Act
+            bool success = Execute(context, suppliedArgs);
+
+            // Assert
+            Assert.IsTrue(success, "Expecting post-processor to have succeeded");
+
+            context.CodeCoverage.AssertExecuted();
+            context.Runner.AssertExecuted();
+            context.ReportBuilder.AssertExecuted();
+
+            CollectionAssert.AreEqual(suppliedArgs, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
+
+            context.Logger.AssertErrorsLogged(0);
+        }
 
         #endregion
 
@@ -139,10 +192,10 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         #region Private methods
 
-        private static bool Execute(PostProcTestContext context)
+        private static bool Execute(PostProcTestContext context, params string[] args)
         {
             MSBuildPostProcessor proc = new MSBuildPostProcessor(context.CodeCoverage, context.Runner, context.ReportBuilder);
-            bool success = proc.Execute(context.Config, context.Settings, context.Logger);
+            bool success = proc.Execute(args, context.Config, context.Settings, context.Logger);
             return success;
         }
 

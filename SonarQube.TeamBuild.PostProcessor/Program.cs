@@ -18,7 +18,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         private const int ErrorCode = 1;
         private const int SuccessCode = 0;
 
-        private static int Main()
+        private static int Main(string[] args)
         {
             ConsoleLogger logger = new ConsoleLogger(includeTimestamp: true);
 
@@ -29,7 +29,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             MSBuildPostProcessor postProcessor = new MSBuildPostProcessor(new CoverageReportProcessor(), new SonarRunnerWrapper(), new SummaryReportBuilder());
 
-            bool succeeded = postProcessor.Execute(config, settings, logger);
+            bool succeeded = postProcessor.Execute(args, config, settings, logger);
             return succeeded ? SuccessCode : ErrorCode;
         }
 
