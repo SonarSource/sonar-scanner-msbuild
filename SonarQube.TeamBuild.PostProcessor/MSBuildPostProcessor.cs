@@ -80,7 +80,8 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private static void LogStartupSettings(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
         {
-            logger.LogDebug(Resources.MSG_LoadingConfig, config.FileName);
+            string configFileName = config == null ? string.Empty : config.FileName;
+            logger.LogDebug(Resources.MSG_LoadingConfig, configFileName);
 
             switch (settings.BuildEnvironment)
             {
