@@ -74,6 +74,15 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This command line argument is not valid in the &quot;end&quot; phase: {0}.
+        /// </summary>
+        internal static string ERROR_CmdLine_DisallowedArgument {
+            get {
+                return ResourceManager.GetString("ERROR_CmdLine_DisallowedArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube analysis could not be completed because the analysis configuration file could not be found.
         ///Expected location: {0}.
         /// </summary>

@@ -64,7 +64,7 @@ namespace SonarQube.Common
 
             if (projectInfo.AnalysisSettings != null)
             {
-                result = projectInfo.AnalysisSettings.FirstOrDefault(ar => Property.PropertyKeyComparer.Equals(id, ar.Id));
+                result = projectInfo.AnalysisSettings.FirstOrDefault(ar => Property.AreKeysEqual(id, ar.Id));
             }
             return result != null;
         }

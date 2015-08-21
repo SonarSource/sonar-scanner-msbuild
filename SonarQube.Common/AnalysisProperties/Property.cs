@@ -64,12 +64,22 @@ namespace SonarQube.Common
         private static readonly Regex ValidSettingKeyRegEx = new Regex(@"^\w[\w\d\.-]*$", RegexOptions.Compiled);
 
         /// <summary>
+        /// Comparer to use when comparing keys of analysis properties
+        /// </summary>
+        private static readonly IEqualityComparer<string> PropertyKeyComparer = StringComparer.Ordinal;
+
+        /// <summary>
         /// Returns true if the supplied string is a valid key for a sonar-XXX.properties file, otherwise false
         /// </summary>
         public static bool IsValidKey(string key)
         {
             bool isValid = ValidSettingKeyRegEx.IsMatch(key);
             return isValid;
+        }
+
+        public static bool AreKeysEqual(string key1, string key2)
+        {
+            return PropertyKeyComparer.Equals(key1, key2);
         }
 
         /// <summary>
@@ -90,11 +100,6 @@ namespace SonarQube.Common
             }
             return property != null;
         }
-
-        /// <summary>
-        /// Comparer to use when comparing keys of analysis properties
-        /// </summary>
-        public static readonly IEqualityComparer<string> PropertyKeyComparer = StringComparer.Ordinal;
 
         /// <summary>
         /// Returns the first property with the supplied key, or null if there is no match

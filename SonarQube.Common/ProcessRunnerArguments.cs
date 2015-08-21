@@ -26,7 +26,7 @@ namespace SonarQube.Common
         /// Strings that are used to indicate arguments that contain
         /// sensitive data that should not be logged
         /// </summary>
-        public static readonly string[] SensitiveDataMarkers = new string[] {
+        public static readonly string[] SensitivePropertyKeys = new string[] {
             SonarProperties.SonarPassword,
             SonarProperties.SonarUserName,
             SonarProperties.DbPassword,
@@ -116,8 +116,8 @@ namespace SonarQube.Common
         /// </summary>
         public static bool ContainsSensitiveData(string text)
         {
-            if (SensitiveDataMarkers == null) { return false; }
-            return SensitiveDataMarkers.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) > -1);
+            Debug.Assert(SensitivePropertyKeys != null, "SensitiveDataMarkers array should not be null");
+            return SensitivePropertyKeys.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) > -1);
         }
 
         #endregion
