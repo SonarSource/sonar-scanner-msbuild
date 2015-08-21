@@ -117,8 +117,6 @@ namespace SonarQube.Bootstrapper
             return settings != null;
         }
 
-
-
         #endregion Public methods
 
         #region Private methods
@@ -201,7 +199,6 @@ namespace SonarQube.Bootstrapper
 
             return settings;
         }
-
 
         /// <summary>
         /// Strips out any arguments that are only relevant to the boot strapper from the user-supplied

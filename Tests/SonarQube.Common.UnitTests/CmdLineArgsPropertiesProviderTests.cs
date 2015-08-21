@@ -59,10 +59,10 @@ namespace SonarQube.Common.UnitTests
             IAnalysisPropertyProvider provider = CheckProcessingSucceeds(args, logger);
 
             // Assert
-            AssertPropertyHasValue("key1", "value1", provider);
-            AssertPropertyHasValue("key2", "value two with spaces", provider);
+            provider.AssertExpectedPropertyValue("key1", "value1");
+            provider.AssertExpectedPropertyValue("key2", "value two with spaces");
 
-            AssertExpectedSettingCount(2, provider);
+            provider.AssertExpectedPropertyCount(2);
         }
 
         [TestMethod]
@@ -154,21 +154,6 @@ namespace SonarQube.Common.UnitTests
         #endregion
 
         #region Checks
-
-        private static void AssertPropertyHasValue(string key, string expectedValue, IAnalysisPropertyProvider actualProvider)
-        {
-            Property actualProperty;
-            bool success = actualProvider.TryGetProperty(key, out actualProperty);
-            Assert.IsTrue(success, "Failed to retrieve the expected setting. Key: {0}", key);
-            Assert.AreEqual(expectedValue, actualProperty.Value, "Setting does not have the expected value. Key: {0}", key);
-        }
-
-        private static void AssertExpectedSettingCount(int expected, IAnalysisPropertyProvider actualProvider)
-        {
-            IEnumerable<Property> properties = actualProvider.GetAllProperties();
-            Assert.IsNotNull(properties, "Returned properties should not be null");
-            Assert.AreEqual(expected, properties.Count(), "Unexpected number of properties");
-        }
 
         private static TestLogger CheckProcessingFails(params string[] argValues)
         {

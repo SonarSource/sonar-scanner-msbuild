@@ -73,7 +73,7 @@ namespace SonarQube.Common.UnitTests
 
             // Assert
             AssertExpectedPropertiesFile(validPropertiesFile, provider, logger);
-            AssertPropertyExists("key1", "value1", provider);
+            provider.AssertExpectedPropertyValue("key1", "value1");
             AssertIsDefaultPropertiesFile(provider);
         }
 
@@ -99,7 +99,7 @@ namespace SonarQube.Common.UnitTests
 
             // Assert
             AssertExpectedPropertiesFile(validPropertiesFile, provider, logger);
-            AssertPropertyExists("xxx", "value with spaces", provider);
+            provider.AssertExpectedPropertyValue("xxx", "value with spaces");
             AssertIsNotDefaultPropertiesFile(provider);
         }
 
@@ -226,15 +226,7 @@ namespace SonarQube.Common.UnitTests
             Assert.IsNotNull(fileProvider.PropertiesFile, "Properties file object should not be null");
             Assert.AreEqual(expectedFilePath, fileProvider.PropertiesFile.FilePath, "Properties were not loaded from the expected location");
         }
-
-        private static void AssertPropertyExists(string key, string expectedValue, IAnalysisPropertyProvider actualProvider)
-        {
-            Property actualProperty;
-            bool exists = actualProvider.TryGetProperty(key, out actualProperty);
-            Assert.IsTrue(exists, "Specified property does not exist. Key: {0}", key);
-            Assert.AreEqual(expectedValue, actualProperty.Value, "Property does not have the expected value. Key: {0}", key);
-        }
-
+        
         private static void AssertIsDefaultPropertiesFile(IAnalysisPropertyProvider actualProvider)
         {
             FilePropertyProvider fileProvider = AssertIsFilePropertyProvider(actualProvider);

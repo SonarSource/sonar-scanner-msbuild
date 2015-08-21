@@ -63,51 +63,29 @@ namespace SonarQube.Common.UnitTests
             // 1. Ordering
             AggregatePropertiesProvider aggProvider = new AggregatePropertiesProvider(provider1, provider2, provider3);
 
-            AssertSettingsCount(5, aggProvider);
+            aggProvider.AssertExpectedPropertyCount(5);
 
-            AssertPropertyValue("shared.key.A", "value A from one", aggProvider);
-            AssertPropertyValue("shared.key.B", "value B from one", aggProvider);
+            aggProvider.AssertExpectedPropertyValue("shared.key.A", "value A from one");
+            aggProvider.AssertExpectedPropertyValue("shared.key.B", "value B from one");
 
-            AssertPropertyValue("p1.unique.key.1", "p1 unique value 1", aggProvider);
-            AssertPropertyValue("p2.unique.key.1", "p2 unique value 1", aggProvider);
-            AssertPropertyValue("p3.unique.key.1", "p3 unique value 1", aggProvider);
+            aggProvider.AssertExpectedPropertyValue("p1.unique.key.1", "p1 unique value 1");
+            aggProvider.AssertExpectedPropertyValue("p2.unique.key.1", "p2 unique value 1");
+            aggProvider.AssertExpectedPropertyValue("p3.unique.key.1", "p3 unique value 1");
 
             // 2. Reverse the order and try again
             aggProvider = new AggregatePropertiesProvider(provider3, provider2, provider1);
 
-            AssertSettingsCount(5, aggProvider);
+            aggProvider.AssertExpectedPropertyCount(5);
 
-            AssertPropertyValue("shared.key.A", "value A from three", aggProvider);
-            AssertPropertyValue("shared.key.B", "value B from two", aggProvider);
+            aggProvider.AssertExpectedPropertyValue("shared.key.A", "value A from three");
+            aggProvider.AssertExpectedPropertyValue("shared.key.B", "value B from two");
 
-            AssertPropertyValue("p1.unique.key.1", "p1 unique value 1", aggProvider);
-            AssertPropertyValue("p2.unique.key.1", "p2 unique value 1", aggProvider);
-            AssertPropertyValue("p3.unique.key.1", "p3 unique value 1", aggProvider);
+            aggProvider.AssertExpectedPropertyValue("p1.unique.key.1", "p1 unique value 1");
+            aggProvider.AssertExpectedPropertyValue("p2.unique.key.1", "p2 unique value 1");
+            aggProvider.AssertExpectedPropertyValue("p3.unique.key.1", "p3 unique value 1");
         }
 
         #endregion
 
-        #region Private methods
-
-        #endregion
-
-        #region Checks
-
-        private static void AssertSettingsCount(int expected, IAnalysisPropertyProvider provider)
-        {
-            IEnumerable<Property> allProperties = provider.GetAllProperties();
-            Assert.IsNotNull(allProperties, "Returned list of properties should not be null");
-            Assert.AreEqual(expected, allProperties.Count(), "Unexpected number of properties returned");
-        }
-
-        private static void AssertPropertyValue(string key, string expectedValue, IAnalysisPropertyProvider actualProvider)
-        {
-            Property actualProperty;
-            bool exists = actualProvider.TryGetProperty(key, out actualProperty);
-            Assert.IsTrue(exists, "Specified property does not exist. Key: {0}", key);
-            Assert.AreEqual(expectedValue, actualProperty.Value, "Property does not have the expected value. Key: {0}", key);
-        }
-
-        #endregion
     }
 }
