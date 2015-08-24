@@ -71,7 +71,7 @@ namespace SonarQube.Common
                 }
                 else if (sonarVerboseValue.Equals("false", StringComparison.Ordinal))
                 {
-                    logger.LogDebug(Resources.MSG_SonarVerboseWasSpecified, sonarVerboseValue, LoggerVerbosity.Debug);
+                    logger.LogDebug(Resources.MSG_SonarVerboseWasSpecified, sonarVerboseValue, LoggerVerbosity.Info);
                     return LoggerVerbosity.Info;
                 }
                 else

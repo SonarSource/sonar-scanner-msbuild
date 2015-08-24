@@ -86,8 +86,8 @@ namespace SonarQube.Common
 
         private void LogMessage(LoggerVerbosity messageVerbosity, string message, params object[] args)
         {
-            if ((messageVerbosity == LoggerVerbosity.Info || 
-                (messageVerbosity == LoggerVerbosity.Debug && this.Verbosity == LoggerVerbosity.Debug)))
+            if (messageVerbosity == LoggerVerbosity.Info || 
+                (messageVerbosity == LoggerVerbosity.Debug && this.Verbosity == LoggerVerbosity.Debug))
             {
                 string finalMessage = this.GetFormattedMessage(message, args);
                 Console.WriteLine(finalMessage);
