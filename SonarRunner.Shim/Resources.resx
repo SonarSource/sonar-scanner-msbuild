@@ -148,10 +148,10 @@
     <value>Expected to be called with one argument: the full path to the analysis config file</value>
   </data>
   <data name="ERR_NoProjectInfoFilesFound" xml:space="preserve">
-    <value>No ProjectInfo.xml files were found. Check that the analysis targets are referenced by the MSBuild projects being built.</value>
+    <value>No ProjectInfo.xml files were found. Possible causes: you specified an invalid build configuration or the custom MSBuild analysis targets were not imported. </value>
   </data>
   <data name="ERR_NoValidProjectInfoFiles" xml:space="preserve">
-    <value>No valid projectInfo.xml were found. SonarQube analysis will not be performed.</value>
+    <value>No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.</value>
   </data>
   <data name="ERR_SonarRunnerExecutionFailed" xml:space="preserve">
     <value>The sonar-runner did not complete successfully</value>
@@ -206,5 +206,8 @@
   </data>
   <data name="MSG_MandatorySettingIsCorrectlySpecified" xml:space="preserve">
     <value>Analysis property is already correctly set: {0}={1}</value>
+  </data>
+  <data name="ERR_NoValidButDuplicateProjects" xml:space="preserve">
+    <value>No analysable projects were found but some duplicate project IDs were found. Possible cause: you are building multiple configurations (e.g. DEBUG|x86 and RELEASE|x64) at the same time, which is not supported by the SonarQube integration. Please build and analyse each configuration individually.</value>
   </data>
 </root>

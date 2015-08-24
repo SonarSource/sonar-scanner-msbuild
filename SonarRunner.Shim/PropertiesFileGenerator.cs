@@ -69,7 +69,15 @@ namespace SonarRunner.Shim
             }
             else
             {
-                logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
+                // if the user tries to build multiple configurations at once there will be duplicate projects
+                if (result.GetProjectsByStatus(ProjectInfoValidity.DuplicateGuid).Any())
+                {
+                    logger.LogError(Resources.ERR_NoValidButDuplicateProjects);
+                }
+                else
+                {
+                    logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
+                }
             }
             return result;
         }

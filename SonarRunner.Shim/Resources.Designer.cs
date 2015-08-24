@@ -79,7 +79,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No ProjectInfo.xml files were found. Check that the analysis targets are referenced by the MSBuild projects being built..
+        ///   Looks up a localized string similar to No ProjectInfo.xml files were found. Possible causes: you specified an invalid build configuration or the custom MSBuild analysis targets were not imported. .
         /// </summary>
         public static string ERR_NoProjectInfoFilesFound {
             get {
@@ -88,7 +88,16 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No valid projectInfo.xml were found. SonarQube analysis will not be performed..
+        ///   Looks up a localized string similar to No analysable projects were found but some duplicate project IDs were found. Possible cause: you are building multiple configurations (e.g. DEBUG|x86 and RELEASE|x64) at the same time, which is not supported by the SonarQube integration. Please build and analyse each configuration individually..
+        /// </summary>
+        public static string ERR_NoValidButDuplicateProjects {
+            get {
+                return ResourceManager.GetString("ERR_NoValidButDuplicateProjects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details..
         /// </summary>
         public static string ERR_NoValidProjectInfoFiles {
             get {
