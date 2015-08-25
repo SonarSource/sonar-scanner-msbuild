@@ -171,6 +171,12 @@ namespace SonarQube.Common
                 return true;
             }
 
+            if (ex.Status == WebExceptionStatus.TrustFailure)
+            {
+                logger.LogError(Resources.ERROR_TrustFailure, hostUrl);
+                return true;
+            }
+
             return false;
         }
         #endregion

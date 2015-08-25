@@ -239,4 +239,7 @@
   <data name="ERROR_FileNotFound" xml:space="preserve">
     <value>Could not find a file on the SonarQube server. Url: {0}</value>
   </data>
+  <data name="ERROR_TrustFailure" xml:space="preserve">
+    <value>A server certificate could not be validated. Possible cause: you are using a self signed SSL certificate but you haven't installed it on the client machine. Please make sure the you can access {0} without encountering certificate errors.</value>
+  </data>
 </root>
