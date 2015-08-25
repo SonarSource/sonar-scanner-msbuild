@@ -93,15 +93,6 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube post-processing cannot be performed - required settings are missing.
-        /// </summary>
-        internal static string ERROR_MissingSettings {
-            get {
-                return ResourceManager.GetString("ERROR_MissingSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Loading the SonarQube analysis config from {0}.
         /// </summary>
         internal static string MSG_LoadingConfig {
