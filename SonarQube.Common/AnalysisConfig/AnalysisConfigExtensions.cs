@@ -17,6 +17,12 @@ namespace SonarQube.Common
     /// </summary>
     public static class ConfigSettingsExtensions
     {
+
+        /// <summary>
+        /// The key for the setting that holds the path to a settings file
+        /// </summary>
+        private const string SettingsFileKey = "settings.file.path";
+
         #region Public methods
 
         /// <summary>
@@ -56,6 +62,7 @@ namespace SonarQube.Common
         /// Returns a provider containing all of the analysis settings from the config.
         /// Optionally includes settings downloaded from the SonarQube server.
         /// </summary>
+        /// <remarks>This could include settings imported from a settings file</remarks>
         public static IAnalysisPropertyProvider GetAnalysisSettings(this AnalysisConfig config, bool includeServerSettings)
         {
             if (config == null)
@@ -65,10 +72,22 @@ namespace SonarQube.Common
 
             List<IAnalysisPropertyProvider> providers = new List<IAnalysisPropertyProvider>();
 
+            // Note: the order in which the providers are added determines the precedence
+            // Add local settings
             if (config.LocalSettings != null)
             {
                 providers.Add(new ListPropertiesProvider(config.LocalSettings));
             }
+            
+            // Add file settings
+            string settingsFilePath = config.GetSettingsFilePath();
+            if (settingsFilePath != null)
+            {
+                ListPropertiesProvider fileProvider = new ListPropertiesProvider(AnalysisProperties.Load(settingsFilePath));
+                providers.Add(fileProvider);
+            }
+
+            // Add server settings
             if (includeServerSettings && config.ServerSettings != null)
             {
                 providers.Add(new ListPropertiesProvider(config.ServerSettings));
@@ -89,6 +108,34 @@ namespace SonarQube.Common
             }
 
             return provider;
+        }
+
+        public static void SetSettingsFilePath(this AnalysisConfig config, string fileName)
+        {
+            if (config == null)
+            {
+                throw new ArgumentNullException("config");
+            }
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentNullException("fileName");
+            }
+            config.SetValue(SettingsFileKey, fileName);
+        }
+
+        public static string GetSettingsFilePath(this AnalysisConfig config)
+        {
+            if (config == null)
+            {
+                throw new ArgumentNullException("config");
+            }
+
+            ConfigSetting setting;
+            if (config.TryGetConfigSetting(SettingsFileKey, out setting))
+            {
+                return setting.Value;
+            }
+            return null;
         }
 
         #endregion
