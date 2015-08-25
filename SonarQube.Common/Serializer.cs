@@ -43,6 +43,8 @@ namespace SonarQube.Common
             settings.NamespaceHandling = NamespaceHandling.OmitDuplicates;
             settings.OmitXmlDeclaration = false;
 
+            // Serialize to memory first to reduce the opportunity for intermittent
+            // locking issues when writing the file
             using (MemoryStream stream = new MemoryStream())
             using (XmlWriter writer = XmlWriter.Create(stream, settings))
             {
