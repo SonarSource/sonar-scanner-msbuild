@@ -200,6 +200,9 @@ namespace SonarRunner.Shim
 
         private static void AppendKeyValue(StringBuilder sb, string key, string value)
         {
+            Debug.Assert(!ProcessRunnerArguments.ContainsSensitiveData(key) && !ProcessRunnerArguments.ContainsSensitiveData(value),
+                "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}", key);
+
             sb.Append(key);
             sb.Append('=');
             sb.AppendLine(Escape(value));

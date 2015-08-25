@@ -8,7 +8,6 @@
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {

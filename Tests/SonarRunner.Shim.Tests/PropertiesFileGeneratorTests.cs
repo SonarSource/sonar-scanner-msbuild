@@ -248,6 +248,11 @@ namespace SonarRunner.Shim.Tests
             config.LocalSettings.Add(new Property() { Id = "key.2", Value = "value two" });
             config.LocalSettings.Add(new Property() { Id = "key.3", Value = " " });
 
+            // Sensitive data should not be written
+            config.LocalSettings.Add(new Property() { Id = SonarProperties.DbPassword, Value ="secret db pwd" });
+            config.LocalSettings.Add(new Property() { Id = SonarProperties.SonarPassword, Value = "secret pwd" });
+
+            // Server properties should not be added
             config.ServerSettings = new AnalysisProperties();
             config.ServerSettings.Add(new Property() { Id = "server.key", Value = "should not be added" });
 
@@ -266,6 +271,8 @@ namespace SonarRunner.Shim.Tests
             provider.AssertSettingExists("key.3", " ");
 
             provider.AssertSettingDoesNotExist("server.key");
+            provider.AssertSettingDoesNotExist(SonarProperties.DbPassword);
+            provider.AssertSettingDoesNotExist(SonarProperties.SonarPassword);
         }
 
         [TestMethod] // Old VS Bootstrapper should be forceably disabled: https://jira.sonarsource.com/browse/SONARMSBRU-122

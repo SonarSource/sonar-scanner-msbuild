@@ -59,7 +59,7 @@ namespace SonarRunner.Shim
             if (validProjects.Any())
             {
                 // Handle global settings
-                AnalysisProperties properties = GetAnalysisProperties(config, logger);
+                AnalysisProperties properties = GetAnalysisPropertiesToWrite(config, logger);
                 writer.WriteGlobalSettings(properties);
 
                 string contents = writer.Flush();
@@ -214,10 +214,18 @@ namespace SonarRunner.Shim
             return vsCoverageReport;
         }
 
-        private static AnalysisProperties GetAnalysisProperties(AnalysisConfig config, ILogger logger)
+        /// <summary>
+        /// Returns all of the analysis properties that should
+        /// be written to the sonar-project properties file
+        /// </summary>
+        private static AnalysisProperties GetAnalysisPropertiesToWrite(AnalysisConfig config, ILogger logger)
         {
-            AnalysisProperties properties = config.LocalSettings ?? new AnalysisProperties();
+            AnalysisProperties properties = new AnalysisProperties();
 
+            properties.AddRange(config.GetAnalysisSettings(false).GetAllProperties()
+                // Strip out any sensitive properties
+                .Where(p => !p.ContainsSensitiveData()));
+            
             // There are some properties we want to override regardless of what the user sets
             AddOrSetProperty(VSBootstrapperPropertyKey, "false", properties, logger);
 

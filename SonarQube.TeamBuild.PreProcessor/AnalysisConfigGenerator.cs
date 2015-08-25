@@ -67,7 +67,10 @@ namespace SonarQube.TeamBuild.PreProcessor
         
         private static void AddSetting(AnalysisProperties properties, string id, string value)
         {
-            if (!ProcessRunnerArguments.ContainsSensitiveData(id) && !ProcessRunnerArguments.ContainsSensitiveData(value))
+            Property property = new Property() { Id = id, Value = value };
+
+            // Ensure it isn't possible to write sensitive data to the config file
+            if (!property.ContainsSensitiveData())
             {
                 properties.Add(new Property() { Id = id, Value = value });
             }

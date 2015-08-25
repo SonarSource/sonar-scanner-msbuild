@@ -36,8 +36,20 @@ namespace SonarQube.Common
 
         #endregion
 
+        #region Public methods
+
+        /// <summary>
+        /// Returns whether the property contains any sensitive data
+        /// </summary>
+        public bool ContainsSensitiveData()
+        {
+            return ProcessRunnerArguments.ContainsSensitiveData(this.Id) || ProcessRunnerArguments.ContainsSensitiveData(this.Value);
+        }
+
+        #endregion
+
         #region Static helper methods
-        
+
         //TODO: this expression only works for single-line values
         // Regular expression pattern: we're looking for matches that:
         // * start at the beginning of a line

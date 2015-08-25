@@ -117,6 +117,12 @@ namespace SonarQube.Common
         public static bool ContainsSensitiveData(string text)
         {
             Debug.Assert(SensitivePropertyKeys != null, "SensitiveDataMarkers array should not be null");
+
+            if (text == null)
+            {
+                return false;
+            }
+
             return SensitivePropertyKeys.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) > -1);
         }
 
