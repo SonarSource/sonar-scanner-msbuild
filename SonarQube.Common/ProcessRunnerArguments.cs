@@ -120,11 +120,7 @@ namespace SonarQube.Common
             return SensitivePropertyKeys.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) > -1);
         }
 
-        #endregion
-
-        #region Private methods
-
-        private static string GetQuotedArg(string arg)
+        public static string GetQuotedArg(string arg)
         {
             Debug.Assert(arg != null, "Not expecting an argument to be null");
 

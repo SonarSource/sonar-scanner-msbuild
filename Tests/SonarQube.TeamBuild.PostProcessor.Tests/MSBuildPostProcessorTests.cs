@@ -21,26 +21,6 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         #region Tests
 
         [TestMethod]
-        public void PostProc_CannotFindConfig()
-        {
-            // Arrange
-            PostProcTestContext context = new PostProcTestContext(this.TestContext);
-            context.Config = null;
-
-            // Act
-            bool success = Execute(context);
-
-            // Assert
-            Assert.IsFalse(success, "Not expecting post-processor to have succeeded");
-
-            context.CodeCoverage.AssertNotExecuted();
-            context.Runner.AssertNotExecuted();
-            context.ReportBuilder.AssertNotExecuted();
-
-            context.Logger.AssertErrorsLogged(1);
-        }
-
-        [TestMethod]
         public void PostProc_ExecutionFailsIfCodeCoverageFails()
         {
             // Arrange
@@ -138,8 +118,16 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             {
                 "/d:sonar.jdbc.password=dbpwd",
                 "/d:sonar.jdbc.username=dbuser",
-                "/d:sonar.password=pwd",
+                "/d:sonar.password=\"my pwd\"",
                 "/d:sonar.login=login"
+            };
+
+            string[] expectedArgs = new string[]
+            {
+                "-Dsonar.jdbc.password=dbpwd",
+                "-Dsonar.jdbc.username=dbuser",
+                "-Dsonar.password=\"my pwd\"",
+                "-Dsonar.login=login"
             };
 
             // Act
@@ -152,7 +140,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             context.Runner.AssertExecuted();
             context.ReportBuilder.AssertExecuted();
 
-            CollectionAssert.AreEqual(suppliedArgs, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
+            CollectionAssert.AreEqual(expectedArgs, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
 
             context.Logger.AssertErrorsLogged(0);
         }

@@ -9,7 +9,7 @@ using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarRunner.Shim;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
@@ -45,6 +45,10 @@ namespace SonarQube.TeamBuild.PostProcessor
             {
                 throw new ArgumentNullException("args");
             }
+            if (config == null)
+            {
+                throw new ArgumentNullException("config");
+            }
             if (settings == null)
             {
                 throw new ArgumentNullException("settings");
@@ -57,13 +61,6 @@ namespace SonarQube.TeamBuild.PostProcessor
             IAnalysisPropertyProvider provider;
             if (!ArgumentProcessor.TryProcessArgs(args, logger, out provider))
             {
-                return false;
-            }
-
-            if (config == null)
-            {
-                LogStartupSettings(config, settings, logger);
-                logger.LogError(Resources.ERROR_MissingSettings);
                 return false;
             }
 
@@ -81,7 +78,7 @@ namespace SonarQube.TeamBuild.PostProcessor
                 return false;
             }
 
-            ProjectInfoAnalysisResult result = InvokeSonarRunner(args, config, logger);
+            ProjectInfoAnalysisResult result = InvokeSonarRunner(provider, config, logger);
 
             this.reportBuilder.GenerateReports(settings, config, result, logger);
 
@@ -147,12 +144,38 @@ namespace SonarQube.TeamBuild.PostProcessor
             return true;
         }
 
-        private ProjectInfoAnalysisResult InvokeSonarRunner(string[] args, AnalysisConfig config, ILogger logger)
+        private ProjectInfoAnalysisResult InvokeSonarRunner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, ILogger logger)
         {
+            IEnumerable<string> args = GetSonarRunnerArgs(cmdLineArgs);
+
             logger.IncludeTimestamp = false;
             ProjectInfoAnalysisResult result = this.sonarRunner.Execute(config, args, logger);
             logger.IncludeTimestamp = true;
             return result;
         }
+
+        private static IEnumerable<string> GetSonarRunnerArgs(IAnalysisPropertyProvider provider)
+        {
+            IList<string> args = new List<string>();
+
+            if (provider != null)
+            {
+                foreach (Property property in provider.GetAllProperties())
+                {
+                    args.Add(GetSonarRunnerArg(property));
+                }
+            }
+
+            return args;
+        }
+
+        /// <summary>
+        /// Returns the property formatted as a sonar-runner "-D" argument
+        /// </summary>
+        private static string GetSonarRunnerArg(Property property)
+        {
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "-D{0}={1}", property.Id, ProcessRunnerArguments.GetQuotedArg(property.Value));
+        }
+
     }
 }
