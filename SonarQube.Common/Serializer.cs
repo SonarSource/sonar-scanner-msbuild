@@ -43,9 +43,11 @@ namespace SonarQube.Common
             settings.NamespaceHandling = NamespaceHandling.OmitDuplicates;
             settings.OmitXmlDeclaration = false;
 
-            using (XmlWriter writer = XmlWriter.Create(fileName, settings))
+            using (MemoryStream stream = new MemoryStream())
+            using (XmlWriter writer = XmlWriter.Create(stream, settings))
             {
                 serializer.Serialize(writer, model);
+                File.WriteAllBytes(fileName, stream.ToArray());
             }
         }
 
