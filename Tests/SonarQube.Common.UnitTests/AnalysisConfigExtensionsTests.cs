@@ -43,6 +43,8 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void ConfigExt_GetAnalysisSettings_LocalOnly()
         {
+            // Check that local settings are always retrieved by GetAnalysisSettings
+
             // 0. Setup
             AnalysisConfig config = new AnalysisConfig();
 
@@ -66,6 +68,9 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void ConfigExt_GetAnalysisSettings_ServerOnly()
         {
+            // Check that local settings are only retrieved by GetAnalysisSettings
+            // if includeServerSettings is true
+
             // 0. Setup
             AnalysisConfig config = new AnalysisConfig();
 
@@ -90,6 +95,9 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void ConfigExt_GetAnalysisSettings_FileSettings()
         {
+            // Check that file settings are always retrieved by GetAnalysisSettings
+            // and that the file name config property is set and retrieved correctly
+
             // 0. Setup
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
@@ -119,6 +127,8 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void ConfigExt_GetAnalysisSettings_Precedence()
         {
+            // Expected precedence: local -> file -> server
+
             // 0. Setup
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
 

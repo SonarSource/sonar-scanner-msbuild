@@ -8,6 +8,7 @@
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -70,7 +71,30 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// </summary>
         public bool InstallLoaderTargets { get; private set; }
 
+        /// <summary>
+        /// Returns the combined command line and file analysis settings
+        /// </summary>
         public IAnalysisPropertyProvider AggregateProperties { get { return this.aggProperties; } }
+
+        public IAnalysisPropertyProvider LocalProperties { get { return this.cmdLineProperties; } }
+
+        /// <summary>
+        /// Returns the name of property settings file or null if there is not one
+        /// </summary>
+        public string PropertiesFileName
+        {
+            get
+            {
+                FilePropertyProvider fileProvider = this.globalFileProperties as FilePropertyProvider;
+                if (fileProvider != null)
+                {
+                    Debug.Assert(fileProvider.PropertiesFile != null, "File properties should not be null");
+                    Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath), "Settings file name should not be null");
+                    return fileProvider.PropertiesFile.FilePath;
+                }
+                return null;
+            }
+        }
 
         /// <summary>
         /// Returns the value for the specified setting.

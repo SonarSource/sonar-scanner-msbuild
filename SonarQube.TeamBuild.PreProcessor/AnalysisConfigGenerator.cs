@@ -53,11 +53,17 @@ namespace SonarQube.TeamBuild.PreProcessor
                 AddSetting(config.ServerSettings, property.Key, property.Value);
             }
 
-            // Add command line and file arguments
+            // Add command line arguments
             config.LocalSettings = new AnalysisProperties();
-            foreach (var property in args.GetAllProperties())
+            foreach (var property in args.LocalProperties.GetAllProperties())
             {
                 AddSetting(config.LocalSettings, property.Id, property.Value);
+            }
+
+            // Set the pointer to the properties file
+            if (args.PropertiesFileName != null)
+            {
+                config.SetSettingsFilePath(args.PropertiesFileName);
             }
 
             config.Save(settings.AnalysisConfigFilePath);

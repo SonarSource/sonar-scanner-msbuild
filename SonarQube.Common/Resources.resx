@@ -239,4 +239,7 @@
   <data name="ERROR_FileNotFound" xml:space="preserve">
     <value>Could not find a file on the SonarQube server. Url: {0}</value>
   </data>
+  <data name="ERROR_SettingsFileNotFound" xml:space="preserve">
+    <value>The settings file could not be found</value>
+  </data>
 </root>

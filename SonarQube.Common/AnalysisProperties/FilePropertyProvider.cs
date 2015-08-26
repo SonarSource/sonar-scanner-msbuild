@@ -75,6 +75,22 @@ namespace SonarQube.Common
             return false;
         }
 
+        public static FilePropertyProvider Load(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new ArgumentNullException("filePath");
+            }
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException(Resources.ERROR_SettingsFileNotFound, filePath);
+            }
+
+            AnalysisProperties properties = AnalysisProperties.Load(filePath);
+            FilePropertyProvider provider = new FilePropertyProvider(properties, false);
+            return provider;
+        }
+
         public AnalysisProperties PropertiesFile {  get { return this.propertiesFile; } }
 
         public bool IsDefaultSettingsFile { get { return this.isDefaultPropertiesFile; } }

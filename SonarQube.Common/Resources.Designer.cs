@@ -224,6 +224,15 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The settings file could not be found.
+        /// </summary>
+        public static string ERROR_SettingsFileNotFound {
+            get {
+                return ResourceManager.GetString("ERROR_SettingsFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name of the SonarQube server could not be resolved. Check the url is correct and that the server is available. Url: {0}.
         /// </summary>
         public static string ERROR_UrlNameResolutionFailed {
