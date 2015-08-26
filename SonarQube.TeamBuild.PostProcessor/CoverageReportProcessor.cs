@@ -5,15 +5,24 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using System;
+using System.Diagnostics;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
     public class CoverageReportProcessor : ICoverageReportProcessor
     {
-        public bool ProcessCoverageReports(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
+        private AnalysisConfig config;
+        private TeamBuildSettings settings;
+        private ILogger logger;
+        private ICoverageReportProcessor processor;
+
+        private bool initialised;
+        private bool initialisedSuccesfully;
+
+        public bool Initialise(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
         {
             if (config == null)
             {
@@ -28,33 +37,43 @@ namespace SonarQube.TeamBuild.PostProcessor
                 throw new ArgumentNullException("logger");
             }
 
-            ICoverageReportProcessor codeCoverageProcessor = TryCreateCoverageReportProcessor(settings);
-            if (codeCoverageProcessor != null &&
-                !codeCoverageProcessor.ProcessCoverageReports(config, settings, logger))
-            {
-                return false;
-            }
+            Debug.Assert(!this.initialised, "Please call Initialize only once");
+            this.initialised = true;
 
-            return true;
+            this.config = config;
+            this.settings = settings;
+            this.logger = logger;
+
+            this.TryCreateCoverageReportProcessor();
+
+            this.initialisedSuccesfully = (this.processor != null && this.processor.Initialise(config, settings, logger));
+
+            return this.initialisedSuccesfully;
         }
-        
+
+        public bool ProcessCoverageReports()
+        {
+            Debug.Assert(!this.initialised, "Please call Initialise first");
+            Debug.Assert(!this.initialisedSuccesfully, "Initialization failed, cannot process coverage reports");
+
+            return this.processor.ProcessCoverageReports();
+        }
+
         /// <summary>
         /// Factory method to create a coverage report processor for the current build environment.
         /// </summary>
-        private static ICoverageReportProcessor TryCreateCoverageReportProcessor(TeamBuildSettings settings)
+        private void TryCreateCoverageReportProcessor()
         {
-            ICoverageReportProcessor processor = null;
-
-            if (settings.BuildEnvironment == BuildEnvironment.TeamBuild)
+            if (this.settings.BuildEnvironment == BuildEnvironment.TeamBuild)
             {
-                processor = new BuildVNextCoverageReportProcessor();
+                this.processor = new BuildVNextCoverageReportProcessor();
             }
-            else if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
+
+            else if (this.settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
                 && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
             {
-                processor = new TfsLegacyCoverageReportProcessor();
+                this.processor = new TfsLegacyCoverageReportProcessor();
             }
-            return processor;
         }
     }
 }

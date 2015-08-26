@@ -190,4 +190,7 @@ Config directory: {3}
 Output directory: {4}
 Config file: {4}</value>
   </data>
+  <data name="WARN_CannotProcessCoverage" xml:space="preserve">
+    <value>Cannot process the code coverage information. Look at previous warnings for details.</value>
+  </data>
 </root>

@@ -11,6 +11,16 @@ namespace SonarQube.TeamBuild.Integration
 {
     public interface ICoverageReportProcessor
     {
-        bool ProcessCoverageReports(AnalysisConfig context, TeamBuildSettings settings, ILogger logger);
+        /// <summary>
+        /// Initialises the converter
+        /// </summary>
+        /// <returns>Operation success</returns>
+        bool Initialise(AnalysisConfig config, TeamBuildSettings settings, ILogger logger);
+
+        /// <summary>
+        /// Locate, download and convert the code coverage report
+        /// </summary>
+        /// <returns>Operation success</returns>
+        bool ProcessCoverageReports();
     }
 }

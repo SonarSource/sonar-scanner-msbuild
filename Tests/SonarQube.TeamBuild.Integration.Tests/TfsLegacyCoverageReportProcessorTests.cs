@@ -5,10 +5,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.TeamBuild.Integration.Tests.Infrastructure;
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration.Tests.Infrastructure;
+using System;
 using System.IO;
 using TestUtilities;
 
@@ -52,13 +52,13 @@ namespace SonarQube.TeamBuild.Integration.Tests
             TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, settings, logger);
-
+            bool initResult = processor.Initialise(context, settings, logger);
+        
             // Assert
             urlProvider.AssertGetUrlsNotCalled();
             downloader.AssertDownloadNotCalled();
             converter.AssertConvertNotCalled();
-            Assert.IsFalse(result, "Expecting result to be false as files could not be converted");
+            Assert.IsFalse(initResult, "Expecting false: processor was not initialised");
 
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
@@ -79,12 +79,14 @@ namespace SonarQube.TeamBuild.Integration.Tests
             TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, settings, logger);
+            bool initResult = processor.Initialise(context, settings, logger);
+            bool result = processor.ProcessCoverageReports();
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
             downloader.AssertDownloadNotCalled(); // no urls returned, so should go any further
             converter.AssertConvertNotCalled();
+            Assert.IsTrue(initResult, "Expecting true: processor was initialised");
             Assert.IsTrue(result, "Expecting true: no coverage reports is a valid scenario");
 
             logger.AssertWarningsLogged(0);
@@ -107,12 +109,14 @@ namespace SonarQube.TeamBuild.Integration.Tests
             TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, settings, logger);
+            bool initResult = processor.Initialise(context, settings, logger);
+            bool result = processor.ProcessCoverageReports();
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
             downloader.AssertDownloadNotCalled(); // Multiple urls so should early out
             converter.AssertConvertNotCalled();
+            Assert.IsTrue(initResult, "Expecting true: processor was initialised");
             Assert.IsFalse(result, "Expecting false: can't process multiple coverage reports");
 
             logger.AssertErrorsLogged(1);
@@ -124,7 +128,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void ReportProcessor_SingleUrlFound_NotDownloaded()
         {
             // Arrange
-            MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1} };
+            MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1 } };
             MockReportDownloader downloader = new MockReportDownloader();
             MockReportConverter converter = new MockReportConverter() { CanConvert = true };
             AnalysisConfig context = this.CreateValidContext();
@@ -134,7 +138,8 @@ namespace SonarQube.TeamBuild.Integration.Tests
             TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, settings, logger);
+            bool initResult = processor.Initialise(context, settings, logger);
+            bool result = processor.ProcessCoverageReports();
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -143,7 +148,9 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             downloader.AssertExpectedUrlsRequested(ValidUrl1);
 
+            Assert.IsTrue(initResult, "Expecting true: processor was initialised");
             Assert.IsFalse(result, "Expecting false: report could not be downloaded");
+
             logger.AssertErrorsLogged(1);
             logger.AssertWarningsLogged(0);
         }
@@ -165,7 +172,8 @@ namespace SonarQube.TeamBuild.Integration.Tests
             TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool result = processor.ProcessCoverageReports(context, settings, logger);
+            bool initResult = processor.Initialise(context, settings, logger);
+            bool result = processor.ProcessCoverageReports();
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -174,13 +182,14 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             downloader.AssertExpectedUrlsRequested(ValidUrl2);
             downloader.AssertExpectedTargetFileNamesSupplied(Path.Combine(context.SonarOutputDir, TfsLegacyCoverageReportProcessor.DownloadFileName));
+            Assert.IsTrue(initResult, "Expecting true: processor was initialised");
             Assert.IsTrue(result, "Expecting true: happy path");
 
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Private methods
 
@@ -199,6 +208,6 @@ namespace SonarQube.TeamBuild.Integration.Tests
             return TeamBuildSettings.CreateNonTeamBuildSettings(this.TestContext.DeploymentDirectory);
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

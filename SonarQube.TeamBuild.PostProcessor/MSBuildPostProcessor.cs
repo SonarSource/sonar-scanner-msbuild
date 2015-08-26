@@ -72,9 +72,14 @@ namespace SonarQube.TeamBuild.PostProcessor
                 return false;
             }
 
-            // Handle code coverage reports
-            if (!this.codeCoverageProcessor.ProcessCoverageReports(config, settings, logger))
+            if (!this.codeCoverageProcessor.Initialise(config, settings, logger))
             {
+                // if initialisation fails (e.g. no VS is installed) just log a warning
+                logger.LogWarning(Resources.WARN_CannotProcessCoverage);
+            }
+            else if (!this.codeCoverageProcessor.ProcessCoverageReports())
+            {
+                //  if processing fails, stop the workflow
                 return false;
             }
 
