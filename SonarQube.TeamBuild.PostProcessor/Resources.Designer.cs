@@ -260,7 +260,7 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot process the code coverage information. Look at previous warnings for details..
+        ///   Looks up a localized string similar to Cannot process the code coverage information. Look at the previous warnings for details..
         /// </summary>
         internal static string WARN_CannotProcessCoverage {
             get {

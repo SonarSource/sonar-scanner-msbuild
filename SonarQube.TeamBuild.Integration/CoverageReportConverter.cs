@@ -49,7 +49,7 @@ namespace SonarQube.TeamBuild.Integration
 
             if (this.conversionToolPath == null)
             {
-                logger.LogError(Resources.CONV_WARN_FailToFindConversionTool);
+                logger.LogWarning(Resources.CONV_WARN_FailToFindConversionTool);
                 success = false;
             }
             else
