@@ -29,7 +29,7 @@ namespace SonarQube.TeamBuild.Integration
         /// Partial path to the code coverage exe, from the Visual Studio shell folder
         /// </summary>
         private const string TeamToolPathandExeName = @"Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe";
-        
+
         private const int ConversionTimeoutMs = 5000;
 
         private string conversionToolPath;
@@ -42,7 +42,7 @@ namespace SonarQube.TeamBuild.Integration
             {
                 throw new ArgumentNullException("logger");
             }
-            
+
             bool success;
 
             this.conversionToolPath = GetExeToolPath(logger);
@@ -75,11 +75,11 @@ namespace SonarQube.TeamBuild.Integration
             {
                 throw new ArgumentNullException("logger");
             }
-            
+
             return ConvertBinaryToXml(this.conversionToolPath, inputFilePath, outputFilePath, logger);
         }
 
-        #endregion
+        #endregion IReportConverter interface
 
         #region Private methods
 
@@ -90,6 +90,12 @@ namespace SonarQube.TeamBuild.Integration
             logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageTool);
             using (RegistryKey key = Registry.LocalMachine.OpenSubKey(VisualStudioRegistryPath, false))
             {
+                // i.e. no VS installed
+                if (key == null)
+                {
+                    return null;
+                }
+
                 string[] keys = key.GetSubKeyNames();
 
                 // Find the ShellFolder paths for the installed VS versions
@@ -98,7 +104,7 @@ namespace SonarQube.TeamBuild.Integration
                 // Attempt to locate the code coverage tool for each installed version
                 IDictionary<double, string> versionToolMap = GetCoverageToolsPaths(versionFolderMap);
                 Debug.Assert(!versionToolMap.Keys.Any(k => double.IsNaN(k)), "Version key should be a number");
-                
+
                 if (versionToolMap.Count > 1)
                 {
                     logger.LogDebug(Resources.CONV_DIAG_MultipleVsVersionsInstalled, string.Join(", ", versionToolMap.Keys));
@@ -110,7 +116,7 @@ namespace SonarQube.TeamBuild.Integration
                     double maxVersion = versionToolMap.Keys.Max();
                     toolPath = versionToolMap[maxVersion];
                 }
-            }   
+            }
 
             return toolPath;
         }
@@ -121,7 +127,7 @@ namespace SonarQube.TeamBuild.Integration
         private static IDictionary<string, string> GetVsShellFolders(RegistryKey vsKey, string[] keys)
         {
             Dictionary<string, string> versionFolderMap = new Dictionary<string, string>();
-            foreach(string key in keys)
+            foreach (string key in keys)
             {
                 if (Regex.IsMatch(key, @"\d+.\d+"))
                 {
@@ -175,7 +181,6 @@ namespace SonarQube.TeamBuild.Integration
             return result;
         }
 
-
         // was internal
         public static bool ConvertBinaryToXml(string converterExeFilePath, string inputBinaryFilePath, string outputXmlFilePath, ILogger logger)
         {
@@ -184,12 +189,11 @@ namespace SonarQube.TeamBuild.Integration
             Debug.Assert(Path.IsPathRooted(inputBinaryFilePath), "Expecting the input file name to be a full absolute path");
             Debug.Assert(File.Exists(inputBinaryFilePath), "Expecting the input file to exist: " + inputBinaryFilePath);
             Debug.Assert(Path.IsPathRooted(outputXmlFilePath), "Expecting the output file name to be a full absolute path");
-            
+
             List<string> args = new List<string>();
             args.Add("analyze");
             args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, @"/output:""{0}""", outputXmlFilePath));
             args.Add(inputBinaryFilePath);
-
 
             ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(converterExeFilePath, logger)
             {
@@ -218,7 +222,6 @@ namespace SonarQube.TeamBuild.Integration
             return success;
         }
 
-        #endregion
-
+        #endregion Private methods
     }
 }

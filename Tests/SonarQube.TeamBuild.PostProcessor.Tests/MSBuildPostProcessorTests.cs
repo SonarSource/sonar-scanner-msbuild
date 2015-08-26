@@ -48,8 +48,6 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             PostProcTestContext context = new PostProcTestContext(this.TestContext);
-            context.CodeCoverage.InitialiseValueToReturn = true;
-            context.CodeCoverage.ProcessValueToReturn = true;
             context.Runner.ValueToReturn = new ProjectInfoAnalysisResult();
             context.Runner.ValueToReturn.RanToCompletion = false;
 
@@ -72,8 +70,6 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             PostProcTestContext context = new PostProcTestContext(this.TestContext);
-            context.CodeCoverage.ProcessValueToReturn = true;
-            context.CodeCoverage.InitialiseValueToReturn = true;
             context.Runner.ValueToReturn = new ProjectInfoAnalysisResult();
             context.Runner.ValueToReturn.RanToCompletion = true;
 
@@ -149,8 +145,6 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             PostProcTestContext context = new PostProcTestContext(this.TestContext);
-            context.CodeCoverage.InitialiseValueToReturn = true;
-            context.CodeCoverage.ProcessValueToReturn = true;
             context.Runner.ValueToReturn = new ProjectInfoAnalysisResult();
             context.Runner.ValueToReturn.RanToCompletion = true;
 
@@ -210,6 +204,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
                 this.codeCoverage = new MockCodeCoverageProcessor();
                 this.runner = new MockSonarRunner();
                 this.reportBuilder = new MockSummaryReportBuilder();
+
+                this.codeCoverage.InitialiseValueToReturn = true;
+                this.codeCoverage.ProcessValueToReturn = true;
             }
 
             public AnalysisConfig Config { get; set; }
