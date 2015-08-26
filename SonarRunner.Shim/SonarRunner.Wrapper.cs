@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Threading;
+using System.Linq;
 
 namespace SonarRunner.Shim
 {
@@ -45,6 +45,8 @@ namespace SonarRunner.Shim
         /// </summary>
         /// <remarks>Reserving more than is available on the agent will cause the sonar-runner to fail</remarks>
         private const string SonarRunnerOptsDefaultValue = "-Xmx1024m";
+
+        private const string CmdLineArgPrefix = "-D";
 
         #region ISonarRunner interface
 
@@ -81,7 +83,7 @@ namespace SonarRunner.Shim
                 string exeFileName = FindRunnerExe(config, logger);
                 if (exeFileName != null)
                 {
-                    result.RanToCompletion = ExecuteJavaRunner(logger, exeFileName, result.FullPropertiesFilePath, userCmdLineArguments);
+                    result.RanToCompletion = ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, result.FullPropertiesFilePath);
                 }
             }
 
@@ -109,14 +111,14 @@ namespace SonarRunner.Shim
             return fullPath;
         }
 
-        public /* for test purposes */ static bool ExecuteJavaRunner(ILogger logger, string exeFileName, string propertiesFileName, IEnumerable<string> userCmdLineArguments)
+        public /* for test purposes */ static bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName)
         {
             Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
             Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
 
             IgnoreSonarRunnerHome(logger);
 
-            IEnumerable<string> allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments);
+            IEnumerable<string> allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments, config);
 
             IDictionary<string, string> envVarsDictionary = GetAdditionalEnvVariables(logger);
             Debug.Assert(envVarsDictionary != null);
@@ -194,20 +196,36 @@ namespace SonarRunner.Shim
         /// <summary>
         /// Returns all of the command line arguments to pass to sonar-runner
         /// </summary>
-        private static IEnumerable<string> GetAllCmdLineArgs(string projectSettingsFilePath, IEnumerable<string> userCmdLineArguments)
+        private static IEnumerable<string> GetAllCmdLineArgs(string projectSettingsFilePath, IEnumerable<string> userCmdLineArguments, AnalysisConfig config)
         {
             // We don't know what all of the valid command line arguments are so we'll
             // just pass them on for the sonar-runner to validate.
             List<string> args = new List<string>(userCmdLineArguments);
 
+            // Add any sensitive arguments supplied in the config should be passed on the command line
+            args.AddRange(GetSensitiveFileSettings(config, userCmdLineArguments));
+
             // Add the project settings file and the standard options.
             // Experimentation suggests that the sonar-runner won't error if duplicate arguments
             // are supplied - it will just use the last argument.
             // So we'll set our additional properties last to make sure they take precedence.
-            args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "-D{0}=\"{1}\"", ProjectSettingsFileArgName, projectSettingsFilePath));
+            args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}=\"{2}\"", CmdLineArgPrefix, ProjectSettingsFileArgName, projectSettingsFilePath));
             args.Add(StandardAdditionalRunnerArguments);
 
             return args;
+        }
+
+        private static IEnumerable<string> GetSensitiveFileSettings(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
+        {
+            IEnumerable<Property> allPropertiesFromConfig = config.GetAnalysisSettings(false).GetAllProperties();
+
+            return allPropertiesFromConfig.Where(p => p.ContainsSensitiveData() && !UserSettingExists(p, userCmdLineArguments))
+                .Select(p => p.AsSonarRunnerArg());
+        }
+
+        private static bool UserSettingExists(Property fileProperty, IEnumerable<string> userArgs)
+        {
+            return userArgs.Any(userArg => userArg.IndexOf(CmdLineArgPrefix + fileProperty.Id, StringComparison.Ordinal) == 0);
         }
 
         #endregion Private methods

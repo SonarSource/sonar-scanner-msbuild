@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using System.IO;
 using System.Linq;
 using TestUtilities;
@@ -15,6 +16,8 @@ namespace SonarRunner.Shim.Tests
     [TestClass]
     public class SonarRunnerWrapperTests
     {
+        private const string ExpectedConsoleMessagePrefix = "Args passed to dummy runner: ";
+
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -24,16 +27,15 @@ namespace SonarRunner.Shim.Tests
         {
             // Arrange
             TestLogger testLogger = new TestLogger();
-            string exePath = TestUtils.WriteBatchFileForTest(TestContext, "exit 0");
-            string path = Path.Combine(TestUtils.CreateTestSpecificFolder(TestContext), "analysis.properties");
-            File.CreateText(path);
+            string exePath = CreateDummarySonarRunnerBatchFile();
+            string propertiesFilePath = CreateDummySonarRunnerPropertiesFile();
 
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName, null);
 
                 // Act
-                bool success = SonarRunnerWrapper.ExecuteJavaRunner(testLogger, exePath, exePath, Enumerable.Empty<string>());
+                bool success = SonarRunnerWrapper.ExecuteJavaRunner(new AnalysisConfig(), Enumerable.Empty<string>(), testLogger, exePath, propertiesFilePath);
                 Assert.IsTrue(success, "Expecting execution to succeed");
 
                 // Assert
@@ -50,12 +52,11 @@ namespace SonarRunner.Shim.Tests
 
                 // Arrange
                 TestLogger testLogger = new TestLogger();
-                string exePath = TestUtils.WriteBatchFileForTest(TestContext, "exit 0");
-                string path = Path.Combine(TestUtils.CreateTestSpecificFolder(TestContext), "analysis.properties");
-                File.CreateText(path);
+                string exePath = CreateDummarySonarRunnerBatchFile();
+                string propertiesFilePath = CreateDummySonarRunnerPropertiesFile();
 
                 // Act
-                bool success = SonarRunnerWrapper.ExecuteJavaRunner(testLogger, exePath, exePath, Enumerable.Empty<string>());
+                bool success = SonarRunnerWrapper.ExecuteJavaRunner(new AnalysisConfig(), Enumerable.Empty<string>(), testLogger, exePath, propertiesFilePath);
 
                 // Assert
                 Assert.IsTrue(success, "Expecting execution to succeed");
@@ -68,16 +69,15 @@ namespace SonarRunner.Shim.Tests
         {
             // Arrange
             TestLogger logger = new TestLogger();
-            string exePath = TestUtils.WriteBatchFileForTest(this.TestContext, "@echo Command line args: %*");
-            string propertiesFilePath = Path.Combine(TestUtils.CreateTestSpecificFolder(this.TestContext), "analysis.properties");
-            File.CreateText(propertiesFilePath);
+            string exePath = CreateDummarySonarRunnerBatchFile();
+            string propertiesFilePath = CreateDummySonarRunnerPropertiesFile();
 
             // Act
-            bool success = SonarRunnerWrapper.ExecuteJavaRunner(logger, exePath, propertiesFilePath, Enumerable.Empty<string>());
+            bool success = SonarRunnerWrapper.ExecuteJavaRunner(new AnalysisConfig(), Enumerable.Empty<string>(), logger, exePath, propertiesFilePath);
             Assert.IsTrue(success, "Expecting execution to succeed");
-            logger.AssertSingleInfoMessageExists("Command line args:", SonarRunnerWrapper.StandardAdditionalRunnerArguments);
+            CheckStandardArgsPassed(logger, propertiesFilePath);
         }
-        
+
         [TestMethod]
         public void SonarRunner_CmdLineArgsOrdering()
         {
@@ -85,31 +85,126 @@ namespace SonarRunner.Shim.Tests
 
             // Arrange
             TestLogger logger = new TestLogger();
-            string exePath = TestUtils.WriteBatchFileForTest(this.TestContext, "@echo Command line args: %*");
-            string propertiesFilePath = Path.Combine(TestUtils.CreateTestSpecificFolder(this.TestContext), "analysis.properties");
-            File.CreateText(propertiesFilePath);
+
+            string exePath = CreateDummarySonarRunnerBatchFile();
+            string propertiesFilePath = CreateDummySonarRunnerPropertiesFile();
 
             string[] userArgs = new string[] { "-Dsonar.login=me", "-Dsonar.password=my.pwd" };
 
             // Act
-            bool success = SonarRunnerWrapper.ExecuteJavaRunner(logger, exePath, propertiesFilePath, userArgs);
+            bool success = SonarRunnerWrapper.ExecuteJavaRunner(new AnalysisConfig(), userArgs, logger, exePath, propertiesFilePath);
             Assert.IsTrue(success, "Expecting execution to succeed");
-            string message = logger.AssertSingleInfoMessageExists("Command line args:",
-                "-Dsonar.login=me", "-Dsonar.password=my.pwd",
-                "-Dproject.settings=\"" + propertiesFilePath + "\"",
-                SonarRunnerWrapper.StandardAdditionalRunnerArguments);
 
-            int loginIndex = message.IndexOf("login=me");
-            int pwdIndex = message.IndexOf("password=my.pwd");
+            string actualCmdLineArgs = CheckStandardArgsPassed(logger, propertiesFilePath);
+            
+            int loginIndex = CheckArgExists("-Dsonar.login=me", actualCmdLineArgs);
+            int pwdIndex = CheckArgExists("-Dsonar.password=my.pwd", actualCmdLineArgs);
 
-            int standardArgsIndex = message.IndexOf(SonarRunnerWrapper.StandardAdditionalRunnerArguments);
-            int propertiesFileIndex = message.IndexOf(SonarRunnerWrapper.ProjectSettingsFileArgName);
+            int standardArgsIndex = CheckArgExists(SonarRunnerWrapper.StandardAdditionalRunnerArguments, actualCmdLineArgs);
+            int propertiesFileIndex = CheckArgExists(SonarRunnerWrapper.ProjectSettingsFileArgName, actualCmdLineArgs);
 
             Assert.IsTrue(loginIndex < standardArgsIndex && loginIndex < propertiesFileIndex, "User arguments should appear first");
             Assert.IsTrue(pwdIndex < standardArgsIndex && pwdIndex < propertiesFileIndex, "User arguments should appear first");
         }
 
+        [TestMethod]
+        public void SonarRunner_SensitiveArgsPassedOnCommandLine()
+        {
+            // Check that sensitive arguments from the config are passed on the command line
+
+            // Arrange
+            TestLogger logger = new TestLogger();
+
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string exePath = CreateDummarySonarRunnerBatchFile();
+            string propertiesFilePath = CreateDummySonarRunnerPropertiesFile();
+
+            string[] userArgs = new string[] { "-Dxxx=yyy", "-Dsonar.password=cmdline.password" };
+
+            // Create a config file containing sensitive arguments
+            AnalysisProperties fileSettings = new AnalysisProperties();
+            fileSettings.Add(new Property() { Id = SonarProperties.DbPassword, Value = "file db pwd" });
+            fileSettings.Add(new Property() { Id = SonarProperties.SonarPassword, Value = "file.password - should not be returned" });
+            fileSettings.Add(new Property() { Id = "file.not.sensitive.key", Value = "not sensitive value" });
+            string settingsFilePath = Path.Combine(testDir, "fileSettings.txt");
+            fileSettings.Save(settingsFilePath);
+
+            AnalysisConfig config = new AnalysisConfig();
+            config.SetSettingsFilePath(settingsFilePath);
+
+            // Act
+            bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, userArgs, logger, exePath, propertiesFilePath);
+            Assert.IsTrue(success, "Expecting execution to succeed");
+
+            string actualCmdLineArgs = CheckStandardArgsPassed(logger, propertiesFilePath);
+             
+            // Assert
+            // Non-sensitive values from the file should not be passed on the command line
+            CheckArgDoesNotExist("file.not.sensitive.key", actualCmdLineArgs);
+
+            int dbPwdIndex = CheckArgExists("-Dsonar.jdbc.password=\"file db pwd\"", actualCmdLineArgs); // sensitive value from file
+            int userPwdIndex = CheckArgExists("-Dsonar.password=cmdline.password", actualCmdLineArgs); // sensitive value from cmd line: overrides file value
+
+            int standardArgsIndex = CheckArgExists(SonarRunnerWrapper.StandardAdditionalRunnerArguments, actualCmdLineArgs);
+            int propertiesFileIndex = CheckArgExists(SonarRunnerWrapper.ProjectSettingsFileArgName, actualCmdLineArgs);
+
+            Assert.IsTrue(dbPwdIndex < standardArgsIndex && dbPwdIndex < propertiesFileIndex, "User arguments should appear first");
+            Assert.IsTrue(userPwdIndex < standardArgsIndex && userPwdIndex < propertiesFileIndex, "User arguments should appear first");
+        }
 
         #endregion Tests
+
+        #region Private methods
+
+        private string CreateDummarySonarRunnerBatchFile()
+        {
+            // Create a batch file that echoes the command line args to the console 
+            // so they can be captured and checked
+            string testDir = TestUtils.EnsureTestSpecificFolder(this.TestContext);
+            string exePath = Path.Combine(testDir, "dummy.runner.bat");
+
+            Assert.IsFalse(File.Exists(exePath), "Not expecting a batch file to already exist: {0}", exePath);
+
+            File.WriteAllText(exePath, "@echo " + ExpectedConsoleMessagePrefix + " %*");
+            return exePath;
+        }
+
+        private string CreateDummySonarRunnerPropertiesFile()
+        {
+            string testDir = TestUtils.EnsureTestSpecificFolder(this.TestContext);
+            string propertiesFilePath = Path.Combine(testDir, "analysis.properties");
+            File.CreateText(propertiesFilePath);
+            return propertiesFilePath;
+        }
+
+        #endregion
+
+        #region Checks
+
+        private static string CheckStandardArgsPassed(TestLogger logger, string expectedPropertiesFilePath)
+        {
+            string message = logger.AssertSingleInfoMessageExists(ExpectedConsoleMessagePrefix);
+
+            CheckArgExists("-Dproject.settings=\"" + expectedPropertiesFilePath + "\"", message); // should always be passing the properties file 
+            CheckArgExists(SonarRunnerWrapper.StandardAdditionalRunnerArguments, message); // standard args should always be passed
+
+            return message;
+        }
+
+        private static int CheckArgExists(string expectedArg, string allArgs)
+        {
+            int index = allArgs.IndexOf(expectedArg);
+            Assert.IsTrue(index > -1, "Expected argument was not found. Arg: '{0}', all args: '{1}'", expectedArg, allArgs);
+            return index;
+        }
+
+        private static void CheckArgDoesNotExist(string argToCheck, string allArgs)
+        {
+            int index = allArgs.IndexOf(argToCheck);
+            Assert.IsTrue(index == -1, "Not expecting to find the argument. Arg: '{0}', all args: '{1}'", argToCheck, allArgs);
+        }
+
+        #endregion
     }
 }

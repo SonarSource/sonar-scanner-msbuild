@@ -46,6 +46,14 @@ namespace SonarQube.Common
             return ProcessRunnerArguments.ContainsSensitiveData(this.Id) || ProcessRunnerArguments.ContainsSensitiveData(this.Value);
         }
 
+        /// <summary>
+        /// Returns the property formatted as a sonar-runner "-D" argument
+        /// </summary>
+        public string AsSonarRunnerArg()
+        {
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "-D{0}={1}", this.Id, ProcessRunnerArguments.GetQuotedArg(this.Value));
+        }
+
         #endregion
 
         #region Static helper methods

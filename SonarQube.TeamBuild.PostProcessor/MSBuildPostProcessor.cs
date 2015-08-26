@@ -162,20 +162,11 @@ namespace SonarQube.TeamBuild.PostProcessor
             {
                 foreach (Property property in provider.GetAllProperties())
                 {
-                    args.Add(GetSonarRunnerArg(property));
+                    args.Add(property.AsSonarRunnerArg());
                 }
             }
 
             return args;
         }
-
-        /// <summary>
-        /// Returns the property formatted as a sonar-runner "-D" argument
-        /// </summary>
-        private static string GetSonarRunnerArg(Property property)
-        {
-            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "-D{0}={1}", property.Id, ProcessRunnerArguments.GetQuotedArg(property.Value));
-        }
-
     }
 }
