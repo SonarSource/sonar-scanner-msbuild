@@ -15,8 +15,13 @@ namespace SonarQube.TeamBuild.Integration
     public abstract class CoverageReportProcessorBase : ICoverageReportProcessor
     {
         private const string XmlReportFileExtension = "coveragexml";
+        private readonly ICoverageReportConverter converter;
 
-        private ICoverageReportConverter converter;
+        private AnalysisConfig config;
+        private TeamBuildSettings settings;
+        private ILogger logger;
+        
+        private bool succesfullyInitialised = false;
 
         protected CoverageReportProcessorBase(ICoverageReportConverter converter)
         {
@@ -29,36 +34,51 @@ namespace SonarQube.TeamBuild.Integration
 
         #region ICoverageReportProcessor interface
 
-        public bool ProcessCoverageReports(AnalysisConfig context, TeamBuildSettings settings, ILogger logger)
+
+        public bool Initialise(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
         {
-            if (context == null)
+            if (config == null)
             {
-                throw new ArgumentNullException("context");
+                throw new ArgumentNullException("config");
+            }
+            if (settings == null)
+            {
+                throw new ArgumentNullException("settings");
             }
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
             }
 
-            if (!this.converter.Initialize(logger))
+            this.config = config;
+            this.settings = settings;
+            this.logger = logger;
+
+            this.succesfullyInitialised =  this.converter.Initialize(logger);
+            return succesfullyInitialised;
+        }
+
+        public bool ProcessCoverageReports()
+        {
+            if (!this.succesfullyInitialised)
             {
-                // If we can't initialize the converter (e.g. we can't find the exe required to do the
-                // conversion) there in there isn't any point in downloading the binary reports
-                return false;
+                throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialised);
             }
+
+            Debug.Assert(this.config != null, "Expecting the config to not be null. Did you call Initialise() ?");
 
             // Fetch all of the report URLs
-            logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
+            this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
 
             string binaryFilePath;
-            bool continueProcessing = this.TryGetBinaryReportFile(context, settings, logger, out binaryFilePath);
+            bool success = this.TryGetBinaryReportFile(this.config, this.settings, this.logger, out binaryFilePath);
 
-            if (continueProcessing && binaryFilePath != null)
+            if (success && binaryFilePath != null)
             {
-                continueProcessing = ProcessBinaryCodeCoverageReport(binaryFilePath, context, this.converter, logger);
+                success = this.ProcessBinaryCodeCoverageReport(binaryFilePath);
             }
 
-            return continueProcessing;
+            return success;
         }
 
         protected abstract bool TryGetBinaryReportFile(AnalysisConfig config, TeamBuildSettings settings, ILogger logger, out string binaryFilePath);
@@ -67,18 +87,18 @@ namespace SonarQube.TeamBuild.Integration
 
         #region Private methods
 
-        private static bool ProcessBinaryCodeCoverageReport(string binaryCoverageFilePath, AnalysisConfig context, ICoverageReportConverter converter, ILogger logger)
+        private bool ProcessBinaryCodeCoverageReport(string binaryCoverageFilePath)
         {
             bool success = false;
             string xmlFileName = Path.ChangeExtension(binaryCoverageFilePath, XmlReportFileExtension);
 
             Debug.Assert(!File.Exists(xmlFileName), "Not expecting a file with the name of the binary-to-XML conversion output to already exist: " + xmlFileName);
-            success = converter.ConvertToXml(binaryCoverageFilePath, xmlFileName, logger);
+            success = converter.ConvertToXml(binaryCoverageFilePath, xmlFileName, this.logger);
 
             if (success)
             {
                 logger.LogDebug(Resources.PROC_DIAG_UpdatingProjectInfoFiles);
-                InsertCoverageAnalysisResults(context.SonarOutputDir, xmlFileName);
+                InsertCoverageAnalysisResults(this.config.SonarOutputDir, xmlFileName);
             }
 
             return success;
@@ -103,6 +123,7 @@ namespace SonarQube.TeamBuild.Integration
                 }
             }
         }
+
 
         #endregion
 

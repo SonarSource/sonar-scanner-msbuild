@@ -258,5 +258,14 @@ namespace SonarQube.TeamBuild.PostProcessor {
                 return ResourceManager.GetString("SETTINGS_NotInTeamBuild", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot process the code coverage information. Look at the previous warnings for details..
+        /// </summary>
+        internal static string WARN_CannotProcessCoverage {
+            get {
+                return ResourceManager.GetString("WARN_CannotProcessCoverage", resourceCulture);
+            }
+        }
     }
 }
