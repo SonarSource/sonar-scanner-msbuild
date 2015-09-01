@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 {
@@ -136,7 +137,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             var expected = new Dictionary<string, string>();
             expected["sonar.property1"] = "value1";
             expected["sonar.property2"] = "value2";
-            expected["sonar.cs.msbuild.testProjectPattern"] = ".*test.*";
+            expected["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
             var actual = ws.GetProperties("foo bar", new TestLogger());
 
             Assert.AreEqual(true, expected.Count == actual.Count && !expected.Except(actual).Any());
@@ -183,7 +184,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             var expected3 = new Dictionary<string, string>();
             expected3["sonar.property1"] = "value1";
             expected3["sonar.property2"] = "value2";
-            expected3["sonar.cs.msbuild.testProjectPattern"] = ".*test.*";
+            expected3["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
             var actual3 = ws.GetProperties("foo bar", new TestLogger());
 
             Assert.AreEqual(true, expected3.Count == actual3.Count && !expected3.Except(actual3).Any());

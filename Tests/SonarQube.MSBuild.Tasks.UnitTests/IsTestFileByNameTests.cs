@@ -12,7 +12,7 @@ using System.IO;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.UnitTests
-{   
+{
     [TestClass]
     public class IsTestFileByNameTests
     {
@@ -66,6 +66,35 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
         [TestMethod]
         [TestCategory("IsTest")]
+        [Description(@"Validate the default regex that determines if a project is test or not if the filename contains the 'test' token (not the file path!)")]
+        public void IsTestFile_DefaultRegex()
+        {
+            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            EnsureAnalysisConfig(testFolder, SonarProperties.DefaultTestProjectPattern);
+
+            // filename contains 'test'
+            CheckFilePathIsTest(testFolder, "c:\\foo\\mytest.proj");
+            CheckFilePathIsTest(testFolder, "c:\\foo\\xtesty.proj");
+            CheckFilePathIsTest(testFolder, "c:\\foo\\bar space\\testmy.proj");
+            CheckFilePathIsTest(testFolder, "c:\\foo\\test.proj");
+            CheckFilePathIsTest(testFolder, "c:\\foo\\bar space\\foo.test");
+            CheckFilePathIsTest(testFolder, "c:\\foo\\bar space\\tEsT");
+            CheckFilePathIsTest(testFolder, "c:\\foo\\bar space\\xTestyyy.proj");
+            CheckFilePathIsTest(testFolder, "c:\\foo\\testtest");
+            CheckFilePathIsTest(testFolder, "c:\\foo\\bar\\a.test.proj");
+            CheckFilePathIsTest(testFolder, "xTESTy");
+            CheckFilePathIsTest(testFolder, "test");
+            CheckFilePathIsTest(testFolder, "c:\\foo\\ TEST ");
+
+            CheckFilePathIsNotTest(testFolder, "c:\\foo\\te st.proj");
+            CheckFilePathIsNotTest(testFolder, "c:\\foo\\bar\\test\\foo.proj");
+            CheckFilePathIsNotTest(testFolder, "c:\\test\\xtestyy\\foo");
+            CheckFilePathIsNotTest(testFolder, "c:\\foo\\bar\\myproj.csproj");
+            CheckFilePathIsNotTest(testFolder, "test\\foo.proj");
+        }
+
+        [TestMethod]
+        [TestCategory("IsTest")]
         public void IsTestFile_InvalidRegexInConfig()
         {
             // Arrange
@@ -90,7 +119,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void IsTestFile_RetryIfConfigLocked()
         {
             // Arrange
-            // We'll lock the file and sleep for long enough for the retry period to occur, but 
+            // We'll lock the file and sleep for long enough for the retry period to occur, but
             // not so long that the task times out
             int lockPeriodInMilliseconds = 1000;
             Assert.IsTrue(lockPeriodInMilliseconds < IsTestFileByName.MaxConfigRetryPeriodInMilliseconds, "Test setup error: the test is sleeping for too long");
@@ -201,7 +230,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             CheckFilePathIsNotTest(testFolder, "c:\\aProject.proj");
         }
 
-        #endregion
+        #endregion Tests
 
         #region Private methods
 
@@ -229,7 +258,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             return fullPath;
         }
 
-        #endregion
+        #endregion Private methods
 
         #region Checks
 
@@ -261,7 +290,6 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             return task.IsTest;
         }
 
-        #endregion
-
+        #endregion Checks
     }
 }

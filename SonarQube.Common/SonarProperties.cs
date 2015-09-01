@@ -34,5 +34,8 @@ namespace SonarQube.Common
         public const string Verbose = "sonar.verbose";
         public const string LogLevel = "sonar.log.level";
 
+        // Default property values
+        public const string DefaultTestProjectPattern = @"[^\\]*test[^\\]*$";
+
     }
 }
