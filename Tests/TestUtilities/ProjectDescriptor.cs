@@ -20,8 +20,8 @@ namespace TestUtilities
     /// and to check actual results against</remarks>
     public class ProjectDescriptor
     {
-        public const string CompilerInputItemGroup = "Compile";
-        public const string ContentItemGroup = "Content";
+        private const string CompilerInputItemGroup = "Compile";
+        private const string ContentItemGroup = "Content";
 
         /// <summary>
         /// Data class to describe a single file in a project
@@ -73,17 +73,11 @@ namespace TestUtilities
             }
         }
         
-        /// <summary>
-        /// List of files that should not be analysed
-        /// </summary>
-        public IList<string> UnanalysedFiles { get; set; }
-
         public bool IsTestProject { get; set; }
 
         public bool IsExcluded { get; set; }
 
         public List<AnalysisResult> AnalysisResults { get; private set; }
-
 
         /// <summary>
         /// The full path to the parent directory
@@ -122,14 +116,6 @@ namespace TestUtilities
             }
         }
 
-        public IEnumerable<string> AllFiles
-        {
-            get
-            {
-                return this.Files.Select(f => f.FilePath);
-            }
-        }
-
         public IEnumerable<string> FilesToAnalyse
         {
             get
@@ -138,6 +124,16 @@ namespace TestUtilities
             }
         }
 
+        /// <summary>
+        /// List of files that should not be analysed
+        /// </summary>
+        public IEnumerable<string> FilesNotToAnalyse
+        {
+            get
+            {
+                return this.Files.Where(f => !f.ShouldBeAnalysed).Select(f => f.FilePath);
+            }
+        }
 
         #endregion
 
@@ -159,9 +155,14 @@ namespace TestUtilities
             return info;
         }
 
-        public void AddNewFile(string itemGroup, string filePath, bool shouldAnalyse)
+        public void AddContentFile(string filePath, bool shouldAnalyse)
         {
-            this.Files.Add(new FileInProject(itemGroup, filePath, shouldAnalyse));
+            this.Files.Add(new FileInProject(ProjectDescriptor.ContentItemGroup, filePath, shouldAnalyse));
+        }
+
+        public void AddCompileInputFile(string filePath, bool shouldAnalyse)
+        {
+            this.Files.Add(new FileInProject(ProjectDescriptor.CompilerInputItemGroup, filePath, shouldAnalyse));
         }
 
         #endregion

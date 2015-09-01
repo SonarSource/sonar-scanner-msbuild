@@ -39,9 +39,9 @@ namespace SonarRunner.Shim.Tests
                 ProjectGuid = Guid.NewGuid(),
                 IsTestProject = true
             };
-            validTestProject.AddNewFile("Compile", "TestFile1.cs", true);
-            validTestProject.AddNewFile("Compile", "TestFile1.cs", true);
-            validTestProject.AddNewFile("Content", "contentFile1.js", true);
+            validTestProject.AddCompileInputFile("TestFile1.cs", true);
+            validTestProject.AddCompileInputFile("TestFile1.cs", true);
+            validTestProject.AddContentFile("contentFile1.js", true);
             CreateFilesFromDescriptor(validTestProject, "testCompileListFile", "testContentList", "testFxCopReport", "testVisualStudioCodeCoverageReport");
 
             TestUtils.EnsureTestSpecificFolder(this.TestContext, "EmptyDir2");
@@ -54,8 +54,8 @@ namespace SonarRunner.Shim.Tests
                 ProjectGuid = Guid.NewGuid(),
                 IsTestProject = false
             };
-            validNonTestProject.AddNewFile(ProjectDescriptor.ContentItemGroup, "ASourceFile.vb", true);
-            validNonTestProject.AddNewFile(ProjectDescriptor.ContentItemGroup, "AnotherSourceFile.vb", true);
+            validNonTestProject.AddContentFile("ASourceFile.vb", true);
+            validNonTestProject.AddContentFile("AnotherSourceFile.vb", true);
             CreateFilesFromDescriptor(validNonTestProject, "list.txt", null, "fxcop.xml", "visualstudio-codecoverage.xml");
 
             ProjectDescriptor validNonTestNoReportsProject = new ProjectDescriptor()
@@ -66,7 +66,7 @@ namespace SonarRunner.Shim.Tests
                 ProjectGuid = Guid.NewGuid(),
                 IsTestProject = false
             };
-            validNonTestNoReportsProject.AddNewFile(ProjectDescriptor.ContentItemGroup, "SomeFile.cs", true);
+            validNonTestNoReportsProject.AddContentFile("SomeFile.cs", true);
             CreateFilesFromDescriptor(validNonTestNoReportsProject, "SomeList.txt", null, null, null);
 
             // Act
@@ -99,8 +99,8 @@ namespace SonarRunner.Shim.Tests
                 ProjectGuid = Guid.NewGuid(),
                 IsTestProject = false
             };
-            validNonTestProject.AddNewFile(ProjectDescriptor.CompilerInputItemGroup, "ASourceFile.vb", true);
-            validNonTestProject.AddNewFile(ProjectDescriptor.CompilerInputItemGroup, "AnotherSourceFile.vb", true);
+            validNonTestProject.AddCompileInputFile("ASourceFile.vb", true);
+            validNonTestProject.AddCompileInputFile("AnotherSourceFile.vb", true);
             CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt", null, null, null);
 
             // 1. Run against the root dir -> not expecting the project to be found
@@ -133,7 +133,7 @@ namespace SonarRunner.Shim.Tests
             if (descriptor.FilesToAnalyse.Any())
             {
                 string fullAnalysisFileListPath = Path.Combine(descriptor.FullDirectoryPath, compileFiles);
-                File.WriteAllLines(fullAnalysisFileListPath, descriptor.AllFiles);
+                File.WriteAllLines(fullAnalysisFileListPath, descriptor.FilesToAnalyse);
 
                 // Add the compile list as an analysis result
                 projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisType.FilesToAnalyze.ToString(), Location = fullAnalysisFileListPath });

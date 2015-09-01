@@ -181,7 +181,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
             string itemPath = CreateTextFile(rootInputFolder, "my.cs", "class myclass{}");
-            projectRoot.AddItem("Compile", itemPath);
+            projectRoot.AddItem(TargetProperties.ItemType_Compile, itemPath);
             projectRoot.Save();
 
             BuildLogger logger = new BuildLogger();
@@ -237,7 +237,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
 End Class");
 
-            projectRoot.AddItem("Compile", itemPath);
+            projectRoot.AddItem(TargetProperties.ItemType_Compile, itemPath);
             projectRoot.Save();
 
             BuildLogger logger = new BuildLogger();
@@ -343,7 +343,7 @@ End Class");
 
             // Add a file to the project
             string itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
-            projectRoot.AddItem("Compile", itemPath);
+            projectRoot.AddItem(TargetProperties.ItemType_Compile, itemPath);
             projectRoot.Save();
 
             BuildLogger logger = new BuildLogger();
@@ -393,7 +393,7 @@ End Class");
 
             // Add a file to the project
             string itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
-            projectRoot.AddItem("Compile", itemPath);
+            projectRoot.AddItem(TargetProperties.ItemType_Compile, itemPath);
             projectRoot.Save();
 
             BuildLogger logger = new BuildLogger();
@@ -444,7 +444,7 @@ End Class");
 
             // Add a file to the project
             string itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
-            projectRoot.AddItem("Compile", itemPath);
+            projectRoot.AddItem(TargetProperties.ItemType_Compile, itemPath);
             projectRoot.Save();
 
             BuildLogger logger = new BuildLogger();
@@ -509,7 +509,7 @@ End Class");
 
             // Add a file to the project
             string itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
-            projectRoot.AddItem("Compile", itemPath);
+            projectRoot.AddItem(TargetProperties.ItemType_Compile, itemPath);
             projectRoot.Save();
 
             BuildLogger logger = new BuildLogger();

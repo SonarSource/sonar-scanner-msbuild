@@ -491,25 +491,14 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         private string AddEmptyAnalysedCodeFile(ProjectDescriptor descriptor, string projectFolder, string extension = "cs")
         {
             string filePath = CreateEmptyFile(projectFolder, extension);
-            descriptor.AddNewFile(ProjectDescriptor.CompilerInputItemGroup, filePath, true);
+            descriptor.AddCompileInputFile(filePath, true);
             return filePath;
         }
-
-        private string AddEmptyNonAnalysedFile(ProjectDescriptor descriptor, string projectFolder, string extension = "cs")
-        {
-            string filePAth = CreateEmptyFile(projectFolder, extension);
-            if (descriptor.UnanalysedFiles == null)
-            {
-                descriptor.UnanalysedFiles = new List<string>();
-            }
-            descriptor.UnanalysedFiles.Add(filePAth);
-            return filePAth;
-        }
-
+        
         private static void AddEmptyContentFile(ProjectDescriptor descriptor, string projectFolder)
         {
             string filePath = CreateEmptyFile(projectFolder, "txt");
-            descriptor.AddNewFile(ProjectDescriptor.ContentItemGroup, filePath, true);
+            descriptor.AddContentFile(filePath, true);
         }
 
         private static string CreateEmptyFile(string folder, string extension)
@@ -637,9 +626,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
                 CollectionAssert.IsSubsetOf(expectedFiles, actualFiles, "Analysis file does not contain the expected entries");
 
                 // Check that any files that should not be analysed are not included
-                if (expected.UnanalysedFiles != null && expected.UnanalysedFiles.Any())
+                if (expected.FilesNotToAnalyse != null && expected.FilesNotToAnalyse.Any())
                 {
-                    foreach(string unanalysedFile in expected.UnanalysedFiles)
+                    foreach(string unanalysedFile in expected.FilesNotToAnalyse)
                     {
                         CollectionAssert.DoesNotContain(expectedFiles, unanalysedFile, "Not expecting file to be included for analysis: {0}", unanalysedFile);
                     }

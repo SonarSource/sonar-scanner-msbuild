@@ -493,7 +493,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Invalid items
             AddItem(projectRoot, "UnrelatedItemType", "irrelevantItem"); // should be ignored
-            AddItem(projectRoot, "Compile", "IrrelevantFile.cs"); // should be ignored
+            AddItem(projectRoot, TargetProperties.ItemType_Compile, "IrrelevantFile.cs"); // should be ignored
             AddItem(projectRoot, BuildTaskConstants.SettingItemName, "invalid.settings.no.value.metadata"); // invalid -> ignored
 
             // Module-level settings
