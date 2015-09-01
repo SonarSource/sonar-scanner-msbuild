@@ -72,21 +72,17 @@ namespace SonarQube.TeamBuild.PostProcessor
                 return false;
             }
 
-            if (!this.codeCoverageProcessor.Initialise(config, settings, logger))
-            {
-                // if initialisation fails (e.g. no VS is installed) just log a warning
-                logger.LogWarning(Resources.WARN_CannotProcessCoverage);
-            }
-            else if (!this.codeCoverageProcessor.ProcessCoverageReports())
+            // if initialisation fails a warning will have been logged at the source of the failure
+            bool initialised = this.codeCoverageProcessor.Initialise(config, settings, logger);
+
+            if (initialised && !this.codeCoverageProcessor.ProcessCoverageReports())
             {
                 //  if processing fails, stop the workflow
                 return false;
             }
 
             ProjectInfoAnalysisResult result = InvokeSonarRunner(provider, config, logger);
-
             this.reportBuilder.GenerateReports(settings, config, result, logger);
-
             return result.RanToCompletion;
         }
 
@@ -101,12 +97,15 @@ namespace SonarQube.TeamBuild.PostProcessor
                     logger.LogDebug(Resources.SETTINGS_InLegacyTeamBuild);
 
                     break;
+
                 case BuildEnvironment.TeamBuild:
                     logger.LogDebug(Resources.SETTINGS_InTeamBuild);
                     break;
+
                 case BuildEnvironment.NotTeamBuild:
                     logger.LogDebug(Resources.SETTINGS_NotInTeamBuild);
                     break;
+
                 default:
                     break;
             }

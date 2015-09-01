@@ -35,7 +35,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             Assert.IsFalse(success, "Not expecting post-processor to have succeeded");
 
             context.CodeCoverage.AssertInitializedCalled();
-            context.CodeCoverage.AssertExecutedCalled();
+            context.CodeCoverage.AssertExecuteCalled();
             context.Runner.AssertNotExecuted();
             context.ReportBuilder.AssertNotExecuted();
 
@@ -57,7 +57,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             // Assert
             Assert.IsFalse(success, "Not expecting post-processor to have succeeded");
 
-            context.CodeCoverage.AssertExecutedCalled();
+            context.CodeCoverage.AssertExecuteCalled();
             context.Runner.AssertExecuted();
             context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-runner fails
 
@@ -80,7 +80,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             Assert.IsTrue(success, "Expecting post-processor to have succeeded");
 
             context.CodeCoverage.AssertInitializedCalled();
-            context.CodeCoverage.AssertExecutedCalled();
+            context.CodeCoverage.AssertExecuteCalled();
             context.Runner.AssertExecuted();
             context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-runner fails
 
@@ -107,7 +107,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             Assert.IsTrue(success, "Expecting post-processor to have succeeded");
 
             context.CodeCoverage.AssertInitializedCalled();
-            context.CodeCoverage.AssertExecutedNotCalled();
+            context.CodeCoverage.AssertExecuteNotCalled();
             context.Runner.AssertExecuted();
             context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-runner fails
 
@@ -132,7 +132,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             Assert.IsFalse(success, "Expecting post-processor to have failed");
 
             context.CodeCoverage.AssertInitialisedNotCalled();
-            context.CodeCoverage.AssertExecutedNotCalled();
+            context.CodeCoverage.AssertExecuteNotCalled();
             context.Runner.AssertNotExecuted();
             context.ReportBuilder.AssertNotExecuted();
 
@@ -170,7 +170,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             // Assert
             Assert.IsTrue(success, "Expecting post-processor to have succeeded");
 
-            context.CodeCoverage.AssertExecutedCalled();
+            context.CodeCoverage.AssertExecuteCalled();
             context.CodeCoverage.AssertInitializedCalled();
             context.Runner.AssertExecuted();
             context.ReportBuilder.AssertExecuted();

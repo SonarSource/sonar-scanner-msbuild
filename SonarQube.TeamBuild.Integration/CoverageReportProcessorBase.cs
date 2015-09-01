@@ -60,8 +60,12 @@ namespace SonarQube.TeamBuild.Integration
 
         public bool ProcessCoverageReports()
         {
-            Debug.Assert(this.config != null, "Call initialise first");
-            Debug.Assert(this.succesfullyInitialised, "Initialisation failed, cannot process coverage reports");
+            if (!this.succesfullyInitialised)
+            {
+                throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialised);
+            }
+
+            Debug.Assert(this.config != null, "Expecting the config to not be null. Did you call Initialise() ?");
 
             // Fetch all of the report URLs
             this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);

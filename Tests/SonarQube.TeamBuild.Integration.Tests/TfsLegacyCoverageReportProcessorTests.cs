@@ -53,12 +53,13 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             // Act
             bool initResult = processor.Initialise(context, settings, logger);
-        
+
             // Assert
+            Assert.IsFalse(initResult, "Expecting false: processor should not have been initialised successfully");
+
             urlProvider.AssertGetUrlsNotCalled();
             downloader.AssertDownloadNotCalled();
             converter.AssertConvertNotCalled();
-            Assert.IsFalse(initResult, "Expecting false: processor was not initialised");
 
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
@@ -80,13 +81,13 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             // Act
             bool initResult = processor.Initialise(context, settings, logger);
+            Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
             bool result = processor.ProcessCoverageReports();
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
             downloader.AssertDownloadNotCalled(); // no urls returned, so should go any further
             converter.AssertConvertNotCalled();
-            Assert.IsTrue(initResult, "Expecting true: processor was initialised");
             Assert.IsTrue(result, "Expecting true: no coverage reports is a valid scenario");
 
             logger.AssertWarningsLogged(0);
@@ -110,13 +111,13 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             // Act
             bool initResult = processor.Initialise(context, settings, logger);
+            Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
             bool result = processor.ProcessCoverageReports();
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
             downloader.AssertDownloadNotCalled(); // Multiple urls so should early out
             converter.AssertConvertNotCalled();
-            Assert.IsTrue(initResult, "Expecting true: processor was initialised");
             Assert.IsFalse(result, "Expecting false: can't process multiple coverage reports");
 
             logger.AssertErrorsLogged(1);
@@ -139,6 +140,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             // Act
             bool initResult = processor.Initialise(context, settings, logger);
+            Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
             bool result = processor.ProcessCoverageReports();
 
             // Assert
@@ -148,7 +150,6 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             downloader.AssertExpectedUrlsRequested(ValidUrl1);
 
-            Assert.IsTrue(initResult, "Expecting true: processor was initialised");
             Assert.IsFalse(result, "Expecting false: report could not be downloaded");
 
             logger.AssertErrorsLogged(1);
@@ -173,6 +174,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             // Act
             bool initResult = processor.Initialise(context, settings, logger);
+            Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
             bool result = processor.ProcessCoverageReports();
 
             // Assert
@@ -182,7 +184,6 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             downloader.AssertExpectedUrlsRequested(ValidUrl2);
             downloader.AssertExpectedTargetFileNamesSupplied(Path.Combine(context.SonarOutputDir, TfsLegacyCoverageReportProcessor.DownloadFileName));
-            Assert.IsTrue(initResult, "Expecting true: processor was initialised");
             Assert.IsTrue(result, "Expecting true: happy path");
 
             logger.AssertWarningsLogged(0);

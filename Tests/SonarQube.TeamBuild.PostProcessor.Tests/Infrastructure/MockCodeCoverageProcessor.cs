@@ -14,7 +14,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
     internal class MockCodeCoverageProcessor : ICoverageReportProcessor
     {
         private bool processCoverageMethodCalled;
-        private bool initalizedCalled;
+        private bool initalisedCalled;
 
         #region Test helpers
 
@@ -27,15 +27,15 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         public bool Initialise(AnalysisConfig context, TeamBuildSettings settings, ILogger logger)
         {
-            Assert.IsFalse(this.initalizedCalled, "Expecting Initialise to be called only once");
-            this.initalizedCalled = true;
+            Assert.IsFalse(this.initalisedCalled, "Expecting Initialise to be called only once");
+            this.initalisedCalled = true;
             return InitialiseValueToReturn;
         }
 
         public bool ProcessCoverageReports()
         {
             Assert.IsFalse(this.processCoverageMethodCalled, "Expecting ProcessCoverageReports to be called only once");
-            Assert.IsTrue(this.initalizedCalled, "Expecting Initialise to be called first");
+            Assert.IsTrue(this.initalisedCalled, "Expecting Initialise to be called first");
             this.processCoverageMethodCalled = true;
             return ProcessValueToReturn;
         }
@@ -44,24 +44,24 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         #region Checks
 
-        public void AssertExecutedCalled()
+        public void AssertExecuteCalled()
         {
             Assert.IsTrue(this.processCoverageMethodCalled, "Expecting the sonar-runner to have been called");
         }
 
-        public void AssertExecutedNotCalled()
+        public void AssertExecuteNotCalled()
         {
             Assert.IsFalse(this.processCoverageMethodCalled, "Not expecting the sonar-runner to have been called");
         }
 
         public void AssertInitializedCalled()
         {
-            Assert.IsTrue(this.initalizedCalled, "Expecting the sonar-runner to have been called");
+            Assert.IsTrue(this.initalisedCalled, "Expecting the sonar-runner to have been called");
         }
 
         public void AssertInitialisedNotCalled()
         {
-            Assert.IsFalse(this.initalizedCalled, "Not expecting the sonar-runner to have been called");
+            Assert.IsFalse(this.initalisedCalled, "Not expecting the sonar-runner to have been called");
         }
 
 

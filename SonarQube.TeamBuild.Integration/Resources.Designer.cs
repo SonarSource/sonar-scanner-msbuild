@@ -107,7 +107,7 @@ namespace SonarQube.TeamBuild.Integration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to locate the code coverage command line tool. Possible cause: Visual Studio is not installed..
+        ///   Looks up a localized string similar to Failed to find the code coverage command line tool. Possible cause: Visual Studio is not installed, or the installed version does not support code coverage..
         /// </summary>
         internal static string CONV_WARN_FailToFindConversionTool {
             get {
@@ -130,6 +130,15 @@ namespace SonarQube.TeamBuild.Integration {
         internal static string DOWN_DIAG_DownloadCoverageReportFromTo {
             get {
                 return ResourceManager.GetString("DOWN_DIAG_DownloadCoverageReportFromTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Coverage Report Processor was not initialised before use..
+        /// </summary>
+        internal static string EX_CoverageReportProcessorNotInitialised {
+            get {
+                return ResourceManager.GetString("EX_CoverageReportProcessorNotInitialised", resourceCulture);
             }
         }
         
