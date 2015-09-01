@@ -114,9 +114,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             CollectionAssert.AreEqual(new string[] { }, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
 
             context.Logger.AssertErrorsLogged(0);
-            context.Logger.AssertWarningsLogged(1);
-            context.Logger.AssertSingleWarningExists("coverage");
-
+            context.Logger.AssertWarningsLogged(0);
         }
 
         [TestMethod]
