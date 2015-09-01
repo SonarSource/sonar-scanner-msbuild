@@ -9,6 +9,7 @@ using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace TestUtilities
 {
@@ -19,9 +20,43 @@ namespace TestUtilities
     /// and to check actual results against</remarks>
     public class ProjectDescriptor
     {
+        public const string CompilerInputItemGroup = "Compile";
+        public const string ContentItemGroup = "Content";
+
+        /// <summary>
+        /// Data class to describe a single file in a project
+        /// </summary>
+        public class FileInProject
+        {
+            public FileInProject(string itemGroup, string filePath, bool shouldAnalyse)
+            {
+                this.ItemGroup = itemGroup;
+                this.FilePath = filePath;
+                this.ShouldBeAnalysed = shouldAnalyse;
+            }
+
+            /// <summary>
+            /// The path to the file
+            /// </summary>
+            public string FilePath { get; set; }
+
+            /// <summary>
+            /// The ItemGroup to which the file belongs
+            /// </summary>
+            public string ItemGroup { get; set; }
+
+            /// <summary>
+            /// Whether the file should be include in analysis or not
+            /// </summary>
+            public bool ShouldBeAnalysed { get; set; }
+        }
+
+        public IList<FileInProject> Files { get; set; }
+
         public ProjectDescriptor()
         {
             this.AnalysisResults = new List<AnalysisResult>();
+            this.Files = new List<FileInProject>();
         }
 
         #region Public properties
@@ -30,9 +65,18 @@ namespace TestUtilities
 
         public Guid ProjectGuid { get; set; }
 
-        public IList<string> ManagedSourceFiles { get; set; }
-
-        public IList<string> ContentFiles { get; set; }
+        public IList<string> ManagedSourceFiles
+        {
+            get
+            {
+                return this.Files.Where(f => f.ItemGroup == CompilerInputItemGroup).Select(f => f.FilePath).ToList();
+            }
+        }
+        
+        /// <summary>
+        /// List of files that should not be analysed
+        /// </summary>
+        public IList<string> UnanalysedFiles { get; set; }
 
         public bool IsTestProject { get; set; }
 
@@ -82,18 +126,18 @@ namespace TestUtilities
         {
             get
             {
-                List<string> files = new List<string>();
-                if (this.ManagedSourceFiles != null)
-                {
-                    files.AddRange(this.ManagedSourceFiles);
-                }
-                if (this.ContentFiles != null)
-                {
-                    files.AddRange(this.ContentFiles);
-                }
-                return files;
+                return this.Files.Select(f => f.FilePath);
             }
         }
+
+        public IEnumerable<string> FilesToAnalyse
+        {
+            get
+            {
+                return this.Files.Where(f => f.ShouldBeAnalysed).Select(f => f.FilePath);
+            }
+        }
+
 
         #endregion
 
@@ -113,6 +157,11 @@ namespace TestUtilities
             };
 
             return info;
+        }
+
+        public void AddNewFile(string itemGroup, string filePath, bool shouldAnalyse)
+        {
+            this.Files.Add(new FileInProject(itemGroup, filePath, shouldAnalyse));
         }
 
         #endregion

@@ -152,20 +152,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 root.AddProperty(TargetProperties.ProjectGuid, descriptor.ProjectGuid.ToString("D"));
             }
 
-            if (descriptor.ManagedSourceFiles != null)
+            foreach(ProjectDescriptor.FileInProject file in descriptor.Files)
             {
-                foreach (string managedInput in descriptor.ManagedSourceFiles)
-                {
-                    root.AddItem("Compile", managedInput);
-                }
-            }
-
-            if (descriptor.ContentFiles != null)
-            {
-                foreach(string contentFile in descriptor.ContentFiles)
-                {
-                    root.AddItem("Content", contentFile);
-                }
+                root.AddItem(file.ItemGroup, file.FilePath);
             }
 
             if (descriptor.IsTestProject && !root.Properties.Any(p => string.Equals(p.Name, TargetProperties.SonarQubeTestProject)))

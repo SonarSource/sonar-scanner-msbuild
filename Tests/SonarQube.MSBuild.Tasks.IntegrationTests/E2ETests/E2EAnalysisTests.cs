@@ -18,16 +18,6 @@ using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 {
-
-    /* Tests:
-
-        * clashing project names -> separate folders
-        * Project-level FxCop settings overridden
-        * Project types: web, class, 
-        * Project languages: C#, VB, C++???
-        
-    */
-
     [TestClass]
     public class E2EAnalysisTests
     {
@@ -49,7 +39,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
 
-            AddEmptyCodeFile(descriptor, rootInputFolder);
+            AddEmptyAnalysedCodeFile(descriptor, rootInputFolder);
 
             WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
 
@@ -84,7 +74,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
                 ProjectFolderName = "MyProjectDir",
                 ProjectFileName = "MissingProjectGuidProject.proj"
             };
-            AddEmptyCodeFile(descriptor, rootInputFolder);
+            AddEmptyAnalysedCodeFile(descriptor, rootInputFolder);
 
             ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
 
@@ -127,7 +117,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
                 ProjectFolderName = "MyProjectDir",
                 ProjectFileName = "MissingProjectGuidProject.proj"
             };
-            AddEmptyCodeFile(descriptor, rootInputFolder);
+            AddEmptyAnalysedCodeFile(descriptor, rootInputFolder);
 
             ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
             projectRoot.AddProperty("ProjectGuid", "Invalid guid");
@@ -168,8 +158,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Act
             string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
-            //AssertFileDoesNotExist(projectDir, ExpectedManagedInputsListFileName);
-            //AssertFileExists(projectDir, ExpectedContentsListFileName);
             AssertFileExists(projectDir, ExpectedAnalysisFilesListFileName);
             
             CheckProjectOutputFolder(descriptor, projectDir);
@@ -185,9 +173,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
 
-            AddEmptyCodeFile(descriptor, rootInputFolder);
-            AddEmptyCodeFile(descriptor, rootInputFolder);
-            AddEmptyCodeFile(descriptor, rootInputFolder);
+            AddEmptyAnalysedCodeFile(descriptor, rootInputFolder);
+            AddEmptyAnalysedCodeFile(descriptor, rootInputFolder);
+            AddEmptyAnalysedCodeFile(descriptor, rootInputFolder);
 
             WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
 
@@ -230,8 +218,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
 
-            AddEmptyCodeFile(descriptor, rootInputFolder);
-            AddEmptyCodeFile(descriptor, rootInputFolder);
+            AddEmptyAnalysedCodeFile(descriptor, rootInputFolder);
+            AddEmptyAnalysedCodeFile(descriptor, rootInputFolder);
 
             AddEmptyContentFile(descriptor, rootInputFolder);
             AddEmptyContentFile(descriptor, rootInputFolder);
@@ -257,8 +245,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
             descriptor.ProjectLanguage = ProjectLanguages.VisualBasic;
 
-            AddEmptyCodeFile(descriptor, rootInputFolder, ".vb");
-            AddEmptyCodeFile(descriptor, rootInputFolder, ".vb");
+            AddEmptyAnalysedCodeFile(descriptor, rootInputFolder, ".vb");
+            AddEmptyAnalysedCodeFile(descriptor, rootInputFolder, ".vb");
 
             AddEmptyContentFile(descriptor, rootInputFolder);
             AddEmptyContentFile(descriptor, rootInputFolder);
@@ -281,7 +269,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
-            AddEmptyCodeFile(descriptor, rootInputFolder);
+            AddEmptyAnalysedCodeFile(descriptor, rootInputFolder);
 
             // Copy the task assembly to a folder with brackets in the name
             string taskAssemblyFilePath = typeof(WriteProjectInfoFile).Assembly.Location;
@@ -500,24 +488,28 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
         #region Private methods
 
-        private void AddEmptyCodeFile(ProjectDescriptor descriptor, string projectFolder, string extension = "cs")
+        private string AddEmptyAnalysedCodeFile(ProjectDescriptor descriptor, string projectFolder, string extension = "cs")
         {
-            string emptyCodeFilePath = CreateEmptyFile(projectFolder, extension);
-            if (descriptor.ManagedSourceFiles == null)
+            string filePath = CreateEmptyFile(projectFolder, extension);
+            descriptor.AddNewFile(ProjectDescriptor.CompilerInputItemGroup, filePath, true);
+            return filePath;
+        }
+
+        private string AddEmptyNonAnalysedFile(ProjectDescriptor descriptor, string projectFolder, string extension = "cs")
+        {
+            string filePAth = CreateEmptyFile(projectFolder, extension);
+            if (descriptor.UnanalysedFiles == null)
             {
-                descriptor.ManagedSourceFiles = new List<string>();
+                descriptor.UnanalysedFiles = new List<string>();
             }
-            descriptor.ManagedSourceFiles.Add(emptyCodeFilePath);
+            descriptor.UnanalysedFiles.Add(filePAth);
+            return filePAth;
         }
 
         private static void AddEmptyContentFile(ProjectDescriptor descriptor, string projectFolder)
         {
-            string emptyFilePath = CreateEmptyFile(projectFolder, "txt");
-            if (descriptor.ContentFiles == null)
-            {
-                descriptor.ContentFiles = new List<string>();
-            }
-            descriptor.ContentFiles.Add(emptyFilePath);
+            string filePath = CreateEmptyFile(projectFolder, "txt");
+            descriptor.AddNewFile(ProjectDescriptor.ContentItemGroup, filePath, true);
         }
 
         private static string CreateEmptyFile(string folder, string extension)
@@ -568,7 +560,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
             // We expect the compiler to warn if there are no compiler inputs
-            int expectedWarnings = (descriptor.ManagedSourceFiles == null || !descriptor.ManagedSourceFiles.Any()) ? 1 : 0;
+            int expectedWarnings = (descriptor.ManagedSourceFiles.Any()) ? 0 : 1;
             logger.AssertExpectedErrorCount(0);
             logger.AssertExpectedWarningCount(expectedWarnings);
 
@@ -621,26 +613,16 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             AssertNoAdditionalFilesInFolder(projectOutputFolder, allowedFiles.ToArray());
         }
 
-        private static IList<string> GetAnalysisFiles(ProjectDescriptor descriptor)
+        private static IList<string> GetExpectedAnalysisFiles(ProjectDescriptor descriptor)
         {
-            List<string> allFiles = new List<string>();
-            if (descriptor.ManagedSourceFiles != null && descriptor.ManagedSourceFiles.Any())
-            {
-                allFiles.AddRange(descriptor.ManagedSourceFiles);
-            }
-            if (descriptor.ContentFiles != null && descriptor.ContentFiles.Any())
-            {
-                allFiles.AddRange(descriptor.ContentFiles);
-            }
-            return allFiles;
+            return descriptor.Files.Where(f => f.ShouldBeAnalysed).Select(f => f.FilePath).ToList();
         }
 
         private void CheckAnalysisFileList(ProjectDescriptor expected, string projectOutputFolder)
         {
+            string[] expectedFiles = GetExpectedAnalysisFiles(expected).ToArray();
 
-            IList<string> analysisFiles = GetAnalysisFiles(expected);
-
-            if (!analysisFiles.Any())
+            if (!expectedFiles.Any())
             {
                 AssertFileDoesNotExist(projectOutputFolder, ExpectedAnalysisFilesListFileName);
             }
@@ -648,14 +630,43 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             {
                 string fullName = AssertFileExists(projectOutputFolder, ExpectedAnalysisFilesListFileName);
 
-                string[] actualFileNames = File.ReadAllLines(fullName);
+                string[] actualFiles = File.ReadAllLines(fullName);
 
                 // The actual files might contain extra compiler generated files, so check the expected files
-                // we know about is a subset of the actual
-                CollectionAssert.IsSubsetOf(analysisFiles.ToArray(), actualFileNames, "Analysis file does not contain the expected entries");
+                // we expected is a subset of the actual
+                CollectionAssert.IsSubsetOf(expectedFiles, actualFiles, "Analysis file does not contain the expected entries");
+
+                // Check that any files that should not be analysed are not included
+                if (expected.UnanalysedFiles != null && expected.UnanalysedFiles.Any())
+                {
+                    foreach(string unanalysedFile in expected.UnanalysedFiles)
+                    {
+                        CollectionAssert.DoesNotContain(expectedFiles, unanalysedFile, "Not expecting file to be included for analysis: {0}", unanalysedFile);
+                    }
+                }
             }
         }
 
+        private static void AssertFileIsNotAnalysed(string analysisFileListPath, string unanalysedPath)
+        {
+            string[] actualFiles = GetAnalysedFiles(analysisFileListPath); CollectionAssert.DoesNotContain(actualFiles, unanalysedPath, "File should not be analysed: {0}", unanalysedPath);
+        }
+
+        private static void AssertFileIsAnalysed(string analysisFileListPath, string unanalysedPath)
+        {
+            string[] actualFiles = GetAnalysedFiles(analysisFileListPath);
+            CollectionAssert.Contains(actualFiles, unanalysedPath, "File should not be analysed: {0}", unanalysedPath);
+        }
+
+        private static string[] GetAnalysedFiles(string analysisFileListPath)
+        {
+            if (!File.Exists(analysisFileListPath))
+            {
+                Assert.Inconclusive("Test error: the specified analysis file list does not exist: {0}", analysisFileListPath);
+            }
+
+            return File.ReadAllLines(analysisFileListPath);
+        }
 
         private void CheckProjectInfo(ProjectInfo expected, string projectOutputFolder)
         {
@@ -672,11 +683,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             // Work out what the expected analysis results are
 
-            if (
-                (expected.ManagedSourceFiles != null && expected.ManagedSourceFiles.Any())
-                ||
-                (expected.ContentFiles != null && expected.ContentFiles.Any())
-                )
+            if (expected.Files.Any(f => f.ShouldBeAnalysed))
             {
                 expectedProjectInfo.AnalysisResults.Add(
                     new AnalysisResult()
