@@ -82,6 +82,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             CheckFilePathIsTest(testFolder, "c:\\foo\\bar space\\xTestyyy.proj");
             CheckFilePathIsTest(testFolder, "c:\\foo\\testtest");
             CheckFilePathIsTest(testFolder, "c:\\foo\\bar\\a.test.proj");
+            CheckFilePathIsTest(testFolder, "c:\\foo\\test\\xtesty.proj");
             CheckFilePathIsTest(testFolder, "xTESTy");
             CheckFilePathIsTest(testFolder, "test");
             CheckFilePathIsTest(testFolder, "c:\\foo\\ TEST ");
