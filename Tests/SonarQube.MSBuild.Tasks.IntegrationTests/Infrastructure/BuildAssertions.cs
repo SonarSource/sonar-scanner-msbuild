@@ -7,7 +7,7 @@
 
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Linq;
+using System;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests
 {
@@ -36,7 +36,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public static void AssertExpectedTargetOutput(BuildResult result, string target, BuildResultCode resultCode)
         {
-            BuildUtilities.DumpTargetResult(result, target);
+            DumpTargetResult(result, target);
 
             TargetResult targetResult;
             if (!result.ResultsByTarget.TryGetValue(target, out targetResult))
@@ -44,24 +44,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 Assert.Inconclusive(@"Could not find result for target ""{0}""", target);
             }
             Assert.AreEqual<BuildResultCode>(resultCode, result.OverallResult, "Unexpected build result");
-        }
-
-
-        /// <summary>
-        /// Checks that the specified item group is empty
-        /// </summary>
-        public static void AssertItemGroupIsEmpty(ProjectInstance project, string itemType)
-        {
-            Assert.IsTrue(project.GetItems(itemType).Count() == 0, "Item group '{0}' should be empty", itemType);
-
-        }
-
-        /// <summary>
-        /// Checks that the specified item group is not empty
-        /// </summary>
-        public static void AssertItemGroupIsNotEmpty(ProjectInstance project, string itemType)
-        {
-            Assert.IsTrue(project.GetItems(itemType).Count() > 0, "Item group '{0}' should be not empty", itemType);
         }
 
         public static void AssertExpectedPropertyValue(ProjectInstance projectInstance, string propertyName, string expectedValue)
@@ -85,16 +67,34 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
             Assert.IsNull(propertyInstance, "Not expecting the property to exist. Property: {0}, Value: {1}", propertyName, value);
         }
+        
+        #endregion
 
-        public static bool AssertBooleanPropertyExists(ProjectInstance projectInstance, string propertyName)
+        #region Private methods
+
+        /// <summary>
+        /// Writes the build and target output to the output stream
+        /// </summary>
+        public static void DumpTargetResult(BuildResult result, string target)
         {
-            ProjectPropertyInstance propertyInstance = BuildAssertions.AssertPropertyExists(projectInstance, TargetProperties.SonarQubeTestProject);
+            if (result == null)
+            {
+                throw new ArgumentNullException("result");
+            }
 
-            bool result;
-            bool parsedOk = bool.TryParse(propertyInstance.EvaluatedValue, out result);
-            Assert.IsTrue(parsedOk, "Failed to convert the property value to a boolean. Property: {0}, Evaluated value: {1}", propertyInstance.Name, propertyInstance.EvaluatedValue);
+            BuildUtilities.LogMessage("Overall build result: {0}", result.OverallResult.ToString());
 
-            return result;
+            TargetResult targetResult;
+            if (!result.ResultsByTarget.TryGetValue(target, out targetResult))
+            {
+                BuildUtilities.LogMessage(@"Could not find result for target ""{0}""", target);
+            }
+            else
+            {
+                BuildUtilities.LogMessage(@"Results for target ""{0}""", target);
+                BuildUtilities.LogMessage("\tTarget exception: {0}", targetResult.Exception == null ? "{null}" : targetResult.Exception.Message);
+                BuildUtilities.LogMessage("\tTarget result: {0}", targetResult.ResultCode.ToString());
+            }
         }
 
         #endregion

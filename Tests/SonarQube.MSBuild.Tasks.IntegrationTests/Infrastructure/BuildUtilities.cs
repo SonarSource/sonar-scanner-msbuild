@@ -28,52 +28,16 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         private const string UserImportBeforePropertyName = "ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets";
         private const string UserImportAfterPropertyName = "ImportUserLocationsByWildcardAfterMicrosoftCommonTargets";
 
-        #region Public methods
-
-        /// <summary>
-        /// Creates and returns a valid, initialized MSBuild ProjectRootElement for a new project in the
-        /// specified parent folder
-        /// </summary>
-        /// <param name="projectDirectory">The folder in which the project should be created</param>
-        /// <param name="preImportProperties">Any MSBuild properties that should be set before any targets are imported</param>
-        public static ProjectRootElement CreateValidProjectRoot(TestContext testContext, string projectDirectory, IDictionary<string, string> preImportProperties, bool isVBProject = false)
-        {
-            ProjectDescriptor descriptor = CreateValidProjectDescriptor(projectDirectory);
-            ProjectRootElement projectRoot = CreateInitializedProjectRoot(testContext, descriptor, preImportProperties, isVBProject);
-            return projectRoot;
-        }
-
-        /// <summary>
-        /// Creates and returns a valid, initialized MSBuild ProjectRootElement for a new project in the
-        /// specified parent folder with the specified project file name
-        /// </summary>
-        /// <param name="projectDirectory">The folder in which the project should be created</param>
-        /// <param name="projectFileName">The name of the project file</param>
-        /// <param name="preImportProperties">Any MSBuild properties that should be set before any targets are imported</param>
-        /// <returns></returns>
-        public static ProjectRootElement CreateValidNamedProjectRoot(TestContext testContext, string projectFileName, string projectDirectory, IDictionary<string, string> preImportProperties)
-        {
-            ProjectDescriptor descriptor = CreateValidNamedProjectDescriptor(projectDirectory, projectFileName);
-            ProjectRootElement projectRoot = CreateInitializedProjectRoot(testContext, descriptor, preImportProperties);
-            return projectRoot;
-        }
+        #region Project creation helpers
 
         /// <summary>
         /// Creates and returns a valid project descriptor for a project in the supplied folders
         /// </summary>
-        public static ProjectDescriptor CreateValidProjectDescriptor(string parentDirectory)
-        {
-            return CreateValidNamedProjectDescriptor(parentDirectory, "MyProject.xproj.txt");
-        }
-
-        /// <summary>
-        /// Creates and returns a valid project descriptor for a project in the supplied folders
-        /// </summary>
-        public static ProjectDescriptor CreateValidNamedProjectDescriptor(string parentDirectory, string projectFileName)
+        public static ProjectDescriptor CreateValidProjectDescriptor(string parentDirectory, string projectFileName = "MyProject.xproj.txt", bool isVBProject = false)
         {
             ProjectDescriptor descriptor = new ProjectDescriptor()
             {
-                ProjectLanguage = SonarQube.Common.ProjectLanguages.CSharp,
+                ProjectLanguage = isVBProject ? SonarQube.Common.ProjectLanguages.VisualBasic : SonarQube.Common.ProjectLanguages.CSharp,
                 ProjectGuid = Guid.NewGuid(),
                 IsTestProject = false,
                 ParentDirectoryPath = parentDirectory,
@@ -83,12 +47,24 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             return descriptor;
         }
 
+        /// <summary>
+        /// Creates and returns a valid, initialized MSBuild ProjectRootElement for a new project in the
+        /// specified parent folder
+        /// </summary>
+        /// <param name="projectDirectory">The folder in which the project should be created</param>
+        /// <param name="preImportProperties">Any MSBuild properties that should be set before any targets are imported</param>
+        public static ProjectRootElement CreateValidProjectRoot(TestContext testContext, string projectDirectory, IDictionary<string, string> preImportProperties, bool isVBProject = false)
+        {
+            ProjectDescriptor descriptor = CreateValidProjectDescriptor(projectDirectory, isVBProject: isVBProject);
+            ProjectRootElement projectRoot = CreateInitializedProjectRoot(testContext, descriptor, preImportProperties);
+            return projectRoot;
+        }
 
         /// <summary>
         /// Creates a project file on disk from the specified descriptor.
         /// Sets the SonarQube output folder property, if specified.
         /// </summary>
-        public static ProjectRootElement CreateInitializedProjectRoot(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties, bool isVBProject = false)
+        public static ProjectRootElement CreateInitializedProjectRoot(TestContext testContext, ProjectDescriptor descriptor, IDictionary<string, string> preImportProperties)
         {
             if (testContext == null)
             {
@@ -99,7 +75,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 throw new ArgumentNullException("descriptor");
             }
             
-            ProjectRootElement projectRoot = BuildUtilities.CreateAnalysisProject(testContext, descriptor, preImportProperties, isVBProject);
+            ProjectRootElement projectRoot = BuildUtilities.CreateAnalysisProject(testContext, descriptor, preImportProperties);
 
             projectRoot.ToolsVersion = MSBuildToolsVersionForTestProjects;
 
@@ -107,83 +83,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
             testContext.AddResultFile(descriptor.FullFilePath);
             return projectRoot;
-        }
-
-        /// <summary>
-        /// Creates and returns an empty MSBuild project using the data in the supplied descriptor.
-        /// The project will import the SonarQube analysis targets file and the standard C# targets file.
-        /// The project name and GUID will be set if the values are supplied in the descriptor.
-        /// </summary>
-        public static ProjectRootElement CreateAnalysisProject(TestContext testContext, ProjectDescriptor descriptor,
-            IDictionary<string, string> preImportProperties, bool isVBProject = false)
-        {
-            if (testContext == null)
-            {
-                throw new ArgumentNullException("testContext");
-            }
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException("descriptor");
-            }
-            
-            string sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(testContext);
-            Assert.IsTrue(File.Exists(sqTargetFile), "Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
-            testContext.AddResultFile(sqTargetFile);
-
-            IDictionary<string, string> properties = preImportProperties ?? new Dictionary<string, string>();
-
-            // Disable the standard "ImportBefore/ImportAfter" behaviour if the caller
-            // hasn't defined what they want to happen explicitly
-            if (!properties.ContainsKey(StandardImportBeforePropertyName))
-            {
-                DisableStandardTargetsWildcardImporting(properties);
-            }
-
-            ProjectRootElement root = CreateMinimalBuildableProject(properties, isVBProject, sqTargetFile);
-
-            // Set the location of the task assembly
-            if (!properties.ContainsKey(TargetProperties.SonarBuildTasksAssemblyFile))
-            {
-                root.AddProperty(TargetProperties.SonarBuildTasksAssemblyFile, typeof(WriteProjectInfoFile).Assembly.Location);
-            }
-
-            if (descriptor.ProjectGuid != Guid.Empty)
-            {
-                root.AddProperty(TargetProperties.ProjectGuid, descriptor.ProjectGuid.ToString("D"));
-            }
-
-            foreach(ProjectDescriptor.FileInProject file in descriptor.Files)
-            {
-                root.AddItem(file.ItemGroup, file.FilePath);
-            }
-
-            if (descriptor.IsTestProject && !root.Properties.Any(p => string.Equals(p.Name, TargetProperties.SonarQubeTestProject)))
-            {
-                root.AddProperty(TargetProperties.SonarQubeTestProject, "true");
-            }
-
-            return root;
-        }
-
-        /// <summary>
-        /// Sets properties to disable the normal ImportAfter/ImportBefore behaviour to 
-        /// prevent any additional targets from being picked up.
-        /// This is necessary so the tests run correctly on machines that have
-        /// the installation targets installed.
-        /// See the Microsoft Common targets for more info e.g. C:\Program Files (x86)\MSBuild\12.0\Bin\Microsoft.Common.CurrentVersion.targets
-        /// Any existing settings for those properties will be over-ridden.
-        /// </summary>
-        public static void DisableStandardTargetsWildcardImporting(IDictionary<string, string> properties)
-        {
-            if (properties == null)
-            {
-                throw new ArgumentNullException("properties");
-            }
-            
-            properties[StandardImportBeforePropertyName] = "false";
-            properties[StandardImportAfterPropertyName] = "false";
-            properties[UserImportBeforePropertyName] = "false";
-            properties[UserImportAfterPropertyName] = "false";
         }
 
         /// <summary>
@@ -249,6 +148,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             return projectRoot;
         }
 
+        #endregion
+
+        #region Build helper methods
+
         /// <summary>
         /// Builds the specified target and returns the build result.
         /// </summary>
@@ -313,55 +216,125 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             return result;
         }
 
+        #endregion
+
+        #region Miscellaneous public methods
+
+        /// <summary>
+        /// Sets properties to disable the normal ImportAfter/ImportBefore behaviour to 
+        /// prevent any additional targets from being picked up.
+        /// This is necessary so the tests run correctly on machines that have
+        /// the installation targets installed.
+        /// See the Microsoft Common targets for more info e.g. C:\Program Files (x86)\MSBuild\12.0\Bin\Microsoft.Common.CurrentVersion.targets
+        /// Any existing settings for those properties will be over-ridden.
+        /// </summary>
+        public static void DisableStandardTargetsWildcardImporting(IDictionary<string, string> properties)
+        {
+            if (properties == null)
+            {
+                throw new ArgumentNullException("properties");
+            }
+
+            properties[StandardImportBeforePropertyName] = "false";
+            properties[StandardImportAfterPropertyName] = "false";
+            properties[UserImportBeforePropertyName] = "false";
+            properties[UserImportAfterPropertyName] = "false";
+        }
+
+        public static void LogMessage(string message, params string[] args)
+        {
+            Console.WriteLine(message, args);
+        }
+
+        public static void LogMessage()
+        {
+            LogMessage(string.Empty);
+        }
+
+        #endregion
+
+        #region Private methods
+
+        /// <summary>
+        /// Creates and returns an empty MSBuild project using the data in the supplied descriptor.
+        /// The project will import the SonarQube analysis targets file and the standard C# targets file.
+        /// The project name and GUID will be set if the values are supplied in the descriptor.
+        /// </summary>
+        private static ProjectRootElement CreateAnalysisProject(TestContext testContext, ProjectDescriptor descriptor,
+            IDictionary<string, string> preImportProperties)
+        {
+            if (testContext == null)
+            {
+                throw new ArgumentNullException("testContext");
+            }
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException("descriptor");
+            }
+
+            string sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(testContext);
+            Assert.IsTrue(File.Exists(sqTargetFile), "Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
+            testContext.AddResultFile(sqTargetFile);
+
+            IDictionary<string, string> properties = preImportProperties ?? new Dictionary<string, string>();
+
+            // Disable the standard "ImportBefore/ImportAfter" behaviour if the caller
+            // hasn't defined what they want to happen explicitly
+            if (!properties.ContainsKey(StandardImportBeforePropertyName))
+            {
+                DisableStandardTargetsWildcardImporting(properties);
+            }
+
+            ProjectRootElement root = CreateMinimalBuildableProject(properties, descriptor.IsVbProject, sqTargetFile);
+
+            // Set the location of the task assembly
+            if (!properties.ContainsKey(TargetProperties.SonarBuildTasksAssemblyFile))
+            {
+                root.AddProperty(TargetProperties.SonarBuildTasksAssemblyFile, typeof(WriteProjectInfoFile).Assembly.Location);
+            }
+
+            if (descriptor.ProjectGuid != Guid.Empty)
+            {
+                root.AddProperty(TargetProperties.ProjectGuid, descriptor.ProjectGuid.ToString("D"));
+            }
+
+            foreach (ProjectDescriptor.FileInProject file in descriptor.Files)
+            {
+                root.AddItem(file.ItemGroup, file.FilePath);
+            }
+
+            if (descriptor.IsTestProject && !root.Properties.Any(p => string.Equals(p.Name, TargetProperties.SonarQubeTestProject)))
+            {
+                root.AddProperty(TargetProperties.SonarQubeTestProject, "true");
+            }
+
+            return root;
+        }
+
         /// <summary>
         /// Dumps the project properties to the console
         /// </summary>
         /// <param name="projectInstance">The owning project</param>
         /// <param name="title">Optional title to be written to the console</param>
-        public static void DumpProjectProperties(ProjectInstance projectInstance, string title)
+        private static void DumpProjectProperties(ProjectInstance projectInstance, string title)
         {
             if (projectInstance == null)
             {
                 throw new ArgumentNullException("projectInstance");
             }
-            
-            Console.WriteLine();
-            Console.WriteLine("******************************************************");
-            Console.WriteLine(title ?? "Project properties");
+
+            LogMessage();
+            LogMessage("******************************************************");
+            LogMessage(title ?? "Project properties");
             foreach (ProjectPropertyInstance property in projectInstance.Properties ?? Enumerable.Empty<ProjectPropertyInstance>())
             {
-                Console.WriteLine("{0} = {1}{2}",
+                LogMessage("{0} = {1}{2}",
                     property.Name,
                     property.EvaluatedValue,
                     property.IsImmutable ? ", IMMUTABLE" : null);
             }
-            Console.WriteLine("******************************************************");
-            Console.WriteLine();
-        }
-
-        /// <summary>
-        /// Writes the build and target output to the output stream
-        /// </summary>
-        public static void DumpTargetResult(BuildResult result, string target)
-        {
-            if (result == null)
-            {
-                throw new ArgumentNullException("result");
-            }
-            
-            Console.WriteLine("Overall build result: {0}", result.OverallResult.ToString());
-
-            TargetResult targetResult;
-            if (!result.ResultsByTarget.TryGetValue(target, out targetResult))
-            {
-                Console.WriteLine(@"Could not find result for target ""{0}""", target);
-            }
-            else
-            {
-                Console.WriteLine(@"Results for target ""{0}""", target);
-                Console.WriteLine("\tTarget exception: {0}", targetResult.Exception == null ? "{null}" : targetResult.Exception.Message);
-                Console.WriteLine("\tTarget result: {0}", targetResult.ResultCode.ToString());
-            }
+            LogMessage("******************************************************");
+            LogMessage();
         }
 
         #endregion

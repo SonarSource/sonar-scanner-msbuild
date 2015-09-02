@@ -503,7 +503,7 @@ End Class");
             config.Save(configFullPath);
 
             // Create a project with a file name that will match the reg ex
-            ProjectDescriptor descriptor = BuildUtilities.CreateValidNamedProjectDescriptor(rootInputFolder, "MyTestProject.proj");
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "MyTestProject.proj");
             ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
 
 

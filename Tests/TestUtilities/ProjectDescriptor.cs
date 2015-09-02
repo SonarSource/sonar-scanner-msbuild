@@ -135,6 +135,14 @@ namespace TestUtilities
             }
         }
 
+        public bool IsVbProject
+        {
+            get
+            {
+                return ProjectLanguages.IsVbProject(this.ProjectLanguage);
+            }
+        }
+
         #endregion
 
         #region Public methods

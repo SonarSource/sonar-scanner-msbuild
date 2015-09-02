@@ -254,7 +254,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
 
             // Act
-            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties, isVBProject:true);
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
             AssertFileExists(projectDir, ExpectedAnalysisFilesListFileName);
 
@@ -536,9 +536,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         /// The method will check the build succeeded and that a single project output file was created.
         /// </summary>
         /// <returns>The full path of the project-specsific directory that was created during the build</returns>
-        private string CreateAndBuildSonarProject(ProjectDescriptor descriptor, string rootOutputFolder, WellKnownProjectProperties preImportProperties, bool isVBProject = false)
+        private string CreateAndBuildSonarProject(ProjectDescriptor descriptor, string rootOutputFolder, WellKnownProjectProperties preImportProperties)
         {
-            ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties, isVBProject);
+            ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
 
             BuildLogger logger = new BuildLogger();
 
@@ -630,7 +630,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
                 {
                     foreach(string unanalysedFile in expected.FilesNotToAnalyse)
                     {
-                        CollectionAssert.DoesNotContain(expectedFiles, unanalysedFile, "Not expecting file to be included for analysis: {0}", unanalysedFile);
+                        CollectionAssert.DoesNotContain(actualFiles, unanalysedFile, "Not expecting file to be included for analysis: {0}", unanalysedFile);
                     }
                 }
             }
