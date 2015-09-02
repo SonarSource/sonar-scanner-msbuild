@@ -261,6 +261,53 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             CheckProjectOutputFolder(descriptor, projectDir);
         }
 
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")] // SONARMSBRU-104: files under the obj folder should be excluded from analysis
+        public void E2E_IntermediateOutputFilesAreExcluded()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+           
+            // Create a new project
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
+            string projectFolder = descriptor.FullDirectoryPath;
+
+            // Add files that should be analysed
+            string nonObjFolder = Path.Combine(projectFolder, "foo");
+            Directory.CreateDirectory(nonObjFolder);
+            AddEmptyAnalysedCodeFile(descriptor, rootInputFolder);
+            AddEmptyAnalysedCodeFile(descriptor, nonObjFolder);
+
+            // Add files under the obj folder that should not be analysed
+            string objFolder = Path.Combine(projectFolder, "obj");
+            string objSubFolder1 = Path.Combine(objFolder, "debug");
+            string objSubFolder2 = Path.Combine(objFolder, "xxx"); // any folder under obj should be ignored
+            Directory.CreateDirectory(objSubFolder1);
+            Directory.CreateDirectory(objSubFolder2);
+
+            // File in obj
+            string filePath = CreateEmptyFile(objFolder, "cs");
+            descriptor.AddCompileInputFile(filePath, false);
+
+            // File in obj\debug
+            filePath = CreateEmptyFile(objSubFolder1, "cs");
+            descriptor.AddCompileInputFile(filePath, false);
+
+            // File in obj\xxx
+            filePath = CreateEmptyFile(objSubFolder2, "vb");
+            descriptor.AddCompileInputFile("obj\\xxx\\" + Path.GetFileName(filePath), false); // reference the file using a relative path
+
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+
+            // Act
+            string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
+
+            AssertFileExists(projectDir, ExpectedAnalysisFilesListFileName);
+
+            CheckProjectOutputFolder(descriptor, projectDir);
+        }
+
         [TestCategory("E2E"), TestCategory("Targets")] // SONARMSBRU-12: Analysis build fails if the build definition name contains brackets
         public void E2E_UsingTaskHandlesBracketsInName()
         {
@@ -630,7 +677,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
                 {
                     foreach(string unanalysedFile in expected.FilesNotToAnalyse)
                     {
-                        CollectionAssert.DoesNotContain(actualFiles, unanalysedFile, "Not expecting file to be included for analysis: {0}", unanalysedFile);
+                        string filePathToCheck = unanalysedFile;
+                        if (!Path.IsPathRooted(filePathToCheck))
+                        {
+                            // Assume paths are relative to the project directory
+                            filePathToCheck = Path.Combine(expected.FullDirectoryPath, filePathToCheck);
+                        }
+                        CollectionAssert.DoesNotContain(actualFiles, filePathToCheck, "Not expecting file to be included for analysis: {0}", filePathToCheck);
                     }
                 }
             }

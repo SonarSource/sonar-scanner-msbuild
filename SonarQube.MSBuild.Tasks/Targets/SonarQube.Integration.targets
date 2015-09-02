@@ -184,6 +184,17 @@
       <SonarQubeAnalysisFiles Remove="@(SonarQubeAnalysisFiles)" Condition=" %(SonarQubeAnalysisFiles.SonarQubeExclude) == 'true' OR %(SonarQubeAnalysisFiles.AutoGen) == 'true' " />
     </ItemGroup>
 
+    <!-- Exclude items under the intermediate output folder e.g. XAML files that are auto-generated on build -->
+    <PropertyGroup>
+      <!-- Calculate the full path to the base intermediate folder -->
+      <SQFullIntermediateOutputPath>$([System.IO.Path]::Combine($(MSBuildProjectDirectory),$(BaseIntermediateOutputPath)))</SQFullIntermediateOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <SQIntermediateFiles Include="$(SQFullIntermediateOutputPath)**\*.*" /> <!-- Remove based on absolute path -->
+      <SQIntermediateFiles Include="$(BaseIntermediateOutputPath)**\*.*" /> <!-- Remove based on relative path -->
+      <SonarQubeAnalysisFiles Remove="@(SQIntermediateFiles)" />
+    </ItemGroup>
+
     <PropertyGroup>
       <!-- Set a property indicating whether there are any files to analyze -->
       <AnalysisFilesExist Condition=" @(SonarQubeAnalysisFiles) != '' ">true</AnalysisFilesExist>
