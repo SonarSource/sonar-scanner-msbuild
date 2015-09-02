@@ -107,6 +107,8 @@ namespace SonarRunner.Shim.Tests
             Assert.IsTrue(pwdIndex < standardArgsIndex && pwdIndex < propertiesFileIndex, "User arguments should appear first");
         }
 
+        // SONARMSBRU-136: TODO - re-enable the following test:
+        [Ignore]
         [TestMethod]
         public void SonarRunner_SensitiveArgsPassedOnCommandLine()
         {

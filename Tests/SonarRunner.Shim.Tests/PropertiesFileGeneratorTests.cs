@@ -271,8 +271,16 @@ namespace SonarRunner.Shim.Tests
             provider.AssertSettingExists("key.3", " ");
 
             provider.AssertSettingDoesNotExist("server.key");
-            provider.AssertSettingDoesNotExist(SonarProperties.DbPassword);
-            provider.AssertSettingDoesNotExist(SonarProperties.SonarPassword);
+
+            // SONARMSBRU-136: TODO - uncomment the following code:
+            //provider.AssertSettingExists("server.key", "");
+            //provider.AssertSettingDoesNotExist(SonarProperties.DbPassword);
+            //provider.AssertSettingDoesNotExist(SonarProperties.SonarPassword);
+
+            // SONARMSBRU-136: TODO - delete the following code:
+            // v1.0.1 back-compat: check sensitive data is written to the properties file
+            provider.AssertSettingExists(SonarProperties.DbPassword, "secret db pwd");
+            provider.AssertSettingExists(SonarProperties.SonarPassword, "secret pwd");
         }
 
         [TestMethod] // Old VS Bootstrapper should be forceably disabled: https://jira.sonarsource.com/browse/SONARMSBRU-122

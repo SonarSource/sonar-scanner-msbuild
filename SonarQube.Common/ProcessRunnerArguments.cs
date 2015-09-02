@@ -26,12 +26,16 @@ namespace SonarQube.Common
         /// Strings that are used to indicate arguments that contain
         /// sensitive data that should not be logged
         /// </summary>
-        public static readonly string[] SensitivePropertyKeys = new string[] {
-            SonarProperties.SonarPassword,
-            SonarProperties.SonarUserName,
-            SonarProperties.DbPassword,
-            SonarProperties.DbUserName
-        };
+        public static readonly string[] SensitivePropertyKeys = new string[] { };
+        // SONARMSBRU-136/SONARMSBRU-137: back-compat with v1.0 - allow sensitive data to be stored in the generated project properties file and config file.
+        // SONARMSBRU-136: TODO - uncomment the following code:
+        //public static readonly string[] SensitivePropertyKeys = new string[] {
+        //    SonarProperties.SonarPassword,
+        //    SonarProperties.SonarUserName,
+        //    SonarProperties.DbPassword,
+        //    SonarProperties.DbUserName
+        //};
+
 
         public ProcessRunnerArguments(string exeName, ILogger logger)
         {

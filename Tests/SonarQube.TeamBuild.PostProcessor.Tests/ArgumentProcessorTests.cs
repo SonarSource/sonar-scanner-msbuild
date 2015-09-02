@@ -54,6 +54,8 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             logger.AssertSingleErrorExists("CCC");
         }
 
+        // SONARMSBRU-136: TODO - re-enable the following test:
+        [Ignore]
         [TestMethod]
         public void PostArgProc_PermittedArguments()
         {
