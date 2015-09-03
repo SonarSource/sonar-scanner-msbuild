@@ -243,6 +243,6 @@
     <value>The settings file could not be found</value>
   </data>
   <data name="ERROR_TrustFailure" xml:space="preserve">
-    <value>A server certificate could not be validated. Possible cause: you are using a self-signed SSL certificate but you haven't installed it on the client machine. Please make sure the you can access {0} without encountering certificate errors.</value>
+    <value>A server certificate could not be validated. Possible cause: you are using a self-signed SSL certificate but the certificate has not been installed on the client machine. Please make sure that you can access {0} without encountering certificate errors.</value>
   </data>
 </root>
