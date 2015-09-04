@@ -15,6 +15,9 @@ namespace SonarQube.Common.UnitTests
     /// Utility class to capture the standard console output and error streams.
     /// Disposing the class resets the console to use the standard streams.
     /// </summary>
+    /// <remarks>Note: attempts to set Console.ForegroundColor and Console.BackgroundColor
+    /// don't work if the console output is being redirected, so we have no easy way of
+    /// capturing the colour in which the text is written.</remarks>
     public sealed class OutputCaptureScope : IDisposable
     {
         private StringWriter outputWriter;
@@ -95,10 +98,10 @@ namespace SonarQube.Common.UnitTests
                 standardOut.AutoFlush = true;
                 Console.SetOut(standardOut);
 
-                this.outputWriter.Close();
+                this.outputWriter.Dispose();
                 this.outputWriter = null;
 
-                this.errorWriter.Close();
+                this.errorWriter.Dispose();
                 this.errorWriter = null;
             }
         }
