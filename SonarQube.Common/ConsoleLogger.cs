@@ -27,6 +27,10 @@ namespace SonarQube.Common
     {
         private const LoggerVerbosity DefaultVerbosity = VerbosityCalculator.InitialLoggingVerbosity;
 
+        public const ConsoleColor DebugColor = ConsoleColor.DarkCyan;
+        public const ConsoleColor WarningColor = ConsoleColor.Yellow;
+        public const ConsoleColor ErrorColor = ConsoleColor.Red;
+
         #region Public methods
 
         public ConsoleLogger() : this(includeTimestamp: false)
@@ -51,18 +55,28 @@ namespace SonarQube.Common
         public void LogWarning(string message, params object[] args)
         {
             string finalMessage = this.GetFormattedMessage(Resources.Logger_WarningPrefix + message, args);
-            Console.WriteLine(finalMessage);
+
+            using (new ConsoleColorScope(WarningColor))
+            {
+                Console.WriteLine(finalMessage);
+            }
         }
 
         public void LogError(string message, params object[] args)
         {
             string finalMessage = this.GetFormattedMessage(message, args);
-            Console.Error.WriteLine(finalMessage);
+            using (new ConsoleColorScope(ErrorColor))
+            {
+                Console.Error.WriteLine(finalMessage);
+            }
         }
 
         public void LogDebug(string message, params object[] args)
         {
-            LogMessage(LoggerVerbosity.Debug, message, args);
+            using (new ConsoleColorScope(DebugColor))
+            {
+                LogMessage(LoggerVerbosity.Debug, message, args);
+            }
         }
 
         public void LogInfo(string message, params object[] args)

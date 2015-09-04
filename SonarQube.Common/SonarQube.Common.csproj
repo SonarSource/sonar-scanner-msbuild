@@ -60,6 +60,7 @@
     <Compile Include="CommandLine\ArgumentInstance.cs" />
     <Compile Include="CommandLine\ArgumentDescriptor.cs" />
     <Compile Include="CommandLine\CommandLineParser.cs" />
+    <Compile Include="ConsoleColorScope.cs" />
     <Compile Include="VerbosityCalculator.cs" />
     <Compile Include="ProcessRunner.cs" />
     <Compile Include="ProcessRunnerArguments.cs" />
