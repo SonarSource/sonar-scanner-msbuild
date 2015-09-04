@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using SonarQube.Common;
 using System.Diagnostics;
 
@@ -18,6 +19,14 @@ namespace SonarQube.Bootstrapper
         {
             var logger = new ConsoleLogger();
             BuildAgentUpdater updater = new BuildAgentUpdater();
+
+            if (false)
+            {
+                Console.WriteLine("Hello, world!");
+
+                // Console.WriteLine("Commented out code!");
+            }
+
             return Execute(args, updater, logger);
         }
 
