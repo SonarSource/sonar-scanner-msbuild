@@ -87,10 +87,12 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public bool Execute(string[] args)
         {
+            logger.SuspendOutput();
             ProcessedArgs processedArgs = ArgumentProcessor.TryProcessArgs(args, this.logger);
 
             if (processedArgs == null)
             {
+                logger.ResumeOutput();
                 this.logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
                 return false;
             }
@@ -105,6 +107,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             Debug.Assert(localSettings != null, "Not expecting the process arguments to be null");
 
             this.logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, this.logger);
+            logger.ResumeOutput();
 
             InstallLoaderTargets(localSettings);
 

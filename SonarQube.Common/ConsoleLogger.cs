@@ -46,8 +46,8 @@ namespace SonarQube.Common
                 this.finalMessage = finalMessage;
             }
 
-            public MessageType MessageType {  get { return this.messageType; } }
-            public string FinalMessage {  get { return this.finalMessage; } }
+            public MessageType MessageType { get; }
+            public string FinalMessage { get; }
         }
 
         public const ConsoleColor DebugColor = ConsoleColor.DarkCyan;

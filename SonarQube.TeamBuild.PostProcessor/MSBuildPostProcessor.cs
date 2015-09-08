@@ -83,14 +83,18 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             this.targetUninstaller.UninstallTargets(logger);
 
+            logger.SuspendOutput();
+
             IAnalysisPropertyProvider provider;
             if (!ArgumentProcessor.TryProcessArgs(args, logger, out provider))
             {
+                logger.ResumeOutput();
                 // logging already done
                 return false;
             }
 
             logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.GetAnalysisSettings(true), logger);
+            logger.ResumeOutput();
             LogStartupSettings(config, settings);
 
             if (!CheckEnvironmentConsistency(config, settings))

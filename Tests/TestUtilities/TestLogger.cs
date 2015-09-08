@@ -209,12 +209,12 @@ namespace TestUtilities
 
         public void SuspendOutput()
         {
-            throw new NotImplementedException();
+            // no-op
         }
 
         public void ResumeOutput()
         {
-            throw new NotImplementedException();
+            // no-op
         }
 
         #endregion
