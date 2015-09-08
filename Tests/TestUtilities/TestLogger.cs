@@ -207,6 +207,15 @@ namespace TestUtilities
             WriteLine("DEBUG: " + message, args);
         }
 
+        public void SuspendOutput()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ResumeOutput()
+        {
+            throw new NotImplementedException();
+        }
 
         #endregion
 

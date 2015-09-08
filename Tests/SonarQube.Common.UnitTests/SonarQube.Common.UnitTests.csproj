@@ -64,6 +64,7 @@
     <Compile Include="EnvScannerPropertiesProviderTest.cs" />
     <Compile Include="FilePropertyProviderTests.cs" />
     <Compile Include="Infrastructure\OutputCaptureScope.cs" />
+    <Compile Include="Infrastructure\OutputRecorder.cs" />
     <Compile Include="ProcessRunnerTests.cs" />
     <Compile Include="ProjectInfoTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

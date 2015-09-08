@@ -16,6 +16,8 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace SonarQube.Common
@@ -25,28 +27,86 @@ namespace SonarQube.Common
     /// </summary>
     public class ConsoleLogger : ILogger
     {
-        private const LoggerVerbosity DefaultVerbosity = VerbosityCalculator.InitialLoggingVerbosity;
+        private enum MessageType
+        {
+            Info,
+            Debug,
+            Warning,
+            Error
+        }
+
+        private class Message
+        {
+            private readonly MessageType messageType;
+            private readonly string finalMessage;
+
+            public Message(MessageType messageType, string finalMessage)
+            {
+                this.messageType = messageType;
+                this.finalMessage = finalMessage;
+            }
+
+            public MessageType MessageType {  get { return this.messageType; } }
+            public string FinalMessage {  get { return this.finalMessage; } }
+        }
 
         public const ConsoleColor DebugColor = ConsoleColor.DarkCyan;
         public const ConsoleColor WarningColor = ConsoleColor.Yellow;
         public const ConsoleColor ErrorColor = ConsoleColor.Red;
 
+        private const LoggerVerbosity DefaultVerbosity = VerbosityCalculator.InitialLoggingVerbosity;
+
+        private bool isOutputSuspended = false;
+
+        /// <summary>
+        /// List of messages that have not been output to the console
+        /// </summary>
+        private IList<Message> suspendedMessages;
+
+        private readonly IOutputWriter outputWriter;
+
         #region Public methods
 
-        public ConsoleLogger() : this(includeTimestamp: false)
+        /// <summary>
+        /// Use only for testing
+        public static ConsoleLogger CreateLoggerForTesting(bool includeTimestamp, IOutputWriter writer)
         {
+            return new ConsoleLogger(includeTimestamp, writer);
         }
 
         public ConsoleLogger(bool includeTimestamp)
+            : this(includeTimestamp, new ConsoleWriter())
+        {
+        }
+
+        private ConsoleLogger(bool includeTimestamp, IOutputWriter writer)
         {
             this.IncludeTimestamp = includeTimestamp;
             this.Verbosity = DefaultVerbosity;
+            this.outputWriter = writer;
         }
 
         /// <summary>
         /// Indicates whether logged messages should be prefixed with timestamps or not
         /// </summary>
         public bool IncludeTimestamp { get; set; }
+
+        public void SuspendOutput()
+        {
+            if (!this.isOutputSuspended)
+            {
+                this.isOutputSuspended = true;
+                this.suspendedMessages = new List<Message>();
+            }
+        }
+
+        public void ResumeOutput()
+        {
+            if (this.isOutputSuspended)
+            {
+                this.FlushOutput();
+            }
+        }
 
         #endregion Public methods
 
@@ -56,32 +116,25 @@ namespace SonarQube.Common
         {
             string finalMessage = this.GetFormattedMessage(Resources.Logger_WarningPrefix + message, args);
 
-            using (new ConsoleColorScope(WarningColor))
-            {
-                Console.WriteLine(finalMessage);
-            }
+            this.Write(MessageType.Warning, finalMessage);
         }
 
         public void LogError(string message, params object[] args)
         {
-            string finalMessage = this.GetFormattedMessage(message, args);
-            using (new ConsoleColorScope(ErrorColor))
-            {
-                Console.Error.WriteLine(finalMessage);
-            }
+            this.Write(MessageType.Error, message, args);
         }
 
         public void LogDebug(string message, params object[] args)
         {
-            using (new ConsoleColorScope(DebugColor))
+            if (this.Verbosity == LoggerVerbosity.Debug)
             {
-                LogMessage(LoggerVerbosity.Debug, message, args);
+                this.Write(MessageType.Debug, message, args);
             }
         }
 
         public void LogInfo(string message, params object[] args)
         {
-            LogMessage(LoggerVerbosity.Info, message, args);
+            this.Write(MessageType.Info, message, args);
         }
 
         public LoggerVerbosity Verbosity
@@ -108,13 +161,58 @@ namespace SonarQube.Common
             return finalMessage;
         }
 
-        private void LogMessage(LoggerVerbosity messageVerbosity, string message, params object[] args)
+        private void FlushOutput()
         {
-            if (messageVerbosity == LoggerVerbosity.Info || 
-                (messageVerbosity == LoggerVerbosity.Debug && this.Verbosity == LoggerVerbosity.Debug))
+            Debug.Assert(this.isOutputSuspended, "Not expecting FlushOutput to be called unless output is currently suspended");
+            Debug.Assert(this.suspendedMessages != null);
+
+            this.isOutputSuspended = false;
+
+            foreach(Message message in this.suspendedMessages)
             {
-                string finalMessage = this.GetFormattedMessage(message, args);
-                Console.WriteLine(finalMessage);
+                this.Write(message.MessageType, message.FinalMessage);
+            }
+
+            this.suspendedMessages = null;
+        }
+
+        /// <summary>
+        /// Either writes the message to the output stream, or records it
+        /// if output is currently suspended
+        /// </summary>
+        private void Write(MessageType messageType, string message, params object[] args)
+        {
+            string finalMessage = this.GetFormattedMessage(message, args);
+
+            if (this.isOutputSuspended)
+            {
+                this.suspendedMessages.Add(new Message(messageType, finalMessage));
+            }
+            else
+            {
+                ConsoleColor textColor = GetConsoleColor(messageType);
+
+                Debug.Assert(this.outputWriter != null, "OutputWriter should not be null");
+                this.outputWriter.WriteLine(finalMessage, textColor, messageType == MessageType.Error);
+            }
+        }
+
+        private ConsoleColor GetConsoleColor(MessageType messageType)
+        {
+
+            switch (messageType)
+            {
+                case MessageType.Debug:
+                    return DebugColor;
+
+                case MessageType.Warning:
+                    return WarningColor;
+
+                case MessageType.Error:
+                    return ErrorColor;
+
+                default:
+                    return Console.ForegroundColor;
             }
         }
 

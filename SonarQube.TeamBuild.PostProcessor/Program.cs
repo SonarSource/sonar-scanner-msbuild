@@ -30,7 +30,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private static int Main(string[] args)
         {
-            ConsoleLogger logger = new ConsoleLogger();
+            ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
             Utilities.LogAssemblyVersion(logger, typeof(Program).Assembly, Resources.AssemblyDescription);
             logger.IncludeTimestamp = true;
 
