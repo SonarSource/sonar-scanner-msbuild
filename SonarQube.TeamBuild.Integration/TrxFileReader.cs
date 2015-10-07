@@ -5,12 +5,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Minimatch;
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Xml;
 
 namespace SonarQube.TeamBuild.Integration
@@ -64,7 +66,7 @@ namespace SonarQube.TeamBuild.Integration
         /// * look for a test results file (*.trx) in a default location under the supplied build directory.
         /// * parse the trx file looking for a code coverage attachment entry
         /// * resolve the attachment entry to an absolute path</remarks>
-        public static string LocateCodeCoverageFile(string buildRootDirectory, ILogger logger)
+        public static string LocateCodeCoverageFile(string buildRootDirectory, ILogger logger, Property vstestReportPath = null)
         {
             if (string.IsNullOrWhiteSpace(buildRootDirectory))
             {
@@ -77,7 +79,7 @@ namespace SonarQube.TeamBuild.Integration
 
             string coverageFilePath = null;
 
-            string trxFilePath = FindTrxFile(buildRootDirectory, logger);
+            string trxFilePath = vstestReportPath == null ? FindTrxFile(buildRootDirectory, logger) : FindTrxFileFromMinimatchExpression(buildRootDirectory, vstestReportPath.Value, logger);
 
             if (!string.IsNullOrEmpty(trxFilePath))
             {
@@ -107,21 +109,7 @@ namespace SonarQube.TeamBuild.Integration
             {
                 string[] trxFiles = Directory.GetFiles(testResultsPath, "*.trx");
 
-                switch (trxFiles.Length)
-                {
-                    case 0:
-                        logger.LogInfo(Resources.TRX_DIAG_NoTestResultsFound);
-                        break;
-
-                    case 1:
-                        trxFilePath = trxFiles[0];
-                        logger.LogInfo(Resources.TRX_DIAG_SingleTrxFileFound, trxFilePath);
-                        break;
-
-                    default:
-                        logger.LogWarning(Resources.TRX_WARN_MultipleTrxFilesFound, string.Join(", ", trxFiles));
-                        break;
-                }
+                trxFilePath = AnalyzeTrxFilePaths(logger, trxFiles);
             }
             else
             {
@@ -170,7 +158,7 @@ namespace SonarQube.TeamBuild.Integration
 
             coverageFilePaths = null;
             bool continueProcessing = true;
-            
+
             List<string> runAttachments = new List<string>();
             try
             {
@@ -180,7 +168,7 @@ namespace SonarQube.TeamBuild.Integration
                 nsmgr.AddNamespace("x", CodeCoverageXmlNamespace);
 
                 XmlNodeList attachmentNodes = doc.SelectNodes("/x:TestRun/x:ResultSummary/x:CollectorDataEntries/x:Collector[@uri='datacollector://microsoft/CodeCoverage/2.0']/x:UriAttachments/x:UriAttachment/x:A", nsmgr);
-               
+
                 foreach (XmlNode attachmentNode in attachmentNodes)
                 {
                     XmlAttribute att = attachmentNode.Attributes["href"];
@@ -201,6 +189,64 @@ namespace SonarQube.TeamBuild.Integration
             return continueProcessing;
         }
 
+        private static string FindTrxFileFromMinimatchExpression(string buildRootDirectory, string searchPattern, ILogger logger)
+        {
+            BindAssemblyResolution();
+            return DoFindTrxFileFromMinimatchExpression(buildRootDirectory, searchPattern, logger);
+        }
+
+        static void BindAssemblyResolution()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+            {
+                Assembly loaded = null;
+                var asmFileName = new AssemblyName(args.Name).Name + ".dll";
+                string resourceName = typeof(TrxFileReader).Namespace + "." + asmFileName;
+                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
+                {
+                    if (stream != null)
+                    {
+                        byte[] assemblyData = new byte[stream.Length];
+                        stream.Read(assemblyData, 0, assemblyData.Length);
+                        loaded = Assembly.Load(assemblyData);
+                        stream.Close();
+                    }
+                }
+                return loaded;
+            };
+        }
+
+        private static string DoFindTrxFileFromMinimatchExpression(string buildRootDirectory, string searchPattern, ILogger logger)
+        {
+            var possibleTrxFiles = Directory.EnumerateFiles(buildRootDirectory, "*.trx", SearchOption.AllDirectories);
+
+            var mm = new Minimatcher(searchPattern, new Options { AllowWindowsPaths = true });
+            var trxFiles = mm.Filter(possibleTrxFiles).ToArray();
+
+            return AnalyzeTrxFilePaths(logger, trxFiles);
+        }
+
+        private static string AnalyzeTrxFilePaths(ILogger logger, string[] trxFiles)
+        {
+            string trxFilePath = null;
+            switch (trxFiles.Length)
+            {
+                case 0:
+                    logger.LogInfo(Resources.TRX_DIAG_NoTestResultsFound);
+                    break;
+
+                case 1:
+                    trxFilePath = trxFiles[0];
+                    logger.LogInfo(Resources.TRX_DIAG_SingleTrxFileFound, trxFilePath);
+                    break;
+
+                default:
+                    logger.LogWarning(Resources.TRX_WARN_MultipleTrxFilesFound, string.Join(", ", trxFiles));
+                    break;
+            }
+
+            return trxFilePath;
+        }
         #endregion
     }
 }
