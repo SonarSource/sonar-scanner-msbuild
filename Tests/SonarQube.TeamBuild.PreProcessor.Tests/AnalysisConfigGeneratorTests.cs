@@ -97,10 +97,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             serverProperties.Add(SonarProperties.SonarUserName, "secret user");
             serverProperties.Add(SonarProperties.SonarPassword, "secret pwd");
 
-
             TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettings(analysisDir);
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
-
 
             // Act
             AnalysisConfig config = AnalysisConfigGenerator.GenerateFile(args, settings, serverProperties, logger);
@@ -123,14 +121,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertFileDoesNotContainText(config.FileName, "file.public.key"); // file settings values should not be in the config
 
             // SONARMSBRU-136: TODO - uncomment the following code:
-            //AssertFileDoesNotContainText(config.FileName, "secret"); // sensitive data should not be in config
-
-            // SONARMSBRU-136: TODO - delete the following code:
-            // v1.0.1 back-compat: check sensitive data is written to the config file
-            AssertExpectedLocalSetting(SonarProperties.DbPassword, "secret db password", config);
-            AssertExpectedLocalSetting(SonarProperties.DbUserName, "secret db user", config);
-            AssertExpectedServerSetting(SonarProperties.SonarUserName, "secret user", config);
-            AssertExpectedServerSetting(SonarProperties.SonarPassword, "secret pwd", config);
+            AssertFileDoesNotContainText(config.FileName, "secret"); // sensitive data should not be in config
         }
 
         #endregion

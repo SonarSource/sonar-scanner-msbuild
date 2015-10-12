@@ -54,8 +54,6 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             logger.AssertSingleErrorExists("CCC");
         }
 
-        // SONARMSBRU-136: TODO - re-enable the following test:
-        [Ignore]
         [TestMethod]
         public void PostArgProc_PermittedArguments()
         {
@@ -79,8 +77,6 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             provider.AssertExpectedPropertyValue("sonar.jdbc.password", "db pwd");
         }
 
-        // SONARMSBRU-136: TODO - re-enable the following test:
-        [Ignore]
         [TestMethod]
         public void PostArgProc_NotPermittedArguments()
         {

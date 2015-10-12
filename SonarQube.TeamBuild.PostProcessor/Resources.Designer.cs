@@ -74,7 +74,7 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This command line argument is not valid in the &quot;end&quot; phase: {0}.
+        ///   Looks up a localized string similar to This setting is not valid in the &quot;end&quot; phase: {0}. Possible cause: you are not running the latest C# plugin version..
         /// </summary>
         internal static string ERROR_CmdLine_DisallowedArgument {
             get {

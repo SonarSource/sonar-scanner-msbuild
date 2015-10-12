@@ -248,8 +248,6 @@ xxx yyy
         }
 
 
-        // SONARMSBRU-136: TODO - re-enable the following test:
-        [Ignore]
         [TestMethod]
         [WorkItem(126)] // Exclude secrets from log data: http://jira.sonarsource.com/browse/SONARMSBRU-126
         public void ProcRunner_DoNotLogSensitiveData()

@@ -90,23 +90,21 @@ namespace SonarQube.TeamBuild.PostProcessor
         /// <returns>True if the arguments are valid, otherwise false</returns>
         private static bool AreParsedArgumentsValid(IAnalysisPropertyProvider provider, ILogger logger)
         {
-            return true;
-
             // SONARMSBRU-136/SONARMSBRU-137: back-compat with v1.0 - allow sensitive data to be stored in the generated project properties file and config file.
             // SONARMSBRU-136: TODO - uncomment the following code:
-            //bool areValid = true;
+            bool areValid = true;
 
-            //// Only sensitive data arguments are allowed on the post-processor command line
-            //foreach(Property property in provider.GetAllProperties())
-            //{
-            //    if (!IsPermittedProperty(property))
-            //    {
-            //        areValid = false;
-            //        logger.LogError(Resources.ERROR_CmdLine_DisallowedArgument, property.Id);
-            //    }
-            //}
+            // Only sensitive data arguments are allowed on the post-processor command line
+            foreach (Property property in provider.GetAllProperties())
+            {
+                if (!IsPermittedProperty(property))
+                {
+                    areValid = false;
+                    logger.LogError(Resources.ERROR_CmdLine_DisallowedArgument, property.Id);
+                }
+            }
 
-            //return areValid;
+            return areValid;
         }
 
         /// <summary>

@@ -117,8 +117,6 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             context.Logger.AssertWarningsLogged(0);
         }
 
-        // SONARMSBRU-136: TODO - re-enable the following test:
-        [Ignore]
         [TestMethod]
         public void PostProc_FailsOnInvalidArgs()
         {
@@ -140,8 +138,6 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             context.Logger.AssertWarningsLogged(0);
         }
 
-        // SONARMSBRU-136: TODO - re-enable the following test:
-        [Ignore]
         [TestMethod]
         public void PostProc_ValidArgsPassedThrough()
         {
