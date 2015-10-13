@@ -125,7 +125,7 @@ Analysis config file: {2}
 Please delete the analysis config file and try the build again.</value>
   </data>
   <data name="ERROR_CmdLine_DisallowedArgument" xml:space="preserve">
-    <value>This setting is not valid in the "end" phase: {0}. Possible cause: you are not running the latest C# plugin version.</value>
+    <value>This setting is not valid the "end" phase in this version of the C# plugin: {0}</value>
   </data>
   <data name="ERROR_ConfigFileNotFound" xml:space="preserve">
     <value>SonarQube analysis could not be completed because the analysis configuration file could not be found.
