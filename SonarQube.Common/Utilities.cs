@@ -188,7 +188,7 @@ namespace SonarQube.Common
             }
             if (assembly == null)
             {
-                throw new ArgumentNullException("asm");
+                throw new ArgumentNullException("assembly");
             }
             if (string.IsNullOrWhiteSpace(description))
             {
