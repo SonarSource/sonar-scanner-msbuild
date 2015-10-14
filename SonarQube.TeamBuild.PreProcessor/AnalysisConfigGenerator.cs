@@ -44,7 +44,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             config.SonarConfigDir = settings.SonarConfigDirectory;
             config.SonarOutputDir = settings.SonarOutputDirectory;
             config.SonarBinDir = settings.SonarBinDirectory;
-
+            config.SonarRunnerWorkingDirectory = settings.SonarRunnerWorkingDirectory; 
 
             // Add the server properties to the config
             config.ServerSettings = new AnalysisProperties();

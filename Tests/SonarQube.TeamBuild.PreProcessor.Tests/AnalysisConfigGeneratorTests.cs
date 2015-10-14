@@ -43,7 +43,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             ProcessedArgs args = new ProcessedArgs("key", "name", "version", false, EmptyPropertyProvider.Instance, fileProvider);
 
-            TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettings(analysisDir);
+            TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
@@ -59,6 +59,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // Check the file setting value do not appear in the config file
             AssertFileDoesNotContainText(actualConfig.FileName, "file.only");
+
+            Assert.AreEqual(settings.SonarRunnerWorkingDirectory, actualConfig.SonarRunnerWorkingDirectory);
         }
 
         [TestMethod]
@@ -97,7 +99,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             serverProperties.Add(SonarProperties.SonarUserName, "secret user");
             serverProperties.Add(SonarProperties.SonarPassword, "secret pwd");
 
-            TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettings(analysisDir);
+            TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
             // Act

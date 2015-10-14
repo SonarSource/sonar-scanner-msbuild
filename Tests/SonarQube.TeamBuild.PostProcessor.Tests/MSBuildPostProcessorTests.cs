@@ -196,7 +196,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             public PostProcTestContext(TestContext testContext)
             {
                 this.Config = new AnalysisConfig();
-                this.settings = TeamBuildSettings.CreateNonTeamBuildSettings(testContext.DeploymentDirectory);
+                this.settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(testContext.DeploymentDirectory);
 
                 this.logger = new TestLogger();
                 this.codeCoverage = new MockCodeCoverageProcessor();

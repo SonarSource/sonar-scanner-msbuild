@@ -124,10 +124,14 @@ namespace SonarRunner.Shim
             Debug.Assert(envVarsDictionary != null);
 
             logger.LogInfo(Resources.MSG_CallingSonarRunner);
+
+            Debug.Assert(!String.IsNullOrWhiteSpace(config.SonarRunnerWorkingDirectory), "The working dir should have been set in the analysis config");
+            Debug.Assert(Directory.Exists(config.SonarRunnerWorkingDirectory), "The working dir should exist");
+
             ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(exeFileName, logger)
             {
                 CmdLineArgs = allCmdLineArgs,
-                WorkingDirectory = Path.GetDirectoryName(exeFileName),
+                WorkingDirectory = config.SonarRunnerWorkingDirectory, // this is the directory above .sonarqube
                 EnvironmentVariables = envVarsDictionary
             };
             ProcessRunner runner = new ProcessRunner();

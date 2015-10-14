@@ -26,6 +26,13 @@ namespace SonarQube.Common
 
         public string SonarBinDir { get; set; }
 
+        /// <summary>
+        /// The working directory as perceived by the user, i.e. the directory containing the solution
+        /// </summary>
+        /// <remarks>Users expect to specify paths relative to the build directory and not to the location of the sonar-runner program.
+       ///  See https://jira.sonarsource.com/browse/SONARMSBRU-100 for details.</remarks>
+        public string SonarRunnerWorkingDirectory { get; set; }
+
         #region SonarQube project properties
 
         public string SonarQubeHostUrl { get; set; }

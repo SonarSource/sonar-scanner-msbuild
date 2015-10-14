@@ -206,7 +206,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
         private TeamBuildSettings CreateValidSettings()
         {
-            return TeamBuildSettings.CreateNonTeamBuildSettings(this.TestContext.DeploymentDirectory);
+            return TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(this.TestContext.DeploymentDirectory);
         }
 
         #endregion Private methods

@@ -33,7 +33,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         public bool ProcessCoverageReports()
         {
-            Debug.Assert(!this.initialisedSuccesfully, "Initialization failed, cannot process coverage reports");
+            Debug.Assert(this.initialisedSuccesfully, "Initialization failed, cannot process coverage reports");
 
             return this.processor.ProcessCoverageReports();
         }

@@ -17,6 +17,15 @@ namespace SonarRunner.Shim.Tests
     public class SonarRunnerWrapperTests
     {
         private const string ExpectedConsoleMessagePrefix = "Args passed to dummy runner: ";
+        private const string ExpectedWorkDirectory = "Working Dir: ";
+
+        private static string sonarRunnerWorkingDir;
+
+        [ClassInitialize()]
+        public static void ClassInit(TestContext testContext)
+        {
+            sonarRunnerWorkingDir = TestUtils.CreateTestSpecificFolder(testContext, "workDir");
+        }
 
         public TestContext TestContext { get; set; }
 
@@ -33,12 +42,13 @@ namespace SonarRunner.Shim.Tests
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName, null);
+                AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = sonarRunnerWorkingDir };
 
                 // Act
-                bool success = SonarRunnerWrapper.ExecuteJavaRunner(new AnalysisConfig(), Enumerable.Empty<string>(), testLogger, exePath, propertiesFilePath);
-                Assert.IsTrue(success, "Expecting execution to succeed");
+                bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), testLogger, exePath, propertiesFilePath);
 
                 // Assert
+                VerifySuccessfullRun(testLogger, success);
                 testLogger.AssertMessageNotLogged(SonarRunner.Shim.Resources.MSG_SonarRunnerHomeIsSet);
             }
         }
@@ -54,14 +64,22 @@ namespace SonarRunner.Shim.Tests
                 TestLogger testLogger = new TestLogger();
                 string exePath = CreateDummarySonarRunnerBatchFile();
                 string propertiesFilePath = CreateDummySonarRunnerPropertiesFile();
+                AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = sonarRunnerWorkingDir };
 
                 // Act
-                bool success = SonarRunnerWrapper.ExecuteJavaRunner(new AnalysisConfig(), Enumerable.Empty<string>(), testLogger, exePath, propertiesFilePath);
+                bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), testLogger, exePath, propertiesFilePath);
 
                 // Assert
-                Assert.IsTrue(success, "Expecting execution to succeed");
-                testLogger.AssertInfoMessageExists(SonarRunner.Shim.Resources.MSG_SonarRunnerHomeIsSet);
+                VerifySuccessfullRun(testLogger, success);
             }
+        }
+
+        private static void VerifySuccessfullRun(TestLogger testLogger, bool success)
+        {
+            Assert.IsTrue(success, "Expecting execution to succeed");
+            
+            testLogger.AssertInfoMessageExists(ExpectedConsoleMessagePrefix);
+            testLogger.AssertInfoMessageExists(sonarRunnerWorkingDir);
         }
 
         [TestMethod]
@@ -71,11 +89,13 @@ namespace SonarRunner.Shim.Tests
             TestLogger logger = new TestLogger();
             string exePath = CreateDummarySonarRunnerBatchFile();
             string propertiesFilePath = CreateDummySonarRunnerPropertiesFile();
+            AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = sonarRunnerWorkingDir };
 
             // Act
-            bool success = SonarRunnerWrapper.ExecuteJavaRunner(new AnalysisConfig(), Enumerable.Empty<string>(), logger, exePath, propertiesFilePath);
-            Assert.IsTrue(success, "Expecting execution to succeed");
-            CheckStandardArgsPassed(logger, propertiesFilePath);
+            bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), logger, exePath, propertiesFilePath);
+
+            // Assert
+            VerifySuccessfullRun(logger, success);
         }
 
         [TestMethod]
@@ -92,8 +112,10 @@ namespace SonarRunner.Shim.Tests
             string[] userArgs = new string[] { "-Dsonar.login=me", "-Dsonar.password=my.pwd" };
 
             // Act
-            bool success = SonarRunnerWrapper.ExecuteJavaRunner(new AnalysisConfig(), userArgs, logger, exePath, propertiesFilePath);
-            Assert.IsTrue(success, "Expecting execution to succeed");
+            bool success = SonarRunnerWrapper.ExecuteJavaRunner(new AnalysisConfig() { SonarRunnerWorkingDirectory = sonarRunnerWorkingDir }, userArgs, logger, exePath, propertiesFilePath);
+
+            // Assert
+            VerifySuccessfullRun(logger, success);
 
             string actualCmdLineArgs = CheckStandardArgsPassed(logger, propertiesFilePath);
             
@@ -130,16 +152,16 @@ namespace SonarRunner.Shim.Tests
             string settingsFilePath = Path.Combine(testDir, "fileSettings.txt");
             fileSettings.Save(settingsFilePath);
 
-            AnalysisConfig config = new AnalysisConfig();
+            AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = sonarRunnerWorkingDir };
             config.SetSettingsFilePath(settingsFilePath);
 
             // Act
             bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, userArgs, logger, exePath, propertiesFilePath);
-            Assert.IsTrue(success, "Expecting execution to succeed");
 
-            string actualCmdLineArgs = CheckStandardArgsPassed(logger, propertiesFilePath);
-             
             // Assert
+            VerifySuccessfullRun(logger, success);
+            string actualCmdLineArgs = CheckStandardArgsPassed(logger, propertiesFilePath);
+            
             // Non-sensitive values from the file should not be passed on the command line
             CheckArgDoesNotExist("file.not.sensitive.key", actualCmdLineArgs);
 
@@ -166,7 +188,7 @@ namespace SonarRunner.Shim.Tests
 
             Assert.IsFalse(File.Exists(exePath), "Not expecting a batch file to already exist: {0}", exePath);
 
-            File.WriteAllText(exePath, "@echo " + ExpectedConsoleMessagePrefix + " %*");
+            File.WriteAllText(exePath, "@echo " + ExpectedConsoleMessagePrefix + " %* \n @echo " + ExpectedWorkDirectory + " %cd%");
             return exePath;
         }
 
