@@ -34,8 +34,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                 return new string[]
                     {
                         Path.Combine(appData, "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-                        Path.Combine(appData, "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-                        Path.Combine(appData, "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore")
+                        Path.Combine(appData, "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore")
                     };
             }
         }
@@ -113,8 +112,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             string[] globalMsbuildTargetsDirs = new string[]
             {
                 Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "MSBuild", "14.0", "Microsoft.Common.Targets", "ImportBefore"),
-                Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "MSBuild", "12.0", "Microsoft.Common.Targets", "ImportBefore"),
-                Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "MSBuild", "4.0", "Microsoft.Common.Targets", "ImportBefore"),
+                Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "MSBuild", "12.0", "Microsoft.Common.Targets", "ImportBefore")
             };
 
             foreach (string globalMsbuildTargetDir in globalMsbuildTargetsDirs)

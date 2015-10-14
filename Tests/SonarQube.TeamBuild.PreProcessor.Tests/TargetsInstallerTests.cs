@@ -58,7 +58,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             try
             {
                 InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
-                Assert.IsTrue(TargetsInstaller.DestinationDirs.Count == 3, "Expecting 3 destination directories");
+                Assert.IsTrue(TargetsInstaller.DestinationDirs.Count == 2, "Expecting two destination directories");
 
                 string path = Path.Combine(TargetsInstaller.DestinationDirs[0], TargetsInstaller.LoaderTargetsName);
                 File.Delete(path);
@@ -74,7 +74,13 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 
         private static void CleanupMsbuildDirectories()
         {
-            foreach (string destinationDir in TargetsInstaller.DestinationDirs)
+            // SONARMSBRU-149: we used to deploy the targets file to the 4.0 directory but this
+            // is no longer supported. To be on the safe side we'll clean up the old location too.
+            IList<string> cleanUpDirs = new List<string>(TargetsInstaller.DestinationDirs);
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            cleanUpDirs.Add(Path.Combine(appData, "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"));
+
+            foreach (string destinationDir in cleanUpDirs)
             {
                 string path = Path.Combine(destinationDir, TargetsInstaller.LoaderTargetsName);
                 if (File.Exists(path))
@@ -115,15 +121,16 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                     ".targets does not have expected content at " + path);
 
                 Assert.IsTrue(logger.DebugMessages.Any(m => m.Contains(destinationDir)));
-
-                if (expectCopy)
-                {
-                    Assert.AreEqual(
-                        TargetsInstaller.DestinationDirs.Count, 
-                        logger.DebugMessages.Count,
-                        "All destinations should have been covered");
-                }
             }
+
+            if (expectCopy)
+            {
+                Assert.AreEqual(
+                    TargetsInstaller.DestinationDirs.Count,
+                    logger.DebugMessages.Count,
+                    "All destinations should have been covered");
+            }
+
         }
     }
 }
