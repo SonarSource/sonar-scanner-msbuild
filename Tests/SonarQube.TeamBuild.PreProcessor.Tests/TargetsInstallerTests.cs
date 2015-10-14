@@ -58,9 +58,9 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             try
             {
                 InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
-                Assert.IsTrue(TargetsInstaller.DestinationDirs.Count == 2, "Expecting two destination directories");
+                Assert.IsTrue(TargetsInstaller.DestinationDirectories.Count == 2, "Expecting two destination directories");
 
-                string path = Path.Combine(TargetsInstaller.DestinationDirs[0], TargetsInstaller.LoaderTargetsName);
+                string path = Path.Combine(TargetsInstaller.DestinationDirectories[0], TargetsInstaller.LoaderTargetsName);
                 File.Delete(path);
 
                 CreateDummySourceTargetsFile(sourceTargetsContent2);
@@ -76,7 +76,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         {
             // SONARMSBRU-149: we used to deploy the targets file to the 4.0 directory but this
             // is no longer supported. To be on the safe side we'll clean up the old location too.
-            IList<string> cleanUpDirs = new List<string>(TargetsInstaller.DestinationDirs);
+            IList<string> cleanUpDirs = new List<string>(TargetsInstaller.DestinationDirectories);
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             cleanUpDirs.Add(Path.Combine(appData, "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"));
 
@@ -111,7 +111,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             TestLogger logger = new TestLogger();
             installer.InstallLoaderTargets(logger);
 
-            foreach (string destinationDir in TargetsInstaller.DestinationDirs)
+            foreach (string destinationDir in TargetsInstaller.DestinationDirectories)
             {
                 string path = Path.Combine(destinationDir, TargetsInstaller.LoaderTargetsName);
                 Assert.IsTrue(File.Exists(path), ".targets file not found at: " + path);
@@ -126,7 +126,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             if (expectCopy)
             {
                 Assert.AreEqual(
-                    TargetsInstaller.DestinationDirs.Count,
+                    TargetsInstaller.DestinationDirectories.Count,
                     logger.DebugMessages.Count,
                     "All destinations should have been covered");
             }

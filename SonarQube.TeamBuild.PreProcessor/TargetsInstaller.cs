@@ -26,7 +26,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public /* for test purposes */ const string LoaderTargetsName = "SonarQube.Integration.ImportBefore.targets";
 
-        public /* for test purposes */ static IReadOnlyList<string> DestinationDirs
+        public /* for test purposes */ static IReadOnlyList<string> DestinationDirectories
         {
             get
             {
@@ -58,9 +58,9 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             string sourceTargetsPath = Path.Combine(Path.GetDirectoryName(typeof(TeamBuildPreProcessor).Assembly.Location), "Targets", LoaderTargetsName);
             Debug.Assert(File.Exists(sourceTargetsPath),
-                String.Format("Could not find the loader .targets file at {0}", sourceTargetsPath));
+                String.Format(System.Globalization.CultureInfo.InvariantCulture, "Could not find the loader .targets file at {0}", sourceTargetsPath));
 
-            CopyIfDifferent(sourceTargetsPath, DestinationDirs, logger);
+            CopyIfDifferent(sourceTargetsPath, DestinationDirectories, logger);
         }
 
         private static void CopyIfDifferent(string sourcePath, IEnumerable<string> destinationDirs, ILogger logger)
