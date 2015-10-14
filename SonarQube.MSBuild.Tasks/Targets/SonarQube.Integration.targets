@@ -219,8 +219,8 @@
 
     <!-- Calculate a project-specific directory name -->
     <PropertyGroup>
-      <FolderDisambiguator Condition=" $(FolderDisambiguator)=='' ">_$(Platform)_$(Configuration)_$([System.DateTime]::Now.Ticks)</FolderDisambiguator>
-      <ProjectSpecificDir>$(SonarQubeOutputPath)\$(MSBuildProjectName)_$(FolderDisambiguator)</ProjectSpecificDir>
+      <FolderDisambiguator Condition=" $(FolderDisambiguator)=='' ">_$(Platform)_$(Configuration)_$([System.DateTime]::Now.ToString("ffff"))</FolderDisambiguator>
+      <ProjectSpecificDir>$(SonarQubeOutputPath)\$(MSBuildProjectName)$(FolderDisambiguator)</ProjectSpecificDir>
     </PropertyGroup>
 
     <!-- Create the project-specific output folder -->
