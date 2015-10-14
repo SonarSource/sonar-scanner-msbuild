@@ -17,6 +17,7 @@ namespace SonarQube.Bootstrapper
         private static int Main(string[] args)
         {
             var logger = new ConsoleLogger();
+            Utilities.LogAssemblyVersion(logger, typeof(Program).Assembly, Resources.AssemblyDescription);
             BuildAgentUpdater updater = new BuildAgentUpdater();
             return Execute(args, updater, logger);
         }

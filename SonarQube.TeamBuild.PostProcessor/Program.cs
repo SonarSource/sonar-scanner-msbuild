@@ -20,7 +20,9 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private static int Main(string[] args)
         {
-            ConsoleLogger logger = new ConsoleLogger(includeTimestamp: true);
+            ConsoleLogger logger = new ConsoleLogger();
+            Utilities.LogAssemblyVersion(logger, typeof(Program).Assembly, Resources.AssemblyDescription);
+            logger.IncludeTimestamp = true;
 
             TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
             Debug.Assert(settings != null, "Settings should not be null");
