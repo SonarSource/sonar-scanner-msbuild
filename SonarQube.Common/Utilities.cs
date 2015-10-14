@@ -179,6 +179,25 @@ namespace SonarQube.Common
 
             return false;
         }
+
+        public static void LogAssemblyVersion(ILogger logger, System.Reflection.Assembly assembly, string description)
+        {
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+            if (assembly == null)
+            {
+                throw new ArgumentNullException("asm");
+            }
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                throw new ArgumentNullException("description");
+            }
+
+            logger.LogInfo("{0} {1}", description, assembly.GetName().Version);
+        }
+
         #endregion
 
     }

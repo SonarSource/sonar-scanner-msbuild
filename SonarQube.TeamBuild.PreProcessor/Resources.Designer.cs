@@ -61,6 +61,15 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MSBuild SonarQube Runner Pre-processor.
+        /// </summary>
+        public static string AssemblyDescription {
+            get {
+                return ResourceManager.GetString("AssemblyDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to /install:[true|false] - install standard MSBuild targets required for analysis (default true).
         /// </summary>
         public static string CmdLine_ArgDescription_InstallTargets {

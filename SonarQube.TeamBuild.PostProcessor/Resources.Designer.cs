@@ -61,6 +61,15 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MSBuild SonarQube Runner Post-processor.
+        /// </summary>
+        internal static string AssemblyDescription {
+            get {
+                return ResourceManager.GetString("AssemblyDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
         ///Build Uri from environment: {0}
         ///Build Uri from config: {1}

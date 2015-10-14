@@ -61,6 +61,15 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MSBuild SonarQube Runner Bootstrapper.
+        /// </summary>
+        public static string AssemblyDescription {
+            get {
+                return ResourceManager.GetString("AssemblyDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to begin - perform pre-MSBuild analysis steps.
         /// </summary>
         public static string CmdLine_ArgDescription_Begin {

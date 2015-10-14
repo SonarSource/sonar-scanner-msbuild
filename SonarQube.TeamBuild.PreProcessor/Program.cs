@@ -19,7 +19,9 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private static int Main(string[] args)
         {
-            ILogger logger = new ConsoleLogger(includeTimestamp: true);
+            ILogger logger = new ConsoleLogger();
+            Utilities.LogAssemblyVersion(logger, typeof(Program).Assembly, Resources.AssemblyDescription);
+            logger.IncludeTimestamp = true;
 
             TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor();
             bool success = preProcessor.Execute(args, logger);
