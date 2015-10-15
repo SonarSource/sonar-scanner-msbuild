@@ -47,9 +47,10 @@ namespace SonarQube.TeamBuild.Integration
         private void InternalDownloadReport(string tfsUri, string reportUrl, string reportDestinationPath, ILogger logger)
         {
             VssHttpMessageHandler vssHttpMessageHandler = GetHttpHandler(tfsUri, logger);
-            HttpClient httpClient = new HttpClient(vssHttpMessageHandler);
 
             logger.LogInfo(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, reportDestinationPath);
+
+            using (HttpClient httpClient = new HttpClient(vssHttpMessageHandler))
             using (HttpResponseMessage response = httpClient.GetAsync(reportUrl).Result)
             {
                 if (response.IsSuccessStatusCode)
@@ -58,6 +59,10 @@ namespace SonarQube.TeamBuild.Integration
                     {
                         response.Content.CopyToAsync(fileStream).Wait();
                     }
+                }
+                else
+                {
+                    logger.LogError(Resources.PROC_ERROR_FailedToDownloadReportReason, reportUrl, response.StatusCode, response.ReasonPhrase);
                 }
             }
         }
