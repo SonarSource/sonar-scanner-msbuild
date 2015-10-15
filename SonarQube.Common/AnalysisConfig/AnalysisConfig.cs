@@ -27,10 +27,10 @@ namespace SonarQube.Common
         public string SonarBinDir { get; set; }
 
         /// <summary>
-        /// The working directory as perceived by the user, i.e. the directory containing the solution
+        /// The working directory as perceived by the user, i.e. the current directory for command line builds
         /// </summary>
-        /// <remarks>Users expect to specify paths relative to the build directory and not to the location of the sonar-runner program.
-       ///  See https://jira.sonarsource.com/browse/SONARMSBRU-100 for details.</remarks>
+        /// <remarks>Users expect to specify paths relative to the working directory and not to the location of the sonar-runner program.
+        ///  See https://jira.sonarsource.com/browse/SONARMSBRU-100 for details.</remarks>
         public string SonarRunnerWorkingDirectory { get; set; }
 
         #region SonarQube project properties
@@ -53,7 +53,7 @@ namespace SonarQube.Common
         /// <summary>
         /// List of analysis settings inherited from the SonarQube server
         /// </summary>
-        public AnalysisProperties ServerSettings{ get; set; }
+        public AnalysisProperties ServerSettings { get; set; }
 
         /// <summary>
         /// List of analysis settings supplied locally (either on the

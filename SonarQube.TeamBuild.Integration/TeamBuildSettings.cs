@@ -37,11 +37,13 @@ namespace SonarQube.TeamBuild.Integration
 
             // Legacy TeamBuild environment variables (XAML Builds)
             public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
+
             public const string BuildUri_Legacy = "TF_BUILD_BUILDURI";
             public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
 
             // TFS 2015 Environment variables
             public const string TfsCollectionUri_TFS2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
+
             public const string BuildUri_TFS2015 = "BUILD_BUILDURI";
             public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
         }
@@ -59,7 +61,7 @@ namespace SonarQube.TeamBuild.Integration
             {
                 throw new ArgumentNullException("logger");
             }
-            
+
             TeamBuildSettings settings = null;
 
             BuildEnvironment env = GetBuildEnvironment();
@@ -84,7 +86,7 @@ namespace SonarQube.TeamBuild.Integration
                         TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUri_TFS2015),
                         BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectory_TFS2015),
                     };
-                    
+
                     break;
 
                 default:
@@ -97,34 +99,13 @@ namespace SonarQube.TeamBuild.Integration
                     break;
             }
 
-            // We expect the bootstrapper to have set the WoringDir of the processors to be the temp dir (i.e. .sonarqube)
+            // We expect the bootstrapper to have set the WorkingDir of the processors to be the temp dir (i.e. .sonarqube)
             settings.AnalysisBaseDirectory = Directory.GetCurrentDirectory();
 
             // https://jira.sonarsource.com/browse/SONARMSBRU-100 the sonar-runner should be able to locate files such as the resharper output
-            // via relative paths, at least in the msbuild scenario, so the working directory should be source tree directory
+            // via relative paths, at least in the msbuild scenario, so the working directory should be The directory from which the user issued the command
             // Note that this will not work for TFS Build / XAML Build as the sources directory is more difficult to compute
             settings.SonarRunnerWorkingDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-
-            return settings;
-        }
-
-        /// <summary>
-        /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="GetSettingsFromEnvironment(ILogger)"/>
-        /// in product code.
-        /// </summary>
-        public /* for test pruposes */ static TeamBuildSettings CreateNonTeamBuildSettingsForTesting(string analysisBaseDirectory)
-        {
-            if (string.IsNullOrWhiteSpace(analysisBaseDirectory))
-            {
-                throw new ArgumentNullException("analysisBaseDirectory");
-            }
-
-            TeamBuildSettings settings = new TeamBuildSettings()
-            {
-                BuildEnvironment = BuildEnvironment.NotTeamBuild,
-                AnalysisBaseDirectory = analysisBaseDirectory,
-                SonarRunnerWorkingDirectory = Directory.GetParent(analysisBaseDirectory).FullName
-            };
 
             return settings;
         }
@@ -159,7 +140,7 @@ namespace SonarQube.TeamBuild.Integration
         public static bool IsInTeamBuild
         {
             get
-            {                
+            {
                 return TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamBuild, false);
             }
         }
@@ -180,7 +161,7 @@ namespace SonarQube.TeamBuild.Integration
             }
         }
 
-        #endregion
+        #endregion Public static methods
 
         #region Public properties
 
@@ -221,7 +202,7 @@ namespace SonarQube.TeamBuild.Integration
             private set;
         }
 
-        #endregion
+        #endregion Public properties
 
         #region Public calculated properties
 
@@ -254,9 +235,37 @@ namespace SonarQube.TeamBuild.Integration
             get { return Path.Combine(this.SonarConfigDirectory, FileConstants.ConfigFileName); }
         }
 
+        /// <summary>
+        /// The working directory that will be set when the sonar-runner will be spawned
+        /// </summary>
         public string SonarRunnerWorkingDirectory { get; private set; }
 
-        #endregion
+        #endregion Public calculated properties
+
+        #region Test Helpers
+
+        /// <summary>
+        /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="GetSettingsFromEnvironment(ILogger)"/>
+        /// in product code.
+        /// </summary>
+        public static TeamBuildSettings CreateNonTeamBuildSettingsForTesting(string analysisBaseDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(analysisBaseDirectory))
+            {
+                throw new ArgumentNullException("analysisBaseDirectory");
+            }
+
+            TeamBuildSettings settings = new TeamBuildSettings()
+            {
+                BuildEnvironment = BuildEnvironment.NotTeamBuild,
+                AnalysisBaseDirectory = analysisBaseDirectory,
+                SonarRunnerWorkingDirectory = Directory.GetParent(analysisBaseDirectory).FullName
+            };
+
+            return settings;
+        }
+
+        #endregion Test Helpers
 
         #region Private methods
 
@@ -265,7 +274,6 @@ namespace SonarQube.TeamBuild.Integration
         /// </summary>
         private TeamBuildSettings()
         { }
-
 
         private static bool TryGetBoolEnvironmentVariable(string envVar, bool defaultValue)
         {
@@ -294,7 +302,6 @@ namespace SonarQube.TeamBuild.Integration
             return defaultValue;
         }
 
-        #endregion
-
+        #endregion Private methods
     }
 }

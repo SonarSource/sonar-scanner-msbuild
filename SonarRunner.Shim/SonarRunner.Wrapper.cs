@@ -131,7 +131,7 @@ namespace SonarRunner.Shim
             ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(exeFileName, logger)
             {
                 CmdLineArgs = allCmdLineArgs,
-                WorkingDirectory = config.SonarRunnerWorkingDirectory, // this is the directory above .sonarqube
+                WorkingDirectory = config.SonarRunnerWorkingDirectory, 
                 EnvironmentVariables = envVarsDictionary
             };
             ProcessRunner runner = new ProcessRunner();

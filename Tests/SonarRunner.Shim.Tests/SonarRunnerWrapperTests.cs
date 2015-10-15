@@ -17,15 +17,6 @@ namespace SonarRunner.Shim.Tests
     public class SonarRunnerWrapperTests
     {
         private const string ExpectedConsoleMessagePrefix = "Args passed to dummy runner: ";
-        private const string ExpectedWorkDirectory = "Working Dir: ";
-
-        private static string sonarRunnerWorkingDir;
-
-        [ClassInitialize()]
-        public static void ClassInit(TestContext testContext)
-        {
-            sonarRunnerWorkingDir = TestUtils.CreateTestSpecificFolder(testContext, "workDir");
-        }
 
         public TestContext TestContext { get; set; }
 
@@ -42,13 +33,13 @@ namespace SonarRunner.Shim.Tests
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName, null);
-                AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = sonarRunnerWorkingDir };
+                AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = this.TestContext.DeploymentDirectory };
 
                 // Act
                 bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), testLogger, exePath, propertiesFilePath);
 
                 // Assert
-                VerifySuccessfullRun(testLogger, success);
+                VerifySuccessfullRun(testLogger, success, this.TestContext.DeploymentDirectory);
                 testLogger.AssertMessageNotLogged(SonarRunner.Shim.Resources.MSG_SonarRunnerHomeIsSet);
             }
         }
@@ -64,22 +55,22 @@ namespace SonarRunner.Shim.Tests
                 TestLogger testLogger = new TestLogger();
                 string exePath = CreateDummarySonarRunnerBatchFile();
                 string propertiesFilePath = CreateDummySonarRunnerPropertiesFile();
-                AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = sonarRunnerWorkingDir };
+                AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = this.TestContext.DeploymentDirectory };
 
                 // Act
                 bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), testLogger, exePath, propertiesFilePath);
 
                 // Assert
-                VerifySuccessfullRun(testLogger, success);
+                VerifySuccessfullRun(testLogger, success , this.TestContext.DeploymentDirectory);
             }
         }
 
-        private static void VerifySuccessfullRun(TestLogger testLogger, bool success)
+        private static void VerifySuccessfullRun(TestLogger testLogger, bool success, string expectedWorkingDir)
         {
             Assert.IsTrue(success, "Expecting execution to succeed");
-            
+
             testLogger.AssertInfoMessageExists(ExpectedConsoleMessagePrefix);
-            testLogger.AssertInfoMessageExists(sonarRunnerWorkingDir);
+            testLogger.AssertInfoMessageExists(expectedWorkingDir);
         }
 
         [TestMethod]
@@ -89,13 +80,13 @@ namespace SonarRunner.Shim.Tests
             TestLogger logger = new TestLogger();
             string exePath = CreateDummarySonarRunnerBatchFile();
             string propertiesFilePath = CreateDummySonarRunnerPropertiesFile();
-            AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = sonarRunnerWorkingDir };
+            AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = this.TestContext.DeploymentDirectory };
 
             // Act
             bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), logger, exePath, propertiesFilePath);
 
             // Assert
-            VerifySuccessfullRun(logger, success);
+            VerifySuccessfullRun(logger, success, this.TestContext.DeploymentDirectory);
         }
 
         [TestMethod]
@@ -112,10 +103,15 @@ namespace SonarRunner.Shim.Tests
             string[] userArgs = new string[] { "-Dsonar.login=me", "-Dsonar.password=my.pwd" };
 
             // Act
-            bool success = SonarRunnerWrapper.ExecuteJavaRunner(new AnalysisConfig() { SonarRunnerWorkingDirectory = sonarRunnerWorkingDir }, userArgs, logger, exePath, propertiesFilePath);
+            bool success = SonarRunnerWrapper.ExecuteJavaRunner(
+                new AnalysisConfig() { SonarRunnerWorkingDirectory = this.TestContext.DeploymentDirectory }, 
+                userArgs, 
+                logger, 
+                exePath, 
+                propertiesFilePath);
 
             // Assert
-            VerifySuccessfullRun(logger, success);
+            VerifySuccessfullRun(logger, success, this.TestContext.DeploymentDirectory);
 
             string actualCmdLineArgs = CheckStandardArgsPassed(logger, propertiesFilePath);
             
@@ -152,14 +148,14 @@ namespace SonarRunner.Shim.Tests
             string settingsFilePath = Path.Combine(testDir, "fileSettings.txt");
             fileSettings.Save(settingsFilePath);
 
-            AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = sonarRunnerWorkingDir };
+            AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = this.TestContext.DeploymentDirectory };
             config.SetSettingsFilePath(settingsFilePath);
 
             // Act
             bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, userArgs, logger, exePath, propertiesFilePath);
 
             // Assert
-            VerifySuccessfullRun(logger, success);
+            VerifySuccessfullRun(logger, success, this.TestContext.DeploymentDirectory);
             string actualCmdLineArgs = CheckStandardArgsPassed(logger, propertiesFilePath);
             
             // Non-sensitive values from the file should not be passed on the command line
@@ -188,7 +184,7 @@ namespace SonarRunner.Shim.Tests
 
             Assert.IsFalse(File.Exists(exePath), "Not expecting a batch file to already exist: {0}", exePath);
 
-            File.WriteAllText(exePath, "@echo " + ExpectedConsoleMessagePrefix + " %* \n @echo " + ExpectedWorkDirectory + " %cd%");
+            File.WriteAllText(exePath, "@echo " + ExpectedConsoleMessagePrefix + " %* \n @echo WorkingDir: %cd%");
             return exePath;
         }
 
