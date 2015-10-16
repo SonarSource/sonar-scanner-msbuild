@@ -179,6 +179,15 @@ namespace SonarQube.TeamBuild.Integration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &quot;Failed to download the code coverage report from {0}. The HTTP status code was {1} and the reason \&quot;{2}\&quot;&quot;.
+        /// </summary>
+        internal static string PROC_ERROR_FailedToDownloadReportReason {
+            get {
+                return ResourceManager.GetString("PROC_ERROR_FailedToDownloadReportReason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to More than one code coverage result file was created. Only one report can be uploaded to SonarQube. Please modify the build definition so either SonarQube analysis is disabled or only one platform/flavor is built.
         /// </summary>
         internal static string PROC_ERROR_MultipleCodeCoverageReportsFound {
