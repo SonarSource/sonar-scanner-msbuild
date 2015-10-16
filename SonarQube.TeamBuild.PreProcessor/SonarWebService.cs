@@ -95,7 +95,9 @@ namespace SonarQube.TeamBuild.PreProcessor
             var contents = Downloader.Download(ws);
 
             var rules = JObject.Parse(contents);
-            var keysToIds = rules["rules"].ToDictionary(r => r["key"].ToString(), r => r["internalKey"] != null ? r["internalKey"].ToString() : null);
+            var keysToIds = rules["rules"]
+                .Where(r => r["internalKey"] != null)
+                .ToDictionary(r => r["key"].ToString(), r => r["internalKey"].ToString());
 
             return keysToIds;
         }

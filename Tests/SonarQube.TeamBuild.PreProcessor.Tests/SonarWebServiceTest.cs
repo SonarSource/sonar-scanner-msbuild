@@ -123,7 +123,6 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         {
             downloader.Pages["http://myhost:222/api/rules/search?f=internalKey&ps=" + int.MaxValue + "&repositories=fxcop"] = "{\"total\":2,\"p\":1,\"ps\":10,\"rules\":[{\"key\":\"fxcop:My_Own_FxCop_Rule\"},{\"key\":\"fxcop:UriParametersShouldNotBeStrings\",\"internalKey\":\"CA1054\"}]}";
             var expected = new Dictionary<string, string>();
-            expected["fxcop:My_Own_FxCop_Rule"] = null;
             expected["fxcop:UriParametersShouldNotBeStrings"] = "CA1054";
             var actual = ws.GetInternalKeys("fxcop");
 
@@ -174,7 +173,6 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 
             downloader.Pages["http://myhost:222/api/rules/search?f=internalKey&ps=" + int.MaxValue + "&repositories=fxcop"] = "{\"total\":2,\"p\":1,\"ps\":10,\"rules\":[{\"key\":\"fxcop:My_Own_FxCop_Rule\"},{\"key\":\"fxcop:UriParametersShouldNotBeStrings\",\"internalKey\":\"CA1054\"}]}";
             var expected2 = new Dictionary<string, string>();
-            expected2["fxcop:My_Own_FxCop_Rule"] = null;
             expected2["fxcop:UriParametersShouldNotBeStrings"] = "CA1054";
             var actual2 = ws.GetInternalKeys("fxcop");
 
