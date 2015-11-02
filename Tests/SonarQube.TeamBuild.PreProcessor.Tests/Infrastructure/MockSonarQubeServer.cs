@@ -17,15 +17,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     internal class MockSonarQubeServer : ISonarQubeServer
     {
         private readonly IList<string> calledMethods;
-        private readonly ServerDataModel dataModel;
 
         public MockSonarQubeServer()
         {
             this.calledMethods = new List<string>();
-            this.dataModel = new ServerDataModel();
+            this.Data = new ServerDataModel();
         }
 
-        public ServerDataModel Data { get { return this.dataModel; } }
+        public ServerDataModel Data { get; set; }
 
         #region Assertions
 
@@ -38,14 +37,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         #endregion
 
         #region ISonarQubeServer methods
-
-        string ISonarQubeServer.Server
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
 
         IEnumerable<string> ISonarQubeServer.GetActiveRuleKeys(string qualityProfile, string language, string repository)
         {
@@ -64,7 +55,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             this.LogMethodCalled();
 
-            QualityProfile profile = this.dataModel.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Name, qualityProfile) && string.Equals(qp.Language, language));
+            QualityProfile profile = this.Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Name, qualityProfile) && string.Equals(qp.Language, language));
 
             if (profile == null)
             {
@@ -77,19 +68,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         IEnumerable<string> ISonarQubeServer.GetInstalledPlugins()
         {
             this.LogMethodCalled();
-            return this.dataModel.InstalledPlugins;
+            return this.Data.InstalledPlugins;
         }
 
         IDictionary<string, string> ISonarQubeServer.GetInternalKeys(string repository)
         {
             this.LogMethodCalled();
 
-            Repository repo = this.dataModel.Repositories.FirstOrDefault(r => string.Equals(r.Key, repository));
-            if (repo == null)
-            {
-                return null;
-            }
-            return repo.Rules.ToDictionary(r => r.Key, r => r.InternalKey);
+            return this.Data.Repositories.SelectMany(repo => repo.Rules).ToDictionary(r => r.Key, r => r.InternalKey);
         }
 
         IDictionary<string, string> ISonarQubeServer.GetProperties(string projectKey, ILogger logger)
@@ -105,14 +91,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             this.LogMethodCalled();
 
-            return this.dataModel.ServerProperties;
+            return this.Data.ServerProperties;
         }
 
         bool ISonarQubeServer.TryGetQualityProfile(string projectKey, string language, out string qualityProfile)
         {
             this.LogMethodCalled();
 
-            QualityProfile profile = this.dataModel.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Language, language) && qp.Projects.Contains(projectKey));
+            QualityProfile profile = this.Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Language, language) && qp.Projects.Contains(projectKey));
 
             qualityProfile = profile == null ? null : profile.Name;
             return profile != null;

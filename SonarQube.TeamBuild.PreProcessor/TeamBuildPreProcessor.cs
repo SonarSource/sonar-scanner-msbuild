@@ -177,7 +177,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         private void GenerateFxCopRuleset(ISonarQubeServer server, string projectKey, string requiredPluginKey, string language, string repository, string path, ILogger logger)
         {
             logger.LogDebug(Resources.MSG_GeneratingRuleset, path);
-            new RulesetGenerator().Generate(server, requiredPluginKey, language, repository, projectKey, path);
+            RulesetGenerator.Generate(server, requiredPluginKey, language, repository, projectKey, path);
         }
 
         #endregion Private methods

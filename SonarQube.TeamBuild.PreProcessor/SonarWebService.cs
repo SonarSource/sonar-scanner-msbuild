@@ -16,8 +16,8 @@ namespace SonarQube.TeamBuild.PreProcessor
 {
     public sealed class SonarWebService : ISonarQubeServer
     {
-        public string Server { get; private set; }
-        private readonly IDownloader Downloader;
+        private string server;
+        private readonly IDownloader downloader;
         
         public SonarWebService(IDownloader downloader, string server)
         {
@@ -30,8 +30,8 @@ namespace SonarQube.TeamBuild.PreProcessor
                 throw new ArgumentNullException("server");
             }
             
-            Downloader = downloader;
-            Server = server.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? server.Substring(0, server.Length - 1) : server;
+            this.downloader = downloader;
+            this.server = server.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? server.Substring(0, server.Length - 1) : server;
         }
 
         /// <summary>
@@ -41,10 +41,10 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             string contents;
             var ws = GetUrl("/api/profiles/list?language={0}&project={1}", language, projectKey);
-            if (!Downloader.TryDownloadIfExists(ws, out contents))
+            if (!downloader.TryDownloadIfExists(ws, out contents))
             {
                 ws = GetUrl("/api/profiles/list?language={0}", language);
-                contents = Downloader.Download(ws);
+                contents = downloader.Download(ws);
             }
             var profiles = JArray.Parse(contents);
 
@@ -65,7 +65,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         public IEnumerable<string> GetActiveRuleKeys(string qualityProfile, string language, string repository)
         {
             var ws = GetUrl("/api/profiles/index?language={0}&name={1}", language, qualityProfile);
-            var contents = Downloader.Download(ws);
+            var contents = downloader.Download(ws);
 
             var profiles = JArray.Parse(contents);
             var rules = profiles.Single()["rules"];
@@ -89,7 +89,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         public IDictionary<string, string> GetInternalKeys(string repository)
         {
             var ws = GetUrl("/api/rules/search?f=internalKey&ps={0}&repositories={1}", int.MaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture), repository);
-            var contents = Downloader.Download(ws);
+            var contents = downloader.Download(ws);
 
             var rules = JObject.Parse(contents);
             var keysToIds = rules["rules"]
@@ -115,7 +115,7 @@ namespace SonarQube.TeamBuild.PreProcessor
            
             string ws = GetUrl("/api/properties?resource={0}", projectKey);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectKey, ws);
-            var contents = Downloader.Download(ws);
+            var contents = downloader.Download(ws);
 
             var properties = JArray.Parse(contents);
             var result = properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
@@ -136,7 +136,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         public IEnumerable<string> GetInstalledPlugins()
         {
             var ws = GetUrl("/api/updatecenter/installed_plugins");
-            var contents = Downloader.Download(ws);
+            var contents = downloader.Download(ws);
 
             var plugins = JArray.Parse(contents);
 
@@ -150,7 +150,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 queryString = '/' + queryString;
             }
-            return Server + queryString;
+            return this.server + queryString;
         }
 
     }

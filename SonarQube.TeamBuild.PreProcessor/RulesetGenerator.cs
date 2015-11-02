@@ -7,18 +7,25 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
-using System.Net;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
-    public class RulesetGenerator : IRulesetGenerator
+    public static class RulesetGenerator
     {
         #region Public methods
 
-        public void Generate(ISonarQubeServer server, string requiredPluginKey, string language, string fxcopRepositoryKey, string sonarProjectKey, string outputFilePath)
+        /// <summary>
+        /// Retrieves settings from the SonarQube server and generates a an FxCop file on disc
+        /// </summary>
+        /// <param name="server">SonarQube server instance</param>
+        /// <param name="requiredPluginKey">The plugin key that defines the given language</param>
+        /// <param name="language">The language of the FxCop repository</param>
+        /// <param name="fxcopRepositoryKey">The key of the FxCop repository</param>
+        /// <param name="sonarProjectKey">The key of the SonarQube project for which the ruleset should be generated</param>
+        /// <param name="outputFilePath">The full path to the file to be generated</param>
+        public static void Generate(ISonarQubeServer server, string requiredPluginKey, string language, string fxcopRepositoryKey, string sonarProjectKey, string outputFilePath)
         {
             if (server == null)
             {

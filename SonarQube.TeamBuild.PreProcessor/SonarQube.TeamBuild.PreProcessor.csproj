@@ -54,7 +54,6 @@
     <Compile Include="AnalysisConfigGenerator.cs" />
     <Compile Include="ArgumentProcessor.cs" />
     <Compile Include="Interfaces\IDownloader.cs" />
-    <Compile Include="Interfaces\IRulesetGenerator.cs" />
     <Compile Include="Interfaces\ISonarQubeServerFactory.cs" />
     <Compile Include="Interfaces\ITargetsInstaller.cs" />
     <Compile Include="Interfaces\ISonarQubeServer.cs" />

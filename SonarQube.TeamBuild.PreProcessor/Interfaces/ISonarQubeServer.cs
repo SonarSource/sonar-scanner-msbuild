@@ -12,8 +12,6 @@ namespace SonarQube.TeamBuild.PreProcessor
 {
     public interface ISonarQubeServer
     {
-        string Server { get; }
-
         IEnumerable<string> GetActiveRuleKeys(string qualityProfile, string language, string repository);
 
         IEnumerable<string> GetInstalledPlugins();
