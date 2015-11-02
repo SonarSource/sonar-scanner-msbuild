@@ -29,11 +29,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             TestLogger validLogger = new TestLogger();
 
             string[] validArgs = new string[] { "/k:key", "/n:name", "/v:1.0" };
-
-            MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
-            MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
+            
+            MockSonarQubeServer mockServer = new MockSonarQubeServer();
             MockTargetsInstaller mockTargetsInstaller = new MockTargetsInstaller();
-            TeamBuildPreProcessor preprocessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator, mockTargetsInstaller);
+            TeamBuildPreProcessor preprocessor = new TeamBuildPreProcessor(new MockSonarQubeServerFactory(mockServer), mockTargetsInstaller);
 
             // Act and assert
             AssertException.Expects<ArgumentNullException>(() => preprocessor.Execute(null, validLogger));
@@ -52,16 +51,34 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // Arrange
             string workingDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            MockRulesetGenerator mockRulesetGenerator = new MockRulesetGenerator();
             TestLogger logger = new TestLogger();
-
-            MockPropertiesFetcher mockPropertiesFetcher = new MockPropertiesFetcher();
-            mockPropertiesFetcher.PropertiesToReturn = new Dictionary<string, string>();
-
+            
             MockTargetsInstaller mockTargetsInstaller = new MockTargetsInstaller();
 
-            // The set of server properties to return
-            mockPropertiesFetcher.PropertiesToReturn.Add("server.key", "server value 1");
+            // Configure the server
+            MockSonarQubeServer mockServer = new MockSonarQubeServer();
+
+            ServerDataModel data = mockServer.Data;
+            data.ServerProperties.Add("server.key", "server value 1");
+
+            data.InstalledPlugins.Add("csharp");
+            data.InstalledPlugins.Add("vbnet");
+
+            data.AddRepository("fxcop", "cs")
+                .AddRule("cs.rule1", "cs.rule1.internal")
+                .AddRule("cs.rule2", "cs.rule2.internal");
+
+            data.AddRepository("fxcop-vbnet", "vbnet")
+                .AddRule("vb.rule1", "vb.rule1.internal")
+                .AddRule("vb.rule2", "vb.rule2.internal");
+
+            data.AddQualityProfile("test.profile", "cs")
+                .AddProject("key");
+            data.AddRuleToProfile("cs.rule1", "test.profile");
+
+            data.AddQualityProfile("test.profile", "vbnet")
+                .AddProject("key");
+            data.AddRuleToProfile("vb.rule2", "test.profile");
 
             string[] validArgs = new string[] {
                 "/k:key", "/n:name", "/v:1.0",
@@ -77,7 +94,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 Assert.AreEqual(BuildEnvironment.NotTeamBuild, settings.BuildEnvironment, "Test setup error: build environment was not set correctly");
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockPropertiesFetcher, mockRulesetGenerator, mockTargetsInstaller);
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(new MockSonarQubeServerFactory(mockServer), mockTargetsInstaller);
 
                 // Act
                 bool success = preProcessor.Execute(validArgs, logger);
@@ -91,8 +108,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // The bootstrapper is responsible for creating the bin directory
 
             mockTargetsInstaller.AssertsTargetsCopied();
-            mockPropertiesFetcher.AssertFetchPropertiesCalled();
-            mockRulesetGenerator.AssertGenerateCalled(2); // C# and VB
+            mockServer.AssertMethodCalled("GetProperties", 1);
+            mockServer.AssertMethodCalled("GetInternalKeys", 2); // C# and VB
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);

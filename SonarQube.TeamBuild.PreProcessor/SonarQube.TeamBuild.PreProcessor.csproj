@@ -54,9 +54,11 @@
     <Compile Include="AnalysisConfigGenerator.cs" />
     <Compile Include="ArgumentProcessor.cs" />
     <Compile Include="Interfaces\IDownloader.cs" />
-    <Compile Include="Interfaces\IPropertiesFetcher.cs" />
     <Compile Include="Interfaces\IRulesetGenerator.cs" />
+    <Compile Include="Interfaces\ISonarQubeServerFactory.cs" />
     <Compile Include="Interfaces\ITargetsInstaller.cs" />
+    <Compile Include="Interfaces\ISonarQubeServer.cs" />
+    <Compile Include="SonarQubeServerFactory.cs" />
     <Compile Include="ProcessedArgs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -65,7 +67,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="PropertiesFetcher.cs" />
     <Compile Include="RulesetGenerator.cs" />
     <Compile Include="RulesetWriter.cs" />
     <Compile Include="SonarWebService.cs" />

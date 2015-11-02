@@ -18,9 +18,9 @@ namespace SonarQube.TeamBuild.PreProcessor
     {
         #region Public methods
 
-        public void Generate(SonarWebService ws, string requiredPluginKey, string language, string fxcopRepositoryKey, string sonarProjectKey, string outputFilePath)
+        public void Generate(ISonarQubeServer server, string requiredPluginKey, string language, string fxcopRepositoryKey, string sonarProjectKey, string outputFilePath)
         {
-            if (ws == null)
+            if (server == null)
             {
                 throw new ArgumentNullException("ws");
             }
@@ -46,18 +46,18 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             IEnumerable<string> activeRuleKeys = Enumerable.Empty<string>();
-            if (ws.GetInstalledPlugins().Contains(requiredPluginKey))
+            if (server.GetInstalledPlugins().Contains(requiredPluginKey))
             {
                 string qualityProfile;
-                if (ws.TryGetQualityProfile(sonarProjectKey, language, out qualityProfile))
+                if (server.TryGetQualityProfile(sonarProjectKey, language, out qualityProfile))
                 {
-                    activeRuleKeys = ws.GetActiveRuleKeys(qualityProfile, language, fxcopRepositoryKey);
+                    activeRuleKeys = server.GetActiveRuleKeys(qualityProfile, language, fxcopRepositoryKey);
                 }
             }
 
             if (activeRuleKeys.Any())
             {
-                var internalKeys = ws.GetInternalKeys(fxcopRepositoryKey);
+                var internalKeys = server.GetInternalKeys(fxcopRepositoryKey);
                 var ids = activeRuleKeys.Select(
                     k =>
                     {

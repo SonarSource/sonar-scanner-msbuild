@@ -14,43 +14,36 @@ using System.Net;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
-    // was internal
     public class TeamBuildPreProcessor
     {
         public const string FxCopCSharpRuleset = "SonarQubeFxCop-cs.ruleset";
         public const string FxCopVBNetRuleset = "SonarQubeFxCop-vbnet.ruleset";
 
-        private readonly IPropertiesFetcher propertiesFetcher;
-        private readonly IRulesetGenerator rulesetGenerator;
+        private readonly ISonarQubeServerFactory serverFactory;
         private readonly ITargetsInstaller targetInstaller;
 
         #region Constructor(s)
 
         public TeamBuildPreProcessor()
-            : this(new PropertiesFetcher(), new RulesetGenerator(), new TargetsInstaller())
+            : this(new SonarQubeServerFactory(), new TargetsInstaller())
         {
         }
 
         /// <summary>
         /// Internal constructor for testing
         /// </summary>
-        public TeamBuildPreProcessor(IPropertiesFetcher propertiesFetcher, IRulesetGenerator rulesetGenerator, ITargetsInstaller targetInstaller) // was internal
+        public TeamBuildPreProcessor(ISonarQubeServerFactory serverFactory, ITargetsInstaller targetInstaller)
         {
-            if (propertiesFetcher == null)
+            if (serverFactory == null)
             {
-                throw new ArgumentNullException("propertiesFetcher");
-            }
-            if (rulesetGenerator == null)
-            {
-                throw new ArgumentNullException("rulesetGenerator");
+                throw new ArgumentNullException("serverFactory");
             }
             if (targetInstaller == null)
             {
                 throw new ArgumentNullException("rulesetGenerator");
             }
 
-            this.propertiesFetcher = propertiesFetcher;
-            this.rulesetGenerator = rulesetGenerator;
+            this.serverFactory = serverFactory;
             this.targetInstaller = targetInstaller;
         }
 
@@ -148,21 +141,17 @@ namespace SonarQube.TeamBuild.PreProcessor
             string hostUrl = args.GetSetting(SonarProperties.HostUrl);
             serverSettings = null;
 
+            ISonarQubeServer server = this.serverFactory.Create(args);
             try
             {
-                using (IDownloader downloader = GetDownloader(args))
-                {
-                    SonarWebService ws = new SonarWebService(downloader, hostUrl);
+                // Fetch the SonarQube project properties
+                logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
+                serverSettings = server.GetProperties(args.ProjectKey, logger);
 
-                    // Fetch the SonarQube project properties
-                    logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
-                    serverSettings = this.propertiesFetcher.FetchProperties(ws, args.ProjectKey, logger);
-
-                    // Generate the FxCop rulesets
-                    logger.LogInfo(Resources.MSG_GeneratingRulesets);
-                    GenerateFxCopRuleset(ws, args.ProjectKey, "csharp", "cs", "fxcop", Path.Combine(configDir, FxCopCSharpRuleset), logger);
-                    GenerateFxCopRuleset(ws, args.ProjectKey, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(configDir, FxCopVBNetRuleset), logger);
-                }
+                // Generate the FxCop rulesets
+                logger.LogInfo(Resources.MSG_GeneratingRulesets);
+                GenerateFxCopRuleset(server, args.ProjectKey, "csharp", "cs", "fxcop", Path.Combine(configDir, FxCopCSharpRuleset), logger);
+                GenerateFxCopRuleset(server, args.ProjectKey, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(configDir, FxCopVBNetRuleset), logger);
             }
             catch (WebException ex)
             {
@@ -173,22 +162,22 @@ namespace SonarQube.TeamBuild.PreProcessor
 
                 throw;
             }
+            finally
+            {
+                IDisposable disposable = server as IDisposable;
+                if (disposable != null)
+                {
+                    disposable.Dispose();
+                }
+            }
 
             return true;
         }
 
-        private static IDownloader GetDownloader(ProcessedArgs args)
-        {
-            string username = args.GetSetting(SonarProperties.SonarUserName, null);
-            string password = args.GetSetting(SonarProperties.SonarPassword, null);
-
-            return new WebClientDownloader(new WebClient(), username, password);
-        }
-
-        private void GenerateFxCopRuleset(SonarWebService ws, string projectKey, string requiredPluginKey, string language, string repository, string path, ILogger logger)
+        private void GenerateFxCopRuleset(ISonarQubeServer server, string projectKey, string requiredPluginKey, string language, string repository, string path, ILogger logger)
         {
             logger.LogDebug(Resources.MSG_GeneratingRuleset, path);
-            this.rulesetGenerator.Generate(ws, requiredPluginKey, language, repository, projectKey, path);
+            new RulesetGenerator().Generate(server, requiredPluginKey, language, repository, projectKey, path);
         }
 
         #endregion Private methods

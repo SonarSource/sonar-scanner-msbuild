@@ -5,23 +5,20 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Newtonsoft.Json.Linq;
+using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Net;
-using Newtonsoft.Json.Linq;
-using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
-    public sealed class SonarWebService
+    public sealed class SonarWebService : ISonarQubeServer
     {
         public string Server { get; private set; }
         private readonly IDownloader Downloader;
-
-
+        
         public SonarWebService(IDownloader downloader, string server)
         {
             if (downloader == null)
@@ -155,5 +152,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             return Server + queryString;
         }
+
     }
 }
