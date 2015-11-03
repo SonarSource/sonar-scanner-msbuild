@@ -237,6 +237,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 
             public void Dispose()
             {
+                // Nothing to do here
             }
         }
     }

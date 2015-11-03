@@ -41,7 +41,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // 1. Prebuild
             // Arrange
-            string dummyAnalysisTargetsDir = this.EnsureDummyIntegrationTargetsFileExists();
+            this.EnsureDummyIntegrationTargetsFileExists();
 
             WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
             preImportProperties.SonarQubeTargetsPath = "";
@@ -141,7 +141,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             WellKnownProjectProperties preImportProperties;
 
             string testDir = TestUtils.EnsureTestSpecificFolder(this.TestContext);
-            string configFilePath = EnsureDummyAnalysisConfigFileExists(testDir);
+            EnsureDummyAnalysisConfigFileExists(testDir);
 
             // 1. RunSonarAnalysisQube is not set, Legacy TFS path -> auto-import
             preImportProperties = new WellKnownProjectProperties();
@@ -249,7 +249,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         private ProjectRootElement CreateImportsBeforeTestProject(IDictionary<string, string> preImportProperties)
         {
             // Create a dummy SonarQube analysis targets file
-            string dummyAnalysisTargets = EnsureDummyIntegrationTargetsFileExists();
+            EnsureDummyIntegrationTargetsFileExists();
 
             // Locate the real "ImportsBefore" target file
             string importsBeforeTargets = Path.Combine(TestUtils.GetTestSpecificFolderName(this.TestContext), TargetConstants.ImportsBeforeFile);

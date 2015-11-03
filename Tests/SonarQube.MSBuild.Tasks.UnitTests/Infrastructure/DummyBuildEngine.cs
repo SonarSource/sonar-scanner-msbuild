@@ -15,9 +15,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 {
     public sealed class DummyBuildEngine : IBuildEngine
     {
-        private List<BuildWarningEventArgs> warnings;
-        private List<BuildErrorEventArgs> errors;
-        private List<BuildMessageEventArgs> messages;
+        private readonly List<BuildWarningEventArgs> warnings;
+        private readonly List<BuildErrorEventArgs> errors;
+        private readonly List<BuildMessageEventArgs> messages;
 
         #region Public methods
 

@@ -30,8 +30,8 @@ namespace SonarQube.TeamBuild.Integration
 
         bool disposed;
 
-        private string tfsUri;
-        private string buildUri;
+        private readonly string tfsUri;
+        private readonly string buildUri;
 
         private TfsTeamProjectCollection teamProjectCollection;
         private IBuildDetail build;

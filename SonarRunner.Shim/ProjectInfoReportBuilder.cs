@@ -22,11 +22,11 @@ namespace SonarRunner.Shim
     {
         private const string ReportFileName = "ProjectInfo.log";
 
-        private AnalysisConfig config;
-        private ProjectInfoAnalysisResult analysisResult;
-        private ILogger logger;
+        private readonly AnalysisConfig config;
+        private readonly ProjectInfoAnalysisResult analysisResult;
+        private readonly ILogger logger;
 
-        private StringBuilder sb;
+        private readonly StringBuilder sb;
 
         #region Public methods
 

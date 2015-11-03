@@ -43,7 +43,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
-            string textFile = CreateTextFile(resultsDir, "dummy.trx", "this is not a trx file");
+            CreateTextFile(resultsDir, "dummy.trx", "this is not a trx file");
             TestLogger logger = new TestLogger();
 
             // Act
@@ -115,8 +115,8 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
-            string trxFile
-                = CreateTextFile(resultsDir, "multiple_attachments.trx",
+
+            CreateTextFile(resultsDir, "multiple_attachments.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
 	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
@@ -166,7 +166,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
             string coverageFileName = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
 
-            string textFile = CreateTextFile(resultsDir, "single_attachment.trx",
+            CreateTextFile(resultsDir, "single_attachment.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
 	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
@@ -210,7 +210,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
             string coverageFileName = "x:\\dir1\\dir2\\xxx.coverage";
 
-            string textFile = CreateTextFile(resultsDir, "single_attachment.trx",
+            CreateTextFile(resultsDir, "single_attachment.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
 	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""

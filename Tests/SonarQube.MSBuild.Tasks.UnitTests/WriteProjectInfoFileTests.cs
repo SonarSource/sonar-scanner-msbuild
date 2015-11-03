@@ -258,7 +258,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         {
             ITaskItem item = new TaskItem(itemSpec);
             int remainder;
-            int dummy = Math.DivRem(idAndValuePairs.Length, 2, out remainder);
+            Math.DivRem(idAndValuePairs.Length, 2, out remainder);
             Assert.AreEqual(0, remainder, "Test setup error: the supplied list should contain id-location pairs");
 
             for (int index = 0; index < idAndValuePairs.Length; index += 2)

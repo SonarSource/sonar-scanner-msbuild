@@ -177,8 +177,6 @@ namespace SonarQube.Common.UnitTests
             IEnumerable<ArgumentInstance> instances;
             TestLogger logger;
 
-            string[] args = new string[] { "verb" };
-
             ArgumentDescriptor verb1 = new ArgumentDescriptor("v1", new string[] { "noMult" }, false /* required */, "noMult desc", false /* no multiples */, true);
             ArgumentDescriptor verb2 = new ArgumentDescriptor("v2", new string[] { "multOk" }, false /* required */, "multOk desc", true /* allow multiples */, true);
 

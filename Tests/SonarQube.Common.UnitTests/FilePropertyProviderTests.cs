@@ -72,7 +72,7 @@ namespace SonarQube.Common.UnitTests
             IAnalysisPropertyProvider provider = CheckProcessingSucceeds(args, defaultPropertiesDir, logger);
 
             // Assert
-            AssertExpectedPropertiesFile(validPropertiesFile, provider, logger);
+            AssertExpectedPropertiesFile(validPropertiesFile, provider);
             provider.AssertExpectedPropertyValue("key1", "value1");
             AssertIsDefaultPropertiesFile(provider);
         }
@@ -98,7 +98,7 @@ namespace SonarQube.Common.UnitTests
             IAnalysisPropertyProvider provider = CheckProcessingSucceeds(args, defaultPropertiesDir, logger);
 
             // Assert
-            AssertExpectedPropertiesFile(validPropertiesFile, provider, logger);
+            AssertExpectedPropertiesFile(validPropertiesFile, provider);
             provider.AssertExpectedPropertyValue("xxx", "value with spaces");
             AssertIsNotDefaultPropertiesFile(provider);
         }
@@ -168,7 +168,7 @@ namespace SonarQube.Common.UnitTests
         private static string CreateFile(string path, string fileName, string content)
         {
             string fullPath = Path.Combine(path, fileName);
-            File.WriteAllText(fullPath, string.Empty);
+            File.WriteAllText(fullPath, content);
             return fullPath;
         }
 
@@ -181,7 +181,6 @@ namespace SonarQube.Common.UnitTests
 
             AnalysisProperties properties = new AnalysisProperties();
 
-            properties = new AnalysisProperties();
             properties.Add(new Property() { Id = property, Value = value });
 
             properties.Save(fullPath);
@@ -219,7 +218,7 @@ namespace SonarQube.Common.UnitTests
             logger.AssertErrorsLogged();
         }
 
-        private static void AssertExpectedPropertiesFile(string expectedFilePath, IAnalysisPropertyProvider actualProvider, TestLogger logger)
+        private static void AssertExpectedPropertiesFile(string expectedFilePath, IAnalysisPropertyProvider actualProvider)
         {
             FilePropertyProvider fileProvider = AssertIsFilePropertyProvider(actualProvider);
 

@@ -465,7 +465,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // NB this has to be done *after* the integration targets have been imported
             ProjectPropertyGroupElement group = projectRoot.CreatePropertyGroupElement();
             projectRoot.AppendChild(group);
-            ProjectPropertyElement prop = group.AddProperty("SQAnalysisFileItemTypes", "fooType;$(SQAnalysisFileItemTypes);xxxType");
+            group.AddProperty("SQAnalysisFileItemTypes", "fooType;$(SQAnalysisFileItemTypes);xxxType");
             projectRoot.Save();
 
             // Act
@@ -793,7 +793,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectItemElement item = projectRoot.AddItem(itemTypeName, include);
             
             int remainder;
-            int dummy = Math.DivRem(idAndValuePairs.Length, 2, out remainder);
+            Math.DivRem(idAndValuePairs.Length, 2, out remainder);
             Assert.AreEqual(0, remainder, "Test setup error: the supplied list should contain id-location pairs");
 
             for (int index = 0; index < idAndValuePairs.Length; index += 2)

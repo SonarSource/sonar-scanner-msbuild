@@ -22,7 +22,7 @@ namespace SonarQube.V0_9UpgradeMessageExe
      * message and exits with an error code that will cause the build to fail.
      */
 
-    public class Program
+    public static class Program
     {
         static int Main(string[] args)
         {

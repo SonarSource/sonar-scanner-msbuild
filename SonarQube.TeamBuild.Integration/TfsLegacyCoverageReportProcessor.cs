@@ -18,8 +18,8 @@ namespace SonarQube.TeamBuild.Integration
     {
         public const string DownloadFileName = "VSCodeCoverageReport.coverage"; // was internal
 
-        private ICoverageUrlProvider urlProvider;
-        private ICoverageReportDownloader downloader;
+        private readonly ICoverageUrlProvider urlProvider;
+        private readonly ICoverageReportDownloader downloader;
 
         public TfsLegacyCoverageReportProcessor()
             : this(new CoverageReportUrlProvider(), new CoverageReportDownloader(), new CoverageReportConverter())

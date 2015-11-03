@@ -271,7 +271,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void PreArgProc_Duplicates()
         {
             // 0. Setup
-            TestLogger logger = new TestLogger();
+            TestLogger logger;
 
             // 1. Duplicate key using alias
             logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/k:key2");
@@ -435,9 +435,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs)
         {
             TestLogger logger = new TestLogger();
-            ProcessedArgs result = null;
-
-            result = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
+            ProcessedArgs result = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
 
             Assert.IsNotNull(result, "Expecting the arguments to be processed succesfully");
 

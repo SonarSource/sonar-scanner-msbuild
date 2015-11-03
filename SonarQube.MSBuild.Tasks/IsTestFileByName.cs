@@ -30,9 +30,9 @@ namespace SonarQube.MSBuild.Tasks
         public const string TestRegExSettingId = "sonar.cs.msbuild.testProjectPattern";
 
         // Workaround for the file locking issue: retry after a short period.
-        public static int MaxConfigRetryPeriodInMilliseconds = 2500; // Maximum time to spend trying to access the config file
+        public const int MaxConfigRetryPeriodInMilliseconds = 2500; // Maximum time to spend trying to access the config file
 
-        public static int DelayBetweenRetriesInMilliseconds = 499; // Period to wait between retries
+        public const int DelayBetweenRetriesInMilliseconds = 499; // Period to wait between retries
 
         #region Input properties
 

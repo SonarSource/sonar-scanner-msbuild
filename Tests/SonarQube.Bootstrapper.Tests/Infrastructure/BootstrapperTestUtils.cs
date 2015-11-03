@@ -10,7 +10,7 @@ using System.IO;
 
 namespace SonarQube.Bootstrapper.Tests
 {
-    internal class BootstrapperTestUtils
+    internal static class BootstrapperTestUtils
     {
         public static string GetDefaultPropertiesFilePath()
         {

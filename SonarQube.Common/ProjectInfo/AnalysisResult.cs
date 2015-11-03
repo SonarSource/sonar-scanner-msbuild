@@ -41,7 +41,7 @@ namespace SonarQube.Common
         /// <summary>
         /// Comparer to use when comparing keys of analysis results
         /// </summary>
-        public static IEqualityComparer<string> ResultKeyComparer = StringComparer.Ordinal;
+        public static readonly IEqualityComparer<string> ResultKeyComparer = StringComparer.Ordinal;
 
         #endregion
 

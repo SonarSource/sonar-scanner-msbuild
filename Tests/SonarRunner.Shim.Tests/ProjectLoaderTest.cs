@@ -42,7 +42,7 @@ namespace SonarRunner.Shim.Tests
             validTestProject.AddCompileInputFile("TestFile1.cs", true);
             validTestProject.AddCompileInputFile("TestFile1.cs", true);
             validTestProject.AddContentFile("contentFile1.js", true);
-            CreateFilesFromDescriptor(validTestProject, "testCompileListFile", "testContentList", "testFxCopReport", "testVisualStudioCodeCoverageReport");
+            CreateFilesFromDescriptor(validTestProject, "testCompileListFile", "testFxCopReport", "testVisualStudioCodeCoverageReport");
 
             TestUtils.EnsureTestSpecificFolder(this.TestContext, "EmptyDir2");
 
@@ -56,7 +56,7 @@ namespace SonarRunner.Shim.Tests
             };
             validNonTestProject.AddContentFile("ASourceFile.vb", true);
             validNonTestProject.AddContentFile("AnotherSourceFile.vb", true);
-            CreateFilesFromDescriptor(validNonTestProject, "list.txt", null, "fxcop.xml", "visualstudio-codecoverage.xml");
+            CreateFilesFromDescriptor(validNonTestProject, "list.txt", "fxcop.xml", "visualstudio-codecoverage.xml");
 
             ProjectDescriptor validNonTestNoReportsProject = new ProjectDescriptor()
             {
@@ -67,7 +67,7 @@ namespace SonarRunner.Shim.Tests
                 IsTestProject = false
             };
             validNonTestNoReportsProject.AddContentFile("SomeFile.cs", true);
-            CreateFilesFromDescriptor(validNonTestNoReportsProject, "SomeList.txt", null, null, null);
+            CreateFilesFromDescriptor(validNonTestNoReportsProject, "SomeList.txt", null, null);
 
             // Act
             IEnumerable<ProjectInfo> projects = SonarRunner.Shim.ProjectLoader.LoadFrom(testSourcePath);
@@ -101,7 +101,7 @@ namespace SonarRunner.Shim.Tests
             };
             validNonTestProject.AddCompileInputFile("ASourceFile.vb", true);
             validNonTestProject.AddCompileInputFile("AnotherSourceFile.vb", true);
-            CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt", null, null, null);
+            CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt", null, null);
 
             // 1. Run against the root dir -> not expecting the project to be found
             IEnumerable<ProjectInfo> projects = SonarRunner.Shim.ProjectLoader.LoadFrom(rootTestDir);
@@ -120,7 +120,7 @@ namespace SonarRunner.Shim.Tests
         /// Creates a folder containing a ProjectInfo.xml and compiled file list as
         /// specified in the supplied descriptor
         /// </summary>
-        private static void CreateFilesFromDescriptor(ProjectDescriptor descriptor, string compileFiles, string contentFiles, string fxcopReportFileName, string visualStudioCodeCoverageReportFileName)
+        private static void CreateFilesFromDescriptor(ProjectDescriptor descriptor, string compileFiles, string fxcopReportFileName, string visualStudioCodeCoverageReportFileName)
         {
             if (!Directory.Exists(descriptor.FullDirectoryPath))
             {

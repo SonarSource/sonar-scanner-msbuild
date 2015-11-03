@@ -89,7 +89,7 @@ namespace SonarQube.TeamBuild.Integration
 
         private bool ProcessBinaryCodeCoverageReport(string binaryCoverageFilePath)
         {
-            bool success = false;
+            bool success;
             string xmlFileName = Path.ChangeExtension(binaryCoverageFilePath, XmlReportFileExtension);
 
             Debug.Assert(!File.Exists(xmlFileName), "Not expecting a file with the name of the binary-to-XML conversion output to already exist: " + xmlFileName);

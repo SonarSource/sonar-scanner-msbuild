@@ -17,8 +17,8 @@ namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
     internal class MockReportDownloader : ICoverageReportDownloader
     {
         private int callCount;
-        private IList<string> requestedUrls = new List<string>();
-        private IList<string> targetFileNames  = new List<string>();
+        private readonly IList<string> requestedUrls = new List<string>();
+        private readonly IList<string> targetFileNames  = new List<string>();
 
         #region Test helpers
 

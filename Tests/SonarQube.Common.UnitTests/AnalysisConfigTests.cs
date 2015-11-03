@@ -45,8 +45,6 @@ namespace SonarQube.Common.UnitTests
             // 0. Setup
             string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
-            Guid projectGuid = Guid.NewGuid();
-
             AnalysisConfig originalConfig = new AnalysisConfig();
             originalConfig.SonarConfigDir = @"c:\config";
             originalConfig.SonarOutputDir = @"c:\output";
@@ -103,7 +101,7 @@ namespace SonarQube.Common.UnitTests
 
             using (FileStream lockingStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                AnalysisConfig reloadedConfig = AnalysisConfig.Load(filePath);
+                AnalysisConfig.Load(filePath);
             }
         }
 
