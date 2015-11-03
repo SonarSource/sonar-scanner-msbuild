@@ -14,9 +14,9 @@ using System.Net;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
-    public sealed class SonarWebService : ISonarQubeServer
+    public sealed class SonarWebService : ISonarQubeServer, IDisposable
     {
-        private string server;
+        private readonly string server;
         private readonly IDownloader downloader;
         
         public SonarWebService(IDownloader downloader, string server)
@@ -34,9 +34,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             this.server = server.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? server.Substring(0, server.Length - 1) : server;
         }
 
-        /// <summary>
-        /// Get the name of the quality profile (of the given language) to be used by the given project key
-        /// </summary>
         public bool TryGetQualityProfile(string projectKey, string language, out string qualityProfile)
         {
             string contents;
@@ -59,9 +56,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             return true;
         }
 
-        /// <summary>
-        /// Get all the active rules (of the given language and repository) in the given quality profile name
-        /// </summary>
         public IEnumerable<string> GetActiveRuleKeys(string qualityProfile, string language, string repository)
         {
             var ws = GetUrl("/api/profiles/index?language={0}&name={1}", language, qualityProfile);
@@ -83,9 +77,6 @@ namespace SonarQube.TeamBuild.PreProcessor
                 });
         }
 
-        /// <summary>
-        /// Get the key -> internal keys mapping (of the given language and repository)
-        /// </summary>
         public IDictionary<string, string> GetInternalKeys(string repository)
         {
             var ws = GetUrl("/api/rules/search?f=internalKey&ps={0}&repositories={1}", int.MaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture), repository);
@@ -99,9 +90,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             return keysToIds;
         }
 
-        /// <summary>
-        /// Get all the properties of a project
-        /// </summary>
         public IDictionary<string, string> GetProperties(string projectKey, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
@@ -130,9 +118,6 @@ namespace SonarQube.TeamBuild.PreProcessor
         }
 
         // TODO Should be replaced by calls to api/languages/list after min(SQ version) >= 5.1
-        /// <summary>
-        /// Get all keys of all installed plugins
-        /// </summary>
         public IEnumerable<string> GetInstalledPlugins()
         {
             var ws = GetUrl("/api/updatecenter/installed_plugins");
@@ -152,6 +137,30 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             return this.server + queryString;
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Utilities.SafeDispose(this.downloader);
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+        }
+        #endregion
 
     }
 }

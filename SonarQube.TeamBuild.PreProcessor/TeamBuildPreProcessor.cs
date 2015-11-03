@@ -164,11 +164,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             finally
             {
-                IDisposable disposable = server as IDisposable;
-                if (disposable != null)
-                {
-                    disposable.Dispose();
-                }
+                Utilities.SafeDispose(server);
             }
 
             return true;

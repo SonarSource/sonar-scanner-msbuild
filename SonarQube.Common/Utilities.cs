@@ -198,6 +198,21 @@ namespace SonarQube.Common
             logger.LogInfo("{0} {1}", description, assembly.GetName().Version);
         }
 
+        /// <summary>
+        /// Disposes the supplied object if it can be disposed. Null objects are ignored.
+        /// </summary>
+        public static void SafeDispose(object o)
+        {
+            if (o == null)
+            {
+                IDisposable disposable = o as IDisposable;
+                if (o != null)
+                {
+                    disposable.Dispose();
+                }
+            }
+        }
+
         #endregion
 
     }

@@ -9,6 +9,10 @@ namespace SonarQube.TeamBuild.PreProcessor
 {
     public interface ISonarQubeServerFactory
     {
+        /// <summary>
+        /// Creates and returns the component that interacts with the SonarQube server
+        /// </summary>
+        /// <param name="args">Validated arguments</param>
         ISonarQubeServer Create(ProcessedArgs args);
     }
 }
