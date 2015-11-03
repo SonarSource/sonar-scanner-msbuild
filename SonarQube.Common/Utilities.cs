@@ -201,12 +201,12 @@ namespace SonarQube.Common
         /// <summary>
         /// Disposes the supplied object if it can be disposed. Null objects are ignored.
         /// </summary>
-        public static void SafeDispose(object o)
+        public static void SafeDispose(object instance)
         {
-            if (o == null)
+            if (instance == null)
             {
-                IDisposable disposable = o as IDisposable;
-                if (o != null)
+                IDisposable disposable = instance as IDisposable;
+                if (instance != null)
                 {
                     disposable.Dispose();
                 }

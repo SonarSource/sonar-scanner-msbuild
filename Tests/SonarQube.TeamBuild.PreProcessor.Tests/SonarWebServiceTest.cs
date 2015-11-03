@@ -30,6 +30,15 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             ws = new SonarWebService(downloader, "http://myhost:222");
         }
 
+        [TestCleanup]
+        public void Cleanup()
+        {
+            if (ws != null)
+            {
+                ws.Dispose();
+            }
+        }
+
         [TestMethod]
         public void TryGetQualityProfile()
         {

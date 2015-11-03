@@ -14,11 +14,11 @@ namespace SonarQube.TeamBuild.PreProcessor
 {
     public class WebClientDownloader : IDownloader
     {
-        private readonly WebClient Client;
+        private readonly WebClient client;
 
-        public WebClientDownloader(WebClient client, string username, string password)
+        public WebClientDownloader(string username, string password)
         {
-            Client = client;
+            this.client = new WebClient();
             if (username != null && password != null)
             {
                 if (username.Contains(':'))
@@ -32,10 +32,15 @@ namespace SonarQube.TeamBuild.PreProcessor
 
                 var credentials = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}:{1}", username, password);
                 credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(credentials));
-                Client.Headers[HttpRequestHeader.Authorization] = "Basic " + credentials;
+                client.Headers[HttpRequestHeader.Authorization] = "Basic " + credentials;
             }
         }
 
+        public string GetHeader(HttpRequestHeader header)
+        {
+            return this.client.Headers[header];
+        }
+        
         private static bool IsAscii(string s)
         {
             return !s.Any(c => c > sbyte.MaxValue);
@@ -45,7 +50,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             try
             {
-                contents = Client.DownloadString(url);
+                contents = client.DownloadString(url);
                 return true;
             }
             catch (WebException e)
@@ -63,7 +68,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public string Download(string url)
         {
-            return Client.DownloadString(url);
+            return client.DownloadString(url);
         }
 
         #region IDisposable implementation
@@ -80,9 +85,9 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             if (!this.disposed && disposing)
             {
-                if (this.Client != null)
+                if (this.client != null)
                 {
-                    this.Client.Dispose();
+                    this.client.Dispose();
                 }
             }
 

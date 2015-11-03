@@ -61,6 +61,7 @@
     <Compile Include="Infrastructure\MockSonarQubeServerFactory.cs" />
     <Compile Include="Infrastructure\MockTargetsInstaller.cs" />
     <Compile Include="DataModel\ServerDataModel.cs" />
+    <Compile Include="Infrastructure\PreProcessAsserts.cs" />
     <Compile Include="PreProcessorExeTests.cs" />
     <Compile Include="PreProcessorTests.cs" />
     <Compile Include="Infrastructure\PreprocessTestUtils.cs" />

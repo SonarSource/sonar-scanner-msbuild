@@ -22,14 +22,14 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <param name="server">SonarQube server instance</param>
         /// <param name="requiredPluginKey">The plugin key that defines the given language</param>
         /// <param name="language">The language of the FxCop repository</param>
-        /// <param name="fxcopRepositoryKey">The key of the FxCop repository</param>
+        /// <param name="fxCopRepositoryKey">The key of the FxCop repository</param>
         /// <param name="sonarProjectKey">The key of the SonarQube project for which the ruleset should be generated</param>
         /// <param name="outputFilePath">The full path to the file to be generated</param>
-        public static void Generate(ISonarQubeServer server, string requiredPluginKey, string language, string fxcopRepositoryKey, string sonarProjectKey, string outputFilePath)
+        public static void Generate(ISonarQubeServer server, string requiredPluginKey, string language, string fxCopRepositoryKey, string sonarProjectKey, string outputFilePath)
         {
             if (server == null)
             {
-                throw new ArgumentNullException("ws");
+                throw new ArgumentNullException("server");
             }
             if (string.IsNullOrWhiteSpace(requiredPluginKey))
             {
@@ -39,9 +39,9 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException("language");
             }
-            if (string.IsNullOrWhiteSpace(fxcopRepositoryKey))
+            if (string.IsNullOrWhiteSpace(fxCopRepositoryKey))
             {
-                throw new ArgumentNullException("fxcopRepositoryKey");
+                throw new ArgumentNullException("fxCopRepositoryKey");
             }
             if (string.IsNullOrWhiteSpace(sonarProjectKey))
             {
@@ -58,17 +58,17 @@ namespace SonarQube.TeamBuild.PreProcessor
                 string qualityProfile;
                 if (server.TryGetQualityProfile(sonarProjectKey, language, out qualityProfile))
                 {
-                    activeRuleKeys = server.GetActiveRuleKeys(qualityProfile, language, fxcopRepositoryKey);
+                    activeRuleKeys = server.GetActiveRuleKeys(qualityProfile, language, fxCopRepositoryKey);
                 }
             }
 
             if (activeRuleKeys.Any())
             {
-                var internalKeys = server.GetInternalKeys(fxcopRepositoryKey);
+                var internalKeys = server.GetInternalKeys(fxCopRepositoryKey);
                 var ids = activeRuleKeys.Select(
                     k =>
                     {
-                        var fullKey = fxcopRepositoryKey + ':' + k;
+                        var fullKey = fxCopRepositoryKey + ':' + k;
                         return internalKeys.ContainsKey(fullKey) ? internalKeys[fullKey] : k;
                     });
 

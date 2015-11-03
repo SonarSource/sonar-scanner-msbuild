@@ -13,6 +13,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// Creates and returns the component that interacts with the SonarQube server
         /// </summary>
         /// <param name="args">Validated arguments</param>
+        /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary</remarks>
         ISonarQubeServer Create(ProcessedArgs args);
     }
 }

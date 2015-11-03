@@ -125,11 +125,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedLocalSetting("cmd.line1", "cmdline.value.1", actualConfig);
             AssertExpectedServerSetting("server.key", "server value 1", actualConfig);
 
-            string fxCopContent = AssertFileExists(settings.SonarConfigDirectory, TeamBuildPreProcessor.FxCopCSharpRuleset);
-            Assert.IsTrue(fxCopContent.Contains("cs.rule1"), "Ruleset does not contain the expected rule");
+            string fxCopFilePath = AssertFileExists(settings.SonarConfigDirectory, TeamBuildPreProcessor.FxCopCSharpRuleset);
+            PreProcessAsserts.AssertRuleSetContainsRules(fxCopFilePath, "cs.rule1");
 
-            fxCopContent = AssertFileExists(settings.SonarConfigDirectory, TeamBuildPreProcessor.FxCopVBNetRuleset);
-            Assert.IsTrue(fxCopContent.Contains("vb.rule2"), "Ruleset does not contain the expected rule");
+            fxCopFilePath = AssertFileExists(settings.SonarConfigDirectory, TeamBuildPreProcessor.FxCopVBNetRuleset);
+            PreProcessAsserts.AssertRuleSetContainsRules(fxCopFilePath, "vb.rule2");
         }
 
         #endregion Tests
@@ -169,7 +169,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             string fullPath = Path.Combine(directory, fileName);
             Assert.IsTrue(File.Exists(fullPath), "Expected file does not exist");
-            return File.ReadAllText(fullPath);
+            return fullPath;
         }
 
         #endregion Checks

@@ -6,10 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Xml.Linq;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -79,12 +76,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // 4. Valid, aaa
             string aaaRulesetFilePath = Path.Combine(testDir, "aaa_ruleset.txt");
             RulesetGenerator.Generate(server, "real.plugin1", "languageAAA", "repo1", "project1", aaaRulesetFilePath);
-            AssertRuleSetContainsRules(aaaRulesetFilePath, "repo1.aaa.r1");
+            PreProcessAsserts.AssertRuleSetContainsRules(aaaRulesetFilePath, "repo1.aaa.r1");
 
             // 5. Valid, bbb
             string bbbRulesetFilePath = Path.Combine(testDir, "bbb_ruleset.txt");
             RulesetGenerator.Generate(server, "real.plugin1", "languageBBB", "repo1", "project1", bbbRulesetFilePath);
-            AssertRuleSetContainsRules(bbbRulesetFilePath,
+            PreProcessAsserts.AssertRuleSetContainsRules(bbbRulesetFilePath,
                 "repo1.bbb.r1", "repo1.bbb.r2", "repo1.bbb.r3");
         }
 
@@ -95,38 +92,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         private static void AssertFileDoesNotExist(string filePath)
         {
             Assert.IsFalse(File.Exists(filePath), "Not expecting file to exist: {0}", filePath);
-        }
-
-        private void AssertRuleSetContainsRules(string filePath, params string[] expectedRuleIds)
-        {
-            Assert.IsTrue(File.Exists(filePath), "Expected ruleset file does not exist: {0}", filePath);
-            this.TestContext.AddResultFile(filePath);
-
-            XDocument doc = XDocument.Load(filePath);
-
-            foreach (string ruleId in expectedRuleIds)
-            {
-                AssertRuleIdExists(doc, ruleId);
-            }
-
-            AssertExpectedRuleCount(doc, expectedRuleIds.Length);
-        }
-
-        private static void AssertRuleIdExists(XDocument doc, string ruleId)
-        {
-            XElement element = doc.Descendants().Single(e => e.Name == "Rule" && HasRuleIdAttribute(e, ruleId));
-            Assert.IsNotNull(element, "Could not find ruleId with expected id: {0}", ruleId);
-        }
-
-        private static bool HasRuleIdAttribute(XElement element, string ruleId)
-        {
-            return element.Attributes().Any(a => a.Name == "Id" && a.Value == ruleId);
-        }
-
-        private static void AssertExpectedRuleCount(XDocument doc, int expectedCount)
-        {
-            IEnumerable<XElement> rules = doc.Descendants().Where(e => e.Name == "Rule");
-            Assert.AreEqual(expectedCount, rules.Count(), "Unexpected number of rules");
         }
 
         #endregion

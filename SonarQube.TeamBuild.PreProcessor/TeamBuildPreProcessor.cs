@@ -40,7 +40,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             if (targetInstaller == null)
             {
-                throw new ArgumentNullException("rulesetGenerator");
+                throw new ArgumentNullException("targetInstaller");
             }
 
             this.serverFactory = serverFactory;
@@ -170,7 +170,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             return true;
         }
 
-        private void GenerateFxCopRuleset(ISonarQubeServer server, string projectKey, string requiredPluginKey, string language, string repository, string path, ILogger logger)
+        private static void GenerateFxCopRuleset(ISonarQubeServer server, string projectKey, string requiredPluginKey, string language, string repository, string path, ILogger logger)
         {
             logger.LogDebug(Resources.MSG_GeneratingRuleset, path);
             RulesetGenerator.Generate(server, requiredPluginKey, language, repository, projectKey, path);

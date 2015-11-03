@@ -7,7 +7,6 @@
 
 using SonarQube.Common;
 using System;
-using System.Net;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -28,7 +27,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             string username = args.GetSetting(SonarProperties.SonarUserName, null);
             string password = args.GetSetting(SonarProperties.SonarPassword, null);
 
-            return new WebClientDownloader(new WebClient(), username, password);
+            return new WebClientDownloader(username, password);
         }
 
     }

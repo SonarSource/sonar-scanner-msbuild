@@ -95,10 +95,10 @@ namespace SonarQube.Common.UnitTests
                 standardOut.AutoFlush = true;
                 Console.SetOut(standardOut);
 
-                this.outputWriter.Close();
+                this.outputWriter.Dispose();
                 this.outputWriter = null;
 
-                this.errorWriter.Close();
+                this.errorWriter.Dispose();
                 this.errorWriter = null;
             }
         }
