@@ -97,6 +97,14 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         }
 
+        public static void AssertAnalysisSettingDoesNotExist(BuildResult actualResult, string settingName)
+        {
+            Assert.IsNotNull(actualResult.ProjectStateAfterBuild, "Test error: ProjectStateAfterBuild should not be null");
+
+            IEnumerable<ProjectItemInstance> matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(BuildTaskConstants.SettingItemName, settingName);
+
+            Assert.AreEqual(0, matches.Count(), "Not expected SonarQubeSetting with include value of '{0}' to exist. Actual occurences: {1}", settingName, matches.Count());
+        }
 
         #endregion
 

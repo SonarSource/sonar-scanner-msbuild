@@ -41,6 +41,26 @@ namespace TestUtilities
         }
 
         /// <summary>
+        /// Creates a new text file in the specified directory
+        /// </summary>
+        /// <param name="substitutionArgs">Optional. Arguments that will be substituted into <param name="content">.</param></param>
+        /// <returns>Returns the full path to the created file</returns>
+        public static string CreateTextFile(string parentDir, string fileName, string content, params string[] substitutionArgs)
+        {
+            Assert.IsTrue(Directory.Exists(parentDir), "Test setup error: expecting the parent directory to exist: {0}", parentDir);
+            string fullPath = Path.Combine(parentDir, fileName);
+
+            string formattedContent = content;
+            if (substitutionArgs != null && substitutionArgs.Length > 0)
+            {
+                formattedContent = string.Format(System.Globalization.CultureInfo.InvariantCulture, content, substitutionArgs);
+            }
+
+            File.WriteAllText(fullPath, formattedContent);
+            return fullPath;
+        }
+
+        /// <summary>
         /// Ensures that the ImportBefore targets exist in a test-specific folder
         /// </summary>
         public static string EnsureImportBeforeTargetsExists(TestContext testContext)

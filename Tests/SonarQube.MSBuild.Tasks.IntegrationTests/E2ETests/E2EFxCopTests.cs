@@ -180,7 +180,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
-            string itemPath = CreateTextFile(rootInputFolder, "my.cs", "class myclass{}");
+            string itemPath = TestUtils.CreateTextFile(rootInputFolder, "my.cs", "class myclass{}");
             projectRoot.AddItem(TargetProperties.ItemType_Compile, itemPath);
             projectRoot.Save();
 
@@ -229,7 +229,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties, isVBProject: true);
 
-            string itemPath = CreateTextFile(rootInputFolder, "my.vb",
+            string itemPath = TestUtils.CreateTextFile(rootInputFolder, "my.vb",
 @"Public Class Class1
 
   Public Sub DoStuff()
@@ -286,10 +286,10 @@ End Class");
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
             // Add some files to the project
-            string itemPath = CreateTextFile(rootInputFolder, "content1.txt", "aaaa");
+            string itemPath = TestUtils.CreateTextFile(rootInputFolder, "content1.txt", "aaaa");
             projectRoot.AddItem("Content", itemPath);
 
-            itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{} // wrong item type");
+            itemPath = TestUtils.CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{} // wrong item type");
             projectRoot.AddItem("CompileXXX", itemPath);
             
             projectRoot.Save();
@@ -342,7 +342,7 @@ End Class");
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
             // Add a file to the project
-            string itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
+            string itemPath = TestUtils.CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
             projectRoot.AddItem(TargetProperties.ItemType_Compile, itemPath);
             projectRoot.Save();
 
@@ -392,7 +392,7 @@ End Class");
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
             // Add a file to the project
-            string itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
+            string itemPath = TestUtils.CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
             projectRoot.AddItem(TargetProperties.ItemType_Compile, itemPath);
             projectRoot.Save();
 
@@ -443,7 +443,7 @@ End Class");
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
             // Add a file to the project
-            string itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
+            string itemPath = TestUtils.CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
             projectRoot.AddItem(TargetProperties.ItemType_Compile, itemPath);
             projectRoot.Save();
 
@@ -508,7 +508,7 @@ End Class");
 
 
             // Add a file to the project
-            string itemPath = CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
+            string itemPath = TestUtils.CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{}");
             projectRoot.AddItem(TargetProperties.ItemType_Compile, itemPath);
             projectRoot.Save();
 
@@ -561,13 +561,6 @@ End Class");
 
             File.WriteAllText(fullPath, content);
             this.TestContext.AddResultFile(fullPath);
-        }
-
-        private string CreateTextFile(string rootInputFolder, string fileName, string contents)
-        {
-            string fullPath = Path.Combine(rootInputFolder, fileName);
-            File.WriteAllText(fullPath, contents);
-            return fullPath;
         }
 
         #endregion

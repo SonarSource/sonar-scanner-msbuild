@@ -43,7 +43,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
-            CreateTextFile(resultsDir, "dummy.trx", "this is not a trx file");
+            TestUtils.CreateTextFile(resultsDir, "dummy.trx", "this is not a trx file");
             TestLogger logger = new TestLogger();
 
             // Act
@@ -62,8 +62,8 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
-            string trx1 = CreateTextFile(resultsDir, "mytrx1.trx", "<TestRun />");
-            string trx2 = CreateTextFile(resultsDir, "mytrx2.trx", "<TestRun />");
+            string trx1 = TestUtils.CreateTextFile(resultsDir, "mytrx1.trx", "<TestRun />");
+            string trx2 = TestUtils.CreateTextFile(resultsDir, "mytrx2.trx", "<TestRun />");
             TestLogger logger = new TestLogger();
 
             // Act
@@ -82,7 +82,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
-            string trxFile = CreateTextFile(resultsDir, "no_attachments.trx",
+            string trxFile = TestUtils.CreateTextFile(resultsDir, "no_attachments.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
 	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE"" xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
@@ -116,7 +116,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
 
-            CreateTextFile(resultsDir, "multiple_attachments.trx",
+            TestUtils.CreateTextFile(resultsDir, "multiple_attachments.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
 	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
@@ -166,7 +166,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
             string coverageFileName = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
 
-            CreateTextFile(resultsDir, "single_attachment.trx",
+            TestUtils.CreateTextFile(resultsDir, "single_attachment.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
 	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
@@ -210,7 +210,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
             string coverageFileName = "x:\\dir1\\dir2\\xxx.coverage";
 
-            CreateTextFile(resultsDir, "single_attachment.trx",
+            TestUtils.CreateTextFile(resultsDir, "single_attachment.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
 	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
@@ -240,25 +240,6 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // Assert
             Assert.AreEqual(coverageFilePath, coverageFilePath);
             logger.AssertDebugMessageExists(coverageFileName);
-        }
-
-        #endregion
-
-        #region Private methods
-
-        private static string CreateTextFile(string parentDir, string fileName, string content, params string[] args)
-        {
-            Assert.IsTrue(Directory.Exists(parentDir), "Test setup error: expecting the parent directory to exist: {0}", parentDir);
-            string fullPath = Path.Combine(parentDir, fileName);
-
-            string formattedContent = content;
-            if (args != null && args.Any())
-            {
-                formattedContent = string.Format(System.Globalization.CultureInfo.InvariantCulture, content, args);
-            }
-
-            File.WriteAllText(fullPath, formattedContent);
-            return fullPath;
         }
 
         #endregion

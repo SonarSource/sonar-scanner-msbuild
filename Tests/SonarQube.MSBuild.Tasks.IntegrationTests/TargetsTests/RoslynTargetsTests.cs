@@ -8,12 +8,7 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
@@ -21,13 +16,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
     [TestClass]
     public class RoslynTargetsTests
     {
+        private const string RoslynAnalysisResultsSettingName = "sonar.cs.roslyn.reportFilePath";
+
         public TestContext TestContext { get; set; }
 
-        #region Tests
+        #region SetRoslynSettingsTarget tests
 
         [TestMethod]
         [Description("Checks the target is not executed if the temp folder is not set")]
-        public void Roslyn_TempFolderIsNotSet()
+        public void Roslyn_Settings_TempFolderIsNotSet()
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
@@ -40,34 +37,179 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetRoslynSettingsTarget);
+            BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynSettingsTarget);
 
             // Assert
-            logger.AssertTargetNotExecuted(TargetConstants.SetRoslynSettingsTarget);
+            logger.AssertTargetNotExecuted(TargetConstants.OverrideRoslynSettingsTarget);
         }
 
         [TestMethod]
-        [Description("Checks the target is executed if the temp folder has been provided")]
-        public void Roslyn_TempFolderIsSet()
+        [Description("Checks the settings are not set if the ruleset does not exist")]
+        public void Roslyn_Settings_RuleSetDoesNotExist()
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
 
             WellKnownProjectProperties properties = new WellKnownProjectProperties();
             properties.SonarQubeTempPath = rootInputFolder;
-            properties.SonarQubeOutputPath = rootInputFolder;
+            properties.CodeAnalysisRuleset = "ruleset.set.by.the.project.that.should.be.overridden";
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
 
             BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetRoslynSettingsTarget);
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynSettingsTarget);
 
             // Assert
-            logger.AssertTargetExecuted(TargetConstants.SetRoslynSettingsTarget);
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.SetRoslynSettingsTarget);
+            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynSettingsTarget);
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynSettingsTarget);
+
+            // Check the ruleset and error log are not set
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, string.Empty);
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.CodeAnalysisRuleset, string.Empty);
         }
+
+        [TestMethod]
+        [Description("Checks the properties are set correctly if the ruleset exists")]
+        public void Roslyn_Settings_RuleSetExists()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string configFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs\\conf");
+            string rulesetFilePath = TestUtils.CreateTextFile(configFolder, "SonarQube.Roslyn-cs.ruleset", "dummy rules");
+
+            WellKnownProjectProperties properties = new WellKnownProjectProperties();
+            properties.SonarQubeTempPath = rootInputFolder;
+            properties.CodeAnalysisRuleset = "should.be.overwritten";
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynSettingsTarget);
+
+            // Assert
+            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynSettingsTarget);
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynSettingsTarget);
+
+            // Check the intermediate working properties have the expected values
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRoslynRulesetExists", "True");
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRunRoslynCodeAnalysis", "True");
+
+            // Check the error log and ruleset properties are set
+            string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
+            string expectedErrorLog = Path.Combine(targetDir, "SonarQube.Roslyn.ErrorLog.xml");
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, expectedErrorLog);
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.CodeAnalysisRuleset, rulesetFilePath);
+        }
+
+        [TestMethod]
+        [Description("Checks an existing errorLog value is used if set")]
+        public void Roslyn_Settings_ErrorLogAlreadySet()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string configFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs\\conf");
+
+            // The ruleset must exist for properties to be set
+            TestUtils.CreateTextFile(configFolder, "SonarQube.Roslyn-cs.ruleset", "dummy rules");
+
+            WellKnownProjectProperties properties = new WellKnownProjectProperties();
+            properties.SonarQubeTempPath = rootInputFolder;
+
+            properties[TargetProperties.ErrorLog] = "already.set.txt";
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynSettingsTarget);
+
+            // Assert
+            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynSettingsTarget);
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynSettingsTarget);
+
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, "already.set.txt");
+        }
+
+        #endregion
+
+        #region AddAnalysisResults tests
+
+        [TestMethod]
+        [Description("Checks the target is not executed if the temp folder is not set")]
+        public void Roslyn_SetResults_TempFolderIsNotSet()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+
+            WellKnownProjectProperties properties = new WellKnownProjectProperties();
+            properties.SonarQubeTempPath = "";
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetRoslynResultsTarget);
+
+            // Assert
+            logger.AssertTargetNotExecuted(TargetConstants.SetRoslynResultsTarget);
+        }
+
+        [TestMethod]
+        [Description("Checks the analysis setting is not set if the results file does not exist")]
+        public void Roslyn_SetResults_ResultsFileDoesNotExist()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+
+            WellKnownProjectProperties properties = new WellKnownProjectProperties();
+            properties.SonarQubeTempPath = rootInputFolder;
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult actualResult = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetRoslynResultsTarget);
+
+            // Assert
+            logger.AssertTargetExecuted(TargetConstants.SetRoslynResultsTarget);
+            BuildAssertions.AssertAnalysisSettingDoesNotExist(actualResult, RoslynAnalysisResultsSettingName);
+        }
+
+        [TestMethod]
+        [Description("Checks the analysis setting is set if the result file exists")]
+        public void Roslyn_SetResults_ResultsFileExists()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+
+            string resultsFile = TestUtils.CreateTextFile(rootInputFolder, "error.report.txt", "dummy report content");
+
+            WellKnownProjectProperties properties = new WellKnownProjectProperties();
+            properties.SonarQubeTempPath = rootInputFolder;
+            properties[TargetProperties.ErrorLog] = resultsFile;
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult actualResult = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetRoslynResultsTarget);
+
+            // Assert
+            logger.AssertTargetExecuted(TargetConstants.SetRoslynResultsTarget);
+            BuildAssertions.AssertExpectedAnalysisSetting(actualResult, RoslynAnalysisResultsSettingName, resultsFile);
+        }
+
+        #endregion
+
+        #region Combined tests
 
         [TestMethod]
         [Description("Checks the targets are executed in the expected order")]
@@ -94,17 +236,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.DefaultBuildTarget);
 
             // Assert
-            logger.AssertTargetExecuted(TargetConstants.SetRoslynSettingsTarget);
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynSettingsTarget);
             logger.AssertExpectedTargetOrdering(
-                TargetConstants.SetRoslynSettingsTarget,
+                TargetConstants.OverrideRoslynSettingsTarget,
                 TargetConstants.DefaultBuildTarget,
+                TargetConstants.SetRoslynResultsTarget,
                 TargetConstants.WriteProjectDataTarget);
-
-            string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
-
-            string expectedErrorLog = Path.Combine(targetDir, "SonarQube.Roslyn.ErrorLog.xml");
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, expectedErrorLog);
-
         }
 
         #endregion
@@ -118,16 +256,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         #endregion
-
-        #region Checks
-
-
-        #endregion
-
-        // ErrorLog is already set
-        // ErrorLog is not already set -> expected value
-
-        // 
 
     }
 }

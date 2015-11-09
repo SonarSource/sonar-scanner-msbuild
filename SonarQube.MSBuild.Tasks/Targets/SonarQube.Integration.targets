@@ -409,15 +409,56 @@
   <!-- Roslyn analysis section -->
   <!-- **************************************************************************** -->
   <!-- Set the properties required to run Roslyn analysis as part of the build. -->
-  <Target Name="SetRoslynAnalysisSettings"
+  <Target Name="OverrideRoslynCodeAnalysisProperties"
         Condition=" $(SonarQubeTempPath) != '' "
         BeforeTargets="Compile" >
 
-    <!-- Work out if the item has already been set -->
-    <PropertyGroup Condition="$(ErrorLog) != '' ">
-      <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)\SonarQube.Roslyn.ErrorLog.xml</ErrorLog>
+
+    <PropertyGroup>
+      <SonarQubeRoslynRuleSet>$(SonarQubeConfigPath)</SonarQubeRoslynRuleSet>
+
+      <!-- Check if the ruleset exists -->
+      <SonarQubeRoslynRulesetFullName>$(SonarQubeConfigPath)SonarQube.Roslyn-cs.ruleset</SonarQubeRoslynRulesetFullName>
+      <SonarQubeRoslynRulesetExists>$([System.IO.File]::Exists($(SonarQubeRoslynRulesetFullName)))</SonarQubeRoslynRulesetExists>
+      
+      <!-- Run FxCop only if the ruleset exists (else it means no Roslyn rules are enabled) -->
+      <SonarQubeRunRoslynCodeAnalysis>$(SonarQubeRoslynRulesetExists)</SonarQubeRunRoslynCodeAnalysis>
+
+      <!-- For the time being only run for C# -->
+      <SonarQubeRunRoslynCodeAnalysis Condition=" $(Language) != 'C#' ">false</SonarQubeRunRoslynCodeAnalysis>
+
+      <!-- Don't run FxCop if the project is excluded -->
+      <SonarQubeRunRoslynCodeAnalysis Condition=" $(SonarQubeExclude) == 'true' ">false</SonarQubeRunRoslynCodeAnalysis>
+
+      <!-- Don't run FxCop if the project is a test one -->
+      <SonarQubeRunRoslynCodeAnalysis Condition=" $(SonarQubeTestProject) == 'true' ">false</SonarQubeRunRoslynCodeAnalysis>
+
+    </PropertyGroup>
+    
+    <PropertyGroup Condition=" $(SonarQubeRunRoslynCodeAnalysis) != 'true' ">
+      <ErrorLog></ErrorLog>
+      <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" $(SonarQubeRunRoslynCodeAnalysis) == 'true' ">
+      <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)SonarQube.Roslyn.ErrorLog.xml</ErrorLog>
+      <CodeAnalysisRuleSet>$(SonarQubeRoslynRulesetFullName)</CodeAnalysisRuleSet>
     </PropertyGroup>
    
+  </Target>
+
+  <Target Name="SetRoslynAnalysisResults"
+      Condition=" $(SonarQubeTempPath) != '' "
+      AfterTargets="Build"
+      BeforeTargets="WriteSonarQubeProjectData" >
+
+    <ItemGroup>
+      <SonarQubeSetting Include="sonar.cs.roslyn.reportFilePath"
+         Condition=" $(ErrorLog) != '' AND  $([System.IO.File]::Exists($(ErrorLog))) == 'true' ">
+         <Value>$(ErrorLog)</Value>
+      </SonarQubeSetting>
+    </ItemGroup>
+    
   </Target>
   <!-- **************************************************************************** -->
   <!-- End of Roslyn analysis section-->
