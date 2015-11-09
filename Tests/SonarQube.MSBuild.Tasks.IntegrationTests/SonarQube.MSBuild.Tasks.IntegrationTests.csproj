@@ -72,6 +72,7 @@
     <Compile Include="Infrastructure\TargetConstants.cs" />
     <Compile Include="Infrastructure\WellKnownProjectProperties.cs" />
     <Compile Include="TargetsTests\ImportBeforeTargetsTests.cs" />
+    <Compile Include="TargetsTests\RoslynTargetsTests.cs" />
     <Compile Include="TargetsTests\SetStyleCopPropertiesTargetTests.cs" />
     <Compile Include="TargetsTests\SonarIntegrationTargetsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

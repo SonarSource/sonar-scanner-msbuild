@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SetStyleCopPropertiesTargetTests.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="RoslynTargetsTests.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -8,14 +8,18 @@
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 {
     [TestClass]
-    public class SetStyleCopPropertiesTargetTests
+    public class RoslynTargetsTests
     {
         public TestContext TestContext { get; set; }
 
@@ -23,7 +27,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [Description("Checks the target is not executed if the temp folder is not set")]
-        public void StyleCop_TempFolderIsNotSet()
+        public void Roslyn_TempFolderIsNotSet()
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
@@ -36,15 +40,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetStyleCopSettingsTarget);
+            BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetRoslynSettingsTarget);
 
             // Assert
-            logger.AssertTargetNotExecuted(TargetConstants.SetStyleCopSettingsTarget);
+            logger.AssertTargetNotExecuted(TargetConstants.SetRoslynSettingsTarget);
         }
 
         [TestMethod]
         [Description("Checks the target is executed if the temp folder has been provided")]
-        public void StyleCop_TempFolderIsSet()
+        public void Roslyn_TempFolderIsSet()
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
@@ -58,16 +62,16 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetStyleCopSettingsTarget);
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetRoslynSettingsTarget);
 
             // Assert
-            logger.AssertTargetExecuted(TargetConstants.SetStyleCopSettingsTarget);
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.SetStyleCopSettingsTarget);
+            logger.AssertTargetExecuted(TargetConstants.SetRoslynSettingsTarget);
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.SetRoslynSettingsTarget);
         }
 
         [TestMethod]
         [Description("Checks the targets are executed in the expected order")]
-        public void StyleCop_TargetExecutionOrder()
+        public void Roslyn_TargetExecutionOrder()
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
@@ -82,7 +86,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Add some settings we expect to be ignored
             AddAnalysisSetting("sonar.other.setting", "other value", projectRoot);
-            AddAnalysisSetting("sonar.other.setting.2", "other value 2", projectRoot);
             projectRoot.Save();
 
             BuildLogger logger = new BuildLogger();
@@ -91,39 +94,17 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.DefaultBuildTarget);
 
             // Assert
-            logger.AssertTargetExecuted(TargetConstants.SetStyleCopSettingsTarget);
-            logger.AssertExpectedTargetOrdering(TargetConstants.SetStyleCopSettingsTarget, TargetConstants.WriteProjectDataTarget);
+            logger.AssertTargetExecuted(TargetConstants.SetRoslynSettingsTarget);
+            logger.AssertExpectedTargetOrdering(
+                TargetConstants.SetRoslynSettingsTarget,
+                TargetConstants.DefaultBuildTarget,
+                TargetConstants.WriteProjectDataTarget);
 
-            AssertExpectedStyleCopSetting(projectRoot.ProjectFileLocation.File, result);
-        }
+            string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
 
-        [TestMethod]
-        [Description("Checks the item value will not be overridden if it is already set")]
-        public void StyleCop_ValueAlreadySet()
-        {
-            // Arrange
-            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
-            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+            string expectedErrorLog = Path.Combine(targetDir, "SonarQube.Roslyn.ErrorLog.xml");
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, expectedErrorLog);
 
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.SonarQubeTempPath = rootInputFolder;
-            properties.SonarQubeOutputPath = rootInputFolder;
-            properties.SonarQubeConfigPath = rootOutputFolder;
-
-            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
-
-            // Apply some SonarQubeSettings, one of which specifies the StyleCop setting
-            AddAnalysisSetting("sonar.other.setting", "other value", projectRoot);
-            AddAnalysisSetting(TargetConstants.StyleCopProjectPathItemName, "xxx.yyy", projectRoot);
-            AddAnalysisSetting("sonar.other.setting.2", "other value 2", projectRoot);
-            projectRoot.Save();
-
-            BuildLogger logger = new BuildLogger();
-            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetStyleCopSettingsTarget);
-
-            // Assert
-            logger.AssertTargetExecuted(TargetConstants.SetStyleCopSettingsTarget);
-            AssertExpectedStyleCopSetting("xxx.yyy", result);
         }
 
         #endregion
@@ -140,11 +121,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #region Checks
 
-        private static void AssertExpectedStyleCopSetting(string expectedValue, BuildResult actualResult)
-        {
-            BuildAssertions.AssertExpectedAnalysisSetting(actualResult, TargetConstants.StyleCopProjectPathItemName, expectedValue);
-        }
 
         #endregion
+
+        // ErrorLog is already set
+        // ErrorLog is not already set -> expected value
+
+        // 
+
     }
 }

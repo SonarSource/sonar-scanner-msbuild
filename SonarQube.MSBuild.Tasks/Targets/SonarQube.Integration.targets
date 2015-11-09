@@ -404,4 +404,23 @@
   <!-- End of StyleCop section-->
   <!-- **************************************************************************** -->
 
+
+  <!-- **************************************************************************** -->
+  <!-- Roslyn analysis section -->
+  <!-- **************************************************************************** -->
+  <!-- Set the properties required to run Roslyn analysis as part of the build. -->
+  <Target Name="SetRoslynAnalysisSettings"
+        Condition=" $(SonarQubeTempPath) != '' "
+        BeforeTargets="Compile" >
+
+    <!-- Work out if the item has already been set -->
+    <PropertyGroup Condition="$(ErrorLog) != '' ">
+      <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)\SonarQube.Roslyn.ErrorLog.xml</ErrorLog>
+    </PropertyGroup>
+   
+  </Target>
+  <!-- **************************************************************************** -->
+  <!-- End of Roslyn analysis section-->
+  <!-- **************************************************************************** -->
+
 </Project>

@@ -8,6 +8,8 @@
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests
 {
@@ -67,7 +69,35 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
             Assert.IsNull(propertyInstance, "Not expecting the property to exist. Property: {0}, Value: {1}", propertyName, value);
         }
-        
+
+        /// <summary>
+        /// Checks whether there is a single "SonarQubeSetting" item with the expected name and setting value
+        /// </summary>
+        public static void AssertExpectedAnalysisSetting(BuildResult actualResult, string settingName, string expectedValue)
+        {
+            /* The equivalent XML would look like this:
+            <ItemGroup>
+              <SonarQubeSetting Include="settingName">
+                <Value>expectedValue</Value
+              </SonarQubeSetting>
+            </ItemGroup>
+            */
+
+            Assert.IsNotNull(actualResult.ProjectStateAfterBuild, "Test error: ProjectStateAfterBuild should not be null");
+
+            IEnumerable<ProjectItemInstance> matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(BuildTaskConstants.SettingItemName, settingName);
+
+            Assert.AreNotEqual(0, matches.Count(), "Expected SonarQubeSetting with include value of '{0}' does not exist", settingName);
+            Assert.AreEqual(1, matches.Count(), "Only expecting one SonarQubeSetting with include value of '{0}' to exist", settingName);
+
+            ProjectItemInstance item = matches.Single();
+            string value = item.GetMetadataValue(BuildTaskConstants.SettingValueMetadataName);
+
+            Assert.AreEqual(expectedValue, value, "SonarQubeSetting with include value '{0}' does not have the expected value", settingName);
+
+        }
+
+
         #endregion
 
         #region Private methods
