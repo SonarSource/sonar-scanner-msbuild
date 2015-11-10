@@ -76,8 +76,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
-            string configFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs\\conf");
-            string rulesetFilePath = TestUtils.CreateTextFile(configFolder, "SonarQube.Roslyn-cs.ruleset", "dummy rules");
+            string rulesetFilePath = CreateDummyRuleset(rootInputFolder);
 
             WellKnownProjectProperties properties = new WellKnownProjectProperties();
             properties.SonarQubeTempPath = rootInputFolder;
@@ -111,10 +110,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
-            string configFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs\\conf");
 
             // The ruleset must exist for properties to be set
-            TestUtils.CreateTextFile(configFolder, "SonarQube.Roslyn-cs.ruleset", "dummy rules");
+            CreateDummyRuleset(rootInputFolder);
 
             WellKnownProjectProperties properties = new WellKnownProjectProperties();
             properties.SonarQubeTempPath = rootInputFolder;
@@ -133,6 +131,74 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynSettingsTarget);
 
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, "already.set.txt");
+        }
+
+        [TestMethod]
+        [Description("Checks the code analysis properties are cleared for test projects")]
+        public void Roslyn_Settings_NotRunForTestProject()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            
+            // The ruleset must exist for properties to be set
+            CreateDummyRuleset(rootInputFolder);
+
+            WellKnownProjectProperties properties = new WellKnownProjectProperties();
+            properties.SonarQubeTempPath = rootInputFolder;
+            properties.ProjectTypeGuids = TargetConstants.MsTestProjectTypeGuid; // mark the project as a test project
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynSettingsTarget);
+
+            // Assert
+            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynSettingsTarget);
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynSettingsTarget);
+
+            // Check the intermediate working properties have the expected values
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRoslynRulesetExists", "True");
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRunRoslynCodeAnalysis", "false");
+
+            // Check the error log and ruleset properties are set
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, string.Empty);
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.CodeAnalysisRuleset, string.Empty);
+        }
+
+        [TestMethod]
+        [Description("Checks the code analysis properties are cleared for excludedprojects")]
+        public void Roslyn_Settings_NotRunForExlucdedProject()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+
+            // The ruleset must exist for properties to be set
+            CreateDummyRuleset(rootInputFolder);
+
+            WellKnownProjectProperties properties = new WellKnownProjectProperties();
+            properties.SonarQubeTempPath = rootInputFolder;
+            properties.SonarQubeExclude = "true"; // mark the project as excluded
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynSettingsTarget);
+
+            // Assert
+            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynSettingsTarget);
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynSettingsTarget);
+
+            // Check the intermediate working properties have the expected values
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRoslynRulesetExists", "True");
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRunRoslynCodeAnalysis", "false");
+
+            // Check the error log and ruleset properties are set
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, string.Empty);
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.CodeAnalysisRuleset, string.Empty);
         }
 
         #endregion
@@ -239,6 +305,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
             logger.AssertTargetExecuted(TargetConstants.OverrideRoslynSettingsTarget);
             logger.AssertExpectedTargetOrdering(
+                TargetConstants.CategoriseProjectTarget,
                 TargetConstants.OverrideRoslynSettingsTarget,
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.SetRoslynResultsTarget,
@@ -248,6 +315,17 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         #endregion
 
         #region Private methods
+
+        private static string CreateDummyRuleset(string rootFolderPath)
+        {
+            string configFolder = Path.Combine(rootFolderPath, "conf");
+            if (!Directory.Exists(configFolder))
+            {
+                Directory.CreateDirectory(configFolder);
+            }
+            string rulesetFilePath = TestUtils.CreateTextFile(configFolder, "SonarQube.Roslyn-cs.ruleset", "dummy rules");
+            return rulesetFilePath;
+        }
 
         private static void AddAnalysisSetting(string name, string value, ProjectRootElement project)
         {

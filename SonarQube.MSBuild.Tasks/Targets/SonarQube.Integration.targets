@@ -411,6 +411,7 @@
   <!-- Set the properties required to run Roslyn analysis as part of the build. -->
   <Target Name="OverrideRoslynCodeAnalysisProperties"
         Condition=" $(SonarQubeTempPath) != '' "
+        DependsOnTargets="SonarQubeCategoriseProject"
         BeforeTargets="Compile" >
 
 
