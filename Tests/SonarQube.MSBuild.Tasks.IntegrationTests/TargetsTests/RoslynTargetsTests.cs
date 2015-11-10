@@ -301,6 +301,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             logger.AssertExpectedTargetOrdering(
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.OverrideRoslynSettingsTarget,
+                "ResolveCodeAnalysisRuleSet",
+                TargetConstants.CoreCompile,
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.SetRoslynResultsTarget,
                 TargetConstants.WriteProjectDataTarget);

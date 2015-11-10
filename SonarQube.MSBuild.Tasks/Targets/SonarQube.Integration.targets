@@ -412,7 +412,7 @@
   <Target Name="OverrideRoslynCodeAnalysisProperties"
         Condition=" $(SonarQubeTempPath) != '' "
         DependsOnTargets="SonarQubeCategoriseProject"
-        BeforeTargets="Compile" >
+        BeforeTargets="ResolveCodeAnalysisRuleSet" >
 
 
     <PropertyGroup>
