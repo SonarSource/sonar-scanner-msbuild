@@ -65,9 +65,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             logger.AssertTargetExecuted(TargetConstants.OverrideRoslynSettingsTarget);
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynSettingsTarget);
 
-            // Check the ruleset and error log are not set
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, string.Empty);
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.CodeAnalysisRuleset, string.Empty);
+            AssertCodeAnalysisIsDisabled(result);
         }
 
         [TestMethod]
@@ -162,14 +160,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRoslynRulesetExists", "True");
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRunRoslynCodeAnalysis", "false");
 
-            // Check the error log and ruleset properties are set
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, string.Empty);
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.CodeAnalysisRuleset, string.Empty);
+            AssertCodeAnalysisIsDisabled(result);
         }
 
         [TestMethod]
         [Description("Checks the code analysis properties are cleared for excludedprojects")]
-        public void Roslyn_Settings_NotRunForExlucdedProject()
+        public void Roslyn_Settings_NotRunForExcludedProject()
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
@@ -196,9 +192,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRoslynRulesetExists", "True");
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRunRoslynCodeAnalysis", "false");
 
-            // Check the error log and ruleset properties are set
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, string.Empty);
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.CodeAnalysisRuleset, string.Empty);
+            AssertCodeAnalysisIsDisabled(result);
         }
 
         #endregion
@@ -323,7 +317,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             {
                 Directory.CreateDirectory(configFolder);
             }
-            string rulesetFilePath = TestUtils.CreateTextFile(configFolder, "SonarQube.Roslyn-cs.ruleset", "dummy rules");
+            string rulesetFilePath = TestUtils.CreateTextFile(configFolder, "SonarQubeRoslyn-cs.ruleset", "dummy rules");
             return rulesetFilePath;
         }
 
@@ -335,5 +329,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #endregion
 
+        #region Checks
+
+        private static void AssertCodeAnalysisIsDisabled(BuildResult result)
+        {
+            // Check the ruleset and error log are not set
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, string.Empty);
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.CodeAnalysisRuleset, string.Empty);
+        }
+
+        #endregion
     }
 }

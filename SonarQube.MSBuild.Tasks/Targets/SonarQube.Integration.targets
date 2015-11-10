@@ -416,10 +416,8 @@
 
 
     <PropertyGroup>
-      <SonarQubeRoslynRuleSet>$(SonarQubeConfigPath)</SonarQubeRoslynRuleSet>
-
       <!-- Check if the ruleset exists -->
-      <SonarQubeRoslynRulesetFullName>$(SonarQubeConfigPath)SonarQube.Roslyn-cs.ruleset</SonarQubeRoslynRulesetFullName>
+      <SonarQubeRoslynRulesetFullName>$(SonarQubeConfigPath)SonarQubeRoslyn-cs.ruleset</SonarQubeRoslynRulesetFullName>
       <SonarQubeRoslynRulesetExists>$([System.IO.File]::Exists($(SonarQubeRoslynRulesetFullName)))</SonarQubeRoslynRulesetExists>
       
       <!-- Run FxCop only if the ruleset exists (else it means no Roslyn rules are enabled) -->
