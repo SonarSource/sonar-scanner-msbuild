@@ -262,9 +262,26 @@
        OutputFolder="$(ProjectSpecificDir)" />
   </Target>
 
+  <!-- **************************************************************************** -->
+  <!-- Code analysis -->
+  <!-- **************************************************************************** -->
+  <!--  Implementation notes:
+  
+        We want to override any code analysis-related properties that are set in the
+        project file. To do this, we need to execute our targets at the correct
+        point in the build.
+  
+        Note that both the FxCop and Roslyn targets use a property called "CodeAnalysisRuleSet".
+        The FxCop targets use this value directly. However, the Rolsyn targets use it 
+        as input to the "ResolveCodeAnalysisRuleSet" target, which sets the property
+        "ResolvedCodeAnalysisRuleset".
+
+        To avoid complications, we override the property "CodeAnalysisRuleset" with the path to our FxCop ruleset.
+        We override the property "ResolveCodeAnalysisRuleSet" with the path to our Roslyn ruleset.
+  -->
 
   <!-- **************************************************************************** -->
-  <!-- FxCop -->
+  <!-- Code analysis - FxCop -->
   <!-- **************************************************************************** -->
   <!-- We want to control whether or FxCop analysis is run or not, and we want to control
        the ruleset that is used.
@@ -372,6 +389,73 @@
   <!-- End of FxCop section-->
   <!-- **************************************************************************** -->
 
+  <!-- **************************************************************************** -->
+  <!-- Roslyn analysis section -->
+  <!-- **************************************************************************** -->
+  <!-- Set the properties required to run Roslyn analysis as part of the build. 
+       Note: Roslyn analysis is run using the CSC task in MSBuild 14.0 onwards.
+       Analysis is controlled by the following properties:
+         ResolvedCodeAnalysisRuleSet - the full path to the ruleset to use
+         ErrorLog - the file path for the error reporting file
+         
+       We want to run after the core "ResolveCodeAnalysisRuleSet" target which
+       assigns a value to "ResolvedCodeAnalysisRuleSet".
+  -->
+  <Target Name="OverrideRoslynCodeAnalysisProperties"
+        Condition=" $(SonarQubeTempPath) != '' "
+        DependsOnTargets="SonarQubeCategoriseProject"
+        AfterTargets="ResolveCodeAnalysisRuleSet"
+        BeforeTargets="CoreCompile">
+
+    <PropertyGroup>
+      <!-- Check if the ruleset exists -->
+      <SonarQubeRoslynRulesetFullName>$(SonarQubeConfigPath)SonarQubeRoslyn-cs.ruleset</SonarQubeRoslynRulesetFullName>
+      <SonarQubeRoslynRulesetExists>$([System.IO.File]::Exists($(SonarQubeRoslynRulesetFullName)))</SonarQubeRoslynRulesetExists>
+
+      <!-- Run FxCop only if the ruleset exists (else it means no Roslyn rules are enabled) -->
+      <SonarQubeRunRoslynCodeAnalysis>$(SonarQubeRoslynRulesetExists)</SonarQubeRunRoslynCodeAnalysis>
+
+      <!-- For the time being only run for C# -->
+      <SonarQubeRunRoslynCodeAnalysis Condition=" $(Language) != 'C#' ">false</SonarQubeRunRoslynCodeAnalysis>
+
+      <!-- Don't run FxCop if the project is excluded -->
+      <SonarQubeRunRoslynCodeAnalysis Condition=" $(SonarQubeExclude) == 'true' ">false</SonarQubeRunRoslynCodeAnalysis>
+
+      <!-- Don't run FxCop if the project is a test one -->
+      <SonarQubeRunRoslynCodeAnalysis Condition=" $(SonarQubeTestProject) == 'true' ">false</SonarQubeRunRoslynCodeAnalysis>
+
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" $(SonarQubeRunRoslynCodeAnalysis) != 'true' ">
+      <ErrorLog></ErrorLog>
+      <ResolvedCodeAnalysisRuleSet></ResolvedCodeAnalysisRuleSet>
+
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" $(SonarQubeRunRoslynCodeAnalysis) == 'true' ">
+      <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)SonarQube.Roslyn.ErrorLog.json</ErrorLog>
+      <ResolvedCodeAnalysisRuleSet>$(SonarQubeRoslynRulesetFullName)</ResolvedCodeAnalysisRuleSet>
+    </PropertyGroup>
+
+  </Target>
+
+  <Target Name="SetRoslynAnalysisResults"
+      Condition=" $(SonarQubeTempPath) != '' "
+      AfterTargets="Build"
+      BeforeTargets="WriteSonarQubeProjectData" >
+
+    <ItemGroup>
+      <SonarQubeSetting Include="sonar.cs.roslyn.reportFilePath"
+         Condition=" $(ErrorLog) != '' AND  $([System.IO.File]::Exists($(ErrorLog))) == 'true' ">
+        <Value>$(ErrorLog)</Value>
+      </SonarQubeSetting>
+    </ItemGroup>
+
+  </Target>
+  <!-- **************************************************************************** -->
+  <!-- End of Roslyn analysis section-->
+  <!-- **************************************************************************** -->
+
 
   <!-- **************************************************************************** -->
   <!-- StyleCop -->
@@ -404,63 +488,5 @@
   <!-- End of StyleCop section-->
   <!-- **************************************************************************** -->
 
-
-  <!-- **************************************************************************** -->
-  <!-- Roslyn analysis section -->
-  <!-- **************************************************************************** -->
-  <!-- Set the properties required to run Roslyn analysis as part of the build. -->
-  <Target Name="OverrideRoslynCodeAnalysisProperties"
-        Condition=" $(SonarQubeTempPath) != '' "
-        DependsOnTargets="SonarQubeCategoriseProject"
-        BeforeTargets="ResolveCodeAnalysisRuleSet" >
-
-
-    <PropertyGroup>
-      <!-- Check if the ruleset exists -->
-      <SonarQubeRoslynRulesetFullName>$(SonarQubeConfigPath)SonarQubeRoslyn-cs.ruleset</SonarQubeRoslynRulesetFullName>
-      <SonarQubeRoslynRulesetExists>$([System.IO.File]::Exists($(SonarQubeRoslynRulesetFullName)))</SonarQubeRoslynRulesetExists>
-      
-      <!-- Run FxCop only if the ruleset exists (else it means no Roslyn rules are enabled) -->
-      <SonarQubeRunRoslynCodeAnalysis>$(SonarQubeRoslynRulesetExists)</SonarQubeRunRoslynCodeAnalysis>
-
-      <!-- For the time being only run for C# -->
-      <SonarQubeRunRoslynCodeAnalysis Condition=" $(Language) != 'C#' ">false</SonarQubeRunRoslynCodeAnalysis>
-
-      <!-- Don't run FxCop if the project is excluded -->
-      <SonarQubeRunRoslynCodeAnalysis Condition=" $(SonarQubeExclude) == 'true' ">false</SonarQubeRunRoslynCodeAnalysis>
-
-      <!-- Don't run FxCop if the project is a test one -->
-      <SonarQubeRunRoslynCodeAnalysis Condition=" $(SonarQubeTestProject) == 'true' ">false</SonarQubeRunRoslynCodeAnalysis>
-
-    </PropertyGroup>
-    
-    <PropertyGroup Condition=" $(SonarQubeRunRoslynCodeAnalysis) != 'true' ">
-      <ErrorLog></ErrorLog>
-      <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" $(SonarQubeRunRoslynCodeAnalysis) == 'true' ">
-      <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)SonarQube.Roslyn.ErrorLog.xml</ErrorLog>
-      <CodeAnalysisRuleSet>$(SonarQubeRoslynRulesetFullName)</CodeAnalysisRuleSet>
-    </PropertyGroup>
-   
-  </Target>
-
-  <Target Name="SetRoslynAnalysisResults"
-      Condition=" $(SonarQubeTempPath) != '' "
-      AfterTargets="Build"
-      BeforeTargets="WriteSonarQubeProjectData" >
-
-    <ItemGroup>
-      <SonarQubeSetting Include="sonar.cs.roslyn.reportFilePath"
-         Condition=" $(ErrorLog) != '' AND  $([System.IO.File]::Exists($(ErrorLog))) == 'true' ">
-         <Value>$(ErrorLog)</Value>
-      </SonarQubeSetting>
-    </ItemGroup>
-    
-  </Target>
-  <!-- **************************************************************************** -->
-  <!-- End of Roslyn analysis section-->
-  <!-- **************************************************************************** -->
 
 </Project>

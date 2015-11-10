@@ -97,9 +97,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Check the error log and ruleset properties are set
             string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
-            string expectedErrorLog = Path.Combine(targetDir, "SonarQube.Roslyn.ErrorLog.xml");
+            string expectedErrorLog = Path.Combine(targetDir, "SonarQube.Roslyn.ErrorLog.json");
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, expectedErrorLog);
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.CodeAnalysisRuleset, rulesetFilePath);
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ResolvedCodeAnalysisRuleset, rulesetFilePath);
         }
 
         [TestMethod]
@@ -299,9 +299,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
             logger.AssertTargetExecuted(TargetConstants.OverrideRoslynSettingsTarget);
             logger.AssertExpectedTargetOrdering(
+                TargetConstants.ResolveCodeAnalysisRuleSet,
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.OverrideRoslynSettingsTarget,
-                "ResolveCodeAnalysisRuleSet",
                 TargetConstants.CoreCompile,
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.SetRoslynResultsTarget,
@@ -337,7 +337,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Check the ruleset and error log are not set
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, string.Empty);
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.CodeAnalysisRuleset, string.Empty);
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ResolvedCodeAnalysisRuleset, string.Empty);
         }
 
         #endregion
