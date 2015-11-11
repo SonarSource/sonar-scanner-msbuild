@@ -40,6 +40,9 @@ namespace SonarQube.Bootstrapper
             string integrationUrl = GetDownloadZipUrl(hostUrl);
             string downloadedZipFilePath = Path.Combine(targetDir, BootstrapperSettings.SonarQubeIntegrationFilename);
 
+            // SONARMSBRU-169 Support TLS versions 1.0, 1.1 and 1.2
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+
             using (WebClient client = new WebClient())
             {
                 try

@@ -18,6 +18,9 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public WebClientDownloader(string username, string password)
         {
+            // SONARMSBRU-169 Support TLS versions 1.0, 1.1 and 1.2
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+
             this.client = new WebClient();
             if (username != null && password != null)
             {
