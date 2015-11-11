@@ -57,6 +57,7 @@
     <Compile Include="Interfaces\ISonarQubeServerFactory.cs" />
     <Compile Include="Interfaces\ITargetsInstaller.cs" />
     <Compile Include="Interfaces\ISonarQubeServer.cs" />
+    <Compile Include="SonarLintAnalyzerProvider.cs" />
     <Compile Include="SonarQubeServerFactory.cs" />
     <Compile Include="ProcessedArgs.cs" />
     <Compile Include="Program.cs" />

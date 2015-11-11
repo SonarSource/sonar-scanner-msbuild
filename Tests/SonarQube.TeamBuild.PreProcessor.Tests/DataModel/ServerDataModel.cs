@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -34,14 +35,20 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         public Repository AddRepository(string repositoryKey, string language)
         {
-            Repository repo = new Repository(repositoryKey, language);
+            Repository repo = this.FindRepository(repositoryKey, language);
+            Assert.IsNull(repo, "A repository already exists. Key: {0}, language: {1}", repositoryKey, language);
+
+            repo = new Repository(repositoryKey, language);
             this.repos.Add(repo);
             return repo;
         }
 
         public QualityProfile AddQualityProfile(string name, string language)
         {
-            QualityProfile profile = new QualityProfile(name, language);
+            QualityProfile profile = this.FindProfile(name, language);
+            Assert.IsNull(profile, "A quality profile already exists. Name: {0}, language: {1}", name, language);
+                
+            profile = new QualityProfile(name, language);
             this.qualityProfiles.Add(profile);
             return profile;
         }
@@ -51,13 +58,29 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // We're assuming rule ids are unique across repositories
             Rule rule = this.repos.SelectMany(repo => repo.Rules.Where(r => string.Equals(ruleId, r.Key))).Single();
 
-            // Multiple profiles can have the same name; look for a profile where the language matches the rule language
-            QualityProfile profile = this.qualityProfiles.Single(qp => string.Equals(qp.Name, profileName) && string.Equals(qp.Language, rule.Language));
+            QualityProfile profile = this.FindProfile(profileName, rule.Language);
 
             profile.AddRule(rule);
         }
 
         #endregion
 
+        #region Locator methods
+
+        public Repository FindRepository(string repositoryKey, string language)
+        {
+            // Multiple profiles can have the same name; look for a profile where the language matches the rule language
+            Repository repo = this.repos.SingleOrDefault(r => string.Equals(r.Key, repositoryKey) && string.Equals(r.Language, language));
+            return repo;
+        }
+
+        public QualityProfile FindProfile(string name, string language)
+        {
+            // Multiple profiles can have the same name; look for a profile where the language matches the rule language
+            QualityProfile profile = this.qualityProfiles.SingleOrDefault(qp => string.Equals(qp.Name, name) && string.Equals(qp.Language, language));
+            return profile;
+        }
+
+        #endregion
     }
 }

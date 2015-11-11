@@ -281,6 +281,69 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C# plugin is not installed so the SonarLint ruleset cannot be retrieved.
+        /// </summary>
+        public static string SLAP_CSharpPluginNotInstalled {
+            get {
+                return ResourceManager.GetString("SLAP_CSharpPluginNotInstalled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetching the SonarLint ruleset from the server....
+        /// </summary>
+        public static string SLAP_FetchingSonarLintRuleset {
+            get {
+                return ResourceManager.GetString("SLAP_FetchingSonarLintRuleset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The SonarQube server did returned an invalid ruleset for SonarLint.
+        /// </summary>
+        public static string SLAP_InvalidRulesetReturned {
+            get {
+                return ResourceManager.GetString("SLAP_InvalidRulesetReturned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not obtain a C# profile for project &apos;{0}&apos;.
+        /// </summary>
+        public static string SLAP_NoProfileForProject {
+            get {
+                return ResourceManager.GetString("SLAP_NoProfileForProject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Found SonarLint profile export for project &apos;{0}&apos;.
+        /// </summary>
+        public static string SLAP_ProfileExportFound {
+            get {
+                return ResourceManager.GetString("SLAP_ProfileExportFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find SonarLint profile export for project &apos;{0}&apos;.
+        /// </summary>
+        public static string SLAP_ProfileExportNotFound {
+            get {
+                return ResourceManager.GetString("SLAP_ProfileExportNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint ruleset downloaded: {0}.
+        /// </summary>
+        public static string SLAP_SonarLintRulesetCreated {
+            get {
+                return ResourceManager.GetString("SLAP_SonarLintRulesetCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This version of the MSBuild SonarQube Runner automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
         /// </summary>
         public static string WARN_ExistingGlobalTargets {

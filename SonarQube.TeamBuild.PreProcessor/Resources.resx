@@ -193,6 +193,27 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   <data name="MSG_UpdatingMSBuildTargets" xml:space="preserve">
     <value>Updating build integration targets...</value>
   </data>
+  <data name="SLAP_CSharpPluginNotInstalled" xml:space="preserve">
+    <value>C# plugin is not installed so the SonarLint ruleset cannot be retrieved</value>
+  </data>
+  <data name="SLAP_FetchingSonarLintRuleset" xml:space="preserve">
+    <value>Fetching the SonarLint ruleset from the server...</value>
+  </data>
+  <data name="SLAP_InvalidRulesetReturned" xml:space="preserve">
+    <value>The SonarQube server did returned an invalid ruleset for SonarLint</value>
+  </data>
+  <data name="SLAP_NoProfileForProject" xml:space="preserve">
+    <value>Could not obtain a C# profile for project '{0}'</value>
+  </data>
+  <data name="SLAP_ProfileExportFound" xml:space="preserve">
+    <value>Found SonarLint profile export for project '{0}'</value>
+  </data>
+  <data name="SLAP_ProfileExportNotFound" xml:space="preserve">
+    <value>Could not find SonarLint profile export for project '{0}'</value>
+  </data>
+  <data name="SLAP_SonarLintRulesetCreated" xml:space="preserve">
+    <value>SonarLint ruleset downloaded: {0}</value>
+  </data>
   <data name="WARN_ExistingGlobalTargets" xml:space="preserve">
     <value>This version of the MSBuild SonarQube Runner automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional.</value>
   </data>

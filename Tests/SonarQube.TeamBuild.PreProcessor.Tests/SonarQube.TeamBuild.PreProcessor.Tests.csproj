@@ -72,6 +72,7 @@
     <Compile Include="DataModel\QualityProfile.cs" />
     <Compile Include="DataModel\Repository.cs" />
     <Compile Include="DataModel\Rule.cs" />
+    <Compile Include="SonarLintAnalyzerProviderTests.cs" />
     <Compile Include="SonarWebServiceTest.cs" />
     <Compile Include="TargetsInstallerTests.cs" />
     <Compile Include="V0_9UpgradeMessageTests.cs" />

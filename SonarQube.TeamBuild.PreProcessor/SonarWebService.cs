@@ -34,6 +34,8 @@ namespace SonarQube.TeamBuild.PreProcessor
             this.server = server.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? server.Substring(0, server.Length - 1) : server;
         }
 
+        #region ISonarQubeServer interface
+
         public bool TryGetQualityProfile(string projectKey, string language, out string qualityProfile)
         {
             string contents;
@@ -127,6 +129,31 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             return plugins.Select(plugin => plugin["key"].ToString());
         }
+
+        /// <summary>
+        /// Attempts to download the quality profile in the specified format
+        /// </summary>
+        public bool TryGetProfileExport(string qualityProfile, string language, string format, out string content)
+        {
+            if (string.IsNullOrWhiteSpace(qualityProfile))
+            {
+                throw new ArgumentNullException("qualityProfile");
+            }
+            if (string.IsNullOrWhiteSpace(language))
+            {
+                throw new ArgumentNullException("language");
+            }
+            if (string.IsNullOrWhiteSpace(format))
+            {
+                throw new ArgumentNullException("format");
+            }
+
+            string url = GetUrl("/profiles/export?format={0}&language={1}&name={2}", format, language, qualityProfile);
+            bool success = this.downloader.TryDownloadIfExists(url, out content);
+            return success;
+        }
+
+        #endregion
 
         private string GetUrl(string format, params string[] args)
         {

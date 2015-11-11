@@ -110,7 +110,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             IDictionary<string, string> serverSettings;
-            if (!FetchArgumentsAndRulesets(args, teamBuildSettings.SonarConfigDirectory, logger, out serverSettings))
+            if (!FetchArgumentsAndRulesets(args, teamBuildSettings, logger, out serverSettings))
             {
                 return false;
             }
@@ -136,7 +136,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
         }
 
-        private bool FetchArgumentsAndRulesets(ProcessedArgs args, string configDir, ILogger logger, out IDictionary<string, string> serverSettings)
+        private bool FetchArgumentsAndRulesets(ProcessedArgs args, TeamBuildSettings settings, ILogger logger, out IDictionary<string, string> serverSettings)
         {
             string hostUrl = args.GetSetting(SonarProperties.HostUrl);
             serverSettings = null;
@@ -150,8 +150,10 @@ namespace SonarQube.TeamBuild.PreProcessor
 
                 // Generate the FxCop rulesets
                 logger.LogInfo(Resources.MSG_GeneratingRulesets);
-                GenerateFxCopRuleset(server, args.ProjectKey, "csharp", "cs", "fxcop", Path.Combine(configDir, FxCopCSharpRuleset), logger);
-                GenerateFxCopRuleset(server, args.ProjectKey, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(configDir, FxCopVBNetRuleset), logger);
+                GenerateFxCopRuleset(server, args.ProjectKey, "csharp", "cs", "fxcop", Path.Combine(settings.SonarConfigDirectory, FxCopCSharpRuleset), logger);
+                GenerateFxCopRuleset(server, args.ProjectKey, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(settings.SonarConfigDirectory, FxCopVBNetRuleset), logger);
+
+                SonarLintAnalyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey, logger);
             }
             catch (WebException ex)
             {

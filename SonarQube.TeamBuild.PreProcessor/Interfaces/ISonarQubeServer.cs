@@ -40,5 +40,11 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// Get the name of the quality profile (of the given language) to be used by the given project key
         /// </summary>
         bool TryGetQualityProfile(string projectKey, string language, out string qualityProfile);
+
+        /// <summary>
+        /// Get the quality profile for the given language in the specified format
+        /// </summary>
+        /// <returns>True if the profile could be returned, otherwise false</returns>
+        bool TryGetProfileExport(string qualityProfile, string language, string format, out string content);
     }
 }

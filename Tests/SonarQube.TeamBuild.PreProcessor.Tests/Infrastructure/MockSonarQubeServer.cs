@@ -40,20 +40,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         IEnumerable<string> ISonarQubeServer.GetActiveRuleKeys(string qualityProfile, string language, string repository)
         {
-            if (string.IsNullOrWhiteSpace(qualityProfile))
-            {
-                throw new ArgumentNullException("qualityProfile");
-            }
-            if (string.IsNullOrWhiteSpace(language))
-            {
-                throw new ArgumentNullException("language");
-            }
-            if (string.IsNullOrWhiteSpace(repository))
-            {
-                throw new ArgumentNullException("repository");
-            }
-
             this.LogMethodCalled();
+
+            Assert.IsFalse(string.IsNullOrEmpty(qualityProfile), "Quality profile is required");
+            Assert.IsFalse(string.IsNullOrEmpty(language), "Language is required");
+            Assert.IsFalse(string.IsNullOrEmpty(repository), "Repository is required");
 
             QualityProfile profile = this.Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Name, qualityProfile) && string.Equals(qp.Language, language));
 
@@ -75,21 +66,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             this.LogMethodCalled();
 
+            Assert.IsFalse(string.IsNullOrEmpty(repository), "Repository is required");
+
             return this.Data.Repositories.SelectMany(repo => repo.Rules).ToDictionary(r => r.Key, r => r.InternalKey);
         }
 
         IDictionary<string, string> ISonarQubeServer.GetProperties(string projectKey, ILogger logger)
         {
-            if (string.IsNullOrWhiteSpace(projectKey))
-            {
-                throw new ArgumentNullException("projectKey");
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
-
             this.LogMethodCalled();
+
+            Assert.IsFalse(string.IsNullOrEmpty(projectKey), "Project key is required");
+            Assert.IsNotNull((logger), "Logger is required");
 
             return this.Data.ServerProperties;
         }
@@ -98,10 +85,27 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             this.LogMethodCalled();
 
+            Assert.IsFalse(string.IsNullOrEmpty(projectKey), "Project key is required");
+            Assert.IsFalse(string.IsNullOrEmpty(language), "Language is required");
+
             QualityProfile profile = this.Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Language, language) && qp.Projects.Contains(projectKey));
 
             qualityProfile = profile == null ? null : profile.Name;
             return profile != null;
+        }
+
+        bool ISonarQubeServer.TryGetProfileExport(string qualityProfile, string language, string format, out string content)
+        {
+            this.LogMethodCalled();
+
+            Assert.IsFalse(string.IsNullOrEmpty(qualityProfile), "Quality profile is required");
+            Assert.IsFalse(string.IsNullOrEmpty(language), "Language is required");
+            Assert.IsFalse(string.IsNullOrEmpty(format), "Format is required");
+
+            QualityProfile profile = this.Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Name, qualityProfile) && string.Equals(qp.Language, language));
+
+            content = profile != null ? profile.GetExport(format) : null;
+            return content != null;
         }
 
         #endregion

@@ -17,12 +17,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private readonly ISet<Rule> activeRules;
 
+        private readonly IDictionary<string, string> formatToContentExportMap;
+
         public QualityProfile(string name, string language)
         {
             this.name = name;
             this.language = language;
             this.projectKeys = new HashSet<string>();
             this.activeRules = new HashSet<Rule>();
+            this.formatToContentExportMap = new Dictionary<string, string>();
         }
 
         public QualityProfile AddProject(string projectKey)
@@ -37,10 +40,23 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return this;
         }
 
+        public void SetExport(string format, string content)
+        {
+            this.formatToContentExportMap[format] = content;
+        }
+
         public string Name { get { return this.name; } }
         public string Language { get { return this.language; } }
         public IEnumerable<string> Projects { get { return this.projectKeys; } }
-        public IEnumerable<Rule> ActiveRules { get { return this.activeRules; } }
-        
+        public ISet<Rule> ActiveRules { get { return this.activeRules; } }
+        public IDictionary<string, string> FormatToContentExports {  get { return this.formatToContentExportMap; } }
+
+        public string GetExport(string format)
+        {
+            string content;
+            this.formatToContentExportMap.TryGetValue(format, out content);
+            return content;
+        }
+
     }
 }
