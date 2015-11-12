@@ -44,6 +44,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <summary>
         /// Get the quality profile for the given language in the specified format
         /// </summary>
+        /// <param name="format">The format in which the profile should be exported e.g. sonarlint-vs-cs</param>
         /// <returns>True if the profile could be returned, otherwise false</returns>
         bool TryGetProfileExport(string qualityProfile, string language, string format, out string content);
     }

@@ -102,7 +102,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsFalse(string.IsNullOrEmpty(language), "Language is required");
             Assert.IsFalse(string.IsNullOrEmpty(format), "Format is required");
 
-            QualityProfile profile = this.Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Name, qualityProfile) && string.Equals(qp.Language, language));
+            QualityProfile profile = this.Data.FindProfile(qualityProfile, language);
 
             content = profile != null ? profile.GetExport(format) : null;
             return content != null;

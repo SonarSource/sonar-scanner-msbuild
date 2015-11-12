@@ -200,7 +200,7 @@ The full path to a settings file can also be supplied. If it is not supplied, th
     <value>Fetching the SonarLint ruleset from the server...</value>
   </data>
   <data name="SLAP_InvalidRulesetReturned" xml:space="preserve">
-    <value>The SonarQube server did returned an invalid ruleset for SonarLint</value>
+    <value>The SonarQube server returned an invalid ruleset for SonarLint. SonarLint analysis will not be run as part of the build.</value>
   </data>
   <data name="SLAP_NoProfileForProject" xml:space="preserve">
     <value>Could not obtain a C# profile for project '{0}'</value>

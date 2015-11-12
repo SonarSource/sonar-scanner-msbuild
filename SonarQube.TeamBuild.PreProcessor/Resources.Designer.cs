@@ -299,7 +299,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The SonarQube server did returned an invalid ruleset for SonarLint.
+        ///   Looks up a localized string similar to The SonarQube server returned an invalid ruleset for SonarLint. SonarLint analysis will not be run as part of the build..
         /// </summary>
         public static string SLAP_InvalidRulesetReturned {
             get {

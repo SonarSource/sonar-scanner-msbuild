@@ -14,7 +14,7 @@ using System.Linq;
 namespace SonarQube.TeamBuild.PreProcessor
 {
     /// <summary>
-    /// Handles fetch the SonarLint ruleset and provisioning the SonarLint assemblies on the client
+    /// Handles fetching the SonarLint ruleset and provisioning the SonarLint assemblies on the client
     /// </summary>
     /// <remarks>This code is a short-term solution introduced in MSBuild Scanner version 1.1.
     /// Going forwards, we want to provide a more general solution that will work for all Roslyn
@@ -52,10 +52,12 @@ namespace SonarQube.TeamBuild.PreProcessor
                 throw new ArgumentNullException("logger");
             }
 
-            if (IsCSharpPluginInstalled(server) &&
-                TryCreateRuleset(server, settings, projectKey, logger))
+            if (IsCSharpPluginInstalled(server))
             {
-                FetchBinaries(server, settings, logger);
+                if (TryCreateRuleset(server, settings, projectKey, logger))
+                {
+                    FetchBinaries(server, settings, logger);
+                }
             }
             else
             {
