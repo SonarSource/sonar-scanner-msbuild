@@ -79,8 +79,8 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to create an empty directory. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.
-        ///  Detailed error message: {0}.
+        ///   Looks up a localized string similar to Failed to create an empty directory &apos;{0}&apos;. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.
+        ///  Detailed error message: {1}.
         /// </summary>
         public static string ERROR_CannotCreateEmptyDirectory {
             get {

@@ -136,7 +136,7 @@ namespace SonarQube.Common
                 {
                     if (ex is UnauthorizedAccessException || ex is IOException)
                     {
-                        logger.LogError(Resources.ERROR_CannotCreateEmptyDirectory, ex.Message);
+                        logger.LogError(Resources.ERROR_CannotCreateEmptyDirectory, directory, ex.Message);
                         return false;
                     }
                     throw;
