@@ -135,6 +135,9 @@
   <data name="ERROR_FailedToUpdateRunnerBinaries" xml:space="preserve">
     <value>Failed to update the SonarQube MSBuild Runner binaries. Check the server url, verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted.</value>
   </data>
+  <data name="ERROR_PostProcessExeNotFound" xml:space="preserve">
+    <value>Post-processor executable not found '{0}'. Please check that pre-processing was executed in the current directory.</value>
+  </data>
   <data name="ERROR_ProcessingFailed" xml:space="preserve">
     <value>{0} failed. Exit code: {1}</value>
   </data>

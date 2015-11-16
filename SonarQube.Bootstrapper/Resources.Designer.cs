@@ -115,6 +115,15 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Post-processor executable not found &apos;{0}&apos;. Please check that pre-processing was executed in the current directory..
+        /// </summary>
+        public static string ERROR_PostProcessExeNotFound {
+            get {
+                return ResourceManager.GetString("ERROR_PostProcessExeNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} failed. Exit code: {1}.
         /// </summary>
         public static string ERROR_ProcessingFailed {

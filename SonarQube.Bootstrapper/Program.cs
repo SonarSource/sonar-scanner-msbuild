@@ -7,6 +7,7 @@
 
 using SonarQube.Common;
 using System.Diagnostics;
+using System.IO;
 
 namespace SonarQube.Bootstrapper
 {
@@ -100,6 +101,13 @@ namespace SonarQube.Bootstrapper
 
         private static int PostProcess(IBootstrapperSettings settings, ILogger logger)
         {
+
+            if (!File.Exists(settings.PostProcessorFilePath))
+            {
+                logger.LogError(Resources.ERROR_PostProcessExeNotFound, settings.PostProcessorFilePath);
+                return ErrorCode;
+            }
+
             ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(settings.PostProcessorFilePath, logger)
             {
                 CmdLineArgs = settings.ChildCmdLineArgs,
