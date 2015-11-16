@@ -7,6 +7,7 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
+using System;
 using System.IO;
 using TestUtilities;
 
@@ -196,6 +197,30 @@ namespace SonarQube.Bootstrapper.Tests
 
                 string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
                 DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://anotherHost");
+            }
+        }
+
+        [TestMethod]
+        public void Exe_PostProc_ExecutableNotFound_PostProcFails()
+        {
+            // Arrange
+            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            using (InitializeNonTeamBuildEnvironment(rootDir))
+            {
+                string binDir = CalculateBinDir(rootDir);
+
+                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://anotherHost");
+                
+                // Act
+                TestLogger logger = CheckExecutionFails(mockUpdater, "end");
+
+                IBootstrapperSettings settings;
+                ArgumentProcessor.TryProcessArgs(new string[] { "end" }, logger, out settings);
+
+                // Assert
+                mockUpdater.AssertUpdateNotAttempted();
+                mockUpdater.AssertVersionNotChecked();
+                logger.AssertErrorLogged(String.Format(Resources.ERROR_PostProcessExeNotFound, settings.PostProcessorFilePath));
             }
         }
 
