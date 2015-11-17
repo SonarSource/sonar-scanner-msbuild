@@ -32,7 +32,7 @@ namespace SonarQube.Common
            Regex.Escape(SonarProperties.SonarUserName),
            Regex.Escape(SonarProperties.DbPassword),
            Regex.Escape(SonarProperties.DbUserName),
-            @".*\.secured$"   // matches all *.secure properties like sonar.vb.license.secured
+            @".*\.secured$"   // matches all *.secured properties like sonar.vb.license.secured
         };
 
         public ProcessRunnerArguments(string exeName, ILogger logger)
