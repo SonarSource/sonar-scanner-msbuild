@@ -111,7 +111,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             // Currently the post-processor only accepts command line arguments that
             // will be stripped from teh the pre-processor command line
-            return ProcessRunnerArguments.SensitivePropertyKeys.Any(marker => Property.AreKeysEqual(marker, property.Id));
+            return ProcessRunnerArguments.SensitivePropertyRegexps.Any(marker => Property.AreKeysEqual(marker, property.Id));
         }
 
         #endregion

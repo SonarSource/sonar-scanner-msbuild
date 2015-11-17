@@ -247,10 +247,12 @@ namespace SonarRunner.Shim.Tests
             config.LocalSettings.Add(new Property() { Id = "key1", Value = "value1" });
             config.LocalSettings.Add(new Property() { Id = "key.2", Value = "value two" });
             config.LocalSettings.Add(new Property() { Id = "key.3", Value = " " });
+            config.LocalSettings.Add(new Property() { Id = "secured.license", Value = "not so secret license" });
 
             // Sensitive data should not be written
             config.LocalSettings.Add(new Property() { Id = SonarProperties.DbPassword, Value ="secret db pwd" });
             config.LocalSettings.Add(new Property() { Id = SonarProperties.SonarPassword, Value = "secret pwd" });
+            config.LocalSettings.Add(new Property() { Id = "sonar.vbnet.license.secured", Value = "secret license" });
 
             // Server properties should not be added
             config.ServerSettings = new AnalysisProperties();
@@ -269,11 +271,13 @@ namespace SonarRunner.Shim.Tests
             provider.AssertSettingExists("key1", "value1");
             provider.AssertSettingExists("key.2", "value two");
             provider.AssertSettingExists("key.3", " ");
+            provider.AssertSettingExists("secured.license", "not so secret license"); // properties that match "*.secured" are considered sensitive
 
             provider.AssertSettingDoesNotExist("server.key");
 
             provider.AssertSettingDoesNotExist(SonarProperties.DbPassword);
             provider.AssertSettingDoesNotExist(SonarProperties.SonarPassword);
+            provider.AssertSettingDoesNotExist("sonar.vbnet.license.secured");
         }
 
         [TestMethod] // Old VS Bootstrapper should be forceably disabled: https://jira.sonarsource.com/browse/SONARMSBRU-122
