@@ -27,7 +27,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public void Init()
         {
             downloader = new TestDownloader();
-            ws = new SonarWebService(downloader, "http://myhost:222");
+            ws = new SonarWebService(downloader, "http://myhost:222", new TestLogger());
         }
 
         [TestCleanup]
@@ -146,7 +146,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             expected["sonar.property1"] = "value1";
             expected["sonar.property2"] = "value2";
             expected["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
-            var actual = ws.GetProperties("foo bar", new TestLogger());
+            var actual = ws.GetProperties("foo bar");
 
             Assert.AreEqual(true, expected.Count == actual.Count && !expected.Except(actual).Any());
         }
@@ -167,7 +167,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         [TestMethod]
         public void ServerUrlWithTrailingSlash()
         {
-            ws = new SonarWebService(downloader, "http://myhost:222/");
+            ws = new SonarWebService(downloader, "http://myhost:222/", new TestLogger());
 
             downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar"] = "[{\"name\":\"profile1\",\"language\":\"cs\",\"default\":true}]";
             string qualityProfile;
@@ -192,7 +192,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             expected3["sonar.property1"] = "value1";
             expected3["sonar.property2"] = "value2";
             expected3["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
-            var actual3 = ws.GetProperties("foo bar", new TestLogger());
+            var actual3 = ws.GetProperties("foo bar");
 
             Assert.AreEqual(true, expected3.Count == actual3.Count && !expected3.Except(actual3).Any());
 

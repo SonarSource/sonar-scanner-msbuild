@@ -141,12 +141,12 @@ namespace SonarQube.TeamBuild.PreProcessor
             string hostUrl = args.GetSetting(SonarProperties.HostUrl);
             serverSettings = null;
 
-            ISonarQubeServer server = this.serverFactory.Create(args);
+            ISonarQubeServer server = this.serverFactory.Create(args, logger);
             try
             {
                 // Fetch the SonarQube project properties
                 logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
-                serverSettings = server.GetProperties(args.ProjectKey, logger);
+                serverSettings = server.GetProperties(args.ProjectKey);
 
                 // Generate the FxCop rulesets
                 logger.LogInfo(Resources.MSG_GeneratingRulesets);

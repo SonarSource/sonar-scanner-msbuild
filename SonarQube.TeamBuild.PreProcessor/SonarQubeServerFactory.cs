@@ -12,14 +12,18 @@ namespace SonarQube.TeamBuild.PreProcessor
 {
     internal class SonarQubeServerFactory : ISonarQubeServerFactory
     {
-        public ISonarQubeServer Create(ProcessedArgs args)
+        public ISonarQubeServer Create(ProcessedArgs args, ILogger logger)
         {
             if (args == null)
             {
                 throw new ArgumentNullException("args");
             }
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
 
-            return new SonarWebService(GetDownloader(args), args.GetSetting(SonarProperties.HostUrl));
+            return new SonarWebService(GetDownloader(args), args.GetSetting(SonarProperties.HostUrl), logger);
         }
 
         private static IDownloader GetDownloader(ProcessedArgs args)

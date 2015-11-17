@@ -71,12 +71,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return this.Data.Repositories.SelectMany(repo => repo.Rules).ToDictionary(r => r.Key, r => r.InternalKey);
         }
 
-        IDictionary<string, string> ISonarQubeServer.GetProperties(string projectKey, ILogger logger)
+        IDictionary<string, string> ISonarQubeServer.GetProperties(string projectKey)
         {
             this.LogMethodCalled();
 
             Assert.IsFalse(string.IsNullOrEmpty(projectKey), "Project key is required");
-            Assert.IsNotNull((logger), "Logger is required");
 
             return this.Data.ServerProperties;
         }

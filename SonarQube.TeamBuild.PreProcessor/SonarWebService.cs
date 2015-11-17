@@ -18,8 +18,9 @@ namespace SonarQube.TeamBuild.PreProcessor
     {
         private readonly string server;
         private readonly IDownloader downloader;
-        
-        public SonarWebService(IDownloader downloader, string server)
+        private readonly ILogger logger;
+
+        public SonarWebService(IDownloader downloader, string server, ILogger logger)
         {
             if (downloader == null)
             {
@@ -29,9 +30,14 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException("server");
             }
-            
+            if (logger == null)
+            {
+                throw new ArgumentNullException("LoggerVerbosity");
+            }
+
             this.downloader = downloader;
             this.server = server.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? server.Substring(0, server.Length - 1) : server;
+            this.logger = logger;
         }
 
         #region ISonarQubeServer interface
@@ -92,19 +98,15 @@ namespace SonarQube.TeamBuild.PreProcessor
             return keysToIds;
         }
 
-        public IDictionary<string, string> GetProperties(string projectKey, ILogger logger)
+        public IDictionary<string, string> GetProperties(string projectKey)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
             {
                 throw new ArgumentNullException("projectKey");
             }
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
            
             string ws = GetUrl("/api/properties?resource={0}", projectKey);
-            logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectKey, ws);
+            this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectKey, ws);
             var contents = this.downloader.Download(ws);
 
             var properties = JArray.Parse(contents);

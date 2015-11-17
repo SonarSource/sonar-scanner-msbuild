@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using SonarQube.Common;
 using System;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -18,12 +19,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             this.server = server;
         }
 
-        public ISonarQubeServer Create(ProcessedArgs args)
+        public ISonarQubeServer Create(ProcessedArgs args, ILogger logger)
         {
             if (args == null)
             {
                 throw new ArgumentNullException("args");
             }
+            if (logger == null)
+            {
+                throw new ArgumentNullException("param");
+            }
+
             return this.server;
         }
     }

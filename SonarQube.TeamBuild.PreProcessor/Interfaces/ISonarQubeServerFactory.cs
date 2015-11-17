@@ -5,6 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using SonarQube.Common;
+
 namespace SonarQube.TeamBuild.PreProcessor
 {
     public interface ISonarQubeServerFactory
@@ -14,6 +16,6 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// </summary>
         /// <param name="args">Validated arguments</param>
         /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary</remarks>
-        ISonarQubeServer Create(ProcessedArgs args);
+        ISonarQubeServer Create(ProcessedArgs args, ILogger logger);
     }
 }

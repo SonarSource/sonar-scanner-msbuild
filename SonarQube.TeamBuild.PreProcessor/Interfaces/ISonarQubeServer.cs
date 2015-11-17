@@ -34,7 +34,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <summary>
         /// Get all the properties of a project
         /// </summary>
-        IDictionary<string, string> GetProperties(string projectKey, ILogger logger);
+        IDictionary<string, string> GetProperties(string projectKey);
 
         /// <summary>
         /// Get the name of the quality profile (of the given language) to be used by the given project key
