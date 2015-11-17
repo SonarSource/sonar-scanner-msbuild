@@ -166,6 +166,12 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   <data name="MSG_CreatingFolders" xml:space="preserve">
     <value>Creating config and output folders...</value>
   </data>
+  <data name="MSG_DownloadingZip" xml:space="preserve">
+    <value>Downloading {0} from {1} to {2}</value>
+  </data>
+  <data name="MSG_ExtractingFiles" xml:space="preserve">
+    <value>Extracting files to {0}...</value>
+  </data>
   <data name="MSG_FetchingAnalysisConfiguration" xml:space="preserve">
     <value>Fetching analysis configuration settings...</value>
   </data>
@@ -193,8 +199,14 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   <data name="MSG_UpdatingMSBuildTargets" xml:space="preserve">
     <value>Updating build integration targets...</value>
   </data>
+  <data name="SLAP_AnalyzerNotFound" xml:space="preserve">
+    <value>The SonarLint analyzer was not found on the server (requires C# plugin version 4.4 or higher)</value>
+  </data>
   <data name="SLAP_CSharpPluginNotInstalled" xml:space="preserve">
     <value>C# plugin is not installed so the SonarLint ruleset cannot be retrieved</value>
+  </data>
+  <data name="SLAP_FetchingSonarLintAnalyzer" xml:space="preserve">
+    <value>Fetching the SonarLint analyzer from the server...</value>
   </data>
   <data name="SLAP_FetchingSonarLintRuleset" xml:space="preserve">
     <value>Fetching the SonarLint ruleset from the server...</value>

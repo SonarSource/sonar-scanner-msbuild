@@ -9,6 +9,7 @@ using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 
 namespace SonarQube.TeamBuild.PreProcessor
@@ -19,7 +20,13 @@ namespace SonarQube.TeamBuild.PreProcessor
     /// <remarks>This code is a short-term solution introduced in MSBuild Scanner version 1.1.
     /// Going forwards, we want to provide a more general solution that will work for all Roslyn
     /// analyzers that the SonarQube server knows about. It is likely that the general-purpose
-    /// solution will be quite different.</remarks>
+    /// solution will be quite different.
+    /// <para>
+    /// We won't be able to run the analyzers unless the user is using MSBuild 14.0 or later.
+    /// However, this code is called during the pre-process stage i.e. we don't know which
+    /// version of MSBuild will be used so we have to download the analyzers even if we
+    /// can't then use them.
+    /// </para></remarks>
     public static class SonarLintAnalyzerProvider
     {
         public const string RoslynCSharpRulesetFileName = "SonarQubeRoslyn-cs.ruleset";
@@ -28,6 +35,8 @@ namespace SonarQube.TeamBuild.PreProcessor
         public const string CSharpLanguage = "cs";
         public const string CSharpPluginKey = "csharp";
         public const string CSharpRepositoryKey = "csharp";
+
+        public const string EmbeddedSonarLintZipFileName = "SonarLint.zip";
 
         /// <summary>
         /// Sets up the client to run the SonarLint analyzer as part of the build
@@ -134,7 +143,21 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private static void FetchBinaries(ISonarQubeServer server, TeamBuildSettings settings, ILogger logger)
         {
-            // TODO: https://jira.sonarsource.com/browse/SONARCS-556
+            // For the 1.1 release of the runner/scanner, we are hard-coding support for a single known version
+            // of SonarLint. The required assemblies will be packaged in the "static" folder of the jar (in the
+            // same way that the SonarQube.MSBuild.Runner.Implementation.zip file is).
+            logger.LogDebug(Resources.SLAP_FetchingSonarLintAnalyzer);
+            if (server.TryDownloadEmbeddedFile(CSharpPluginKey, EmbeddedSonarLintZipFileName, settings.SonarBinDirectory))
+            {
+                string filePath = Path.Combine(settings.SonarBinDirectory, EmbeddedSonarLintZipFileName);
+
+                logger.LogDebug(Resources.MSG_ExtractingFiles, settings.SonarBinDirectory);
+                ZipFile.ExtractToDirectory(filePath, settings.SonarBinDirectory);
+            }
+            else
+            {
+                logger.LogDebug(Resources.SLAP_AnalyzerNotFound);
+            }
         }
 
     }

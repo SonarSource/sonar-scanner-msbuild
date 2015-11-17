@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 
@@ -32,7 +33,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("LoggerVerbosity");
+                throw new ArgumentNullException("logger");
             }
 
             this.downloader = downloader;
@@ -155,6 +156,30 @@ namespace SonarQube.TeamBuild.PreProcessor
             return success;
         }
 
+        public bool TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(pluginKey))
+            {
+                throw new ArgumentNullException("pluginKey");
+            }
+            if (string.IsNullOrWhiteSpace(embeddedFileName))
+            {
+                throw new ArgumentNullException("embeddedFileName");
+            }
+            if (string.IsNullOrWhiteSpace(targetDirectory))
+            {
+                throw new ArgumentNullException("targetDirectory");
+            }
+
+            string url = GetUrl("/static/{0}/{1}", pluginKey, embeddedFileName);
+
+            string targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
+
+            logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, url, targetDirectory);
+            bool success = this.downloader.TryDownloadFileIfExists(url, targetFilePath);
+            return success;
+        }
+
         #endregion
 
         private string GetUrl(string format, params string[] args)
@@ -189,6 +214,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
         }
+
         #endregion
 
     }

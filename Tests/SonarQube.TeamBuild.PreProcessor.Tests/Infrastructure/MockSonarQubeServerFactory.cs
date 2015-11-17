@@ -27,7 +27,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("param");
+                throw new ArgumentNullException("logger");
             }
 
             return this.server;

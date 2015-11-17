@@ -5,18 +5,29 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
+    /// <summary>
+    /// Interface introduced for testability
+    /// </summary>
     public interface IDownloader : IDisposable
     {
+        /// <summary>
+        /// Attempts to download the specified page
+        /// </summary>
+        /// <returns>False if the url does not exist, true if the contents were downloaded successfully.
+        /// Exceptions are thrown for other web failures.</returns>
         bool TryDownloadIfExists(string url, out string contents);
+
+        /// <summary>
+        /// Attempts to download the specified file
+        /// </summary>
+        /// <param name="targetFilePath">The file to which the downloaded data should be saved</param>
+        /// <returns>False if the url does not exist, true if the data was downloaded successfully.
+        /// Exceptions are thrown for other web failures.</returns>
+        bool TryDownloadFileIfExists(string url, string targetFilePath);
 
         string Download(string url);
     }

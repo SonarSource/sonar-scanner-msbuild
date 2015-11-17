@@ -43,17 +43,47 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             return this.client.Headers[header];
         }
-        
+ 
+        #region IDownloaderMethods
+
+        public bool TryDownloadIfExists(string url, out string contents)
+        {
+            string data = null;
+
+            bool success = DoIgnoringMissingUrls(() => data = client.DownloadString(url));
+            contents = data;
+            return success;
+        }
+
+        public bool TryDownloadFileIfExists(string url, string targetFilePath)
+        {
+            return DoIgnoringMissingUrls(() => client.DownloadFile(url, targetFilePath));
+        }
+
+        public string Download(string url)
+        {
+            return client.DownloadString(url);
+        }
+
+        #endregion
+
+        #region Private methods
+
         private static bool IsAscii(string s)
         {
             return !s.Any(c => c > sbyte.MaxValue);
         }
 
-        public bool TryDownloadIfExists(string url, out string contents)
+        /// <summary>
+        /// Performs the specified web operation
+        /// </summary>
+        /// <returns>True if the operation completed successfully, false if the url could not be found.
+        /// Other web failures will be thrown as expections.</returns>
+        private static bool DoIgnoringMissingUrls(Action op)
         {
             try
             {
-                contents = client.DownloadString(url);
+                op();
                 return true;
             }
             catch (WebException e)
@@ -61,18 +91,13 @@ namespace SonarQube.TeamBuild.PreProcessor
                 var response = e.Response as HttpWebResponse;
                 if (response != null && response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    contents = null;
                     return false;
                 }
-
                 throw;
             }
         }
 
-        public string Download(string url)
-        {
-            return client.DownloadString(url);
-        }
+        #endregion
 
         #region IDisposable implementation
 

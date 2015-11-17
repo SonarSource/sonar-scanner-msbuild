@@ -15,6 +15,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     {
         private readonly IList<Repository> repos;
         private readonly IList<QualityProfile> qualityProfiles;
+        private readonly IDictionary<string, byte[]> embeddedFilesMap;
 
         public ServerDataModel()
         {
@@ -22,9 +23,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             this.qualityProfiles = new List<QualityProfile>();
             this.ServerProperties = new Dictionary<string, string>();
             this.InstalledPlugins = new List<string>();
+            this.embeddedFilesMap = new Dictionary<string, byte[]>();
         }
 
         public IEnumerable<Repository> Repositories {  get { return this.repos; } }
+
         public IEnumerable<QualityProfile> QualityProfiles { get { return this.qualityProfiles; } }
 
         public IDictionary<string, string> ServerProperties { get; set; }
@@ -63,6 +66,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             profile.AddRule(rule);
         }
 
+        public void AddEmbeddedFile(string pluginKey, string embeddedFileName, byte[] content)
+        {
+            this.embeddedFilesMap.Add(GetEmbeddedFileKey(pluginKey, embeddedFileName), content);
+        }
+
         #endregion
 
         #region Locator methods
@@ -81,6 +89,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return profile;
         }
 
+        public byte[] FindEmbeddedFile(string pluginKey, string embeddedFileName)
+        {
+            byte[] content;
+            this.embeddedFilesMap.TryGetValue(GetEmbeddedFileKey(pluginKey, embeddedFileName), out content);
+            return content;
+        }
+
+        private static string GetEmbeddedFileKey(string pluginKey, string embeddedFileName)
+        {
+            return pluginKey + "___" + embeddedFileName;
+        }
         #endregion
     }
 }

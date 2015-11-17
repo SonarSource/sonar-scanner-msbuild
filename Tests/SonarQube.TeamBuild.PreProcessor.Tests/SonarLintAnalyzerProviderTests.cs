@@ -8,6 +8,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.TeamBuild.Integration;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using TestUtilities;
 
@@ -16,6 +17,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     [TestClass]
     public class SonarLintAnalyzerProviderTests
     {
+        private const string DummyZippedBinaryFileName = "dummy.dll";
+
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -34,7 +37,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // Assert
             CheckRulesetExists(rootDir);
-            CheckBinariesExist(rootDir);
+            CheckSonarLintBinariesExist(rootDir);
         }
 
         [TestMethod]
@@ -116,7 +119,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         /// Creates and returns a mock server that is correctly configured to return
         /// a SonarLint ruleset for the specified project key and profile
         /// </summary>
-        private static MockSonarQubeServer CreateValidServer(string validProjectKey, string validProfileName)
+        private MockSonarQubeServer CreateValidServer(string validProjectKey, string validProfileName)
         {
             ServerDataModel model = new ServerDataModel();
             model.InstalledPlugins.Add(SonarLintAnalyzerProvider.CSharpPluginKey);
@@ -138,6 +141,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 </RuleSet>");
 
             model.AddRepository(SonarLintAnalyzerProvider.CSharpRepositoryKey, SonarLintAnalyzerProvider.CSharpLanguage);
+
+            byte[] sonarLintData = CreateDummySonarLintZip();
+            model.AddEmbeddedFile(SonarLintAnalyzerProvider.CSharpPluginKey, SonarLintAnalyzerProvider.EmbeddedSonarLintZipFileName, sonarLintData);
 
             MockSonarQubeServer server = new MockSonarQubeServer();
             server.Data = model;
@@ -165,7 +171,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return Path.Combine(rootDir, "bin");
         }
 
-
         private static string[] GetBinaries(string rootDir)
         {
             string binDir = GetBinaryPath(rootDir);
@@ -173,6 +178,27 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return Directory.GetFiles(binDir, "*.dll")
                 .Select(p => Path.GetFileName(p)).ToArray();
         }
+
+        private byte[] CreateDummySonarLintZip()
+        {
+            // Create a temporary directory structure
+            string tempDir = TestUtils.CreateTestSpecificFolder(this.TestContext, System.Guid.NewGuid().ToString());
+            string zipDir = Path.Combine(tempDir, "zipDir");
+            Directory.CreateDirectory(zipDir);
+            string zippedFilePath = Path.Combine(tempDir, SonarLintAnalyzerProvider.EmbeddedSonarLintZipFileName);
+
+            // Create and read the zip file           
+            TestUtils.CreateTextFile(zipDir, DummyZippedBinaryFileName, "dummy file content");
+            ZipFile.CreateFromDirectory(zipDir, zippedFilePath);
+            byte[] zipData = File.ReadAllBytes(zippedFilePath);
+
+            // Cleanup
+            Directory.Delete(tempDir, true);
+
+            return zipData;
+        }
+
+
         #endregion
 
         #region Checks
@@ -189,12 +215,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsFalse(File.Exists(filePath), "Not expecting the ruleset file to exist: {0}", filePath);
         }
 
-        private static void CheckBinariesExist(string rootTestDir)
+        private static void CheckSonarLintBinariesExist(string rootTestDir)
         {
-            // TODO
-            //string[] binaries = GetBinaries(rootTestDir);
-            //CollectionAssert.Contains(binaries, "123", "Expected binary does not exist: 123");
-            //CollectionAssert.Contains(binaries, "123", "Expected binary does not exist: 123");
+            string[] binaries = GetBinaries(rootTestDir);
+            CollectionAssert.Contains(binaries, DummyZippedBinaryFileName, "Expected binary does not exist: " + DummyZippedBinaryFileName);
+            Assert.AreEqual(1, binaries.Length, "Unexpected number of files downloaded");
         }
 
         private static void CheckBinariesDoNotExist(string rootTestDir)

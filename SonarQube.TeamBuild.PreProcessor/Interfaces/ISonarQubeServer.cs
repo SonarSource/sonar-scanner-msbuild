@@ -47,5 +47,13 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <param name="format">The format in which the profile should be exported e.g. sonarlint-vs-cs</param>
         /// <returns>True if the profile could be returned, otherwise false</returns>
         bool TryGetProfileExport(string qualityProfile, string language, string format, out string content);
+
+        /// <summary>
+        /// Attempts to download a file embbedded in the "static" folder in a plugin jar
+        /// </summary>
+        /// <param name="pluginKey">The key of the plugin containing the file</param>
+        /// <param name="embeddedFileName">The name of the file to download</param>
+        /// <param name="targetDirectory">The directory to which the file should be downloaded</param>
+        bool TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory);
     }
 }

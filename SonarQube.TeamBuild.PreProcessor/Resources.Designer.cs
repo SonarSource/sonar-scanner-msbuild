@@ -200,6 +200,24 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Downloading {0} from {1} to {2}.
+        /// </summary>
+        public static string MSG_DownloadingZip {
+            get {
+                return ResourceManager.GetString("MSG_DownloadingZip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extracting files to {0}....
+        /// </summary>
+        public static string MSG_ExtractingFiles {
+            get {
+                return ResourceManager.GetString("MSG_ExtractingFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fetching analysis configuration settings....
         /// </summary>
         public static string MSG_FetchingAnalysisConfiguration {
@@ -281,11 +299,29 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The SonarLint analyzer was not found on the server (requires C# plugin version 4.4 or higher).
+        /// </summary>
+        public static string SLAP_AnalyzerNotFound {
+            get {
+                return ResourceManager.GetString("SLAP_AnalyzerNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to C# plugin is not installed so the SonarLint ruleset cannot be retrieved.
         /// </summary>
         public static string SLAP_CSharpPluginNotInstalled {
             get {
                 return ResourceManager.GetString("SLAP_CSharpPluginNotInstalled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetching the SonarLint analyzer from the server....
+        /// </summary>
+        public static string SLAP_FetchingSonarLintAnalyzer {
+            get {
+                return ResourceManager.GetString("SLAP_FetchingSonarLintAnalyzer", resourceCulture);
             }
         }
         

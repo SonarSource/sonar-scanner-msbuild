@@ -6,14 +6,13 @@
 //-----------------------------------------------------------------------
 
 
-using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
 using SonarQube.Common;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 {
@@ -22,6 +21,8 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
     {
         private TestDownloader downloader;
         private SonarWebService ws;
+
+        public TestContext TestContext { get; set; }
 
         [TestInitialize]
         public void Init()
@@ -205,9 +206,41 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             Assert.AreEqual(true, expected4.SequenceEqual(actual4));
         }
 
+        [TestMethod]
+        public void TryDownloadEmbeddedFile_RequestedFileExists()
+        {
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            downloader.Pages["http://myhost:222/static/csharp/dummy.txt"] = "dummy file content";
+
+            // Act
+            bool success = ws.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir);
+
+            // Assert
+            Assert.IsTrue(success, "Expected success");
+            string expectedFilePath = Path.Combine(testDir, "dummy.txt");
+            Assert.IsTrue(File.Exists(expectedFilePath), "Failed to download the expected file");
+        }
+
+        [TestMethod]
+        public void TryDownloadEmbeddedFile_RequestedFileDoesNotExist()
+        {
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            // Act
+            bool success = ws.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir);
+
+            // Assert
+            Assert.IsFalse(success, "Expected failure");
+            string expectedFilePath = Path.Combine(testDir, "dummy.txt");
+            Assert.IsFalse(File.Exists(expectedFilePath), "File should not be created");
+        }
+
+
         private class TestDownloader : IDownloader
         {
-            public IDictionary<string, string> Pages = new Dictionary<string, string>();
+            public IDictionary<string, string> Pages = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
             public List<string> AccessedUrls = new List<string>();
 
             public bool TryDownloadIfExists(string url, out string contents)
@@ -233,6 +266,21 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                     return Pages[url];
                 }
                 throw new ArgumentException("Cannot find URL " + url);
+            }
+
+            public bool TryDownloadFileIfExists(string url, string targetFilePath)
+            {
+                AccessedUrls.Add(url);
+
+                if (Pages.ContainsKey(url))
+                {
+                    File.WriteAllText(targetFilePath, Pages[url]);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             public void Dispose()

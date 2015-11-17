@@ -6,9 +6,8 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -105,6 +104,27 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             content = profile != null ? profile.GetExport(format) : null;
             return content != null;
+        }
+
+        bool ISonarQubeServer.TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
+        {
+            this.LogMethodCalled();
+
+            Assert.IsFalse(string.IsNullOrEmpty(pluginKey), "plugin key is required");
+            Assert.IsFalse(string.IsNullOrEmpty(embeddedFileName), "embeddedFileName is required");
+            Assert.IsFalse(string.IsNullOrEmpty(targetDirectory), "targetDirectory is required");
+
+            byte[] data = this.Data.FindEmbeddedFile(pluginKey, embeddedFileName);
+            if (data == null)
+            {
+                return false;
+            }
+            else
+            {
+                string targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
+                File.WriteAllBytes(targetFilePath, data);
+                return true;
+            }
         }
 
         #endregion
