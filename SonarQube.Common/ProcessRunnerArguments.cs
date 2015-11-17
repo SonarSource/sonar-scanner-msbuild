@@ -27,12 +27,12 @@ namespace SonarQube.Common
         /// Regular expressions that are used to indicate arguments that contain
         /// sensitive data that should not be logged
         /// </summary>
-        public static readonly string[] SensitivePropertyRegexps = new string[] {
+        private static readonly string[] SensitivePropertyRegexps = new string[] {
            Regex.Escape(SonarProperties.SonarPassword),
            Regex.Escape(SonarProperties.SonarUserName),
            Regex.Escape(SonarProperties.DbPassword),
            Regex.Escape(SonarProperties.DbUserName),
-            @".*\.secured$"   // matches all *.secure properties like sonar.vb.license.secure
+            @".*\.secured$"   // matches all *.secure properties like sonar.vb.license.secured
         };
 
         public ProcessRunnerArguments(string exeName, ILogger logger)
