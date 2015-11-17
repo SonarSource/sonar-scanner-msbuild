@@ -207,20 +207,17 @@ namespace SonarQube.Bootstrapper.Tests
             string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             using (InitializeNonTeamBuildEnvironment(rootDir))
             {
+                // a non-dummy post-processor is used to check that it fails with the correct error message
                 string binDir = CalculateBinDir(rootDir);
-
                 MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://anotherHost");
                 
                 // Act
                 TestLogger logger = CheckExecutionFails(mockUpdater, "end");
-
-                IBootstrapperSettings settings;
-                ArgumentProcessor.TryProcessArgs(new string[] { "end" }, logger, out settings);
-
+                
                 // Assert
                 mockUpdater.AssertUpdateNotAttempted();
                 mockUpdater.AssertVersionNotChecked();
-                logger.AssertErrorLogged(String.Format(Resources.ERROR_PostProcessExeNotFound, settings.PostProcessorFilePath));
+                logger.AssertSingleErrorExists(binDir + "\\MSBuild.SonarQube.Internal.PostProcess.exe"); // expect an error message at least containing the 
             }
         }
 
