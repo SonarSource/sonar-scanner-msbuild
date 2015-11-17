@@ -264,7 +264,9 @@ xxx yyy
             {
                 "public1",
                 "public2",
-                "/d:sonar.projectKey=my.key"
+                "/d:sonar.projectKey=my.key",
+                "/d:sonar.secured.notreallysecured=key",
+                "/d:sonarsecured=key",
             };
 
             string[] sensitiveArgs = new string[] {
@@ -276,14 +278,17 @@ xxx yyy
                 "/d:sonar.login=secret data login",
                 "/d:sonar.jdbc.password=secret data db password",
                 "/d:sonar.jdbc.username=secret data db user name",
+                "/d:sonar.vbnet.license.secured=mypass",
 
                 // Sensitive args - different cases -> exclude to be on the safe side
                 "/d:SONAR.jdbc.password=secret data db password upper",
                 "/d:sonar.PASSWORD=secret data password upper",
+                "/d:sonar.license.SECURED=mypass",
 
                 // Sensitive args - parameter format is slightly incorrect -> exclude to be on the safe side
                 "/dsonar.login =secret data key typo",
-                "sonar.password=secret data password typo"
+                "sonar.password=secret data password typo",
+                "/d:sonar.license.secured = mypass",
             };
 
             string[] allArgs = sensitiveArgs.Union(publicArgs).ToArray();

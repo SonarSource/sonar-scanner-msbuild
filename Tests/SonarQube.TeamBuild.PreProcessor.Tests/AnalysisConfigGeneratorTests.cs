@@ -80,6 +80,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Sensitive values - should not be written to the config file
             cmdLineArgs.AddProperty(SonarProperties.DbPassword, "secret db password");
             cmdLineArgs.AddProperty(SonarProperties.DbUserName, "secret db user");
+            cmdLineArgs.AddProperty("sonar.license.secured", "secret license number");
 
             // Create a settings file with public and sensitive data
             AnalysisProperties fileSettings = new AnalysisProperties();
@@ -121,8 +122,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedServerSetting("server.key.1", "server value 1", config);
 
             AssertFileDoesNotContainText(config.FileName, "file.public.key"); // file settings values should not be in the config
-
-            // SONARMSBRU-136: TODO - uncomment the following code:
             AssertFileDoesNotContainText(config.FileName, "secret"); // sensitive data should not be in config
         }
 
