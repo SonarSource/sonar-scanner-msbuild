@@ -67,25 +67,34 @@ namespace SonarRunner.Shim
 
             ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
             Debug.Assert(result != null, "Not expecting the file generator to return null");
-
-            ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
-
             result.RanToCompletion = false;
 
-            if (result.FullPropertiesFilePath == null)
-            {
-                // We expect a detailed error message to have been logged explaining
-                // why the properties file generation could not be performed
-                logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
-            }
-            else
-            {
-                string exeFileName = FindRunnerExe(config, logger);
-                if (exeFileName != null)
+            SonarProjectPropertiesValidator.Validate(
+                config.SonarRunnerWorkingDirectory, result.Projects,
+                onValid: () =>
                 {
-                    result.RanToCompletion = ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, result.FullPropertiesFilePath);
-                }
-            }
+                    ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
+
+                    if (result.FullPropertiesFilePath == null)
+                    {
+                        // We expect a detailed error message to have been logged explaining
+                        // why the properties file generation could not be performed
+                        logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
+                    }
+                    else
+                    {
+                        string exeFileName = FindRunnerExe(config, logger);
+                        if (exeFileName != null)
+                        {
+                            result.RanToCompletion = ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, result.FullPropertiesFilePath);
+                        }
+                    }
+                },
+                onInvalid: (invalidFolders) =>
+                {
+                    // LOG error message
+                    logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
+                });
 
             return result;
         }

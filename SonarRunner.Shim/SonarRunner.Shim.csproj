@@ -64,6 +64,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SonarProjectPropertiesValidator.cs" />
     <Compile Include="SonarRunner.Wrapper.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -61,6 +61,15 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to sonar-project.properties files are not understood by the SonarQube Scanner for MSBuild. Remove those files from the following folders: {0}.
+        /// </summary>
+        public static string ERR_ConflictingSonarProjectProperties {
+            get {
+                return ResourceManager.GetString("ERR_ConflictingSonarProjectProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred loading the analysis config file. Please check that it is a valid file and try again. Error: {0}.
         /// </summary>
         public static string ERR_ErrorLoadingConfigFile {
