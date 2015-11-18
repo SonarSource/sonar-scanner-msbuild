@@ -34,7 +34,6 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             provider.AssertExpectedPropertyCount(0);
         }
 
-
         [TestMethod]
         public void PostArgProc_Unrecognised()
         {
@@ -64,17 +63,19 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
                 "/d:sonar.login=user name",
                 "/d:sonar.password=pwd",
                 "/d:sonar.jdbc.username=db user name",
-                "/d:sonar.jdbc.password=db pwd"
+                "/d:sonar.jdbc.password=db pwd",
+                "/d:sonar.license.secured=license"
             };
 
             // 1. All valid args
             IAnalysisPropertyProvider provider = CheckProcessingSucceeds(logger, args);
 
-            provider.AssertExpectedPropertyCount(4);
+            provider.AssertExpectedPropertyCount(5);
             provider.AssertExpectedPropertyValue("sonar.login", "user name");
             provider.AssertExpectedPropertyValue("sonar.password", "pwd");
             provider.AssertExpectedPropertyValue("sonar.jdbc.username", "db user name");
             provider.AssertExpectedPropertyValue("sonar.jdbc.password", "db pwd");
+            provider.AssertExpectedPropertyValue("sonar.license.secured", "license");
         }
 
         [TestMethod]
@@ -91,16 +92,12 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             logger.AssertSingleErrorExists("aaa");
             logger.AssertSingleErrorExists("xxx");
 
-
             // 2. Incorrect versions of permitted /d: arguments
             logger = CheckProcessingFails("/D:sonar.login=user name"); // wrong case for "/d:"
             logger.AssertSingleErrorExists("sonar.login");
-
-            logger = CheckProcessingFails("/d:SONAR.login=user name"); // wrong case for argument name
-            logger.AssertSingleErrorExists("SONAR.login");
         }
 
-        #endregion
+        #endregion Tests
 
         #region Checks
 
@@ -130,6 +127,6 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             return logger;
         }
 
-        #endregion
+        #endregion Checks
     }
 }
