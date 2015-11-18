@@ -22,6 +22,39 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         #region Tests
 
         [TestMethod]
+        [Description("When FxCop rules are enabled, but FxCop is not installed (only MSBuild is), analysis should fail")]
+        public void E2E_FxCop_FailIfEnabledButNotInstalled()
+        {
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            preImportProperties.SonarQubeTempPath = rootOutputFolder;
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
+            preImportProperties.SonarQubeConfigPath = rootInputFolder;
+
+            // FxCop's targets is imported when Visual Studio is installed, see Microsoft.Common.CurrentVersion.targets
+            preImportProperties["CodeAnalysisTargets"] = Path.Combine(rootInputFolder, "non-existing.targets");
+
+            CreateValidFxCopRuleset(rootInputFolder, string.Format(TargetProperties.SonarQubeRulesetFormat, "cs"));
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
+
+            // Assert
+            BuildAssertions.AssertTargetFailed(result, TargetConstants.DefaultBuildTarget);
+
+            logger.AssertExpectedTargetOrdering(
+                TargetConstants.DetectFxCopRulesetTarget,
+                TargetConstants.FailIfFxCopNotInstalledTarget);
+
+            AssertFxCopNotExecuted(logger);
+        }
+
+        [TestMethod]
         [Description("If the output folder is not set our custom targets should not be executed")]
         public void E2E_FxCop_OutputFolderNotSet()
         {
@@ -193,6 +226,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
             logger.AssertExpectedTargetOrdering(
+                TargetConstants.DetectFxCopRulesetTarget,
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 TargetConstants.FxCopTarget,
@@ -249,6 +283,7 @@ End Class");
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
             logger.AssertExpectedTargetOrdering(
+                TargetConstants.DetectFxCopRulesetTarget,
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
                 TargetConstants.FxCopTarget,

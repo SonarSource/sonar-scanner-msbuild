@@ -19,8 +19,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string CategoriseProjectTarget = "SonarQubeCategoriseProject";
         public const string CalculateFilesToAnalyzeTarget = "CalculateSonarQubeFilesToAnalyze";
         public const string WriteProjectDataTarget = "WriteSonarQubeProjectData";
+        public const string DetectFxCopRulesetTarget = "DetectFxCopRuleset";
         public const string OverrideFxCopSettingsTarget = "OverrideCodeAnalysisProperties";
         public const string SetFxCopResultsTarget = "SetFxCopAnalysisResult";
+        public const string FailIfFxCopNotInstalledTarget = "FailIfFxCopNotInstalled";
 
         public const string DefaultBuildTarget = "Build";
         public const string CoreCompile = "CoreCompile";

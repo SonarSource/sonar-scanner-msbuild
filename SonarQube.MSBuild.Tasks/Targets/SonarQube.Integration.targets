@@ -172,7 +172,7 @@
   <!-- **************************************************************************** -->
   <!-- This target is a utility target: it won't be executed unless a target that
        depends on it is executed.
-  -->
+  --> 
   <Target Name="CalculateSonarQubeFilesToAnalyze"
         Condition=" $(SonarQubeTempPath) != '' ">
 
@@ -306,11 +306,9 @@
     <RunCodeAnalysisOnce>true</RunCodeAnalysisOnce>
   </PropertyGroup>
 
-  <!-- We want to override any properties that have been set declaratively in the project -->
-  <Target Name="OverrideCodeAnalysisProperties" Condition=" $(SonarQubeTempPath) != '' "
-          DependsOnTargets="SonarQubeCategoriseProject"
-          BeforeTargets="RunCodeAnalysis" >
-
+  <!-- Check whether or not FxCop should be executed, even if FxCop isn't installed and all targets depending on RunCodeAnalysis are skipped -->
+  <Target Name="DetectFxCopRuleset" Condition=" $(SonarQubeTempPath) != '' "
+        BeforeTargets="CoreCompile" >
     <PropertyGroup>
       <!-- Compute the ruleset filename -->
       <SonarQubeRulesetFileName Condition=" $(SonarQubeRulesetFileName) == '' AND $(Language) == 'C#' ">SonarQubeFxCop-cs.ruleset</SonarQubeRulesetFileName>
@@ -319,7 +317,15 @@
       <!-- Check if the ruleset exists -->
       <SonarQubeRulesetFullName>$(SonarQubeConfigPath)\$(SonarQubeRulesetFileName)</SonarQubeRulesetFullName>
       <SonarQubeRulesetExists>$([System.IO.File]::Exists($(SonarQubeRulesetFullName)))</SonarQubeRulesetExists>
+    </PropertyGroup>
+  </Target>
 
+  <!-- We want to override any properties that have been set declaratively in the project -->
+  <Target Name="OverrideCodeAnalysisProperties" Condition=" $(SonarQubeTempPath) != '' "
+          DependsOnTargets="SonarQubeCategoriseProject;DetectFxCopRuleset"
+          BeforeTargets="RunCodeAnalysis" >
+
+    <PropertyGroup>
       <!-- Run FxCop only if the ruleset exists (else it means no FxCop rule is enabled) -->
       <SonarQubeRunMSCodeAnalysis>$(SonarQubeRulesetExists)</SonarQubeRunMSCodeAnalysis>
 
@@ -383,6 +389,13 @@
         <Id>FxCop</Id>
       </AnalysisResults>
     </ItemGroup>
+  </Target>
+
+  <!-- If FxCop is not installed, then none of the targets depending on RunCodeAnalysis being executed before or after it will have been executed -->
+  <Target Name="FailIfFxCopNotInstalled"
+          Condition=" $(SonarQubeRulesetExists) == 'true' AND $(SonarQubeRunMSCodeAnalysis) == '' "
+          AfterTargets="WriteSonarQubeProjectData">
+    <Error Text="FxCop must be installed when some of its rules are enabled in the SonarQube quality profile. FxCop is included as part of Visual Studio." />
   </Target>
 
   <!-- **************************************************************************** -->
