@@ -72,6 +72,10 @@ namespace SonarQube.Common
 
         public ILogger Logger { get { return this.logger; } }
 
+        #endregion Public properties
+
+        #region Public Methods
+
         public string GetQuotedCommandLineArgs()
         {
             if (this.CmdLineArgs == null) { return null; }
@@ -113,20 +117,21 @@ namespace SonarQube.Common
         }
 
         /// <summary>
-        /// Determines whether the text contains sensitive data that
-        /// should not be logged/written to file
+        /// Determines whether the text may contain sensitive data that should not be logged/written to file. It
+        /// looks at a blacklist of tokens in a case insensitive way.
         /// </summary>
         public static bool ContainsSensitiveData(string text)
         {
-            Debug.Assert(SensitivePropertyRegexps != null, "SensitivePropertyRegexps array should not be null");
+            return ContainsSensitiveDataInternal(text, true);
+        }
 
-            if (text == null)
-            {
-                return false;
-            }
-
-            return SensitivePropertyRegexps.Any(
-                regex => Regex.IsMatch(text, regex, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase));
+        /// <summary>
+        /// Determines whether the text may contain sensitive data that should not be logged/written to file. It
+        /// looks at a blacklist of tokens in a case sensitive way.
+        /// </summary>
+        public static bool ContainsSensitiveDataStrict(string text)
+        {
+            return ContainsSensitiveDataInternal(text, false);
         }
 
         public static string GetQuotedArg(string arg)
@@ -145,7 +150,30 @@ namespace SonarQube.Common
             return quotedArg;
         }
 
-        #endregion Public properties
+        #endregion Public Methods
 
+        #region Private Methods
+
+        private static bool ContainsSensitiveDataInternal(string text, bool caseInsensitive)
+        {
+            Debug.Assert(SensitivePropertyRegexps != null, "SensitivePropertyRegexps array should not be null");
+
+            if (text == null)
+            {
+                return false;
+            }
+
+            RegexOptions regexOptions = RegexOptions.CultureInvariant;
+
+            if (caseInsensitive)
+            {
+                regexOptions |= RegexOptions.IgnoreCase;
+            }
+
+            return SensitivePropertyRegexps.Any(
+                regex => Regex.IsMatch(text, regex, regexOptions));
+        }
+
+        #endregion Private Methods
     }
 }

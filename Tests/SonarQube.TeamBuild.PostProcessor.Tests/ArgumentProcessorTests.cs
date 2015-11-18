@@ -95,6 +95,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             // 2. Incorrect versions of permitted /d: arguments
             logger = CheckProcessingFails("/D:sonar.login=user name"); // wrong case for "/d:"
             logger.AssertSingleErrorExists("sonar.login");
+
+            logger = CheckProcessingFails("/d:SONAR.login=user name"); // wrong case for "/d:"
+            logger.AssertSingleErrorExists("SONAR.login");
         }
 
         #endregion Tests
