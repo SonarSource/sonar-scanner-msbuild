@@ -80,7 +80,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Sensitive values - should not be written to the config file
             cmdLineArgs.AddProperty(SonarProperties.DbPassword, "secret db password");
             cmdLineArgs.AddProperty(SonarProperties.DbUserName, "secret db user");
-            cmdLineArgs.AddProperty("sonar.license.secured", "secret license number");
+            cmdLineArgs.AddProperty("sonar.lolcode.license.secured", "secret license");
 
             // Create a settings file with public and sensitive data
             AnalysisProperties fileSettings = new AnalysisProperties();
@@ -99,6 +99,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Sensitive server settings
             serverProperties.Add(SonarProperties.SonarUserName, "secret user");
             serverProperties.Add(SonarProperties.SonarPassword, "secret pwd");
+            serverProperties.Add("sonar.vbnet.license.secured", "secret license");
+            serverProperties.Add("sonar.cpp.License.Secured", "secret license 2");
+
 
             TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist

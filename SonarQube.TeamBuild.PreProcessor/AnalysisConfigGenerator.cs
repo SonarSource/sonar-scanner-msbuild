@@ -44,13 +44,17 @@ namespace SonarQube.TeamBuild.PreProcessor
             config.SonarConfigDir = settings.SonarConfigDirectory;
             config.SonarOutputDir = settings.SonarOutputDirectory;
             config.SonarBinDir = settings.SonarBinDirectory;
-            config.SonarRunnerWorkingDirectory = settings.SonarRunnerWorkingDirectory; 
+            config.SonarRunnerWorkingDirectory = settings.SonarRunnerWorkingDirectory;
 
             // Add the server properties to the config
             config.ServerSettings = new AnalysisProperties();
+
             foreach (var property in serverProperties)
             {
-                AddSetting(config.ServerSettings, property.Key, property.Value);
+                if (!IsSecuredServerProperty(property.Key))
+                {
+                    AddSetting(config.ServerSettings, property.Key, property.Value);
+                }
             }
 
             // Add command line arguments
@@ -70,7 +74,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             return config;
         }
-        
+
         private static void AddSetting(AnalysisProperties properties, string id, string value)
         {
             Property property = new Property() { Id = id, Value = value };
@@ -80,7 +84,11 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 properties.Add(new Property() { Id = id, Value = value });
             }
+        }
 
+        private static bool IsSecuredServerProperty(string s)
+        {
+            return s.EndsWith(".secured", StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
