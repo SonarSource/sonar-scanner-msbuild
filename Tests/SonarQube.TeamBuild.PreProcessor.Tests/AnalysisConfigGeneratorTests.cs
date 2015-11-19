@@ -76,17 +76,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Public args - should be written to the config file
             cmdLineArgs.AddProperty("sonar.host.url", "http://host");
             cmdLineArgs.AddProperty("public.key", "public value");
+            cmdLineArgs.AddProperty("sonar.user.license.secured", "user input license");
+            cmdLineArgs.AddProperty("server.key.secured.xxx", "not really secure");
+            cmdLineArgs.AddProperty("sonar.value", "value.secured");
 
             // Sensitive values - should not be written to the config file
             cmdLineArgs.AddProperty(SonarProperties.DbPassword, "secret db password");
             cmdLineArgs.AddProperty(SonarProperties.DbUserName, "secret db user");
-            cmdLineArgs.AddProperty("sonar.lolcode.license.secured", "secret license");
 
             // Create a settings file with public and sensitive data
             AnalysisProperties fileSettings = new AnalysisProperties();
             fileSettings.Add(new Property() { Id = "file.public.key", Value = "file public value" });
-            fileSettings.Add(new Property() {Id = SonarProperties.DbUserName, Value = "secret db user"});
-            fileSettings.Add(new Property() { Id = SonarProperties.DbPassword, Value = "secret db password"});
+            fileSettings.Add(new Property() { Id = SonarProperties.DbUserName, Value = "secret db user" });
+            fileSettings.Add(new Property() { Id = SonarProperties.DbPassword, Value = "secret db password" });
             string fileSettingsPath = Path.Combine(analysisDir, "fileSettings.txt");
             fileSettings.Save(fileSettingsPath);
             FilePropertyProvider fileProvider = FilePropertyProvider.Load(fileSettingsPath);
@@ -101,7 +103,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             serverProperties.Add(SonarProperties.SonarPassword, "secret pwd");
             serverProperties.Add("sonar.vbnet.license.secured", "secret license");
             serverProperties.Add("sonar.cpp.License.Secured", "secret license 2");
-
 
             TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
@@ -122,13 +123,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual("1.0", config.SonarProjectVersion, "Unexpected project version");
 
             AssertExpectedLocalSetting(SonarProperties.HostUrl, "http://host", config);
+            AssertExpectedLocalSetting("sonar.user.license.secured", "user input license", config); // we only filter out *.secured server settings
+            AssertExpectedLocalSetting("sonar.value", "value.secured", config);
+            AssertExpectedLocalSetting("server.key.secured.xxx", "not really secure", config);
             AssertExpectedServerSetting("server.key.1", "server value 1", config);
 
             AssertFileDoesNotContainText(config.FileName, "file.public.key"); // file settings values should not be in the config
             AssertFileDoesNotContainText(config.FileName, "secret"); // sensitive data should not be in config
         }
 
-        #endregion
+        #endregion Tests
 
         #region Checks
 
@@ -140,7 +144,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsTrue(File.Exists(config.FileName), "Expecting the analysis config file to exist. Path: {0}", config.FileName);
 
             this.TestContext.AddResultFile(config.FileName);
-
         }
 
         private static void AssertSettingDoesNotExist(string key, AnalysisConfig actualConfig)
@@ -177,7 +180,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 text, filePath);
         }
 
-        #endregion
-
+        #endregion Checks
     }
 }

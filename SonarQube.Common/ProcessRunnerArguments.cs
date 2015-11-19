@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace SonarQube.Common
@@ -24,16 +23,16 @@ namespace SonarQube.Common
         private readonly ILogger logger;
 
         /// <summary>
-        /// Regular expressions that are used to indicate arguments that contain
+        /// Strings that are used to indicate arguments that contain
         /// sensitive data that should not be logged
         /// </summary>
-        private static readonly string[] SensitivePropertyRegexps = new string[] {
-           Regex.Escape(SonarProperties.SonarPassword),
-           Regex.Escape(SonarProperties.SonarUserName),
-           Regex.Escape(SonarProperties.DbPassword),
-           Regex.Escape(SonarProperties.DbUserName),
-            @".*\.secured$"   // matches all *.secured properties like sonar.vb.license.secured
+        public static readonly string[] SensitivePropertyKeys = new string[] {
+            SonarProperties.SonarPassword,
+            SonarProperties.SonarUserName,
+            SonarProperties.DbPassword,
+            SonarProperties.DbUserName
         };
+
 
         public ProcessRunnerArguments(string exeName, ILogger logger)
         {
@@ -118,15 +117,14 @@ namespace SonarQube.Common
         /// </summary>
         public static bool ContainsSensitiveData(string text)
         {
-            Debug.Assert(SensitivePropertyRegexps != null, "SensitivePropertyRegexps array should not be null");
+            Debug.Assert(SensitivePropertyKeys != null, "SensitiveDataMarkers array should not be null");
 
             if (text == null)
             {
                 return false;
             }
 
-            return SensitivePropertyRegexps.Any(
-                regex => Regex.IsMatch(text, regex, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase));
+            return SensitivePropertyKeys.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) > -1);
         }
 
         public static string GetQuotedArg(string arg)
@@ -145,7 +143,7 @@ namespace SonarQube.Common
             return quotedArg;
         }
 
-        #endregion Public properties
+        #endregion
 
     }
 }

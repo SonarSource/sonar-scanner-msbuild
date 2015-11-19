@@ -107,11 +107,11 @@ namespace SonarQube.TeamBuild.PostProcessor
         /// <summary>
         /// Determines whether the supplied property is accepted by the post-processor
         /// </summary>
-        private static bool IsPermittedProperty(Property property)
+        public static bool IsPermittedProperty(Property property)
         {
             // Currently the post-processor only accepts command line arguments that
             // will be stripped from teh the pre-processor command line
-            return ProcessRunnerArguments.ContainsSensitiveData(property.Id);
+            return ProcessRunnerArguments.SensitivePropertyKeys.Any(marker => Property.AreKeysEqual(marker, property.Id));
         }
 
         #endregion
