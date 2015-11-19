@@ -125,6 +125,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedServerSetting("server.key.1", "server value 1", config);
 
             AssertFileDoesNotContainText(config.FileName, "file.public.key"); // file settings values should not be in the config
+
+            // SONARMSBRU-136: TODO - uncomment the following code:
             AssertFileDoesNotContainText(config.FileName, "secret"); // sensitive data should not be in config
         }
 
