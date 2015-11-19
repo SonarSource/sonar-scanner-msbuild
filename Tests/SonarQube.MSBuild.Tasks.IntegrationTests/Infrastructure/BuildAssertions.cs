@@ -97,6 +97,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         }
 
+        /// <summary>
+        /// Checks that a SonarQubeSetting does not exist
+        /// </summary>
         public static void AssertAnalysisSettingDoesNotExist(BuildResult actualResult, string settingName)
         {
             Assert.IsNotNull(actualResult.ProjectStateAfterBuild, "Test error: ProjectStateAfterBuild should not be null");
@@ -104,6 +107,63 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             IEnumerable<ProjectItemInstance> matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(BuildTaskConstants.SettingItemName, settingName);
 
             Assert.AreEqual(0, matches.Count(), "Not expected SonarQubeSetting with include value of '{0}' to exist. Actual occurences: {1}", settingName, matches.Count());
+        }
+
+        /// <summary>
+        /// Checks that a single ItemGroup item with the specified value exists
+        /// </summary>
+        public static void AssertSingleItemExists(BuildResult actualResult, string itemType, string expectedValue)
+        {
+            /* The equivalent XML would look like this:
+            <ItemGroup>
+              <itemType Include="expectedValue">
+              </itemType>
+            </ItemGroup>
+            */
+
+            Assert.IsNotNull(actualResult.ProjectStateAfterBuild, "Test error: ProjectStateAfterBuild should not be null");
+
+            IEnumerable<ProjectItemInstance> matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(itemType, expectedValue);
+
+            Assert.AreEqual(1, matches.Count(), "Expecting one item of type '{0}' with value '{1}' to exist", itemType, expectedValue);
+        }
+
+        /// <summary>
+        /// Checks that an ItemGroup item does not exit
+        /// </summary>
+        public static void AssertItemDoesNotExist(BuildResult actualResult, string itemType, string itemValue)
+        {
+            /* The equivalent XML would look like this:
+            <ItemGroup>
+              <itemType Include="expectedValue">
+              </itemType>
+            </ItemGroup>
+            */
+
+            Assert.IsNotNull(actualResult.ProjectStateAfterBuild, "Test error: ProjectStateAfterBuild should not be null");
+
+            IEnumerable<ProjectItemInstance> matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(itemType, itemValue);
+
+            Assert.AreEqual(0, matches.Where(i => itemValue.Equals(i.EvaluatedInclude)),
+                "Not expecting any '{0}' items with value '{1}' to exist", itemType, itemValue);
+        }
+
+        /// <summary>
+        /// Checks that the expected number of ItemType entries exist
+        /// </summary>
+        public static void AssertExpectedItemGroupCount(BuildResult actualResult, string itemType, int expectedCount)
+        {
+            Assert.IsNotNull(actualResult.ProjectStateAfterBuild, "Test error: ProjectStateAfterBuild should not be null");
+
+            IEnumerable<ProjectItemInstance> matches = actualResult.ProjectStateAfterBuild.GetItems(itemType);
+
+            BuildUtilities.LogMessage("Analyzers:");
+            foreach(ProjectItemInstance item in matches)
+            {
+                BuildUtilities.LogMessage("\t{0}", item.EvaluatedInclude);
+            }
+
+            Assert.AreEqual(expectedCount, matches.Count(), "Unexpected number of '{0}' items", itemType);
         }
 
         #endregion

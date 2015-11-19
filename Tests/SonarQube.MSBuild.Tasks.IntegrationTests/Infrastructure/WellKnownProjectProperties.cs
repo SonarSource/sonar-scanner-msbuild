@@ -64,6 +64,18 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             set { this[TargetProperties.CodeAnalysisRuleset] = value; }
         }
 
+        public string ResolvedCodeAnalysisRuleset
+        {
+            get { return this.GetValueOrNull(TargetProperties.ResolvedCodeAnalysisRuleset); }
+            set { this[TargetProperties.ResolvedCodeAnalysisRuleset] = value; }
+        }
+
+        public string ErrorLog
+        {
+            get { return this.GetValueOrNull(TargetProperties.ErrorLog); }
+            set { this[TargetProperties.ErrorLog] = value; }
+        }
+
         public string AssemblyName
         {
             get { return this.GetValueOrNull(TargetProperties.AssemblyName); }

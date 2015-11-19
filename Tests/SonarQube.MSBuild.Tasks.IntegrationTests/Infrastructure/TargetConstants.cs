@@ -32,7 +32,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string FxCopTask = "CodeAnalysis";
 
         // Roslyn
-        public const string OverrideRoslynSettingsTarget = "OverrideRoslynCodeAnalysisProperties";
+        public const string OverrideRoslynAnalysisTarget = "OverrideRoslynCodeAnalysisProperties";
+        public const string SetRoslynAnalysisPropertiesTarget = "SetRoslynCodeAnalysisProperties";
+
         public const string SetRoslynResultsTarget = "SetRoslynAnalysisResults";
         public const string ResolveCodeAnalysisRuleSet = "ResolveCodeAnalysisRuleSet";
 
@@ -71,11 +73,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public const string IsInTeamBuild = "TF_Build"; // Common to legacy and non-legacy TeamBuilds
 
+        // Roslyn
         public const string ResolvedCodeAnalysisRuleset = "ResolvedCodeAnalysisRuleSet";
-
         public const string TargetDir = "TargetDir"; // bin directory into which output will be dropped
         public const string ErrorLog = "ErrorLog"; // file path to which the Roslyn error log should be written
         public const string Language = "Language"; // Language of the project: normally "C#" or "VB"
+        public const string AnalyzerItemType = "Analyzer";
 
         // Legacy TeamBuild environment variables (XAML Builds)
         public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";

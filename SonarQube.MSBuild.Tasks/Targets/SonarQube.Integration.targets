@@ -272,7 +272,7 @@
         point in the build.
   
         Note that both the FxCop and Roslyn targets use a property called "CodeAnalysisRuleSet".
-        The FxCop targets use this value directly. However, the Rolsyn targets use it 
+        The FxCop targets use this value directly. However, the Roslyn targets use it 
         as input to the "ResolveCodeAnalysisRuleSet" target, which sets the property
         "ResolvedCodeAnalysisRuleset".
 
@@ -413,42 +413,66 @@
          
        We want to run after the core "ResolveCodeAnalysisRuleSet" target which
        assigns a value to "ResolvedCodeAnalysisRuleSet".
-  -->
+       
+       Conditions:
+       * project is a test project -> turn off Roslyn analysis
+       * project is excluded -> turn off Roslyn analysis
+       * downloaded SonarLint ruleset and analyzer found -> add SonarLint config to existing analysis config
+       * downloaded SonarLint ruleset and analyzer not found -> no change to existing config
+   -->
   <Target Name="OverrideRoslynCodeAnalysisProperties"
         Condition=" $(SonarQubeTempPath) != '' "
         DependsOnTargets="SonarQubeCategoriseProject"
         AfterTargets="ResolveCodeAnalysisRuleSet"
         BeforeTargets="CoreCompile">
 
+    <!-- Check whether to turn off code analysis -->
+    <PropertyGroup>
+      <SonarQubeDisableRoslynCodeAnalysis Condition="$(SonarQubeExclude) == 'true' OR $(SonarQubeTestProject) == 'true' ">true</SonarQubeDisableRoslynCodeAnalysis>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition=" $(SonarQubeDisableRoslynCodeAnalysis) == 'true' ">
+      <ErrorLog></ErrorLog>
+      <ResolvedCodeAnalysisRuleSet></ResolvedCodeAnalysisRuleSet>
+    </PropertyGroup>
+    <!-- else -->
+    <CallTarget Targets="SetRoslynCodeAnalysisProperties"
+                Condition="$(SonarQubeDisableRoslynCodeAnalysis) != 'true'"/>
+
+  </Target>
+
+  <Target Name="SetRoslynCodeAnalysisProperties">
+    
     <PropertyGroup>
       <!-- Check if the ruleset exists -->
       <SonarQubeRoslynRulesetFullName>$(SonarQubeConfigPath)SonarQubeRoslyn-cs.ruleset</SonarQubeRoslynRulesetFullName>
       <SonarQubeRoslynRulesetExists>$([System.IO.File]::Exists($(SonarQubeRoslynRulesetFullName)))</SonarQubeRoslynRulesetExists>
 
-      <!-- Run FxCop only if the ruleset exists (else it means no Roslyn rules are enabled) -->
-      <SonarQubeRunRoslynCodeAnalysis>$(SonarQubeRoslynRulesetExists)</SonarQubeRunRoslynCodeAnalysis>
+      <!-- Check if the downloaded analyzer assembly exists -->
+      <SonarLintAnalyzerAssembly>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarLint.dll))</SonarLintAnalyzerAssembly>
+      <SonarLintAnalyzerAssembly Condition=" $(SonarLintAnalyzerAssembly) != '' ">$(SonarLintAnalyzerAssembly)\SonarLint.dll</SonarLintAnalyzerAssembly>
+      <SonarQubeRoslynAssemblyExists>$([System.IO.File]::Exists($(SonarLintAnalyzerAssembly)))</SonarQubeRoslynAssemblyExists>
 
-      <!-- For the time being only run for C# -->
-      <SonarQubeRunRoslynCodeAnalysis Condition=" $(Language) != 'C#' ">false</SonarQubeRunRoslynCodeAnalysis>
-
-      <!-- Don't run FxCop if the project is excluded -->
-      <SonarQubeRunRoslynCodeAnalysis Condition=" $(SonarQubeExclude) == 'true' ">false</SonarQubeRunRoslynCodeAnalysis>
-
-      <!-- Don't run FxCop if the project is a test one -->
-      <SonarQubeRunRoslynCodeAnalysis Condition=" $(SonarQubeTestProject) == 'true' ">false</SonarQubeRunRoslynCodeAnalysis>
-
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" $(SonarQubeRunRoslynCodeAnalysis) != 'true' ">
-      <ErrorLog></ErrorLog>
-      <ResolvedCodeAnalysisRuleSet></ResolvedCodeAnalysisRuleSet>
-
+      <!-- Run Roslyn analysis only if the ruleset exists (else it means no Roslyn rules are enabled)
+           and the SonarLint analyzer assembly could be found -->
+      <SonarQubeRunRoslynCodeAnalysis Condition="
+          $(SonarQubeRoslynRulesetExists) == 'true' 
+          AND $(SonarQubeRoslynAssemblyExists) == 'true' 
+          AND $(Language) == 'C#' 
+          ">true</SonarQubeRunRoslynCodeAnalysis>
+      <SonarQubeRunRoslynCodeAnalysis Condition=" $(SonarQubeRunRoslynCodeAnalysis) == '' ">false</SonarQubeRunRoslynCodeAnalysis>
     </PropertyGroup>
 
     <PropertyGroup Condition=" $(SonarQubeRunRoslynCodeAnalysis) == 'true' ">
       <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)SonarQube.Roslyn.ErrorLog.json</ErrorLog>
       <ResolvedCodeAnalysisRuleSet>$(SonarQubeRoslynRulesetFullName)</ResolvedCodeAnalysisRuleSet>
     </PropertyGroup>
+
+    <ItemGroup Condition=" $(SonarQubeRunRoslynCodeAnalysis) == 'true' ">
+      <!-- Remove any existing references to SonarLint -->
+      <Analyzer Remove="@(Analyzer)" Condition=" $([System.String]::new('%(Analyzer.Identity)').EndsWith('SonarLint.dll', System.StringComparison.OrdinalIgnoreCase)) == 'true'" />
+      <Analyzer Include="$(SonarLintAnalyzerAssembly)"/>
+    </ItemGroup>
 
   </Target>
 
