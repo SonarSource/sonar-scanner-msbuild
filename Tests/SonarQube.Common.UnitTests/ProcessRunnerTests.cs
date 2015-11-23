@@ -226,7 +226,10 @@ xxx yyy
                 "\"quoted\"",
                 "\"quoted with spaces\"",
                 "/test:\"quoted arg\"",
-                "unquoted with spaces" };
+                "unquoted with spaces",
+                "quote in \"the middle",
+                "quotes & ampersands",
+                "\"multiple \"\"\"      quotes \" "};
 
             ProcessRunner runner = new ProcessRunner();
 
@@ -241,10 +244,13 @@ xxx yyy
             string exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, this.TestContext);
             DummyExeHelper.AssertExpectedLogContents(exeLogFile,
                 "unquoted",
-                "quoted",
-                "quoted with spaces",
-                "/test:quoted arg",
-                "unquoted with spaces");
+                "\"quoted\"",
+                "\"quoted with spaces\"",
+                "/test:\"quoted arg\"",
+                "unquoted with spaces", 
+                "quote in \"the middle",
+                "quotes & ampersands",
+                "\"multiple \"\"\"      quotes \" ");
         }
 
 

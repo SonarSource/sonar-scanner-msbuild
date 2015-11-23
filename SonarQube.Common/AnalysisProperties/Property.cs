@@ -51,7 +51,7 @@ namespace SonarQube.Common
         /// </summary>
         public string AsSonarRunnerArg()
         {
-            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "-D{0}={1}", this.Id, ProcessRunnerArguments.GetQuotedArg(this.Value));
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "-D{0}={1}", this.Id, this.Value);
         }
 
         #endregion
