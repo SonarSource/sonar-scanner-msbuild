@@ -82,7 +82,7 @@ namespace SonarQube.Common
         /// Returns the string that should be used when logging command line arguments
         /// (sensitive data will have been removed)
         /// </summary>
-        public string GetCommandLineArgsLogText()
+        public string AsLogText()
         {
             if (this.CmdLineArgs == null) { return null; }
 

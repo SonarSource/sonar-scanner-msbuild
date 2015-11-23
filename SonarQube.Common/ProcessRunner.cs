@@ -81,7 +81,7 @@ namespace SonarQube.Common
                 // may contain sensitive data
                 this.outputLogger.LogDebug(Resources.MSG_ExecutingFile,
                     runnerArgs.ExeName,
-                    runnerArgs.GetCommandLineArgsLogText(),
+                    runnerArgs.AsLogText(),
                     runnerArgs.WorkingDirectory,
                     runnerArgs.TimeoutInMilliseconds,
                     process.Id);

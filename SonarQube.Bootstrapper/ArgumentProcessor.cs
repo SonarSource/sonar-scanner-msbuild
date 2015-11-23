@@ -209,7 +209,7 @@ namespace SonarQube.Bootstrapper
         {
             if (commandLineArgs == null)
             {
-                throw new ArgumentNullException("param");
+                throw new ArgumentNullException("commandLineArgs");
             }
 
             var excludedVerbs = new string[] { BeginVerb, EndVerb };

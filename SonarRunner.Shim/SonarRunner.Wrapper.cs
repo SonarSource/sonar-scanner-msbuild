@@ -58,7 +58,7 @@ namespace SonarRunner.Shim
             }
             if (userCmdLineArguments == null)
             {
-                throw new ArgumentNullException("cmdLineArguments");
+                throw new ArgumentNullException("userCmdLineArguments");
             }
             if (logger == null)
             {
