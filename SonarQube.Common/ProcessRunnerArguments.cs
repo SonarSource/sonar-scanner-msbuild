@@ -75,7 +75,7 @@ namespace SonarQube.Common
         {
             if (this.CmdLineArgs == null) { return null; }
 
-            return string.Join(" ", this.CmdLineArgs.Select(a => GetQuotedArg(a)));
+            return string.Join(" ", this.CmdLineArgs.Select(a => EscapeArgument(a)));
         }
 
         /// <summary>
@@ -127,18 +127,17 @@ namespace SonarQube.Common
             return SensitivePropertyKeys.Any(marker => text.IndexOf(marker, StringComparison.OrdinalIgnoreCase) > -1);
         }
 
-        public static string GetQuotedArg(string arg)
+        /// <summary>
+        /// According to https://msdn.microsoft.com/en-us/library/system.diagnostics.processstartinfo.arguments(v=vs.110).aspx
+        /// quotes have to be doubled. Also, to avoid problems when the argument has spaces or chars such as & which are problematic in .bat files, 
+        /// enclose the entire argument in quotes
+        /// </summary>
+        private static string EscapeArgument(string arg)
         {
             Debug.Assert(arg != null, "Not expecting an argument to be null");
-
-            string quotedArg = arg;
-
-            // If an argument contains a quote then we assume it has been correctly quoted.
-            // Otherwise, quote strings that contain spaces.
-            if (quotedArg != null && arg.Contains(' ') && !arg.Contains('"'))
-            {
-                quotedArg = "\"" + arg + "\"";
-            }
+            
+            string quotedArg = arg.Replace("\"", "\"\"");
+            quotedArg = "\"" + quotedArg + "\"";
 
             return quotedArg;
         }

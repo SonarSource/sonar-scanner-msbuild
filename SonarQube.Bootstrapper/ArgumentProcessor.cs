@@ -163,7 +163,7 @@ namespace SonarQube.Bootstrapper
             {
                 Debug.Assert(fileProvider.PropertiesFile != null);
                 Debug.Assert(!string.IsNullOrEmpty(fileProvider.PropertiesFile.FilePath), "Expecting the properties file path to be set");
-                childArgs.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}\"{1}\"", FilePropertyProvider.Prefix, fileProvider.PropertiesFile.FilePath));
+                childArgs.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}", FilePropertyProvider.Prefix, fileProvider.PropertiesFile.FilePath));
             }
 
             IBootstrapperSettings settings = new BootstrapperSettings(

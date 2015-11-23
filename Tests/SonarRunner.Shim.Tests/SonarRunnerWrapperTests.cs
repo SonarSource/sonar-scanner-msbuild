@@ -161,7 +161,7 @@ namespace SonarRunner.Shim.Tests
             // Non-sensitive values from the file should not be passed on the command line
             CheckArgDoesNotExist("file.not.sensitive.key", actualCmdLineArgs);
 
-            int dbPwdIndex = CheckArgExists("-Dsonar.jdbc.password=\"file db pwd\"", actualCmdLineArgs); // sensitive value from file
+            int dbPwdIndex = CheckArgExists("-Dsonar.jdbc.password=file db pwd", actualCmdLineArgs); // sensitive value from file
             int userPwdIndex = CheckArgExists("-Dsonar.password=cmdline.password", actualCmdLineArgs); // sensitive value from cmd line: overrides file value
 
             int standardArgsIndex = CheckArgExists(SonarRunnerWrapper.StandardAdditionalRunnerArguments, actualCmdLineArgs);
@@ -204,7 +204,7 @@ namespace SonarRunner.Shim.Tests
         {
             string message = logger.AssertSingleInfoMessageExists(ExpectedConsoleMessagePrefix);
 
-            CheckArgExists("-Dproject.settings=\"" + expectedPropertiesFilePath + "\"", message); // should always be passing the properties file 
+            CheckArgExists("-Dproject.settings=" + expectedPropertiesFilePath, message); // should always be passing the properties file 
             CheckArgExists(SonarRunnerWrapper.StandardAdditionalRunnerArguments, message); // standard args should always be passed
 
             return message;

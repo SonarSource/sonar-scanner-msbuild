@@ -222,7 +222,7 @@ namespace SonarRunner.Shim
             // Experimentation suggests that the sonar-runner won't error if duplicate arguments
             // are supplied - it will just use the last argument.
             // So we'll set our additional properties last to make sure they take precedence.
-            args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}=\"{2}\"", CmdLineArgPrefix, ProjectSettingsFileArgName, projectSettingsFilePath));
+            args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}={2}", CmdLineArgPrefix, ProjectSettingsFileArgName, projectSettingsFilePath));
             args.Add(StandardAdditionalRunnerArguments);
 
             return args;

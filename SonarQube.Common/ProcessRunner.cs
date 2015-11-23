@@ -61,6 +61,11 @@ namespace SonarQube.Common
                 WorkingDirectory = runnerArgs.WorkingDirectory
             };
 
+
+            //string tempString = runnerArgs.CmdLineArgs != null ? String.Join(" ", runnerArgs.CmdLineArgs) : "";
+            //this.outputLogger.LogInfo("UNQUOTED ARGS: " + tempString);
+            //this.outputLogger.LogInfo("QUOTED ARGS: " + psi.Arguments);
+
             SetEnvironmentVariables(psi, runnerArgs.EnvironmentVariables, runnerArgs.Logger);
 
             bool succeeded;
