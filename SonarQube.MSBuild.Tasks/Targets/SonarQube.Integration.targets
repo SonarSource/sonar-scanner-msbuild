@@ -450,7 +450,9 @@
 
       <!-- Check if the downloaded analyzer assembly exists -->
       <SonarLintAnalyzerAssembly>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarLint.dll))</SonarLintAnalyzerAssembly>
-      <SonarLintAnalyzerAssembly Condition=" $(SonarLintAnalyzerAssembly) != '' ">$(SonarLintAnalyzerAssembly)\SonarLint.dll</SonarLintAnalyzerAssembly>
+      <SonarLintAnalyzerAssembly Condition=" $(SonarLintAnalyzerAssembly) != '' AND !HasTrailingSlash('$(SonarLintAnalyzerAssembly)')">$(SonarLintAnalyzerAssembly)\</SonarLintAnalyzerAssembly>
+      <SonarLintAnalyzerAssembly Condition=" $(SonarLintAnalyzerAssembly) != '' ">$(SonarLintAnalyzerAssembly)SonarLint.dll</SonarLintAnalyzerAssembly>
+      
       <SonarQubeRoslynAssemblyExists>$([System.IO.File]::Exists($(SonarLintAnalyzerAssembly)))</SonarQubeRoslynAssemblyExists>
 
       <!-- Run Roslyn analysis only if the ruleset exists (else it means no Roslyn rules are enabled)
