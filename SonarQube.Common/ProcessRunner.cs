@@ -38,7 +38,7 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("runnerArgs");
             }
             Debug.Assert(!string.IsNullOrWhiteSpace(runnerArgs.ExeName), "Process runner exe name should not be null/empty");
-            Debug.Assert( runnerArgs.Logger!= null, "Process runner logger should not be null/empty");
+            Debug.Assert(runnerArgs.Logger != null, "Process runner logger should not be null/empty");
 
             this.outputLogger = runnerArgs.Logger;
 
@@ -60,11 +60,6 @@ namespace SonarQube.Common
                 Arguments = runnerArgs.GetQuotedCommandLineArgs(),
                 WorkingDirectory = runnerArgs.WorkingDirectory
             };
-
-
-            //string tempString = runnerArgs.CmdLineArgs != null ? String.Join(" ", runnerArgs.CmdLineArgs) : "";
-            //this.outputLogger.LogInfo("UNQUOTED ARGS: " + tempString);
-            //this.outputLogger.LogInfo("QUOTED ARGS: " + psi.Arguments);
 
             SetEnvironmentVariables(psi, runnerArgs.EnvironmentVariables, runnerArgs.Logger);
 
@@ -122,7 +117,7 @@ namespace SonarQube.Common
             return succeeded;
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Private methods
 
@@ -168,6 +163,6 @@ namespace SonarQube.Common
             }
         }
 
-        #endregion
+        #endregion Private methods
     }
 }
