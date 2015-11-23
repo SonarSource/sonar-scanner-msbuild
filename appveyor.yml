@@ -6,6 +6,7 @@ environment:
   - Configuration: Debug
 
 before_build:
+  - nuget restore
   - appveyor DownloadFile https://raw.githubusercontent.com/dbolkensteyn/pr-analysis/ondemand/msbuild-sonarqube-runner-begin.cmd && msbuild-sonarqube-runner-begin
 
 after_build:
