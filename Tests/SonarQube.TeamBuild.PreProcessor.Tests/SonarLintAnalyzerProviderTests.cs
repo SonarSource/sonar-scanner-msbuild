@@ -17,7 +17,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     [TestClass]
     public class SonarLintAnalyzerProviderTests
     {
-        private const string DummyZippedBinaryFileName = "dummy.dll";
+        private const string DummyZippedBinaryFileName1 = "dummy1.dll";
+        private const string DummyZippedBinaryFileName2 = "dummy2.dll";
 
         public TestContext TestContext { get; set; }
 
@@ -188,7 +189,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             string zippedFilePath = Path.Combine(tempDir, SonarLintAnalyzerProvider.EmbeddedSonarLintZipFileName);
 
             // Create and read the zip file           
-            TestUtils.CreateTextFile(zipDir, DummyZippedBinaryFileName, "dummy file content");
+            TestUtils.CreateTextFile(zipDir, DummyZippedBinaryFileName1, "dummy file content");
+            TestUtils.CreateTextFile(zipDir, DummyZippedBinaryFileName2, "dummy file content 2");
             ZipFile.CreateFromDirectory(zipDir, zippedFilePath);
             byte[] zipData = File.ReadAllBytes(zippedFilePath);
 
@@ -218,8 +220,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         private static void CheckSonarLintBinariesExist(string rootTestDir)
         {
             string[] binaries = GetBinaries(rootTestDir);
-            CollectionAssert.Contains(binaries, DummyZippedBinaryFileName, "Expected binary does not exist: " + DummyZippedBinaryFileName);
-            Assert.AreEqual(1, binaries.Length, "Unexpected number of files downloaded");
+            CollectionAssert.Contains(binaries, DummyZippedBinaryFileName1, "Expected binary does not exist: " + DummyZippedBinaryFileName1);
+            CollectionAssert.Contains(binaries, DummyZippedBinaryFileName2, "Expected binary does not exist: " + DummyZippedBinaryFileName2);
+            Assert.AreEqual(2, binaries.Length, "Unexpected number of files downloaded");
         }
 
         private static void CheckBinariesDoNotExist(string rootTestDir)

@@ -96,8 +96,6 @@ namespace SonarQube.TeamBuild.PreProcessor
                 }
                 else
                 {
-                    // TODO: decide on an appropriate error message once we know whether could
-                    // happen in the 1.1 release.
                     logger.LogError(Resources.SLAP_InvalidRulesetReturned);
                 }
             }
@@ -129,10 +127,9 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private static bool IsValidRuleset(string rulesetContent)
         {
-            // TODO: check the file contains a ruleset. There is a platform bug that means the wrong
-            // profile could be exported, depending on which plugins are installed on the server.
-            // Depending on the workaround put into place in the next version of the C# plugin, this
-            // might not occur in practice. If it could still occur then consider making this check more robust.
+            // There is a platform bug that means the wrong profile can be exported if unless both a
+            // profile exporter and importer exist. This should not be a problem with version 4.4
+            // of the C# plugin, so we shouldn't hit this situation.
             return rulesetContent.Contains("<RuleSet Name=\"Rules for SonarLint");
         }
 

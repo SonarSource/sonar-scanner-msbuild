@@ -448,11 +448,11 @@
       <SonarQubeRoslynRulesetFullName>$(SonarQubeConfigPath)SonarQubeRoslyn-cs.ruleset</SonarQubeRoslynRulesetFullName>
       <SonarQubeRoslynRulesetExists>$([System.IO.File]::Exists($(SonarQubeRoslynRulesetFullName)))</SonarQubeRoslynRulesetExists>
 
-      <!-- Check if the downloaded analyzer assembly exists -->
-      <SonarLintAnalyzerAssembly>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarLint.dll))</SonarLintAnalyzerAssembly>
-      <SonarLintAnalyzerAssembly Condition=" $(SonarLintAnalyzerAssembly) != '' AND !HasTrailingSlash('$(SonarLintAnalyzerAssembly)')">$(SonarLintAnalyzerAssembly)\</SonarLintAnalyzerAssembly>
-      <SonarLintAnalyzerAssembly Condition=" $(SonarLintAnalyzerAssembly) != '' ">$(SonarLintAnalyzerAssembly)SonarLint.dll</SonarLintAnalyzerAssembly>
-      
+      <!-- Check if the downloaded analyzer assemblies exists. We assume that one of the assemblies is called "SonarLint.dll" for the
+           purposes of locating the analyzers. -->
+      <SonarLintAnalyzerDir>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarLint.dll))</SonarLintAnalyzerDir>
+      <SonarLintAnalyzerDir Condition=" $(SonarLintAnalyzerDir) != '' AND !HasTrailingSlash('$(SonarLintAnalyzerDir)')">$(SonarLintAnalyzerDir)\</SonarLintAnalyzerDir>
+      <SonarLintAnalyzerAssembly Condition=" $(SonarLintAnalyzerDir) != '' ">$(SonarLintAnalyzerDir)SonarLint.dll</SonarLintAnalyzerAssembly>
       <SonarQubeRoslynAssemblyExists>$([System.IO.File]::Exists($(SonarLintAnalyzerAssembly)))</SonarQubeRoslynAssemblyExists>
 
       <!-- Run Roslyn analysis only if the ruleset exists (else it means no Roslyn rules are enabled)
@@ -463,17 +463,18 @@
           AND $(Language) == 'C#' 
           ">true</SonarQubeRunRoslynCodeAnalysis>
       <SonarQubeRunRoslynCodeAnalysis Condition=" $(SonarQubeRunRoslynCodeAnalysis) == '' ">false</SonarQubeRunRoslynCodeAnalysis>
-    </PropertyGroup>
 
+    </PropertyGroup>
+    
     <PropertyGroup Condition=" $(SonarQubeRunRoslynCodeAnalysis) == 'true' ">
       <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)SonarQube.Roslyn.ErrorLog.json</ErrorLog>
       <ResolvedCodeAnalysisRuleSet>$(SonarQubeRoslynRulesetFullName)</ResolvedCodeAnalysisRuleSet>
     </PropertyGroup>
 
     <ItemGroup Condition=" $(SonarQubeRunRoslynCodeAnalysis) == 'true' ">
-      <!-- Remove any existing references to SonarLint -->
-      <Analyzer Remove="@(Analyzer)" Condition=" $([System.String]::new('%(Analyzer.Identity)').EndsWith('SonarLint.dll', System.StringComparison.OrdinalIgnoreCase)) == 'true'" />
-      <Analyzer Include="$(SonarLintAnalyzerAssembly)"/>
+      <!-- Remove any existing references to files called *SonarLint*.dll -->
+      <Analyzer Remove="@(Analyzer)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch($([System.String]::new('%(Analyzer.Identity)')), 'SonarLint[^\\]*\.dll$', System.Text.RegularExpressions.RegexOptions.IgnoreCase)) " />
+      <Analyzer Include="$(SonarLintAnalyzerDir)*SonarLint*.dll" />
     </ItemGroup>
 
   </Target>
