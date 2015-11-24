@@ -118,6 +118,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="UpgradeMessage" xml:space="preserve">
-    <value>*** Upgrade required ***  You are running a pre-release version of the MSBuild SonarQube Runner which is not compatible with the installed C# plugin. Please upgrade to the latest version of the MSBuild SonarQube Runner.</value>
+    <value>*** Upgrade required ***  You are running a pre-release version of the SonarQube Scanner for MSBuild which is not compatible with the installed C# plugin. Please upgrade to the latest version of the SonarQube Scanner for MSBuild (formerly known as the MSBuild SonarQube Runner).</value>
   </data>
 </root>

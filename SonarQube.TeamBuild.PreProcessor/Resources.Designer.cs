@@ -61,7 +61,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MSBuild SonarQube Runner Pre-processor.
+        ///   Looks up a localized string similar to SonarQube Scanner for MSBuild Begin Step.
         /// </summary>
         public static string AssemblyDescription {
             get {
@@ -155,7 +155,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         ///- SonarQube project key
         ///- SonarQube project name
         ///- SonarQube project version
-        ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the MSBuild.SonarQube.Runner..
+        ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild..
         /// </summary>
         public static string ERROR_InvalidCommandLineArgs {
             get {
@@ -380,7 +380,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This version of the MSBuild SonarQube Runner automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
+        ///   Looks up a localized string similar to This version of the SonarQube Scanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
         /// </summary>
         public static string WARN_ExistingGlobalTargets {
             get {

@@ -89,7 +89,7 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The property &apos;{0}&apos; is automatically set by the MSBuild Runner and cannot be overridden on the command line..
+        ///   Looks up a localized string similar to The property &apos;{0}&apos; is automatically set by the SonarQube Scanner for MSBuild and cannot be overridden on the command line..
         /// </summary>
         public static string ERROR_CmdLine_CannotSetPropertyOnCommandLine {
             get {

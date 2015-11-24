@@ -9,6 +9,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Text;
 
 namespace SonarQube.Common
 {
@@ -195,7 +196,7 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("description");
             }
 
-            logger.LogInfo("{0} {1}", description, assembly.GetName().Version);
+            logger.LogInfo("{0} {1}", description, assembly.GetName().Version.ToDisplayString());
         }
 
         /// <summary>
@@ -213,7 +214,30 @@ namespace SonarQube.Common
             }
         }
 
+        public static string ToDisplayString(this Version version)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(version.Major);
+            sb.Append(".");
+            sb.Append(version.Minor);
+
+            if (version.Build != 0 || version.Revision != 0)
+            {
+                sb.Append(".");
+                sb.Append(version.Build);
+            }
+
+            if (version.Revision != 0)
+            {
+                sb.Append(".");
+                sb.Append(version.Revision);
+            }
+
+            return sb.ToString();
+        }
+
         #endregion
 
     }
 }
+

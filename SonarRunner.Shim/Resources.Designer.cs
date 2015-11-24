@@ -115,7 +115,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The sonar-runner did not complete successfully.
+        ///   Looks up a localized string similar to The SonarQube Scanner did not complete successfully.
         /// </summary>
         public static string ERR_SonarRunnerExecutionFailed {
             get {
@@ -124,7 +124,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Calling the sonar-runner....
+        ///   Looks up a localized string similar to Calling the SonarQube Scanner....
         /// </summary>
         public static string MSG_CallingSonarRunner {
             get {
@@ -187,7 +187,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The sonar-runner has finished.
+        ///   Looks up a localized string similar to The SonarQube Scanner has finished.
         /// </summary>
         public static string MSG_SonarRunnerCompleted {
             get {

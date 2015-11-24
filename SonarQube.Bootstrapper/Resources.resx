@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AssemblyDescription" xml:space="preserve">
-    <value>MSBuild SonarQube Runner Bootstrapper</value>
+    <value>SonarQube Scanner for MSBuild</value>
   </data>
   <data name="CmdLine_ArgDescription_Begin" xml:space="preserve">
     <value>begin - perform pre-MSBuild analysis steps</value>
@@ -133,10 +133,10 @@
     <value>Invalid command line parameters. Please specify either 'begin' or 'end', not both.</value>
   </data>
   <data name="ERROR_FailedToUpdateRunnerBinaries" xml:space="preserve">
-    <value>Failed to update the SonarQube MSBuild Runner binaries. Check the server url, verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted.</value>
+    <value>Failed to update the SonarQube Scanner for MSBuild binaries. Check the server url, verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted.</value>
   </data>
   <data name="ERROR_PostProcessExeNotFound" xml:space="preserve">
-    <value>Post-processor executable not found '{0}'. Please check that the begin step, the build step and the end step are all executed in the same directory.</value>
+    <value>The End Step executable was not found '{0}'. Please check that the begin step, the build step and the end step are all executed in the same directory.</value>
   </data>
   <data name="ERROR_ProcessingFailed" xml:space="preserve">
     <value>{0} failed. Exit code: {1}</value>
