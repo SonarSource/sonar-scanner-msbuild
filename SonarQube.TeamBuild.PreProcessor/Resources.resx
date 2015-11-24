@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AssemblyDescription" xml:space="preserve">
-    <value>MSBuild SonarQube Runner Pre-processor</value>
+    <value>SonarQube Scanner for MSBuild Pre-processor</value>
   </data>
   <data name="CmdLine_ArgDescription_InstallTargets" xml:space="preserve">
     <value>/install:[true|false] - install standard MSBuild targets required for analysis (default true)</value>
@@ -152,7 +152,7 @@
 - SonarQube project key
 - SonarQube project name
 - SonarQube project version
-The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the MSBuild.SonarQube.Runner.</value>
+The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.</value>
   </data>
   <data name="ERROR_InvalidProjectKeyArg" xml:space="preserve">
     <value>Invalid project key. Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit.</value>
@@ -227,6 +227,6 @@ The full path to a settings file can also be supplied. If it is not supplied, th
     <value>SonarLint ruleset downloaded: {0}</value>
   </data>
   <data name="WARN_ExistingGlobalTargets" xml:space="preserve">
-    <value>This version of the MSBuild SonarQube Runner automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional.</value>
+    <value>This version of the SonarQube Scanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional.</value>
   </data>
 </root>

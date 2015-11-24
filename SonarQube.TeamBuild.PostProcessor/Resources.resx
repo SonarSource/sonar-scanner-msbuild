@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AssemblyDescription" xml:space="preserve">
-    <value>MSBuild SonarQube Runner Post-processor</value>
+    <value>SonarQube Scanner for MSBuild Post-processor</value>
   </data>
   <data name="ERROR_BuildUrisDontMatch" xml:space="preserve">
     <value>Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.

@@ -61,7 +61,7 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MSBuild SonarQube Runner Bootstrapper.
+        ///   Looks up a localized string similar to SonarQube Scanner for MSBuild.
         /// </summary>
         public static string AssemblyDescription {
             get {
@@ -106,7 +106,7 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to update the SonarQube MSBuild Runner binaries. Check the server url, verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted..
+        ///   Looks up a localized string similar to Failed to update the SonarQube Scanner for MSBuild binaries. Check the server url, verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted..
         /// </summary>
         public static string ERROR_FailedToUpdateRunnerBinaries {
             get {
