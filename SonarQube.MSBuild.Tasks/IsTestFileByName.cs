@@ -21,7 +21,7 @@ namespace SonarQube.MSBuild.Tasks
     /// </summary>
     /// <remarks>The task applies a regular expression to the file name being tested to determine whether
     /// the file is test file or not. The regular expression used is read from the analysis config file.</remarks>
-    public sealed class IsTestFileByName : Task, SonarQube.Common.ILogger
+    public sealed class IsTestFileByName : Task
     {
         /// <summary>
         /// Id of the SonarQube test setting that specifies the RegEx to use when determining
@@ -117,7 +117,8 @@ namespace SonarQube.MSBuild.Tasks
                 return null;
             }
 
-            bool succeeded = Utilities.Retry(MaxConfigRetryPeriodInMilliseconds, DelayBetweenRetriesInMilliseconds, (SonarQube.Common.ILogger)this, () => DoLoadConfig(fullAnalysisPath, out config));
+            bool succeeded = Utilities.Retry(MaxConfigRetryPeriodInMilliseconds, DelayBetweenRetriesInMilliseconds, 
+                new MSBuildLoggerAdapter(this.Log), () => DoLoadConfig(fullAnalysisPath, out config));
             if (succeeded)
             {
                 this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_ReadingConfigSucceeded, fullAnalysisPath);
@@ -151,53 +152,6 @@ namespace SonarQube.MSBuild.Tasks
             return true;
         }
 
-        private void LogMessage(Common.LoggerVerbosity verbosity, string message, params object[] args)
-        {
-            // We need to adapt between the ILogger verbosity and the MsBuild logger verbosity
-            if (verbosity == Common.LoggerVerbosity.Info)
-            {
-                this.Log.LogMessage(MessageImportance.Normal, message, args);
-            }
-            else
-            {
-                this.Log.LogMessage(MessageImportance.Low, message, args);
-            }
-        }
-
         #endregion Private methods
-
-        #region ILogger interface
-
-        void Common.ILogger.LogWarning(string message, params object[] args)
-        {
-            this.Log.LogWarning(message, args);
-        }
-
-        void Common.ILogger.LogError(string message, params object[] args)
-        {
-            this.Log.LogError(message, args);
-        }
-
-        public void LogDebug(string message, params object[] args)
-        {
-            LogMessage(Common.LoggerVerbosity.Debug, message, args);
-        }
-
-        void Common.ILogger.LogInfo(string message, params object[] args)
-        {
-            LogMessage(Common.LoggerVerbosity.Info, message, args);
-        }
-
-        Common.LoggerVerbosity Common.ILogger.Verbosity
-        {
-            get; set;
-        }
-
-        bool Common.ILogger.IncludeTimestamp
-        {
-            get; set;
-        }
-
-        #endregion ILogger interface
     }
 }
