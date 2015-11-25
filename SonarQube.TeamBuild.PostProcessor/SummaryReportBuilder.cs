@@ -133,8 +133,6 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private static string GetSonarDashboadUrl(AnalysisConfig config)
         {
-            Debugger.Launch();
-
             string hostUrl = config.SonarQubeHostUrl.TrimEnd('/');
             string branch = GetBranch(config);
 
