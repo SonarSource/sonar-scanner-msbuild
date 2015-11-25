@@ -134,7 +134,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         private static string GetSonarDashboadUrl(AnalysisConfig config)
         {
             string hostUrl = config.SonarQubeHostUrl.TrimEnd('/');
-            string branch = GetBranch(config);
+            string branch = FindBranch(config);
 
             string sonarUrl;
 
@@ -159,7 +159,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             return sonarUrl;
         }
 
-        private static string GetBranch(AnalysisConfig config)
+        private static string FindBranch(AnalysisConfig config)
         {
             string branch = null;
 
