@@ -38,6 +38,8 @@ namespace SonarQube.Common
         public const string Verbose = "sonar.verbose";
         public const string LogLevel = "sonar.log.level";
 
+        public const string Branch = "sonar.branch";
+
         // Default property values
 
         /// <summary>

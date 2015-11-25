@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Web;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
@@ -32,7 +33,8 @@ namespace SonarQube.TeamBuild.PostProcessor
             public string ProjectDescription { get; set; }
         }
 
-        public /* for test purposes */ const string DashboardUrlFormat= "{0}/dashboard/index/{1}";
+        public /* for test purposes */ const string DashboardUrlFormat = "{0}/dashboard/index/{1}";
+        public /* for test purposes */ const string DashboardUrlFormatWithBranch = "{0}/dashboard/index/{1}:{2}";
         public /* for test purposes */ const string SummaryMdFilename = "summary.md";
 
         private AnalysisConfig config;
@@ -108,6 +110,7 @@ namespace SonarQube.TeamBuild.PostProcessor
                 throw new ArgumentNullException("result");
             }
 
+
             SummaryReportData summaryData = new SummaryReportData();
 
             summaryData.SkippedProjects = GetProjectsByStatus(result, ProjectInfoValidity.NoFilesToAnalyze).Count();
@@ -130,11 +133,44 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private static string GetSonarDashboadUrl(AnalysisConfig config)
         {
-            string hostUrl = config.SonarQubeHostUrl.TrimEnd('/');
+            Debugger.Launch();
 
-            string sonarUrl = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                DashboardUrlFormat, hostUrl, config.SonarProjectKey);
+            string hostUrl = config.SonarQubeHostUrl.TrimEnd('/');
+            string branch = GetBranch(config);
+
+            string sonarUrl;
+
+            if (String.IsNullOrWhiteSpace(branch))
+            {
+                sonarUrl = string.Format(
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    DashboardUrlFormat,
+                    hostUrl,
+                    config.SonarProjectKey);
+            }
+            else
+            {
+                sonarUrl = string.Format(
+                   System.Globalization.CultureInfo.InvariantCulture,
+                   DashboardUrlFormatWithBranch,
+                   hostUrl,
+                   config.SonarProjectKey,
+                   branch);
+            }
+
             return sonarUrl;
+        }
+
+        private static string GetBranch(AnalysisConfig config)
+        {
+            string branch = null;
+
+            IAnalysisPropertyProvider localSettings = config.GetAnalysisSettings(includeServerSettings: false);
+            Debug.Assert(localSettings != null);
+
+            localSettings.TryGetValue(SonarProperties.Branch, out branch);
+
+            return branch;
         }
 
         private static IEnumerable<ProjectInfo> GetProjectsByStatus(ProjectInfoAnalysisResult result, ProjectInfoValidity status)
