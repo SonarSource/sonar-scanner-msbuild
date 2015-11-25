@@ -46,30 +46,6 @@ namespace SonarQube.TeamBuild.PostProcessorTests
         }
 
         [TestMethod]
-        public void SummaryReport_NoProjects()
-        {
-            // Arrange
-            string hostUrl = "http://mySonarQube:9000";
-            ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult { RanToCompletion = false };
-            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
-            config.LocalSettings = new AnalysisProperties();
-            config.LocalSettings.Add(new Property() { Id = SonarProperties.Branch, Value = "master" });
-
-            // Act
-            var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result);
-
-            // Assert
-            VerifySummaryReportData(summaryReportData, result, hostUrl, config);
-            VerifySummaryProjectCounts(
-                summaryReportData,
-                expectedExcludedProjects: 0,
-                expectedInvalidProjects: 0,
-                expectedSkippedProjects: 0,
-                expectedProductProjects: 0,
-                expectedTestProjects: 0);
-        }
-
-        [TestMethod]
         public void SummaryReport_AllTypesOfProjects()
         {
             // Arrange
