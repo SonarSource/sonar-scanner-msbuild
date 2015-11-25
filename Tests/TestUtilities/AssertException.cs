@@ -17,7 +17,7 @@ namespace TestUtilities
         /// <summary>
         /// Asserts that the expected exception is thrown
         /// </summary>
-        public static Exception Expects<TException>(Action op) where TException : Exception
+        public static TException Expects<TException>(Action op) where TException : Exception
         {
             Assert.IsNotNull("Test error: supplied operation cannot be null");
 
@@ -35,7 +35,7 @@ namespace TestUtilities
             Assert.IsNotNull(caught, "Expecting an exception to be thrown. Expected: {0}", expectedType.FullName);
             Assert.IsInstanceOfType(caught, expectedType, "Unexpected exception thrown");
 
-            return caught;
+            return (TException)caught;
         }
 
         #endregion
