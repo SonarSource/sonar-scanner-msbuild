@@ -141,8 +141,23 @@ Error: {1}</value>
   <data name="IsTest_UsingRegExFromConfig" xml:space="preserve">
     <value>Using regular expression for detecting test projects from analysis config file: {0}</value>
   </data>
+  <data name="MergeRulesets_MergingRulesets" xml:space="preserve">
+    <value>Merging rulesets...</value>
+  </data>
   <data name="MergeRulesets_MissingPrimaryRuleset" xml:space="preserve">
     <value>The specified ruleset does not exist</value>
+  </data>
+  <data name="MergeRulesets_RulesetAlreadyIncluded" xml:space="preserve">
+    <value>Ruleset is already included: {0}</value>
+  </data>
+  <data name="MergeRuleset_IncludingRuleset" xml:space="preserve">
+    <value>Including ruleset "{0}"</value>
+  </data>
+  <data name="MergeRuleset_NoRulesetsSpecified" xml:space="preserve">
+    <value>No rulesets were specified for inclusion</value>
+  </data>
+  <data name="MergeRuleset_SavingUpdatedRuleset" xml:space="preserve">
+    <value>Saving updated ruleset "{0}"</value>
   </data>
   <data name="WPIF_FailedToResolvePath" xml:space="preserve">
     <value>Failed to resolve path relative to project file. Path: {0}</value>

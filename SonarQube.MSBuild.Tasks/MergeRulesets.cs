@@ -44,35 +44,42 @@ namespace SonarQube.MSBuild.Tasks
 
         public override bool Execute()
         {
+            this.Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_MergingRulesets);
+
             if (!File.Exists(this.PrimaryRulesetFilePath))
             {
                 throw new FileNotFoundException(Resources.MergeRulesets_MissingPrimaryRuleset, this.PrimaryRulesetFilePath);
             }
             if (this.IncludedRulesetFilePaths == null || this.IncludedRulesetFilePaths.Length == 0)
             {
+                this.Log.LogMessage(MessageImportance.Low, Resources.MergeRuleset_NoRulesetsSpecified);
                 return true; // nothing to do if there are no rulesets
             }
-            bool taskSuccess = true;
-
 
             XDocument ruleset = XDocument.Load(PrimaryRulesetFilePath);
             foreach (string includePath in this.IncludedRulesetFilePaths)
             {
                 EnsureIncludeExists(ruleset, includePath);
             }
+            this.Log.LogMessage(MessageImportance.Low, Resources.MergeRuleset_SavingUpdatedRuleset, this.PrimaryRulesetFilePath);
             ruleset.Save(this.PrimaryRulesetFilePath);
 
-            return !this.Log.HasLoggedErrors && taskSuccess;
+            return !this.Log.HasLoggedErrors;
         }
 
         #endregion Overrides
 
         #region Private methods
 
-        private static void EnsureIncludeExists(XDocument ruleset, string includePath)
+        private void EnsureIncludeExists(XDocument ruleset, string includePath)
         {
-            if (!IncludeExists(ruleset, includePath))
+            if (IncludeExists(ruleset, includePath))
             {
+                this.Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_RulesetAlreadyIncluded, includePath);
+            }
+            else
+            {
+                this.Log.LogMessage(MessageImportance.Low, Resources.MergeRuleset_IncludingRuleset, includePath);
                 XElement newInclude = new XElement(IncludeElementName);
                 newInclude.SetAttributeValue(PathAttributeName, includePath);
                 newInclude.SetAttributeValue(ActionAttributeName, DefaultActionValue);

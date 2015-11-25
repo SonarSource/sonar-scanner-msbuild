@@ -127,11 +127,56 @@ namespace SonarQube.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Including ruleset &quot;{0}&quot;.
+        /// </summary>
+        internal static string MergeRuleset_IncludingRuleset {
+            get {
+                return ResourceManager.GetString("MergeRuleset_IncludingRuleset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No rulesets were specified for inclusion.
+        /// </summary>
+        internal static string MergeRuleset_NoRulesetsSpecified {
+            get {
+                return ResourceManager.GetString("MergeRuleset_NoRulesetsSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saving updated ruleset &quot;{0}&quot;.
+        /// </summary>
+        internal static string MergeRuleset_SavingUpdatedRuleset {
+            get {
+                return ResourceManager.GetString("MergeRuleset_SavingUpdatedRuleset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merging rulesets....
+        /// </summary>
+        internal static string MergeRulesets_MergingRulesets {
+            get {
+                return ResourceManager.GetString("MergeRulesets_MergingRulesets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified ruleset does not exist.
         /// </summary>
         internal static string MergeRulesets_MissingPrimaryRuleset {
             get {
                 return ResourceManager.GetString("MergeRulesets_MissingPrimaryRuleset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ruleset is already included: {0}.
+        /// </summary>
+        internal static string MergeRulesets_RulesetAlreadyIncluded {
+            get {
+                return ResourceManager.GetString("MergeRulesets_RulesetAlreadyIncluded", resourceCulture);
             }
         }
         
