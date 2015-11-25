@@ -61,7 +61,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube Scanner for MSBuild Pre-processor.
+        ///   Looks up a localized string similar to SonarQube Scanner for MSBuild Begin Step.
         /// </summary>
         public static string AssemblyDescription {
             get {

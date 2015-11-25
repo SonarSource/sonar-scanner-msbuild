@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AssemblyDescription" xml:space="preserve">
-    <value>SonarQube Scanner for MSBuild Pre-processor</value>
+    <value>SonarQube Scanner for MSBuild Begin Step</value>
   </data>
   <data name="CmdLine_ArgDescription_InstallTargets" xml:space="preserve">
     <value>/install:[true|false] - install standard MSBuild targets required for analysis (default true)</value>

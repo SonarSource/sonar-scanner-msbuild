@@ -115,7 +115,7 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Post-processor executable not found &apos;{0}&apos;. Please check that the begin step, the build step and the end step are all executed in the same directory..
+        ///   Looks up a localized string similar to The End Step executable was not found &apos;{0}&apos;. Please check that the begin step, the build step and the end step are all executed in the same directory..
         /// </summary>
         public static string ERROR_PostProcessExeNotFound {
             get {

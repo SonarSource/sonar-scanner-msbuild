@@ -61,7 +61,7 @@ namespace SonarQube.V0_9UpgradeMessageExe {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to *** Upgrade required ***  You are running a pre-release version of the SonarQube Scanner for MSBuild which is not compatible with the installed C# plugin. Please upgrade to the latest version of the SonarQube Scanner for MSBuild..
+        ///   Looks up a localized string similar to *** Upgrade required ***  You are running a pre-release version of the SonarQube Scanner for MSBuild which is not compatible with the installed C# plugin. Please upgrade to the latest version of the SonarQube Scanner for MSBuild (formerly known as the MSBuild SonarQube Runner)..
         /// </summary>
         public static string UpgradeMessage {
             get {

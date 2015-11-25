@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="MSG_CallingSonarRunner" xml:space="preserve">
-    <value>Calling the sonar-scanner...</value>
+    <value>Calling the SonarQube Scanner...</value>
   </data>
   <data name="WARN_FileIsOutsideProjectDirectory" xml:space="preserve">
     <value>File is not under the project directory and cannot currently be analysed by SonarQube. File: {0}, project: {1}</value>
@@ -136,7 +136,7 @@
     <value>Generation of the sonar-properties file failed. Unable to complete SonarQube analysis.</value>
   </data>
   <data name="MSG_SonarRunnerCompleted" xml:space="preserve">
-    <value>The sonar-scanner has finished</value>
+    <value>The SonarQube Scanner has finished</value>
   </data>
   <data name="MSG_WritingSummary" xml:space="preserve">
     <value>Writing processing summary to {0}</value>
@@ -154,7 +154,7 @@
     <value>No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.</value>
   </data>
   <data name="ERR_SonarRunnerExecutionFailed" xml:space="preserve">
-    <value>The sonar-scanner did not complete successfully</value>
+    <value>The SonarQube Scanner did not complete successfully</value>
   </data>
   <data name="MSG_SonarRunnerOptsDefaultUsed" xml:space="preserve">
     <value>{0} is not configured. Setting it to the default value of {1}</value>
