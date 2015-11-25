@@ -26,8 +26,10 @@ namespace SonarQube.TeamBuild.PostProcessorTests
         {
             // Arrange
             string hostUrl = "http://mySonarQube:9000";
-            ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult() { RanToCompletion = false };
-            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo" , SonarQubeHostUrl = hostUrl };
+            ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult { RanToCompletion = false };
+            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
+            config.LocalSettings = new AnalysisProperties();
+            config.LocalSettings.Add(new Property() { Id = SonarProperties.Branch, Value = "master" });
 
             // Act
             var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result);
@@ -53,9 +55,9 @@ namespace SonarQube.TeamBuild.PostProcessorTests
 
             AddProjectInfoToResult(result, ProjectInfoValidity.DuplicateGuid, count: 3);
             AddProjectInfoToResult(result, ProjectInfoValidity.ExcludeFlagSet, type: ProjectType.Product, count: 4);
-            AddProjectInfoToResult(result, ProjectInfoValidity.ExcludeFlagSet, type: ProjectType.Test , count: 1);
+            AddProjectInfoToResult(result, ProjectInfoValidity.ExcludeFlagSet, type: ProjectType.Test, count: 1);
             AddProjectInfoToResult(result, ProjectInfoValidity.InvalidGuid, type: ProjectType.Product, count: 7);
-            AddProjectInfoToResult(result, ProjectInfoValidity.InvalidGuid, type: ProjectType.Test , count: 8);
+            AddProjectInfoToResult(result, ProjectInfoValidity.InvalidGuid, type: ProjectType.Test, count: 8);
             AddProjectInfoToResult(result, ProjectInfoValidity.NoFilesToAnalyze, count: 11);
             AddProjectInfoToResult(result, ProjectInfoValidity.Valid, type: ProjectType.Product, count: 13);
             AddProjectInfoToResult(result, ProjectInfoValidity.Valid, type: ProjectType.Test, count: 17);
@@ -69,7 +71,7 @@ namespace SonarQube.TeamBuild.PostProcessorTests
                 summaryReportData,
                 expectedExcludedProjects: 5, // ExcludeFlagSet
                 expectedInvalidProjects: 18, // InvalidGuid + DuplicateGuid
-                expectedSkippedProjects: 11, // No files to analyze
+                expectedSkippedProjects: 11, // No files to analyse
                 expectedProductProjects: 13,
                 expectedTestProjects: 17);
         }
@@ -80,7 +82,7 @@ namespace SonarQube.TeamBuild.PostProcessorTests
             // Arrange
             string hostUrl = "http://mySonarQube:9000";
             ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult();
-            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo" , SonarQubeHostUrl = hostUrl};
+            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
 
             TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(this.TestContext.DeploymentDirectory);
             config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
@@ -100,21 +102,38 @@ namespace SonarQube.TeamBuild.PostProcessorTests
             string expectedHostUrl,
             AnalysisConfig config)
         {
-            Assert.AreEqual(
-                            String.Format(SummaryReportBuilder.DashboardUrlFormat, expectedHostUrl, config.SonarProjectKey),
-                            summaryReportData.DashboardUrl,
-                            "Invalid dashboard url");
+            string expectedUrl;
+            string branch;
 
+            config.GetAnalysisSettings(false).TryGetValue("sonar.branch", out branch);
+
+            if (String.IsNullOrEmpty(branch))
+            {
+                expectedUrl = String.Format(
+                    SummaryReportBuilder.DashboardUrlFormat, 
+                    expectedHostUrl, 
+                    config.SonarProjectKey);
+            }
+            else
+            {
+                expectedUrl = String.Format(
+                    SummaryReportBuilder.DashboardUrlFormatWithBranch, 
+                    expectedHostUrl, 
+                    config.SonarProjectKey, 
+                    branch);
+            }
+
+            Assert.AreEqual(expectedUrl, summaryReportData.DashboardUrl, "Invalid dashboard url");
             Assert.AreEqual(analysisResult.RanToCompletion, summaryReportData.Succeeded, "Invalid outcome");
-           
+
         }
 
         private static void VerifySummaryProjectCounts(
             SummaryReportBuilder.SummaryReportData summaryReportData,
             int expectedInvalidProjects,
-            int expectedProductProjects, 
-            int expectedSkippedProjects, 
-            int expectedTestProjects, 
+            int expectedProductProjects,
+            int expectedSkippedProjects,
+            int expectedTestProjects,
             int expectedExcludedProjects)
         {
             Assert.AreEqual(expectedInvalidProjects, summaryReportData.InvalidProjects);
