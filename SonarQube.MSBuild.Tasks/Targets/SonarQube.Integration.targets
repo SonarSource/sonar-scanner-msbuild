@@ -112,6 +112,7 @@
        See https://connect.microsoft.com/VisualStudio/feedback/details/713690/msbuild-4-0-usingtask-cannot-have-a-path-with-parentheses -->
   <UsingTask TaskName="WriteProjectInfoFile" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="IsTestFileByName" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
+  <UsingTask TaskName="MergeRuleSets" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
 
   <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
@@ -417,8 +418,8 @@
        Conditions:
        * project is a test project -> turn off Roslyn analysis
        * project is excluded -> turn off Roslyn analysis
-       * downloaded SonarLint ruleset and analyzer found -> add SonarLint config to existing analysis config
        * downloaded SonarLint ruleset and analyzer not found -> no change to existing config
+       * downloaded SonarLint ruleset and analyzer found -> add SonarLint config to existing analysis config
    -->
   <Target Name="OverrideRoslynCodeAnalysisProperties"
         Condition=" $(SonarQubeTempPath) != '' "
@@ -455,23 +456,25 @@
       <SonarLintAnalyzerAssembly Condition=" $(SonarLintAnalyzerDir) != '' ">$(SonarLintAnalyzerDir)SonarLint.dll</SonarLintAnalyzerAssembly>
       <SonarQubeRoslynAssemblyExists>$([System.IO.File]::Exists($(SonarLintAnalyzerAssembly)))</SonarQubeRoslynAssemblyExists>
 
-      <!-- Run Roslyn analysis only if the ruleset exists (else it means no Roslyn rules are enabled)
-           and the SonarLint analyzer assembly could be found -->
-      <SonarQubeRunRoslynCodeAnalysis Condition="
+      <SonarLintFound Condition="
           $(SonarQubeRoslynRulesetExists) == 'true' 
           AND $(SonarQubeRoslynAssemblyExists) == 'true' 
           AND $(Language) == 'C#' 
-          ">true</SonarQubeRunRoslynCodeAnalysis>
-      <SonarQubeRunRoslynCodeAnalysis Condition=" $(SonarQubeRunRoslynCodeAnalysis) == '' ">false</SonarQubeRunRoslynCodeAnalysis>
-
+          ">true</SonarLintFound>
+      <SonarLintFound Condition=" $(SonarLintFound) == '' ">false</SonarLintFound>
     </PropertyGroup>
     
-    <PropertyGroup Condition=" $(SonarQubeRunRoslynCodeAnalysis) == 'true' ">
+    <MergeRuleSets Condition=" $(SonarLintFound) == 'true' AND $(ResolvedCodeAnalysisRuleSet) != ''"
+                   PrimaryRulesetFilePath="$(SonarQubeRoslynRulesetFullName)"
+                   IncludedRulesetFilePaths="$(ResolvedCodeAnalysisRuleSet)"
+                   />
+   
+    <PropertyGroup Condition=" $(SonarLintFound) == 'true' ">
       <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)SonarQube.Roslyn.ErrorLog.json</ErrorLog>
       <ResolvedCodeAnalysisRuleSet>$(SonarQubeRoslynRulesetFullName)</ResolvedCodeAnalysisRuleSet>
     </PropertyGroup>
 
-    <ItemGroup Condition=" $(SonarQubeRunRoslynCodeAnalysis) == 'true' ">
+    <ItemGroup Condition=" $(SonarLintFound) == 'true' ">
       <!-- Remove any existing references to files called *SonarLint*.dll -->
       <Analyzer Remove="@(Analyzer)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch($([System.String]::new('%(Analyzer.Identity)')), 'SonarLint[^\\]*\.dll$', System.Text.RegularExpressions.RegexOptions.IgnoreCase)) " />
       <Analyzer Include="$(SonarLintAnalyzerDir)*SonarLint*.dll" />
@@ -484,6 +487,8 @@
       AfterTargets="Build"
       BeforeTargets="WriteSonarQubeProjectData" >
 
+    <!-- If there is a log file then we'll add the setting, regardless of whether the SonarLint rules
+         were executed or not (in the case the user has manually configured other Rolsyn analyzers). -->
     <ItemGroup>
       <SonarQubeSetting Include="sonar.cs.roslyn.reportFilePath"
          Condition=" $(ErrorLog) != '' AND  $([System.IO.File]::Exists($(ErrorLog))) == 'true' ">

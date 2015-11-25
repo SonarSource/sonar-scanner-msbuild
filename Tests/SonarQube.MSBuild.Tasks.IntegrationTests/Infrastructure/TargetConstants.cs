@@ -34,6 +34,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         // Roslyn
         public const string OverrideRoslynAnalysisTarget = "OverrideRoslynCodeAnalysisProperties";
         public const string SetRoslynAnalysisPropertiesTarget = "SetRoslynCodeAnalysisProperties";
+        public const string MergeResultSetsTask = "MergeRuleSets";
 
         public const string SetRoslynResultsTarget = "SetRoslynAnalysisResults";
         public const string ResolveCodeAnalysisRuleSet = "ResolveCodeAnalysisRuleSet";

@@ -51,6 +51,7 @@
     <Compile Include="AssertIgnoreScope.cs" />
     <Compile Include="DummyExeHelper.cs" />
     <EmbeddedResource Include="EmbeddedCode\DummyExe.cs" />
+    <Compile Include="RuleSetAssertions.cs" />
     <Compile Include="WorkingDirectoryScope.cs" />
     <Compile Include="EnvironmentVariableScope.cs" />
     <Compile Include="SQPropertiesFileReader.cs" />

@@ -1,29 +1,20 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MergeRulesetTests.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="MergeRuleSetsTests.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Xml.Linq;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.UnitTests
 {
     [TestClass]
-    public class MergeRulesetTests
+    public class MergeRuleSetsTests
     {
-        private const string DefaultActionValue = "Default";
         private const string ErrorActionValue = "Error";
-        private static readonly XName IncludeElementName = "Include";
-        private static readonly XName PathAttrName = "Path";
-        private static readonly XName ActionAttrName = "Action";
-
 
         public TestContext TestContext { get; set; }
 
@@ -34,7 +25,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         {
             // Arrange
             DummyBuildEngine dummyEngine = new DummyBuildEngine();
-            MergeRulesets task = CreateTask(dummyEngine, "missing.ruleset");
+            MergeRuleSets task = CreateTask(dummyEngine, "missing.ruleset");
 
             // Act and Assert
             FileNotFoundException ex = AssertException.Expects<FileNotFoundException>(() => task.Execute());
@@ -47,23 +38,23 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // 1. No included rulesets 
             string primaryRuleset = this.CreateValidRuleset("no-added-includes.ruleset.txt");
             ExecuteAndCheckSuccess(primaryRuleset);
-            AssertExpectedIncludeFiles(primaryRuleset /* no included files*/);
+            RuleSetAssertions.AssertExpectedIncludeFiles(primaryRuleset /* no included files*/);
 
             // 2. Adding includes
             primaryRuleset = this.CreateValidRuleset("added-includes1.ruleset.txt");
             ExecuteAndCheckSuccess(primaryRuleset, "include1.ruleset");
-            AssertExpectedIncludeFiles(primaryRuleset, "include1.ruleset");
-            AssertExpectedAction(primaryRuleset, "include1.ruleset", DefaultActionValue);
+            RuleSetAssertions.AssertExpectedIncludeFiles(primaryRuleset, "include1.ruleset");
+            RuleSetAssertions.AssertExpectedIncludeAction(primaryRuleset, "include1.ruleset", RuleSetAssertions.DefaultActionValue);
 
             // 3. Adding an include that already exists
             primaryRuleset = this.CreateValidRuleset("added-includes.existing.ruleset.txt");
             ExecuteAndCheckSuccess(primaryRuleset, "include1.ruleset", "include2.ruleset"); // create a file with incldues
             ExecuteAndCheckSuccess(primaryRuleset, "include1.ruleset", "INCLUDE2.RULESET", "include3.ruleset"); // add the same includes again with one extra
-            AssertExpectedIncludeFiles(primaryRuleset, "include1.ruleset", "include2.ruleset", "include3.ruleset");
+            RuleSetAssertions.AssertExpectedIncludeFiles(primaryRuleset, "include1.ruleset", "include2.ruleset", "include3.ruleset");
 
-            AssertExpectedAction(primaryRuleset, "include1.ruleset", DefaultActionValue);
-            AssertExpectedAction(primaryRuleset, "include2.ruleset", DefaultActionValue);
-            AssertExpectedAction(primaryRuleset, "include3.ruleset", DefaultActionValue);
+            RuleSetAssertions.AssertExpectedIncludeAction(primaryRuleset, "include1.ruleset", RuleSetAssertions.DefaultActionValue);
+            RuleSetAssertions.AssertExpectedIncludeAction(primaryRuleset, "include2.ruleset", RuleSetAssertions.DefaultActionValue);
+            RuleSetAssertions.AssertExpectedIncludeAction(primaryRuleset, "include3.ruleset", RuleSetAssertions.DefaultActionValue);
         }
 
         [TestMethod]
@@ -78,7 +69,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             ExecuteAndCheckSuccess(primaryRuleset, "c:\\foo\\added.ruleset");
 
             // Assert
-            AssertExpectedIncludeFiles(primaryRuleset, "c:\\foo\\added.ruleset");
+            RuleSetAssertions.AssertExpectedIncludeFiles(primaryRuleset, "c:\\foo\\added.ruleset");
         }
 
 
@@ -100,8 +91,8 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             ExecuteAndCheckSuccess(primaryRuleset, "d:\\include1.ruleset");
 
             // Assert
-            AssertExpectedIncludeFiles(primaryRuleset, "d:\\include1.ruleset");
-            AssertExpectedAction(primaryRuleset, "d:\\include1.ruleset", ErrorActionValue); // action value should still be Error
+            RuleSetAssertions.AssertExpectedIncludeFiles(primaryRuleset, "d:\\include1.ruleset");
+            RuleSetAssertions.AssertExpectedIncludeAction(primaryRuleset, "d:\\include1.ruleset", ErrorActionValue); // action value should still be Error
         }
 
         #endregion
@@ -113,7 +104,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             this.TestContext.AddResultFile(primaryRuleset);
 
             DummyBuildEngine dummyEngine = new DummyBuildEngine();
-            MergeRulesets task = CreateTask(dummyEngine, primaryRuleset, rulesetsToInclude);
+            MergeRuleSets task = CreateTask(dummyEngine, primaryRuleset, rulesetsToInclude);
 
             bool taskSucess = task.Execute();
             Assert.IsTrue(taskSucess, "Expecting the task to succeed");
@@ -121,37 +112,6 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             dummyEngine.AssertNoWarnings();
         }
        
-        private static void AssertExpectedIncludeFiles(string primaryRulesetFilePath, params string[] expectedRulesets)
-        {
-            XDocument doc = XDocument.Load(primaryRulesetFilePath);
-            IEnumerable<XElement> includeElements = doc.Descendants(IncludeElementName);
-            foreach (string expected in expectedRulesets)
-            {
-                AssertSingleIncludeExists(includeElements, expected);
-            }
-
-            Assert.AreEqual(expectedRulesets.Length, includeElements.Count(), "Unexpected number of Includes");
-        }
-
-        private static void AssertExpectedAction(string primaryRulesetFilePath, string includePath, string expectedAction)
-        {
-            XDocument doc = XDocument.Load(primaryRulesetFilePath);
-            IEnumerable<XElement> includeElements = doc.Descendants(IncludeElementName);
-            XElement includeElement = AssertSingleIncludeExists(includeElements, includePath);
-
-            XAttribute actionAttr = includeElement.Attribute(ActionAttrName);
-
-            Assert.IsNotNull(actionAttr, "Include element does not have an Action attribute: {0}", includeElement);
-            Assert.AreEqual(expectedAction, actionAttr.Value, "Unexpected Action value");
-        }
-
-        private static XElement AssertSingleIncludeExists(IEnumerable<XElement> includeElements, string expectedPath)
-        {
-            IEnumerable<XElement> matches = includeElements.Where(i => HasIncludePath(i, expectedPath));
-            Assert.AreEqual(1, matches.Count(), "Expecting one and only Include with Path '{0}'", expectedPath);
-            return matches.First();
-        }
-
         #endregion
 
 
@@ -172,22 +132,14 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             return rulesetPath;     
         }
 
-        private static MergeRulesets CreateTask(DummyBuildEngine buildEngine, string primaryRuleset, params string[] rulesetsToInclude)
+        private static MergeRuleSets CreateTask(DummyBuildEngine buildEngine, string primaryRuleset, params string[] rulesetsToInclude)
         {
-            MergeRulesets task = new MergeRulesets();
+            MergeRuleSets task = new MergeRuleSets();
             task.BuildEngine = buildEngine;
             task.PrimaryRulesetFilePath = primaryRuleset;
             task.IncludedRulesetFilePaths = rulesetsToInclude;
 
             return task;
-        }
-
-        private static bool HasIncludePath(XElement includeElement, string includePath)
-        {
-            XAttribute attr;
-            attr = includeElement.Attributes(PathAttrName).Single();
-
-            return attr != null && string.Equals(attr.Value, includePath, StringComparison.OrdinalIgnoreCase);
         }
 
         #endregion

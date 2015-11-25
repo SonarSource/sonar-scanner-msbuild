@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MergeRulesets.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="MergeRuleSets.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -18,7 +18,7 @@ namespace SonarQube.MSBuild.Tasks
     /// MSBuild task to merge rulesets by adding "Include" references to a
     /// specified ruleset
     /// </summary>
-    public class MergeRulesets : Task
+    public class MergeRuleSets : Task
     {
         private static readonly XName IncludeElementName = "Include";
         private static readonly XName PathAttributeName = "Path";
