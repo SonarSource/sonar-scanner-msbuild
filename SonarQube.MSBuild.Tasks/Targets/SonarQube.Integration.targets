@@ -467,6 +467,7 @@
     <MergeRuleSets Condition=" $(SonarLintFound) == 'true' AND $(ResolvedCodeAnalysisRuleSet) != ''"
                    PrimaryRulesetFilePath="$(SonarQubeRoslynRulesetFullName)"
                    IncludedRulesetFilePaths="$(ResolvedCodeAnalysisRuleSet)"
+                   ProjectDirectoryPath="$(MSBuildProjectDirectory)"
                    />
    
     <PropertyGroup Condition=" $(SonarLintFound) == 'true' ">
