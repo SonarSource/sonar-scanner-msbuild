@@ -57,7 +57,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [Description("Checks the ruleset and analyzers list are correctly merged with existing settings")]
-        public void Roslyn_Settings_ValidSetup_MergeWithExistingSettings()
+        public void Roslyn_Settings_ValidSetup_MergeWithExistingSettings_AbsolutePath()
         {
             // Arrange
             BuildLogger logger = new BuildLogger();
@@ -90,6 +90,45 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             RuleSetAssertions.AssertExpectedIncludeFiles(finalRulesetFilePath, "c:\\existing.ruleset");
             RuleSetAssertions.AssertExpectedIncludeAction(finalRulesetFilePath, "c:\\existing.ruleset", RuleSetAssertions.DefaultActionValue);
+        }
+
+        [TestMethod]
+        [Description("Checks the ruleset and analyzers list are correctly merged with existing settings")]
+        public void Roslyn_Settings_ValidSetup_MergeWithExistingSettings_RelativePath()
+        {
+            // Arrange
+            BuildLogger logger = new BuildLogger();
+
+            // Add some existing analyzer settings
+            ProjectRootElement projectRoot = CreateValidProjectSetup(null);
+
+            // Create a ruleset file in a location relative to the project file
+            string projectFilePath = projectRoot.ProjectFileLocation.File;
+            string rulesetDir = Path.Combine(Path.GetDirectoryName(projectFilePath), "subdir");
+            Directory.CreateDirectory(rulesetDir);
+            string rulesetFilePath = TestUtils.CreateTextFile(rulesetDir, "existing.ruleset", "dummy ruleset");
+
+            projectRoot.AddProperty(TargetProperties.ResolvedCodeAnalysisRuleset, "subdir\\existing.ruleset");
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
+
+            // Assert
+            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            logger.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
+            logger.AssertTaskExecuted(TargetConstants.MergeResultSetsTask);
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
+
+            // Check the error log and ruleset properties are set
+            string finalRulesetFilePath = GetDummyRulesetFilePath();
+            this.TestContext.AddResultFile(finalRulesetFilePath);
+
+            string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
+            string expectedErrorLog = Path.Combine(targetDir, ErrorLogFileName);
+            AssertExpectedAnalysisProperties(result, expectedErrorLog, finalRulesetFilePath);
+
+            RuleSetAssertions.AssertExpectedIncludeFiles(finalRulesetFilePath, rulesetFilePath);
+            RuleSetAssertions.AssertExpectedIncludeAction(finalRulesetFilePath, rulesetFilePath, RuleSetAssertions.DefaultActionValue);
         }
 
         [TestMethod]
@@ -562,6 +601,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             projectProperties[TargetProperties.Language] = "C#";
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, projectFolder, projectProperties);
+
+            string projectFilePath = Path.Combine(projectFolder, "valid.project.proj");
+            projectRoot.Save(projectFilePath);
             return projectRoot;
         }
 

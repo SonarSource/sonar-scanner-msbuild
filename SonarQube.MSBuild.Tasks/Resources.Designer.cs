@@ -154,6 +154,15 @@ namespace SonarQube.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to locate the specified ruleset: {0}.
+        /// </summary>
+        internal static string MergeRulesets_FailedToResolveRuleset {
+            get {
+                return ResourceManager.GetString("MergeRulesets_FailedToResolveRuleset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Merging rulesets....
         /// </summary>
         internal static string MergeRulesets_MergingRulesets {
@@ -168,6 +177,24 @@ namespace SonarQube.MSBuild.Tasks {
         internal static string MergeRulesets_MissingPrimaryRuleset {
             get {
                 return ResourceManager.GetString("MergeRulesets_MissingPrimaryRuleset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resolved ruleset: {0}.
+        /// </summary>
+        internal static string MergeRulesets_ResolvedRuleset {
+            get {
+                return ResourceManager.GetString("MergeRulesets_ResolvedRuleset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resolving relative ruleset: {0}.
+        /// </summary>
+        internal static string MergeRulesets_ResolvingRuleset {
+            get {
+                return ResourceManager.GetString("MergeRulesets_ResolvingRuleset", resourceCulture);
             }
         }
         
