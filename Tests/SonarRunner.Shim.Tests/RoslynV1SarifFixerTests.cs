@@ -6,11 +6,12 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarRunner.Shim;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SonarQube.Common.UnitTests
+namespace SonarQube.Shim.Tests
 {
     [TestClass]
     public class RoslynV1SarifFixerTests
@@ -33,7 +34,7 @@ namespace SonarQube.Common.UnitTests
         }";
 
             // Act
-            bool valid = RoslynV1SarifFixer.IsSarifFromRoslynV1(testSarif);
+            bool valid = new RoslynV1SarifFixer().IsSarifFromRoslynV1(testSarif);
 
             // Assert
             Assert.IsTrue(valid, "Expecting the compiler version check to return true for 'is Roslyn 1.0'");
@@ -53,7 +54,7 @@ namespace SonarQube.Common.UnitTests
         }";
 
             // Act
-            bool valid = RoslynV1SarifFixer.IsSarifFromRoslynV1(testSarif);
+            bool valid = new RoslynV1SarifFixer().IsSarifFromRoslynV1(testSarif);
 
             // Assert
             Assert.IsFalse(valid, "Expecting the compiler version check to return false for 'not Roslyn 1.0'");
@@ -76,7 +77,7 @@ namespace SonarQube.Common.UnitTests
         }";
 
             // Act
-            bool valid = RoslynV1SarifFixer.IsSarifFromRoslynV1(testSarif);
+            bool valid = new RoslynV1SarifFixer().IsSarifFromRoslynV1(testSarif);
 
             // Assert
             Assert.IsFalse(valid, "Expecting the compiler version check to return false for 'not Roslyn 1.0'");
@@ -89,7 +90,7 @@ namespace SonarQube.Common.UnitTests
             string testSarif = @"{ }";
 
             // Act
-            bool valid = RoslynV1SarifFixer.IsSarifFromRoslynV1(testSarif);
+            bool valid = new RoslynV1SarifFixer().IsSarifFromRoslynV1(testSarif);
 
             // Assert
             Assert.IsFalse(valid, "Expecting the compiler version check to return false for 'not Roslyn 1.0'");
@@ -107,7 +108,7 @@ namespace SonarQube.Common.UnitTests
         }";
 
             // Act
-            bool valid = RoslynV1SarifFixer.IsSarifFromRoslynV1(testSarif);
+            bool valid = new RoslynV1SarifFixer().IsSarifFromRoslynV1(testSarif);
 
             // Assert
             Assert.IsFalse(valid, "Expecting the compiler version check to return false for 'not Roslyn 1.0'");
@@ -151,7 +152,7 @@ namespace SonarQube.Common.UnitTests
 
             // Act
             string fixedSarif;
-            bool returnStringIsValid = RoslynV1SarifFixer.FixRoslynV1Sarif(testSarif, out fixedSarif);
+            bool returnStringIsValid = new RoslynV1SarifFixer().FixRoslynV1SarifString(testSarif, out fixedSarif);
 
             // Assert
             Assert.IsTrue(returnStringIsValid);
@@ -195,7 +196,7 @@ namespace SonarQube.Common.UnitTests
 
             // Act
             string fixedSarif;
-            bool returnStringIsValid = RoslynV1SarifFixer.FixRoslynV1Sarif(testSarif, out fixedSarif);
+            bool returnStringIsValid = new RoslynV1SarifFixer().FixRoslynV1SarifString(testSarif, out fixedSarif);
 
             // Assert
             Assert.IsFalse(returnStringIsValid);
@@ -235,7 +236,7 @@ It features ""quoted text""."",
 
             // Act
             string fixedSarif;
-            bool returnStringIsValid = RoslynV1SarifFixer.FixRoslynV1Sarif(testSarif, out fixedSarif);
+            bool returnStringIsValid = new RoslynV1SarifFixer().FixRoslynV1SarifString(testSarif, out fixedSarif);
 
             // Assert
             Assert.IsFalse(returnStringIsValid);
@@ -271,7 +272,7 @@ It features ""quoted text""."",
 
             // Act
             string fixedSarif;
-            bool returnStringIsValid = RoslynV1SarifFixer.FixRoslynV1Sarif(testSarif, out fixedSarif);
+            bool returnStringIsValid = new RoslynV1SarifFixer().FixRoslynV1SarifString(testSarif, out fixedSarif);
 
             // Assert
             Assert.IsTrue(returnStringIsValid);
@@ -324,7 +325,7 @@ It features ""quoted text""."",
 
             // Act
             string fixedSarif;
-            bool changeApplied = RoslynV1SarifFixer.FixRoslynV1Sarif(testSarif, out fixedSarif);
+            bool changeApplied = new RoslynV1SarifFixer().FixRoslynV1SarifString(testSarif, out fixedSarif);
 
             // Assert
             Assert.IsTrue(changeApplied);
@@ -384,7 +385,7 @@ It features ""quoted text""."",
 
             // Act
             string fixedSarif;
-            bool changeApplied = RoslynV1SarifFixer.FixRoslynV1Sarif(testSarif, out fixedSarif);
+            bool changeApplied = new RoslynV1SarifFixer().FixRoslynV1SarifString(testSarif, out fixedSarif);
 
             // Assert
             Assert.IsTrue(changeApplied);
@@ -418,7 +419,7 @@ It features ""quoted text""."",
   ]
 }", fixedSarif);
         }
-        
+
         [TestMethod]
         public void IsJsonValid_True()
         {
@@ -452,7 +453,7 @@ It features ""quoted text""."",
 }";
 
             // Act
-            bool isValid = RoslynV1SarifFixer.IsValidJson(testSarif);
+            bool isValid = new RoslynV1SarifFixer().IsValidJson(testSarif);
 
             // Assert
             Assert.IsTrue(isValid);
@@ -491,7 +492,7 @@ It features ""quoted text""."",
 }";
 
             // Act
-            bool isValid = RoslynV1SarifFixer.IsValidJson(testSarif);
+            bool isValid = new RoslynV1SarifFixer().IsValidJson(testSarif);
 
             // Assert
             Assert.IsFalse(isValid);
@@ -530,7 +531,7 @@ It features ""quoted text""."",
 }";
 
             // Act
-            bool isValid = RoslynV1SarifFixer.IsValidJson(testSarif);
+            bool isValid = new RoslynV1SarifFixer().IsValidJson(testSarif);
 
             // Assert
             Assert.IsFalse(isValid);

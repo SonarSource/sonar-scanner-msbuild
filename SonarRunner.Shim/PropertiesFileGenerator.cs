@@ -31,6 +31,11 @@ namespace SonarRunner.Shim
         /// Note: the path to the generated file will be null if the file could not be generated.</returns>
         public static ProjectInfoAnalysisResult GenerateFile(AnalysisConfig config, ILogger logger)
         {
+            return GenerateFile(config, logger, new RoslynV1SarifFixer());
+        }
+
+        public /* for test */ static ProjectInfoAnalysisResult GenerateFile(AnalysisConfig config, ILogger logger, IRoslynV1SarifFixer fixer)
+        {
             if (config == null)
             {
                 throw new ArgumentNullException("config");
@@ -39,7 +44,7 @@ namespace SonarRunner.Shim
             {
                 throw new ArgumentNullException("logger");
             }
-            
+
             string fileName = Path.Combine(config.SonarOutputDir, ProjectPropertiesFileName);
             logger.LogDebug(Resources.MSG_GeneratingProjectProperties, fileName);
 
@@ -50,10 +55,12 @@ namespace SonarRunner.Shim
                 return new ProjectInfoAnalysisResult();
             }
 
+            FixSarifReport(logger, projects, fixer);
+
             PropertiesWriter writer = new PropertiesWriter(config);
 
             ProjectInfoAnalysisResult result = ProcessProjectInfoFiles(projects, writer, logger);
-    
+
             IEnumerable<ProjectInfo> validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
 
             if (validProjects.Any())
@@ -80,6 +87,35 @@ namespace SonarRunner.Shim
                 }
             }
             return result;
+        }
+
+        private static void FixSarifReport(ILogger logger, IEnumerable<ProjectInfo> projects, IRoslynV1SarifFixer fixer)
+        {
+
+            // attempt to fix invalid project-level SARIF emitted by Roslyn 1.0 (VS 2015 RTM)
+            foreach (ProjectInfo project in projects)
+            {
+                Property propertyToRemove = null;
+                foreach (Property projectProperty in project.AnalysisSettings)
+                {
+                    if (Property.AreKeysEqual(projectProperty.Id, RoslynV1SarifFixer.ReportFilePropertyKey))
+                    {
+                        string reportPath = projectProperty.Value;
+                        bool reportValid = fixer.FixRoslynV1SarifFile(reportPath, logger);
+
+                        if (!reportValid)
+                        {
+                            // if a valid JSON file does not exist at the report path after running the fixer, mark for removal
+                            propertyToRemove = projectProperty;
+                        }
+                    }
+                }
+
+                if (propertyToRemove != null)
+                {
+                    project.AnalysisSettings.Remove(propertyToRemove);
+                }
+            }
         }
 
         #endregion
@@ -225,7 +261,7 @@ namespace SonarRunner.Shim
             properties.AddRange(config.GetAnalysisSettings(false).GetAllProperties()
                 // Strip out any sensitive properties
                 .Where(p => !p.ContainsSensitiveData()));
-            
+
             // There are some properties we want to override regardless of what the user sets
             AddOrSetProperty(VSBootstrapperPropertyKey, "false", properties, logger);
 

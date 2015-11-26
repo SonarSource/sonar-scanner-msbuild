@@ -178,6 +178,24 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No SARIF file found at {0}..
+        /// </summary>
+        public static string MSG_SarifFileNotFound {
+            get {
+                return ResourceManager.GetString("MSG_SarifFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fixed invalid SARIF file {0}. Please check that VS 2015 Update 1 (or later) is installed..
+        /// </summary>
+        public static string MSG_SarifFixSuccess {
+            get {
+                return ResourceManager.GetString("MSG_SarifFixSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Setting analysis property: {0}={1}.
         /// </summary>
         public static string MSG_SettingAnalysisProperty {
@@ -345,6 +363,15 @@ namespace SonarRunner.Shim {
         public static string WARN_OverridingAnalysisProperty {
             get {
                 return ResourceManager.GetString("WARN_OverridingAnalysisProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to fix SARIF file {0}. Please check that VS 2015 Update 1 (or later) is installed..
+        /// </summary>
+        public static string WARN_SarifFixFail {
+            get {
+                return ResourceManager.GetString("WARN_SarifFixFail", resourceCulture);
             }
         }
     }

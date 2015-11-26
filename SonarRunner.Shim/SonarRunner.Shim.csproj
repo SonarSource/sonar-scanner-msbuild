@@ -35,6 +35,10 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression.FileSystem" />
@@ -48,6 +52,7 @@
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
+    <Compile Include="IRoslynV1SarifFixer.cs" />
     <Compile Include="ISonarRunner.cs" />
     <Compile Include="ProjectInfoAnalysisResult.cs" />
     <Compile Include="PropertiesFileGenerator.cs" />
@@ -64,6 +69,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="RoslynV1SarifFixer.cs" />
     <Compile Include="SonarProjectPropertiesValidator.cs" />
     <Compile Include="SonarRunner.Wrapper.cs" />
   </ItemGroup>

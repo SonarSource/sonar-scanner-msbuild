@@ -141,6 +141,82 @@ namespace SonarRunner.Shim.Tests
         }
 
         [TestMethod]
+        public void FileGen_ValidFiles_WithFixableSarif()
+        {
+            // Only non-excluded projects with files to analyse should be marked as valid
+
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            // SARIF file path
+            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            string escapedSarifPath = testSarifPath.Replace(@"\", @"\\");
+
+            // Create SARIF report path property and add it to the project info
+            AnalysisProperties projectSettings = new AnalysisProperties();
+            projectSettings.Add(new Property() { Id = RoslynV1SarifFixer.ReportFilePropertyKey, Value = testSarifPath });
+            Guid projectGuid = Guid.NewGuid();
+            CreateProjectWithFiles("withFiles1", testDir, projectGuid, true, projectSettings);
+
+            TestLogger logger = new TestLogger();
+            AnalysisConfig config = CreateValidConfig(testDir);
+
+            // Mock SARIF fixer
+            MockRoslynV1SarifFixer mockSarifFixer = new MockRoslynV1SarifFixer(true);
+
+            // Act
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger, mockSarifFixer);
+
+            // Assert
+            Assert.AreEqual(1, mockSarifFixer.CallCount);
+
+            // One valid project info file -> file created
+            AssertPropertiesFilesCreated(result, logger);
+
+            // Unfixable SARIF -> Cannot fix -> report file property no longer in file
+            SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + RoslynV1SarifFixer.ReportFilePropertyKey, escapedSarifPath);
+        }
+
+        [TestMethod]
+        public void FileGen_ValidFiles_WithUnfixableSarif()
+        {
+            // Only non-excluded projects with files to analyse should be marked as valid
+
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            // SARIF file path
+            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            string escapedSarifPath = testSarifPath.Replace(@"\", @"\\");
+
+            // Create SARIF report path property and add it to the project info
+            AnalysisProperties projectSettings = new AnalysisProperties();
+            projectSettings.Add(new Property() { Id = RoslynV1SarifFixer.ReportFilePropertyKey, Value = testSarifPath });
+            Guid projectGuid = Guid.NewGuid();
+            CreateProjectWithFiles("withFiles1", testDir, projectGuid, true, projectSettings);
+
+            TestLogger logger = new TestLogger();
+            AnalysisConfig config = CreateValidConfig(testDir);
+
+            // Mock SARIF fixer
+            MockRoslynV1SarifFixer mockSarifFixer = new MockRoslynV1SarifFixer(false);
+
+            // Act
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger, mockSarifFixer);
+
+            // Assert
+            Assert.AreEqual(1, mockSarifFixer.CallCount);
+
+            // One valid project info file -> file created
+            AssertPropertiesFilesCreated(result, logger);
+
+            // Unfixable SARIF -> Cannot fix -> report file property no longer in file
+            SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+            provider.AssertSettingDoesNotExist(projectGuid.ToString().ToUpper() + "." + RoslynV1SarifFixer.ReportFilePropertyKey);
+        }
+
+        [TestMethod]
         public void FileGen_FilesOutsideProjectPath()
         {
             // Files outside the project root should be ignored
@@ -412,23 +488,32 @@ namespace SonarRunner.Shim.Tests
             string formattedPath = PropertiesWriter.Escape(fullFilePath);
             Assert.IsFalse(content.Contains(formattedPath), "File should not be referenced: {0}", formattedPath);
         }
- 
+
         #endregion
 
         #region Private methods
 
         /// <summary>
         /// Creates a project info under the specified analysis root directory
-        /// together with the supporting project and content files
+        /// together with the supporting project and content files, along with additional properties (if specified)
         /// </summary>
-        private void CreateProjectWithFiles(string projectName, string analysisRootPath, bool createContentFiles = true)
+        private void CreateProjectWithFiles(string projectName, string analysisRootPath, bool createContentFiles = true, AnalysisProperties additionalProperties = null)
+        {
+            CreateProjectWithFiles(projectName, analysisRootPath, Guid.NewGuid(), createContentFiles, additionalProperties);
+        }
+
+        /// <summary>
+        /// Creates a project info under the specified analysis root directory
+        /// together with the supporting project and content files, along with GUID and additional properties (if specified)
+        /// </summary>
+        private void CreateProjectWithFiles(string projectName, string analysisRootPath, Guid projectGuid, bool createContentFiles = true, AnalysisProperties additionalProperties = null)
         {
             // Create a project with content files in a new subdirectory
             string projectDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, Path.Combine("projects", projectName));
             string projectFilePath = Path.Combine(projectDir, Path.ChangeExtension(projectName, "proj"));
 
             // Create a project info file in the correct location under the analysis root
-            string contentProjectInfo = CreateProjectInfoInSubDir(analysisRootPath, projectName, Guid.NewGuid(), ProjectType.Product, false, projectFilePath); // not excluded
+            string contentProjectInfo = CreateProjectInfoInSubDir(analysisRootPath, projectName, projectGuid, ProjectType.Product, false, projectFilePath, additionalProperties); // not excluded
 
             // Create content / managed files if required
             if (createContentFiles)
@@ -469,10 +554,10 @@ namespace SonarRunner.Shim.Tests
         }
 
         /// <summary>
-        /// Creates a new project info file in a new subdirectory.
+        /// Creates a new project info file in a new subdirectory with the given additional properties.
         /// </summary>
         private static string CreateProjectInfoInSubDir(string parentDir,
-            string projectName, Guid projectGuid, ProjectType projectType, bool isExcluded, string fullProjectPath)
+            string projectName, Guid projectGuid, ProjectType projectType, bool isExcluded, string fullProjectPath, AnalysisProperties additionalProperties = null)
         {
             string newDir = Path.Combine(parentDir, Guid.NewGuid().ToString());
             Directory.CreateDirectory(newDir); // ensure the directory exists
@@ -485,6 +570,11 @@ namespace SonarRunner.Shim.Tests
                 ProjectType = projectType,
                 IsExcluded = isExcluded,
             };
+            
+            if (additionalProperties != null)
+            {
+                project.AnalysisSettings = additionalProperties;
+            }
 
             string filePath = Path.Combine(newDir, FileConstants.ProjectInfoFileName);
             project.Save(filePath);

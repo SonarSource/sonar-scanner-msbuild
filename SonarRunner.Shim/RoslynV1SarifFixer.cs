@@ -12,15 +12,20 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
+using System.IO;
+using SonarQube.Common;
 
-namespace SonarQube.Common
+namespace SonarRunner.Shim
 {
-    public static class RoslynV1SarifFixer
+    public class RoslynV1SarifFixer : IRoslynV1SarifFixer
     {
+
+        public static readonly string ReportFilePropertyKey = "sonar.cs.roslyn.reportFilePath";
+
         /// <summary>
         /// Returns true if the given SARIF came from the VS 2015 RTM Roslyn, which does not provide correct output.
         /// </summary>
-        public /* for test */ static bool IsSarifFromRoslynV1(string input)
+        public /* for test */ bool IsSarifFromRoslynV1(string input)
         {
             // low risk of false positives / false negatives
             return (input.Contains(@"""toolName"": ""Microsoft (R) Visual C# Compiler""")
@@ -30,7 +35,7 @@ namespace SonarQube.Common
         /// <summary>
         /// Returns true if the input is parseable JSON. No checks are made for conformation to the SARIF specification.
         /// </summary>
-        public /* for test */ static bool IsValidJson(string input)
+        public /* for test */ bool IsValidJson(string input)
         {
             try
             {
@@ -46,7 +51,7 @@ namespace SonarQube.Common
         /// <summary>
         /// The low-level implementation of the the fix - applying escaping to backslashes and quotes.
         /// </summary>
-        private static string ApplyFixToSarif(string unfixedSarif)
+        private string ApplyFixToSarif(string unfixedSarif)
         {
             string[] inputLines = unfixedSarif.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
 
@@ -93,7 +98,7 @@ namespace SonarQube.Common
         /// 
         /// Returns true if the output is valid SARIF (even if there was no change).
         /// </summary>
-        public static bool FixRoslynV1Sarif(string unfixedSarif, out string output)
+        public /* for test */ bool FixRoslynV1SarifString(string unfixedSarif, out string output)
         {
             if (IsValidJson(unfixedSarif))
             {
@@ -123,6 +128,39 @@ namespace SonarQube.Common
                     }
                 }
             }            
+        }
+
+        /// <summary>
+        /// Attempts to load and fix a SARIF file emitted by Roslyn 1.0 (VS 2015 RTM).
+       ///  Returns true if the file at the given path is valid a JSON file suitable for uploading to the server.
+        /// </summary>
+        public bool FixRoslynV1SarifFile(string sarifFilePath, ILogger logger)
+        {
+            // If the file cannot be found it is impossible to fix it into valid JSON
+            if (!File.Exists(sarifFilePath))
+            {
+                logger.LogInfo(Resources.MSG_SarifFileNotFound, sarifFilePath);
+                return false;
+            }
+
+            string inputSarifFileString = File.ReadAllText(sarifFilePath);
+            string outputSarifFileString;
+
+
+            bool fixSuccess = FixRoslynV1SarifString(inputSarifFileString, out outputSarifFileString);
+
+            if (fixSuccess)
+            {
+                // Write out the fixed JSON
+                File.WriteAllText(sarifFilePath, outputSarifFileString);
+                logger.LogInfo(Resources.MSG_SarifFixSuccess, sarifFilePath);
+                return true;
+            } else
+            {
+                // Do not change the file
+                logger.LogWarning(Resources.WARN_SarifFixFail, sarifFilePath);
+                return false;
+            }
         }
     }
 }

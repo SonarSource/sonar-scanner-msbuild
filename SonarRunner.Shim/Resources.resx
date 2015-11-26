@@ -213,4 +213,13 @@
   <data name="ERR_ConflictingSonarProjectProperties" xml:space="preserve">
     <value>sonar-project.properties files are not understood by the SonarQube Scanner for MSBuild. Remove those files from the following folders: {0}</value>
   </data>
+  <data name="MSG_SarifFileNotFound" xml:space="preserve">
+    <value>No SARIF file found at {0}.</value>
+  </data>
+  <data name="MSG_SarifFixSuccess" xml:space="preserve">
+    <value>Fixed invalid SARIF file {0}. Please check that VS 2015 Update 1 (or later) is installed.</value>
+  </data>
+  <data name="WARN_SarifFixFail" xml:space="preserve">
+    <value>Failed to fix SARIF file {0}. Please check that VS 2015 Update 1 (or later) is installed.</value>
+  </data>
 </root>
