@@ -1,4 +1,10 @@
-﻿using System;
+﻿//-----------------------------------------------------------------------
+// <copyright file="MockRoslynV1SarifFixer.cs" company="SonarSource SA and Microsoft Corporation">
+//   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+//   Licensed under the MIT License. See License.txt in the project root for license information.
+// </copyright>
+//-----------------------------------------------------------------------
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,11 +18,11 @@ namespace SonarRunner.Shim.Tests
 
         #region Test Hooks
 
-        public bool ReturnVal { get; set; }
+        public string ReturnVal { get; set; }
 
         public int CallCount { get; set; }
 
-        public MockRoslynV1SarifFixer(bool returnVal)
+        public MockRoslynV1SarifFixer(string returnVal)
         {
             this.ReturnVal = returnVal;
             this.CallCount = 0;
@@ -26,7 +32,7 @@ namespace SonarRunner.Shim.Tests
 
         #region IRoslynV1SarifFixer
 
-        public bool FixRoslynV1SarifFile(string sarifFilePath, ILogger logger)
+        public string LoadAndFixFile(string sarifPath, ILogger logger)
         {
             CallCount++;
             return ReturnVal;

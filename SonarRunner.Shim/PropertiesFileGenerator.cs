@@ -89,31 +89,37 @@ namespace SonarRunner.Shim
             return result;
         }
 
-        private static void FixSarifReport(ILogger logger, IEnumerable<ProjectInfo> projects, IRoslynV1SarifFixer fixer)
+        /// <summary>
+        /// Loads SARIF reports from the given projects and attempts to fix 
+        /// improper escaping from Roslyn V1 (VS 2015 RTM) where appropriate.
+        /// </summary>
+        private static void FixSarifReport(ILogger logger, IEnumerable<ProjectInfo> projects, IRoslynV1SarifFixer fixer /* for test */)
         {
-
             // attempt to fix invalid project-level SARIF emitted by Roslyn 1.0 (VS 2015 RTM)
             foreach (ProjectInfo project in projects)
             {
-                Property propertyToRemove = null;
-                foreach (Property projectProperty in project.AnalysisSettings)
+                Property reportPathProperty;
+                bool tryResult = project.TryGetAnalysisSetting(RoslynV1SarifFixer.ReportFilePropertyKey, out reportPathProperty);
+                if (tryResult)
                 {
-                    if (Property.AreKeysEqual(projectProperty.Id, RoslynV1SarifFixer.ReportFilePropertyKey))
-                    {
-                        string reportPath = projectProperty.Value;
-                        bool reportValid = fixer.FixRoslynV1SarifFile(reportPath, logger);
+                    string reportPath = reportPathProperty.Value;
+                    string fixedPath = fixer.LoadAndFixFile(reportPath, logger);
 
-                        if (!reportValid)
+                    if (!reportPath.Equals(fixedPath)) // only need to alter the property if there was no change
+                    {
+                        // remove the property ahead of changing it
+                        // if the new path is null, the file was unfixable and we should leave the property out
+                        project.AnalysisSettings.Remove(reportPathProperty);
+
+                        if (fixedPath != null)
                         {
-                            // if a valid JSON file does not exist at the report path after running the fixer, mark for removal
-                            propertyToRemove = projectProperty;
+                            // otherwise, set the property value (results in no change if the file was already valid)
+                            Property newReportPathProperty = new Property();
+                            newReportPathProperty.Id = RoslynV1SarifFixer.ReportFilePropertyKey;
+                            newReportPathProperty.Value = fixedPath;
+                            project.AnalysisSettings.Add(newReportPathProperty);
                         }
                     }
-                }
-
-                if (propertyToRemove != null)
-                {
-                    project.AnalysisSettings.Remove(propertyToRemove);
                 }
             }
         }

@@ -9,7 +9,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarRunner.Shim;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using TestUtilities;
 
 namespace SonarQube.Shim.Tests
 {
@@ -20,100 +22,6 @@ namespace SonarQube.Shim.Tests
 
         #region Tests
 
-        [TestMethod]
-        public void SarifCompilerVersionCheck_IsFromRoslynV1()
-        {
-            // Arrange
-            string testSarif = @"{
-  ""version"": ""0.1"",
-  ""toolInfo"": {
-                ""toolName"": ""Microsoft (R) Visual C# Compiler"",
-    ""productVersion"": ""1.0.0"",
-    ""fileVersion"": ""1.0.0""
-  }
-        }";
-
-            // Act
-            bool valid = new RoslynV1SarifFixer().IsSarifFromRoslynV1(testSarif);
-
-            // Assert
-            Assert.IsTrue(valid, "Expecting the compiler version check to return true for 'is Roslyn 1.0'");
-        }
-
-        [TestMethod]
-        public void SarifCompilerVersionCheck_IsNotFromRoslynV1()
-        {
-            // Arrange
-            string testSarif = @"{
-  ""version"": ""0.1"",
-  ""toolInfo"": {
-                ""toolName"": ""Microsoft (R) Visual C# Compiler"",
-    ""productVersion"": ""1.1.0"",
-    ""fileVersion"": ""1.0.0""
-  }
-        }";
-
-            // Act
-            bool valid = new RoslynV1SarifFixer().IsSarifFromRoslynV1(testSarif);
-
-            // Assert
-            Assert.IsFalse(valid, "Expecting the compiler version check to return false for 'not Roslyn 1.0'");
-        }
-
-        /// <summary>
-        /// Tests whether the compiler version check can handle improper escaping, as the JSON parse will throw an exception.
-        /// </summary>
-        [TestMethod]
-        public void SarifCompilerVersionCheck_HasImproperEscaping()
-        {
-            // Arrange
-            string testSarif = @"{
-  ""version"": ""0.1"",
-  ""toolInfo"": {
-                ""toolName"": ""Foo\Bar"",
-    ""productVersion"": ""1.1.0"",
-    ""fileVersion"": ""1.0.0""
-  }
-        }";
-
-            // Act
-            bool valid = new RoslynV1SarifFixer().IsSarifFromRoslynV1(testSarif);
-
-            // Assert
-            Assert.IsFalse(valid, "Expecting the compiler version check to return false for 'not Roslyn 1.0'");
-        }
-
-        [TestMethod]
-        public void SarifCompilerVersionCheck_FailureNoToolInfo()
-        {
-            // Arrange
-            string testSarif = @"{ }";
-
-            // Act
-            bool valid = new RoslynV1SarifFixer().IsSarifFromRoslynV1(testSarif);
-
-            // Assert
-            Assert.IsFalse(valid, "Expecting the compiler version check to return false for 'not Roslyn 1.0'");
-        }
-
-        [TestMethod]
-        public void SarifCompilerVersionCheck_FailureInvalidToolInfo()
-        {
-            // Arrange
-            string testSarif = @"{
-  ""version"": ""0.1"",
-  ""toolInfo"": {
-                ""toolName"": ""foo""
-  }
-        }";
-
-            // Act
-            bool valid = new RoslynV1SarifFixer().IsSarifFromRoslynV1(testSarif);
-
-            // Assert
-            Assert.IsFalse(valid, "Expecting the compiler version check to return false for 'not Roslyn 1.0'");
-        }
-
         /// <summary>
         /// There should be no change to input if it is already valid, as attempting to fix valid SARIF may cause over-escaping.
         /// This should be the case even if the output came from VS 2015 RTM.
@@ -122,7 +30,10 @@ namespace SonarQube.Shim.Tests
         public void SarifFixer_ShouldNotChange_Valid()
         {
             // Arrange
-            string testSarif = @"{
+            TestLogger logger = new TestLogger();
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -149,21 +60,27 @@ namespace SonarQube.Shim.Tests
     }
   ]
 }";
+            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            File.WriteAllText(testSarifPath, testSarifString);
+            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string fixedSarif;
-            bool returnStringIsValid = new RoslynV1SarifFixer().FixRoslynV1SarifString(testSarif, out fixedSarif);
+            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, logger);
 
             // Assert
-            Assert.IsTrue(returnStringIsValid);
-            Assert.AreEqual(testSarif, fixedSarif);
+            // already valid -> no change to file, same file path returned
+            AssertFileUnchanged(testSarifPath, originalWriteTime);
+            Assert.AreEqual(testSarifPath, returnedSarifPath);
         }
 
         [TestMethod]
         public void SarifFixer_ShouldNotChange_Unfixable()
         {
             // Arrange
-            string testSarif = @"{
+            TestLogger logger = new TestLogger();
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -193,14 +110,17 @@ namespace SonarQube.Shim.Tests
     }
   ]
 }";
+            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            File.WriteAllText(testSarifPath, testSarifString);
+            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string fixedSarif;
-            bool returnStringIsValid = new RoslynV1SarifFixer().FixRoslynV1SarifString(testSarif, out fixedSarif);
+            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, logger);
 
             // Assert
-            Assert.IsFalse(returnStringIsValid);
-            Assert.AreEqual(testSarif, fixedSarif);
+            // unfixable -> no change to file, null return
+            AssertFileUnchanged(testSarifPath, originalWriteTime);
+            Assert.IsNull(returnedSarifPath);
         }
 
         /// <summary>
@@ -211,10 +131,13 @@ namespace SonarQube.Shim.Tests
         /// \test\ ["_"]",
         /// </summary>
         [TestMethod]
-        public void SarifFixer_ShouldNotChange_SpansMultipleLines()
+        public void SarifFixer_ShouldNotChange_MultipleLineValues()
         {
             // Arrange
-            string testSarif = @"{
+            TestLogger logger = new TestLogger();
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -233,21 +156,27 @@ It features ""quoted text""."",
     }
   ]
 }";
+            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            File.WriteAllText(testSarifPath, testSarifString);
+            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string fixedSarif;
-            bool returnStringIsValid = new RoslynV1SarifFixer().FixRoslynV1SarifString(testSarif, out fixedSarif);
+            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, logger);
 
             // Assert
-            Assert.IsFalse(returnStringIsValid);
-            Assert.AreEqual(testSarif, fixedSarif);
+            // unfixable -> no change to file, null return
+            AssertFileUnchanged(testSarifPath, originalWriteTime);
+            Assert.IsNull(returnedSarifPath);
         }
 
         [TestMethod]
         public void SarifFixer_ShouldChange_EscapeBackslashes()
         {
             // Arrange
-            string testSarif = @"{
+            TestLogger logger = new TestLogger();
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -269,13 +198,19 @@ It features ""quoted text""."",
     }
   ]
 }";
+            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            File.WriteAllText(testSarifPath, testSarifString);
+            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string fixedSarif;
-            bool returnStringIsValid = new RoslynV1SarifFixer().FixRoslynV1SarifString(testSarif, out fixedSarif);
+            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, logger);
 
             // Assert
-            Assert.IsTrue(returnStringIsValid);
+            // fixable -> no change to file, file path in return value, file contents as expected
+            AssertFileUnchanged(testSarifPath, originalWriteTime);
+            Assert.IsNotNull(returnedSarifPath);
+
+            string returnedSarifString = File.ReadAllText(returnedSarifPath);
             Assert.AreEqual(@"{
   ""version"": ""0.1"",
   ""toolInfo"": {
@@ -297,14 +232,17 @@ It features ""quoted text""."",
       ],
     }
   ]
-}", fixedSarif);
+}", returnedSarifString);
         }
 
         [TestMethod]
         public void SarifFixer_ShouldChange_EscapeQuotes()
         {
             // Arrange
-            string testSarif = @"{
+            TestLogger logger = new TestLogger();
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -322,13 +260,19 @@ It features ""quoted text""."",
     }
   ]
 }";
+            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            File.WriteAllText(testSarifPath, testSarifString);
+            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string fixedSarif;
-            bool changeApplied = new RoslynV1SarifFixer().FixRoslynV1SarifString(testSarif, out fixedSarif);
+            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, logger);
 
             // Assert
-            Assert.IsTrue(changeApplied);
+            // fixable -> no change to file, file path in return value, file contents as expected
+            AssertFileUnchanged(testSarifPath, originalWriteTime);
+            Assert.IsNotNull(returnedSarifPath);
+
+            string returnedSarifString = File.ReadAllText(returnedSarifPath);
             Assert.AreEqual(@"{
   ""version"": ""0.1"",
   ""toolInfo"": {
@@ -346,14 +290,17 @@ It features ""quoted text""."",
       }
     }
   ]
-}", fixedSarif);
+}", returnedSarifString);
         }
 
         [TestMethod]
         public void SarifFixer_ShouldChange_EscapeCharsInAllAffectedFields()
         {
             // Arrange
-            string testSarif = @"{
+            TestLogger logger = new TestLogger();
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -382,13 +329,19 @@ It features ""quoted text""."",
     }
   ]
 }";
+            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            File.WriteAllText(testSarifPath, testSarifString);
+            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string fixedSarif;
-            bool changeApplied = new RoslynV1SarifFixer().FixRoslynV1SarifString(testSarif, out fixedSarif);
+            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, logger);
 
             // Assert
-            Assert.IsTrue(changeApplied);
+            // fixable -> no change to file, file path in return value, file contents as expected
+            AssertFileUnchanged(testSarifPath, originalWriteTime);
+            Assert.IsNotNull(returnedSarifPath);
+
+            string returnedSarifString = File.ReadAllText(returnedSarifPath);
             Assert.AreEqual(@"{
   ""version"": ""0.1"",
   ""toolInfo"": {
@@ -417,128 +370,18 @@ It features ""quoted text""."",
       }
     }
   ]
-}", fixedSarif);
-        }
-
-        [TestMethod]
-        public void IsJsonValid_True()
-        {
-            // Arrange
-            string testSarif = @"{
-  ""version"": ""0.1"",
-  ""toolInfo"": {
-                ""toolName"": ""Microsoft (R) Visual C# Compiler"",
-    ""productVersion"": ""1.0.0"",
-    ""fileVersion"": ""1.0.0""
-  },
-  ""issues"": [
-    {
-      ""ruleId"": ""DD001"",
-      ""locations"": [
-        {
-          ""analysisTarget"": [
-            {
-              ""uri"": ""C:\\agent\\_work\\2\\s\\MyTestProj\\Program.cs"",
-}
-          ]
-        }
-      ],
-      ""shortMessage"": ""Test shortMessage. It features \""quoted text\""."",
-      ""properties"": {
-        ""severity"": ""Info"",
-        ""helpLink"": ""https://github.com/SonarSource/sonar-msbuild-runner"",
-      }
-    }
-  ]
-}";
-
-            // Act
-            bool isValid = new RoslynV1SarifFixer().IsValidJson(testSarif);
-
-            // Assert
-            Assert.IsTrue(isValid);
-        }
-
-        [TestMethod]
-        public void IsJsonValid_FalseHasUnescapedQuotes()
-        {
-            // Arrange
-            string testSarif = @"{
-  ""version"": ""0.1"",
-  ""toolInfo"": {
-                ""toolName"": ""Microsoft (R) Visual C# Compiler"",
-    ""productVersion"": ""1.0.0"",
-    ""fileVersion"": ""1.0.0""
-  },
-  ""issues"": [
-    {
-      ""ruleId"": ""DD001"",
-      ""locations"": [
-        {
-          ""analysisTarget"": [
-            {
-              ""uri"": ""C:\\agent\\_work\\2\\s\\MyTestProj\\Program.cs"",
-}
-          ]
-        }
-      ],
-      ""shortMessage"": ""Test shortMessage. It features ""quoted text""."",
-      ""properties"": {
-        ""severity"": ""Info"",
-        ""helpLink"": ""https://github.com/SonarSource/sonar-msbuild-runner"",
-      }
-    }
-  ]
-}";
-
-            // Act
-            bool isValid = new RoslynV1SarifFixer().IsValidJson(testSarif);
-
-            // Assert
-            Assert.IsFalse(isValid);
-        }
-
-        [TestMethod]
-        public void IsJsonValid_FalseHasUnescapedSlashes()
-        {
-            // Arrange
-            string testSarif = @"{
-  ""version"": ""0.1"",
-  ""toolInfo"": {
-                ""toolName"": ""Microsoft (R) Visual C# Compiler"",
-    ""productVersion"": ""1.0.0"",
-    ""fileVersion"": ""1.0.0""
-  },
-  ""issues"": [
-    {
-      ""ruleId"": ""DD001"",
-      ""locations"": [
-        {
-          ""analysisTarget"": [
-            {
-              ""uri"": ""C:\agent\_work\2\s\MyTestProj\Program.cs"",
-}
-          ]
-        }
-      ],
-      ""shortMessage"": ""Test shortMessage. It features \""quoted text\""."",
-      ""properties"": {
-        ""severity"": ""Info"",
-        ""helpLink"": ""https://github.com/SonarSource/sonar-msbuild-runner"",
-      }
-    }
-  ]
-}";
-
-            // Act
-            bool isValid = new RoslynV1SarifFixer().IsValidJson(testSarif);
-
-            // Assert
-            Assert.IsFalse(isValid);
+}", returnedSarifString);
         }
 
         #endregion
 
+        #region Private Methods
 
+        private void AssertFileUnchanged(string filePath, DateTime originalWriteTime)
+        {
+            Assert.AreEqual(originalWriteTime, new FileInfo(filePath).LastWriteTime);
+        }
+
+        #endregion
     }
 }

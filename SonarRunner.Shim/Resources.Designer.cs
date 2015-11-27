@@ -178,7 +178,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No SARIF file found at {0}..
+        ///   Looks up a localized string similar to No Code Analysis ErrorLog file found at {0}..
         /// </summary>
         public static string MSG_SarifFileNotFound {
             get {
@@ -187,7 +187,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fixed invalid SARIF file {0}. Please check that VS 2015 Update 1 (or later) is installed..
+        ///   Looks up a localized string similar to Fixed invalid Code Analysis ErrorLog file. Please check that VS 2015 Update 1 (or later) is installed..
         /// </summary>
         public static string MSG_SarifFixSuccess {
             get {
@@ -367,7 +367,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to fix SARIF file {0}. Please check that VS 2015 Update 1 (or later) is installed..
+        ///   Looks up a localized string similar to Failed to fix Code Analysis ErrorLog file. Please check that VS 2015 Update 1 (or later) is installed..
         /// </summary>
         public static string WARN_SarifFixFail {
             get {
