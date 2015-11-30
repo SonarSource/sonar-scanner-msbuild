@@ -139,7 +139,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
   <Rules AnalyzerId=""SonarLint"" RuleNamespace=""SonarLint"">
     <Rule Id=""S1656"" Action=""Warning"" />
   </Rules>
-</RuleSet>");
+</RuleSet>")
+                .SetExport(SonarLintAnalyzerProvider.SonarLintParametersFormatName,
+@"<?xml version=""1.0"" encoding=""UTF - 8""?>
+<AnalysisInput>
+  <Rules>
+  </Rules>
+  <Files>
+  </Files>
+</AnalysisInput>");
 
             model.AddRepository(SonarLintAnalyzerProvider.CSharpRepositoryKey, SonarLintAnalyzerProvider.CSharpLanguage);
 
@@ -160,6 +168,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         private static string GetExpectedRulesetFileName(string rootDir)
         {
             return Path.Combine(GetConfPath(rootDir), SonarLintAnalyzerProvider.RoslynCSharpRulesetFileName);
+        }
+
+        private static string GetExpectedParametersFileName(string rootDir)
+        {
+            return Path.Combine(GetConfPath(rootDir), SonarLintAnalyzerProvider.SonarLintCSharpParametersFileName);
         }
 
         private static string GetConfPath(string rootDir)
@@ -209,12 +222,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             string filePath = GetExpectedRulesetFileName(rootTestDir);
             Assert.IsTrue(File.Exists(filePath), "Expected ruleset file does not exist: {0}", filePath);
+
+            filePath = GetExpectedParametersFileName(rootTestDir);
+            Assert.IsTrue(File.Exists(filePath), "Expected parameters file does not exist: {0}", filePath);
         }
 
         private static void CheckRulesetDoesNotExist(string rootTestDir)
         {
             string filePath = GetExpectedRulesetFileName(rootTestDir);
             Assert.IsFalse(File.Exists(filePath), "Not expecting the ruleset file to exist: {0}", filePath);
+
+            filePath = GetExpectedParametersFileName(rootTestDir);
+            Assert.IsFalse(File.Exists(filePath), "Not expecting the parameters file to exist: {0}", filePath);
         }
 
         private static void CheckSonarLintBinariesExist(string rootTestDir)

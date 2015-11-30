@@ -30,8 +30,10 @@ namespace SonarQube.TeamBuild.PreProcessor
     public static class SonarLintAnalyzerProvider
     {
         public const string RoslynCSharpRulesetFileName = "SonarQubeRoslyn-cs.ruleset";
+        public const string SonarLintCSharpParametersFileName = "SonarLint.xml";
 
         public const string SonarLintProfileFormatName = "sonarlint-vs-cs";
+        public const string SonarLintParametersFormatName = "sonarlint-vs-param-cs";
         public const string CSharpLanguage = "cs";
         public const string CSharpPluginKey = "csharp";
         public const string CSharpRepositoryKey = "csharp";
@@ -82,16 +84,21 @@ namespace SonarQube.TeamBuild.PreProcessor
         private static bool TryCreateRuleset(ISonarQubeServer server, TeamBuildSettings settings, string projectKey, ILogger logger)
         {
             logger.LogDebug(Resources.SLAP_FetchingSonarLintRuleset);
-            string content = TryGetProfileExportForProject(server, projectKey, logger);
 
-            if (content != null)
+            string rulesetContent;
+            string parametersContent;
+            if (TryGetProfileExportForProject(server, projectKey, logger, out rulesetContent, out parametersContent))
             {
-                if (IsValidRuleset(content))
+                if (IsValidRuleset(rulesetContent))
                 {
                     string ruleSetFilePath = GetRulesetFilePath(settings);
                     logger.LogDebug(Resources.SLAP_SonarLintRulesetCreated, ruleSetFilePath);
+                    File.WriteAllText(ruleSetFilePath, rulesetContent);
 
-                    File.WriteAllText(ruleSetFilePath, content);
+                    string parametersFilePath = GetParametersFilePath(settings);
+                    logger.LogDebug(Resources.SLAP_SonarLintParametersCreated, parametersFilePath);
+                    File.WriteAllText(parametersFilePath, parametersContent);
+
                     return true;
                 }
                 else
@@ -102,27 +109,33 @@ namespace SonarQube.TeamBuild.PreProcessor
             return false;
         }
 
-        private static string TryGetProfileExportForProject(ISonarQubeServer server, string projectKey, ILogger logger)
+        private static bool TryGetProfileExportForProject(ISonarQubeServer server, string projectKey, ILogger logger, out string rulesetContent, out string parametersContent)
         {
-            string profileContent = null;
-
             string qualityProfile;
-            if (server.TryGetQualityProfile(projectKey, CSharpLanguage, out qualityProfile))
-            {
-                if (server.TryGetProfileExport(qualityProfile, CSharpLanguage, SonarLintProfileFormatName, out profileContent))
-                {
-                    logger.LogDebug(Resources.SLAP_ProfileExportFound, projectKey);
-                }
-                else
-                {
-                    logger.LogDebug(Resources.SLAP_ProfileExportNotFound, projectKey);
-                }
-            }
-            else
+            if (!server.TryGetQualityProfile(projectKey, CSharpLanguage, out qualityProfile))
             {
                 logger.LogDebug(Resources.SLAP_NoProfileForProject, projectKey);
+                rulesetContent = null;
+                parametersContent = null;
+                return false;
             }
-            return profileContent;
+
+            if (!server.TryGetProfileExport(qualityProfile, CSharpLanguage, SonarLintProfileFormatName, out rulesetContent))
+            {
+                logger.LogDebug(Resources.SLAP_ProfileExportNotFound, SonarLintProfileFormatName, projectKey);
+                parametersContent = null;
+                return false;
+            }
+            logger.LogDebug(Resources.SLAP_ProfileExportFound, SonarLintProfileFormatName, projectKey);
+
+            if (!server.TryGetProfileExport(qualityProfile, CSharpLanguage, SonarLintParametersFormatName, out parametersContent))
+            {
+                logger.LogDebug(Resources.SLAP_ProfileExportNotFound, SonarLintParametersFormatName, projectKey);
+                return false;
+            }
+            logger.LogDebug(Resources.SLAP_ProfileExportFound, SonarLintParametersFormatName, projectKey);
+
+            return true;
         }
 
         private static bool IsValidRuleset(string rulesetContent)
@@ -136,6 +149,11 @@ namespace SonarQube.TeamBuild.PreProcessor
         private static string GetRulesetFilePath(TeamBuildSettings settings)
         {
             return Path.Combine(settings.SonarConfigDirectory, RoslynCSharpRulesetFileName);
+        }
+
+        private static string GetParametersFilePath(TeamBuildSettings settings)
+        {
+            return Path.Combine(settings.SonarConfigDirectory, SonarLintCSharpParametersFileName);
         }
 
         private static void FetchBinaries(ISonarQubeServer server, TeamBuildSettings settings, ILogger logger)

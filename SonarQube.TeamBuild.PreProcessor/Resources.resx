@@ -218,10 +218,13 @@ The full path to a settings file can also be supplied. If it is not supplied, th
     <value>Could not obtain a C# profile for project '{0}'</value>
   </data>
   <data name="SLAP_ProfileExportFound" xml:space="preserve">
-    <value>Found SonarLint profile export for project '{0}'</value>
+    <value>Found SonarLint profile export '{0}' for project '{1}'</value>
   </data>
   <data name="SLAP_ProfileExportNotFound" xml:space="preserve">
-    <value>Could not find SonarLint profile export for project '{0}'</value>
+    <value>Could not find SonarLint profile export '{0}' for project '{1}'</value>
+  </data>
+  <data name="SLAP_SonarLintParametersCreated" xml:space="preserve">
+    <value>SonarLint parameters downloaded: {0}</value>
   </data>
   <data name="SLAP_SonarLintRulesetCreated" xml:space="preserve">
     <value>SonarLint ruleset downloaded: {0}</value>

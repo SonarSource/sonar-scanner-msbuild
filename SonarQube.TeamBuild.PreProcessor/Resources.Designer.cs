@@ -353,7 +353,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Found SonarLint profile export for project &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Found SonarLint profile export &apos;{0}&apos; for project &apos;{1}&apos;.
         /// </summary>
         public static string SLAP_ProfileExportFound {
             get {
@@ -362,11 +362,20 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find SonarLint profile export for project &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Could not find SonarLint profile export &apos;{0}&apos; for project &apos;{1}&apos;.
         /// </summary>
         public static string SLAP_ProfileExportNotFound {
             get {
                 return ResourceManager.GetString("SLAP_ProfileExportNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint parameters downloaded: {0}.
+        /// </summary>
+        public static string SLAP_SonarLintParametersCreated {
+            get {
+                return ResourceManager.GetString("SLAP_SonarLintParametersCreated", resourceCulture);
             }
         }
         

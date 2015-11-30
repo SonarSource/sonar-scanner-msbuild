@@ -40,9 +40,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return this;
         }
 
-        public void SetExport(string format, string content)
+        public QualityProfile SetExport(string format, string content)
         {
             this.formatToContentExportMap[format] = content;
+            return this;
         }
 
         public string Name { get { return this.name; } }
