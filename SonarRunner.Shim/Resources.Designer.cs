@@ -88,7 +88,10 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No ProjectInfo.xml files were found. Possible causes: you specified an invalid build configuration or the custom MSBuild analysis targets were not imported. .
+        ///   Looks up a localized string similar to No ProjectInfo.xml files were found. Possible causes: 
+        ///1. The project has not been built - the &lt;end&gt; step was called right after the &lt;begin&gt;step, without a build step in between 
+        ///2. An unsupported version of MSBuild has been used to build the project. Currently MSBuild 12.0 upwards are supported
+        ///3. The build step has been launched from a different working folder.
         /// </summary>
         public static string ERR_NoProjectInfoFilesFound {
             get {
