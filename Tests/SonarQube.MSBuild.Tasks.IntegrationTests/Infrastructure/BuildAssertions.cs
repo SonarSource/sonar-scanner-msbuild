@@ -157,7 +157,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
             IEnumerable<ProjectItemInstance> matches = actualResult.ProjectStateAfterBuild.GetItems(itemType);
 
-            BuildUtilities.LogMessage("Analyzers:");
+            BuildUtilities.LogMessage("<{0}> item values:", itemType);
             foreach(ProjectItemInstance item in matches)
             {
                 BuildUtilities.LogMessage("\t{0}", item.EvaluatedInclude);

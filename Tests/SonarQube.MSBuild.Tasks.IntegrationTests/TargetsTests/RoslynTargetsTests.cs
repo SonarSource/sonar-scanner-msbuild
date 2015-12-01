@@ -20,7 +20,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         private const string RoslynAnalysisResultsSettingName = "sonar.cs.roslyn.reportFilePath";
         private const string ErrorLogFileName = "SonarQube.Roslyn.ErrorLog.json";
 
-        private static readonly string[] SonarLintAnalyzerFileNames = new string[] { "SonarLint.dll", "SonarLint.CSharp.dll" };
+        private static readonly string[] SonarLintAnalyzerFileNames = { "SonarLint.dll", "SonarLint.CSharp.dll" };
 
         public TestContext TestContext { get; set; }
 
@@ -51,8 +51,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Check the error log and ruleset properties are set
             string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
             string expectedErrorLog = Path.Combine(targetDir, ErrorLogFileName);
-            AssertExpectedAnalysisProperties(result, expectedErrorLog, GetDummyRulesetFilePath());
-            AssertExpectedAnalyzersExists(result, GetSonarLintAnalyzerFilePaths());
+            AssertExpectedAnalysisProperties(result, expectedErrorLog, GetDummyRulesetFilePath(), GetDummySonarLintXmlFilePath());
+            AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, GetSonarLintAnalyzerFilePaths());
         }
 
         [TestMethod]
@@ -86,7 +86,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
             string expectedErrorLog = Path.Combine(targetDir, ErrorLogFileName);
-            AssertExpectedAnalysisProperties(result, expectedErrorLog, finalRulesetFilePath);
+            AssertExpectedAnalysisProperties(result, expectedErrorLog, finalRulesetFilePath, GetDummySonarLintXmlFilePath());
 
             RuleSetAssertions.AssertExpectedIncludeFiles(finalRulesetFilePath, "c:\\existing.ruleset");
             RuleSetAssertions.AssertExpectedIncludeAction(finalRulesetFilePath, "c:\\existing.ruleset", RuleSetAssertions.DefaultActionValue);
@@ -125,7 +125,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
             string expectedErrorLog = Path.Combine(targetDir, ErrorLogFileName);
-            AssertExpectedAnalysisProperties(result, expectedErrorLog, finalRulesetFilePath);
+            AssertExpectedAnalysisProperties(result, expectedErrorLog, finalRulesetFilePath, GetDummySonarLintXmlFilePath());
 
             RuleSetAssertions.AssertExpectedIncludeFiles(finalRulesetFilePath, rulesetFilePath);
             RuleSetAssertions.AssertExpectedIncludeAction(finalRulesetFilePath, rulesetFilePath, RuleSetAssertions.DefaultActionValue);
@@ -151,7 +151,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Assert
             logger.AssertTargetNotExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
             logger.AssertTargetNotExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
-            AssertExpectedAnalysisProperties(result, "pre-existing.log", "pre-existing.ruleset"); // existing properties should not be changed
+            AssertExpectedAnalysisProperties(result, "pre-existing.log", "pre-existing.ruleset", string.Empty); // existing properties should not be changed
         }
 
         [TestMethod]
@@ -180,7 +180,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRoslynAssemblyExists", "True");
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarLintFound", "false");
 
-            AssertExpectedAnalysisProperties(result, "pre-existing.log", "pre-existing.ruleset");
+            AssertExpectedAnalysisProperties(result, "pre-existing.log", "pre-existing.ruleset", string.Empty);
         }
 
         [TestMethod]
@@ -208,6 +208,40 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarLintFound", "true");
 
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, "already.set.txt");
+        }
+
+        [TestMethod]
+        [Description("Checks that the SonarLint additional file is appended to the existing one")]
+        public void Roslyn_Settings_AdditionalFiles_Appended()
+        {
+            // Arrange
+            BuildLogger logger = new BuildLogger();
+            WellKnownProjectProperties properties = new WellKnownProjectProperties();
+
+            ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
+
+            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "foo.txt");
+            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "c:\\bar.txt");
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
+
+            // Assert
+            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            logger.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
+
+            // Check the intermediate working properties have the expected values
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRoslynRulesetExists", "True");
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarLintFound", "true");
+
+            // Check the analyzer properties are set as expected
+            List<string> expectedAnalyzers = new List<string>();
+            expectedAnalyzers.Add("foo.txt");
+            expectedAnalyzers.Add("c:\\bar.txt");
+            expectedAnalyzers.Add(GetDummySonarLintXmlFilePath());
+
+            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expectedAnalyzers.ToArray());
         }
 
         [TestMethod]
@@ -247,7 +281,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             expectedAnalyzers.Add("sonarLint.dll.xxx");
             expectedAnalyzers.Add("c:\\sonarLint\\my.dll");
 
-            AssertExpectedAnalyzersExists(result, expectedAnalyzers.ToArray());
+            AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, expectedAnalyzers.ToArray());
         }
 
         [TestMethod]
@@ -278,7 +312,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarLintFound", "false");
 
             // Check the analyzer properties are set as expected
-            AssertExpectedAnalyzersExists(result,
+            AssertExpectedItemValuesExists(result,
+                TargetProperties.AnalyzerItemType,
                 "analyzer1.dll",
                 "c:\\myfolder\\analyzer2.dll",
                 "c:\\myfolder\\sonarlint.dll");
@@ -469,7 +504,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             return Path.Combine(this.GetRootDirectory(), "conf", "SonarQubeRoslyn-cs.ruleset");
         }
-        
+
+        private string GetDummySonarLintXmlFilePath()
+        {
+            return Path.Combine(this.GetRootDirectory(), "conf", "SonarLint.xml");
+        }
+
         private string[] GetSonarLintAnalyzerFilePaths()
         {
             string rootDir = this.GetRootDirectory();
@@ -540,42 +580,54 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         private static void AssertCodeAnalysisIsDisabled(BuildResult result)
         {
             // Check the ruleset and error log are not set
-            AssertExpectedAnalysisProperties(result, string.Empty, string.Empty);
+            AssertExpectedAnalysisProperties(result, string.Empty, string.Empty, string.Empty);
         }
 
-        private static void AssertExpectedAnalysisProperties(BuildResult result, string expectedErrorLog, string expectedResolvedRuleset)
+        private static void AssertExpectedAnalysisProperties(BuildResult result, string expectedErrorLog, string expectedResolvedRuleset, string expectedAdditionalFilesElement)
         {
             // Check the ruleset and error log are not set
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, expectedErrorLog);
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ResolvedCodeAnalysisRuleset, expectedResolvedRuleset);
+
+            if (!string.IsNullOrEmpty(expectedAdditionalFilesElement))
+            {
+                // Check that the additional files element is set to the expected value
+                BuildAssertions.AssertSingleItemExists(result, TargetProperties.AdditionalFilesItemType, expectedAdditionalFilesElement);
+                BuildAssertions.AssertExpectedItemGroupCount(result, TargetProperties.AdditionalFilesItemType, 1);
+            }
+            else
+            {
+                // Check that the additional files element is not set
+                BuildAssertions.AssertExpectedItemGroupCount(result, TargetProperties.AdditionalFilesItemType, 0);
+            }
         }
 
-        private void AssertExpectedAnalyzersExists(BuildResult result, params string[] analyzerFilePaths)
+        private void AssertExpectedItemValuesExists(BuildResult result, string itemType, params string[] expectedValues)
         {
-            this.DumpAnalyzerLists(result, analyzerFilePaths);
-            foreach (string filePath in analyzerFilePaths)
+            this.DumpLists(result, itemType, expectedValues);
+            foreach (string expectedValue in expectedValues)
             {
-                BuildAssertions.AssertSingleItemExists(result, TargetProperties.AnalyzerItemType, filePath);
+                BuildAssertions.AssertSingleItemExists(result, itemType, expectedValue);
             }
-            BuildAssertions.AssertExpectedItemGroupCount(result, TargetProperties.AnalyzerItemType, analyzerFilePaths.Length);
+            BuildAssertions.AssertExpectedItemGroupCount(result, itemType, expectedValues.Length);
         }
 
 
-        private void DumpAnalyzerLists(BuildResult actualResult, string[] expected)
+        private void DumpLists(BuildResult actualResult, string itemType, string[] expected)
         {
             this.TestContext.WriteLine("");
-            this.TestContext.WriteLine("Dumping analyzer list: expected");
-            foreach (string analyzer in expected)
+            this.TestContext.WriteLine("Dumping <" + itemType + "> list: expected");
+            foreach (string item in expected)
             {
-                this.TestContext.WriteLine("\t{0}", analyzer);
+                this.TestContext.WriteLine("\t{0}", item);
             }
             this.TestContext.WriteLine("");
 
             this.TestContext.WriteLine("");
-            this.TestContext.WriteLine("Dumping analyzer list: actual");
-            foreach (ProjectItemInstance analyzer in actualResult.ProjectStateAfterBuild.GetItems(TargetProperties.AnalyzerItemType))
+            this.TestContext.WriteLine("Dumping <" + itemType + "> list: actual");
+            foreach (ProjectItemInstance item in actualResult.ProjectStateAfterBuild.GetItems(itemType))
             {
-                this.TestContext.WriteLine("\t{0}", analyzer.EvaluatedInclude);
+                this.TestContext.WriteLine("\t{0}", item.EvaluatedInclude);
             }
             this.TestContext.WriteLine("");
         }

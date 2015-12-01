@@ -479,6 +479,9 @@
       <!-- Remove any existing references to files called *SonarLint*.dll -->
       <Analyzer Remove="@(Analyzer)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch($([System.String]::new('%(Analyzer.Identity)')), 'SonarLint[^\\]*\.dll$', System.Text.RegularExpressions.RegexOptions.IgnoreCase)) " />
       <Analyzer Include="$(SonarLintAnalyzerDir)*SonarLint*.dll" />
+      
+      <!-- Add SonarLint.xml as a Roslyn Additional File so that SonarLint can pick up the right rule parameter values -->
+      <AdditionalFiles Include="$(SonarQubeConfigPath)SonarLint.xml" />
     </ItemGroup>
 
   </Target>

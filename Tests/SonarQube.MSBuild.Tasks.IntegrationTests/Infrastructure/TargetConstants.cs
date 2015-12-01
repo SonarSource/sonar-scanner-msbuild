@@ -80,6 +80,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string ErrorLog = "ErrorLog"; // file path to which the Roslyn error log should be written
         public const string Language = "Language"; // Language of the project: normally "C#" or "VB"
         public const string AnalyzerItemType = "Analyzer";
+        public const string AdditionalFilesItemType = "AdditionalFiles";
 
         // Legacy TeamBuild environment variables (XAML Builds)
         public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
