@@ -89,7 +89,7 @@ namespace SonarRunner.Shim {
         
         /// <summary>
         ///   Looks up a localized string similar to No ProjectInfo.xml files were found. Possible causes: 
-        ///1. The project has not been built - the &lt;end&gt; step was called right after the &lt;begin&gt;step, without a build step in between 
+        ///1. The project has not been built - the end step was called right after the begin step, without a build step in between 
         ///2. An unsupported version of MSBuild has been used to build the project. Currently MSBuild 12.0 upwards are supported
         ///3. The build step has been launched from a different working folder.
         /// </summary>
