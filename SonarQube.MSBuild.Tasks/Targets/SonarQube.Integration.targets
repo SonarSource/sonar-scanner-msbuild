@@ -96,7 +96,7 @@
     <SonarQubeOutputPath Condition=" $(SonarQubeOutputPath) == '' ">$(SonarQubeTempPath)\out\</SonarQubeOutputPath>
 
     <!-- Specify the ItemGroups to be analyzed -->
-    <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">Compile;Content;EmbeddedResource;None;ClCompile;Page;TypeScriptCompile</SQAnalysisFileItemTypes>
+    <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">Compile;Content;EmbeddedResource;None;ClCompile;ClInclude;Page;TypeScriptCompile</SQAnalysisFileItemTypes>
   </PropertyGroup>
 
   <!-- **************************************************************************** -->
