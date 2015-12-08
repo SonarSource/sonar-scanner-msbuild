@@ -105,7 +105,7 @@ namespace SonarRunner.Shim
             if (!File.Exists(sarifPath))
             {
                 // file cannot be found -> inherently unfixable
-                logger.LogInfo(Resources.MSG_SarifFileNotFound);
+                logger.LogInfo(Resources.MSG_SarifFileNotFound, sarifPath);
                 return null;
             }
 
@@ -114,8 +114,11 @@ namespace SonarRunner.Shim
             if (IsValidJson(inputSarifFileString))
             {
                 // valid input -> no fix required
+                logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifPath);
                 return sarifPath;
             }
+            logger.LogDebug(Resources.MSG_SarifFileIsInvalid, sarifPath);
+
             if (!IsSarifFromRoslynV1(inputSarifFileString))
             {
                 // invalid input NOT from Roslyn V1 -> unfixable
@@ -141,7 +144,7 @@ namespace SonarRunner.Shim
 
                 File.WriteAllText(newSarifPath, changedSarif);
 
-                logger.LogInfo(Resources.MSG_SarifFixSuccess);
+                logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifPath);
                 return newSarifPath;
             }
         }

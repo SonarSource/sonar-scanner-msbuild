@@ -181,6 +181,24 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The supplied Code Analysis ErrorLog file is not a valid json file: {0}.
+        /// </summary>
+        public static string MSG_SarifFileIsInvalid {
+            get {
+                return ResourceManager.GetString("MSG_SarifFileIsInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The supplied Code Analysis ErrorLog file is a valid json file and does not need to be fixed: {0}.
+        /// </summary>
+        public static string MSG_SarifFileIsValid {
+            get {
+                return ResourceManager.GetString("MSG_SarifFileIsValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No Code Analysis ErrorLog file found at {0}..
         /// </summary>
         public static string MSG_SarifFileNotFound {
@@ -190,7 +208,7 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fixed invalid Code Analysis ErrorLog file. Please check that VS 2015 Update 1 (or later) is installed..
+        ///   Looks up a localized string similar to Fixed invalid Code Analysis ErrorLog file. Please check that VS 2015 Update 1 (or later) is installed. Fixed file: {0}.
         /// </summary>
         public static string MSG_SarifFixSuccess {
             get {
