@@ -5,15 +5,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Diagnostics;
-using System.IO;
 using SonarQube.Common;
+using System;
+using System.IO;
 
 namespace SonarRunner.Shim
 {
@@ -29,7 +25,7 @@ namespace SonarRunner.Shim
         /// <summary>
         /// Returns true if the given SARIF came from the VS 2015 RTM Roslyn, which does not provide correct output.
         /// </summary>
-        private bool IsSarifFromRoslynV1(string input)
+        private static bool IsSarifFromRoslynV1(string input)
         {
             // low risk of false positives / false negatives
             return (input.Contains(@"""toolName"": ""Microsoft (R) Visual C# Compiler""")
@@ -39,7 +35,7 @@ namespace SonarRunner.Shim
         /// <summary>
         /// Returns true if the input is parseable JSON. No checks are made for conformation to the SARIF specification.
         /// </summary>
-        private bool IsValidJson(string input)
+        private static bool IsValidJson(string input)
         {
             try
             {
@@ -55,7 +51,7 @@ namespace SonarRunner.Shim
         /// <summary>
         /// The low-level implementation of the the fix - applying escaping to backslashes and quotes.
         /// </summary>
-        private string ApplyFixToSarif(string unfixedSarif)
+        private static string ApplyFixToSarif(string unfixedSarif)
         {
             string[] inputLines = unfixedSarif.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
 
@@ -100,24 +96,24 @@ namespace SonarRunner.Shim
 
         #region IRoslynV1SarifFixer
 
-        public string LoadAndFixFile(string sarifPath, ILogger logger)
+        public string LoadAndFixFile(string sarifFilePath, ILogger logger)
         {
-            if (!File.Exists(sarifPath))
+            if (!File.Exists(sarifFilePath))
             {
                 // file cannot be found -> inherently unfixable
-                logger.LogInfo(Resources.MSG_SarifFileNotFound, sarifPath);
+                logger.LogInfo(Resources.MSG_SarifFileNotFound, sarifFilePath);
                 return null;
             }
 
-            string inputSarifFileString = File.ReadAllText(sarifPath);
+            string inputSarifFileString = File.ReadAllText(sarifFilePath);
 
             if (IsValidJson(inputSarifFileString))
             {
                 // valid input -> no fix required
-                logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifPath);
-                return sarifPath;
+                logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifFilePath);
+                return sarifFilePath;
             }
-            logger.LogDebug(Resources.MSG_SarifFileIsInvalid, sarifPath);
+            logger.LogDebug(Resources.MSG_SarifFileIsInvalid, sarifFilePath);
 
             if (!IsSarifFromRoslynV1(inputSarifFileString))
             {
@@ -137,15 +133,15 @@ namespace SonarRunner.Shim
             else
             {
                 //output valid -> write to new file and return new path
-                string writeDir = Path.GetDirectoryName(sarifPath);
+                string writeDir = Path.GetDirectoryName(sarifFilePath);
                 string newSarifFileName =
-                    Path.GetFileNameWithoutExtension(sarifPath) + FixedFileSuffix + Path.GetExtension(sarifPath);
-                string newSarifPath = Path.Combine(writeDir, newSarifFileName);
+                    Path.GetFileNameWithoutExtension(sarifFilePath) + FixedFileSuffix + Path.GetExtension(sarifFilePath);
+                string newSarifFilePath = Path.Combine(writeDir, newSarifFileName);
 
-                File.WriteAllText(newSarifPath, changedSarif);
+                File.WriteAllText(newSarifFilePath, changedSarif);
 
-                logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifPath);
-                return newSarifPath;
+                logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifFilePath);
+                return newSarifFilePath;
             }
         }
 
