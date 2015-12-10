@@ -15,30 +15,29 @@ namespace TestUtilities
 {
     public static class RuleSetAssertions
     {
-        public const string DefaultActionValue = "Default";
+        public const string WarningActionValue = "Warning";
 
         private static readonly XName IncludeElementName = "Include";
         private static readonly XName PathAttrName = "Path";
         private static readonly XName ActionAttrName = "Action";
 
-        public static void AssertExpectedIncludeFiles(string rulesetFilePath, params string[] expectedIncludePaths)
+        public static void AssertExpectedIncludeFilesAndDefaultAction(string rulesetFilePath, params string[] expectedIncludePaths)
         {
             XDocument doc = XDocument.Load(rulesetFilePath);
             IEnumerable<XElement> includeElements = doc.Descendants(IncludeElementName);
             foreach (string expected in expectedIncludePaths)
             {
-                AssertSingleIncludeExists(includeElements, expected);
+                XElement includeElement = AssertSingleIncludeExists(includeElements, expected);
+                
+                // We expect the Include Action to always be "Warning"
+                AssertExpectedIncludeAction(includeElement, WarningActionValue);
             }
 
             Assert.AreEqual(expectedIncludePaths.Length, includeElements.Count(), "Unexpected number of Includes");
         }
 
-        public static void AssertExpectedIncludeAction(string rulesetFilePath, string includePath, string expectedAction)
+        private static void AssertExpectedIncludeAction(XElement includeElement, string expectedAction)
         {
-            XDocument doc = XDocument.Load(rulesetFilePath);
-            IEnumerable<XElement> includeElements = doc.Descendants(IncludeElementName);
-            XElement includeElement = AssertSingleIncludeExists(includeElements, includePath);
-
             XAttribute actionAttr = includeElement.Attribute(ActionAttrName);
 
             Assert.IsNotNull(actionAttr, "Include element does not have an Action attribute: {0}", includeElement);

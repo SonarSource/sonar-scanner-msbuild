@@ -94,8 +94,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result);
 
             string mergedRulesetFilePath = AssertMergedResultFileExists(result, sourceRulesetFilePath);
-            RuleSetAssertions.AssertExpectedIncludeFiles(mergedRulesetFilePath, "c:\\existing.ruleset");
-            RuleSetAssertions.AssertExpectedIncludeAction(mergedRulesetFilePath, "c:\\existing.ruleset", RuleSetAssertions.DefaultActionValue);
+            RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRulesetFilePath, "c:\\existing.ruleset");
         }
 
         [TestMethod]
@@ -138,8 +137,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertExpectedAdditionalFiles(result, GetDummySonarLintXmlFilePath());
 
             string mergedRulesetFilePath = AssertMergedResultFileExists(result, sourceRulesetFilePath);
-            RuleSetAssertions.AssertExpectedIncludeFiles(mergedRulesetFilePath, rulesetFilePath);
-            RuleSetAssertions.AssertExpectedIncludeAction(mergedRulesetFilePath, rulesetFilePath, RuleSetAssertions.DefaultActionValue);
+            RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRulesetFilePath, rulesetFilePath);
         }
 
         [TestMethod]

@@ -63,24 +63,19 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // 1. No included rulesets 
             string primaryRuleset = this.CreateValidRuleset("no-added-includes.ruleset.txt");
             mergedRuleset = ExecuteAndCheckSuccess(projectDir, primaryRuleset);
-            RuleSetAssertions.AssertExpectedIncludeFiles(mergedRuleset /* no included files*/);
+            RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset /* no included files*/);
 
             // 2. Adding includes
             primaryRuleset = this.CreateValidRuleset("added-includes1.ruleset.txt");
             mergedRuleset = ExecuteAndCheckSuccess(projectDir, primaryRuleset, "c:\\include1.ruleset");
-            RuleSetAssertions.AssertExpectedIncludeFiles(mergedRuleset, "c:\\include1.ruleset");
-            RuleSetAssertions.AssertExpectedIncludeAction(mergedRuleset, "c:\\include1.ruleset", RuleSetAssertions.DefaultActionValue);
+            RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset, "c:\\include1.ruleset");
 
             // 3. Adding an include that already exists
             primaryRuleset = this.CreateValidRuleset("added-includes.existing.ruleset.txt");
             string rulesetWithExistingInclude = ExecuteAndCheckSuccess(projectDir, primaryRuleset, "c:\\include1.ruleset", "c:\\include2.ruleset"); // create a file with includes
             
             mergedRuleset = ExecuteAndCheckSuccess(projectDir, rulesetWithExistingInclude, "c:\\include1.ruleset", "c:\\INCLUDE2.RULESET", "c:\\include3.ruleset"); // add the same includes again with one extra
-            RuleSetAssertions.AssertExpectedIncludeFiles(mergedRuleset, "c:\\include1.ruleset", "c:\\include2.ruleset", "c:\\include3.ruleset");
-
-            RuleSetAssertions.AssertExpectedIncludeAction(mergedRuleset, "c:\\include1.ruleset", RuleSetAssertions.DefaultActionValue);
-            RuleSetAssertions.AssertExpectedIncludeAction(mergedRuleset, "c:\\include2.ruleset", RuleSetAssertions.DefaultActionValue);
-            RuleSetAssertions.AssertExpectedIncludeAction(mergedRuleset, "c:\\include3.ruleset", RuleSetAssertions.DefaultActionValue);
+            RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset, "c:\\include1.ruleset", "c:\\include2.ruleset", "c:\\include3.ruleset");
         }
 
         [TestMethod]
@@ -94,7 +89,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // 1. Relative ruleset path that can be resolved -> included
             string primaryRuleset = this.CreateValidRuleset("found.relative.ruleset.txt");
             mergedRuleset = ExecuteAndCheckSuccess(projectDir, primaryRuleset, "relative.ruleset");
-            RuleSetAssertions.AssertExpectedIncludeFiles(mergedRuleset, absoluteRulesetPath);
+            RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset, absoluteRulesetPath);
 
             // 1. Relative ruleset path that can be resolved -> included
             primaryRuleset = this.CreateValidRuleset("found.relative2.ruleset.txt");
@@ -102,12 +97,12 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 ".\\relative.ruleset", // should be resolved correctly...
                 ".\\.\\relative.ruleset"); // ... but only added once.
 
-            RuleSetAssertions.AssertExpectedIncludeFiles(mergedRuleset, absoluteRulesetPath);
+            RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset, absoluteRulesetPath);
 
             // 2. Relative ruleset path that cannot be resolved -> not included
             primaryRuleset = this.CreateValidRuleset("not.found.relative.ruleset.txt");
             mergedRuleset = ExecuteAndCheckSuccess(projectDir, primaryRuleset, "not.found\\relative.ruleset");
-            RuleSetAssertions.AssertExpectedIncludeFiles(mergedRuleset /* ruleset should not have been resolved */);
+            RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset /* ruleset should not have been resolved */);
         }
 
         [TestMethod]
@@ -122,7 +117,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             string mergedRuleset = ExecuteAndCheckSuccess(testDir, primaryRuleset, "c:\\foo\\added.ruleset");
 
             // Assert
-            RuleSetAssertions.AssertExpectedIncludeFiles(mergedRuleset, "c:\\foo\\added.ruleset");
+            RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset, "c:\\foo\\added.ruleset");
         }
 
 
@@ -134,18 +129,29 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             string primaryRuleset = TestUtils.CreateTextFile(testDir, "existing.ruleset.txt",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""RulesetName"" ToolsVersion=""14.0"">
-  <Include Path=""d:\include1.ruleset"" Action=""Error"" />
+  <Include Path=""d:\error.include.ruleset"" Action=""Error"" />
+  <Include Path=""d:\info.include.ruleset"" Action=""Info"" />
+  <Include Path=""d:\warning.include.ruleset"" Action=""Warning"" />
+<Include Path=""d:\default.include.ruleset"" Action=""Default"" />
   <Rules AnalyzerId=""My.Analyzer"" RuleNamespace=""My.Analyzers"">
     <Rule Id=""Rule002"" Action=""Error"" />
   </Rules>
 </RuleSet>
 ");
             // Act
-            ExecuteAndCheckSuccess(testDir, primaryRuleset, "d:\\include1.ruleset");
+            string mergedRuleset = ExecuteAndCheckSuccess(testDir, primaryRuleset,
+                "d:\\error.include.ruleset",
+                "d:\\info.include.ruleset",
+                "d:\\warning.include.ruleset",
+                "d:\\default.include.ruleset");
 
             // Assert
-            RuleSetAssertions.AssertExpectedIncludeFiles(primaryRuleset, "d:\\include1.ruleset");
-            RuleSetAssertions.AssertExpectedIncludeAction(primaryRuleset, "d:\\include1.ruleset", ErrorActionValue); // action value should still be Error
+            RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset,
+                // Action value should be "Warning" for all included rulesets
+                "d:\\error.include.ruleset",
+                "d:\\info.include.ruleset",
+                "d:\\warning.include.ruleset",
+                "d:\\default.include.ruleset"); 
         }
 
         #endregion

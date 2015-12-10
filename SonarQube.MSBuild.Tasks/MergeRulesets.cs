@@ -24,7 +24,7 @@ namespace SonarQube.MSBuild.Tasks
         private static readonly XName IncludeElementName = "Include";
         private static readonly XName PathAttributeName = "Path";
         private static readonly XName ActionAttributeName = "Action";
-        private const string DefaultActionValue = "Default";
+        private const string IncludeActionValue = "Warning";
 
         #region Input properties
 
@@ -128,24 +128,26 @@ namespace SonarQube.MSBuild.Tasks
 
         private void EnsureIncludeExists(XDocument ruleset, string includePath)
         {
-            if (IncludeExists(ruleset, includePath))
+            XElement includeElement = FindExistingInclude(ruleset, includePath);
+            if (includeElement != null)
             {
                 this.Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_RulesetAlreadyIncluded, includePath);
             }
             else
             {
                 this.Log.LogMessage(MessageImportance.Low, Resources.MergeRuleset_IncludingRuleset, includePath);
-                XElement newInclude = new XElement(IncludeElementName);
-                newInclude.SetAttributeValue(PathAttributeName, includePath);
-                newInclude.SetAttributeValue(ActionAttributeName, DefaultActionValue);
-
-                ruleset.Root.AddFirst(newInclude);
+                includeElement = new XElement(IncludeElementName);
+                includeElement.SetAttributeValue(PathAttributeName, includePath);
+                ruleset.Root.AddFirst(includeElement);
             }
+
+            // Ensure the include (new or existing) has the desired Action value
+            includeElement.SetAttributeValue(ActionAttributeName, IncludeActionValue);
         }
 
-        private static bool IncludeExists(XDocument ruleset, string includePath)
+        private static XElement FindExistingInclude(XDocument ruleset, string includePath)
         {
-            return ruleset.Descendants(IncludeElementName).Any(e =>
+            return ruleset.Descendants(IncludeElementName).FirstOrDefault(e =>
                 {
                     XAttribute attr = e.Attribute(PathAttributeName);
                     return attr != null && string.Equals(includePath, attr.Value, StringComparison.OrdinalIgnoreCase);
