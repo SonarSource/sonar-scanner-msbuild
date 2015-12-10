@@ -472,7 +472,7 @@
       <!-- Calculate a unique name for the merged ruleset -->
       <!-- Note: our per-project directory hasn't been created at this point so we can't write the file there.
            Instead, save the merged file to the "conf" directory with a decorated name to make it unique. -->
-      <MergedRulesetFullName>$(SonarQubeRoslynRulesetFullName).$(MSBuildProjectName).$([System.DateTime]::Now.ToString("ffff"))</MergedRulesetFullName>
+      <MergedRulesetFullName>$(SonarQubeRoslynRulesetFullName).$(MSBuildProjectName).$([System.DateTime]::Now.ToString("fffff"))</MergedRulesetFullName>
     </PropertyGroup>
 
     <MergeRuleSets Condition="$(RulesetMergeRequired) == 'true' "
