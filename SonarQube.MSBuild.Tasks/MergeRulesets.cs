@@ -42,6 +42,12 @@ namespace SonarQube.MSBuild.Tasks
         public string ProjectDirectoryPath { get; set; }
 
         /// <summary>
+        /// Full file path for the merged ruleset file. The file should not already exist.
+        /// </summary>
+        [Required]
+        public string MergedRuleSetFilePath { get; set; }
+
+        /// <summary>
         /// The full file paths of any rulesets to include. Can be empty, in which case the task is a no-op.
         /// </summary>
         public string[] IncludedRulesetFilePaths { get; set; }
@@ -54,6 +60,7 @@ namespace SonarQube.MSBuild.Tasks
         {
             Debug.Assert(this.PrimaryRulesetFilePath != null, "[Required] property PrimaryRulesetFilePath should not be null when the task is called from MSBuild");
             Debug.Assert(this.ProjectDirectoryPath != null, "[Required] property ProjectDirectoryPath should not be null when the task is called from MSBuild");
+            Debug.Assert(this.MergedRuleSetFilePath != null, "[Required] property MergedRuleSetFilePath should not be null when the task is called from MSBuild");
 
             this.Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_MergingRulesets);
 
@@ -61,10 +68,17 @@ namespace SonarQube.MSBuild.Tasks
             {
                 throw new FileNotFoundException(Resources.MergeRulesets_MissingPrimaryRuleset, this.PrimaryRulesetFilePath);
             }
+            if (File.Exists(this.MergedRuleSetFilePath))
+            {
+                throw new InvalidOperationException(
+                    string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.MergeRuleset_MergedRulesetAlreadyExists, this.MergedRuleSetFilePath));
+            }
+
             if (this.IncludedRulesetFilePaths == null || this.IncludedRulesetFilePaths.Length == 0)
             {
                 this.Log.LogMessage(MessageImportance.Low, Resources.MergeRuleset_NoRulesetsSpecified);
-                return true; // nothing to do if there are no rulesets
+                File.Copy(this.PrimaryRulesetFilePath, this.MergedRuleSetFilePath);
+                return true; // nothing to do if there are no rulesets except copy the file
             }
 
             XDocument ruleset = XDocument.Load(PrimaryRulesetFilePath);
@@ -76,8 +90,8 @@ namespace SonarQube.MSBuild.Tasks
                     EnsureIncludeExists(ruleset, resolvedIncludePath);
                 }
             }
-            this.Log.LogMessage(MessageImportance.Low, Resources.MergeRuleset_SavingUpdatedRuleset, this.PrimaryRulesetFilePath);
-            ruleset.Save(this.PrimaryRulesetFilePath);
+            this.Log.LogMessage(MessageImportance.Low, Resources.MergeRuleset_SavingUpdatedRuleset, this.MergedRuleSetFilePath);
+            ruleset.Save(this.MergedRuleSetFilePath);
 
             return !this.Log.HasLoggedErrors;
         }

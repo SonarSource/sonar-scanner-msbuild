@@ -463,13 +463,31 @@
           ">true</SonarLintFound>
       <SonarLintFound Condition=" $(SonarLintFound) == '' ">false</SonarLintFound>
     </PropertyGroup>
-    
-    <MergeRuleSets Condition=" $(SonarLintFound) == 'true' AND $(ResolvedCodeAnalysisRuleSet) != ''"
+
+    <PropertyGroup>
+      <RulesetMergeRequired Condition=" $(SonarLintFound) == 'true' AND $(ResolvedCodeAnalysisRuleSet) != ''">true</RulesetMergeRequired>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$(RulesetMergeRequired) == 'true' ">
+      <!-- Calculate a unique name for the merged ruleset -->
+      <!-- Note: our per-project directory hasn't been created at this point so we can't write the file there.
+           Instead, save the merged file to the "conf" directory with a decorated name to make it unique. -->
+      <MergedRulesetFullName>$(SonarQubeRoslynRulesetFullName).$(MSBuildProjectName).$([System.DateTime]::Now.ToString("ffff"))</MergedRulesetFullName>
+    </PropertyGroup>
+
+    <MergeRuleSets Condition="$(RulesetMergeRequired) == 'true' "
                    PrimaryRulesetFilePath="$(SonarQubeRoslynRulesetFullName)"
                    IncludedRulesetFilePaths="$(ResolvedCodeAnalysisRuleSet)"
                    ProjectDirectoryPath="$(MSBuildProjectDirectory)"
+                   MergedRuleSetFilePath="$(MergedRulesetFullName)"
                    />
-   
+    
+    <PropertyGroup Condition="$(RulesetMergeRequired) == 'true' ">
+      <!-- Update the name of the ruleset to use -->
+      <SonarQubeRoslynRulesetFullName>$(MergedRulesetFullName)</SonarQubeRoslynRulesetFullName>
+    </PropertyGroup>
+    
+    
     <PropertyGroup Condition=" $(SonarLintFound) == 'true' ">
       <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)SonarQube.Roslyn.ErrorLog.json</ErrorLog>
       <ResolvedCodeAnalysisRuleSet>$(SonarQubeRoslynRulesetFullName)</ResolvedCodeAnalysisRuleSet>

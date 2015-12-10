@@ -62,6 +62,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string SonarQubeExcludeMetadata = "SonarQubeExclude";
         public const string SonarQubeRulesetFormat = "SonarQubeFxCop-{0}.ruleset";
 
+        public const string MergedRulesetFullName = "MergedRulesetFullName";
+
         // Non-SonarQube constants
         public const string ProjectGuid = "ProjectGuid";
         public const string ProjectTypeGuids = "ProjectTypeGuids";
@@ -73,6 +75,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string AssemblyName = "AssemblyName";
 
         public const string IsInTeamBuild = "TF_Build"; // Common to legacy and non-legacy TeamBuilds
+        public const string ProjectName = "MSBuildProjectName";
 
         // Roslyn
         public const string ResolvedCodeAnalysisRuleset = "ResolvedCodeAnalysisRuleSet";

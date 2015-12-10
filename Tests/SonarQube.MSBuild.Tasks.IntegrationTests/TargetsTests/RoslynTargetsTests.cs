@@ -81,15 +81,18 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Check the error log and ruleset properties are set
-            string finalRulesetFilePath = GetDummyRulesetFilePath();
-            this.TestContext.AddResultFile(finalRulesetFilePath);
+            string sourceRulesetFilePath = GetDummyRulesetFilePath();
+            this.TestContext.AddResultFile(sourceRulesetFilePath);
 
             string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
             string expectedErrorLog = Path.Combine(targetDir, ErrorLogFileName);
-            AssertExpectedAnalysisProperties(result, expectedErrorLog, finalRulesetFilePath, GetDummySonarLintXmlFilePath());
 
-            RuleSetAssertions.AssertExpectedIncludeFiles(finalRulesetFilePath, "c:\\existing.ruleset");
-            RuleSetAssertions.AssertExpectedIncludeAction(finalRulesetFilePath, "c:\\existing.ruleset", RuleSetAssertions.DefaultActionValue);
+            AssertExpectedErrorLog(result, expectedErrorLog);
+            AssertExpectedAdditionalFiles(result, GetDummySonarLintXmlFilePath());
+
+            string mergedRulesetFilePath = AssertMergedResultFileExists(result, sourceRulesetFilePath);
+            RuleSetAssertions.AssertExpectedIncludeFiles(mergedRulesetFilePath, "c:\\existing.ruleset");
+            RuleSetAssertions.AssertExpectedIncludeAction(mergedRulesetFilePath, "c:\\existing.ruleset", RuleSetAssertions.DefaultActionValue);
         }
 
         [TestMethod]
@@ -120,15 +123,18 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Check the error log and ruleset properties are set
-            string finalRulesetFilePath = GetDummyRulesetFilePath();
-            this.TestContext.AddResultFile(finalRulesetFilePath);
+            string sourceRulesetFilePath = GetDummyRulesetFilePath();
+            this.TestContext.AddResultFile(sourceRulesetFilePath);
 
             string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
             string expectedErrorLog = Path.Combine(targetDir, ErrorLogFileName);
-            AssertExpectedAnalysisProperties(result, expectedErrorLog, finalRulesetFilePath, GetDummySonarLintXmlFilePath());
 
-            RuleSetAssertions.AssertExpectedIncludeFiles(finalRulesetFilePath, rulesetFilePath);
-            RuleSetAssertions.AssertExpectedIncludeAction(finalRulesetFilePath, rulesetFilePath, RuleSetAssertions.DefaultActionValue);
+            AssertExpectedErrorLog(result, expectedErrorLog);
+            AssertExpectedAdditionalFiles(result, GetDummySonarLintXmlFilePath());
+
+            string mergedRulesetFilePath = AssertMergedResultFileExists(result, sourceRulesetFilePath);
+            RuleSetAssertions.AssertExpectedIncludeFiles(mergedRulesetFilePath, rulesetFilePath);
+            RuleSetAssertions.AssertExpectedIncludeAction(mergedRulesetFilePath, rulesetFilePath, RuleSetAssertions.DefaultActionValue);
         }
 
         [TestMethod]
@@ -573,6 +579,21 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             element.AddMetadata(BuildTaskConstants.SettingValueMetadataName, value);
         }
 
+        /// <summary>
+        /// Returns the search pattern for a merged resultset for the supplied source ruleset file path.
+        /// We don't know the exact name of the merged file as it contains a random element,
+        /// but we do know the pattern the name should follow.
+        /// </summary>
+        private static string GetMergedResultsetSearchPattern(BuildResult result, string sourceRulesetFilePath)
+        {
+            // Calculate the expected name for the merged ruleset (source + ".[project name]." + [ffff]
+            string projectName = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.ProjectName);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(projectName), "Test error: could not determine the project name");
+
+            string mergedFileNamePattern = Path.GetFileName(sourceRulesetFilePath + "." + projectName + ".*");
+            return mergedFileNamePattern;
+        }
+
         #endregion
 
         #region Checks
@@ -585,10 +606,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         private static void AssertExpectedAnalysisProperties(BuildResult result, string expectedErrorLog, string expectedResolvedRuleset, string expectedAdditionalFilesElement)
         {
-            // Check the ruleset and error log are not set
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, expectedErrorLog);
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ResolvedCodeAnalysisRuleset, expectedResolvedRuleset);
+            AssertExpectedErrorLog(result, expectedErrorLog);
+            AssertExpectedResolvedRuleset(result, expectedResolvedRuleset);
+            AssertExpectedAdditionalFiles(result, expectedAdditionalFilesElement);
+        }
 
+        private static void AssertExpectedAdditionalFiles(BuildResult result, string expectedAdditionalFilesElement)
+        {
             if (!string.IsNullOrEmpty(expectedAdditionalFilesElement))
             {
                 // Check that the additional files element is set to the expected value
@@ -602,6 +626,38 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             }
         }
 
+        private static void AssertExpectedErrorLog(BuildResult result, string expectedErrorLog)
+        {
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, expectedErrorLog);
+        }
+
+        private static void AssertExpectedResolvedRuleset(BuildResult result, string expectedResolvedRuleset)
+        {
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ResolvedCodeAnalysisRuleset, expectedResolvedRuleset);
+        }
+
+        /// <summary>
+        /// Checks that a merged results file exists for the supplied source ruleset file path.
+        /// </summary>
+        private string AssertMergedResultFileExists(BuildResult result, string sourceRulesetFilePath)
+        {
+            Assert.IsTrue(File.Exists(sourceRulesetFilePath), "Test error: the supplied source ruleset file should exist: {0}", sourceRulesetFilePath);
+
+            string mergedFileNamePattern = GetMergedResultsetSearchPattern(result, sourceRulesetFilePath);
+            string rulesetDir = Path.GetDirectoryName(sourceRulesetFilePath);
+
+            string[] matchingFiles = Directory.GetFiles(rulesetDir, mergedFileNamePattern);
+            Assert.AreEqual(1, matchingFiles.Length, "Expecting one and only one merged ruleset file matching the pattern '{0}'", mergedFileNamePattern);
+
+            string mergedRulesetFilePath = matchingFiles[0];
+            Assert.IsTrue(File.Exists(mergedRulesetFilePath), "Expected merged ruleset file does not exist. Pattern: {0}", mergedFileNamePattern);
+
+            this.TestContext.AddResultFile(mergedRulesetFilePath);
+
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.MergedRulesetFullName, mergedRulesetFilePath);
+            return mergedRulesetFilePath;
+        }
+
         private void AssertExpectedItemValuesExists(BuildResult result, string itemType, params string[] expectedValues)
         {
             this.DumpLists(result, itemType, expectedValues);
@@ -611,7 +667,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             }
             BuildAssertions.AssertExpectedItemGroupCount(result, itemType, expectedValues.Length);
         }
-
 
         private void DumpLists(BuildResult actualResult, string itemType, string[] expected)
         {

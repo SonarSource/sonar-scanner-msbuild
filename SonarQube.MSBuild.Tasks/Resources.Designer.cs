@@ -136,6 +136,15 @@ namespace SonarQube.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to merge rulesets. A ruleset with the specified name already exists: {0}.
+        /// </summary>
+        internal static string MergeRuleset_MergedRulesetAlreadyExists {
+            get {
+                return ResourceManager.GetString("MergeRuleset_MergedRulesetAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No rulesets were specified for inclusion.
         /// </summary>
         internal static string MergeRuleset_NoRulesetsSpecified {
