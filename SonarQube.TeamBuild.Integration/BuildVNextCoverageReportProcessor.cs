@@ -6,7 +6,6 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
-using System;
 
 namespace SonarQube.TeamBuild.Integration
 {
@@ -28,12 +27,22 @@ namespace SonarQube.TeamBuild.Integration
         #endregion
 
         #region Overrides
-        
+
         protected override bool TryGetBinaryReportFile(AnalysisConfig config, TeamBuildSettings settings, ILogger logger, out string binaryFilePath)
         {
-            binaryFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger);
+            Property vstestReportPath = getVstestReportPathOption(config);
+
+            binaryFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger, vstestReportPath);
 
             return true; // there aren't currently any conditions under which we'd want to stop processing
+        }
+
+        private static Property getVstestReportPathOption(AnalysisConfig config)
+        {
+            var analysisConfig = config.GetAnalysisSettings(true);
+            Property vstestReportPath;
+            analysisConfig.TryGetProperty("sonar.cs.vstest.reportsPaths", out vstestReportPath);
+            return vstestReportPath;
         }
 
         #endregion
