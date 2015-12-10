@@ -74,6 +74,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public const string AssemblyName = "AssemblyName";
 
+        public const string TreatWarningsAsErrors = "TreatWarningsAsErrors";
+        public const string WarningsAsErrors = "WarningsAsErrors";
+
         public const string IsInTeamBuild = "TF_Build"; // Common to legacy and non-legacy TeamBuilds
         public const string ProjectName = "MSBuildProjectName";
 

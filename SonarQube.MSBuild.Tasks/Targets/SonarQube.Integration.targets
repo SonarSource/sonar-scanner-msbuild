@@ -364,6 +364,10 @@
       <CodeAnalysisForceOutput>true</CodeAnalysisForceOutput>
       <CodeAnalysisGenerateSuccessFile>true</CodeAnalysisGenerateSuccessFile>
       <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+
+      <!-- Make sure no warnings are treated as errors -->
+      <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+      <WarningsAsErrors></WarningsAsErrors>
     </PropertyGroup>
 
   </Target>
@@ -427,11 +431,16 @@
         AfterTargets="ResolveCodeAnalysisRuleSet"
         BeforeTargets="CoreCompile">
 
-    <!-- Check whether to turn off code analysis -->
     <PropertyGroup>
+      <!-- Check whether to turn off code analysis logging -->
       <SonarQubeDisableRoslynCodeAnalysis Condition="$(SonarQubeExclude) == 'true' OR $(SonarQubeTestProject) == 'true' ">true</SonarQubeDisableRoslynCodeAnalysis>
+            
+      <!-- Make sure no warnings are treated as errors -->
+      <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+      <WarningsAsErrors></WarningsAsErrors>
     </PropertyGroup>
-    
+
+
     <PropertyGroup Condition=" $(SonarQubeDisableRoslynCodeAnalysis) == 'true' ">
       <ErrorLog></ErrorLog>
       <ResolvedCodeAnalysisRuleSet></ResolvedCodeAnalysisRuleSet>
@@ -439,7 +448,6 @@
     <!-- else -->
     <CallTarget Targets="SetRoslynCodeAnalysisProperties"
                 Condition="$(SonarQubeDisableRoslynCodeAnalysis) != 'true'"/>
-
   </Target>
 
   <Target Name="SetRoslynCodeAnalysisProperties">

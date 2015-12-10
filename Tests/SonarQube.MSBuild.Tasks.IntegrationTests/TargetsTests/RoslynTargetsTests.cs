@@ -53,6 +53,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string expectedErrorLog = Path.Combine(targetDir, ErrorLogFileName);
             AssertExpectedAnalysisProperties(result, expectedErrorLog, GetDummyRulesetFilePath(), GetDummySonarLintXmlFilePath());
             AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, GetSonarLintAnalyzerFilePaths());
+
+            BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result);
         }
 
         [TestMethod]
@@ -89,6 +91,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             AssertExpectedErrorLog(result, expectedErrorLog);
             AssertExpectedAdditionalFiles(result, GetDummySonarLintXmlFilePath());
+            BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result);
 
             string mergedRulesetFilePath = AssertMergedResultFileExists(result, sourceRulesetFilePath);
             RuleSetAssertions.AssertExpectedIncludeFiles(mergedRulesetFilePath, "c:\\existing.ruleset");
@@ -126,6 +129,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string sourceRulesetFilePath = GetDummyRulesetFilePath();
             this.TestContext.AddResultFile(sourceRulesetFilePath);
 
+            BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result);
+
             string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
             string expectedErrorLog = Path.Combine(targetDir, ErrorLogFileName);
 
@@ -147,6 +152,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             WellKnownProjectProperties properties = new WellKnownProjectProperties();
             properties.ErrorLog = "pre-existing.log";
             properties.ResolvedCodeAnalysisRuleset = "pre-existing.ruleset";
+            properties.WarningsAsErrors = "CS101";
+            properties.TreatWarningsAsErrors = "true";
 
             ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
             projectRoot.AddProperty(TargetProperties.SonarQubeTempPath, string.Empty); // needs to overwritten once the valid project has been created
@@ -158,6 +165,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             logger.AssertTargetNotExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
             logger.AssertTargetNotExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
             AssertExpectedAnalysisProperties(result, "pre-existing.log", "pre-existing.ruleset", string.Empty); // existing properties should not be changed
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.TreatWarningsAsErrors, "true");
+            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.WarningsAsErrors, "CS101");
         }
 
         [TestMethod]
@@ -185,6 +194,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRoslynRulesetExists", "False");
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRoslynAssemblyExists", "True");
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarLintFound", "false");
+
+            BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result); // still expect warnings not to be treated as errors as that will fail the build
 
             AssertExpectedAnalysisProperties(result, "pre-existing.log", "pre-existing.ruleset", string.Empty);
         }

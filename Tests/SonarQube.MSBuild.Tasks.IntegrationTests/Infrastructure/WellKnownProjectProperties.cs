@@ -76,6 +76,18 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             set { this[TargetProperties.ErrorLog] = value; }
         }
 
+        public string WarningsAsErrors
+        {
+            get { return this.GetValueOrNull(TargetProperties.WarningsAsErrors); }
+            set { this[TargetProperties.WarningsAsErrors] = value; }
+        }
+
+        public string TreatWarningsAsErrors
+        {
+            get { return this.GetValueOrNull(TargetProperties.TreatWarningsAsErrors); }
+            set { this[TargetProperties.TreatWarningsAsErrors] = value; }
+        }
+
         public string AssemblyName
         {
             get { return this.GetValueOrNull(TargetProperties.AssemblyName); }

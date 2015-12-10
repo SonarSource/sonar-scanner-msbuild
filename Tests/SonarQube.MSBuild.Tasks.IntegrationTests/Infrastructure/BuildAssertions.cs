@@ -166,6 +166,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             Assert.AreEqual(expectedCount, matches.Count(), "Unexpected number of '{0}' items", itemType);
         }
 
+        /// <summary>
+        /// Checks that no analysis warnings will be treated as errors
+        /// </summary>
+        public static void AssertWarningsAreNotTreatedAsErrors(BuildResult actualResult)
+        {
+            AssertExpectedPropertyValue(actualResult.ProjectStateAfterBuild, TargetProperties.TreatWarningsAsErrors, "false");
+            AssertExpectedPropertyValue(actualResult.ProjectStateAfterBuild, TargetProperties.WarningsAsErrors, "");
+        }
+
         #endregion
 
         #region Private methods

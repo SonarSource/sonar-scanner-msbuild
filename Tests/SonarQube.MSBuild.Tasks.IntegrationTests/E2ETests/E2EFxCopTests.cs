@@ -208,6 +208,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
             preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
 
+            preImportProperties.TreatWarningsAsErrors = "true"; // we expect these values to be overridden
+            preImportProperties.WarningsAsErrors = "CS0111;CS0222";
+
             preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
             CreateValidFxCopRuleset(rootInputFolder, string.Format(TargetProperties.SonarQubeRulesetFormat, "cs"));
 
@@ -235,10 +238,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             AssertAllFxCopTargetsExecuted(logger);
             Assert.IsTrue(File.Exists(fxCopLogFile), "FxCop log file should have been produced");
+            BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result);
 
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
             ProjectInfoAssertions.AssertAnalysisResultExists(projectInfo, AnalysisType.FxCop.ToString(), fxCopLogFile);
-
         }
 
         [TestMethod]
@@ -257,6 +260,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             preImportProperties.RunCodeAnalysis = "false";
             preImportProperties.CodeAnalysisLogFile = fxCopLogFile;
             preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
+
+            preImportProperties.TreatWarningsAsErrors = "true"; // we expect these values to be overridden
+            preImportProperties.WarningsAsErrors = "VB0111;VB0222";
 
             preImportProperties[TargetProperties.SonarQubeConfigPath] = rootInputFolder;
             CreateValidFxCopRuleset(rootInputFolder, string.Format(TargetProperties.SonarQubeRulesetFormat, "vbnet"));
@@ -294,6 +300,7 @@ End Class");
 
             AssertAllFxCopTargetsExecuted(logger);
             Assert.IsTrue(File.Exists(fxCopLogFile), "FxCop log file should have been produced");
+            BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result);
 
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
             ProjectInfoAssertions.AssertAnalysisResultExists(projectInfo, AnalysisType.FxCop.ToString(), fxCopLogFile);
