@@ -24,8 +24,8 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             downloader = new WebClientDownloader(null, null);
             Assert.AreEqual(null, downloader.GetHeader(HttpRequestHeader.Authorization));
 
-            downloader = new WebClientDownloader("admin", null);
-            Assert.AreEqual(null, downloader.GetHeader(HttpRequestHeader.Authorization));
+            downloader = new WebClientDownloader("da39a3ee5e6b4b0d3255bfef95601890afd80709", null);
+            Assert.AreEqual("Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=", downloader.GetHeader(HttpRequestHeader.Authorization));
 
             downloader = new WebClientDownloader(null, "password");
             Assert.AreEqual(null, downloader.GetHeader(HttpRequestHeader.Authorization));

@@ -21,8 +21,13 @@ namespace SonarQube.TeamBuild.PreProcessor
             // SONARMSBRU-169 Support TLS versions 1.0, 1.1 and 1.2
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
+            if (password == null)
+            {
+                password = "";
+            }
+
             this.client = new WebClient();
-            if (username != null && password != null)
+            if (username != null)
             {
                 if (username.Contains(':'))
                 {
