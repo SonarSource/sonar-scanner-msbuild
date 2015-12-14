@@ -112,7 +112,6 @@
        See https://connect.microsoft.com/VisualStudio/feedback/details/713690/msbuild-4-0-usingtask-cannot-have-a-path-with-parentheses -->
   <UsingTask TaskName="WriteProjectInfoFile" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="IsTestFileByName" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
-  <UsingTask TaskName="MergeRuleSets" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
 
   <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
@@ -471,30 +470,6 @@
           ">true</SonarLintFound>
       <SonarLintFound Condition=" $(SonarLintFound) == '' ">false</SonarLintFound>
     </PropertyGroup>
-
-    <PropertyGroup>
-      <RulesetMergeRequired Condition=" $(SonarLintFound) == 'true' AND $(ResolvedCodeAnalysisRuleSet) != ''">true</RulesetMergeRequired>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="$(RulesetMergeRequired) == 'true' ">
-      <!-- Calculate a unique name for the merged ruleset -->
-      <!-- Note: our per-project directory hasn't been created at this point so we can't write the file there.
-           Instead, save the merged file to the "conf" directory with a decorated name to make it unique. -->
-      <MergedRulesetFullName>$(SonarQubeRoslynRulesetFullName).$(MSBuildProjectName).$([System.DateTime]::Now.ToString("fffff"))</MergedRulesetFullName>
-    </PropertyGroup>
-
-    <MergeRuleSets Condition="$(RulesetMergeRequired) == 'true' "
-                   PrimaryRulesetFilePath="$(SonarQubeRoslynRulesetFullName)"
-                   IncludedRulesetFilePaths="$(ResolvedCodeAnalysisRuleSet)"
-                   ProjectDirectoryPath="$(MSBuildProjectDirectory)"
-                   MergedRuleSetFilePath="$(MergedRulesetFullName)"
-                   />
-    
-    <PropertyGroup Condition="$(RulesetMergeRequired) == 'true' ">
-      <!-- Update the name of the ruleset to use -->
-      <SonarQubeRoslynRulesetFullName>$(MergedRulesetFullName)</SonarQubeRoslynRulesetFullName>
-    </PropertyGroup>
-    
     
     <PropertyGroup Condition=" $(SonarLintFound) == 'true' ">
       <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)SonarQube.Roslyn.ErrorLog.json</ErrorLog>
@@ -502,11 +477,12 @@
     </PropertyGroup>
 
     <ItemGroup Condition=" $(SonarLintFound) == 'true' ">
-      <!-- Remove any existing references to files called *SonarLint*.dll -->
-      <Analyzer Remove="@(Analyzer)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch($([System.String]::new('%(Analyzer.Identity)')), 'SonarLint[^\\]*\.dll$', System.Text.RegularExpressions.RegexOptions.IgnoreCase)) " />
-      <Analyzer Include="$(SonarLintAnalyzerDir)*SonarLint*.dll" />
-      
-      <!-- Add SonarLint.xml as a Roslyn Additional File so that SonarLint can pick up the right rule parameter values -->
+      <!-- Remove any existing analyzers and additional files -->
+      <Analyzer Remove="@(Analyzer)" />
+      <AdditionalFiles Remove="@(AdditionalFiles)" />
+
+      <!-- Add SonarLint analyzers and additional files -->
+      <Analyzer Include="$(SonarLintAnalyzerDir)*SonarLint*.dll" />     
       <AdditionalFiles Include="$(SonarQubeConfigPath)SonarLint.xml" />
     </ItemGroup>
 

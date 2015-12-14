@@ -33,14 +33,20 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             BuildLogger logger = new BuildLogger();
             ProjectRootElement projectRoot = CreateValidProjectSetup(null);
-            
+
+            // Add analyzer settings that should be removed
+            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "Analyzer1.dll");
+            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "c:\\Analyzer2.dll");
+
+            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "additional1.txt");
+            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "additional2.txt");
+
             // Act
             BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
             logger.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
-            logger.AssertTaskNotExecuted(TargetConstants.MergeResultSetsTask);
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Check the intermediate working properties have the expected values
@@ -58,8 +64,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [Description("Checks the ruleset and analyzers list are correctly merged with existing settings")]
-        public void Roslyn_Settings_ValidSetup_MergeWithExistingSettings_AbsolutePath()
+        [Description("Checks the ruleset and analyzers list correctly override existing settings")]
+        public void Roslyn_Settings_ValidSetup_OverrideExistingSettings_AbsolutePath()
         {
             // Arrange
             BuildLogger logger = new BuildLogger();
@@ -73,13 +79,16 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             projectRoot.AddItem(TargetProperties.AnalyzerItemType, "Analyzer1.dll");
             projectRoot.AddItem(TargetProperties.AnalyzerItemType, "c:\\Analyzer2.dll");
 
+            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "additional1.txt");
+            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "additional2.txt");
+
+
             // Act
             BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
             logger.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
-            logger.AssertTaskExecuted(TargetConstants.MergeResultSetsTask);
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Check the error log and ruleset properties are set
@@ -89,17 +98,17 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
             string expectedErrorLog = Path.Combine(targetDir, ErrorLogFileName);
 
-            AssertExpectedErrorLog(result, expectedErrorLog);
-            AssertExpectedAdditionalFiles(result, GetDummySonarLintXmlFilePath());
+            AssertExpectedAnalysisProperties(result, expectedErrorLog, sourceRulesetFilePath, GetDummySonarLintXmlFilePath());
             BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result);
 
-            string mergedRulesetFilePath = AssertMergedResultFileExists(result, sourceRulesetFilePath);
-            RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRulesetFilePath, "c:\\existing.ruleset");
+            // Check the analyzer properties are set as expected
+            List<string> expectedAnalyzers = new List<string>(GetSonarLintAnalyzerFilePaths());
+            AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, expectedAnalyzers.ToArray());
         }
 
         [TestMethod]
-        [Description("Checks the ruleset and analyzers list are correctly merged with existing settings")]
-        public void Roslyn_Settings_ValidSetup_MergeWithExistingSettings_RelativePath()
+        [Description("Checks the ruleset and analyzers list correctly override existing settings")]
+        public void Roslyn_Settings_ValidSetup_OverrideExistingSettings_RelativePath()
         {
             // Arrange
             BuildLogger logger = new BuildLogger();
@@ -121,7 +130,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Assert
             logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
             logger.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
-            logger.AssertTaskExecuted(TargetConstants.MergeResultSetsTask);
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Check the error log and ruleset properties are set
@@ -133,11 +141,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
             string expectedErrorLog = Path.Combine(targetDir, ErrorLogFileName);
 
-            AssertExpectedErrorLog(result, expectedErrorLog);
-            AssertExpectedAdditionalFiles(result, GetDummySonarLintXmlFilePath());
+            AssertExpectedAnalysisProperties(result, expectedErrorLog, sourceRulesetFilePath, GetDummySonarLintXmlFilePath());
+            BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result);
 
-            string mergedRulesetFilePath = AssertMergedResultFileExists(result, sourceRulesetFilePath);
-            RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRulesetFilePath, rulesetFilePath);
+            // Check the analyzer properties are set as expected
+            List<string> expectedAnalyzers = new List<string>(GetSonarLintAnalyzerFilePaths());
+            AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, expectedAnalyzers.ToArray());
         }
 
         [TestMethod]
@@ -226,40 +235,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
-        [Description("Checks that the SonarLint additional file is appended to the existing one")]
-        public void Roslyn_Settings_AdditionalFiles_Appended()
-        {
-            // Arrange
-            BuildLogger logger = new BuildLogger();
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-
-            ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
-
-            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "foo.txt");
-            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "c:\\bar.txt");
-
-            // Act
-            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
-
-            // Assert
-            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
-            logger.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
-
-            // Check the intermediate working properties have the expected values
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRoslynRulesetExists", "True");
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarLintFound", "true");
-
-            // Check the analyzer properties are set as expected
-            List<string> expectedAnalyzers = new List<string>();
-            expectedAnalyzers.Add("foo.txt");
-            expectedAnalyzers.Add("c:\\bar.txt");
-            expectedAnalyzers.Add(GetDummySonarLintXmlFilePath());
-
-            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expectedAnalyzers.ToArray());
-        }
-
-        [TestMethod]
         [Description("Checks the analyzer assembly is added if the analyzer assembly exists")]
         public void Roslyn_Settings_Analyzer_AssemblyExists()
         {
@@ -269,13 +244,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
 
-            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "analyzer1.dll"); // additional -> preserve
-            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "c:\\myfolder\\analyzer2.dll"); // additional -> preserve
+            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "analyzer1.dll"); // additional -> remove
+            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "c:\\myfolder\\analyzer2.dll"); // additional -> remove
             projectRoot.AddItem(TargetProperties.AnalyzerItemType, "sonarlint.dll"); // relative path -> remove
             projectRoot.AddItem(TargetProperties.AnalyzerItemType, "c:\\myfolder\\sonarlint.dll"); // absolute path -> remove
             projectRoot.AddItem(TargetProperties.AnalyzerItemType, "XXSONARLINT.dll"); // case-sensitivity -> remove
-            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "sonarLint.dll.xxx"); // doesn't match -> preserve
-            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "c:\\sonarLint\\my.dll"); // doesn't match -> preserve
+            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "sonarLint.dll.xxx"); // doesn't match -> remove
+            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "c:\\sonarLint\\my.dll"); // doesn't match -> remove
 
             // Act
             BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
@@ -291,11 +266,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Check the analyzer properties are set as expected
             List<string> expectedAnalyzers = new List<string>(GetSonarLintAnalyzerFilePaths());
-            expectedAnalyzers.Add("analyzer1.dll");
-            expectedAnalyzers.Add("c:\\myfolder\\analyzer2.dll");
-            expectedAnalyzers.Add("sonarLint.dll.xxx");
-            expectedAnalyzers.Add("c:\\sonarLint\\my.dll");
-
             AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, expectedAnalyzers.ToArray());
         }
 
@@ -643,28 +613,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         private static void AssertExpectedResolvedRuleset(BuildResult result, string expectedResolvedRuleset)
         {
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ResolvedCodeAnalysisRuleset, expectedResolvedRuleset);
-        }
-
-        /// <summary>
-        /// Checks that a merged results file exists for the supplied source ruleset file path.
-        /// </summary>
-        private string AssertMergedResultFileExists(BuildResult result, string sourceRulesetFilePath)
-        {
-            Assert.IsTrue(File.Exists(sourceRulesetFilePath), "Test error: the supplied source ruleset file should exist: {0}", sourceRulesetFilePath);
-
-            string mergedFileNamePattern = GetMergedResultsetSearchPattern(result, sourceRulesetFilePath);
-            string rulesetDir = Path.GetDirectoryName(sourceRulesetFilePath);
-
-            string[] matchingFiles = Directory.GetFiles(rulesetDir, mergedFileNamePattern);
-            Assert.AreEqual(1, matchingFiles.Length, "Expecting one and only one merged ruleset file matching the pattern '{0}'", mergedFileNamePattern);
-
-            string mergedRulesetFilePath = matchingFiles[0];
-            Assert.IsTrue(File.Exists(mergedRulesetFilePath), "Expected merged ruleset file does not exist. Pattern: {0}", mergedFileNamePattern);
-
-            this.TestContext.AddResultFile(mergedRulesetFilePath);
-
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.MergedRulesetFullName, mergedRulesetFilePath);
-            return mergedRulesetFilePath;
         }
 
         private void AssertExpectedItemValuesExists(BuildResult result, string itemType, params string[] expectedValues)
