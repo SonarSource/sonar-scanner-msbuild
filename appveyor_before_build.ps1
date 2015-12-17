@@ -1,6 +1,9 @@
 . ./appveyor_helpers.ps1
 
-function PatchCsharpPlugin
+#
+# Copies the C# plugin so that the SonarQube MSBuild Scanner packaging projects will patch it. The packaging project is invoked by Appveyor as part of the regular build.
+#
+function CopyCsharpPluginForPatching
 {
     Add-AppveyorMessage -Message "Copying the C# plugin for patching"
         
@@ -11,8 +14,8 @@ function PatchCsharpPlugin
 }
 
 
-#Add-AppveyorMessage -Message "Building the latest working C# plugin"
-Build "SonarSource/sonar-csharp" "master"
+Add-AppveyorMessage -Message "Building the latest working C# plugin"
+DownloadAndBuildFromGitHub "SonarSource/sonar-csharp" "master"
 
-PatchCsharpPlugin
+CopyCsharpPluginForPatching
 

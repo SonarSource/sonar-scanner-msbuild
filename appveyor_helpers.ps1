@@ -63,7 +63,7 @@ function FetchAndUnzip
 }
 
 
-function Build
+function DownloadAndBuildFromGitHub
 {
 	param ([string]$Project, [string]$Sha1)
 
