@@ -11,7 +11,6 @@ $LOCAL_DEBUG_RUN = $false
 if ($LOCAL_DEBUG_RUN)
 {    
     $env:SQ_Version = "4.5.5"   
-    $env:MSBuild_Version = "14.0"
     $env:APPVEYOR_BUILD_FOLDER = "C:\Users\bgavril\source\repos\sonar-msbuild-runner"
     $env:configuration = "Debug"
 
