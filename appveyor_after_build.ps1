@@ -4,13 +4,14 @@
 
 
 # Set this to true to be able to run outside of appveyor - just configure the section below
-$LOCAL_DEBUG_RUN = $false
+$LOCAL_DEBUG_RUN = $true
 
 
 # Set these input variable that would normally come from AppVeyor yml
 if ($LOCAL_DEBUG_RUN)
 {    
-    $env:SQ_Version = "4.5.5"   
+    $env:SQ_Version = "5.2"   
+    $env:MSBuild_Version = "14.0"
     $env:APPVEYOR_BUILD_FOLDER = "C:\Users\bgavril\source\repos\sonar-msbuild-runner"
     $env:configuration = "Debug"
 
@@ -33,12 +34,18 @@ $sqProjectKey = "ProjectUnderTest";
 # Name of the quality profile used for analysis
 $testQualityProfileName = "ProfileForTest";
 
+
 #
-# Download and unzip SonarSqube to a well-known directory. 
+# True for versions 5+
 #
-# Remarks: 
-# 1. The downloaded files are cached to avoid downloading each time
-# 2. The installed directory is not cached but if running locally it will not be overwritten
+function IsVersion5OrGreater
+{
+    $majorVersion = $env:SQ_Version.Split('.')[0]
+    return $majorVersion -cge 5
+}
+
+#
+# Download and unzip SonarSqube to a well-known directory. If the directory exists, consider it as a cache. 
 #
 function FetchAndUnzipSonarQube
 {
@@ -89,7 +96,7 @@ function PublishPatchedCsharpPlugin
 #
 function InstallCsPlugin
 {
-    param ([string]$sqServerPath, [string]$csPluginPath) 
+    param ([Parameter(Mandatory=$true)][string]$sqServerPath, [Parameter(Mandatory=$true)][string]$csPluginPath) 
 
     if (![System.IO.File]::Exists($csPluginPath))
     {
@@ -105,7 +112,7 @@ function InstallCsPlugin
 #
 function StartSonarQubeServer
 {
-    param ([string]$sqServerPath)
+    param ([Parameter(Mandatory=$true)][string]$sqServerPath)
 
     StopSonarQubeServer
 
@@ -151,7 +158,7 @@ function InvokeGetRestMethod
 
 function InvokePostRestMethod
 {
-    param ([string]$query, [bool]$asAdmin=$false)
+    param ([Parameter(Mandatory=$true)][string]$query, [bool]$asAdmin=$false)
 
     $requestUrl = $sonarQubeBaseUrl +  $query;
     Write-Host "POST $requestUrl"
@@ -174,7 +181,7 @@ function InvokePostRestMethod
 # Remark: Multipart upload is not supported out of the box by powershell's Invoke-RestMethod, but System.Net.Http can do it
 #
 function InvokeUpload {
-     param ([string]$query, [string]$formFieldName, [String]$fileToUpload)
+     param ([Parameter(Mandatory=$true)][string]$query, [Parameter(Mandatory=$true)][string]$formFieldName, [Parameter(Mandatory=$true)][String]$fileToUpload)
     
     [System.Reflection.Assembly]::LoadWithPartialName('System.Net.Http') | Out-Null
 
@@ -248,7 +255,9 @@ function SetTestQualityProfileAsDefault
 }
 
 function VerifyAnalysisResults
-{
+{    
+    WaitForAllBackgroundTasksToComplete
+
     $expectedRuleViolations = @("fxcop:DoNotPassLiteralsAsLocalizedParameters", "fxcop:DoNotRaiseReservedExceptionTypes", "csharpsquid:S2228", "csharpsquid:S1134")
 
     $response = InvokeGetRestMethod "/api/issues/search?hideRules=true"
@@ -264,6 +273,34 @@ function VerifyAnalysisResults
     foreach ($issue in $issues)
     {
         Assert ($issue.project -eq $sqProjectKey) "An issue was found not belonging to the project under test. Instead, it belongs to " + $issue.project        
+    }
+}
+
+function WaitForAllBackgroundTasksToComplete
+{
+    # Async execution happens on SQ 5+ only
+    if (IsVersion5OrGreater)
+    {
+        $tasksInQueue = $true        
+        while ($tasksInQueue)
+        {
+            $response = InvokeGetRestMethod "/api/ce/queue" $true
+            $validResponse = $response.PSobject.Properties.name -match "tasks"
+
+            if (!$validResponse)
+            {
+                throw "The internal API /api/ce/queue did not produce the expected response"
+            }
+
+            if ($response.tasks)
+            {
+                Start-Sleep -s 1
+            }
+            else
+            {
+                $tasksInQueue = $false
+            }
+        }
     }
 }
 
@@ -312,7 +349,8 @@ StartSonarQubeServer $sqInstallPath
 echo "Step 5: Building and analyzing the project under test"
 BuildAndAnalyzeProjectUnderTest
 
-echo "Step 6: Verify analysis results"
+echo "Step 6: Verifing analysis results"
 VerifyAnalysisResults
 
+echo "Validation Complete!"
 #StopSonarQubeServer
