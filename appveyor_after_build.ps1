@@ -34,7 +34,11 @@ $sqProjectKey = "ProjectUnderTest";
 $testQualityProfileName = "ProfileForTest";
 
 #
-# Download and unzip SonarSqube to a well-known directory. If the directory exists, consider it as a cache. 
+# Download and unzip SonarSqube to a well-known directory. 
+#
+# Remarks: 
+# 1. The downloaded files are cached to avoid downloading each time
+# 2. The installed directory is not cached but if running locally it will not be overwritten
 #
 function FetchAndUnzipSonarQube
 {
