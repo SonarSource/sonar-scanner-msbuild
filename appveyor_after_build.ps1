@@ -230,7 +230,14 @@ function UploadTestQualityProfile
 
 function SetTestQualityProfileAsDefault
 {
-    $response = InvokePostRestMethod "/api/profiles/set_as_default?language=cs&name=$testQualityProfileName" $true    
+    if (IsVersion5OrGreater)
+    {
+        $response = InvokePostRestMethod "/api/qualityprofiles/set_default?language=cs&profileName=$testQualityProfileName" $true            
+    }
+    else
+    {
+        $response = InvokePostRestMethod "/api/profiles/set_as_default?language=cs&name=$testQualityProfileName" $true    
+    }
 }
 
 function VerifyAnalysisResults
