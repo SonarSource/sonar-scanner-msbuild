@@ -134,10 +134,17 @@ function WaitForSonarQubeToHaveStarted
 
 function InvokeGetRestMethod
 {
-    param ([string]$query)
+    param ([Parameter(Mandatory=$true)][string]$query,  [bool]$asAdmin=$false)
 
     $request = $sonarQubeBaseUrl + $query;
-    $response = Invoke-RestMethod $request -Method Get -TimeoutSec 30 
+    
+    if ($asAdmin)
+    {
+       $authHeader = GetSonarQubeAdminAuthHeader
+       $allheaders = @{Authorization = $authHeader}   
+    }  
+
+    $response = Invoke-RestMethod $request -Method Get -TimeoutSec 30 -Headers $allheaders
 
     return $response
 }
