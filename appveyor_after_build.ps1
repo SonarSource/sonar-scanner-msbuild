@@ -4,7 +4,7 @@
 
 
 # Set this to true to be able to run outside of appveyor - just configure the section below
-$LOCAL_DEBUG_RUN = $true
+$LOCAL_DEBUG_RUN = $false
 
 
 # Set these input variable that would normally come from AppVeyor yml
