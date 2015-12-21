@@ -1,3 +1,5 @@
+exit
+
 . .\appveyor_helpers.ps1
 
 ####################### Local run (Debug) configuration ###################################
