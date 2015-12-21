@@ -13,7 +13,14 @@ function CopyCsharpPluginForPatching
     [System.IO.File]::Copy($csPluginCleanJar, $destinationFile)
 }
 
+echo ("BLA " + $env:BLA)
+if (!$env:BLA)
+{
+    echo "hi"
+    $env:BLA = "set"
+}
 
+exit
 Add-AppveyorMessage -Message "Building the latest working C# plugin"
 DownloadAndBuildFromGitHub "SonarSource/sonar-csharp" "master"
 
