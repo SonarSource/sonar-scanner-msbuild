@@ -1,4 +1,4 @@
-. .\appveyor_helpers.ps1
+. ./appveyor_helpers.ps1
 
 ####################### Local run (Debug) configuration ###################################
 
@@ -225,7 +225,7 @@ function GetSonarQubeAdminAuthHeader
 function UploadTestQualityProfile
 {
     echo "Finding the quality profile on disk"
-    $qualityProfile = FindSingleFile ([System.IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, "IntegrationTestProject")) "TestQualityProfile.xml"
+    $qualityProfile = FindSingleFile ([System.IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, "Tests", "IntegrationTestProject")) "TestQualityProfile.xml"
 
     $response = InvokeUpload "/api/profiles/restore" "backup" $qualityProfile
 }
@@ -303,7 +303,7 @@ function BuildAndAnalyzeProjectUnderTest
     $bootstrapperPath = FindSingleFile ([System.IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, "DeploymentArtifacts", "BuildAgentPayload", $env:configuration)) "MSBuild.SonarQube.Runner.exe"
     
     echo "Step 5.3: Locating the project under test"
-    $projectUnderTestPath = FindSingleFile ([System.IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, "IntegrationTestProject")) "ProjectUnderTest.sln"
+    $projectUnderTestPath = FindSingleFile ([System.IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, "Tests", "IntegrationTestProject")) "ProjectUnderTest.sln"
 
     echo "Step 5.4: Waiting for SQ to have started"
     WaitForSonarQubeToHaveStarted
