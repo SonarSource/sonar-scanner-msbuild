@@ -7,15 +7,21 @@ function CopyCsharpPluginForPatching
 {
     Add-AppveyorMessage -Message "Copying the C# plugin for patching"
         
-    $csPluginCleanJar = FindSingleFile "$snapshotDirectory\sonar-csharp-master\target" "*.jar"
+    $csPluginCleanJar = FindSingleFile "$snapshotDirectory\sonar-csharp-master\target\" "sonar-csharp-plugin.jar"
    
-    $destinationFile = [System.IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, "PackagingProjects\CSharpPluginPayload", "csharp_plugin.jar");
+    $destinationFile = [System.IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, "PackagingProjects\CSharpPluginPayload", "sonar-csharp-plugin.jar");
     [System.IO.File]::Copy($csPluginCleanJar, $destinationFile)
+}
+
+if (!$env:APPVEYOR)
+{    
+    $LOCAL_DEBUG_RUN = 1
 }
 
 echo "Building the latest working C# plugin"
 DownloadAndMavenBuildFromGitHub "SonarSource/sonar-csharp" "master"
 
 CopyCsharpPluginForPatching
+
 
 
