@@ -1,6 +1,7 @@
 version: 1.0.{build}
 os:
 - Visual Studio 2013
+# only run PR-CA on the VS 2015 OS - please change the scripts if this os changes
 - Visual Studio 2015
 
 install:
@@ -25,7 +26,8 @@ configuration: Release
 environment:
   matrix:
   - SQ_Version: '4.5.6'
-  - SQ_Version: '5.2'   
+  - SQ_Version: '5.2'  
+    PR-CA: '1'
     
 
 before_build:
