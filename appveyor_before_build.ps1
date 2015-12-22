@@ -12,10 +12,7 @@ function CopyCsharpPluginForPatching
 }
 
 
-Add-AppveyorMessage -Message "Building the latest working C# plugin"
-DownloadAndBuildFromGitHub "SonarSource/sonar-csharp" "master"
 
-CopyCsharpPluginForPatching
 
 $env:APPVEYOR_PULL_REQUEST_NUMBER = 13
 
@@ -31,7 +28,10 @@ if (!$env:APPVEYOR_PULL_REQUEST_NUMBER)
 # CI test mode
 else
 {
+    Add-AppveyorMessage -Message "Building the latest working C# plugin"
+    DownloadAndBuildFromGitHub "SonarSource/sonar-csharp" "master"
 
+    CopyCsharpPluginForPatching
 }
 
 exit
