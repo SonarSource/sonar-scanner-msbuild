@@ -1,10 +1,10 @@
+. .\appveyor_helpers.ps1
+
 ####################### Local run (Debug) configuration ###################################
 
 # Set these input variable that would normally come from AppVeyor yml
-if (!$env:APPVEYOR)
-{    
-    $LOCAL_DEBUG_RUN = true
-
+if ($LOCAL_DEBUG_RUN)
+{      
     $env:SQ_Version = "5.2"   
     $env:MSBuild_Version = "14.0"
     $env:APPVEYOR_BUILD_FOLDER = "C:\Users\bgavril\source\repos\sonar-msbuild-runner"
@@ -28,7 +28,6 @@ $sonarQubeBaseUrl = "http://localhost.:9000";
 $sqProjectKey = "ProjectUnderTest";
 # Name of the quality profile used for analysis
 $testQualityProfileName = "ProfileForTest";
-
 
 #
 # True for versions 5+
