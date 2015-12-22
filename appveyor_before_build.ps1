@@ -1,3 +1,5 @@
+. .\appveyor_helpers.ps1
+
 #
 # Copies the C# plugin so that the SonarQube MSBuild Scanner packaging projects will patch it. The packaging project is invoked by Appveyor as part of the regular build.
 #
