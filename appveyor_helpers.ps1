@@ -1,6 +1,11 @@
 $ErrorActionPreference = "Stop"
 $snapshotDirectory = "c:\snapshot"
 
+if (!$env:APPVEYOR)
+{    
+    $LOCAL_DEBUG_RUN = 1
+}
+
 function CheckLastExitCode
 {
     param ([int[]]$SuccessCodes = @(0))
@@ -222,5 +227,3 @@ function Assert
         throw $message
     }
 }
-
-
