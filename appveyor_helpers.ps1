@@ -6,6 +6,22 @@ if (!$env:APPVEYOR)
     $LOCAL_DEBUG_RUN = 1
 }
 
+#
+# Returns true if the current build is triggered by a Pull Request on a specific configuration
+#
+# Remark: We should only run PR-CA once, but Appveyor does not offer a mechanism to differentiate between runs from the same matrix. 
+# As a workaround, we set an extra variable (PR-CA) in the matrix. We also check the os input to not run PR-CA for each "os" 
+#
+function IsPRCABuild
+{
+    if ($env:APPVEYOR_PULL_REQUEST_NUMBER -and $env:PR_CA -and ($env:os -eq "Visual Studio 2015"))
+    {
+        return $true;
+    }
+
+    return $false;
+}
+
 function CheckLastExitCode
 {
     param ([int[]]$SuccessCodes = @(0))
@@ -227,3 +243,36 @@ function Assert
         throw $message
     }
 }
+
+#
+# Start the SonarQube server as a process 
+#
+function StartSonarQubeServer
+{
+    param ([Parameter(Mandatory=$true)][string]$sqServerPath)
+
+    StopSonarQubeServer
+
+    $sqStartBatPath = "$sqServerPath\bin\windows-x86-64\StartSonar.bat";
+    LogAppveyorMessage -Message "Starting the SonarQube server at $sqStartBatPath";  
+    echo $sqStartBatPath
+    
+    # Appveyor uses the "os" env variable for its own purposes (i.e. it configures the VM image that runs the test)
+    # However this is a reserved system variable and the Sonar-Scanner actually checks that the OS is Windows_NT - so it needs to be re-set
+    $oldOS = $env:os
+    $env:os = "Windows_NT"        
+    [void][System.Diagnostics.Process]::Start($sqStartBatPath)      
+    $env:os = $oldOS
+}
+
+#
+# Stop the SQ server
+#
+function StopSonarQubeServer
+{
+    # Killing Java.exe is a reliable way of shutting down the SonarQube server
+    Get-Process | Where-Object {$_.Path -like "*java.exe"} | Stop-Process -Force
+    Start-Sleep -s 1
+}
+
+

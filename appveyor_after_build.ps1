@@ -103,30 +103,7 @@ function InstallCsPlugin
     [System.IO.File]::Copy($csPluginPath, $destination, $true);
 }
 
-#
-# Start the SonarQube server as a process 
-#
-function StartSonarQubeServer
-{
-    param ([Parameter(Mandatory=$true)][string]$sqServerPath)
 
-    StopSonarQubeServer
-
-    $sqStartBatPath = "$sqServerPath\bin\windows-x86-64\StartSonar.bat";
-    LogAppveyorMessage -Message "Starting the SonarQube server at $sqStartBatPath";  
-    
-    [void][System.Diagnostics.Process]::Start($sqStartBatPath);      
-}
-
-#
-# Stop the SQ server
-#
-function StopSonarQubeServer
-{
-    # Killing Java.exe is a reliable way of shutting down the SonarQube server
-    Get-Process | Where-Object {$_.Path -like "*java.exe"} | Stop-Process -Force
-    Start-Sleep -s 1
-}
 
 
 function WaitForSonarQubeToHaveStarted
@@ -347,4 +324,16 @@ function RunContinousIntegrationTest
     #StopSonarQubeServer
 }
 
-RunContinousIntegrationTest
+
+
+if (IsPRCABuild)
+{
+    
+    MSBuild.SonarQube.Runner.exe end
+}
+else
+{
+    RunContinousIntegrationTest
+    
+}
+
