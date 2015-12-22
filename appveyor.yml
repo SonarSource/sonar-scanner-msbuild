@@ -9,6 +9,10 @@ before_build:
   - nuget restore
   - appveyor DownloadFile https://raw.githubusercontent.com/dbolkensteyn/pr-analysis/ondemand/msbuild-sonarqube-runner-begin.cmd && msbuild-sonarqube-runner-begin
 
+build:
+  verbosity: minimal
+  project: SonarQube.MSBuild.Runner.sln
+  
 after_build:
   - appveyor DownloadFile https://raw.githubusercontent.com/dbolkensteyn/pr-analysis/ondemand/msbuild-sonarqube-runner-end.cmd && msbuild-sonarqube-runner-end
 
