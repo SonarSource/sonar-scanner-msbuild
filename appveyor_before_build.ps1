@@ -19,7 +19,7 @@ function CopyCsharpPluginForPatching
 $env:APPVEYOR_PULL_REQUEST_NUMBER = 13
 
 # PR Code Analysis mode
-if (!$env:APPVEYOR_PULL_REQUEST_NUMBER)
+if ($env:APPVEYOR_PULL_REQUEST_NUMBER)
 {
     # only run PR-CA for one configuration of the Appveyor matrix
     echo ("OS: " + $env:os)
