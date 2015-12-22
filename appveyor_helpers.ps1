@@ -1,12 +1,17 @@
 $ErrorActionPreference = "Stop"
-$mavenLocalRepository = "$env:USERPROFILE\.m2\repository"
+$snapshotDirectory = "c:\snapshot"
+
+if (!$env:APPVEYOR)
+{    
+    $LOCAL_DEBUG_RUN = 1
+}
 
 function CheckLastExitCode
 {
     param ([int[]]$SuccessCodes = @(0))
 
     if ($SuccessCodes -notcontains $LastExitCode)
-	{
+    {
         $msg = @"
 EXE RETURNED EXIT CODE $LastExitCode
 CALLSTACK:$(Get-PSCallStack | Out-String)
@@ -22,18 +27,18 @@ function FetchAndUnzip
            [string]$downloadPath, 
            [bool]$overwrite=$true)
 
-	if ([String]::IsNullOrEmpty($downloadPath))
-	{
-		$downloadPath = [System.IO.Path]::GetTempFileName()
-	}
+    if ([String]::IsNullOrEmpty($downloadPath))
+    {
+        $downloadPath = [System.IO.Path]::GetTempFileName()
+    }
 
     LogAppveyorMessage "Downloading archive from $url to $downloadPath and unzipping to $unzipDir"
-	
+    
     $downloadDir = [System.IO.Path]::GetDirectoryName($downloadPath)
     if (-not(Test-Path $downloadDir))
-	{
-		mkdir $downloadDir | Out-Null
-	}
+    {
+        mkdir $downloadDir | Out-Null
+    }
 
     try
     {
@@ -55,46 +60,42 @@ function FetchAndUnzip
     }
 
     if (-not(Test-Path $unzipDir))
-	{
-		mkdir $unzipDir | Out-Null
-	}
-	[System.Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem') | Out-Null
-	[System.IO.Compression.ZipFile]::ExtractToDirectory($downloadPath, $unzipDir)
+    {
+        mkdir $unzipDir | Out-Null
+    }
+    [System.Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem') | Out-Null
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($downloadPath, $unzipDir)
 }
 
 
-function DownloadAndBuildFromGitHub
+function DownloadAndMavenBuildFromGitHub
 {
-	param ([string]$Project, [string]$Sha1)
+    param ([string]$Project, [string]$Sha1)
 
 
-	$url = "https://github.com/$Project/archive/$Sha1.zip"
-	$tmp = "c:\snapshot"
-
-    echo ("Fetching [" + $Project + ":" + $Sha1 + "] by downloading $url to $tmp")
+    $url = "https://github.com/$Project/archive/$Sha1.zip"    
+    echo ("Fetching [" + $Project + ":" + $Sha1 + "] by downloading $url to $snapshotDirectory")
     
 
-	if (Test-Path $tmp)
-	{
-		Cmd /C "rmdir /S /Q $tmp"
-	}
+    if (Test-Path $snapshotDirectory)
+    {
+        Cmd /C "rmdir /S /Q $snapshotDirectory"
+    }
 
-	FetchAndUnzip $url $tmp "" $true
+    FetchAndUnzip $url $snapshotDirectory "" $true
+    echo ("Build [" + $Project + ":" + $Sha1 + "]")	
+    pushd $snapshotDirectory\*
 
-	echo ("Build [" + $Project + ":" + $Sha1 + "]")	
-
-	pushd $tmp\*
-
-	try
-	{
-		# remove -q to see the build details
-		mvn install "--batch-mode" "-DskipTests" "-q"
-		CheckLastExitCode
-	}
-	finally
-	{
-		popd
-	}
+    try
+    {
+        # remove -q to see the build details
+        mvn clean package "--batch-mode" "-DskipTests" "-q"
+        CheckLastExitCode
+    }
+    finally
+    {
+        popd
+    }
 }
 
 function FindSingleFile
@@ -172,6 +173,8 @@ function RunProcessAndWaitForFinish
 
     $sw.Stop()
     "Completed after " + $sw.ElapsedMilliseconds + "ms"
+
+    CheckLastExitCode
 }
 
 #
@@ -224,5 +227,3 @@ function Assert
         throw $message
     }
 }
-
-

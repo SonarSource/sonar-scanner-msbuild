@@ -1,15 +1,10 @@
-. .\appveyor_helpers.ps1
+. ./appveyor_helpers.ps1
 
 ####################### Local run (Debug) configuration ###################################
 
-
-# Set this to true to be able to run outside of appveyor - just configure the section below
-$LOCAL_DEBUG_RUN = $true
-
-
 # Set these input variable that would normally come from AppVeyor yml
 if ($LOCAL_DEBUG_RUN)
-{    
+{      
     $env:SQ_Version = "5.2"   
     $env:MSBuild_Version = "14.0"
     $env:APPVEYOR_BUILD_FOLDER = "C:\Users\bgavril\source\repos\sonar-msbuild-runner"
@@ -34,7 +29,6 @@ $sqProjectKey = "ProjectUnderTest";
 # Name of the quality profile used for analysis
 $testQualityProfileName = "ProfileForTest";
 
-
 #
 # True for versions 5+
 #
@@ -45,7 +39,9 @@ function IsVersion5OrGreater
 }
 
 #
-# Download and unzip SonarSqube to a well-known directory. If the directory exists, consider it as a cache. 
+# Download and unzip SonarSqube to a well-known directory. 
+#
+# Remark: when performing a local run, do nothing if the directory exists 
 #
 function FetchAndUnzipSonarQube
 {
@@ -60,13 +56,13 @@ function FetchAndUnzipSonarQube
     }
     else
     {
+        if ([System.IO.Directory]::Exists($sqInstallPath))
+        {
+            throw "Not expecting the directory $sqInstallPath to exist"
+        }
+
         LogAppveyorMessage -Message "Downloading SonarQube from $sqUrl"
     
-        if ([System.String]::IsNullOrWhiteSpace($sqUrl))
-        {
-            throw "The SonarQube server download URL was not specified. Make sure the yml file has SQ_URI pointing to this URL"
-        }    
-
         $file = [System.IO.Path]::Combine($sonarQubeDownloadPath, "sonarqube-" + $sqVersion + ".zip")               
         FetchAndUnzip $sqUrl $sonarQubeInstallPath $file $false
     }
@@ -185,7 +181,7 @@ function InvokeUpload {
     
     [System.Reflection.Assembly]::LoadWithPartialName('System.Net.Http') | Out-Null
 
-    $requestUrl = $sonarQubeBaseUrl +  $query;   
+    $requestUrl = $sonarQubeBaseUrl + $query;   
 
     try
     {
@@ -193,20 +189,13 @@ function InvokeUpload {
         $client = (New-Object System.Net.Http.HttpClient)
         $stringContent = New-Object System.Net.Http.StringContent @(,$fileContent)
         
-        $user = "admin"
-        $pass= "admin"
-        $pair = "$($user):$($pass)"
-        $encodedCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($pair))
-        $basicAuthValue = "Basic $encodedCreds"
-
+        $basicAuthValue = GetSonarQubeAdminAuthHeader
         $client.DefaultRequestHeaders.Add("Authorization", $basicAuthValue)
 
 
         $formData = New-Object System.Net.Http.MultipartFormDataContent
         $formData.Add($stringContent, $formFieldName, "UNUSED");
-
-
-        # hit it
+        
         return $client.PostAsync($requestUrl, $formData).Result
         
     }
@@ -236,7 +225,7 @@ function GetSonarQubeAdminAuthHeader
 function UploadTestQualityProfile
 {
     echo "Finding the quality profile on disk"
-    $qualityProfile = FindSingleFile ([System.IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, "IntegrationTestProject")) "TestQualityProfile.xml"
+    $qualityProfile = FindSingleFile ([System.IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, "Tests", "IntegrationTestProject")) "TestQualityProfile.xml"
 
     $response = InvokeUpload "/api/profiles/restore" "backup" $qualityProfile
 }
@@ -312,9 +301,9 @@ function BuildAndAnalyzeProjectUnderTest
 
     echo "Step 5.2: Locating the MSBuild.SonarQube.Runner.exe"
     $bootstrapperPath = FindSingleFile ([System.IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, "DeploymentArtifacts", "BuildAgentPayload", $env:configuration)) "MSBuild.SonarQube.Runner.exe"
-
+    
     echo "Step 5.3: Locating the project under test"
-    $projectUnderTestPath = FindSingleFile ([System.IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, "IntegrationTestProject")) "ProjectUnderTest.sln"
+    $projectUnderTestPath = FindSingleFile ([System.IO.Path]::Combine($env:APPVEYOR_BUILD_FOLDER, "Tests", "IntegrationTestProject")) "ProjectUnderTest.sln"
 
     echo "Step 5.4: Waiting for SQ to have started"
     WaitForSonarQubeToHaveStarted
@@ -334,23 +323,28 @@ function BuildAndAnalyzeProjectUnderTest
 
 }
 
-echo "Step 1: Publishing the CS plugin as a build artifact"
-$csPluginPath = PublishPatchedCsharpPlugin
+function RunContinousIntegrationTest
+{
+    echo "Step 1: Publishing the CS plugin as a build artifact"
+    $csPluginPath = PublishPatchedCsharpPlugin
 
-echo "Step 2: Installing SonarQube"
-$sqInstallPath = FetchAndUnzipSonarQube
+    echo "Step 2: Installing SonarQube"
+    $sqInstallPath = FetchAndUnzipSonarQube
 
-echo "Step 3: Installing the CS plugin"
-InstallCsPlugin $sqInstallPath $csPluginPath
+    echo "Step 3: Installing the CS plugin"
+    InstallCsPlugin $sqInstallPath $csPluginPath
 
-echo "Step 4: Starting the SonarQube server"
-StartSonarQubeServer $sqInstallPath
+    echo "Step 4: Starting the SonarQube server"
+    StartSonarQubeServer $sqInstallPath
 
-echo "Step 5: Building and analyzing the project under test"
-BuildAndAnalyzeProjectUnderTest
+    echo "Step 5: Building and analyzing the project under test"
+    BuildAndAnalyzeProjectUnderTest
 
-echo "Step 6: Verifing analysis results"
-VerifyAnalysisResults
+    echo "Step 6: Verifing analysis results"
+    VerifyAnalysisResults
 
-echo "Validation Complete!"
-#StopSonarQubeServer
+    echo "Validation Complete!"
+    #StopSonarQubeServer
+}
+
+RunContinousIntegrationTest
