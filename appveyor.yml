@@ -1,5 +1,5 @@
 version: 1.0.{build}
-#os:
+os:
 - Visual Studio 2013
 # only run PR-CA on the VS 2015 OS - please change the scripts if this os changes
 - Visual Studio 2015
