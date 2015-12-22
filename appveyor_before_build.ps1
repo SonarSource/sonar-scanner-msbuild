@@ -24,7 +24,7 @@ if ($env:APPVEYOR_PULL_REQUEST_NUMBER)
     # only run PR-CA for one configuration of the Appveyor matrix
     echo ("OS: " + $env:os)
     echo ("prca: " + $env:PRCA)
-    echo $env
+    gci env: | sort name
        
 
 }
