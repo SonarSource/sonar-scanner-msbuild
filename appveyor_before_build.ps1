@@ -1,5 +1,3 @@
-. ./appveyor_helpers.ps1
-
 #
 # Copies the C# plugin so that the SonarQube MSBuild Scanner packaging projects will patch it. The packaging project is invoked by Appveyor as part of the regular build.
 #
@@ -14,17 +12,27 @@ function CopyCsharpPluginForPatching
 }
 
 
-echo ("BLA... " + $bla)
-if (!$bla)
-{
-    echo "hi"
-    Set-AppveyorBuildVariable -Name "bla" -Value "set"
-    echo "bla is $bla"
-}
-
-exit
 Add-AppveyorMessage -Message "Building the latest working C# plugin"
 DownloadAndBuildFromGitHub "SonarSource/sonar-csharp" "master"
 
 CopyCsharpPluginForPatching
+
+$env:APPVEYOR_PULL_REQUEST_NUMBER = 13
+
+# PR Code Analysis mode
+if (!$env:APPVEYOR_PULL_REQUEST_NUMBER)
+{
+    # only run PR-CA for one configuration of the Appveyor matrix
+    echo ("OS: " + $env:os)
+    echo ("OS: " + $env:PRCA)
+       
+
+}
+# CI test mode
+else
+{
+
+}
+
+exit
 
