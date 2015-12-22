@@ -1,22 +1,58 @@
 version: 1.0.{build}
+os:
+- Visual Studio 2013
+# only run PR-CA on the VS 2015 OS - please change the scripts if this os changes
+- Visual Studio 2015
+
+install:
+  - git submodule update --init --recursive
+  - ps: |
+      Add-Type -AssemblyName System.IO.Compression.FileSystem
+      if (!(Test-Path -Path "C:\maven" )) {
+        (new-object System.Net.WebClient).DownloadFile(
+          'http://www.us.apache.org/dist/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.zip',
+          'C:\maven-bin.zip'
+        )
+        [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\maven-bin.zip", "C:\maven")
+      }
+  - cmd: SET PATH=C:\maven\apache-maven-3.2.5\bin;%JAVA_HOME%\bin;%PATH%
+
+cache:
+  - C:\sonarqube\downloads -> appveyor.yml
+  - C:\users\appveyor\.m2 -> appveyor.yml
+
+configuration: Release
 
 environment:
   matrix:
-  - Configuration: Release
-  - Configuration: Debug
+  - SQ_Version: '4.5.6'
+  - SQ_Version: '5.2'  
+    PR-CA: '1'
+    
 
 before_build:
-  - nuget restore
-  - appveyor DownloadFile https://raw.githubusercontent.com/dbolkensteyn/pr-analysis/ondemand/msbuild-sonarqube-runner-begin.cmd && msbuild-sonarqube-runner-begin
-
+  - ps: ./appveyor_before_build.ps1
+  
+build:
+  verbosity: minimal
+  project: SonarQube.MSBuild.Runner.sln
+  
 after_build:
-  - appveyor DownloadFile https://raw.githubusercontent.com/dbolkensteyn/pr-analysis/ondemand/msbuild-sonarqube-runner-end.cmd && msbuild-sonarqube-runner-end
+  - ps: ./appveyor_after_build.ps1
+  
+
+on_finish:
+# Uncomment this to be able to RDP into the build agent
+#- ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
+test: off
 
 notifications:
-- provider: HipChat
-  room: 409390
-  auth_token:
-    secure: RW8+2GpOWo3PcoM3ehoI+mbfUr7h508RtTDyszpR6/E=
-  on_build_success: false
+- provider: Email
+  to:
+  - bgavril@microsoft.com
+  subject: '[Appveyor]'
+  on_build_success: true
   on_build_failure: true
   on_build_status_changed: false
+
