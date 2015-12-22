@@ -89,7 +89,7 @@ function DownloadAndMavenBuildFromGitHub
     try
     {
         # remove -q to see the build details
-        mvn clean package "--batch-mode" "-DskipTests" 
+        mvn clean package "--batch-mode" "-DskipTests" "-q"
         CheckLastExitCode
     }
     finally
