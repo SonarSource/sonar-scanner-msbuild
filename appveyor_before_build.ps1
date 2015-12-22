@@ -13,11 +13,12 @@ function CopyCsharpPluginForPatching
     [System.IO.File]::Copy($csPluginCleanJar, $destinationFile)
 }
 
-echo ("BLA " + $env:BLA)
-if (!$env:BLA)
+$a = Set-AppveyorBuildVariable bla
+echo ("BLA " + $a)
+if (!$a)
 {
     echo "hi"
-    $env:BLA = "set"
+    Set-AppveyorBuildVariable -Name bla -Value set
 }
 
 exit
