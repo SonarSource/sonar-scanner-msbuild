@@ -19,6 +19,7 @@ if (!$bla)
 {
     echo "hi"
     Set-AppveyorBuildVariable -Name "bla" -Value "set"
+    echo "bla is $bla"
 }
 
 exit
