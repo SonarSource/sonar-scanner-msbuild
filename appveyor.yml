@@ -27,7 +27,7 @@ environment:
   matrix:
   - SQ_Version: '4.5.6'
   - SQ_Version: '5.2'  
-    PR-CA: '1'
+    PR_CA: '1'
     
 
 before_build:
@@ -48,11 +48,12 @@ on_finish:
 test: off
 
 notifications:
-- provider: Email
-  to:
-  - bgavril@microsoft.com
-  subject: '[Appveyor]'
-  on_build_success: true
+- provider: HipChat
+  room: 409390
+  auth_token:
+    secure: RW8+2GpOWo3PcoM3ehoI+mbfUr7h508RtTDyszpR6/E=
+  on_build_success: false
   on_build_failure: true
   on_build_status_changed: false
+
 
