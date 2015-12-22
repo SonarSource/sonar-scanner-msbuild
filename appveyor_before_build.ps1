@@ -26,7 +26,8 @@ if ($env:APPVEYOR_PULL_REQUEST_NUMBER)
     echo ("prca: " + $env:PRCA)
     gci env: | sort name
        
-
+     $msbuildPath = FindLatestMsBuildPath
+    echo "Using the latest msbuild found from $msbuildPath"
 }
 # CI test mode
 else
