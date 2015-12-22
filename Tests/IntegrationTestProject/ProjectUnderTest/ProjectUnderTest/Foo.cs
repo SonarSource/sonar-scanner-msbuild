@@ -18,8 +18,8 @@ namespace ProjectUnderTest
 
     * SonarLint violations
     *   S228 (do not use Console)
-    *   S1134 (no 'Fixme' comments)
-    *   S1135 (no 'TODO' comments)  -- not in quality profile
+    *   S1134 (no 'F i x m e' comments)
+    *   S1135 (no 'T O D O' comments)  -- not in quality profile
     *
     * Also triggered: 
     *   common-cs:InsufficientCommentDensity -- not in quality profile
@@ -32,13 +32,13 @@ namespace ProjectUnderTest
         {
             get
             {
-                // violates S2228 (no console)
+                // violates S2228 
                 Console.WriteLine("Hello world");
 
-                // violates S1135 (no 'TODO')
+                // violates S1135
                 //TODO: lorem ipsum 
 
-                // violates S1134 (no 'Fixme')
+                // violates S1134 
                 return String.Empty; //FIXME please
             }
             set
