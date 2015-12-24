@@ -327,13 +327,11 @@ function RunContinousIntegrationTest
 
 
 if (IsPRCABuild)
-{
-    
+{    
     MSBuild.SonarQube.Runner.exe end
 }
 else
 {
-    RunContinousIntegrationTest
-    
+    RunContinousIntegrationTest    
 }
 
