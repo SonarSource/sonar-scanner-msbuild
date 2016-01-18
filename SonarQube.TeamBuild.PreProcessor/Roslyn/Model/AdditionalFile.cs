@@ -25,7 +25,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         /// <summary>
         /// The content of the file
         /// </summary>
-        [XmlAnyElement]
-        public XmlElement Content { get; set; }
+        [XmlText(DataType = "base64Binary")]
+        public byte[] Content { get; set; }
     }
 }

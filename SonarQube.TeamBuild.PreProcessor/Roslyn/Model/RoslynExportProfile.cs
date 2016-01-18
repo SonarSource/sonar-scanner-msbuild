@@ -66,6 +66,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return profile;
         }
 
+        public override string ToString()
+        {
+            return Serializer.ToString(this);
+        }
+
         #endregion
     }
 

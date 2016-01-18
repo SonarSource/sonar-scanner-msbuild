@@ -169,11 +169,42 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         private IEnumerable<string> UnpackAdditionalFiles(RoslynExportProfile profile)
         {
-            // TODO
+            Debug.Assert(profile.Configuration != null, "Supplied configuration should not be null");
 
-            return null;
+            List<string> additionalFiles = new List<string>();
+            foreach(AdditionalFile item in profile.Configuration.AdditionalFiles)
+            {
+                string filePath = ProcessAdditionalFile(item);
+                if (filePath != null)
+                {
+                    Debug.Assert(File.Exists(filePath), "Expecting the additional file to exist: {0}", filePath);
+                    additionalFiles.Add(filePath);
+                }
+            }
+
+            return additionalFiles;
         }
 
+        private string ProcessAdditionalFile(AdditionalFile file)
+        {
+            if (string.IsNullOrWhiteSpace(file.FileName))
+            {
+                this.logger.LogDebug(Resources.SLAP_AdditionalFileNameMustBeSpecified);
+                return null;
+            }
+
+            string fullPath = Path.Combine(this.settings.SonarConfigDirectory, file.FileName);
+            if (File.Exists(fullPath))
+            {
+                this.logger.LogDebug(Resources.SLAP_AdditionalFileAlreadyExists, file.FileName, fullPath);
+                return null;
+            }
+
+            this.logger.LogDebug(Resources.SLAP_WritingAdditionalFile, fullPath);
+            File.WriteAllBytes(fullPath, file.Content ?? new byte[] { });
+            return fullPath;
+        }
+        
         private IEnumerable<string> FetchAnalyzerAssemblies(RoslynExportProfile profile)
         {
             // TODO
@@ -186,7 +217,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             }
             return null;
         }
-
 
         #endregion
     }

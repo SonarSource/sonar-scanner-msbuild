@@ -299,6 +299,24 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A Roslyn analyzer &quot;additional file&quot; named &quot;{0}&quot; already exists at {1}. The existing file will not be overwritten..
+        /// </summary>
+        public static string SLAP_AdditionalFileAlreadyExists {
+            get {
+                return ResourceManager.GetString("SLAP_AdditionalFileAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Roslyn profile exporter returned an AdditionalFile that does not specify a file name. The AdditionalFile will be ignored..
+        /// </summary>
+        public static string SLAP_AdditionalFileNameMustBeSpecified {
+            get {
+                return ResourceManager.GetString("SLAP_AdditionalFileNameMustBeSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The SonarLint analyzer was not found on the server (requires C# plugin version 4.4 or higher).
         /// </summary>
         public static string SLAP_AnalyzerNotFound {
@@ -398,11 +416,20 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unpacking generated ruleset to {0}.
+        ///   Looks up a localized string similar to Writing Roslyn generated ruleset to {0} ....
         /// </summary>
         public static string SLAP_UnpackingRuleset {
             get {
                 return ResourceManager.GetString("SLAP_UnpackingRuleset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Writing Roslyn analyzer additional file to {0} ....
+        /// </summary>
+        public static string SLAP_WritingAdditionalFile {
+            get {
+                return ResourceManager.GetString("SLAP_WritingAdditionalFile", resourceCulture);
             }
         }
         

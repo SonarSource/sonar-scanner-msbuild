@@ -6,7 +6,9 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -17,12 +19,12 @@ namespace SonarQube.Common
     /// </summary>
     public static class Serializer
     {
-        #region Serialisation methods
+        #region Public methods
 
         /// <summary>
         /// Save the object as XML
         /// </summary>
-        public static void SaveModel<T>(T model, string fileName)
+        public static void SaveModel<T>(T model, string fileName) where T : class
         {
             if (model == null)
             {
@@ -33,24 +35,31 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("fileName");
             }
 
-            XmlSerializer serializer = new XmlSerializer(typeof(T));
-
-            XmlWriterSettings settings = new XmlWriterSettings();
-
-            settings.CloseOutput = true;
-            settings.ConformanceLevel = ConformanceLevel.Document;
-            settings.Indent = true;
-            settings.NamespaceHandling = NamespaceHandling.OmitDuplicates;
-            settings.OmitXmlDeclaration = false;
-
             // Serialize to memory first to reduce the opportunity for intermittent
             // locking issues when writing the file
             using (MemoryStream stream = new MemoryStream())
-            using (XmlWriter writer = XmlWriter.Create(stream, settings))
+            using (StreamWriter writer = new StreamWriter(stream))
             {
-                serializer.Serialize(writer, model);
+                Write(model, writer);
                 File.WriteAllBytes(fileName, stream.ToArray());
             }
+        }
+
+        /// <summary>
+        /// Return the object as an XML string
+        /// </summary>
+        public static string ToString<T>(T model) where T : class
+        {
+            if (model == null)
+            {
+                throw new ArgumentNullException("model");
+            }
+            StringBuilder sb = new StringBuilder();
+            using (StringWriter writer = new StringWriter(sb))
+            {
+                Write(model, writer);
+            }
+            return sb.ToString();
         }
 
         /// <summary>
@@ -81,5 +90,30 @@ namespace SonarQube.Common
 
         #endregion
 
+        #region Private methods
+
+        private static void Write<T>(T model, TextWriter writer) where T : class
+        {
+            Debug.Assert(model != null);
+            Debug.Assert(writer != null);
+
+            XmlSerializer serializer = new XmlSerializer(typeof(T));
+
+            XmlWriterSettings settings = new XmlWriterSettings();
+
+            settings.CloseOutput = true;
+            settings.ConformanceLevel = ConformanceLevel.Document;
+            settings.Indent = true;
+            settings.NamespaceHandling = NamespaceHandling.OmitDuplicates;
+            settings.OmitXmlDeclaration = false;
+
+            using (XmlWriter xmlWriter = XmlWriter.Create(writer, settings))
+            {
+                serializer.Serialize(xmlWriter, model);
+                xmlWriter.Flush();
+            }
+        }
+
+        #endregion
     }
 }

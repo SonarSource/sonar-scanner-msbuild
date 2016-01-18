@@ -32,25 +32,45 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     </RuleSet>
 
     <AdditionalFiles>
-      <AdditionalFile FileName=""SonarLint.xml"" >
-         <AnalysisInput />
-      </AdditionalFile>
-      <AdditionalFile FileName=""MyAnalyzer.xml"" >
-         <Foo />
-      </AdditionalFile>
+      <AdditionalFile FileName=""SonarLint.xml"" >PHRlc3Q+PHN1Yi8+PC90ZXN0</AdditionalFile>
+      <AdditionalFile FileName=""MyAnalyzer.xml"" >PEZvby8+</AdditionalFile>
     </AdditionalFiles>
   </Configuration>
 
   <Deployment>
     <NuGetPackages>
       <NuGetPackage Id=""SonarLint"" Version=""1.3.0""/>
-      <NuGetPackage Id=""My.Analyzers"" Version=""1.0.5.0""/>
+      <NuGetPackage Id=""My.Analyzers"" Version=""1.0.5.0-rc1""/>
     </NuGetPackages>
   </Deployment>
 </RoslynExportProfile>";
 
+            RoslynExportProfile profile = LoadAndCheckXml(validXml);
+
+            AssertExpectedAdditionalFileExists("SonarLint.xml", profile);
+            AssertExpectedAdditionalFileExists("MyAnalyzer.xml", profile);
+
+            AssertExpectedPackageExists("SonarLint", "1.3.0", profile);
+            AssertExpectedPackageExists("My.Analyzers", "1.0.5.0-rc1", profile);
+        }
+
+        [TestMethod]
+        public void RoslynProfile_LoadRealExample_Succeeds()
+        {
+            RoslynExportProfile profile = LoadAndCheckXml(SampleExportXml.RoslynExportedValidSonarLintXml);
+
+            AssertExpectedAdditionalFileExists(SampleExportXml.RoslynExportedAdditionalFileName, profile);
+            AssertExpectedPackageExists(SampleExportXml.RoslynExportedPackageId, SampleExportXml.RoslynExportedPackageVersion, profile);
+        }
+
+        #endregion
+
+        #region Checks
+
+        private static RoslynExportProfile LoadAndCheckXml(string xml)
+        {
             RoslynExportProfile profile = null;
-            using (StringReader reader = new StringReader(validXml))
+            using (StringReader reader = new StringReader(xml))
             {
                 profile = RoslynExportProfile.Load(reader);
             }
@@ -59,17 +79,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsNotNull(profile.Configuration);
             Assert.IsNotNull(profile.Configuration.RuleSet);
 
-            AssertExpectedAdditionalFileExists("SonarLint.xml", profile);
-            AssertExpectedAdditionalFileExists("MyAnalyzer.xml", profile);
-
-            AssertExpectedPackageExists("SonarLint", "1.3.0", profile);
-            AssertExpectedPackageExists("My.Analyzers", "1.0.5.0", profile);
-
+            return profile;
         }
-
-        #endregion
-
-        #region Private methods
 
         private static void AssertExpectedAdditionalFileExists(string fileName, RoslynExportProfile profile)
         {
