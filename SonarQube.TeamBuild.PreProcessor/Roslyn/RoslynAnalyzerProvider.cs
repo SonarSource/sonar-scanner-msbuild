@@ -12,16 +12,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Xml;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
     public class RoslynAnalyzerProvider
     {
         public const string RoslynCSharpFormatName = "roslyn-config-cs";
+        public const string RoslynCSharpRulesetFileName = "SonarQubeRoslyn-cs.ruleset";
 
         public const string CSharpLanguage = "cs";
         public const string CSharpPluginKey = "csharp";
+        public const string CSharpRepositoryKey = "csharp";
 
         private readonly ISonarQubeServer server;
         private readonly TeamBuildSettings settings;
@@ -126,6 +128,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             Debug.Assert(profile != null, "Expecting a valid profile");
 
             string rulesetFilePath = this.UnpackRuleset(profile);
+            if (rulesetFilePath == null)
+            {
+                return null;
+            }
 
             IEnumerable<string> additionalFiles = this.UnpackAdditionalFiles(profile);
 
@@ -137,13 +143,32 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         private string UnpackRuleset(RoslynExportProfile profile)
         {
-            // TODO
-            return null;
+            string rulesetFilePath = null;
+            if (profile.Configuration.RuleSet == null)
+            {
+                this.logger.LogDebug(Resources.SLAP_ProfileDoesNotContainRuleset);
+            }
+            else
+            {
+                rulesetFilePath = GetRulesetFilePath(this.settings);
+                this.logger.LogDebug(Resources.SLAP_UnpackingRuleset, rulesetFilePath);
+
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(profile.Configuration.RuleSet.OuterXml);
+                doc.Save(rulesetFilePath);
+            }
+            return rulesetFilePath;
+        }
+
+        private static string GetRulesetFilePath(TeamBuildSettings settings)
+        {
+            return Path.Combine(settings.SonarConfigDirectory, RoslynCSharpRulesetFileName);
         }
 
         private IEnumerable<string> UnpackAdditionalFiles(RoslynExportProfile profile)
         {
             // TODO
+
             return null;
         }
 
@@ -159,7 +184,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             }
             return null;
         }
-
 
 
         #endregion

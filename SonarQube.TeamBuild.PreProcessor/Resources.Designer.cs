@@ -353,6 +353,15 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The exported profile does not contain a ruleset.
+        /// </summary>
+        public static string SLAP_ProfileDoesNotContainRuleset {
+            get {
+                return ResourceManager.GetString("SLAP_ProfileDoesNotContainRuleset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Found SonarLint profile export &apos;{0}&apos; for project &apos;{1}&apos;.
         /// </summary>
         public static string SLAP_ProfileExportFound {
@@ -385,6 +394,15 @@ namespace SonarQube.TeamBuild.PreProcessor {
         public static string SLAP_SonarLintRulesetCreated {
             get {
                 return ResourceManager.GetString("SLAP_SonarLintRulesetCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unpacking generated ruleset to {0}.
+        /// </summary>
+        public static string SLAP_UnpackingRuleset {
+            get {
+                return ResourceManager.GetString("SLAP_UnpackingRuleset", resourceCulture);
             }
         }
         
