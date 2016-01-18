@@ -5,7 +5,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
@@ -21,9 +23,22 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         public CompilerAnalyzerConfig(string ruleSetFilePath, IEnumerable<string> analyzerAssemblies, IEnumerable<string> additionalFiles)
         {
+            if (string.IsNullOrWhiteSpace(ruleSetFilePath))
+            {
+                throw new ArgumentNullException("ruleSetFilePath");
+            }
+            if (analyzerAssemblies == null)
+            {
+                throw new ArgumentNullException("analyzerAssemblies");
+            }
+            if (additionalFiles == null)
+            {
+                throw new ArgumentNullException("additionalFiles");
+            }
+
             this.ruleSetFilePath = ruleSetFilePath;
-            this.assemblyPaths = analyzerAssemblies;
-            this.additionalFilePaths = additionalFiles;
+            this.assemblyPaths = analyzerAssemblies.ToArray();
+            this.additionalFilePaths = additionalFiles.ToArray();
         }
 
         /// <summary>

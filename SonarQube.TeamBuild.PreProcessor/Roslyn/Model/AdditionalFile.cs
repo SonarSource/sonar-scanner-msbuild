@@ -12,13 +12,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
     /// <summary>
     /// XML-serializable data class for a single analyzer AdditionalFile
+    /// i.e. the mechanism used by Roslyn to pass additional data to analyzers.
     /// </summary>
     public class AdditionalFile
     {
-        [XmlAttribute]
         /// <summary>
         /// The name of the file the content should be saved to
         /// </summary>
+        [XmlAttribute]
         public string FileName { get; set; }
 
         /// <summary>

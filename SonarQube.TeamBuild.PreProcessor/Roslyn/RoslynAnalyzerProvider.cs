@@ -135,9 +135,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
             IEnumerable<string> additionalFiles = this.UnpackAdditionalFiles(profile);
 
-            IEnumerable<string> analyzersAssemblies = FetchAnalyzerAssemblies(profile);
+            IEnumerable<string> analyzersAssemblies = this.FetchAnalyzerAssemblies(profile);
 
-            CompilerAnalyzerConfig compilerConfig = new CompilerAnalyzerConfig(rulesetFilePath, analyzersAssemblies, additionalFiles);
+            CompilerAnalyzerConfig compilerConfig = new CompilerAnalyzerConfig(rulesetFilePath,
+                analyzersAssemblies ?? Enumerable.Empty<string>(),
+                additionalFiles ?? Enumerable.Empty<string>());
             return compilerConfig;
         }
 
