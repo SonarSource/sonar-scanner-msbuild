@@ -362,6 +362,15 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No analyzer NuGet packages were specified.
+        /// </summary>
+        public static string SLAP_NoAnalyzerPackagesSpecified {
+            get {
+                return ResourceManager.GetString("SLAP_NoAnalyzerPackagesSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not obtain a C# profile for project &apos;{0}&apos;.
         /// </summary>
         public static string SLAP_NoProfileForProject {
@@ -394,6 +403,15 @@ namespace SonarQube.TeamBuild.PreProcessor {
         public static string SLAP_ProfileExportNotFound {
             get {
                 return ResourceManager.GetString("SLAP_ProfileExportNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Provisioning analyzer assemblies....
+        /// </summary>
+        public static string SLAP_ProvisioningAnalyzerAssemblies {
+            get {
+                return ResourceManager.GetString("SLAP_ProvisioningAnalyzerAssemblies", resourceCulture);
             }
         }
         

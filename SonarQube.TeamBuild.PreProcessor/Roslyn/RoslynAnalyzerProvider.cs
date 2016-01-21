@@ -25,6 +25,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         public const string CSharpPluginKey = "csharp";
         public const string CSharpRepositoryKey = "csharp";
 
+        private readonly IAnalyzerInstaller analyzerInstaller;
         private readonly ILogger logger;
         private ISonarQubeServer server;
         private TeamBuildSettings settings;
@@ -32,12 +33,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         
         #region Public methods
 
-        public RoslynAnalyzerProvider(ILogger logger)
+        public RoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller, ILogger logger)
         {
+            if (analyzerInstaller == null)
+            {
+                throw new ArgumentNullException("analyzerInstaller");
+            }
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
             }
+            this.analyzerInstaller = analyzerInstaller;
             this.logger = logger;
         }
 
@@ -196,15 +202,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         
         private IEnumerable<string> FetchAnalyzerAssemblies(RoslynExportProfile profile)
         {
-            // TODO
-            if (profile.Deployment != null && profile.Deployment.NuGetPackages != null)
+            IEnumerable<string> analyzerAssemblyPaths = null;
+            if (profile.Deployment == null || profile.Deployment.NuGetPackages == null || profile.Deployment.NuGetPackages.Count == 0)
             {
-                foreach (NuGetPackageInfo p in profile.Deployment.NuGetPackages)
-                {
-                    // TODO: Fetch NuGet package
-                }
+                this.logger.LogInfo(Resources.SLAP_NoAnalyzerPackagesSpecified);
             }
-            return null;
+            else
+            {
+                this.logger.LogInfo(Resources.SLAP_ProvisioningAnalyzerAssemblies);
+                analyzerAssemblyPaths = this.analyzerInstaller.InstallAssemblies(profile.Deployment.NuGetPackages);
+            }
+            return analyzerAssemblyPaths;
         }
 
         #endregion

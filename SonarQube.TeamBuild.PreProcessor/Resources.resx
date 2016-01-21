@@ -220,6 +220,9 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   <data name="SLAP_InvalidRulesetReturned" xml:space="preserve">
     <value>The SonarQube server returned an invalid ruleset for SonarLint. SonarLint analysis will not be run as part of the build.</value>
   </data>
+  <data name="SLAP_NoAnalyzerPackagesSpecified" xml:space="preserve">
+    <value>No analyzer NuGet packages were specified</value>
+  </data>
   <data name="SLAP_NoProfileForProject" xml:space="preserve">
     <value>Could not obtain a C# profile for project '{0}'</value>
   </data>
@@ -231,6 +234,9 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   </data>
   <data name="SLAP_ProfileExportNotFound" xml:space="preserve">
     <value>Could not find SonarLint profile export '{0}' for project '{1}'</value>
+  </data>
+  <data name="SLAP_ProvisioningAnalyzerAssemblies" xml:space="preserve">
+    <value>Provisioning analyzer assemblies...</value>
   </data>
   <data name="SLAP_SonarLintParametersCreated" xml:space="preserve">
     <value>SonarLint parameters downloaded: {0}</value>

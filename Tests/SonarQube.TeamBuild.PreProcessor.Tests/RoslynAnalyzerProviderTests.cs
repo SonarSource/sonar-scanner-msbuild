@@ -6,8 +6,10 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.PreProcessor.Roslyn;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -35,7 +37,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             MockSonarQubeServer mockServer = CreateValidServer("valid.project", "valid.profile");
             mockServer.Data.InstalledPlugins.Remove(RoslynAnalyzerProvider.CSharpPluginKey);
 
-            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+            RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
             
             // Act
             CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
@@ -56,7 +58,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             MockSonarQubeServer mockServer = CreateValidServer("valid.project", "valid.profile");
 
-            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+            RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
             CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "unknown.project");
@@ -88,12 +90,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
   </Configuration>
   <Deployment>
     <NuGetPackages>
-      <Package Id=""SonarLint"" Version=""1.3.0""/>
+      <NuGetPackage Id=""SonarLint"" Version=""1.3.0""/>
     </NuGetPackages>
   </Deployment>
 </RoslynExportProfile>");
 
-            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+            RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
             CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
@@ -116,7 +118,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             WellKnownProfile testProfile = CreateValidCSharpProfile();
             MockSonarQubeServer mockServer = CreateServer("valid.project", "valid.profile", testProfile);
 
-            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+            MockAnalyzerInstaller mockInstaller = new MockAnalyzerInstaller();
+            mockInstaller.AssemblyPathsToReturn = new HashSet<string>(new string[] { "c:\\assembly1.dll", "d:\\foo\\assembly2.dll" });
+
+            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
             // Act
             CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
@@ -128,6 +133,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             CheckRuleset(actualConfig, rootDir);
             CheckExpectedAdditionalFiles(testProfile, actualConfig);
+
+            mockInstaller.AssertExpectedPackagesRequested(testProfile.Packages);
+            CheckExpectedAssemblies(actualConfig, "c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
         }
 
         [TestMethod]
@@ -141,7 +149,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             WellKnownProfile testProfile = CreateRealSonarLintProfile();
             MockSonarQubeServer mockServer = CreateServer("valid.project", "valid.profile", testProfile);
 
-            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+            RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
             CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
@@ -184,7 +192,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
   <Deployment />
 </RoslynExportProfile>");
 
-            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+            RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
             CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
@@ -224,7 +232,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
   <Deployment />
 </RoslynExportProfile>");
 
-            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+            RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
             CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
@@ -234,6 +242,42 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             CheckRuleset(actualConfig, rootDir);
             CheckExpectedAdditionalFileExists("foo.txt", expectedFileContent, actualConfig);
             CheckExpectedAdditionalFileExists("file2.txt", string.Empty, actualConfig);
+
+            logger.AssertErrorsLogged(0);
+            logger.AssertWarningsLogged(0);
+        }
+
+
+        [TestMethod]
+        public void RoslynConfig_NoAnalyzerAssemblies_Succeeds()
+        {
+            // Arrange
+            string rootDir = CreateTestFolders();
+            TestLogger logger = new TestLogger();
+            TeamBuildSettings settings = CreateSettings(rootDir);
+
+            MockSonarQubeServer mockServer = CreateValidServer("valid.project", "valid.profile");
+            QualityProfile csProfile = mockServer.Data.FindProfile("valid.profile", RoslynAnalyzerProvider.CSharpLanguage);
+            csProfile.SetExport(RoslynAnalyzerProvider.RoslynCSharpFormatName, @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RoslynExportProfile Version=""1.0="">
+  <Configuration>
+    <RuleSet />
+    <AdditionalFiles />
+  </Configuration>
+  <Deployment>
+    <NuGetPackages /> <!-- empty -->
+  </Deployment>
+</RoslynExportProfile>");
+
+            RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
+
+            // Act
+            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+
+            // Assert
+            CheckConfigInvariants(actualConfig);
+
+            CheckExpectedAssemblies(actualConfig /* none */ );
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
@@ -252,6 +296,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Directory.CreateDirectory(GetConfPath(rootFolder));
 
             return rootFolder;
+        }
+
+        private static RoslynAnalyzerProvider CreateTestSubject(ILogger logger)
+        {
+            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(new MockAnalyzerInstaller(), logger);
+            return testSubject;
         }
 
         /// <summary>
@@ -334,8 +384,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
   <Deployment>
     <NuGetPackages>
-      <Package Id=""SonarLint"" Version=""1.3.0"" />
-      <Package Id=""Wintellect.Analyzers"" Version=""1.0.5.0-rc1"" />
+      <NuGetPackage Id=""SonarLint"" Version=""1.3.0"" />
+      <NuGetPackage Id=""Wintellect.Analyzers"" Version=""1.0.5.0-rc1"" />
     </NuGetPackages>
   </Deployment>
 </RoslynExportProfile>";
@@ -466,6 +516,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsNotNull(doc.FirstChild, "Expecting the file to contain some valid XML");
         }
 
+        private static void CheckExpectedAssemblies(CompilerAnalyzerConfig actualConfig, params string[] expected)
+        {
+            foreach(string expectedItem in expected)
+            {
+                Assert.IsTrue(actualConfig.AnalyzerAssemblyPaths.Contains(expectedItem, StringComparer.OrdinalIgnoreCase),
+                    "Expected assembly file path was not returned: {0}", expectedItem);
+            }
+            Assert.AreEqual(expected.Length, actualConfig.AnalyzerAssemblyPaths.Count(), "Too many assembly file paths returned");
+        }
+
         #endregion
 
         /// <summary>
@@ -477,6 +537,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             private readonly string exportXml;
             private readonly Dictionary<string, string> fileContentMap;
             private readonly Dictionary<string, string> packageIdVersionMap;
+            private readonly ISet<string> assemblyPaths;
 
             public WellKnownProfile(string format, string exportXml)
             {
@@ -484,12 +545,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 this.exportXml = exportXml;
                 this.fileContentMap = new Dictionary<string, string>();
                 this.packageIdVersionMap = new Dictionary<string, string>();
+                this.assemblyPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             }
 
             public string Format { get { return this.format; } }
             public string Content { get { return this.exportXml; } }
             public IDictionary<string, string> AdditionalFiles { get { return this.fileContentMap; } }
             public IDictionary<string, string> Packages { get { return this.packageIdVersionMap; } }
+            public ISet<string> AssemblyFilePaths { get { return this.assemblyPaths; } }
 
             public void SetAdditionalFile(string fileName, string textContent)
             {
@@ -499,6 +562,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             public void SetPackage(string id, string version)
             {
                 this.packageIdVersionMap[id] = version;
+            }
+
+            public void AddAssembly(string filePath)
+            {
+                this.assemblyPaths.Add(filePath);
             }
         }
     }

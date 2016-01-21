@@ -54,11 +54,13 @@
     </Compile>
     <Compile Include="AnalysisConfigGenerator.cs" />
     <Compile Include="ArgumentProcessor.cs" />
+    <Compile Include="Interfaces\IAnalyzerInstaller.cs" />
     <Compile Include="Interfaces\IAnalyzerProvider.cs" />
     <Compile Include="Interfaces\IDownloader.cs" />
     <Compile Include="Interfaces\ISonarQubeServerFactory.cs" />
     <Compile Include="Interfaces\ITargetsInstaller.cs" />
     <Compile Include="Interfaces\ISonarQubeServer.cs" />
+    <Compile Include="Roslyn\AnalyzerInstaller.cs" />
     <Compile Include="Roslyn\Model\AdditionalFile.cs" />
     <Compile Include="Roslyn\CompilerAnalyzerConfig.cs" />
     <Compile Include="Roslyn\Model\Configuration.cs" />
