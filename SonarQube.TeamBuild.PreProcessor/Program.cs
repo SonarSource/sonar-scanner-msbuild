@@ -23,8 +23,8 @@ namespace SonarQube.TeamBuild.PreProcessor
             Utilities.LogAssemblyVersion(logger, typeof(Program).Assembly, Resources.AssemblyDescription);
             logger.IncludeTimestamp = true;
 
-            TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor();
-            bool success = preProcessor.Execute(args, logger);
+            TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(logger);
+            bool success = preProcessor.Execute(args);
            
             return success ? SuccessCode : ErrorCode;
         }

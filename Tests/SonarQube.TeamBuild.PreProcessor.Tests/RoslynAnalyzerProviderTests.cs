@@ -35,8 +35,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             MockSonarQubeServer mockServer = CreateValidServer("valid.project", "valid.profile");
             mockServer.Data.InstalledPlugins.Remove(RoslynAnalyzerProvider.CSharpPluginKey);
 
+            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+            
             // Act
-            CompilerAnalyzerConfig actualConfig = RoslynAnalyzerProvider.SetupAnalyzers(mockServer, settings, "valid.project", logger);
+            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
 
             // Assert
             AssertAnalyzerConfigNotPerformed(actualConfig, rootDir);
@@ -54,8 +56,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             MockSonarQubeServer mockServer = CreateValidServer("valid.project", "valid.profile");
 
+            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+
             // Act
-            CompilerAnalyzerConfig actualConfig = RoslynAnalyzerProvider.SetupAnalyzers(mockServer, settings, "unknown.project", logger);
+            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "unknown.project");
 
             // Assert
             AssertAnalyzerConfigNotPerformed(actualConfig, rootDir);
@@ -89,8 +93,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
   </Deployment>
 </RoslynExportProfile>");
 
+            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+
             // Act
-            CompilerAnalyzerConfig actualConfig = RoslynAnalyzerProvider.SetupAnalyzers(mockServer, settings, "valid.project", logger);
+            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
 
             // Assert
             AssertAnalyzerConfigNotPerformed(actualConfig, rootDir);
@@ -110,8 +116,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             WellKnownProfile testProfile = CreateValidCSharpProfile();
             MockSonarQubeServer mockServer = CreateServer("valid.project", "valid.profile", testProfile);
 
+            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+
             // Act
-            CompilerAnalyzerConfig actualConfig = RoslynAnalyzerProvider.SetupAnalyzers(mockServer, settings, "valid.project", logger);
+            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
 
             // Assert
             CheckConfigInvariants(actualConfig);
@@ -133,8 +141,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             WellKnownProfile testProfile = CreateRealSonarLintProfile();
             MockSonarQubeServer mockServer = CreateServer("valid.project", "valid.profile", testProfile);
 
+            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+
             // Act
-            CompilerAnalyzerConfig actualConfig = RoslynAnalyzerProvider.SetupAnalyzers(mockServer, settings, "valid.project", logger);
+            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
 
             // Assert
             CheckConfigInvariants(actualConfig);
@@ -174,8 +184,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
   <Deployment />
 </RoslynExportProfile>");
 
+            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+
             // Act
-            CompilerAnalyzerConfig actualConfig = RoslynAnalyzerProvider.SetupAnalyzers(mockServer, settings, "valid.project", logger);
+            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
 
             // Assert
             CheckConfigInvariants(actualConfig);
@@ -212,8 +224,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
   <Deployment />
 </RoslynExportProfile>");
 
+            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(logger);
+
             // Act
-            CompilerAnalyzerConfig actualConfig = RoslynAnalyzerProvider.SetupAnalyzers(mockServer, settings, "valid.project", logger);
+            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
 
             // Assert
             CheckConfigInvariants(actualConfig);

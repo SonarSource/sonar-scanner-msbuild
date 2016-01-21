@@ -21,14 +21,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         [TestMethod]
         public void PreProc_ErrorCodeReturnedForInvalidCommandLine()
         {
-            CheckExecutionFails("invalid command line");
+            string errorOutput = CheckExecutionFails("invalid_command_line aaa 123");
+
+            Assert.IsTrue(errorOutput.Contains("invalid_command_line"), "Error output did not contain the expected data. Check that the exe failed for the expected reason");
         }
 
         #endregion
 
         #region Checks
 
-        private static void CheckExecutionFails(params string[] args)
+        private static string CheckExecutionFails(params string[] args)
         {
             Process p = Execute(args);
 
@@ -37,6 +39,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Console.WriteLine("Error output: {0}", errorOutput);
 
             Assert.IsFalse(string.IsNullOrWhiteSpace(errorOutput), "Expecting error output if the process fails");
+            return errorOutput;
         }
 
         private static Process Execute(string[] args)
@@ -52,7 +55,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             };
 
             Process p = Process.Start(psi);
-            p.WaitForExit(1000);
+            p.WaitForExit(5000); // if the process times out then it's possible that an unhandled exception is being thrown
             Assert.IsTrue(p.HasExited, "Timed out waiting for the process to exit");
             return p;
         }

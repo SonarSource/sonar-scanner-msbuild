@@ -58,6 +58,7 @@
     </Compile>
     <Compile Include="AnalysisConfigGeneratorTests.cs" />
     <Compile Include="ArgumentProcessorTests.cs" />
+    <Compile Include="Infrastructure\MockRoslynAnalyzerProvider.cs" />
     <Compile Include="Infrastructure\MockSonarQubeServer.cs" />
     <Compile Include="Infrastructure\MockSonarQubeServerFactory.cs" />
     <Compile Include="Infrastructure\MockTargetsInstaller.cs" />

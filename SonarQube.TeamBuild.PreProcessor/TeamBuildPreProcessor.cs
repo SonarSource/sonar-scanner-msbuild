@@ -7,8 +7,10 @@
 
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.PreProcessor.Roslyn;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 
@@ -19,21 +21,27 @@ namespace SonarQube.TeamBuild.PreProcessor
         public const string FxCopCSharpRuleset = "SonarQubeFxCop-cs.ruleset";
         public const string FxCopVBNetRuleset = "SonarQubeFxCop-vbnet.ruleset";
 
+        private readonly ILogger logger;
         private readonly ISonarQubeServerFactory serverFactory;
         private readonly ITargetsInstaller targetInstaller;
+        private readonly IAnalyzerProvider analyzerProvider;
 
         #region Constructor(s)
 
-        public TeamBuildPreProcessor()
-            : this(new SonarQubeServerFactory(), new TargetsInstaller())
+        public TeamBuildPreProcessor(ILogger logger)
+            : this(logger, new SonarQubeServerFactory(), new TargetsInstaller(), new RoslynAnalyzerProvider(logger))
         {
         }
 
         /// <summary>
         /// Internal constructor for testing
         /// </summary>
-        public TeamBuildPreProcessor(ISonarQubeServerFactory serverFactory, ITargetsInstaller targetInstaller)
+        public TeamBuildPreProcessor(ILogger logger, ISonarQubeServerFactory serverFactory, ITargetsInstaller targetInstaller, IAnalyzerProvider analyzerInstaller)
         {
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
             if (serverFactory == null)
             {
                 throw new ArgumentNullException("serverFactory");
@@ -42,67 +50,61 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException("targetInstaller");
             }
+            if (analyzerInstaller == null)
+            {
+                throw new ArgumentNullException("analyzerProvider");
+            }
 
+            this.logger = logger;
             this.serverFactory = serverFactory;
             this.targetInstaller = targetInstaller;
+            this.analyzerProvider = analyzerInstaller;
         }
 
         #endregion Constructor(s)
 
         #region Public methods
 
-        public bool Execute(string[] args, ILogger logger)
+        public bool Execute(string[] args)
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
-
             bool success;
 
-            ProcessedArgs processedArgs = ArgumentProcessor.TryProcessArgs(args, logger);
+            ProcessedArgs processedArgs = ArgumentProcessor.TryProcessArgs(args, this.logger);
 
             if (processedArgs == null)
             {
                 success = false;
-                logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
+                this.logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
             }
             else
             {
-                success = DoExecute(processedArgs, logger);
+                success = DoExecute(processedArgs);
             }
 
             return success;
         }
 
-        private bool DoExecute(ProcessedArgs args, ILogger logger)
+        private bool DoExecute(ProcessedArgs args)
         {
-            if (args == null)
-            {
-                throw new ArgumentNullException("args");
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
+            Debug.Assert(args != null, "Not expecting the process arguments to be null");
 
-            logger.Verbosity = VerbosityCalculator.ComputeVerbosity(args.AggregateProperties, logger);
+            this.logger.Verbosity = VerbosityCalculator.ComputeVerbosity(args.AggregateProperties, this.logger);
 
-            InstallLoaderTargets(args, logger);
+            InstallLoaderTargets(args);
 
-            TeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+            TeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(this.logger);
 
             // We're checking the args and environment variables so we can report all
             // config errors to the user at once
             if (teamBuildSettings == null)
             {
-                logger.LogError(Resources.ERROR_CannotPerformProcessing);
+                this.logger.LogError(Resources.ERROR_CannotPerformProcessing);
                 return false;
             }
 
             // Create the directories
-            logger.LogDebug(Resources.MSG_CreatingFolders);
-            if (!Utilities.TryEnsureEmptyDirectories(logger,
+            this.logger.LogDebug(Resources.MSG_CreatingFolders);
+            if (!Utilities.TryEnsureEmptyDirectories(this.logger,
                 teamBuildSettings.SonarConfigDirectory,
                 teamBuildSettings.SonarOutputDirectory))
             {
@@ -110,12 +112,12 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             IDictionary<string, string> serverSettings;
-            if (!FetchArgumentsAndRulesets(args, teamBuildSettings, logger, out serverSettings))
+            if (!FetchArgumentsAndRulesets(args, teamBuildSettings, out serverSettings))
             {
                 return false;
             }
 
-            AnalysisConfigGenerator.GenerateFile(args, teamBuildSettings, serverSettings, logger);
+            AnalysisConfigGenerator.GenerateFile(args, teamBuildSettings, serverSettings, this.logger);
 
             return true;
         }
@@ -124,40 +126,44 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #region Private methods
 
-        private void InstallLoaderTargets(ProcessedArgs args, ILogger logger)
+        private void InstallLoaderTargets(ProcessedArgs args)
         {
             if (args.InstallLoaderTargets)
             {
-                this.targetInstaller.InstallLoaderTargets(logger);
+                this.targetInstaller.InstallLoaderTargets(this.logger);
             }
             else
             {
-                logger.LogDebug(Resources.MSG_NotCopyingTargets);
+                this.logger.LogDebug(Resources.MSG_NotCopyingTargets);
             }
         }
 
-        private bool FetchArgumentsAndRulesets(ProcessedArgs args, TeamBuildSettings settings, ILogger logger, out IDictionary<string, string> serverSettings)
+        private bool FetchArgumentsAndRulesets(ProcessedArgs args, TeamBuildSettings settings, out IDictionary<string, string> serverSettings)
         {
             string hostUrl = args.GetSetting(SonarProperties.HostUrl);
             serverSettings = null;
 
-            ISonarQubeServer server = this.serverFactory.Create(args, logger);
+            ISonarQubeServer server = this.serverFactory.Create(args, this.logger);
             try
             {
                 // Fetch the SonarQube project properties
-                logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
+                this.logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
                 serverSettings = server.GetProperties(args.ProjectKey);
 
                 // Generate the FxCop rulesets
-                logger.LogInfo(Resources.MSG_GeneratingRulesets);
-                GenerateFxCopRuleset(server, args.ProjectKey, "csharp", "cs", "fxcop", Path.Combine(settings.SonarConfigDirectory, FxCopCSharpRuleset), logger);
-                GenerateFxCopRuleset(server, args.ProjectKey, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(settings.SonarConfigDirectory, FxCopVBNetRuleset), logger);
+                this.logger.LogInfo(Resources.MSG_GeneratingRulesets);
+                GenerateFxCopRuleset(server, args.ProjectKey, "csharp", "cs", "fxcop", Path.Combine(settings.SonarConfigDirectory, FxCopCSharpRuleset));
+                GenerateFxCopRuleset(server, args.ProjectKey, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(settings.SonarConfigDirectory, FxCopVBNetRuleset));
 
-                SonarLintAnalyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey, logger);
+                SonarLintAnalyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey, this.logger);
+
+                CompilerAnalyzerConfig analyzerConfig = this.analyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey);
+                //TODO: save the config so it can be picked up by the targets files
+
             }
             catch (WebException ex)
             {
-                if (Utilities.HandleHostUrlWebException(ex, hostUrl, logger))
+                if (Utilities.HandleHostUrlWebException(ex, hostUrl, this.logger))
                 {
                     return false;
                 }
@@ -172,9 +178,9 @@ namespace SonarQube.TeamBuild.PreProcessor
             return true;
         }
 
-        private static void GenerateFxCopRuleset(ISonarQubeServer server, string projectKey, string requiredPluginKey, string language, string repository, string path, ILogger logger)
+        private void GenerateFxCopRuleset(ISonarQubeServer server, string projectKey, string requiredPluginKey, string language, string repository, string path)
         {
-            logger.LogDebug(Resources.MSG_GeneratingRuleset, path);
+            this.logger.LogDebug(Resources.MSG_GeneratingRuleset, path);
             RulesetGenerator.Generate(server, requiredPluginKey, language, repository, projectKey, path);
         }
 

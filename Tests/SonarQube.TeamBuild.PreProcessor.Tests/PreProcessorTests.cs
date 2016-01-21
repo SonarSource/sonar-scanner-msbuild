@@ -25,17 +25,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void PreProc_InvalidArgs()
         {
             // Arrange
-            TestLogger validLogger = new TestLogger();
-
-            string[] validArgs = new string[] { "/k:key", "/n:name", "/v:1.0" };
-            
             MockSonarQubeServer mockServer = new MockSonarQubeServer();
-            MockTargetsInstaller mockTargetsInstaller = new MockTargetsInstaller();
-            TeamBuildPreProcessor preprocessor = new TeamBuildPreProcessor(new MockSonarQubeServerFactory(mockServer), mockTargetsInstaller);
+            TeamBuildPreProcessor preprocessor = new TeamBuildPreProcessor(
+                new TestLogger(), new MockSonarQubeServerFactory(mockServer), new MockTargetsInstaller(), new MockRoslynAnalyzerProvider());
 
             // Act and assert
-            AssertException.Expects<ArgumentNullException>(() => preprocessor.Execute(null, validLogger));
-            AssertException.Expects<ArgumentNullException>(() => preprocessor.Execute(validArgs, null));
+            AssertException.Expects<ArgumentNullException>(() => preprocessor.Execute(null));
         }
 
         [TestMethod]
@@ -93,10 +88,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 Assert.AreEqual(BuildEnvironment.NotTeamBuild, settings.BuildEnvironment, "Test setup error: build environment was not set correctly");
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(new MockSonarQubeServerFactory(mockServer), mockTargetsInstaller);
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(logger, new MockSonarQubeServerFactory(mockServer), mockTargetsInstaller, new MockRoslynAnalyzerProvider());
 
                 // Act
-                bool success = preProcessor.Execute(validArgs, logger);
+                bool success = preProcessor.Execute(validArgs);
                 Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
             }
 

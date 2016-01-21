@@ -16,7 +16,7 @@ using System.Xml;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
-    public class RoslynAnalyzerProvider
+    public class RoslynAnalyzerProvider : IAnalyzerProvider
     {
         public const string RoslynCSharpFormatName = "roslyn-config-cs";
         public const string RoslynCSharpRulesetFileName = "SonarQubeRoslyn-cs.ruleset";
@@ -25,47 +25,56 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         public const string CSharpPluginKey = "csharp";
         public const string CSharpRepositoryKey = "csharp";
 
-        private readonly ISonarQubeServer server;
-        private readonly TeamBuildSettings settings;
-        private readonly string projectKey;
         private readonly ILogger logger;
-
+        private ISonarQubeServer server;
+        private TeamBuildSettings settings;
+        private string projectKey;
+        
         #region Public methods
 
-        /// Sets up the client to run the Roslyn analyzers as part of the build
-        /// i.e. creates the Roslyn ruleset and provisions the analyzer assemblies
-        /// and rule parameter files
-        /// </summary>
-        public static CompilerAnalyzerConfig SetupAnalyzers(ISonarQubeServer server, TeamBuildSettings settings, string projectKey, ILogger logger)
+        public RoslynAnalyzerProvider(ILogger logger)
         {
-            if (server == null)
-            {
-                throw new ArgumentNullException("server");
-            }
-            if (settings == null)
-            {
-                throw new ArgumentNullException("settings");
-            }
-            if (string.IsNullOrWhiteSpace(projectKey))
-            {
-                throw new ArgumentNullException("projectKey");
-            }
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
             }
+            this.logger = logger;
+        }
 
-            if (IsCSharpPluginInstalled(server))
+        public CompilerAnalyzerConfig SetupAnalyzers(ISonarQubeServer sqServer, TeamBuildSettings teamBuildSettings, string sqProjectKey)
+        {
+            if (sqServer == null)
             {
-                RoslynAnalyzerProvider provider = new RoslynAnalyzerProvider(server, settings, projectKey, logger);
-                return provider.GetCompilerConfig();
+                throw new ArgumentNullException("server");
             }
-            else
+            if (teamBuildSettings == null)
+            {
+                throw new ArgumentNullException("settings");
+            }
+            if (string.IsNullOrWhiteSpace(sqProjectKey))
+            {
+                throw new ArgumentNullException("projectKey");
+            }
+
+            if (!IsCSharpPluginInstalled(sqServer))
             {
                 logger.LogDebug(Resources.SLAP_CSharpPluginNotInstalled);
+                return null;
             }
 
-            return null;
+            this.server = sqServer;
+            this.settings = teamBuildSettings;
+            this.projectKey = sqProjectKey;
+
+            CompilerAnalyzerConfig compilerConfig = null;
+
+            RoslynExportProfile profile = TryGetRoslynConfigForProject();
+            if (profile != null)
+            {
+                compilerConfig = ProcessProfile(profile);
+            }
+
+            return compilerConfig;
         }
 
         #endregion
@@ -76,27 +85,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         {
             return server.GetInstalledPlugins().Contains(CSharpPluginKey);
         }
-
-        private RoslynAnalyzerProvider(ISonarQubeServer server, TeamBuildSettings settings, string projectKey, ILogger logger)
-        {
-            this.server = server;
-            this.settings = settings;
-            this.projectKey = projectKey;
-            this.logger = logger;
-        }
-
-        private CompilerAnalyzerConfig GetCompilerConfig()
-        {
-            CompilerAnalyzerConfig compilerConfig = null;
-
-            RoslynExportProfile profile = TryGetRoslynConfigForProject();
-            if (profile != null)
-            {
-                compilerConfig = ProcessProfile(profile);
-            }
-            return compilerConfig;
-        }
-
+        
         private RoslynExportProfile TryGetRoslynConfigForProject()
         {
             string qualityProfile;
