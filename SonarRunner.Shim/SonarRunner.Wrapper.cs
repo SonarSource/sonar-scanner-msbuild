@@ -18,7 +18,7 @@ namespace SonarRunner.Shim
     public class SonarRunnerWrapper : ISonarRunner
     {
         /// <summary>
-        /// Env variable that controls the amount of memory the JVM can use for the sonar-runner. 
+        /// Env variable that controls the amount of memory the JVM can use for the sonar-runner.
         /// </summary>
         /// <remarks>Large projects error out with OutOfMemoryException if not set</remarks>
         private const string SonarRunnerOptsVariableName = "SONAR_RUNNER_OPTS";
@@ -26,7 +26,7 @@ namespace SonarRunner.Shim
         /// <summary>
         /// Env variable that locates the sonar-runner
         /// </summary>
-        /// <remarks>We asked users to set this in the 0.9 version so that the sonar-runner is discoverable but 
+        /// <remarks>We asked users to set this in the 0.9 version so that the sonar-runner is discoverable but
         /// in 1.0+ this is not needed and setting it can cause the sonar-runner to fail</remarks>
         public const string SonarRunnerHomeVariableName = "SONAR_RUNNER_HOME";
 
@@ -70,25 +70,11 @@ namespace SonarRunner.Shim
             result.RanToCompletion = false;
 
             SonarProjectPropertiesValidator.Validate(
-                config.SonarRunnerWorkingDirectory, result.Projects,
+                config.SonarRunnerWorkingDirectory,
+                result.Projects,
                 onValid: () =>
                 {
-                    ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
-
-                    if (result.FullPropertiesFilePath == null)
-                    {
-                        // We expect a detailed error message to have been logged explaining
-                        // why the properties file generation could not be performed
-                        logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
-                    }
-                    else
-                    {
-                        string exeFileName = FindRunnerExe(config, logger);
-                        if (exeFileName != null)
-                        {
-                            result.RanToCompletion = ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, result.FullPropertiesFilePath);
-                        }
-                    }
+                    InternalExecute(config, userCmdLineArguments, logger, result);
                 },
                 onInvalid: (invalidFolders) =>
                 {
@@ -102,6 +88,26 @@ namespace SonarRunner.Shim
         #endregion ISonarRunner interface
 
         #region Private methods
+
+        private static void InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, ProjectInfoAnalysisResult result)
+        {
+            ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
+
+            if (result.FullPropertiesFilePath == null)
+            {
+                // We expect a detailed error message to have been logged explaining
+                // why the properties file generation could not be performed
+                logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
+            }
+            else
+            {
+                string exeFileName = FindRunnerExe(config, logger);
+                if (exeFileName != null)
+                {
+                    result.RanToCompletion = ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, result.FullPropertiesFilePath);
+                }
+            }
+        }
 
         private static string FindRunnerExe(AnalysisConfig config, ILogger logger)
         {
@@ -140,14 +146,15 @@ namespace SonarRunner.Shim
             ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(exeFileName, logger)
             {
                 CmdLineArgs = allCmdLineArgs,
-                WorkingDirectory = config.SonarRunnerWorkingDirectory, 
+                WorkingDirectory = config.SonarRunnerWorkingDirectory,
                 EnvironmentVariables = envVarsDictionary
             };
+
             ProcessRunner runner = new ProcessRunner();
 
+            // SONARMSBRU-202 Note that the Sonar Scanner may write warnings to stderr so
+            // we should only rely on the exit code when deciding if it ran successfully
             bool success = runner.Execute(runnerArgs);
-
-            success = success && !runner.ErrorsLogged;
 
             if (success)
             {

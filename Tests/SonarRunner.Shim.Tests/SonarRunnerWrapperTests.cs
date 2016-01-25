@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using System.IO;
 using System.Linq;
+using System.Text;
 using TestUtilities;
 
 namespace SonarRunner.Shim.Tests
@@ -19,6 +20,9 @@ namespace SonarRunner.Shim.Tests
         private const string ExpectedConsoleMessagePrefix = "Args passed to dummy runner: ";
 
         public TestContext TestContext { get; set; }
+
+        private const int SuccessExitCode = 0;
+        private const int FailureExitCode = 4;
 
         #region Tests
 
@@ -39,7 +43,7 @@ namespace SonarRunner.Shim.Tests
                 bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), testLogger, exePath, propertiesFilePath);
 
                 // Assert
-                VerifySuccessfullRun(testLogger, success, this.TestContext.DeploymentDirectory);
+                VerifyProcessRunOutcome(testLogger, this.TestContext.DeploymentDirectory, success, true);
                 testLogger.AssertMessageNotLogged(SonarRunner.Shim.Resources.MSG_SonarRunnerHomeIsSet);
             }
         }
@@ -61,16 +65,8 @@ namespace SonarRunner.Shim.Tests
                 bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), testLogger, exePath, propertiesFilePath);
 
                 // Assert
-                VerifySuccessfullRun(testLogger, success , this.TestContext.DeploymentDirectory);
+                VerifyProcessRunOutcome(testLogger, this.TestContext.DeploymentDirectory, success, true);
             }
-        }
-
-        private static void VerifySuccessfullRun(TestLogger testLogger, bool success, string expectedWorkingDir)
-        {
-            Assert.IsTrue(success, "Expecting execution to succeed");
-
-            testLogger.AssertInfoMessageExists(ExpectedConsoleMessagePrefix);
-            testLogger.AssertInfoMessageExists(expectedWorkingDir);
         }
 
         [TestMethod]
@@ -86,7 +82,7 @@ namespace SonarRunner.Shim.Tests
             bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), logger, exePath, propertiesFilePath);
 
             // Assert
-            VerifySuccessfullRun(logger, success, this.TestContext.DeploymentDirectory);
+            VerifyProcessRunOutcome(logger, this.TestContext.DeploymentDirectory, success, true);
         }
 
         [TestMethod]
@@ -104,17 +100,17 @@ namespace SonarRunner.Shim.Tests
 
             // Act
             bool success = SonarRunnerWrapper.ExecuteJavaRunner(
-                new AnalysisConfig() { SonarRunnerWorkingDirectory = this.TestContext.DeploymentDirectory }, 
-                userArgs, 
-                logger, 
-                exePath, 
+                new AnalysisConfig() { SonarRunnerWorkingDirectory = this.TestContext.DeploymentDirectory },
+                userArgs,
+                logger,
+                exePath,
                 propertiesFilePath);
 
             // Assert
-            VerifySuccessfullRun(logger, success, this.TestContext.DeploymentDirectory);
+            VerifyProcessRunOutcome(logger, this.TestContext.DeploymentDirectory, success, true);
 
             string actualCmdLineArgs = CheckStandardArgsPassed(logger, propertiesFilePath);
-            
+
             int loginIndex = CheckArgExists("-Dsonar.login=me", actualCmdLineArgs);
             int pwdIndex = CheckArgExists("-Dsonar.password=my.pwd", actualCmdLineArgs);
 
@@ -155,9 +151,9 @@ namespace SonarRunner.Shim.Tests
             bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, userArgs, logger, exePath, propertiesFilePath);
 
             // Assert
-            VerifySuccessfullRun(logger, success, this.TestContext.DeploymentDirectory);
+            VerifyProcessRunOutcome(logger, this.TestContext.DeploymentDirectory, success, true);
             string actualCmdLineArgs = CheckStandardArgsPassed(logger, propertiesFilePath);
-            
+
             // Non-sensitive values from the file should not be passed on the command line
             CheckArgDoesNotExist("file.not.sensitive.key", actualCmdLineArgs);
 
@@ -171,20 +167,85 @@ namespace SonarRunner.Shim.Tests
             Assert.IsTrue(userPwdIndex < standardArgsIndex && userPwdIndex < propertiesFileIndex, "User arguments should appear first");
         }
 
+        [TestMethod]
+        public void WrapperError_Success_NoStdErr()
+        {
+            TestWrapperErrorHandling(exitCode: SuccessExitCode, addMessageToStdErr: false, expectedOutcome: true);
+        }
+
+        [TestMethod]
+        [WorkItem(202)] //SONARMSBRU-202
+        public void WrapperError_Success_StdErr()
+        {
+            TestWrapperErrorHandling(exitCode: SuccessExitCode, addMessageToStdErr: true, expectedOutcome: true);
+        }
+
+        [TestMethod]
+        public void WrapperError_None_NoStdErr()
+        {
+            TestWrapperErrorHandling(exitCode: null, addMessageToStdErr: false, expectedOutcome: true);
+        }
+
+        [TestMethod]
+        public void WrapperError_None_StdErr()
+        {
+            TestWrapperErrorHandling(exitCode: null, addMessageToStdErr: true, expectedOutcome: true);
+        }
+
+        [TestMethod]
+        public void WrapperError_Fail_NoStdErr()
+        {
+            TestWrapperErrorHandling(exitCode: FailureExitCode, addMessageToStdErr: false, expectedOutcome: false);
+        }
+
+        [TestMethod]
+        public void WrapperError_Fail_StdErr()
+        {
+            TestWrapperErrorHandling(exitCode: FailureExitCode, addMessageToStdErr: true, expectedOutcome: false);
+        }
+
+        private void TestWrapperErrorHandling(int? exitCode, bool addMessageToStdErr, bool expectedOutcome)
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+            string exePath = CreateDummarySonarRunnerBatchFile(addMessageToStdErr, exitCode);
+            string propertiesFilePath = CreateDummySonarRunnerPropertiesFile();
+            AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = this.TestContext.DeploymentDirectory };
+
+            // Act
+            bool success = SonarRunnerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), logger, exePath, propertiesFilePath);
+
+            // Assert
+            VerifyProcessRunOutcome(logger, this.TestContext.DeploymentDirectory, success, expectedOutcome);
+        }
+
         #endregion Tests
 
         #region Private methods
 
-        private string CreateDummarySonarRunnerBatchFile()
+        private string CreateDummarySonarRunnerBatchFile(bool addMessageToStdErr = false, int? exitCode = null)
         {
-            // Create a batch file that echoes the command line args to the console 
+            // Create a batch file that echoes the command line args to the console
             // so they can be captured and checked
             string testDir = TestUtils.EnsureTestSpecificFolder(this.TestContext);
             string exePath = Path.Combine(testDir, "dummy.runner.bat");
 
             Assert.IsFalse(File.Exists(exePath), "Not expecting a batch file to already exist: {0}", exePath);
 
-            File.WriteAllText(exePath, "@echo " + ExpectedConsoleMessagePrefix + " %* \n @echo WorkingDir: %cd%");
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("@echo " + ExpectedConsoleMessagePrefix + " %* \n @echo WorkingDir: %cd%");
+
+            if (addMessageToStdErr)
+            {
+                sb.AppendLine("echo some_error_message 1>&2");
+            }
+
+            if (exitCode.HasValue)
+            {
+                sb.AppendLine("exit " + exitCode.Value);
+            }
+
+            File.WriteAllText(exePath, sb.ToString());
             return exePath;
         }
 
@@ -196,15 +257,27 @@ namespace SonarRunner.Shim.Tests
             return propertiesFilePath;
         }
 
-        #endregion
+        #endregion Private methods
 
         #region Checks
+
+        private static void VerifyProcessRunOutcome(TestLogger testLogger, string expectedWorkingDir, bool actualOutcome, bool expectedOutcome)
+        {
+            Assert.AreEqual(actualOutcome, expectedOutcome, "Expecting execution to succeed");
+            testLogger.AssertInfoMessageExists(ExpectedConsoleMessagePrefix);
+            testLogger.AssertInfoMessageExists(expectedWorkingDir);
+
+            if (actualOutcome == false)
+            {
+                testLogger.AssertErrorsLogged();
+            }
+        }
 
         private static string CheckStandardArgsPassed(TestLogger logger, string expectedPropertiesFilePath)
         {
             string message = logger.AssertSingleInfoMessageExists(ExpectedConsoleMessagePrefix);
 
-            CheckArgExists("-Dproject.settings=" + expectedPropertiesFilePath, message); // should always be passing the properties file 
+            CheckArgExists("-Dproject.settings=" + expectedPropertiesFilePath, message); // should always be passing the properties file
             CheckArgExists(SonarRunnerWrapper.StandardAdditionalRunnerArguments, message); // standard args should always be passed
 
             return message;
@@ -223,6 +296,6 @@ namespace SonarRunner.Shim.Tests
             Assert.IsTrue(index == -1, "Not expecting to find the argument. Arg: '{0}', all args: '{1}'", argToCheck, allArgs);
         }
 
-        #endregion
+        #endregion Checks
     }
 }
