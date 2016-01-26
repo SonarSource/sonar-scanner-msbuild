@@ -29,7 +29,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         #region Constructor(s)
 
         public TeamBuildPreProcessor(ILogger logger)
-            : this(logger, new SonarQubeServerFactory(), new TargetsInstaller(), new RoslynAnalyzerProvider(new AnalyzerInstaller(), logger))
+            : this(logger, new SonarQubeServerFactory(), new TargetsInstaller(), new RoslynAnalyzerProvider(new AnalyzerInstaller(logger), logger))
         {
         }
 
