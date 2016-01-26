@@ -85,6 +85,7 @@
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\SonarQube.Integration.Tasks.pdb" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="RepackageCSharpPlugin.ps1" />
   </ItemGroup>
   <ItemGroup>
