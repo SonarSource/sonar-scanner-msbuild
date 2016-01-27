@@ -117,14 +117,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
         [TestMethod]
         [TestCategory("IsTest")] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
-        public void IsTestFile_RetryIfConfigLocked()
+        public void IsTestFile_TimeoutIfConfigLocked_TaskFails()
         {
             // Arrange
-            // We'll lock the file and sleep for long enough for the retry period to occur, but
-            // not so long that the task times out
-            int lockPeriodInMilliseconds = 1000;
-            Assert.IsTrue(lockPeriodInMilliseconds < IsTestFileByName.MaxConfigRetryPeriodInMilliseconds, "Test setup error: the test is sleeping for too long");
-
             string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
             string configFile = EnsureAnalysisConfig(testFolder, ".XX.");
@@ -135,65 +130,10 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             task.FullFilePath = "XXX.proj";
             task.AnalysisConfigDir = testFolder;
 
-            bool result;
+            bool result = true;
+            TaskUtilitiesTests.PerformOpOnLockedFile(configFile, () => result = task.Execute(), shouldTimeoutReadingConfig: true);
 
-            Stopwatch testDuration = Stopwatch.StartNew();
-
-            using (FileStream lockingStream = File.OpenWrite(configFile))
-            {
-                System.Threading.Tasks.Task.Factory.StartNew(() =>
-                    {
-                        System.Threading.Thread.Sleep(lockPeriodInMilliseconds); // unlock the file after a short delay
-                        lockingStream.Close();
-                    });
-
-                result = task.Execute();
-            }
-
-            testDuration.Stop();
-            Assert.IsTrue(testDuration.ElapsedMilliseconds > 1000, "Test error: expecting the test to have taken at least {0} milliseconds to run. Actual: {1}",
-                lockPeriodInMilliseconds, testDuration.ElapsedMilliseconds);
-
-            Assert.IsTrue(result, "Expecting the task to succeed");
-            Assert.IsTrue(task.IsTest, "Expecting the file to be recognised as a test");
-
-            dummyEngine.AssertSingleMessageExists(IsTestFileByName.MaxConfigRetryPeriodInMilliseconds.ToString(), IsTestFileByName.DelayBetweenRetriesInMilliseconds.ToString());
-            dummyEngine.AssertNoErrors();
-            dummyEngine.AssertNoWarnings();
-        }
-
-        [TestMethod]
-        [TestCategory("IsTest")] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
-        public void IsTestFile_TimeoutIfConfigLocked()
-        {
-            // Arrange
-            // We'll lock the file and sleep for long enough for the task to timeout
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
-
-            string configFile = EnsureAnalysisConfig(testFolder, ".XX.");
-
-            DummyBuildEngine dummyEngine = new DummyBuildEngine();
-            IsTestFileByName task = new IsTestFileByName();
-            task.BuildEngine = dummyEngine;
-            task.FullFilePath = "XXX.proj";
-            task.AnalysisConfigDir = testFolder;
-
-            bool result;
-
-            using (FileStream lockingStream = File.OpenWrite(configFile))
-            {
-                System.Threading.Tasks.Task.Factory.StartNew(() =>
-                {
-                    System.Threading.Thread.Sleep(IsTestFileByName.MaxConfigRetryPeriodInMilliseconds + 600); // sleep for longer than the timeout period
-                    lockingStream.Close();
-                });
-
-                result = task.Execute();
-            }
-
-            Assert.IsFalse(result, "Expecting the task to fail");
-
-            dummyEngine.AssertSingleMessageExists(IsTestFileByName.MaxConfigRetryPeriodInMilliseconds.ToString(), IsTestFileByName.DelayBetweenRetriesInMilliseconds.ToString());
+            Assert.IsFalse(result, "Expecting the task to fail if the config file could not be read");
             dummyEngine.AssertNoWarnings();
             dummyEngine.AssertSingleErrorExists();
         }

@@ -61,24 +61,6 @@ namespace SonarQube.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Config file could not be found.
-        /// </summary>
-        internal static string IsTest_ConfigFileNotFound {
-            get {
-                return ResourceManager.GetString("IsTest_ConfigFileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error reading config file: {0}.
-        /// </summary>
-        internal static string IsTest_ErrorReadingConfigFile {
-            get {
-                return ResourceManager.GetString("IsTest_ErrorReadingConfigFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The configured regular expression for detecting test projects is invalid.
         ///Check the &quot;{2}&quot; setting in the SonarQube portal.
         ///Expression: {0}
@@ -87,33 +69,6 @@ namespace SonarQube.MSBuild.Tasks {
         internal static string IsTest_InvalidRegularExpression {
             get {
                 return ResourceManager.GetString("IsTest_InvalidRegularExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to read the config file: {0}.
-        /// </summary>
-        internal static string IsTest_ReadingConfigFailed {
-            get {
-                return ResourceManager.GetString("IsTest_ReadingConfigFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Reading config file: {0} ....
-        /// </summary>
-        internal static string IsTest_ReadingConfigFile {
-            get {
-                return ResourceManager.GetString("IsTest_ReadingConfigFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Read config file successfully.
-        /// </summary>
-        internal static string IsTest_ReadingConfigSucceeded {
-            get {
-                return ResourceManager.GetString("IsTest_ReadingConfigSucceeded", resourceCulture);
             }
         }
         
@@ -213,6 +168,51 @@ namespace SonarQube.MSBuild.Tasks {
         internal static string MergeRulesets_RulesetAlreadyIncluded {
             get {
                 return ResourceManager.GetString("MergeRulesets_RulesetAlreadyIncluded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Config file could not be found.
+        /// </summary>
+        internal static string Shared_ConfigFileNotFound {
+            get {
+                return ResourceManager.GetString("Shared_ConfigFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error reading config file: {0}.
+        /// </summary>
+        internal static string Shared_ErrorReadingConfigFile {
+            get {
+                return ResourceManager.GetString("Shared_ErrorReadingConfigFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to read the config file: {0}.
+        /// </summary>
+        internal static string Shared_ReadingConfigFailed {
+            get {
+                return ResourceManager.GetString("Shared_ReadingConfigFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reading config file: {0} ....
+        /// </summary>
+        internal static string Shared_ReadingConfigFile {
+            get {
+                return ResourceManager.GetString("Shared_ReadingConfigFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Read config file successfully.
+        /// </summary>
+        internal static string Shared_ReadingConfigSucceeded {
+            get {
+                return ResourceManager.GetString("Shared_ReadingConfigSucceeded", resourceCulture);
             }
         }
         

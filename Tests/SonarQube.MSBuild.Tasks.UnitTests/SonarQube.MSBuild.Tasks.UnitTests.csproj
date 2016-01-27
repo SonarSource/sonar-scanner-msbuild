@@ -60,6 +60,7 @@
     <Compile Include="Infrastructure\DummyBuildEngine.cs" />
     <Compile Include="IsTestFileByNameTests.cs" />
     <Compile Include="MergeRuleSetsTests.cs" />
+    <Compile Include="TaskUtilitiesTests.cs" />
     <Compile Include="WriteProjectInfoFileTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

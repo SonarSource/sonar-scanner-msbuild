@@ -29,11 +29,6 @@ namespace SonarQube.MSBuild.Tasks
         /// </summary>
         public const string TestRegExSettingId = "sonar.cs.msbuild.testProjectPattern";
 
-        // Workaround for the file locking issue: retry after a short period.
-        public const int MaxConfigRetryPeriodInMilliseconds = 2500; // Maximum time to spend trying to access the config file
-
-        public const int DelayBetweenRetriesInMilliseconds = 499; // Period to wait between retries
-
         #region Input properties
 
         /// <summary>
@@ -62,7 +57,7 @@ namespace SonarQube.MSBuild.Tasks
         {
             bool taskSuccess = true;
 
-            AnalysisConfig config = this.TryGetConfig();
+            AnalysisConfig config = TaskUtilities.TryGetConfig(this.AnalysisConfigDir, new MSBuildLoggerAdapter(this.Log));
 
             if (config != null)
             {
@@ -100,58 +95,7 @@ namespace SonarQube.MSBuild.Tasks
 
             return regEx;
         }
-
-        private AnalysisConfig TryGetConfig()
-        {
-            AnalysisConfig config = null;
-            if (string.IsNullOrEmpty(this.AnalysisConfigDir)) // not specified
-            {
-                return null;
-            }
-
-            string fullAnalysisPath = Path.Combine(this.AnalysisConfigDir, FileConstants.ConfigFileName);
-            this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_ReadingConfigFile, fullAnalysisPath);
-            if (!File.Exists(fullAnalysisPath))
-            {
-                this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_ConfigFileNotFound);
-                return null;
-            }
-
-            bool succeeded = Utilities.Retry(MaxConfigRetryPeriodInMilliseconds, DelayBetweenRetriesInMilliseconds, 
-                new MSBuildLoggerAdapter(this.Log), () => DoLoadConfig(fullAnalysisPath, out config));
-            if (succeeded)
-            {
-                this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_ReadingConfigSucceeded, fullAnalysisPath);
-            }
-            else
-            {
-                this.Log.LogError(Resources.IsTest_ReadingConfigFailed, fullAnalysisPath);
-            }
-            return config;
-        }
-
-        /// <summary>
-        /// Attempts to load the config file, suppressing any IO errors that occur.
-        /// This method is expected to be called inside a "retry"
-        /// </summary>
-        private bool DoLoadConfig(string filePath, out AnalysisConfig config)
-        {
-            Debug.Assert(File.Exists(filePath), "Expecting the config file to exist: " + filePath);
-            config = null;
-
-            try
-            {
-                config = AnalysisConfig.Load(filePath);
-            }
-            catch (IOException e)
-            {
-                // Log this as a message for info. We'll log an error if all of the re-tries failed
-                this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_ErrorReadingConfigFile, e.Message);
-                return false;
-            }
-            return true;
-        }
-
+        
         #endregion Private methods
     }
 }

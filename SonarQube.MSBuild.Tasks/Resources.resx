@@ -117,10 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="IsTest_ConfigFileNotFound" xml:space="preserve">
+  <data name="Shared_ConfigFileNotFound" xml:space="preserve">
     <value>Config file could not be found</value>
   </data>
-  <data name="IsTest_ErrorReadingConfigFile" xml:space="preserve">
+  <data name="Shared_ErrorReadingConfigFile" xml:space="preserve">
     <value>Error reading config file: {0}</value>
   </data>
   <data name="IsTest_InvalidRegularExpression" xml:space="preserve">
@@ -129,13 +129,13 @@ Check the "{2}" setting in the SonarQube portal.
 Expression: {0}
 Error: {1}</value>
   </data>
-  <data name="IsTest_ReadingConfigFailed" xml:space="preserve">
+  <data name="Shared_ReadingConfigFailed" xml:space="preserve">
     <value>Failed to read the config file: {0}</value>
   </data>
-  <data name="IsTest_ReadingConfigFile" xml:space="preserve">
+  <data name="Shared_ReadingConfigFile" xml:space="preserve">
     <value>Reading config file: {0} ...</value>
   </data>
-  <data name="IsTest_ReadingConfigSucceeded" xml:space="preserve">
+  <data name="Shared_ReadingConfigSucceeded" xml:space="preserve">
     <value>Read config file successfully</value>
   </data>
   <data name="IsTest_UsingRegExFromConfig" xml:space="preserve">
