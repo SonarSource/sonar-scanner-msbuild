@@ -61,6 +61,15 @@ namespace SonarQube.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzer settings have not been specified in the analysis config file.
+        /// </summary>
+        internal static string AnalyzerSettings_NotSpecifiedInConfig {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_NotSpecifiedInConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The configured regular expression for detecting test projects is invalid.
         ///Check the &quot;{2}&quot; setting in the SonarQube portal.
         ///Expression: {0}

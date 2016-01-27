@@ -190,4 +190,7 @@ Error: {1}</value>
   <data name="MergeRuleset_MergedRulesetAlreadyExists" xml:space="preserve">
     <value>Failed to merge rulesets. A ruleset with the specified name already exists: {0}</value>
   </data>
+  <data name="AnalyzerSettings_NotSpecifiedInConfig" xml:space="preserve">
+    <value>Analyzer settings have not been specified in the analysis config file</value>
+  </data>
 </root>
