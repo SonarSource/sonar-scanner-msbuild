@@ -112,12 +112,13 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             IDictionary<string, string> serverSettings;
-            if (!FetchArgumentsAndRulesets(args, teamBuildSettings, out serverSettings))
+            AnalyzerSettings analyzerSettings;
+            if (!FetchArgumentsAndRulesets(args, teamBuildSettings, out serverSettings, out analyzerSettings))
             {
                 return false;
             }
 
-            AnalysisConfigGenerator.GenerateFile(args, teamBuildSettings, serverSettings, this.logger);
+            AnalysisConfigGenerator.GenerateFile(args, teamBuildSettings, serverSettings, analyzerSettings, this.logger);
 
             return true;
         }
@@ -138,10 +139,11 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
         }
 
-        private bool FetchArgumentsAndRulesets(ProcessedArgs args, TeamBuildSettings settings, out IDictionary<string, string> serverSettings)
+        private bool FetchArgumentsAndRulesets(ProcessedArgs args, TeamBuildSettings settings, out IDictionary<string, string> serverSettings, out AnalyzerSettings analyzerSettings)
         {
             string hostUrl = args.GetSetting(SonarProperties.HostUrl);
             serverSettings = null;
+            analyzerSettings = null;
 
             ISonarQubeServer server = this.serverFactory.Create(args, this.logger);
             try
@@ -157,9 +159,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
                 SonarLintAnalyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey, this.logger);
 
-                AnalyzerSettings analyzerSettings = this.analyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey);
-                //TODO: save the config so it can be picked up by the targets files
-
+                analyzerSettings = this.analyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey);
             }
             catch (WebException ex)
             {

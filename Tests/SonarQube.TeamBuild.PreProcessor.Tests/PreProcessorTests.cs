@@ -74,6 +74,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 .AddProject("key");
             data.AddRuleToProfile("vb.rule2", "test.profile");
 
+            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider();
+            mockAnalyzerProvider.SettingsToReturn = new AnalyzerSettings();
+            mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
+
             string[] validArgs = new string[] {
                 "/k:key", "/n:name", "/v:1.0",
                 "/d:cmd.line1=cmdline.value.1",
@@ -88,7 +92,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 Assert.AreEqual(BuildEnvironment.NotTeamBuild, settings.BuildEnvironment, "Test setup error: build environment was not set correctly");
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(logger, new MockSonarQubeServerFactory(mockServer), mockTargetsInstaller, new MockRoslynAnalyzerProvider());
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(logger, new MockSonarQubeServerFactory(mockServer), mockTargetsInstaller, mockAnalyzerProvider);
 
                 // Act
                 bool success = preProcessor.Execute(validArgs);
@@ -115,6 +119,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual("key", actualConfig.SonarProjectKey, "Unexpected project key");
             Assert.AreEqual("name", actualConfig.SonarProjectName, "Unexpected project name");
             Assert.AreEqual("1.0", actualConfig.SonarProjectVersion, "Unexpected project version");
+
+            Assert.IsNotNull(actualConfig.AnalyzerSettings, "Analyzer settings should not be null");
+            Assert.AreEqual("c:\\xxx.ruleset", actualConfig.AnalyzerSettings.RuleSetFilePath, "Unexpected ruleset path");
 
             AssertExpectedLocalSetting(SonarProperties.HostUrl, "http://host", actualConfig);
             AssertExpectedLocalSetting("cmd.line1", "cmdline.value.1", actualConfig);

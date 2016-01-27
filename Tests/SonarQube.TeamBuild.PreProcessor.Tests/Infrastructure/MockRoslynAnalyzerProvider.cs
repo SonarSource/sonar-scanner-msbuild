@@ -13,6 +13,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
     internal class MockRoslynAnalyzerProvider : IAnalyzerProvider
     {
+
+        #region Test helpers
+
+        public AnalyzerSettings SettingsToReturn { get; set; }
+
+        #endregion
+
         #region IAnalyzerProvider methods
 
         AnalyzerSettings IAnalyzerProvider.SetupAnalyzers(ISonarQubeServer server, TeamBuildSettings settings, string projectKey)
@@ -21,7 +28,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsNotNull(settings);
             Assert.IsFalse(string.IsNullOrWhiteSpace(projectKey));
 
-            return null;
+            return this.SettingsToReturn;
         }
 
         #endregion

@@ -10,6 +10,7 @@ using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -20,6 +21,61 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public TestContext TestContext { get; set; }
 
         #region Tests
+
+        [TestMethod]
+        public void AnalysisConfGen_Simple()
+        {
+            // Arrange
+            string analysisDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            TestLogger logger = new TestLogger();
+
+            ListPropertiesProvider propertyProvider = new ListPropertiesProvider();
+            propertyProvider.AddProperty(SonarProperties.HostUrl, "http://foo");
+            ProcessedArgs args = new ProcessedArgs("valid.key", "valid.name", "1.0", false, EmptyPropertyProvider.Instance, propertyProvider);
+
+            TeamBuildSettings tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+
+            Dictionary<string, string> serverSettings = new Dictionary<string, string>();
+            serverSettings.Add("server.key.1", "server.value.1");
+
+            AnalyzerSettings analyzerSettings = new AnalyzerSettings();
+            analyzerSettings.RuleSetFilePath = "c:\\xxx.ruleset";
+            analyzerSettings.AdditionalFilePaths = new List<string>();
+            analyzerSettings.AdditionalFilePaths.Add("f:\\additionalPath1.txt");
+            analyzerSettings.AnalyzerAssemblyPaths = new List<string>();
+            analyzerSettings.AnalyzerAssemblyPaths.Add("f:\\temp\\analyzer1.dll");
+
+            Directory.CreateDirectory(tbSettings.SonarConfigDirectory); // config directory needs to exist
+
+            // Act
+            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(args, tbSettings, serverSettings, analyzerSettings, logger);
+
+            // Assert
+            AssertConfigFileExists(actualConfig);
+            logger.AssertErrorsLogged(0);
+            logger.AssertWarningsLogged(0);
+
+            Assert.AreEqual("valid.key", actualConfig.SonarProjectKey);
+            Assert.AreEqual("valid.name", actualConfig.SonarProjectName);
+            Assert.AreEqual("1.0", actualConfig.SonarProjectVersion);
+
+            Assert.AreEqual("http://foo", actualConfig.SonarQubeHostUrl);
+
+            Assert.AreEqual(tbSettings.SonarBinDirectory, actualConfig.SonarBinDir);
+            Assert.AreEqual(tbSettings.SonarConfigDirectory, actualConfig.SonarConfigDir);
+            Assert.AreEqual(tbSettings.SonarOutputDirectory, actualConfig.SonarOutputDir);
+            Assert.AreEqual(tbSettings.SonarRunnerWorkingDirectory, actualConfig.SonarRunnerWorkingDirectory);
+            Assert.AreEqual(tbSettings.BuildUri, actualConfig.GetBuildUri());
+            Assert.AreEqual(tbSettings.TfsUri, actualConfig.GetTfsUri());
+
+            Assert.IsNotNull(actualConfig.ServerSettings);
+            Property serverProperty = actualConfig.ServerSettings.SingleOrDefault(s => string.Equals(s.Id, "server.key.1", System.StringComparison.Ordinal));
+            Assert.IsNotNull(serverProperty);
+            Assert.AreEqual("server.value.1", serverProperty.Value);
+
+            Assert.AreSame(analyzerSettings, actualConfig.AnalyzerSettings);
+        }
 
         [TestMethod]
         public void AnalysisConfGen_FileProperties()
@@ -47,7 +103,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), logger);
+            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new AnalyzerSettings(), logger);
 
             // Assert
             AssertConfigFileExists(actualConfig);
@@ -108,7 +164,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            AnalysisConfig config = AnalysisConfigGenerator.GenerateFile(args, settings, serverProperties, logger);
+            AnalysisConfig config = AnalysisConfigGenerator.GenerateFile(args, settings, serverProperties, new AnalyzerSettings(), logger);
 
             // Assert
             AssertConfigFileExists(config);
