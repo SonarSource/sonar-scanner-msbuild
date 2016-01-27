@@ -129,14 +129,26 @@ namespace SonarQube.Common.UnitTests
 
             // 2. Other values that can't be set
             logger = CheckProcessingFails(
-                "sonar.projectBaseDir=value1");
-            logger.AssertSingleErrorExists(SonarProperties.ProjectBaseDir);
-
-
-            logger = CheckProcessingFails(
                 "sonar.working.directory=value1");
             logger.AssertSingleErrorExists(SonarProperties.WorkingDirectory);
 
+
+
+        }
+
+        [TestMethod]
+        [Description("Test for https://jira.sonarsource.com/browse/SONARMSBRU-208")]
+        public void SonarProjectBaseDir_IsAllowed()
+        {
+            TestLogger logger = new TestLogger();
+            IList<ArgumentInstance> args = new List<ArgumentInstance>();
+
+            // sonar.projectBaseDir used to be un-settable
+            AddDynamicArguments(args, "sonar.projectBaseDir=value1");
+
+            IAnalysisPropertyProvider provider = CheckProcessingSucceeds(args, logger);
+            provider.AssertExpectedPropertyValue("sonar.projectBaseDir", "value1");
+            provider.AssertExpectedPropertyCount(1);
         }
 
         #endregion
@@ -145,7 +157,7 @@ namespace SonarQube.Common.UnitTests
 
         private static void AddDynamicArguments(IList<ArgumentInstance> args, params string[] argValues)
         {
-            foreach(string argValue in argValues)
+            foreach (string argValue in argValues)
             {
                 args.Add(new ArgumentInstance(CmdLineArgPropertyProvider.Descriptor, argValue));
             }

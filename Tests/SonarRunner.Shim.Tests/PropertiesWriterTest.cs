@@ -19,6 +19,7 @@ namespace SonarRunner.Shim.Tests
     public class PropertiesWriterTest
     {
         public TestContext TestContext { get; set; }
+        private const string TestSonarqubeOutputDir = @"e:\.sonarqube\out";
 
         #region Tests
 
@@ -67,7 +68,8 @@ namespace SonarRunner.Shim.Tests
                 SonarProjectKey = "my_project_key",
                 SonarProjectName = "my_project_name",
                 SonarProjectVersion = "1.0",
-                SonarOutputDir = @"C:\my_folder"
+                SonarOutputDir = @"C:\my_folder",
+                SourcesDirectory = @"d:\source_files\"
             };
 
             string actual = null;
@@ -109,8 +111,8 @@ DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
 sonar.projectKey=my_project_key
 sonar.projectName=my_project_name
 sonar.projectVersion=1.0
-sonar.projectBaseDir={5}
 sonar.working.directory=C:\\my_folder\\.sonar
+sonar.projectBaseDir={5}
 
 # FIXME: Encoding is hardcoded
 sonar.sourceEncoding=UTF-8
@@ -123,7 +125,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
  PropertiesWriter.Escape(productCoverageFilePath),
  PropertiesWriter.Escape(testBaseDir),
  PropertiesWriter.Escape(missingFileOutsideProjectDir),
- PropertiesWriter.Escape(TestUtils.GetTestSpecificFolderName(TestContext)));
+ PropertiesWriter.Escape(config.SourcesDirectory));
 
             SaveToResultFile(productBaseDir, "Expected.txt", expected.ToString());
             SaveToResultFile(productBaseDir, "Actual.txt", actual);
@@ -149,7 +151,8 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
                 SonarProjectKey = "my_project_key",
                 SonarProjectName = "my_project_name",
                 SonarProjectVersion = "1.0",
-                SonarOutputDir = @"C:\my_folder"
+                SonarOutputDir = @"C:\my_folder",
+                SourcesDirectory = @"D:\sources"
             };
 
             string actual = null;
@@ -170,8 +173,8 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
 sonar.projectKey=my_project_key
 sonar.projectName=my_project_name
 sonar.projectVersion=1.0
-sonar.projectBaseDir={1}
 sonar.working.directory=C:\\my_folder\\.sonar
+sonar.projectBaseDir={1}
 
 # FIXME: Encoding is hardcoded
 sonar.sourceEncoding=UTF-8
@@ -180,7 +183,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
 
 ",
  PropertiesWriter.Escape(productBaseDir),
- PropertiesWriter.Escape(TestUtils.GetTestSpecificFolderName(TestContext)));
+ PropertiesWriter.Escape(config.SourcesDirectory));
 
             SaveToResultFile(productBaseDir, "Expected.txt", expected.ToString());
             SaveToResultFile(productBaseDir, "Actual.txt", actual);
@@ -191,36 +194,54 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
         [TestMethod]
         public void PropertiesWriter_ComputeProjectBaseDir()
         {
-            AssertHasProjectBaseDir(@"c:\src\A", @"z:\", @"c:\src\A\1.proj");
-            AssertHasProjectBaseDir(@"c:\src\A", @"z:\", @"c:\src\A\1.proj", @"c:\src\A\2.proj");
-            AssertHasProjectBaseDir(@"c:\src", @"z:\", @"c:\src\A\1.proj", @"c:\src\B\2.proj");
-            AssertHasProjectBaseDir(@"c:\common\src", @"z:\", @"c:\common\src\A\1.proj", @"c:\common\src\B\2.proj");
-            AssertHasProjectBaseDir(@"c:", @"z:\", @"c:\common\src\A\1.proj", @"c:\common\src\B\2.proj", @"c:\outside\src\C\3.proj");
-            AssertHasProjectBaseDir(@"z:", @"z:", @"c:\src\A\1.proj", @"d:\src\B\2.proj");
-            AssertHasProjectBaseDir(@"c:\src", @"z:\", @"c:\src\..\src\1.proj", @"c:\src\2.proj");
-            AssertHasProjectBaseDir(@"z:\", @"z:\");
-        }
+            VerifyProjectBaseDir(
+                expectedValue: @"d:\work\mysources", // if there is a user value, use it
+                teamBuildValue: @"d:\work",
+                userValue: @"d:\work\mysources",
+                projectPaths: new[] { @"d:\work\proj1.csproj" });
 
-        private void AssertHasProjectBaseDir(string expectedProjectDir, string fallback, params string[] projectPaths)
-        {
-            var config = new AnalysisConfig();
-            config.SonarOutputDir = fallback;
-            var writer = new PropertiesWriter(config);
+            VerifyProjectBaseDir(
+              expectedValue: @"d:\work",  // if no user value, use the team build value
+              teamBuildValue: @"d:\work",
+              userValue: null,
+              projectPaths: new[] { @"e:\work\proj1.csproj" });
 
-            using (new AssertIgnoreScope())
-            {
-                foreach (string projectPath in projectPaths)
-                {
-                    var projectInfo = new ProjectInfo { FullPath = projectPath, ProjectLanguage = ProjectLanguages.VisualBasic };
-                    writer.WriteSettingsForProject(projectInfo, Enumerable.Empty<string>(), "", "");
-                }
-                var actual = writer.Flush();
-                var expected = "\r\nsonar.projectBaseDir=" + PropertiesWriter.Escape(expectedProjectDir);
+            VerifyProjectBaseDir(
+               expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+               teamBuildValue: null,
+               userValue: "",
+               projectPaths: new[] { @"e:\work\proj1.csproj" });
 
-                Console.WriteLine(actual);
+            VerifyProjectBaseDir(
+              expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"e:\work\proj1.csproj", @"e:\work\proj2.csproj" });
 
-                Assert.IsTrue(actual.Contains(expected));
-            }
+            VerifyProjectBaseDir(
+              expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"e:\work\A\proj1.csproj", @"e:\work\B\C\proj2.csproj" });
+
+
+            VerifyProjectBaseDir(
+              expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"e:\work\A\proj1.csproj", @"e:\work\B\proj2.csproj", @"e:\work\C\proj2.csproj" });
+
+            VerifyProjectBaseDir(
+              expectedValue: @"e:\work\A",  // if no team build value, use the common project paths root
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"e:\work\A\X\proj1.csproj", @"e:\work\A\proj2.csproj", @"e:\work\A\proj2.csproj" });
+
+            VerifyProjectBaseDir(
+              expectedValue: TestSonarqubeOutputDir,  // if no common root exists, use the .sonarqube/out dir
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"f:\work\A\proj1.csproj", @"e:\work\B\proj2.csproj" });
         }
 
         [TestMethod]
@@ -259,7 +280,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             // Arrange
             string projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_AnalysisSettingsWritten");
             string productProject = CreateEmptyFile(projectBaseDir, "MyProduct.csproj");
-            
+
             string productFile = CreateEmptyFile(projectBaseDir, "File.cs");
             List<string> productFiles = new List<string>();
             productFiles.Add(productFile);
@@ -280,10 +301,10 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             product.AnalysisSettings.Add(new Property() { Id = "my.setting1", Value = "setting1" });
             product.AnalysisSettings.Add(new Property() { Id = "my.setting2", Value = "setting 2 with spaces" });
             product.AnalysisSettings.Add(new Property() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" }); // path that will be escaped
-            
+
             // Act
             PropertiesWriter writer = new PropertiesWriter(config);
-            writer.WriteSettingsForProject(product, new string[] { productFile }, null, null);          
+            writer.WriteSettingsForProject(product, new string[] { productFile }, null, null);
             string fullActualPath = SaveToResultFile(projectBaseDir, "Actual.txt", writer.Flush());
 
             // Assert
@@ -298,7 +319,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
         public void PropertiesWriter_GlobalSettingsWritten()
         {
             // Tests that global settings in the ProjectInfo are written to the file
-            
+
             // Arrange
             string projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_GlobalSettingsWritten");
 
@@ -328,6 +349,30 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
         #endregion
 
         #region Private methods
+
+        private void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths)
+        {
+            AnalysisConfig config = new AnalysisConfig();
+            PropertiesWriter writer = new PropertiesWriter(config);
+            config.SonarOutputDir = TestSonarqubeOutputDir;
+
+            config.SourcesDirectory = teamBuildValue;
+            config.SetConfigValue(SonarProperties.ProjectBaseDir, userValue);
+
+            using (new AssertIgnoreScope())
+            {
+                foreach (string projectPath in projectPaths)
+                {
+                    var projectInfo = new ProjectInfo { FullPath = projectPath, ProjectLanguage = ProjectLanguages.CSharp };
+                    writer.WriteSettingsForProject(projectInfo, Enumerable.Empty<string>(), "", "");
+                }
+
+                var actual = writer.Flush();
+                var expected = "\r\nsonar.projectBaseDir=" + PropertiesWriter.Escape(expectedValue);
+
+                Assert.IsTrue(actual.Contains(expected));
+            }
+        }
 
         private static ProjectInfo CreateProjectInfo(string name, string projectId, string fullFilePath, bool isTest, IEnumerable<string> files, string fileListFilePath, string fxCopReportPath, string coverageReportPath, string language)
         {
@@ -379,7 +424,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             this.TestContext.AddResultFile(fullPath);
             return fullPath;
         }
-        
+
         #endregion
     }
 }

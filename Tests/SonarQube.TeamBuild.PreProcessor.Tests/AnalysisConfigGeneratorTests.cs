@@ -116,6 +116,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Check the file setting value do not appear in the config file
             AssertFileDoesNotContainText(actualConfig.FileName, "file.only");
 
+            Assert.AreEqual(settings.SourcesDirectory, actualConfig.SourcesDirectory);
             Assert.AreEqual(settings.SonarRunnerWorkingDirectory, actualConfig.SonarRunnerWorkingDirectory);
         }
 

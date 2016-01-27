@@ -33,6 +33,13 @@ namespace SonarQube.Common
         ///  See https://jira.sonarsource.com/browse/SONARMSBRU-100 for details.</remarks>
         public string SonarRunnerWorkingDirectory { get; set; }
 
+        /// <summary>
+        /// Parent directory of the source files. 
+        /// </summary>
+        /// <remarks>SCM plugins like Git or TFVC expect to find .git or $tf subdirectories directly under the sources directory 
+        /// in order to and provide annotations. </remarks>
+        public string SourcesDirectory { get; set; }
+
         #region SonarQube project properties
 
         public string SonarQubeHostUrl { get; set; }

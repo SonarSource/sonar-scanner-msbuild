@@ -40,12 +40,14 @@ namespace SonarQube.TeamBuild.Integration
 
             public const string BuildUri_Legacy = "TF_BUILD_BUILDURI";
             public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
+            public const string SourcesDirectory_Legacy = "TF_BUILD_SOURCESDIRECTORY";
 
-            // TFS 2015 Environment variables
+            // TFS 2015 (TFS Build) Environment variables
             public const string TfsCollectionUri_TFS2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
 
             public const string BuildUri_TFS2015 = "BUILD_BUILDURI";
             public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
+            public const string SourcesDirectory_TFS2015 = "BUILD_SOURCESDIRECTORY";
         }
 
         #region Public static methods
@@ -74,6 +76,7 @@ namespace SonarQube.TeamBuild.Integration
                         BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_Legacy),
                         TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUri_Legacy),
                         BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectory_Legacy),
+                        SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectory_Legacy),
                     };
 
                     break;
@@ -85,6 +88,7 @@ namespace SonarQube.TeamBuild.Integration
                         BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_TFS2015),
                         TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUri_TFS2015),
                         BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectory_TFS2015),
+                        SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectory_TFS2015),
                     };
 
                     break;
@@ -94,6 +98,7 @@ namespace SonarQube.TeamBuild.Integration
                     settings = new TeamBuildSettings()
                     {
                         BuildEnvironment = env,
+                        // there's no reliable of way of finding the SourcesDirectory, except after the build
                     };
 
                     break;
@@ -183,6 +188,12 @@ namespace SonarQube.TeamBuild.Integration
             private set;
         }
 
+        public string SourcesDirectory
+        {
+            get;
+            private set;
+        }
+
         /// <summary>
         /// The base working directory under which the various analysis
         /// sub-directories (bin, conf, out) should be created
@@ -259,7 +270,8 @@ namespace SonarQube.TeamBuild.Integration
             {
                 BuildEnvironment = BuildEnvironment.NotTeamBuild,
                 AnalysisBaseDirectory = analysisBaseDirectory,
-                SonarRunnerWorkingDirectory = Directory.GetParent(analysisBaseDirectory).FullName
+                SonarRunnerWorkingDirectory = Directory.GetParent(analysisBaseDirectory).FullName,
+                SourcesDirectory = Directory.GetParent(analysisBaseDirectory).FullName
             };
 
             return settings;
