@@ -60,7 +60,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertExpectedAnalysisProperties(result, expectedErrorLog, GetDummyRulesetFilePath(), GetDummySonarLintXmlFilePath());
             AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, GetSonarLintAnalyzerFilePaths());
 
-            BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result);
+            BuildAssertions.AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
         }
 
         [TestMethod]
@@ -99,7 +99,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string expectedErrorLog = Path.Combine(targetDir, ErrorLogFileName);
 
             AssertExpectedAnalysisProperties(result, expectedErrorLog, sourceRulesetFilePath, GetDummySonarLintXmlFilePath());
-            BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result);
+            BuildAssertions.AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
 
             // Check the analyzer properties are set as expected
             List<string> expectedAnalyzers = new List<string>(GetSonarLintAnalyzerFilePaths());
@@ -136,13 +136,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string sourceRulesetFilePath = GetDummyRulesetFilePath();
             this.TestContext.AddResultFile(sourceRulesetFilePath);
 
-            BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result);
+            BuildAssertions.AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
 
             string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
             string expectedErrorLog = Path.Combine(targetDir, ErrorLogFileName);
 
             AssertExpectedAnalysisProperties(result, expectedErrorLog, sourceRulesetFilePath, GetDummySonarLintXmlFilePath());
-            BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result);
+            BuildAssertions.AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
 
             // Check the analyzer properties are set as expected
             List<string> expectedAnalyzers = new List<string>(GetSonarLintAnalyzerFilePaths());
@@ -202,7 +202,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarQubeRoslynAssemblyExists", "True");
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, "SonarLintFound", "false");
 
-            BuildAssertions.AssertWarningsAreNotTreatedAsErrors(result); // still expect warnings not to be treated as errors as that will fail the build
+            BuildAssertions.AssertWarningsAreNotTreatedAsErrorsNorIgnored(result); // still expect warnings not to be treated as errors as that will fail the build
 
             AssertExpectedAnalysisProperties(result, "pre-existing.log", "pre-existing.ruleset", string.Empty);
         }

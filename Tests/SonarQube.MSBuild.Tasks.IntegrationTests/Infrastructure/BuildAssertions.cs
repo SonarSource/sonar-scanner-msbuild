@@ -167,12 +167,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         }
 
         /// <summary>
-        /// Checks that no analysis warnings will be treated as errors
+        /// Checks that no analysis warnings will be treated as errors nor will they be ignored
         /// </summary>
-        public static void AssertWarningsAreNotTreatedAsErrors(BuildResult actualResult)
+        public static void AssertWarningsAreNotTreatedAsErrorsNorIgnored(BuildResult actualResult)
         {
             AssertExpectedPropertyValue(actualResult.ProjectStateAfterBuild, TargetProperties.TreatWarningsAsErrors, "false");
             AssertExpectedPropertyValue(actualResult.ProjectStateAfterBuild, TargetProperties.WarningsAsErrors, "");
+            AssertExpectedPropertyValue(actualResult.ProjectStateAfterBuild, TargetProperties.WarningLevel, "4");
         }
 
         #endregion
