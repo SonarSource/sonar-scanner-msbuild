@@ -105,8 +105,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
             // Sanity check for our test code
             testDuration.Stop();
-            Assert.IsTrue(testDuration.ElapsedMilliseconds > 1000, "Test error: expecting the test to have taken at least {0} milliseconds to run. Actual: {1}",
-                lockPeriodInMilliseconds, testDuration.ElapsedMilliseconds);
+            int expectedMinimumLockPeriod = System.Math.Min(TaskUtilities.MaxConfigRetryPeriodInMilliseconds, lockPeriodInMilliseconds);
+            Assert.IsTrue(testDuration.ElapsedMilliseconds >= expectedMinimumLockPeriod, "Test error: expecting the test to have taken at least {0} milliseconds to run. Actual: {1}",
+                expectedMinimumLockPeriod, testDuration.ElapsedMilliseconds);
         }
 
         #endregion
