@@ -129,11 +129,6 @@ namespace SonarQube.Common.UnitTests
 
             // 2. Other values that can't be set
             logger = CheckProcessingFails(
-                "sonar.projectBaseDir=value1");
-            logger.AssertSingleErrorExists(SonarProperties.ProjectBaseDir);
-
-
-            logger = CheckProcessingFails(
                 "sonar.working.directory=value1");
             logger.AssertSingleErrorExists(SonarProperties.WorkingDirectory);
 
@@ -145,7 +140,7 @@ namespace SonarQube.Common.UnitTests
 
         private static void AddDynamicArguments(IList<ArgumentInstance> args, params string[] argValues)
         {
-            foreach(string argValue in argValues)
+            foreach (string argValue in argValues)
             {
                 args.Add(new ArgumentInstance(CmdLineArgPropertyProvider.Descriptor, argValue));
             }

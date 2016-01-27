@@ -22,7 +22,7 @@ namespace SonarQube.Common
             id: DynamicPropertyArgumentId, prefixes: new string[] { "/d:" }, required: false, allowMultiple: true, description: Resources.CmdLine_ArgDescription_DynamicProperty);
 
         private readonly IEnumerable<Property> properties;
-           
+
         #region Public methods
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace SonarQube.Common
         {
             return Property.TryGetProperty(key, this.properties, out property);
         }
-           
+
         public IEnumerable<Property> GetAllProperties()
         {
             return this.properties ?? Enumerable.Empty<Property>();
@@ -92,7 +92,7 @@ namespace SonarQube.Common
         #endregion
 
         #region Analysis properties handling
-        
+
         /// <summary>
         /// Fetches and processes any analysis properties from the command line arguments
         /// </summary>
@@ -136,14 +136,13 @@ namespace SonarQube.Common
             success = success & !ContainsNamedParameter(SonarProperties.ProjectName, validProperties, logger, Resources.ERROR_CmdLine_MustUseProjectName);
             success = success & !ContainsNamedParameter(SonarProperties.ProjectVersion, validProperties, logger, Resources.ERROR_CmdLine_MustUseProjectVersion);
 
-            // Check for others properties that can't be set
-            success = success & !ContainsUnsettableParameter(SonarProperties.ProjectBaseDir, validProperties, logger);
+            // Check for others properties that can't be set            
             success = success & !ContainsUnsettableParameter(SonarProperties.WorkingDirectory, validProperties, logger);
 
             analysisProperties = validProperties;
             return success;
         }
-        
+
         private static bool ContainsNamedParameter(string propertyName, IEnumerable<Property> properties, ILogger logger, string errorMessage)
         {
             Property existing;

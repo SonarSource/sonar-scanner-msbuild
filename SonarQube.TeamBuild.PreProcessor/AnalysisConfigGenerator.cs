@@ -20,8 +20,8 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// </summary>
         /// <returns></returns>
         public static AnalysisConfig GenerateFile(ProcessedArgs args,
-            TeamBuildSettings settings,
-            IDictionary<string, string> serverProperties, 
+            TeamBuildSettings buildSettings,
+            IDictionary<string, string> serverProperties,
             AnalyzerSettings analyzerSettings, // could be null if the Rolsyn profile couldn't be retrieved
             ILogger logger)
         {
@@ -29,7 +29,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException("args");
             }
-            if (settings == null)
+            if (buildSettings == null)
             {
                 throw new ArgumentNullException("settings");
             }
@@ -48,12 +48,14 @@ namespace SonarQube.TeamBuild.PreProcessor
             config.SonarProjectVersion = args.ProjectVersion;
             config.SonarQubeHostUrl = args.GetSetting(SonarProperties.HostUrl);
 
-            config.SetBuildUri(settings.BuildUri);
-            config.SetTfsUri(settings.TfsUri);
-            config.SonarConfigDir = settings.SonarConfigDirectory;
-            config.SonarOutputDir = settings.SonarOutputDirectory;
-            config.SonarBinDir = settings.SonarBinDirectory;
-            config.SonarRunnerWorkingDirectory = settings.SonarRunnerWorkingDirectory;
+            config.SetBuildUri(buildSettings.BuildUri);
+            config.SetTfsUri(buildSettings.TfsUri);
+
+            config.SonarConfigDir = buildSettings.SonarConfigDirectory;
+            config.SonarOutputDir = buildSettings.SonarOutputDirectory;
+            config.SonarBinDir = buildSettings.SonarBinDirectory;
+            config.SonarRunnerWorkingDirectory = buildSettings.SonarRunnerWorkingDirectory;
+            config.SourcesDirectory = buildSettings.SourcesDirectory;
 
             // Add the server properties to the config
             config.ServerSettings = new AnalysisProperties();
@@ -81,7 +83,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             config.AnalyzerSettings = analyzerSettings;
 
-            config.Save(settings.AnalysisConfigFilePath);
+            config.Save(buildSettings.AnalysisConfigFilePath);
 
             return config;
         }

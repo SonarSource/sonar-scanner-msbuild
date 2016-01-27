@@ -35,7 +35,7 @@ namespace SonarRunner.Shim
             {
                 return null;
             }
-            
+
             StringBuilder sb = new StringBuilder();
 
             foreach (char c in value)
@@ -163,7 +163,7 @@ namespace SonarRunner.Shim
 
             if (project.AnalysisSettings != null && project.AnalysisSettings.Any())
             {
-                foreach(Property setting in project.AnalysisSettings)
+                foreach (Property setting in project.AnalysisSettings)
                 {
                     sb.AppendFormat("{0}.{1}={2}", guid, setting.Id, Escape(setting.Value));
                     sb.AppendLine();
@@ -182,7 +182,7 @@ namespace SonarRunner.Shim
                 throw new ArgumentNullException("properties");
             }
 
-            foreach(Property setting in properties)
+            foreach (Property setting in properties)
             {
                 AppendKeyValue(this.sb, setting.Id, setting.Value);
             }
@@ -218,8 +218,8 @@ namespace SonarRunner.Shim
             AppendKeyValue(sb, SonarProperties.ProjectKey, this.config.SonarProjectKey);
             AppendKeyValue(sb, SonarProperties.ProjectName, this.config.SonarProjectName);
             AppendKeyValue(sb, SonarProperties.ProjectVersion, this.config.SonarProjectVersion);
-            AppendKeyValue(sb, SonarProperties.ProjectBaseDir, ComputeProjectBaseDir(projects, this.config.SonarOutputDir));
             AppendKeyValue(sb, SonarProperties.WorkingDirectory, Path.Combine(this.config.SonarOutputDir, ".sonar"));
+            AppendDefaultProjectBaseDir(sb);
 
             sb.AppendLine();
 
@@ -228,6 +228,7 @@ namespace SonarRunner.Shim
             sb.AppendLine();
         }
 
+        // todo delete
         private static string ComputeProjectBaseDir(IEnumerable<ProjectInfo> projects, string defaultValue)
         {
             var projectDirs = projects.Select(p => p.GetProjectDirectory());
@@ -255,6 +256,24 @@ namespace SonarRunner.Shim
             {
                 Array.ForEach(pathPartEnumerators, e => e.Dispose());
             }
+        }
+
+
+        /// <summary>
+        /// Appends the sonar.projectBaseDir value if the user hasn't supplied a value for it. 
+        /// Otherwise, use the sources directory.
+        /// </summary>
+        private void AppendDefaultProjectBaseDir(StringBuilder sb)
+        {
+            string projectBaseDir = this.config.GetConfigValue(SonarProperties.ProjectBaseDir, null);
+
+            if (String.IsNullOrEmpty(projectBaseDir))
+            {
+                projectBaseDir = config.SourcesDirectory;
+            }
+
+            AppendKeyValue(sb, SonarProperties.ProjectBaseDir, projectBaseDir);
+
         }
 
         #endregion

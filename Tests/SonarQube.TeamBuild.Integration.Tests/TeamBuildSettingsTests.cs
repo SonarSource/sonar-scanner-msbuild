@@ -132,7 +132,14 @@ namespace SonarQube.TeamBuild.Integration.Tests
                 settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
 
                 // Check the environment properties
-                CheckExpectedSettings(settings, BuildEnvironment.NotTeamBuild, Directory.GetCurrentDirectory(), null, null, null);
+                CheckExpectedSettings(
+                    settings,
+                    BuildEnvironment.NotTeamBuild,
+                    Directory.GetCurrentDirectory(),
+                    null,
+                    null,
+                    null,
+                    Directory.GetParent(Directory.GetCurrentDirectory()).FullName); // todo
             }
 
             // 2. Some Team build settings provided, but not marked as in team build
@@ -147,7 +154,14 @@ namespace SonarQube.TeamBuild.Integration.Tests
                 logger = new TestLogger();
                 settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
 
-                CheckExpectedSettings(settings, BuildEnvironment.NotTeamBuild, Directory.GetCurrentDirectory(), null, null, null);
+                CheckExpectedSettings(
+                    settings,
+                    BuildEnvironment.NotTeamBuild,
+                    Directory.GetCurrentDirectory(),
+                    null,
+                    null,
+                    null,
+                    Directory.GetParent(Directory.GetCurrentDirectory()).FullName);//todo
             }
         }
 
@@ -164,6 +178,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, "http://legacybuilduri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, "http://legacycollectionUri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_Legacy, "legacy build dir");
+                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_Legacy, @"c:\build\1234"); ;
 
                 // Act
                 settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
@@ -175,7 +190,14 @@ namespace SonarQube.TeamBuild.Integration.Tests
             logger.AssertWarningsLogged(0);
 
             // Check the environment properties
-            CheckExpectedSettings(settings, BuildEnvironment.LegacyTeamBuild, Directory.GetCurrentDirectory(), "http://legacybuilduri", "http://legacycollectionUri", "legacy build dir");
+            CheckExpectedSettings(
+                settings,
+                BuildEnvironment.LegacyTeamBuild,
+                Directory.GetCurrentDirectory(),
+                "http://legacybuilduri",
+                "http://legacycollectionUri",
+                "legacy build dir",
+                @"c:\build\1234");
         }
 
         [TestMethod]
@@ -191,6 +213,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "http://builduri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, "http://collectionUri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, "non-legacy team build");
+                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, @"c:\agent\_work\1"); ;
 
                 // Act
                 settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
@@ -202,14 +225,28 @@ namespace SonarQube.TeamBuild.Integration.Tests
             logger.AssertWarningsLogged(0);
 
             // Check the environment properties
-            CheckExpectedSettings(settings, BuildEnvironment.TeamBuild, Directory.GetCurrentDirectory(), "http://builduri", "http://collectionUri", "non-legacy team build");
+            CheckExpectedSettings(
+                settings,
+                BuildEnvironment.TeamBuild,
+                Directory.GetCurrentDirectory(),
+                "http://builduri",
+                "http://collectionUri",
+                "non-legacy team build",
+                @"c:\agent\_work\1");
         }
 
         #endregion Test methods
 
         #region Checks
 
-        private static void CheckExpectedSettings(TeamBuildSettings actual, BuildEnvironment expectedEnvironment, string expectedAnalysisDir, string expectedBuildUri, string expectedCollectionUri, string expectedBuildDir)
+        private static void CheckExpectedSettings(
+            TeamBuildSettings actual,
+            BuildEnvironment expectedEnvironment,
+            string expectedAnalysisDir,
+            string expectedBuildUri,
+            string expectedCollectionUri,
+            string expectedBuildDir,
+            string expectedSourcesDir)
         {
             Assert.IsNotNull(actual, "Returned settings should never be null");
 
@@ -218,6 +255,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             Assert.AreEqual(expectedBuildDir, actual.BuildDirectory, "Unexpected build directory returned");
             Assert.AreEqual(expectedBuildUri, actual.BuildUri, "Unexpected build uri returned");
             Assert.AreEqual(expectedCollectionUri, actual.TfsUri, "Unexpected tfs uri returned");
+            Assert.AreEqual(expectedSourcesDir, actual.SourcesDirectory, "Unexpected sources directory returned");
 
             // Check the calculated values
             Assert.AreEqual(Path.Combine(expectedAnalysisDir, "conf"), actual.SonarConfigDirectory, "Unexpected config dir");

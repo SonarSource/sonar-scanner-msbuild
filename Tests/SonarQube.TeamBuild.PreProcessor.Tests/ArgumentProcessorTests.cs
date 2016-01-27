@@ -99,7 +99,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             CheckProjectKeyIsInvalid("a\r\nb");
 
             // invalid non-alpha characters
-            CheckProjectKeyIsInvalid("+a"); 
+            CheckProjectKeyIsInvalid("+a");
             CheckProjectKeyIsInvalid("b@");
             CheckProjectKeyIsInvalid("c~");
             CheckProjectKeyIsInvalid("d,");
@@ -110,7 +110,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // 2. Valid
             CheckProjectKeyIsValid("0123456789.abcdefghijklmnopqrstuvwxyz:-._ABCDEFGHIJKLMNOPQRSTUVWXYZ"); // all valid characters
-            
+
             CheckProjectKeyIsValid("a"); // single alpha character
             CheckProjectKeyIsValid("_"); // single non-alpha character
             CheckProjectKeyIsValid(":"); // single non-alpha character
@@ -388,11 +388,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 "/d:sonar.projectVersion=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectVersion, "/v");
 
-            // 2. Other values that can't be set
-            logger = CheckProcessingFails(
-                "/key:my.key", "/name:my name", "/version:1.2",
-                "/d:sonar.projectBaseDir=value1");
-            logger.AssertSingleErrorExists(SonarProperties.ProjectBaseDir);
+            // 2. Other values that can't be set          
 
             logger = CheckProcessingFails(
                 "/key:my.key", "/name:my name", "/version:1.2",
