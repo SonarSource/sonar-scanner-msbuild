@@ -157,7 +157,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
                 SonarLintAnalyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey, this.logger);
 
-                CompilerAnalyzerConfig analyzerConfig = this.analyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey);
+                AnalyzerSettings analyzerSettings = this.analyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey);
                 //TODO: save the config so it can be picked up by the targets files
 
             }

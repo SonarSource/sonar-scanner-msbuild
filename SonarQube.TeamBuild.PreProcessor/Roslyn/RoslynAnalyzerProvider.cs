@@ -47,7 +47,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             this.logger = logger;
         }
 
-        public CompilerAnalyzerConfig SetupAnalyzers(ISonarQubeServer sqServer, TeamBuildSettings teamBuildSettings, string sqProjectKey)
+        public AnalyzerSettings SetupAnalyzers(ISonarQubeServer sqServer, TeamBuildSettings teamBuildSettings, string sqProjectKey)
         {
             if (sqServer == null)
             {
@@ -72,15 +72,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             this.settings = teamBuildSettings;
             this.projectKey = sqProjectKey;
 
-            CompilerAnalyzerConfig compilerConfig = null;
+            AnalyzerSettings analyzerSettings = null;
 
             RoslynExportProfile profile = TryGetRoslynConfigForProject();
             if (profile != null)
             {
-                compilerConfig = ProcessProfile(profile);
+                analyzerSettings = ProcessProfile(profile);
             }
 
-            return compilerConfig;
+            return analyzerSettings;
         }
 
         #endregion
@@ -118,7 +118,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return profile;
         }
 
-        private CompilerAnalyzerConfig ProcessProfile(RoslynExportProfile profile)
+        private AnalyzerSettings ProcessProfile(RoslynExportProfile profile)
         {
             Debug.Assert(profile != null, "Expecting a valid profile");
 
@@ -132,7 +132,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
             IEnumerable<string> analyzersAssemblies = this.FetchAnalyzerAssemblies(profile);
 
-            CompilerAnalyzerConfig compilerConfig = new CompilerAnalyzerConfig(rulesetFilePath,
+            AnalyzerSettings compilerConfig = new AnalyzerSettings(rulesetFilePath,
                 analyzersAssemblies ?? Enumerable.Empty<string>(),
                 additionalFiles ?? Enumerable.Empty<string>());
             return compilerConfig;

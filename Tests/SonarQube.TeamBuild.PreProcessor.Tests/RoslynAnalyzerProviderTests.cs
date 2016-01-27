@@ -40,10 +40,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
             
             // Act
-            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
 
             // Assert
-            AssertAnalyzerConfigNotPerformed(actualConfig, rootDir);
+            AssertAnalyzerSetupNotPerformed(actualSettings, rootDir);
 
             logger.AssertErrorsLogged(0);
         }
@@ -61,10 +61,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "unknown.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "unknown.project");
 
             // Assert
-            AssertAnalyzerConfigNotPerformed(actualConfig, rootDir);
+            AssertAnalyzerSetupNotPerformed(actualSettings, rootDir);
 
             logger.AssertErrorsLogged(0);
         }
@@ -98,10 +98,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
 
             // Assert
-            AssertAnalyzerConfigNotPerformed(actualConfig, rootDir);
+            AssertAnalyzerSetupNotPerformed(actualSettings, rootDir);
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
@@ -124,18 +124,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
             // Act
-            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
 
             // Assert
-            CheckConfigInvariants(actualConfig);
+            CheckSettingsInvariants(actualSettings);
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
 
-            CheckRuleset(actualConfig, rootDir);
-            CheckExpectedAdditionalFiles(testProfile, actualConfig);
+            CheckRuleset(actualSettings, rootDir);
+            CheckExpectedAdditionalFiles(testProfile, actualSettings);
 
             mockInstaller.AssertExpectedPackagesRequested(testProfile.Packages);
-            CheckExpectedAssemblies(actualConfig, "c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
+            CheckExpectedAssemblies(actualSettings, "c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
         }
 
         [TestMethod]
@@ -152,18 +152,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
 
             // Assert
-            CheckConfigInvariants(actualConfig);
+            CheckSettingsInvariants(actualSettings);
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
-            CheckRuleset(actualConfig, rootDir);
-            CheckExpectedAdditionalFiles(testProfile, actualConfig);
+            CheckRuleset(actualSettings, rootDir);
+            CheckExpectedAdditionalFiles(testProfile, actualSettings);
 
             // Check the additional file is valid XML
-            Assert.AreEqual(1, actualConfig.AdditionalFilePaths.Count(), "Test setup error: expecting only one additional file. Check the sample export XML has not changed");
-            string filePath = actualConfig.AdditionalFilePaths.First();
+            Assert.AreEqual(1, actualSettings.AdditionalFilePaths.Count(), "Test setup error: expecting only one additional file. Check the sample export XML has not changed");
+            string filePath = actualSettings.AdditionalFilePaths.First();
             CheckFileIsXml(filePath);
         }
 
@@ -195,12 +195,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
 
             // Assert
-            CheckConfigInvariants(actualConfig);
-            CheckRuleset(actualConfig, rootDir);
-            CheckExpectedAdditionalFileExists("foo.txt", expectedFileContent, actualConfig);
+            CheckSettingsInvariants(actualSettings);
+            CheckRuleset(actualSettings, rootDir);
+            CheckExpectedAdditionalFileExists("foo.txt", expectedFileContent, actualSettings);
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
@@ -235,13 +235,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
 
             // Assert
-            CheckConfigInvariants(actualConfig);
-            CheckRuleset(actualConfig, rootDir);
-            CheckExpectedAdditionalFileExists("foo.txt", expectedFileContent, actualConfig);
-            CheckExpectedAdditionalFileExists("file2.txt", string.Empty, actualConfig);
+            CheckSettingsInvariants(actualSettings);
+            CheckRuleset(actualSettings, rootDir);
+            CheckExpectedAdditionalFileExists("foo.txt", expectedFileContent, actualSettings);
+            CheckExpectedAdditionalFileExists("file2.txt", string.Empty, actualSettings);
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
@@ -272,12 +272,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            CompilerAnalyzerConfig actualConfig = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
 
             // Assert
-            CheckConfigInvariants(actualConfig);
+            CheckSettingsInvariants(actualSettings);
 
-            CheckExpectedAssemblies(actualConfig /* none */ );
+            CheckExpectedAssemblies(actualSettings /* none */ );
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
@@ -439,50 +439,50 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region Checks
 
-        private static void CheckConfigInvariants(CompilerAnalyzerConfig actualConfig)
+        private static void CheckSettingsInvariants(AnalyzerSettings actualSettings)
         {
-            Assert.IsNotNull(actualConfig, "Not expecting the config to be null");
-            Assert.IsNotNull(actualConfig.AdditionalFilePaths);
-            Assert.IsNotNull(actualConfig.AnalyzerAssemblyPaths);
-            Assert.IsFalse(string.IsNullOrEmpty(actualConfig.RulesetFilePath));
+            Assert.IsNotNull(actualSettings, "Not expecting the config to be null");
+            Assert.IsNotNull(actualSettings.AdditionalFilePaths);
+            Assert.IsNotNull(actualSettings.AnalyzerAssemblyPaths);
+            Assert.IsFalse(string.IsNullOrEmpty(actualSettings.RuleSetFilePath));
 
             // Any file paths returned in the config should exist
-            foreach (string filePath in actualConfig.AdditionalFilePaths)
+            foreach (string filePath in actualSettings.AdditionalFilePaths)
             {
                 Assert.IsTrue(File.Exists(filePath), "Expected additional file does not exist: {0}", filePath);
             }
-            Assert.IsTrue(File.Exists(actualConfig.RulesetFilePath), "Specified ruleset does not exist: {0}", actualConfig.RulesetFilePath);
+            Assert.IsTrue(File.Exists(actualSettings.RuleSetFilePath), "Specified ruleset does not exist: {0}", actualSettings.RuleSetFilePath);
         }
 
-        private void CheckRuleset(CompilerAnalyzerConfig actualConfig, string rootTestDir)
+        private void CheckRuleset(AnalyzerSettings actualSettings, string rootTestDir)
         {
-            Assert.IsFalse(string.IsNullOrWhiteSpace(actualConfig.RulesetFilePath), "Ruleset file path should be set");
-            Assert.IsTrue(Path.IsPathRooted(actualConfig.RulesetFilePath), "Ruleset file path should be absolute");
-            Assert.IsTrue(File.Exists(actualConfig.RulesetFilePath), "Specified ruleset file does not exist: {0}", actualConfig.RulesetFilePath);
-            this.TestContext.AddResultFile(actualConfig.RulesetFilePath);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(actualSettings.RuleSetFilePath), "Ruleset file path should be set");
+            Assert.IsTrue(Path.IsPathRooted(actualSettings.RuleSetFilePath), "Ruleset file path should be absolute");
+            Assert.IsTrue(File.Exists(actualSettings.RuleSetFilePath), "Specified ruleset file does not exist: {0}", actualSettings.RuleSetFilePath);
+            this.TestContext.AddResultFile(actualSettings.RuleSetFilePath);
 
-            CheckFileIsXml(actualConfig.RulesetFilePath);
+            CheckFileIsXml(actualSettings.RuleSetFilePath);
 
-            Assert.AreEqual(RoslynAnalyzerProvider.RoslynCSharpRulesetFileName, Path.GetFileName(actualConfig.RulesetFilePath), "Ruleset file does not have the expected name");
+            Assert.AreEqual(RoslynAnalyzerProvider.RoslynCSharpRulesetFileName, Path.GetFileName(actualSettings.RuleSetFilePath), "Ruleset file does not have the expected name");
 
             string expectedFilePath = GetExpectedRulesetFilePath(rootTestDir);
-            Assert.AreEqual(expectedFilePath, actualConfig.RulesetFilePath, "Ruleset was not written to the expected location");
+            Assert.AreEqual(expectedFilePath, actualSettings.RuleSetFilePath, "Ruleset was not written to the expected location");
 
         }
         
-        private void CheckExpectedAdditionalFiles(WellKnownProfile expected, CompilerAnalyzerConfig actualConfig)
+        private void CheckExpectedAdditionalFiles(WellKnownProfile expected, AnalyzerSettings actualSettings)
         {
             foreach (string expectedFileName in expected.AdditionalFiles.Keys)
             {
                 string expectedContent = expected.AdditionalFiles[expectedFileName];
-                CheckExpectedAdditionalFileExists(expectedFileName, expectedContent, actualConfig);
+                CheckExpectedAdditionalFileExists(expectedFileName, expectedContent, actualSettings);
             }
         }
 
-        private void CheckExpectedAdditionalFileExists(string expectedFileName, string expectedContent, CompilerAnalyzerConfig actualConfig)
+        private void CheckExpectedAdditionalFileExists(string expectedFileName, string expectedContent, AnalyzerSettings actualSettings)
         {
             // Check one file of the expected name exists
-            IEnumerable<string> matches = actualConfig.AdditionalFilePaths.Where(actual => string.Equals(expectedFileName, Path.GetFileName(actual), System.StringComparison.OrdinalIgnoreCase));
+            IEnumerable<string> matches = actualSettings.AdditionalFilePaths.Where(actual => string.Equals(expectedFileName, Path.GetFileName(actual), System.StringComparison.OrdinalIgnoreCase));
             Assert.AreEqual(1, matches.Count(), "Unexpected number of files named \"{0}\". One and only one expected", expectedFileName);
 
             // Check the file exists and has the expected content
@@ -501,9 +501,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             }
         }
 
-        private static void AssertAnalyzerConfigNotPerformed(CompilerAnalyzerConfig actual, string rootTestDir)
+        private static void AssertAnalyzerSetupNotPerformed(AnalyzerSettings actualSettings, string rootTestDir)
         {
-            Assert.IsNull(actual, "Not expecting a config instance to have been returned");
+            Assert.IsNull(actualSettings, "Not expecting a config instance to have been returned");
 
             string filePath = GetExpectedRulesetFilePath(rootTestDir);
             Assert.IsFalse(File.Exists(filePath), "Not expecting the ruleset file to exist: {0}", filePath);
@@ -516,14 +516,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsNotNull(doc.FirstChild, "Expecting the file to contain some valid XML");
         }
 
-        private static void CheckExpectedAssemblies(CompilerAnalyzerConfig actualConfig, params string[] expected)
+        private static void CheckExpectedAssemblies(AnalyzerSettings actualSettings, params string[] expected)
         {
             foreach(string expectedItem in expected)
             {
-                Assert.IsTrue(actualConfig.AnalyzerAssemblyPaths.Contains(expectedItem, StringComparer.OrdinalIgnoreCase),
+                Assert.IsTrue(actualSettings.AnalyzerAssemblyPaths.Contains(expectedItem, StringComparer.OrdinalIgnoreCase),
                     "Expected assembly file path was not returned: {0}", expectedItem);
             }
-            Assert.AreEqual(expected.Length, actualConfig.AnalyzerAssemblyPaths.Count(), "Too many assembly file paths returned");
+            Assert.AreEqual(expected.Length, actualSettings.AnalyzerAssemblyPaths.Count(), "Too many assembly file paths returned");
         }
 
         #endregion

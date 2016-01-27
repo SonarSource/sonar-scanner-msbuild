@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="CompilerAnalyzerConfig.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="AnalyzerSettings.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -7,21 +7,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Xml.Serialization;
 
-namespace SonarQube.TeamBuild.PreProcessor.Roslyn
+namespace SonarQube.Common
 {
     /// <summary>
     /// Data class containing the information required to configure
     /// the compiler for Roslyn analysis
     /// </summary>
-    public class CompilerAnalyzerConfig
+    /// <remarks>This class is XML-serializable</remarks>
+    public class AnalyzerSettings
     {
-        private readonly string ruleSetFilePath;
-        private readonly IEnumerable<string> assemblyPaths;
-        private readonly IEnumerable<string> additionalFilePaths;
+        public AnalyzerSettings()
+        {
+        }
 
-        public CompilerAnalyzerConfig(string ruleSetFilePath, IEnumerable<string> analyzerAssemblies, IEnumerable<string> additionalFiles)
+        public AnalyzerSettings(string ruleSetFilePath, IEnumerable<string> analyzerAssemblies, IEnumerable<string> additionalFiles)
         {
             if (string.IsNullOrWhiteSpace(ruleSetFilePath))
             {
@@ -36,25 +37,29 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 throw new ArgumentNullException("additionalFiles");
             }
 
-            this.ruleSetFilePath = ruleSetFilePath;
-            this.assemblyPaths = analyzerAssemblies.ToArray();
-            this.additionalFilePaths = additionalFiles.ToArray();
+            this.RuleSetFilePath = ruleSetFilePath;
+            this.AnalyzerAssemblyPaths = new List<string>(analyzerAssemblies);
+            this.AdditionalFilePaths = new List<string>(additionalFiles);
         }
 
         /// <summary>
         /// Path to the ruleset for the Roslyn analyzers
         /// </summary>
-        public string RulesetFilePath { get { return this.ruleSetFilePath; } }
+        public string RuleSetFilePath { get; set; }
 
         /// <summary>
         /// File paths for all of the assemblies to pass to the compiler as analyzers
         /// </summary>
         /// <remarks>This includes analyzer assemblies and their dependencies</remarks>
-        public IEnumerable<string> AnalyzerAssemblyPaths { get { return this.assemblyPaths; } }
+        [XmlArray]
+        [XmlArrayItem("Path")]
+        public List<string> AnalyzerAssemblyPaths { get; set; }
 
         /// <summary>
         /// File paths for all files to pass as "AdditionalFiles" to the compiler
         /// </summary>
-        public IEnumerable<string> AdditionalFilePaths { get { return this.additionalFilePaths; } }
+        [XmlArray]
+        [XmlArrayItem("Path")]
+        public List<string> AdditionalFilePaths { get; set; }
     }
 }

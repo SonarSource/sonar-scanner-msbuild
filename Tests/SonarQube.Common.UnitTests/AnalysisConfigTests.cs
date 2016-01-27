@@ -59,8 +59,34 @@ namespace SonarQube.Common.UnitTests
             originalConfig.ServerSettings = new AnalysisProperties();
             originalConfig.ServerSettings.Add(new Property() { Id = "server.key", Value = "server.value" });
 
+            originalConfig.AnalyzerSettings = new AnalyzerSettings();
+            originalConfig.AnalyzerSettings.RuleSetFilePath = "ruleset path";
+
+            originalConfig.AnalyzerSettings.AdditionalFilePaths = new List<string>();
+            originalConfig.AnalyzerSettings.AdditionalFilePaths.Add("additional path1");
+            originalConfig.AnalyzerSettings.AdditionalFilePaths.Add("additional path2");
+
+            originalConfig.AnalyzerSettings.AnalyzerAssemblyPaths = new List<string>();
+            originalConfig.AnalyzerSettings.AnalyzerAssemblyPaths.Add("analyzer path1");
+            originalConfig.AnalyzerSettings.AnalyzerAssemblyPaths.Add("analyzer path2");
+
+
             string fileName = Path.Combine(testFolder, "config1.xml");
 
+            SaveAndReloadConfig(originalConfig, fileName);
+        }
+
+        [TestMethod]
+        [Description("Checks AnalysisConfig can be serialized and deserialized with missing values and empty collections")]
+        public void AnalysisConfig_Serialization_SaveAndReload_EmptySettings()
+        {
+            // Arrange
+            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            AnalysisConfig originalConfig = new AnalysisConfig();
+            string fileName = Path.Combine(testFolder, "empty_config.xml");
+
+            // Act and assert
             SaveAndReloadConfig(originalConfig, fileName);
         }
 
@@ -105,6 +131,69 @@ namespace SonarQube.Common.UnitTests
             }
         }
 
+        [TestMethod]
+        [Description("Checks that the XML uses the expected element and attribute names, and that unrecognised elements are silently ignored")]
+        public void AnalysisConfig_ExpectedXmlFormat()
+        {
+            // Arrange
+            string xml = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<AnalysisConfig xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns=""http://www.sonarsource.com/msbuild/integration/2015/1"">
+  <SonarConfigDir>c:\config</SonarConfigDir>
+  <SonarOutputDir>c:\output</SonarOutputDir>
+  <SonarProjectKey>key.1.2</SonarProjectKey>
+  <SonarProjectVersion>1.0</SonarProjectVersion>
+  <SonarProjectName>My project</SonarProjectName>
+  <ServerSettings>
+    <Property Name=""server.key"">server.value</Property>
+  </ServerSettings>
+
+  <!-- Unexpected additional elements should be silently ignored -->
+  <UnexpectedElement1 />
+
+  <LocalSettings>
+    <Property Name=""local.key"">local.value</Property>
+  </LocalSettings>
+  <AnalyzerSettings>
+    <RuleSetFilePath>d:\ruleset path.ruleset</RuleSetFilePath>
+    <AnalyzerAssemblyPaths>
+      <Path>c:\analyzer1.dll</Path>
+    </AnalyzerAssemblyPaths>
+    <AdditionalFilePaths>
+
+      <MoreUnexpectedData><Foo /></MoreUnexpectedData>
+
+      <Path>c:\additional1.txt</Path>
+    </AdditionalFilePaths>
+  </AnalyzerSettings>
+</AnalysisConfig>";
+
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            string fullPath = TestUtils.CreateTextFile(testDir, "input.txt", xml);
+
+            // Act
+            AnalysisConfig actual = AnalysisConfig.Load(fullPath);
+
+            // Assert
+            AnalysisConfig expected = new AnalysisConfig();
+            expected.SonarConfigDir = "c:\\config";
+            expected.SonarOutputDir = "c:\\output";
+            expected.SonarProjectKey = "key.1.2";
+            expected.SonarProjectVersion = "1.0";
+            expected.SonarProjectName = "My project";
+            expected.ServerSettings = new AnalysisProperties();
+            expected.ServerSettings.Add(new Property() { Id = "server.key", Value = "server.value" });
+            expected.LocalSettings = new AnalysisProperties();
+            expected.LocalSettings.Add(new Property() { Id = "local.key", Value = "local.value" });
+            expected.AnalyzerSettings = new AnalyzerSettings();
+            expected.AnalyzerSettings.RuleSetFilePath = "d:\\ruleset path.ruleset";
+            expected.AnalyzerSettings.AdditionalFilePaths = new List<string>();
+            expected.AnalyzerSettings.AdditionalFilePaths.Add("c:\\additional1.txt");
+            expected.AnalyzerSettings.AnalyzerAssemblyPaths = new List<string>();
+            expected.AnalyzerSettings.AnalyzerAssemblyPaths.Add("c:\\analyzer1.dll");
+
+            AssertExpectedValues(expected, actual);
+        }
+
         #endregion
 
         #region Helper methods
@@ -133,10 +222,13 @@ namespace SonarQube.Common.UnitTests
             Assert.AreEqual(expected.SonarOutputDir, actual.SonarOutputDir, "Unexpected output directory");
 
             CompareAdditionalSettings(expected, actual);
+
+            CompareAnalyzerSettings(expected.AnalyzerSettings, actual.AnalyzerSettings);
         }
 
         private static void CompareAdditionalSettings(AnalysisConfig expected, AnalysisConfig actual)
         {
+            // The XmlSerializer should create an empty list
             Assert.IsNotNull(actual.AdditionalConfig, "Not expecting the AdditionalSettings to be null for a reloaded file");
 
             if (expected.AdditionalConfig == null || expected.AdditionalConfig.Count == 0)
@@ -161,6 +253,21 @@ namespace SonarQube.Common.UnitTests
             Assert.AreEqual(expectedValue, actualSetting.Value, "Setting does not have the expected value. SettingId: {0}", settingId);
         }
 
+        private static void CompareAnalyzerSettings(AnalyzerSettings expected, AnalyzerSettings actual)
+        {
+            if (expected == null)
+            {
+                Assert.IsNull(actual, "Expecting the reloaded analyzer settings to be null");
+                return;
+            }
+
+            Assert.IsNotNull(actual, "Not expecting the actual analyzer settings to be null for a reloaded file");
+
+            Assert.AreEqual(expected.RuleSetFilePath, actual.RuleSetFilePath, "Unexpected Ruleset value");
+
+            CollectionAssert.AreEqual(expected.AnalyzerAssemblyPaths, actual.AnalyzerAssemblyPaths, "Analyzer assembly paths do not match");
+            CollectionAssert.AreEqual(expected.AdditionalFilePaths, actual.AdditionalFilePaths, "Additional file paths do not match");
+        }
 
         #endregion
     }

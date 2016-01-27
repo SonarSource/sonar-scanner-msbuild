@@ -70,7 +70,6 @@
     <Compile Include="Interfaces\ISonarQubeServer.cs" />
     <Compile Include="Roslyn\AnalyzerInstaller.cs" />
     <Compile Include="Roslyn\Model\AdditionalFile.cs" />
-    <Compile Include="Roslyn\CompilerAnalyzerConfig.cs" />
     <Compile Include="Roslyn\Model\Configuration.cs" />
     <Compile Include="Roslyn\Model\Deployment.cs" />
     <Compile Include="Roslyn\Model\NuGetPackageInfo.cs" />
