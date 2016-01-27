@@ -22,7 +22,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         public static AnalysisConfig GenerateFile(ProcessedArgs args,
             TeamBuildSettings settings,
             IDictionary<string, string> serverProperties, 
-            AnalyzerSettings analyzerSettings,
+            AnalyzerSettings analyzerSettings, // could be null if the Rolsyn profile couldn't be retrieved
             ILogger logger)
         {
             if (args == null)
@@ -36,10 +36,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             if (serverProperties == null)
             {
                 throw new ArgumentNullException("serverProperties");
-            }
-            if (analyzerSettings == null)
-            {
-                throw new ArgumentNullException("analyzerSettings");
             }
             if (logger == null)
             {
