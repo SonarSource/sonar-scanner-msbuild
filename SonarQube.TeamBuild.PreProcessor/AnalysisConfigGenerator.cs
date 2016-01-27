@@ -14,13 +14,13 @@ namespace SonarQube.TeamBuild.PreProcessor
 {
     public static class AnalysisConfigGenerator
     {
-        public static AnalysisConfig GenerateFile(ProcessedArgs args, TeamBuildSettings settings, IDictionary<string, string> serverProperties, ILogger logger)
+        public static AnalysisConfig GenerateFile(ProcessedArgs args, TeamBuildSettings buildSettings, IDictionary<string, string> serverProperties, ILogger logger)
         {
             if (args == null)
             {
                 throw new ArgumentNullException("args");
             }
-            if (settings == null)
+            if (buildSettings == null)
             {
                 throw new ArgumentNullException("settings");
             }
@@ -39,12 +39,14 @@ namespace SonarQube.TeamBuild.PreProcessor
             config.SonarProjectVersion = args.ProjectVersion;
             config.SonarQubeHostUrl = args.GetSetting(SonarProperties.HostUrl);
 
-            config.SetBuildUri(settings.BuildUri);
-            config.SetTfsUri(settings.TfsUri);
-            config.SonarConfigDir = settings.SonarConfigDirectory;
-            config.SonarOutputDir = settings.SonarOutputDirectory;
-            config.SonarBinDir = settings.SonarBinDirectory;
-            config.SonarRunnerWorkingDirectory = settings.SonarRunnerWorkingDirectory;
+            config.SetBuildUri(buildSettings.BuildUri);
+            config.SetTfsUri(buildSettings.TfsUri);
+
+            config.SonarConfigDir = buildSettings.SonarConfigDirectory;
+            config.SonarOutputDir = buildSettings.SonarOutputDirectory;
+            config.SonarBinDir = buildSettings.SonarBinDirectory;
+            config.SonarRunnerWorkingDirectory = buildSettings.SonarRunnerWorkingDirectory;
+            config.SourcesDirectory = buildSettings.SourcesDirectory;
 
             // Add the server properties to the config
             config.ServerSettings = new AnalysisProperties();
@@ -70,7 +72,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                 config.SetSettingsFilePath(args.PropertiesFileName);
             }
 
-            config.Save(settings.AnalysisConfigFilePath);
+            config.Save(buildSettings.AnalysisConfigFilePath);
 
             return config;
         }
