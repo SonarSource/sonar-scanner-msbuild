@@ -19,6 +19,7 @@ namespace SonarRunner.Shim.Tests
     public class PropertiesWriterTest
     {
         public TestContext TestContext { get; set; }
+        private const string TestSonarqubeOutputDir = @"e:\.sonarqube\out";
 
         #region Tests
 
@@ -190,13 +191,57 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             Assert.AreEqual(expected, actual);
         }
 
-
-
         [TestMethod]
         public void PropertiesWriter_ComputeProjectBaseDir()
         {
-            VerifyProjectBaseDir(teamBuildValue: @"d:\work", userValue: @"d:\work\1", expectedValue: @"d:\work\1");
-            VerifyProjectBaseDir(teamBuildValue: @"d:\work", userValue: "", expectedValue: @"d:\work");
+            VerifyProjectBaseDir(
+                expectedValue: @"d:\work\mysources", // if there is a user value, use it
+                teamBuildValue: @"d:\work",
+                userValue: @"d:\work\mysources",
+                projectPaths: new[] { @"d:\work\proj1.csproj" });
+
+            VerifyProjectBaseDir(
+              expectedValue: @"d:\work",  // if no user value, use the team build value
+              teamBuildValue: @"d:\work",
+              userValue: null,
+              projectPaths: new[] { @"e:\work\proj1.csproj" });
+
+            VerifyProjectBaseDir(
+               expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+               teamBuildValue: null,
+               userValue: "",
+               projectPaths: new[] { @"e:\work\proj1.csproj" });
+
+            VerifyProjectBaseDir(
+              expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"e:\work\proj1.csproj", @"e:\work\proj2.csproj" });
+
+            VerifyProjectBaseDir(
+              expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"e:\work\A\proj1.csproj", @"e:\work\B\C\proj2.csproj" });
+
+
+            VerifyProjectBaseDir(
+              expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"e:\work\A\proj1.csproj", @"e:\work\B\proj2.csproj", @"e:\work\C\proj2.csproj" });
+
+            VerifyProjectBaseDir(
+              expectedValue: @"e:\work\A",  // if no team build value, use the common project paths root
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"e:\work\A\X\proj1.csproj", @"e:\work\A\proj2.csproj", @"e:\work\A\proj2.csproj" });
+
+            VerifyProjectBaseDir(
+              expectedValue: TestSonarqubeOutputDir,  // if no common root exists, use the .sonarqube/out dir
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"f:\work\A\proj1.csproj", @"e:\work\B\proj2.csproj" });
         }
 
         [TestMethod]
@@ -305,19 +350,22 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
 
         #region Private methods
 
-        private void VerifyProjectBaseDir(string teamBuildValue, string userValue, string expectedValue)
+        private void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths)
         {
             AnalysisConfig config = new AnalysisConfig();
             PropertiesWriter writer = new PropertiesWriter(config);
-            config.SonarOutputDir = "outputdir";
+            config.SonarOutputDir = TestSonarqubeOutputDir;
 
             config.SourcesDirectory = teamBuildValue;
             config.SetConfigValue(SonarProperties.ProjectBaseDir, userValue);
 
             using (new AssertIgnoreScope())
             {
-                var projectInfo = new ProjectInfo { FullPath = @"d:\foo", ProjectLanguage = ProjectLanguages.CSharp };
-                writer.WriteSettingsForProject(projectInfo, Enumerable.Empty<string>(), "", "");
+                foreach (string projectPath in projectPaths)
+                {
+                    var projectInfo = new ProjectInfo { FullPath = projectPath, ProjectLanguage = ProjectLanguages.CSharp };
+                    writer.WriteSettingsForProject(projectInfo, Enumerable.Empty<string>(), "", "");
+                }
 
                 var actual = writer.Flush();
                 var expected = "\r\nsonar.projectBaseDir=" + PropertiesWriter.Escape(expectedValue);

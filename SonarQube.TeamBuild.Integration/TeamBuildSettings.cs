@@ -7,7 +7,6 @@
 
 using SonarQube.Common;
 using System;
-using System.Diagnostics;
 using System.IO;
 
 namespace SonarQube.TeamBuild.Integration
@@ -99,13 +98,11 @@ namespace SonarQube.TeamBuild.Integration
                     settings = new TeamBuildSettings()
                     {
                         BuildEnvironment = env,
-                        SourcesDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).FullName
+                        // there's no reliable of way of finding the SourcesDirectory, except after the build
                     };
 
                     break;
             }
-
-            Debug.Assert(!String.IsNullOrWhiteSpace(settings.SourcesDirectory), "The source directory should be have been set");
 
             // We expect the bootstrapper to have set the WorkingDir of the processors to be the temp dir (i.e. .sonarqube)
             settings.AnalysisBaseDirectory = Directory.GetCurrentDirectory();

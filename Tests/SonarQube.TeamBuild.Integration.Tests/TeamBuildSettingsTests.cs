@@ -255,7 +255,15 @@ namespace SonarQube.TeamBuild.Integration.Tests
             Assert.AreEqual(expectedBuildDir, actual.BuildDirectory, "Unexpected build directory returned");
             Assert.AreEqual(expectedBuildUri, actual.BuildUri, "Unexpected build uri returned");
             Assert.AreEqual(expectedCollectionUri, actual.TfsUri, "Unexpected tfs uri returned");
-            Assert.AreEqual(expectedSourcesDir, actual.SourcesDirectory, "Unexpected sources directory returned");
+
+            if (actual.BuildEnvironment == BuildEnvironment.NotTeamBuild)
+            {
+                Assert.IsNull(actual.SourcesDirectory, "Should not be able to set the sources directory");
+            }
+            else
+            {
+                Assert.AreEqual(expectedSourcesDir, actual.SourcesDirectory, "Unexpected sources directory returned");
+            }
 
             // Check the calculated values
             Assert.AreEqual(Path.Combine(expectedAnalysisDir, "conf"), actual.SonarConfigDirectory, "Unexpected config dir");
