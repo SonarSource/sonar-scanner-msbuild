@@ -157,8 +157,6 @@ namespace SonarQube.TeamBuild.PreProcessor
                 GenerateFxCopRuleset(server, args.ProjectKey, "csharp", "cs", "fxcop", Path.Combine(settings.SonarConfigDirectory, FxCopCSharpRuleset));
                 GenerateFxCopRuleset(server, args.ProjectKey, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(settings.SonarConfigDirectory, FxCopVBNetRuleset));
 
-                SonarLintAnalyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey, this.logger);
-
                 analyzerSettings = this.analyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey);
             }
             catch (WebException ex)

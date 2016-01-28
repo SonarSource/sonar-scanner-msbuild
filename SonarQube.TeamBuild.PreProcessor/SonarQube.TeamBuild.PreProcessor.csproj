@@ -80,7 +80,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>RoslynResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="SonarLintAnalyzerProvider.cs" />
     <Compile Include="SonarQubeServerFactory.cs" />
     <Compile Include="ProcessedArgs.cs" />
     <Compile Include="Program.cs" />

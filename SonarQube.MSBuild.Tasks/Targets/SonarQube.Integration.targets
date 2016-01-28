@@ -109,6 +109,7 @@
        See https://connect.microsoft.com/VisualStudio/feedback/details/713690/msbuild-4-0-usingtask-cannot-have-a-path-with-parentheses -->
   <UsingTask TaskName="WriteProjectInfoFile" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="IsTestFileByName" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
+  <UsingTask TaskName="GetAnalyzerSettings" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
 
   <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
@@ -415,8 +416,7 @@
        Conditions:
        * project is a test project -> turn off Roslyn analysis
        * project is excluded -> turn off Roslyn analysis
-       * downloaded SonarLint ruleset and analyzer not found -> no change to existing config
-       * downloaded SonarLint ruleset and analyzer found -> add SonarLint config to existing analysis config
+       * otherwise, use the analyzer settings loaded from the config file (removing any existing analyzers)
    -->
   <Target Name="OverrideRoslynCodeAnalysisProperties"
         Condition=" $(SonarQubeTempPath) != '' "
@@ -448,40 +448,28 @@
 
   <Target Name="SetRoslynCodeAnalysisProperties">
 
+    <!-- Fetch the relevant settings from the config file -->
+    <GetAnalyzerSettings AnalysisConfigDir="$(SonarQubeConfigPath)">
+      <Output TaskParameter="RuleSetFilePath" PropertyName="SQRuleSetFilePath" />
+      <Output TaskParameter="AnalyzerFilePaths" ItemName="SQAnalyzerFilePaths" />
+      <Output TaskParameter="AdditionalFiles" ItemName="SQAdditionalFiles" />
+    </GetAnalyzerSettings>
+
     <PropertyGroup>
-      <!-- Check if the ruleset exists -->
-      <SonarQubeRoslynRulesetFullName>$(SonarQubeConfigPath)SonarQubeRoslyn-cs.ruleset</SonarQubeRoslynRulesetFullName>
-      <SonarQubeRoslynRulesetExists>$([System.IO.File]::Exists($(SonarQubeRoslynRulesetFullName)))</SonarQubeRoslynRulesetExists>
-
-      <!-- Check if the downloaded analyzer assemblies exists. We assume that one of the assemblies is called "SonarLint.dll" for the
-           purposes of locating the analyzers. -->
-      <SonarLintAnalyzerDir>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarLint.dll))</SonarLintAnalyzerDir>
-      <SonarLintAnalyzerDir Condition=" $(SonarLintAnalyzerDir) != '' AND !HasTrailingSlash('$(SonarLintAnalyzerDir)')">$(SonarLintAnalyzerDir)\</SonarLintAnalyzerDir>
-      <SonarLintAnalyzerAssembly Condition=" $(SonarLintAnalyzerDir) != '' ">$(SonarLintAnalyzerDir)SonarLint.dll</SonarLintAnalyzerAssembly>
-      <SonarQubeRoslynAssemblyExists>$([System.IO.File]::Exists($(SonarLintAnalyzerAssembly)))</SonarQubeRoslynAssemblyExists>
-
-      <SonarLintFound Condition="
-          $(SonarQubeRoslynRulesetExists) == 'true'
-          AND $(SonarQubeRoslynAssemblyExists) == 'true'
-          AND $(Language) == 'C#'
-          ">true</SonarLintFound>
-      <SonarLintFound Condition=" $(SonarLintFound) == '' ">false</SonarLintFound>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" $(SonarLintFound) == 'true' ">
       <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)SonarQube.Roslyn.ErrorLog.json</ErrorLog>
-      <ResolvedCodeAnalysisRuleSet>$(SonarQubeRoslynRulesetFullName)</ResolvedCodeAnalysisRuleSet>
+      <ResolvedCodeAnalysisRuleSet>$(SQRuleSetFilePath)</ResolvedCodeAnalysisRuleSet>
     </PropertyGroup>
 
-    <ItemGroup Condition=" $(SonarLintFound) == 'true' ">
+    <ItemGroup>
       <!-- Remove any existing analyzers and additional files -->
       <Analyzer Remove="@(Analyzer)" />
       <AdditionalFiles Remove="@(AdditionalFiles)" />
 
-      <!-- Add SonarLint analyzers and additional files -->
-      <Analyzer Include="$(SonarLintAnalyzerDir)*SonarLint*.dll" />
-      <AdditionalFiles Include="$(SonarQubeConfigPath)SonarLint.xml" />
+      <!-- Add specified analyzers and additional files (if any) -->
+      <Analyzer Include="@(SQAnalyzerFilePaths)" />
+      <AdditionalFiles Include="@(SQAdditionalFiles)" />
     </ItemGroup>
+
   </Target>
 
   <Target Name="SetRoslynAnalysisResults"
@@ -489,8 +477,6 @@
       AfterTargets="Build"
       BeforeTargets="WriteSonarQubeProjectData">
 
-    <!-- If there is a log file then we'll add the setting, regardless of whether the SonarLint rules
-         were executed or not (in the case the user has manually configured other Rolsyn analyzers). -->
     <ItemGroup>
       <SonarQubeSetting Include="sonar.cs.roslyn.reportFilePath"
          Condition=" $(ErrorLog) != '' AND  $([System.IO.File]::Exists($(ErrorLog))) == 'true' ">

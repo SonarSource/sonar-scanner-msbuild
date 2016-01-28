@@ -18,7 +18,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
     public class RoslynAnalyzerProvider : IAnalyzerProvider
     {
-        public const string RoslynCSharpFormatName = "roslyn-config-cs";
+        public const string RoslynCSharpFormatName = "roslyn-cs";
         public const string RoslynCSharpRulesetFileName = "SonarQubeRoslyn-cs.ruleset";
 
         public const string CSharpLanguage = "cs";

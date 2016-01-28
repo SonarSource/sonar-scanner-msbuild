@@ -245,10 +245,10 @@ The full path to a settings file can also be supplied. If it is not supplied, th
     <value>SonarLint ruleset downloaded: {0}</value>
   </data>
   <data name="SLAP_UnpackingRuleset" xml:space="preserve">
-    <value>Writing Roslyn generated ruleset to {0} ...</value>
+    <value>Writing Roslyn generated ruleset to {0}...</value>
   </data>
   <data name="SLAP_WritingAdditionalFile" xml:space="preserve">
-    <value>Writing Roslyn analyzer additional file to {0} ...</value>
+    <value>Writing Roslyn analyzer additional file to {0}...</value>
   </data>
   <data name="WARN_ExistingGlobalTargets" xml:space="preserve">
     <value>This version of the SonarQube Scanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional.</value>

@@ -434,7 +434,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Writing Roslyn generated ruleset to {0} ....
+        ///   Looks up a localized string similar to Writing Roslyn generated ruleset to {0}....
         /// </summary>
         public static string SLAP_UnpackingRuleset {
             get {
@@ -443,7 +443,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Writing Roslyn analyzer additional file to {0} ....
+        ///   Looks up a localized string similar to Writing Roslyn analyzer additional file to {0}....
         /// </summary>
         public static string SLAP_WritingAdditionalFile {
             get {
