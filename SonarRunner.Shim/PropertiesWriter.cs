@@ -35,7 +35,7 @@ namespace SonarRunner.Shim
             {
                 return null;
             }
-            
+
             StringBuilder sb = new StringBuilder();
 
             foreach (char c in value)
@@ -163,7 +163,7 @@ namespace SonarRunner.Shim
 
             if (project.AnalysisSettings != null && project.AnalysisSettings.Any())
             {
-                foreach(Property setting in project.AnalysisSettings)
+                foreach (Property setting in project.AnalysisSettings)
                 {
                     sb.AppendFormat("{0}.{1}={2}", guid, setting.Id, Escape(setting.Value));
                     sb.AppendLine();
@@ -182,7 +182,7 @@ namespace SonarRunner.Shim
                 throw new ArgumentNullException("properties");
             }
 
-            foreach(Property setting in properties)
+            foreach (Property setting in properties)
             {
                 AppendKeyValue(this.sb, setting.Id, setting.Value);
             }
@@ -218,8 +218,8 @@ namespace SonarRunner.Shim
             AppendKeyValue(sb, SonarProperties.ProjectKey, this.config.SonarProjectKey);
             AppendKeyValue(sb, SonarProperties.ProjectName, this.config.SonarProjectName);
             AppendKeyValue(sb, SonarProperties.ProjectVersion, this.config.SonarProjectVersion);
-            AppendKeyValue(sb, SonarProperties.ProjectBaseDir, ComputeProjectBaseDir(projects, this.config.SonarOutputDir));
             AppendKeyValue(sb, SonarProperties.WorkingDirectory, Path.Combine(this.config.SonarOutputDir, ".sonar"));
+            AppendKeyValue(sb, SonarProperties.ProjectBaseDir, ComputeProjectBaseDir());
 
             sb.AppendLine();
 
@@ -228,11 +228,42 @@ namespace SonarRunner.Shim
             sb.AppendLine();
         }
 
-        private static string ComputeProjectBaseDir(IEnumerable<ProjectInfo> projects, string defaultValue)
+        /// <summary>
+        /// Appends the sonar.projectBaseDir value. This is calculated as follows: 
+        /// 1. the user supplied value, or if none
+        /// 2. the sources directory if running from TFS Build or XAML Build, or
+        /// 3. the common root path of projects, or if there isn't any
+        /// 4. the .sonarqube/out directory
+        /// </summary>
+        private string ComputeProjectBaseDir()
         {
-            var projectDirs = projects.Select(p => p.GetProjectDirectory());
+            string projectBaseDir = this.config.GetConfigValue(SonarProperties.ProjectBaseDir, null);
+            if (!String.IsNullOrWhiteSpace(projectBaseDir))
+            {
+                return projectBaseDir;
+            }
 
-            var pathPartEnumerators = projectDirs.Select(s => s.Split(Path.DirectorySeparatorChar).AsEnumerable().GetEnumerator()).ToArray();
+            projectBaseDir = config.SourcesDirectory;
+            if (!String.IsNullOrWhiteSpace(projectBaseDir))
+            {
+                return projectBaseDir;
+            }
+
+            projectBaseDir = GetCommonRootOfProjects();
+            if (!String.IsNullOrWhiteSpace(projectBaseDir))
+            {
+                return projectBaseDir;
+            }
+
+            return this.config.SonarOutputDir;
+        }
+
+
+        private string GetCommonRootOfProjects()
+        {
+            IEnumerable<string> projectDirs = this.projects.Select(p => p.GetProjectDirectory());
+            IEnumerator<string>[] pathPartEnumerators = projectDirs.Select(s => s.Split(Path.DirectorySeparatorChar).AsEnumerable().GetEnumerator()).ToArray();
+
             try
             {
                 var commonParts = new List<string>();
@@ -246,7 +277,7 @@ namespace SonarRunner.Shim
 
                 if (!commonParts.Any())
                 {
-                    return defaultValue;
+                    return null;
                 }
 
                 return string.Join(Path.DirectorySeparatorChar.ToString(), commonParts);
