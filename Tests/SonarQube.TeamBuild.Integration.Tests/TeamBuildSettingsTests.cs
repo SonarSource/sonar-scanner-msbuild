@@ -139,7 +139,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
                     null,
                     null,
                     null,
-                    Directory.GetParent(Directory.GetCurrentDirectory()).FullName); // todo
+                    null);
             }
 
             // 2. Some Team build settings provided, but not marked as in team build
@@ -161,7 +161,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
                     null,
                     null,
                     null,
-                    Directory.GetParent(Directory.GetCurrentDirectory()).FullName);//todo
+                    null);
             }
         }
 

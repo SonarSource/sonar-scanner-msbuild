@@ -36,7 +36,8 @@ namespace SonarQube.Common
         /// <summary>
         /// Parent directory of the source files. 
         /// </summary>
-        /// <remarks>SCM plugins like Git or TFVC use this to find .git or $tf subdirectories and provide annotations</remarks>
+        /// <remarks>SCM plugins like Git or TFVC expect to find .git or $tf subdirectories directly under the sources directory 
+        /// in order to and provide annotations. </remarks>
         public string SourcesDirectory { get; set; }
 
         #region SonarQube project properties

@@ -132,6 +132,23 @@ namespace SonarQube.Common.UnitTests
                 "sonar.working.directory=value1");
             logger.AssertSingleErrorExists(SonarProperties.WorkingDirectory);
 
+
+
+        }
+
+        [TestMethod]
+        [Description("Test for https://jira.sonarsource.com/browse/SONARMSBRU-208")]
+        public void SonarProjectBaseDir_IsAllowed()
+        {
+            TestLogger logger = new TestLogger();
+            IList<ArgumentInstance> args = new List<ArgumentInstance>();
+
+            // sonar.projectBaseDir used to be un-settable
+            AddDynamicArguments(args, "sonar.projectBaseDir=value1");
+
+            IAnalysisPropertyProvider provider = CheckProcessingSucceeds(args, logger);
+            provider.AssertExpectedPropertyValue("sonar.projectBaseDir", "value1");
+            provider.AssertExpectedPropertyCount(1);
         }
 
         #endregion
