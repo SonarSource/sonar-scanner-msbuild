@@ -84,6 +84,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         // Roslyn
         public const string ResolvedCodeAnalysisRuleset = "ResolvedCodeAnalysisRuleSet";
         public const string TargetDir = "TargetDir"; // bin directory into which output will be dropped
+        public const string TargetFileName = "TargetFileName"; // filename and extension of the project being built
         public const string ErrorLog = "ErrorLog"; // file path to which the Roslyn error log should be written
         public const string Language = "Language"; // Language of the project: normally "C#" or "VB"
         public const string AnalyzerItemType = "Analyzer";
@@ -98,7 +99,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string TfsCollectionUri_TFS2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
         public const string BuildUri_TFS2015 = "BUILD_BUILDURI";
         public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
-        
+
         public const string MSBuildExtensionsPath = "MSBuildExtensionsPath";
 
         public const string ItemType_Compile = "Compile";

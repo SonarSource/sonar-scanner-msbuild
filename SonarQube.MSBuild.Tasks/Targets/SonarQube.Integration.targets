@@ -456,7 +456,10 @@
     </GetAnalyzerSettings>
 
     <PropertyGroup>
-      <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)SonarQube.Roslyn.ErrorLog.json</ErrorLog>
+      <!-- https://jira.sonarsource.com/browse/SONARMSBRU-211 - the name of the report should be unique 
+      as the TargetDir can point to the same directory for multiple projects, leading to the report being overwritten.
+      This style of naming is consistent with how FxCop names its report.-->
+      <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)$(TargetFileName).RoslynCodeAnalysis.json</ErrorLog>
       <ResolvedCodeAnalysisRuleSet>$(SQRuleSetFilePath)</ResolvedCodeAnalysisRuleSet>
     </PropertyGroup>
 
