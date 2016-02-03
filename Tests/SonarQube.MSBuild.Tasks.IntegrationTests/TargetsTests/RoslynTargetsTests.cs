@@ -9,6 +9,8 @@ using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
+using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using TestUtilities;
@@ -19,7 +21,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
     public class RoslynTargetsTests
     {
         private const string RoslynAnalysisResultsSettingName = "sonar.cs.roslyn.reportFilePath";
-        private const string ErrorLogFileName = "SonarQube.Roslyn.ErrorLog.json";
+        private const string ErrorLogFilePattern = "{0}.RoslynCA.json";
 
         public TestContext TestContext { get; set; }
 
@@ -34,7 +36,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Set the config directory so the targets know where to look for the analysis config file
             string confDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "config");
-            
+
             // Create a valid config file containing analyzer settings
             string[] expectedAssemblies = new string[] { "c:\\data\\config.analyzer1.dll", "c:\\config2.dll" };
             string[] expectedAdditionalFiles = new string[] { "c:\\config.1.txt", "c:\\config.2.txt" };
@@ -46,7 +48,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             config.AnalyzerSettings.AdditionalFilePaths = expectedAdditionalFiles.ToList();
             string configFilePath = Path.Combine(confDir, FileConstants.ConfigFileName);
             config.Save(configFilePath);
-            
+
             // Create the project
             WellKnownProjectProperties properties = new WellKnownProjectProperties();
             properties.SonarQubeConfigPath = confDir;
@@ -85,7 +87,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Set the config directory so the targets know where to look for the analysis config file
             string confDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "config");
-            
+
             // Create a valid config file that does not contain analyzer settings
             AnalysisConfig config = new AnalysisConfig();
             string configFilePath = Path.Combine(confDir, FileConstants.ConfigFileName);
@@ -115,7 +117,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertExpectedItemGroupCount(result, TargetProperties.AnalyzerItemType, 0);
             BuildAssertions.AssertExpectedItemGroupCount(result, TargetProperties.AdditionalFilesItemType, 0);
         }
-        
+
         [TestMethod]
         [Description("Checks the target is not executed if the temp folder is not set")]
         public void Roslyn_Settings_TempFolderIsNotSet()
@@ -148,7 +150,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.TreatWarningsAsErrors, "true");
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.WarningsAsErrors, "CS101");
         }
-        
+
         [TestMethod]
         [Description("Checks an existing errorLog value is used if set")]
         public void Roslyn_Settings_ErrorLogAlreadySet()
@@ -170,7 +172,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, "already.set.txt");
         }
-        
+
         [TestMethod]
         [Description("Checks the code analysis properties are cleared for test projects")]
         public void Roslyn_Settings_NotRunForTestProject()
@@ -346,13 +348,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         #endregion
 
         #region Private methods
-        
+
         private static void AddAnalysisSetting(string name, string value, ProjectRootElement project)
         {
             ProjectItemElement element = project.AddItem(BuildTaskConstants.SettingItemName, name);
             element.AddMetadata(BuildTaskConstants.SettingValueMetadataName, value);
         }
-        
+
         #endregion
 
         #region Checks
@@ -370,7 +372,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         private static void AssertErrorLogIsSetBySonarQubeTargets(BuildResult result)
         {
             string targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
-            string expectedErrorLog = Path.Combine(targetDir, ErrorLogFileName);
+            string targetFileName = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetFileName);
+
+            string expectedErrorLog = Path.Combine(targetDir, String.Format(CultureInfo.InvariantCulture, ErrorLogFilePattern, targetFileName));
+
 
             AssertExpectedErrorLog(result, expectedErrorLog);
         }
