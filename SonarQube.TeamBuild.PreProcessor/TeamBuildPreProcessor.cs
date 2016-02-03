@@ -148,16 +148,23 @@ namespace SonarQube.TeamBuild.PreProcessor
             ISonarQubeServer server = this.serverFactory.Create(args, this.logger);
             try
             {
-                // Fetch the SonarQube project properties
                 this.logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
-                serverSettings = server.GetProperties(args.ProjectKey);
+
+                // Respect sonar.branch setting if set
+                string projectBranch = null;
+                args.TryGetSetting(SonarProperties.Branch, out projectBranch);
+
+                // Fetch the SonarQube project properties
+                serverSettings = server.GetProperties(args.ProjectKey, projectBranch);
 
                 // Generate the FxCop rulesets
                 this.logger.LogInfo(Resources.MSG_GeneratingRulesets);
-                GenerateFxCopRuleset(server, args.ProjectKey, "csharp", "cs", "fxcop", Path.Combine(settings.SonarConfigDirectory, FxCopCSharpRuleset));
-                GenerateFxCopRuleset(server, args.ProjectKey, "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(settings.SonarConfigDirectory, FxCopVBNetRuleset));
+                GenerateFxCopRuleset(server, args.ProjectKey, projectBranch,
+                    "csharp", "cs", "fxcop", Path.Combine(settings.SonarConfigDirectory, FxCopCSharpRuleset));
+                GenerateFxCopRuleset(server, args.ProjectKey, projectBranch, 
+                    "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(settings.SonarConfigDirectory, FxCopVBNetRuleset));
 
-                analyzerSettings = this.analyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey);
+                analyzerSettings = this.analyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey, projectBranch);
             }
             catch (WebException ex)
             {
@@ -176,10 +183,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             return true;
         }
 
-        private void GenerateFxCopRuleset(ISonarQubeServer server, string projectKey, string requiredPluginKey, string language, string repository, string path)
+        private void GenerateFxCopRuleset(ISonarQubeServer server, string projectKey, string projectBranch, string requiredPluginKey, string language, string repository, string path)
         {
             this.logger.LogDebug(Resources.MSG_GeneratingRuleset, path);
-            RulesetGenerator.Generate(server, requiredPluginKey, language, repository, projectKey, path);
+            RulesetGenerator.Generate(server, requiredPluginKey, language, repository, projectKey, projectBranch, path);
         }
 
         #endregion Private methods

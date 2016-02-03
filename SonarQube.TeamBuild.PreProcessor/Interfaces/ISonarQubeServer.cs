@@ -34,12 +34,12 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <summary>
         /// Get all the properties of a project
         /// </summary>
-        IDictionary<string, string> GetProperties(string projectKey);
+        IDictionary<string, string> GetProperties(string projectKey, string projectBranch);
 
         /// <summary>
         /// Get the name of the quality profile (of the given language) to be used by the given project key
         /// </summary>
-        bool TryGetQualityProfile(string projectKey, string language, out string qualityProfile);
+        bool TryGetQualityProfile(string projectKey, string projectBranch, string language, out string qualityProfile);
 
         /// <summary>
         /// Get the quality profile for the given language in the specified format

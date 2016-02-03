@@ -25,7 +25,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <param name="fxCopRepositoryKey">The key of the FxCop repository</param>
         /// <param name="sonarProjectKey">The key of the SonarQube project for which the ruleset should be generated</param>
         /// <param name="outputFilePath">The full path to the file to be generated</param>
-        public static void Generate(ISonarQubeServer server, string requiredPluginKey, string language, string fxCopRepositoryKey, string sonarProjectKey, string outputFilePath)
+        public static void Generate(ISonarQubeServer server, string requiredPluginKey, string language, string fxCopRepositoryKey, string sonarProjectKey, string sonarProjectBranch, string outputFilePath)
         {
             if (server == null)
             {
@@ -56,7 +56,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             if (server.GetInstalledPlugins().Contains(requiredPluginKey))
             {
                 string qualityProfile;
-                if (server.TryGetQualityProfile(sonarProjectKey, language, out qualityProfile))
+                if (server.TryGetQualityProfile(sonarProjectKey, sonarProjectBranch, language, out qualityProfile))
                 {
                     activeRuleKeys = server.GetActiveRuleKeys(qualityProfile, language, fxCopRepositoryKey);
                 }

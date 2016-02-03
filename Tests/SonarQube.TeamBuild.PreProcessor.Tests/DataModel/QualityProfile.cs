@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -13,7 +14,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     {
         private readonly string name;
         private readonly string language;
-        private readonly ISet<string> projectKeys;
+        private readonly ISet<string> projectIds;
 
         private readonly ISet<Rule> activeRules;
 
@@ -23,14 +24,20 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             this.name = name;
             this.language = language;
-            this.projectKeys = new HashSet<string>();
+            this.projectIds = new HashSet<string>();
             this.activeRules = new HashSet<Rule>();
             this.formatToContentExportMap = new Dictionary<string, string>();
         }
 
-        public QualityProfile AddProject(string projectKey)
+        public QualityProfile AddProject(string projectKey, string projectBranch = null)
         {
-            this.projectKeys.Add(projectKey);
+            string projectId = projectKey;
+            if (!String.IsNullOrWhiteSpace(projectBranch))
+            {
+                projectId = projectKey + ":" + projectBranch;
+            }
+
+            this.projectIds.Add(projectId);
             return this;
         }
 
@@ -48,7 +55,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         public string Name { get { return this.name; } }
         public string Language { get { return this.language; } }
-        public IEnumerable<string> Projects { get { return this.projectKeys; } }
+        public IEnumerable<string> Projects { get { return this.projectIds; } }
         public ISet<Rule> ActiveRules { get { return this.activeRules; } }
         public IDictionary<string, string> FormatToContentExports {  get { return this.formatToContentExportMap; } }
 

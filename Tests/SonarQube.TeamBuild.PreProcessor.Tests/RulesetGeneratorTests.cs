@@ -44,11 +44,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Set up the quality profiles
             model.AddQualityProfile("profile 1", "languageAAA")
                 .AddProject("unused.project")
-                .AddProject("project1");
+                .AddProject("project1")
+                .AddProject("project2:anotherBranch");
 
             model.AddQualityProfile("profile 2", "languageBBB")
                 .AddProject("project1")
                 .AddProject("project2");
+
+            model.AddQualityProfile("profile 3", "languageBBB")
+                .AddProject("project2:aBranch");
 
             // Add rules to the quality profiles
             model.AddRuleToProfile("repo1.aaa.r1", "profile 1"); // Only one rule in the repo
@@ -57,32 +61,50 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             model.AddRuleToProfile("repo1.bbb.r2", "profile 2");
             model.AddRuleToProfile("repo1.bbb.r3", "profile 2");
 
+            model.AddRuleToProfile("repo1.bbb.r1", "profile 3");
+
             MockSonarQubeServer server = new MockSonarQubeServer();
             server.Data = model;
 
             // 1. Plugin not installed
             string rulesetFilePath = Path.Combine(testDir, "r1.txt");
-            RulesetGenerator.Generate(server, "missing.plugin", "languageAAA", "repo1", "project1", rulesetFilePath);
+            RulesetGenerator.Generate(server, "missing.plugin", "languageAAA", "repo1", "project1", null, rulesetFilePath);
             AssertFileDoesNotExist(rulesetFilePath);
 
             // 2. Language not handled
-            RulesetGenerator.Generate(server, "real.plugin1", "unhandled.language", "repo1", "project1", rulesetFilePath);
+            RulesetGenerator.Generate(server, "real.plugin1", "unhandled.language", "repo1", "project1", null, rulesetFilePath);
             AssertFileDoesNotExist(rulesetFilePath);
 
             // 3. Missing project
-            RulesetGenerator.Generate(server, "real.plugin1", "languageBBB", "repo1", "missing.project", rulesetFilePath);
+            RulesetGenerator.Generate(server, "real.plugin1", "languageBBB", "repo1", "missing.project", null, rulesetFilePath);
             AssertFileDoesNotExist(rulesetFilePath);
 
-            // 4. Valid, aaa
-            string aaaRulesetFilePath = Path.Combine(testDir, "aaa_ruleset.txt");
-            RulesetGenerator.Generate(server, "real.plugin1", "languageAAA", "repo1", "project1", aaaRulesetFilePath);
-            PreProcessAsserts.AssertRuleSetContainsRules(aaaRulesetFilePath, "repo1.aaa.r1");
+            // 4. Missing branch
+            RulesetGenerator.Generate(server, "real.plugin1", "languageBBB", "repo1", "project1", "missingBranch", rulesetFilePath);
+            AssertFileDoesNotExist(rulesetFilePath);
 
-            // 5. Valid, bbb
-            string bbbRulesetFilePath = Path.Combine(testDir, "bbb_ruleset.txt");
-            RulesetGenerator.Generate(server, "real.plugin1", "languageBBB", "repo1", "project1", bbbRulesetFilePath);
-            PreProcessAsserts.AssertRuleSetContainsRules(bbbRulesetFilePath,
+            // 5. Valid, aaa (default branch)
+            string aaa_RulesetFilePath = Path.Combine(testDir, "aaa_ruleset.txt");
+            RulesetGenerator.Generate(server, "real.plugin1", "languageAAA", "repo1", "project1", null, aaa_RulesetFilePath);
+            PreProcessAsserts.AssertRuleSetContainsRules(aaa_RulesetFilePath, "repo1.aaa.r1");
+
+            // 6. Valid, bbb (default branch)
+            string bbb_RulesetFilePath = Path.Combine(testDir, "bbb_ruleset.txt");
+            RulesetGenerator.Generate(server, "real.plugin1", "languageBBB", "repo1", "project1", null, bbb_RulesetFilePath);
+            PreProcessAsserts.AssertRuleSetContainsRules(bbb_RulesetFilePath,
                 "repo1.bbb.r1", "repo1.bbb.r2", "repo1.bbb.r3");
+
+            // 7. Valid, bbb (aBranch branch) - profile 3
+            string bbb_aBranch_RulesetFilePath = Path.Combine(testDir, "bbb_aBranch_ruleset.txt");
+            RulesetGenerator.Generate(server, "real.plugin1", "languageBBB", "repo1", "project2", "aBranch", bbb_aBranch_RulesetFilePath);
+            PreProcessAsserts.AssertRuleSetContainsRules(bbb_aBranch_RulesetFilePath,
+                "repo1.bbb.r1");
+
+            // 8. Valid, aaa (anotherBranch branch) - profile 1
+            string bbb_anotherBranch_RulesetFilePath = Path.Combine(testDir, "bbb_anotherBranch_ruleset.txt");
+            RulesetGenerator.Generate(server, "real.plugin1", "languageAAA", "repo1", "project2", "anotherBranch", bbb_anotherBranch_RulesetFilePath);
+            PreProcessAsserts.AssertRuleSetContainsRules(bbb_anotherBranch_RulesetFilePath,
+                "repo1.aaa.r1");
         }
 
         #endregion

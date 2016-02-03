@@ -43,10 +43,12 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #region ISonarQubeServer interface
 
-        public bool TryGetQualityProfile(string projectKey, string language, out string qualityProfile)
+        public bool TryGetQualityProfile(string projectKey, string projectBranch, string language, out string qualityProfile)
         {
+            string projectId = GetProjectIdentifier(projectKey, projectBranch);
+
             string contents;
-            var ws = GetUrl("/api/profiles/list?language={0}&project={1}", language, projectKey);
+            var ws = GetUrl("/api/profiles/list?language={0}&project={1}", language, projectId);
             if (!this.downloader.TryDownloadIfExists(ws, out contents))
             {
                 ws = GetUrl("/api/profiles/list?language={0}", language);
@@ -99,15 +101,17 @@ namespace SonarQube.TeamBuild.PreProcessor
             return keysToIds;
         }
 
-        public IDictionary<string, string> GetProperties(string projectKey)
+        public IDictionary<string, string> GetProperties(string projectKey, string projectBranch)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
             {
                 throw new ArgumentNullException("projectKey");
             }
+
+            string projectId = GetProjectIdentifier(projectKey, projectBranch);
            
-            string ws = GetUrl("/api/properties?resource={0}", projectKey);
-            this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectKey, ws);
+            string ws = GetUrl("/api/properties?resource={0}", projectId);
+            this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
             var contents = this.downloader.Download(ws);
 
             var properties = JArray.Parse(contents);
@@ -182,6 +186,25 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #endregion
 
+        #region Private methods
+
+        /// <summary>
+        /// Concatenates project key and branch into one string.
+        /// </summary>
+        /// <param name="projectKey">Unique project key</param>
+        /// <param name="projectBranch">Specified branch of the project. Null if no branch to be specified.</param>
+        /// <returns>A correctly formatted branch-specific identifier (if appropriate) for a given project.</returns>
+        private static string GetProjectIdentifier(string projectKey, string projectBranch = null)
+        {
+            string projectId = projectKey;
+            if (!string.IsNullOrWhiteSpace(projectBranch))
+            {
+                projectId = projectKey + ":" + projectBranch;
+            }
+
+            return projectId;
+        }
+
         private string GetUrl(string format, params string[] args)
         {
             var queryString = string.Format(System.Globalization.CultureInfo.InvariantCulture, format, args.Select(a => WebUtility.UrlEncode(a)).ToArray());
@@ -191,6 +214,8 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             return this.server + queryString;
         }
+
+        #endregion
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls

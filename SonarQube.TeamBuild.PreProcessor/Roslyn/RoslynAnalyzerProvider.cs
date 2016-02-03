@@ -30,7 +30,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         private ISonarQubeServer server;
         private TeamBuildSettings settings;
         private string projectKey;
-        
+        private string projectBranch;
+
         #region Public methods
 
         public RoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller, ILogger logger)
@@ -47,7 +48,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             this.logger = logger;
         }
 
-        public AnalyzerSettings SetupAnalyzers(ISonarQubeServer sqServer, TeamBuildSettings teamBuildSettings, string sqProjectKey)
+        public AnalyzerSettings SetupAnalyzers(ISonarQubeServer sqServer, TeamBuildSettings teamBuildSettings, string sqProjectKey, string sqProjectBranch)
         {
             if (sqServer == null)
             {
@@ -71,6 +72,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             this.server = sqServer;
             this.settings = teamBuildSettings;
             this.projectKey = sqProjectKey;
+            this.projectBranch = sqProjectBranch;
 
             AnalyzerSettings analyzerSettings = null;
 
@@ -95,7 +97,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         private RoslynExportProfile TryGetRoslynConfigForProject()
         {
             string qualityProfile;
-            if (!this.server.TryGetQualityProfile(projectKey, CSharpLanguage, out qualityProfile))
+            if (!this.server.TryGetQualityProfile(projectKey, projectBranch, CSharpLanguage, out qualityProfile))
             {
                 this.logger.LogDebug(Resources.SLAP_NoProfileForProject, this.projectKey);
                 return null;

@@ -46,28 +46,39 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             bool result;
             string qualityProfile;
 
+            // Check that profiles are correctly defaulted as well as branch-specific
             downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar"] = "[{\"name\":\"profile1\",\"language\":\"cs\",\"default\":true}]";
-            result = ws.TryGetQualityProfile("foo bar", "cs", out qualityProfile);
+            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AaBranch"] = "[{\"name\":\"profile2\",\"language\":\"cs\",\"default\":false}]";
+            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AanotherBranch"] = "[{\"name\":\"profile3\",\"language\":\"cs\",\"default\":false}]";
+            // default
+            result = ws.TryGetQualityProfile("foo bar", null, "cs", out qualityProfile);
             Assert.IsTrue(result);
             Assert.AreEqual("profile1", qualityProfile);
+            // branch specific
+            result = ws.TryGetQualityProfile("foo bar", "aBranch", "cs", out qualityProfile);
+            Assert.IsTrue(result);
+            Assert.AreEqual("profile2", qualityProfile);
+            result = ws.TryGetQualityProfile("foo bar", "anotherBranch", "cs", out qualityProfile);
+            Assert.IsTrue(result);
+            Assert.AreEqual("profile3", qualityProfile);
 
             downloader.Pages["http://myhost:222/api/profiles/list?language=cs"] = "[{\"name\":\"profile1\",\"language\":\"cs\",\"default\":true},{\"name\":\"profile2\",\"language\":\"vbnet\",\"default\":false}]";
-            result = ws.TryGetQualityProfile("bar", "cs", out qualityProfile);
+            result = ws.TryGetQualityProfile("bar", null, "cs", out qualityProfile);
             Assert.IsTrue(result);
             Assert.AreEqual("profile1", qualityProfile);
 
             downloader.Pages["http://myhost:222/api/profiles/list?language=vbnet"] = "[{\"name\":\"profile1\",\"language\":\"vbnet\",\"default\":true},{\"name\":\"profile2\",\"language\":\"vbnet\",\"default\":false}]";
-            result = ws.TryGetQualityProfile("bar", "vbnet", out qualityProfile);
+            result = ws.TryGetQualityProfile("bar", null, "vbnet", out qualityProfile);
             Assert.IsTrue(result);
             Assert.AreEqual("profile1", qualityProfile);
 
             downloader.Pages["http://myhost:222/api/profiles/list?language=cs"] = "[{\"name\":\"profile1\",\"language\":\"cs\",\"default\":false},{\"name\":\"profile2\",\"language\":\"cs\",\"default\":true}]";
-            result = ws.TryGetQualityProfile("bar", "cs", out qualityProfile);
+            result = ws.TryGetQualityProfile("bar", null, "cs", out qualityProfile);
             Assert.IsTrue(result);
             Assert.AreEqual("profile2", qualityProfile);
 
             downloader.Pages["http://myhost:222/api/profiles/list?language=vbnet"] = "[]";
-            result = ws.TryGetQualityProfile("foo", "vbnet", out qualityProfile);
+            result = ws.TryGetQualityProfile("foo", null, "vbnet", out qualityProfile);
             Assert.IsFalse(result);
             Assert.IsNull(qualityProfile);
         }
@@ -136,20 +147,49 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             expected["fxcop:UriParametersShouldNotBeStrings"] = "CA1054";
             var actual = ws.GetInternalKeys("fxcop");
 
-            Assert.AreEqual(true, expected.Count == actual.Count && !expected.Except(actual).Any());
+            // default
+            var expected1 = new Dictionary<string, string>();
+            expected1["sonar.property1"] = "value1";
+            expected1["sonar.property2"] = "value2";
+            expected1["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
+            var actual1 = ws.GetProperties("foo bar", null);
+
+            Assert.AreEqual(true, expected1.Count == actual1.Count && !expected1.Except(actual1).Any());
+
+            // branch specific
+            var expected2 = new Dictionary<string, string>();
+            expected2["sonar.property1"] = "anotherValue1";
+            expected2["sonar.property2"] = "anotherValue2";
+            expected2["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
+            var actual2 = ws.GetProperties("foo bar", "aBranch");
+
+            Assert.AreEqual(true, expected2.Count == actual2.Count && !expected2.Except(actual2).Any());
         }
 
         [TestMethod]
         public void GetProperties()
         {
+            // Check that properties are correctly defaulted as well as branch-specific
             downloader.Pages["http://myhost:222/api/properties?resource=foo+bar"] = "[{\"key\": \"sonar.property1\",\"value\": \"value1\"},{\"key\": \"sonar.property2\",\"value\": \"value2\"}]";
-            var expected = new Dictionary<string, string>();
-            expected["sonar.property1"] = "value1";
-            expected["sonar.property2"] = "value2";
-            expected["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
-            var actual = ws.GetProperties("foo bar");
+            downloader.Pages["http://myhost:222/api/properties?resource=foo+bar%3AaBranch"] = "[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]";
 
-            Assert.AreEqual(true, expected.Count == actual.Count && !expected.Except(actual).Any());
+            // default
+            var expected1 = new Dictionary<string, string>();
+            expected1["sonar.property1"] = "value1";
+            expected1["sonar.property2"] = "value2";
+            expected1["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
+            var actual1 = ws.GetProperties("foo bar", null);
+
+            Assert.AreEqual(true, expected1.Count == actual1.Count && !expected1.Except(actual1).Any());
+
+            // branch specific
+            var expected2 = new Dictionary<string, string>();
+            expected2["sonar.property1"] = "anotherValue1";
+            expected2["sonar.property2"] = "anotherValue2";
+            expected2["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
+            var actual2 = ws.GetProperties("foo bar", "aBranch");
+
+            Assert.AreEqual(true, expected2.Count == actual2.Count && !expected2.Except(actual2).Any());
         }
 
         [TestMethod]
@@ -170,11 +210,30 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         {
             ws = new SonarWebService(downloader, "http://myhost:222/", new TestLogger());
 
+            // Check that profiles are correctly defaulted as well as branch-specific
             downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar"] = "[{\"name\":\"profile1\",\"language\":\"cs\",\"default\":true}]";
-            string qualityProfile;
-            bool result = ws.TryGetQualityProfile("foo bar", "cs", out qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profile1", qualityProfile);
+            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AaBranch"] = "[{\"name\":\"profile2\",\"language\":\"cs\",\"default\":false}]";
+            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AanotherBranch"] = "[{\"name\":\"profile3\",\"language\":\"cs\",\"default\":false}]";
+            string qualityProfile1;
+            string qualityProfile2;
+            string qualityProfile3;
+            bool result1 = ws.TryGetQualityProfile("foo bar", null, "cs", out qualityProfile1);
+            bool result2 = ws.TryGetQualityProfile("foo bar", "aBranch", "cs", out qualityProfile2);
+            bool result3 = ws.TryGetQualityProfile("foo bar", "anotherBranch", "cs", out qualityProfile3);
+
+            Assert.IsTrue(result1);
+            Assert.IsTrue(result2);
+            Assert.IsTrue(result3);
+            Assert.AreEqual("profile1", qualityProfile1);
+            Assert.AreEqual("profile2", qualityProfile2);
+            Assert.AreEqual("profile3", qualityProfile3);
+
+            Assert.IsTrue(result1);
+            Assert.IsTrue(result2);
+            Assert.IsTrue(result3);
+            Assert.AreEqual("profile1", qualityProfile1);
+            Assert.AreEqual("profile2", qualityProfile2);
+            Assert.AreEqual("profile3", qualityProfile3);
 
             downloader.Pages["http://myhost:222/api/profiles/index?language=cs&name=Sonar+way"] = "[{\"name\":\"Sonar way\",\"language\":\"cs\",\"default\":true}]";
             var expected1 = new List<string>();
@@ -189,13 +248,22 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             Assert.AreEqual(true, expected2.Count == actual2.Count && !expected2.Except(actual2).Any());
 
             downloader.Pages["http://myhost:222/api/properties?resource=foo+bar"] = "[{\"key\": \"sonar.property1\",\"value\": \"value1\"},{\"key\": \"sonar.property2\",\"value\": \"value2\"}]";
-            var expected3 = new Dictionary<string, string>();
-            expected3["sonar.property1"] = "value1";
-            expected3["sonar.property2"] = "value2";
-            expected3["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
-            var actual3 = ws.GetProperties("foo bar");
+            downloader.Pages["http://myhost:222/api/properties?resource=foo+bar%3AaBranch"] = "[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]";
 
-            Assert.AreEqual(true, expected3.Count == actual3.Count && !expected3.Except(actual3).Any());
+            var expected3_1 = new Dictionary<string, string>();
+            expected3_1["sonar.property1"] = "value1";
+            expected3_1["sonar.property2"] = "value2";
+            expected3_1["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
+            var actual3_1 = ws.GetProperties("foo bar", null);
+
+            var expected3_2 = new Dictionary<string, string>();
+            expected3_2["sonar.property1"] = "anotherValue1";
+            expected3_2["sonar.property2"] = "anotherValue2";
+            expected3_2["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
+            var actual3_2 = ws.GetProperties("foo bar", "aBranch");
+
+            Assert.AreEqual(true, expected3_1.Count == actual3_1.Count && !expected3_1.Except(actual3_1).Any());
+            Assert.AreEqual(true, expected3_2.Count == actual3_2.Count && !expected3_2.Except(actual3_2).Any());
 
             downloader.Pages["http://myhost:222/api/updatecenter/installed_plugins"] = "[{\"key\":\"visualstudio\",\"name\":\"...\",\"version\":\"1.2\"},{\"key\":\"csharp\",\"name\":\"C#\",\"version\":\"4.0\"}]";
             var expected4 = new List<string>();

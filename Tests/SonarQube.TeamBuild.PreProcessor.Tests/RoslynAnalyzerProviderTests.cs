@@ -40,7 +40,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
             
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
             AssertAnalyzerSetupNotPerformed(actualSettings, rootDir);
@@ -61,7 +61,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "unknown.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "unknown.project", null);
 
             // Assert
             AssertAnalyzerSetupNotPerformed(actualSettings, rootDir);
@@ -98,7 +98,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
             AssertAnalyzerSetupNotPerformed(actualSettings, rootDir);
@@ -124,7 +124,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
             CheckSettingsInvariants(actualSettings);
@@ -152,7 +152,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
             CheckSettingsInvariants(actualSettings);
@@ -195,7 +195,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
             CheckSettingsInvariants(actualSettings);
@@ -235,7 +235,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
             CheckSettingsInvariants(actualSettings);
@@ -272,7 +272,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project");
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
             CheckSettingsInvariants(actualSettings);

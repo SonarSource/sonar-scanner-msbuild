@@ -7,6 +7,7 @@
 
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.PreProcessor.Roslyn;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -19,6 +20,6 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// </summary>
         /// <param name="projectKey">Identifier for the project being analyzed</param>
         /// <returns>The settings required to configure the build for Roslyn analysis</returns>
-        AnalyzerSettings SetupAnalyzers(ISonarQubeServer server, TeamBuildSettings settings, string projectKey);
+        AnalyzerSettings SetupAnalyzers(ISonarQubeServer server, TeamBuildSettings settings, string projectKey, string projectBranch);
     }
 }

@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -70,7 +71,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return this.Data.Repositories.SelectMany(repo => repo.Rules).ToDictionary(r => r.Key, r => r.InternalKey);
         }
 
-        IDictionary<string, string> ISonarQubeServer.GetProperties(string projectKey)
+        IDictionary<string, string> ISonarQubeServer.GetProperties(string projectKey, string projectBranch)
         {
             this.LogMethodCalled();
 
@@ -79,14 +80,20 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return this.Data.ServerProperties;
         }
 
-        bool ISonarQubeServer.TryGetQualityProfile(string projectKey, string language, out string qualityProfile)
+        bool ISonarQubeServer.TryGetQualityProfile(string projectKey, string projectBranch, string language, out string qualityProfile)
         {
             this.LogMethodCalled();
 
             Assert.IsFalse(string.IsNullOrEmpty(projectKey), "Project key is required");
             Assert.IsFalse(string.IsNullOrEmpty(language), "Language is required");
 
-            QualityProfile profile = this.Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Language, language) && qp.Projects.Contains(projectKey));
+            string projectId = projectKey;
+            if (!String.IsNullOrWhiteSpace(projectBranch))
+            {
+                projectId = projectKey + ":" + projectBranch;
+            }
+
+            QualityProfile profile = this.Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Language, language) && qp.Projects.Contains(projectId));
 
             qualityProfile = profile == null ? null : profile.Name;
             return profile != null;
