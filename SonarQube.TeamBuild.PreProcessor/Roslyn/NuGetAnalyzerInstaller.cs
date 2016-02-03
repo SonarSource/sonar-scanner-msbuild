@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="AnalyzerInstaller.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="NuGetAnalyzerInstaller.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -14,7 +14,7 @@ using System.Linq;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
-    public class AnalyzerInstaller : IAnalyzerInstaller
+    public class NuGetAnalyzerInstaller : IAnalyzerInstaller
     {
         private const string DefaultNuGetPackageSource = "https://www.nuget.org/api/v2/";
 
@@ -25,7 +25,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         private IPackageManager manager;
         private IPackageRepository remoteRepository;
 
-        public AnalyzerInstaller(Common.ILogger logger)
+        public NuGetAnalyzerInstaller(Common.ILogger logger)
             : this(DefaultNuGetPackageSource, GetLocalCacheDirectory(), logger)
         {
         }
@@ -33,7 +33,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         /// <summary>
         /// Constructor for testing
         /// </summary>
-        public AnalyzerInstaller(string packageSource, string localCacheDirectory, Common.ILogger logger)
+        public NuGetAnalyzerInstaller(string packageSource, string localCacheDirectory, Common.ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(packageSource))
             {

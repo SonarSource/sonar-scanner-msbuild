@@ -66,7 +66,7 @@
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
     <Compile Include="AnalysisConfigGeneratorTests.cs" />
-    <Compile Include="AnalyzerInstallerTests.cs" />
+    <Compile Include="NuGetAnalyzerInstallerTests.cs" />
     <Compile Include="ArgumentProcessorTests.cs" />
     <Compile Include="Infrastructure\MockAnalyzerInstaller.cs" />
     <Compile Include="Infrastructure\MockRoslynAnalyzerProvider.cs" />

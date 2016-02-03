@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="AnalyzerInstallerTests.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="NuGetAnalyzerInstallerTests.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -17,7 +17,7 @@ using TestUtilities;
 namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
     [TestClass]
-    public class AnalyzerInstallerTests
+    public class NuGetAnalyzerInstallerTests
     {
         public TestContext TestContext { get; set; }
 
@@ -45,7 +45,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             };
 
             string localCacheDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "localInstallCache");
-            AnalyzerInstaller testSubject = new AnalyzerInstaller(fakeRemotePackageSource, localCacheDir, new TestLogger());
+            NuGetAnalyzerInstaller testSubject = new NuGetAnalyzerInstaller(fakeRemotePackageSource, localCacheDir, new TestLogger());
 
             // Act
             IEnumerable<string> assemblyPaths = testSubject.InstallAssemblies(packages);
@@ -74,7 +74,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             };
 
             string localCacheDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "localInstallCache");
-            AnalyzerInstaller testSubject = new AnalyzerInstaller(fakeRemotePackageSource, localCacheDir, new TestLogger());
+            NuGetAnalyzerInstaller testSubject = new NuGetAnalyzerInstaller(fakeRemotePackageSource, localCacheDir, new TestLogger());
 
             // Act
             IEnumerable<string> assemblyPaths = testSubject.InstallAssemblies(packages);
@@ -100,7 +100,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             };
 
             string localCacheDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "localInstallCache");
-            AnalyzerInstaller testSubject = new AnalyzerInstaller(fakeRemotePackageSource, localCacheDir, new TestLogger());
+            NuGetAnalyzerInstaller testSubject = new NuGetAnalyzerInstaller(fakeRemotePackageSource, localCacheDir, new TestLogger());
 
             // Act and assert
             AssertException.Expects<InvalidOperationException>(() => testSubject.InstallAssemblies(packages));
@@ -117,7 +117,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             IEnumerable<NuGetPackageInfo> packages = new NuGetPackageInfo[] { };
 
             string localCacheDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "localInstallCache");
-            AnalyzerInstaller testSubject = new AnalyzerInstaller(fakeRemotePackageSource, localCacheDir, new TestLogger());
+            NuGetAnalyzerInstaller testSubject = new NuGetAnalyzerInstaller(fakeRemotePackageSource, localCacheDir, new TestLogger());
 
             // Act
             IEnumerable<string> assemblyPaths = testSubject.InstallAssemblies(packages);
@@ -146,7 +146,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             };
 
             string localCacheDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "localInstallCache");
-            AnalyzerInstaller testSubject = new AnalyzerInstaller(fakeRemotePackageSource, localCacheDir, new TestLogger());
+            NuGetAnalyzerInstaller testSubject = new NuGetAnalyzerInstaller(fakeRemotePackageSource, localCacheDir, new TestLogger());
 
             // Act
             IEnumerable<string> assemblyPaths = testSubject.InstallAssemblies(packages);
