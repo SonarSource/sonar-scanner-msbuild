@@ -38,6 +38,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
   </Configuration>
 
   <Deployment>
+    <Plugins>
+      <Plugin Key=""csharp"" Version=""4.5-SNAPSHOT"" StaticResourceName=""SonarLint.zip"" />
+      <Plugin Key=""roslyn.wintellect.analyzers"" Version=""1.0.5.0"" StaticResourceName=""Wintellect.Analyzers.1.0.zip"" />
+    </Plugins>
+
     <NuGetPackages>
       <NuGetPackage Id=""SonarLint"" Version=""1.3.0""/>
       <NuGetPackage Id=""My.Analyzers"" Version=""1.0.5.0-rc1""/>
@@ -52,11 +57,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             AssertExpectedPackageExists("SonarLint", "1.3.0", profile);
             AssertExpectedPackageExists("My.Analyzers", "1.0.5.0-rc1", profile);
+
+            AssertExpectedPluginExists("csharp", "4.5-SNAPSHOT", "SonarLint.zip", profile);
+            AssertExpectedPluginExists("roslyn.wintellect.analyzers", "1.0.5.0", "Wintellect.Analyzers.1.0.zip", profile);
         }
 
         [TestMethod]
         public void RoslynProfile_LoadRealExample_Succeeds()
         {
+            // TODO: update the real XML once the C# plugin has been changed
             RoslynExportProfile profile = LoadAndCheckXml(SampleExportXml.RoslynExportedValidSonarLintXml);
 
             AssertExpectedAdditionalFileExists(SampleExportXml.RoslynExportedAdditionalFileName, profile);
@@ -85,20 +94,31 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         private static void AssertExpectedAdditionalFileExists(string fileName, RoslynExportProfile profile)
         {
             Assert.IsNotNull(profile.Configuration.AdditionalFiles);
-            IEnumerable<AdditionalFile> matches = profile.Configuration.AdditionalFiles.Where(f => string.Equals(fileName, f.FileName, System.StringComparison.OrdinalIgnoreCase));
-            Assert.AreNotEqual(0, matches.Count(), "Expected additional file was not found. File name: {0}", fileName);
-            Assert.AreEqual(1, matches.Count(), "Expecting only one matching file. File name: {0}", fileName);
-            Assert.IsNotNull(matches.First().Content, "File content should not be null. File name: {0}", fileName);
+            AdditionalFile[] matches = profile.Configuration.AdditionalFiles.Where(f => string.Equals(fileName, f.FileName, System.StringComparison.OrdinalIgnoreCase)).ToArray();
+            Assert.AreNotEqual(0, matches.Length, "Expected additional file was not found. File name: {0}", fileName);
+            Assert.AreEqual(1, matches.Length, "Expecting only one matching file. File name: {0}", fileName);
+            Assert.IsNotNull(matches[0].Content, "File content should not be null. File name: {0}", fileName);
         }
 
         private static void AssertExpectedPackageExists(string packageId, string version, RoslynExportProfile profile)
         {
             Assert.IsNotNull(profile.Deployment);
-            IEnumerable<NuGetPackageInfo> matches = profile.Deployment.NuGetPackages.Where(
+            NuGetPackageInfo[] matches = profile.Deployment.NuGetPackages.Where(
                 p => string.Equals(packageId, p.Id, System.StringComparison.Ordinal) &&
-                        string.Equals(version, p.Version, System.StringComparison.Ordinal));
-            Assert.AreNotEqual(0, matches.Count(), "Expected package was not found. Package: {0}, Version: {1}", packageId, version);
-            Assert.AreEqual(1, matches.Count(), "Expecting only one matching package. Package: {0}, Version: {1}", packageId, version);
+                        string.Equals(version, p.Version, System.StringComparison.Ordinal)).ToArray();
+            Assert.AreNotEqual(0, matches.Length, "Expected package was not found. Package: {0}, Version: {1}", packageId, version);
+            Assert.AreEqual(1, matches.Length, "Expecting only one matching package. Package: {0}, Version: {1}", packageId, version);
+        }
+
+        private static void AssertExpectedPluginExists(string pluginKey, string version, string staticResourceName, RoslynExportProfile profile)
+        {
+            Assert.IsNotNull(profile.Deployment);
+            Plugin[] matches = profile.Deployment.Plugins.Where(
+                p => string.Equals(pluginKey, p.Key, System.StringComparison.Ordinal) &&
+                        string.Equals(version, p.Version, System.StringComparison.Ordinal) &&
+                        string.Equals(staticResourceName, p.StaticResourceName, System.StringComparison.Ordinal)).ToArray();
+            Assert.AreNotEqual(0, matches.Length, "Expected plugin entry was not found. Plugin: {0}, Version: {1}, Resource: {2}", pluginKey, version, staticResourceName);
+            Assert.AreEqual(1, matches.Length, "Expecting only one matching plugin. Package: {0}, Version: {1}, Resource: {2}", pluginKey, version, staticResourceName);
         }
 
         #endregion

@@ -9,10 +9,19 @@ using System.Xml.Serialization;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
+
+    /// <summary>
+    /// XML-serializable data class that contains metadata required to deploy analyzers
+    /// </summary>
     public class Deployment
     {
         [XmlArray("NuGetPackages")]
         [XmlArrayItem(Type = typeof(NuGetPackageInfo), ElementName = "NuGetPackage")]
         public List<NuGetPackageInfo> NuGetPackages { get; set; }
+
+        [XmlArray("Plugins")]
+        [XmlArrayItem(Type = typeof(Plugin), ElementName = "Plugin")]
+        public List<Plugin> Plugins { get; set; }
+
     }
 }
