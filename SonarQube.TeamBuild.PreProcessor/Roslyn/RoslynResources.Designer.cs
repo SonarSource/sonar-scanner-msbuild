@@ -106,7 +106,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Plugin resource not found: {0}, version {1}. Resource: {2}.
+        ///   Looks up a localized string similar to Plugin resource not found: {0}, version {1}. Resource: {2}. The rules for this plugin will not be executed..
         /// </summary>
         internal static string EAI_PluginResourceNotFound {
             get {

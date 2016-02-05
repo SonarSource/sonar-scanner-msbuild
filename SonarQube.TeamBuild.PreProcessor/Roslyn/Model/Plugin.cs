@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Xml.Serialization;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
@@ -14,6 +15,29 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
     /// </summary>
     public class Plugin
     {
+        public Plugin()
+        {
+        }
+
+        public Plugin(string key, string version, string staticResourceName)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentNullException("key");
+            }
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentNullException("version");
+            }
+            if (string.IsNullOrWhiteSpace(staticResourceName))
+            {
+                throw new ArgumentNullException("staticResourceName");
+            }
+            this.Key = key;
+            this.Version = version;
+            this.StaticResourceName = staticResourceName;
+        }
+
         [XmlAttribute("Key")]
         public string Key { get; set; }
 

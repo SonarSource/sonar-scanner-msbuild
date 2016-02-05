@@ -137,7 +137,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             }
             else
             {
-                logger.LogDebug(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName);
+                logger.LogWarning(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName);
             }
         }
 
