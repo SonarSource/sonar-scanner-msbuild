@@ -24,6 +24,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <param name="language">The language of the FxCop repository</param>
         /// <param name="fxCopRepositoryKey">The key of the FxCop repository</param>
         /// <param name="sonarProjectKey">The key of the SonarQube project for which the ruleset should be generated</param>
+        /// <param name="sonarProjectBranch">The branch of the SonarQube project for which the ruleset should be generated (optional).</param>
         /// <param name="outputFilePath">The full path to the file to be generated</param>
         public static void Generate(ISonarQubeServer server, string requiredPluginKey, string language, string fxCopRepositoryKey, string sonarProjectKey, string sonarProjectBranch, string outputFilePath)
         {

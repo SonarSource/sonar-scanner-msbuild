@@ -152,7 +152,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
                 // Respect sonar.branch setting if set
                 string projectBranch = null;
-                args.TryGetSetting(SonarProperties.Branch, out projectBranch);
+                args.TryGetSetting(SonarProperties.ProjectBranch, out projectBranch);
 
                 // Fetch the SonarQube project properties
                 serverSettings = server.GetProperties(args.ProjectKey, projectBranch);

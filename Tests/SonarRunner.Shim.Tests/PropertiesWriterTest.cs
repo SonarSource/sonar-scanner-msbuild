@@ -333,6 +333,9 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             globalSettings.Add(new Property() { Id = "my.setting2", Value = "setting 2 with spaces" });
             globalSettings.Add(new Property() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" }); // path that will be escaped
 
+            // Specific test for sonar.branch property
+            globalSettings.Add(new Property() { Id = "sonar.branch", Value = "aBranch" }); // path that will be escaped
+
             // Act
             PropertiesWriter writer = new PropertiesWriter(config);
             writer.WriteGlobalSettings(globalSettings);
@@ -344,6 +347,8 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             propertyReader.AssertSettingExists("my.setting1", "setting1");
             propertyReader.AssertSettingExists("my.setting2", "setting 2 with spaces");
             propertyReader.AssertSettingExists("my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
+
+            propertyReader.AssertSettingExists("sonar.branch", "aBranch");
         }
 
         #endregion

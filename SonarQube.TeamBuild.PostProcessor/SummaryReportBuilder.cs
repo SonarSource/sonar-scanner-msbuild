@@ -166,7 +166,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             IAnalysisPropertyProvider localSettings = config.GetAnalysisSettings(includeServerSettings: false);
             Debug.Assert(localSettings != null);
 
-            localSettings.TryGetValue(SonarProperties.Branch, out branch);
+            localSettings.TryGetValue(SonarProperties.ProjectBranch, out branch);
 
             return branch;
         }

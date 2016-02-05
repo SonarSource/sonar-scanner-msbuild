@@ -101,7 +101,15 @@ namespace SonarQube.TeamBuild.PreProcessor
             return keysToIds;
         }
 
-        public IDictionary<string, string> GetProperties(string projectKey, string projectBranch)
+        /// <summary>
+        /// Retrieves project properties from the server.
+        /// 
+        /// Will fail with an exception if the downloaded return from the server is not a JSON array.
+        /// </summary>
+        /// <param name="projectKey">The SonarQube project key to retrieve properties for.</param>
+        /// <param name="projectBranch">The SonarQube project branch to retrieve properties for (optional).</param>
+        /// <returns>A dictionary of key-value property pairs.</returns>
+        public IDictionary<string, string> GetProperties(string projectKey, string projectBranch = null)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
             {

@@ -147,28 +147,15 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             expected["fxcop:UriParametersShouldNotBeStrings"] = "CA1054";
             var actual = ws.GetInternalKeys("fxcop");
 
-            // default
-            var expected1 = new Dictionary<string, string>();
-            expected1["sonar.property1"] = "value1";
-            expected1["sonar.property2"] = "value2";
-            expected1["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
-            var actual1 = ws.GetProperties("foo bar", null);
-
-            Assert.AreEqual(true, expected1.Count == actual1.Count && !expected1.Except(actual1).Any());
-
-            // branch specific
-            var expected2 = new Dictionary<string, string>();
-            expected2["sonar.property1"] = "anotherValue1";
-            expected2["sonar.property2"] = "anotherValue2";
-            expected2["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
-            var actual2 = ws.GetProperties("foo bar", "aBranch");
-
-            Assert.AreEqual(true, expected2.Count == actual2.Count && !expected2.Except(actual2).Any());
+            Assert.AreEqual(true, expected.Count == actual.Count && !expected.Except(actual).Any());
         }
 
         [TestMethod]
         public void GetProperties()
         {
+            // This test includes a regression scenario for SONARMSBRU-187:
+            // Requesting properties for project:branch should return branch-specific data
+
             // Check that properties are correctly defaulted as well as branch-specific
             downloader.Pages["http://myhost:222/api/properties?resource=foo+bar"] = "[{\"key\": \"sonar.property1\",\"value\": \"value1\"},{\"key\": \"sonar.property2\",\"value\": \"value2\"}]";
             downloader.Pages["http://myhost:222/api/properties?resource=foo+bar%3AaBranch"] = "[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]";
@@ -178,7 +165,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             expected1["sonar.property1"] = "value1";
             expected1["sonar.property2"] = "value2";
             expected1["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
-            var actual1 = ws.GetProperties("foo bar", null);
+            var actual1 = ws.GetProperties("foo bar");
 
             Assert.AreEqual(true, expected1.Count == actual1.Count && !expected1.Except(actual1).Any());
 
@@ -211,6 +198,8 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             ws = new SonarWebService(downloader, "http://myhost:222/", new TestLogger());
 
             // Check that profiles are correctly defaulted as well as branch-specific
+            // This test includes a regression scenario for SONARMSBRU-187:
+            // Requesting properties for project:branch should return branch-specific data
             downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar"] = "[{\"name\":\"profile1\",\"language\":\"cs\",\"default\":true}]";
             downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AaBranch"] = "[{\"name\":\"profile2\",\"language\":\"cs\",\"default\":false}]";
             downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AanotherBranch"] = "[{\"name\":\"profile3\",\"language\":\"cs\",\"default\":false}]";
@@ -254,7 +243,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             expected3_1["sonar.property1"] = "value1";
             expected3_1["sonar.property2"] = "value2";
             expected3_1["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
-            var actual3_1 = ws.GetProperties("foo bar", null);
+            var actual3_1 = ws.GetProperties("foo bar");
 
             var expected3_2 = new Dictionary<string, string>();
             expected3_2["sonar.property1"] = "anotherValue1";

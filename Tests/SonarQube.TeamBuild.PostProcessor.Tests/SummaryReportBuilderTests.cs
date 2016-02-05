@@ -51,7 +51,7 @@ namespace SonarQube.TeamBuild.PostProcessorTests
             ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult { RanToCompletion = false };
             AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
             config.LocalSettings = new AnalysisProperties();
-            config.LocalSettings.Add(new Property() { Id = SonarProperties.Branch, Value = "master" });
+            config.LocalSettings.Add(new Property() { Id = SonarProperties.ProjectBranch, Value = "master" });
             AddProjectInfoToResult(result, ProjectInfoValidity.Valid, type: ProjectType.Product, count: 4);
 
             // Act

@@ -52,7 +52,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 .AddProject("project2");
 
             model.AddQualityProfile("profile 3", "languageBBB")
-                .AddProject("project2:aBranch");
+                .AddProject("project2:aBranch")
+                .AddProject("project3:aThirdBranch");
 
             // Add rules to the quality profiles
             model.AddRuleToProfile("repo1.aaa.r1", "profile 1"); // Only one rule in the repo
@@ -79,7 +80,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RulesetGenerator.Generate(server, "real.plugin1", "languageBBB", "repo1", "missing.project", null, rulesetFilePath);
             AssertFileDoesNotExist(rulesetFilePath);
 
-            // 4. Missing branch
+            // 4. Missing project (project:branch exists)
+            RulesetGenerator.Generate(server, "real.plugin1", "languageBBB", "repo1", "project3", null, rulesetFilePath);
+            AssertFileDoesNotExist(rulesetFilePath);
+
+            // 5. Missing project:branch
+            RulesetGenerator.Generate(server, "real.plugin1", "languageBBB", "repo1", "missing.project", "missingBranch", rulesetFilePath);
+            AssertFileDoesNotExist(rulesetFilePath);
+
+            // 6. b) Missing project:branch (project exists)
             RulesetGenerator.Generate(server, "real.plugin1", "languageBBB", "repo1", "project1", "missingBranch", rulesetFilePath);
             AssertFileDoesNotExist(rulesetFilePath);
 

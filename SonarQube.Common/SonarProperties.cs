@@ -26,6 +26,7 @@ namespace SonarQube.Common
 
         // SonarQube project settings
         public const string ProjectKey = "sonar.projectKey";
+        public const string ProjectBranch = "sonar.branch";
 
         public const string ProjectName = "sonar.projectName";
         public const string ProjectVersion = "sonar.projectVersion";
@@ -37,8 +38,6 @@ namespace SonarQube.Common
         public const string WorkingDirectory = "sonar.working.directory";
         public const string Verbose = "sonar.verbose";
         public const string LogLevel = "sonar.log.level";
-
-        public const string Branch = "sonar.branch";
 
         // Default property values
 
