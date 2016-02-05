@@ -24,7 +24,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         #region Fetching from server tests
 
         [TestMethod]
-        public void EmbeddedInstall_SinglePlugin_SingleResources_Succeeds()
+        public void EmbeddedInstall_SinglePlugin_SingleResource_Succeeds()
         {
             // Arrange
             string localCacheDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
@@ -34,7 +34,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             MockSonarQubeServer mockServer = new MockSonarQubeServer();
             AddPlugin(mockServer, requestedPlugin, "file1.dll", "file2.txt");
 
-            string[] expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, requestedPlugin, "embeddedFile1.zip", "file1.dll", "file2.txt");
+            IList<string> expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, requestedPlugin, "embeddedFile1.zip", "file1.dll", "file2.txt");
 
             EmbeddedAnalyzerInstaller testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
 
@@ -130,6 +130,66 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region Caching tests
 
+        [TestMethod]
+        public void EmbeddedInstall_CachingScenarios()
+        {
+            // Arrange
+            string localCacheDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            TestLogger logger = new TestLogger();
+
+            Plugin requestA = new Plugin("p111", "1.0-SNAPSHOT", "p1.zip");
+            Plugin requestB = new Plugin("p222", "9.1.3.0", "p2.zip");
+
+            MockSonarQubeServer mockServer = new MockSonarQubeServer();
+            AddPlugin(mockServer, requestA, "aaa", "bbb");
+            AddPlugin(mockServer, requestB, "ccc");
+
+            IList<string> expectedPlugin111Paths = CalculateExpectedCachedFilePaths(localCacheDir, requestA, "p1.zip", "aaa", "bbb");
+            IList<string> expectedPlugin222Paths = CalculateExpectedCachedFilePaths(localCacheDir, requestB, "p2.zip", "ccc");
+            List<string> allExpectedPaths = new List<string>(expectedPlugin111Paths);
+            allExpectedPaths.AddRange(expectedPlugin222Paths);
+
+            EmbeddedAnalyzerInstaller testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+
+            AssertExpectedFilesInCache(0, localCacheDir); // cache should be empty to start with
+
+
+            // 1. Empty cache -> cache miss -> server called
+            IEnumerable<string> actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA });
+            mockServer.AssertMethodCalled(nameof(ISonarQubeServer.TryDownloadEmbeddedFile), 1); // should have tried to download
+
+            AssertExpectedFilesReturned(expectedPlugin111Paths, actualFiles);
+            AssertExpectedFilesExist(expectedPlugin111Paths);
+            AssertExpectedFilesInCache(3, localCacheDir); // only files for the first request should exist
+
+
+            // 2. New request + request request -> partial cache miss -> server called only for the new request
+            actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
+            mockServer.AssertMethodCalled(nameof(ISonarQubeServer.TryDownloadEmbeddedFile), 2); // new request
+
+            AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
+            AssertExpectedFilesExist(allExpectedPaths);
+            AssertExpectedFilesInCache(5, localCacheDir); // files for both plugins should exist
+
+
+            // 3. Repeat the request -> cache hit -> server not called
+            actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
+            mockServer.AssertMethodCalled(nameof(ISonarQubeServer.TryDownloadEmbeddedFile), 2); // call count should not have changed
+
+            AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
+
+            // 4. Clear the cache and request both -> cache miss -> multiple requests
+            Directory.Delete(localCacheDir, true);
+            Assert.IsFalse(Directory.Exists(localCacheDir), "Test error: failed to delete the local cache directory");
+
+            actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
+            mockServer.AssertMethodCalled(nameof(ISonarQubeServer.TryDownloadEmbeddedFile), 4); // two new requests
+
+            AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
+            AssertExpectedFilesExist(allExpectedPaths);
+            AssertExpectedFilesInCache(5, localCacheDir); // files for both plugins should exist
+        }
+
         #endregion
 
         #region Private methods
@@ -176,7 +236,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return zipData;
         }
 
-        private static string[] CalculateExpectedCachedFilePaths(string baseDir, Plugin plugin, params string[] fileNames)
+        private static IList<string> CalculateExpectedCachedFilePaths(string baseDir, Plugin plugin, params string[] fileNames)
         {
             List<string> files = new List<string>();
 
@@ -187,7 +247,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 string fullFilePath = Path.Combine(pluginDir, fileName);
                 files.Add(fullFilePath);
             }
-            return files.ToArray();
+            return files;
         }
 
         private void AssertExpectedFilesReturned(IEnumerable<string> expectedFileNames, IEnumerable<string> actualFilePaths)
