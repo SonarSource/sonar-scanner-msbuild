@@ -141,4 +141,22 @@
   <data name="ResolveFileConflict" xml:space="preserve">
     <value>Package conflict: {0}</value>
   </data>
+  <data name="EAI_FetchingPluginResource" xml:space="preserve">
+    <value>Fetching resource for plugin: {0}, version {1}. Resource: {2}</value>
+  </data>
+  <data name="EAI_InstallingAnalyzers" xml:space="preserve">
+    <value>Installing required Roslyn analyzers...</value>
+  </data>
+  <data name="EAI_LocalAnalyzerCache" xml:space="preserve">
+    <value>Local analyzer cache: {0}</value>
+  </data>
+  <data name="EAI_NoPluginsSpecified" xml:space="preserve">
+    <value>No plugins were specified</value>
+  </data>
+  <data name="EAI_PluginResourceNotFound" xml:space="preserve">
+    <value>Plugin resource not found: {0}, version {1}. Resource: {2}</value>
+  </data>
+  <data name="EAI_UsingCachedResource" xml:space="preserve">
+    <value>Using cached resource: {0}</value>
+  </data>
 </root>

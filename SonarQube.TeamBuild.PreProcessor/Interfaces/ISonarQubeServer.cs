@@ -49,7 +49,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         bool TryGetProfileExport(string qualityProfile, string language, string format, out string content);
 
         /// <summary>
-        /// Attempts to download a file embbedded in the "static" folder in a plugin jar
+        /// Attempts to download a file embedded in the "static" folder in a plugin jar
         /// </summary>
         /// <param name="pluginKey">The key of the plugin containing the file</param>
         /// <param name="embeddedFileName">The name of the file to download</param>

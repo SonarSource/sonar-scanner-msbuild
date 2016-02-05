@@ -70,6 +70,60 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fetching resource for plugin: {0}, version {1}. Resource: {2}.
+        /// </summary>
+        internal static string EAI_FetchingPluginResource {
+            get {
+                return ResourceManager.GetString("EAI_FetchingPluginResource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Installing required Roslyn analyzers....
+        /// </summary>
+        internal static string EAI_InstallingAnalyzers {
+            get {
+                return ResourceManager.GetString("EAI_InstallingAnalyzers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local analyzer cache: {0}.
+        /// </summary>
+        internal static string EAI_LocalAnalyzerCache {
+            get {
+                return ResourceManager.GetString("EAI_LocalAnalyzerCache", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No plugins were specified.
+        /// </summary>
+        internal static string EAI_NoPluginsSpecified {
+            get {
+                return ResourceManager.GetString("EAI_NoPluginsSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plugin resource not found: {0}, version {1}. Resource: {2}.
+        /// </summary>
+        internal static string EAI_PluginResourceNotFound {
+            get {
+                return ResourceManager.GetString("EAI_PluginResourceNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using cached resource: {0}.
+        /// </summary>
+        internal static string EAI_UsingCachedResource {
+            get {
+                return ResourceManager.GetString("EAI_UsingCachedResource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Installing required analyzer NuGet packages....
         /// </summary>
         internal static string InstallingPackages {
