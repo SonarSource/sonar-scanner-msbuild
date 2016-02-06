@@ -21,44 +21,23 @@ namespace SonarQube.TeamBuild.PreProcessor
         public const string FxCopCSharpRuleset = "SonarQubeFxCop-cs.ruleset";
         public const string FxCopVBNetRuleset = "SonarQubeFxCop-vbnet.ruleset";
 
+        private readonly IPreprocessorObjectFactory factory;
         private readonly ILogger logger;
-        private readonly ISonarQubeServerFactory serverFactory;
-        private readonly ITargetsInstaller targetInstaller;
-        private readonly IAnalyzerProvider analyzerProvider;
 
         #region Constructor(s)
 
-        public TeamBuildPreProcessor(ILogger logger)
-            : this(logger, new SonarQubeServerFactory(), new TargetsInstaller(), new RoslynAnalyzerProvider(new NuGetAnalyzerInstaller(logger), logger))
+        public TeamBuildPreProcessor(IPreprocessorObjectFactory factory, ILogger logger)
         {
-        }
-
-        /// <summary>
-        /// Internal constructor for testing
-        /// </summary>
-        public TeamBuildPreProcessor(ILogger logger, ISonarQubeServerFactory serverFactory, ITargetsInstaller targetInstaller, IAnalyzerProvider analyzerInstaller)
-        {
+            if (factory == null)
+            {
+                throw new ArgumentNullException("factory");
+            }
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
             }
-            if (serverFactory == null)
-            {
-                throw new ArgumentNullException("serverFactory");
-            }
-            if (targetInstaller == null)
-            {
-                throw new ArgumentNullException("targetInstaller");
-            }
-            if (analyzerInstaller == null)
-            {
-                throw new ArgumentNullException("analyzerProvider");
-            }
-
+            this.factory = factory;
             this.logger = logger;
-            this.serverFactory = serverFactory;
-            this.targetInstaller = targetInstaller;
-            this.analyzerProvider = analyzerInstaller;
         }
 
         #endregion Constructor(s)
@@ -131,7 +110,9 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             if (args.InstallLoaderTargets)
             {
-                this.targetInstaller.InstallLoaderTargets(this.logger);
+                ITargetsInstaller installer = this.factory.CreateTargetInstaller();
+                Debug.Assert(installer != null, "Factory should not return null");
+                installer.InstallLoaderTargets(this.logger);
             }
             else
             {
@@ -145,7 +126,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             serverSettings = null;
             analyzerSettings = null;
 
-            ISonarQubeServer server = this.serverFactory.Create(args, this.logger);
+            ISonarQubeServer server = this.factory.CreateSonarQubeServer(args, this.logger);
             try
             {
                 this.logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
@@ -164,7 +145,10 @@ namespace SonarQube.TeamBuild.PreProcessor
                 GenerateFxCopRuleset(server, args.ProjectKey, projectBranch, 
                     "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(settings.SonarConfigDirectory, FxCopVBNetRuleset));
 
-                analyzerSettings = this.analyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey, projectBranch);
+                IAnalyzerProvider analyzerProvider = this.factory.CreateAnalyzerProvider(this.logger);
+                Debug.Assert(analyzerProvider != null, "Factory should not return null");
+
+                analyzerSettings = analyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey, projectBranch);
             }
             catch (WebException ex)
             {

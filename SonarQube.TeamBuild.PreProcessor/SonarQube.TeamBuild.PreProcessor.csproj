@@ -56,7 +56,7 @@
     <Compile Include="Interfaces\IAnalyzerInstaller.cs" />
     <Compile Include="Interfaces\IAnalyzerProvider.cs" />
     <Compile Include="Interfaces\IDownloader.cs" />
-    <Compile Include="Interfaces\ISonarQubeServerFactory.cs" />
+    <Compile Include="Interfaces\IPreprocessorObjectFactory.cs" />
     <Compile Include="Interfaces\ITargetsInstaller.cs" />
     <Compile Include="Interfaces\ISonarQubeServer.cs" />
     <Compile Include="Roslyn\EmbeddedAnalyzerInstaller.cs" />
@@ -73,7 +73,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>RoslynResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="SonarQubeServerFactory.cs" />
+    <Compile Include="PreprocessorObjectFactory.cs" />
     <Compile Include="ProcessedArgs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

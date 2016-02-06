@@ -9,6 +9,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using TestUtilities;
 
@@ -69,8 +70,14 @@ xxx yyy
         public void ProcRunner_FailsOnTimeout()
         {
             // Arrange
+
+            // Previously the script used "TIMEOUT 2" to pause execution in
+            // the spawned process. However, the test was failing on some machines
+            // with the error "Input redirection is not supported, exiting the process immediately."
+            // Pinging a non-existent address with a timeout is an alternative 
+            // that works if the machine is connected to the internet
             string exeName = TestUtils.WriteBatchFileForTest(TestContext,
-@"TIMEOUT 2
+@"@ping 1.1.1.1 -n 1 -w 2000 >nul
 @echo Hello world
 ");
 
@@ -81,10 +88,15 @@ xxx yyy
             };
             ProcessRunner runner = new ProcessRunner();
 
+            Stopwatch timer = Stopwatch.StartNew();
+
             // Act
             bool success = runner.Execute(args);
 
             // Assert
+            timer.Stop(); // Sanity check that the process actually timed out
+            Assert.IsTrue(timer.ElapsedMilliseconds >= 100, "Test error: batch process exited too early");
+
             Assert.IsFalse(success, "Expecting the process to have failed");
             Assert.AreEqual(ProcessRunner.ErrorCode, runner.ExitCode, "Unexpected exit code");
             logger.AssertMessageNotLogged("Hello world");

@@ -26,8 +26,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             // Arrange
             MockSonarQubeServer mockServer = new MockSonarQubeServer();
+
             TeamBuildPreProcessor preprocessor = new TeamBuildPreProcessor(
-                new TestLogger(), new MockSonarQubeServerFactory(mockServer), new MockTargetsInstaller(), new MockRoslynAnalyzerProvider());
+                new MockObjectFactory(mockServer, new MockTargetsInstaller(), new MockRoslynAnalyzerProvider()), 
+                new TestLogger());
 
             // Act and assert
             AssertException.Expects<ArgumentNullException>(() => preprocessor.Execute(null));
@@ -47,8 +49,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             string workingDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             TestLogger logger = new TestLogger();
             
-            MockTargetsInstaller mockTargetsInstaller = new MockTargetsInstaller();
-
             // Configure the server
             MockSonarQubeServer mockServer = new MockSonarQubeServer();
 
@@ -78,6 +78,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockAnalyzerProvider.SettingsToReturn = new AnalyzerSettings();
             mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
 
+            MockTargetsInstaller mockTargetsInstaller = new MockTargetsInstaller();
+
+            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller, mockAnalyzerProvider);
+
+
             string[] validArgs = new string[] {
                 "/k:key", "/n:name", "/v:1.0",
                 "/d:cmd.line1=cmdline.value.1",
@@ -92,7 +97,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 Assert.AreEqual(BuildEnvironment.NotTeamBuild, settings.BuildEnvironment, "Test setup error: build environment was not set correctly");
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(logger, new MockSonarQubeServerFactory(mockServer), mockTargetsInstaller, mockAnalyzerProvider);
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
                 bool success = preProcessor.Execute(validArgs);
