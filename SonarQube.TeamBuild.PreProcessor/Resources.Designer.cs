@@ -173,6 +173,15 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Internal error: cannot create an analyzer provider without a SonarQube server instance.
+        /// </summary>
+        public static string FACTORY_InternalError_MissingServer {
+            get {
+                return ResourceManager.GetString("FACTORY_InternalError_MissingServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Creating config and output folders....
         /// </summary>
         public static string MSG_CreatingFolders {
@@ -283,99 +292,99 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to A Roslyn analyzer &quot;additional file&quot; named &quot;{0}&quot; already exists at {1}. The existing file will not be overwritten..
         /// </summary>
-        public static string SLAP_AdditionalFileAlreadyExists {
+        public static string RAP_AdditionalFileAlreadyExists {
             get {
-                return ResourceManager.GetString("SLAP_AdditionalFileAlreadyExists", resourceCulture);
+                return ResourceManager.GetString("RAP_AdditionalFileAlreadyExists", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The Roslyn profile exporter returned an AdditionalFile that does not specify a file name. The AdditionalFile will be ignored..
         /// </summary>
-        public static string SLAP_AdditionalFileNameMustBeSpecified {
+        public static string RAP_AdditionalFileNameMustBeSpecified {
             get {
-                return ResourceManager.GetString("SLAP_AdditionalFileNameMustBeSpecified", resourceCulture);
+                return ResourceManager.GetString("RAP_AdditionalFileNameMustBeSpecified", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to C# plugin is not installed so the SonarLint ruleset cannot be retrieved.
+        ///   Looks up a localized string similar to C# plugin is not installed so there is no C# ruleset or Roslyn analyzer information to retrieve.
         /// </summary>
-        public static string SLAP_CSharpPluginNotInstalled {
+        public static string RAP_CSharpPluginNotInstalled {
             get {
-                return ResourceManager.GetString("SLAP_CSharpPluginNotInstalled", resourceCulture);
+                return ResourceManager.GetString("RAP_CSharpPluginNotInstalled", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No analyzer NuGet packages were specified.
+        ///   Looks up a localized string similar to No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run.
         /// </summary>
-        public static string SLAP_NoAnalyzerPackagesSpecified {
+        public static string RAP_NoAnalyzerPluginsSpecified {
             get {
-                return ResourceManager.GetString("SLAP_NoAnalyzerPackagesSpecified", resourceCulture);
+                return ResourceManager.GetString("RAP_NoAnalyzerPluginsSpecified", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Could not obtain a C# profile for project &apos;{0}&apos;.
         /// </summary>
-        public static string SLAP_NoProfileForProject {
+        public static string RAP_NoProfileForProject {
             get {
-                return ResourceManager.GetString("SLAP_NoProfileForProject", resourceCulture);
+                return ResourceManager.GetString("RAP_NoProfileForProject", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The exported profile does not contain a ruleset.
         /// </summary>
-        public static string SLAP_ProfileDoesNotContainRuleset {
+        public static string RAP_ProfileDoesNotContainRuleset {
             get {
-                return ResourceManager.GetString("SLAP_ProfileDoesNotContainRuleset", resourceCulture);
+                return ResourceManager.GetString("RAP_ProfileDoesNotContainRuleset", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Found SonarLint profile export &apos;{0}&apos; for project &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Found profile export &apos;{0}&apos; for project &apos;{1}&apos;.
         /// </summary>
-        public static string SLAP_ProfileExportFound {
+        public static string RAP_ProfileExportFound {
             get {
-                return ResourceManager.GetString("SLAP_ProfileExportFound", resourceCulture);
+                return ResourceManager.GetString("RAP_ProfileExportFound", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find SonarLint profile export &apos;{0}&apos; for project &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Could not find profile export &apos;{0}&apos; for project &apos;{1}&apos;.
         /// </summary>
-        public static string SLAP_ProfileExportNotFound {
+        public static string RAP_ProfileExportNotFound {
             get {
-                return ResourceManager.GetString("SLAP_ProfileExportNotFound", resourceCulture);
+                return ResourceManager.GetString("RAP_ProfileExportNotFound", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Provisioning analyzer assemblies....
         /// </summary>
-        public static string SLAP_ProvisioningAnalyzerAssemblies {
+        public static string RAP_ProvisioningAnalyzerAssemblies {
             get {
-                return ResourceManager.GetString("SLAP_ProvisioningAnalyzerAssemblies", resourceCulture);
+                return ResourceManager.GetString("RAP_ProvisioningAnalyzerAssemblies", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Writing Roslyn generated ruleset to {0}....
         /// </summary>
-        public static string SLAP_UnpackingRuleset {
+        public static string RAP_UnpackingRuleset {
             get {
-                return ResourceManager.GetString("SLAP_UnpackingRuleset", resourceCulture);
+                return ResourceManager.GetString("RAP_UnpackingRuleset", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Writing Roslyn analyzer additional file to {0}....
         /// </summary>
-        public static string SLAP_WritingAdditionalFile {
+        public static string RAP_WritingAdditionalFile {
             get {
-                return ResourceManager.GetString("SLAP_WritingAdditionalFile", resourceCulture);
+                return ResourceManager.GetString("RAP_WritingAdditionalFile", resourceCulture);
             }
         }
         

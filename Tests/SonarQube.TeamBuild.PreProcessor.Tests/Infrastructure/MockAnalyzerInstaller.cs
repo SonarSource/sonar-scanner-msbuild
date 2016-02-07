@@ -18,37 +18,37 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         public ISet<string> AssemblyPathsToReturn { get; set; }
         
-        public IEnumerable<NuGetPackageInfo> SuppliedPackages { get; private set; }
+        public IEnumerable<Plugin> SuppliedPlugins { get; private set; }
 
         #endregion
 
         #region Checks
 
-        public void AssertExpectedPackagesRequested(IDictionary<string, string> packages)
+        public void AssertExpectedPluginsRequested(IEnumerable<string> plugins)
         {
-            foreach(KeyValuePair<string, string> kvp in packages)
+            foreach(string plugin in plugins)
             {
-                AssertExpectedPackageRequested(kvp.Key, kvp.Value);
+                AssertExpectedPluginRequested(plugin);
             }
-            Assert.AreEqual(packages.Count, this.SuppliedPackages.Count(), "Unexpected number of packages requested");
+            Assert.AreEqual(plugins.Count(), this.SuppliedPlugins.Count(), "Unexpected number of plugins requested");
         }
 
-        public void AssertExpectedPackageRequested(string id, string version)
+        public void AssertExpectedPluginRequested(string key)
         {
-            Assert.IsNotNull(this.SuppliedPackages, "No packages have been requested");
-            bool found = this.SuppliedPackages.Any(p => string.Equals(id, p.Id, System.StringComparison.Ordinal) && string.Equals(version, p.Version, System.StringComparison.Ordinal));
-            Assert.IsTrue(found, "Expected package was not requested. Id: {0}, version: {1}", id, version);
+            Assert.IsNotNull(this.SuppliedPlugins, "No plugins have been requested");
+            bool found = this.SuppliedPlugins.Any(p => string.Equals(key, p.Key, System.StringComparison.Ordinal));
+            Assert.IsTrue(found, "Expected plugin was not requested. Id: {0}", key);
         }
 
         #endregion
 
         #region IAnalyzerInstaller methods
 
-        IEnumerable<string> IAnalyzerInstaller.InstallAssemblies(IEnumerable<NuGetPackageInfo> packages)
+        IEnumerable<string> IAnalyzerInstaller.InstallAssemblies(IEnumerable<Plugin> plugins)
         {
-            Assert.IsNotNull(packages, "Supplied list of packages should not be null");
+            Assert.IsNotNull(plugins, "Supplied list of plugins should not be null");
 
-            this.SuppliedPackages = packages;
+            this.SuppliedPlugins = plugins;
 
             return this.AssemblyPathsToReturn;
         }

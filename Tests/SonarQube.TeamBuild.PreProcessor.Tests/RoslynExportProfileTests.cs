@@ -65,11 +65,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         [TestMethod]
         public void RoslynProfile_LoadRealExample_Succeeds()
         {
-            // TODO: update the real XML once the C# plugin has been changed
             RoslynExportProfile profile = LoadAndCheckXml(SampleExportXml.RoslynExportedValidSonarLintXml);
 
             AssertExpectedAdditionalFileExists(SampleExportXml.RoslynExportedAdditionalFileName, profile);
             AssertExpectedPackageExists(SampleExportXml.RoslynExportedPackageId, SampleExportXml.RoslynExportedPackageVersion, profile);
+
+            Assert.Inconclusive("TODO: update test once an updated version of the real roslyn-cs exporter xml is available");
+            // TODO: update the real XML once the C# plugin has been changed
+            //AssertExpectedPluginExists(SampleExportXml.RoslynExportedPluginKey, SampleExportXml.RoslynExportedPackageVersion, SampleExportXml.RoslynExportedAdditionalFileName, profile);
         }
 
         #endregion

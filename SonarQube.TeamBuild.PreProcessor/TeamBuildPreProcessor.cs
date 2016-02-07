@@ -96,6 +96,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 return false;
             }
+            Debug.Assert(analyzerSettings != null, "No expecting the analyzer settings to be null");
 
             AnalysisConfigGenerator.GenerateFile(args, teamBuildSettings, serverSettings, analyzerSettings, this.logger);
 

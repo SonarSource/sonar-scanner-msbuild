@@ -19,12 +19,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
     /// Handles fetching embedded resources from SonarQube plugins
     /// </summary>
     /// <remarks>
+    /// <para>
     /// We won't be able to run the analyzers unless the user is using MSBuild 14.0 or later.
     /// However, this code is called during the pre-process stage i.e. we don't know which
     /// version of MSBuild will be used so we have to download the analyzers even if we
     /// can't then use them.
+    /// </para>
+    /// <para>
+    /// The plugin resources are cached locally under %temp%\.sq\.static\[package_version]\[resource]
+    /// If the required version is available locally then it will not be downloaded from the
+    /// SonarQube server.
+    /// </para>
     /// </remarks>
-    public class EmbeddedAnalyzerInstaller //: IAnalyzerInstaller
+    public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
     {
         private readonly ISonarQubeServer server;
         private readonly string localCacheDirectory;
@@ -98,7 +105,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         /// </summary>
         private static string GetLocalCacheDirectory()
         {
-            string localCache = Path.Combine(Path.GetTempPath(), ".sonarqube", ".nuget");
+            string localCache = Path.Combine(Path.GetTempPath(), ".sq", ".static");
             return localCache;
         }
         
@@ -147,9 +154,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         /// </summary>
         public static string GetPluginSpecificDir(string baseDir, Plugin plugin)
         {
-            // Format is: [base]\[plugin.version]
+            // Format is: [base]\[plugin_version]
             string pluginVersionFolder = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                "{0}.{1}",
+                "{0}_{1}",
                 plugin.Key, plugin.Version);
 
             pluginVersionFolder = StripInvalidDirectoryChars(pluginVersionFolder);
