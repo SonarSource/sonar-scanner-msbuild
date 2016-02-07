@@ -132,9 +132,6 @@
   <data name="CmdLine_ArgDescription_ProjectVersion" xml:space="preserve">
     <value>/version:[SonarQube project version]</value>
   </data>
-  <data name="DIAG_SavingConfigFile" xml:space="preserve">
-    <value>Saving the config file to {0}</value>
-  </data>
   <data name="ERROR_Args_UrlRequired" xml:space="preserve">
     <value>The SonarQube URL must be supplied. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000).</value>
   </data>
@@ -159,9 +156,6 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   </data>
   <data name="ERROR_MissingSetting" xml:space="preserve">
     <value>Missing analysis setting: {0}</value>
-  </data>
-  <data name="ERROR_WebException" xml:space="preserve">
-    <value>An error occured while trying to connect to the SonarQube server. Please check that the web server is accessible. Url {0}</value>
   </data>
   <data name="MSG_CreatingFolders" xml:space="preserve">
     <value>Creating config and output folders...</value>
@@ -205,20 +199,8 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   <data name="SLAP_AdditionalFileNameMustBeSpecified" xml:space="preserve">
     <value>The Roslyn profile exporter returned an AdditionalFile that does not specify a file name. The AdditionalFile will be ignored.</value>
   </data>
-  <data name="SLAP_AnalyzerNotFound" xml:space="preserve">
-    <value>The SonarLint analyzer was not found on the server (requires C# plugin version 4.4 or higher)</value>
-  </data>
   <data name="SLAP_CSharpPluginNotInstalled" xml:space="preserve">
     <value>C# plugin is not installed so the SonarLint ruleset cannot be retrieved</value>
-  </data>
-  <data name="SLAP_FetchingSonarLintAnalyzer" xml:space="preserve">
-    <value>Fetching the SonarLint analyzer from the server...</value>
-  </data>
-  <data name="SLAP_FetchingSonarLintRuleset" xml:space="preserve">
-    <value>Fetching the SonarLint ruleset from the server...</value>
-  </data>
-  <data name="SLAP_InvalidRulesetReturned" xml:space="preserve">
-    <value>The SonarQube server returned an invalid ruleset for SonarLint. SonarLint analysis will not be run as part of the build.</value>
   </data>
   <data name="SLAP_NoAnalyzerPackagesSpecified" xml:space="preserve">
     <value>No analyzer NuGet packages were specified</value>
@@ -237,12 +219,6 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   </data>
   <data name="SLAP_ProvisioningAnalyzerAssemblies" xml:space="preserve">
     <value>Provisioning analyzer assemblies...</value>
-  </data>
-  <data name="SLAP_SonarLintParametersCreated" xml:space="preserve">
-    <value>SonarLint parameters downloaded: {0}</value>
-  </data>
-  <data name="SLAP_SonarLintRulesetCreated" xml:space="preserve">
-    <value>SonarLint ruleset downloaded: {0}</value>
   </data>
   <data name="SLAP_UnpackingRuleset" xml:space="preserve">
     <value>Writing Roslyn generated ruleset to {0}...</value>

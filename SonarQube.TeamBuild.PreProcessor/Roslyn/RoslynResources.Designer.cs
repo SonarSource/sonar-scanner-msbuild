@@ -61,15 +61,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Creating local NuGet repository. Source: {0}.
-        /// </summary>
-        internal static string CreatingRepository {
-            get {
-                return ResourceManager.GetString("CreatingRepository", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Fetching resource for plugin: {0}, version {1}. Resource: {2}.
         /// </summary>
         internal static string EAI_FetchingPluginResource {
@@ -120,69 +111,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn {
         internal static string EAI_UsingCachedResource {
             get {
                 return ResourceManager.GetString("EAI_UsingCachedResource", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Installing required analyzer NuGet packages....
-        /// </summary>
-        internal static string InstallingPackages {
-            get {
-                return ResourceManager.GetString("InstallingPackages", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Locating package: {0}-{1}.
-        /// </summary>
-        internal static string LocatingPackage {
-            get {
-                return ResourceManager.GetString("LocatingPackage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No analyzer packages were specified.
-        /// </summary>
-        internal static string NoAnalyzerPackages {
-            get {
-                return ResourceManager.GetString("NoAnalyzerPackages", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Package installed.
-        /// </summary>
-        internal static string PackageInstalled {
-            get {
-                return ResourceManager.GetString("PackageInstalled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Package installation failed: {0}.
-        /// </summary>
-        internal static string PackageInstallFailed {
-            get {
-                return ResourceManager.GetString("PackageInstallFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Analyzer packages installed.
-        /// </summary>
-        internal static string PackagesInstalled {
-            get {
-                return ResourceManager.GetString("PackagesInstalled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Package conflict: {0}.
-        /// </summary>
-        internal static string ResolveFileConflict {
-            get {
-                return ResourceManager.GetString("ResolveFileConflict", resourceCulture);
             }
         }
     }

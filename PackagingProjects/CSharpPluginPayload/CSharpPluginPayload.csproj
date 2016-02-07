@@ -45,7 +45,6 @@
     <FilesToCopy Include="$(SourcesRoot)\V0_9UpgradeMessageExe\bin\$(Configuration)\SonarQube.MSBuild.PreProcessor.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\MSBuild.SonarQube.Internal.PreProcess.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SupportedBootstrapperVersions.xml" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\NuGet.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SonarQube.Common.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\MSBuild.SonarQube.Internal.PostProcess.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarRunner.Shim\bin\$(Configuration)\SonarRunner.Shim.dll" />
@@ -53,6 +52,10 @@
     <FilesToCopy Include="$(SourcesRoot)\SonarRunner.Shim\sonar-runner.zip" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\TeamBuild.SonarQube.Integration.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\SonarQube.Integration.Tasks.dll" />
+    <ProjectReference Include="..\..\V0_9UpgradeMessageExe\V0_9UpgradeMessageExe.csproj">
+      <Project>{d35af999-a91e-4de2-93d7-858dfb4dd063}</Project>
+      <Name>V0_9UpgradeMessageExe</Name>
+    </ProjectReference>
     <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.targets" />
     <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.ImportBefore.targets" />
     <!-- Reference to dependencies to ensure the build order is correct -->

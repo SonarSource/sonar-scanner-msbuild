@@ -35,8 +35,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NuGet">
-      <HintPath>..\packages\NuGet.CommandLine.3.3.0\tools\NuGet.exe</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -61,7 +62,6 @@
     <Compile Include="Interfaces\ISonarQubeServer.cs" />
     <Compile Include="Roslyn\EmbeddedAnalyzerInstaller.cs" />
     <Compile Include="Roslyn\Model\Plugin.cs" />
-    <Compile Include="Roslyn\NuGetAnalyzerInstaller.cs" />
     <Compile Include="Roslyn\Model\AdditionalFile.cs" />
     <Compile Include="Roslyn\Model\Configuration.cs" />
     <Compile Include="Roslyn\Model\Deployment.cs" />
@@ -116,6 +116,7 @@
     <EmbeddedResource Include="Roslyn\RoslynResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>RoslynResources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

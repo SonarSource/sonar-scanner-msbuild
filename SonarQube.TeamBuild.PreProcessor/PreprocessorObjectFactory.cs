@@ -52,7 +52,8 @@ namespace SonarQube.TeamBuild.PreProcessor
                 throw new ArgumentNullException("logger");
             }
 
-            return new Roslyn.RoslynAnalyzerProvider(new Roslyn.NuGetAnalyzerInstaller(logger), logger);
+            //TODO - return embedded analyzer installer
+            throw new NotImplementedException();
         }
 
         #endregion

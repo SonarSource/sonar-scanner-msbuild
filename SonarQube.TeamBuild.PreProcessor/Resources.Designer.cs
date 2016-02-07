@@ -106,15 +106,6 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Saving the config file to {0}.
-        /// </summary>
-        public static string DIAG_SavingConfigFile {
-            get {
-                return ResourceManager.GetString("DIAG_SavingConfigFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The SonarQube URL must be supplied. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000)..
         /// </summary>
         public static string ERROR_Args_UrlRequired {
@@ -178,15 +169,6 @@ namespace SonarQube.TeamBuild.PreProcessor {
         public static string ERROR_MissingSetting {
             get {
                 return ResourceManager.GetString("ERROR_MissingSetting", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to An error occured while trying to connect to the SonarQube server. Please check that the web server is accessible. Url {0}.
-        /// </summary>
-        public static string ERROR_WebException {
-            get {
-                return ResourceManager.GetString("ERROR_WebException", resourceCulture);
             }
         }
         
@@ -317,47 +299,11 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The SonarLint analyzer was not found on the server (requires C# plugin version 4.4 or higher).
-        /// </summary>
-        public static string SLAP_AnalyzerNotFound {
-            get {
-                return ResourceManager.GetString("SLAP_AnalyzerNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to C# plugin is not installed so the SonarLint ruleset cannot be retrieved.
         /// </summary>
         public static string SLAP_CSharpPluginNotInstalled {
             get {
                 return ResourceManager.GetString("SLAP_CSharpPluginNotInstalled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fetching the SonarLint analyzer from the server....
-        /// </summary>
-        public static string SLAP_FetchingSonarLintAnalyzer {
-            get {
-                return ResourceManager.GetString("SLAP_FetchingSonarLintAnalyzer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fetching the SonarLint ruleset from the server....
-        /// </summary>
-        public static string SLAP_FetchingSonarLintRuleset {
-            get {
-                return ResourceManager.GetString("SLAP_FetchingSonarLintRuleset", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The SonarQube server returned an invalid ruleset for SonarLint. SonarLint analysis will not be run as part of the build..
-        /// </summary>
-        public static string SLAP_InvalidRulesetReturned {
-            get {
-                return ResourceManager.GetString("SLAP_InvalidRulesetReturned", resourceCulture);
             }
         }
         
@@ -412,24 +358,6 @@ namespace SonarQube.TeamBuild.PreProcessor {
         public static string SLAP_ProvisioningAnalyzerAssemblies {
             get {
                 return ResourceManager.GetString("SLAP_ProvisioningAnalyzerAssemblies", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarLint parameters downloaded: {0}.
-        /// </summary>
-        public static string SLAP_SonarLintParametersCreated {
-            get {
-                return ResourceManager.GetString("SLAP_SonarLintParametersCreated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarLint ruleset downloaded: {0}.
-        /// </summary>
-        public static string SLAP_SonarLintRulesetCreated {
-            get {
-                return ResourceManager.GetString("SLAP_SonarLintRulesetCreated", resourceCulture);
             }
         }
         

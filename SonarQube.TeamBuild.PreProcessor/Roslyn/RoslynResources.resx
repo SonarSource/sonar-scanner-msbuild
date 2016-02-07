@@ -117,30 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CreatingRepository" xml:space="preserve">
-    <value>Creating local NuGet repository. Source: {0}</value>
-  </data>
-  <data name="InstallingPackages" xml:space="preserve">
-    <value>Installing required analyzer NuGet packages...</value>
-  </data>
-  <data name="LocatingPackage" xml:space="preserve">
-    <value>Locating package: {0}-{1}</value>
-  </data>
-  <data name="NoAnalyzerPackages" xml:space="preserve">
-    <value>No analyzer packages were specified</value>
-  </data>
-  <data name="PackageInstalled" xml:space="preserve">
-    <value>Package installed</value>
-  </data>
-  <data name="PackageInstallFailed" xml:space="preserve">
-    <value>Package installation failed: {0}</value>
-  </data>
-  <data name="PackagesInstalled" xml:space="preserve">
-    <value>Analyzer packages installed</value>
-  </data>
-  <data name="ResolveFileConflict" xml:space="preserve">
-    <value>Package conflict: {0}</value>
-  </data>
   <data name="EAI_FetchingPluginResource" xml:space="preserve">
     <value>Fetching resource for plugin: {0}, version {1}. Resource: {2}</value>
   </data>
