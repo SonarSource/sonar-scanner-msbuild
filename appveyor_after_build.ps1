@@ -228,9 +228,6 @@ function VerifyAnalysisResults
 
     $response = InvokeGetRestMethod "/api/issues/search?hideRules=true"
 
-    Assert ($response.paging.total -eq 4) "There should only be 4 issues"
-    Assert ($response.issues.Length -eq 4) "There should only be 4 issues"
-
     $brokenRules = $response.issues.rule
     $ruleDiff = Compare-Object $response.issues.rule $expectedRuleViolations
 
@@ -240,6 +237,8 @@ function VerifyAnalysisResults
     {
         Assert ($issue.project -eq $sqProjectKey) "An issue was found not belonging to the project under test. Instead, it belongs to " + $issue.project        
     }
+
+    Assert ($response.total -eq 4) ("There should only be 4 issues. Actual: " + $response.total)
 }
 
 function WaitForAllBackgroundTasksToComplete
