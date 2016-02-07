@@ -21,6 +21,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     {
         public TestContext TestContext { get; set; }
 
+        private const string DownloadEmbeddedFileMethodName = "TryDownloadEmbeddedFile";
+
         #region Fetching from server tests
 
         [TestMethod]
@@ -156,7 +158,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // 1. Empty cache -> cache miss -> server called
             IEnumerable<string> actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA });
-            mockServer.AssertMethodCalled(nameof(ISonarQubeServer.TryDownloadEmbeddedFile), 1); // should have tried to download
+            mockServer.AssertMethodCalled(DownloadEmbeddedFileMethodName, 1); // should have tried to download
 
             AssertExpectedFilesReturned(expectedPlugin111Paths, actualFiles);
             AssertExpectedFilesExist(expectedPlugin111Paths);
@@ -165,7 +167,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // 2. New request + request request -> partial cache miss -> server called only for the new request
             actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
-            mockServer.AssertMethodCalled(nameof(ISonarQubeServer.TryDownloadEmbeddedFile), 2); // new request
+            mockServer.AssertMethodCalled(DownloadEmbeddedFileMethodName, 2); // new request
 
             AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
             AssertExpectedFilesExist(allExpectedPaths);
@@ -174,7 +176,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // 3. Repeat the request -> cache hit -> server not called
             actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
-            mockServer.AssertMethodCalled(nameof(ISonarQubeServer.TryDownloadEmbeddedFile), 2); // call count should not have changed
+            mockServer.AssertMethodCalled(DownloadEmbeddedFileMethodName, 2); // call count should not have changed
 
             AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
 
@@ -183,7 +185,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsFalse(Directory.Exists(localCacheDir), "Test error: failed to delete the local cache directory");
 
             actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
-            mockServer.AssertMethodCalled(nameof(ISonarQubeServer.TryDownloadEmbeddedFile), 4); // two new requests
+            mockServer.AssertMethodCalled(DownloadEmbeddedFileMethodName, 4); // two new requests
 
             AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
             AssertExpectedFilesExist(allExpectedPaths);
