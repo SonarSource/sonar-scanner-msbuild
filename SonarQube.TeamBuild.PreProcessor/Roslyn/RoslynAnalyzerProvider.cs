@@ -76,11 +76,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 {
                     analyzerSettings = ProcessProfile(profile);
                 }
-                else
-                {
-                    logger.LogDebug(Resources.RAP_CSharpPluginNotInstalled);
-                }
-
+            }
+            else
+            {
+                logger.LogDebug(Resources.RAP_CSharpPluginNotInstalled);
             }
 
             return analyzerSettings ?? new AnalyzerSettings(); // return emtpy settings rather than null

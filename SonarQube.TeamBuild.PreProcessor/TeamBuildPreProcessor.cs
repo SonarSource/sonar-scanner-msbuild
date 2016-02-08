@@ -7,7 +7,6 @@
 
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.PreProcessor.Roslyn;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -96,7 +95,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 return false;
             }
-            Debug.Assert(analyzerSettings != null, "No expecting the analyzer settings to be null");
+            Debug.Assert(analyzerSettings != null, "Not expecting the analyzer settings to be null");
 
             AnalysisConfigGenerator.GenerateFile(args, teamBuildSettings, serverSettings, analyzerSettings, this.logger);
 
