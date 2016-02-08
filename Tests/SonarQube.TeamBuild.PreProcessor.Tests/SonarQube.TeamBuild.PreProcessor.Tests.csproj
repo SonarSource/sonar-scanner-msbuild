@@ -69,6 +69,7 @@
     <Compile Include="Infrastructure\PreProcessAsserts.cs" />
     <Compile Include="Infrastructure\SampleExportXml.cs" />
     <Compile Include="PreProcessorExeTests.cs" />
+    <Compile Include="PreprocessorObjectFactoryTests.cs" />
     <Compile Include="PreProcessorTests.cs" />
     <Compile Include="Infrastructure\PreprocessTestUtils.cs" />
     <Compile Include="ProcessedArgsTests.cs" />

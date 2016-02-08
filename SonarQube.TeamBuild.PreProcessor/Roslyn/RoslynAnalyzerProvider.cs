@@ -63,26 +63,27 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 throw new ArgumentNullException("projectKey");
             }
 
-            if (!IsCSharpPluginInstalled(sqServer))
-            {
-                logger.LogDebug(Resources.SLAP_CSharpPluginNotInstalled);
-                return null;
-            }
-
-            this.server = sqServer;
-            this.settings = teamBuildSettings;
-            this.projectKey = sqProjectKey;
-            this.projectBranch = sqProjectBranch;
-
             AnalyzerSettings analyzerSettings = null;
-
-            RoslynExportProfile profile = TryGetRoslynConfigForProject();
-            if (profile != null)
+            if (IsCSharpPluginInstalled(sqServer))
             {
-                analyzerSettings = ProcessProfile(profile);
+                this.server = sqServer;
+                this.settings = teamBuildSettings;
+                this.projectKey = sqProjectKey;
+                this.projectBranch = sqProjectBranch;
+
+                RoslynExportProfile profile = TryGetRoslynConfigForProject();
+                if (profile != null)
+                {
+                    analyzerSettings = ProcessProfile(profile);
+                }
+                else
+                {
+                    logger.LogDebug(Resources.RAP_CSharpPluginNotInstalled);
+                }
+
             }
 
-            return analyzerSettings;
+            return analyzerSettings ?? new AnalyzerSettings(); // return emtpy settings rather than null
         }
 
         #endregion
@@ -99,17 +100,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             string qualityProfile;
             if (!this.server.TryGetQualityProfile(projectKey, projectBranch, CSharpLanguage, out qualityProfile))
             {
-                this.logger.LogDebug(Resources.SLAP_NoProfileForProject, this.projectKey);
+                this.logger.LogDebug(Resources.RAP_NoProfileForProject, this.projectKey);
                 return null;
             }
 
             string profileContent = null;
             if (!server.TryGetProfileExport(qualityProfile, CSharpLanguage, RoslynCSharpFormatName, out profileContent))
             {
-                this.logger.LogDebug(Resources.SLAP_ProfileExportNotFound, RoslynCSharpFormatName, this.projectKey);
+                this.logger.LogDebug(Resources.RAP_ProfileExportNotFound, RoslynCSharpFormatName, this.projectKey);
                 return null;
             }
-            this.logger.LogDebug(Resources.SLAP_ProfileExportFound, RoslynCSharpFormatName, this.projectKey);
+            this.logger.LogDebug(Resources.RAP_ProfileExportFound, RoslynCSharpFormatName, this.projectKey);
 
             RoslynExportProfile profile = null;
             using (StringReader reader = new StringReader(profileContent))
@@ -145,12 +146,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             string rulesetFilePath = null;
             if (profile.Configuration.RuleSet == null)
             {
-                this.logger.LogDebug(Resources.SLAP_ProfileDoesNotContainRuleset);
+                this.logger.LogDebug(Resources.RAP_ProfileDoesNotContainRuleset);
             }
             else
             {
                 rulesetFilePath = GetRulesetFilePath(this.settings);
-                this.logger.LogDebug(Resources.SLAP_UnpackingRuleset, rulesetFilePath);
+                this.logger.LogDebug(Resources.RAP_UnpackingRuleset, rulesetFilePath);
 
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(profile.Configuration.RuleSet.OuterXml);
@@ -186,18 +187,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         {
             if (string.IsNullOrWhiteSpace(file.FileName))
             {
-                this.logger.LogDebug(Resources.SLAP_AdditionalFileNameMustBeSpecified);
+                this.logger.LogDebug(Resources.RAP_AdditionalFileNameMustBeSpecified);
                 return null;
             }
 
             string fullPath = Path.Combine(this.settings.SonarConfigDirectory, file.FileName);
             if (File.Exists(fullPath))
             {
-                this.logger.LogDebug(Resources.SLAP_AdditionalFileAlreadyExists, file.FileName, fullPath);
+                this.logger.LogDebug(Resources.RAP_AdditionalFileAlreadyExists, file.FileName, fullPath);
                 return null;
             }
 
-            this.logger.LogDebug(Resources.SLAP_WritingAdditionalFile, fullPath);
+            this.logger.LogDebug(Resources.RAP_WritingAdditionalFile, fullPath);
             File.WriteAllBytes(fullPath, file.Content ?? new byte[] { });
             return fullPath;
         }
@@ -205,14 +206,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         private IEnumerable<string> FetchAnalyzerAssemblies(RoslynExportProfile profile)
         {
             IEnumerable<string> analyzerAssemblyPaths = null;
-            if (profile.Deployment == null || profile.Deployment.NuGetPackages == null || profile.Deployment.NuGetPackages.Count == 0)
+            if (profile.Deployment == null || profile.Deployment.Plugins == null || profile.Deployment.Plugins.Count == 0)
             {
-                this.logger.LogInfo(Resources.SLAP_NoAnalyzerPackagesSpecified);
+                this.logger.LogInfo(Resources.RAP_NoAnalyzerPluginsSpecified);
             }
             else
             {
-                this.logger.LogInfo(Resources.SLAP_ProvisioningAnalyzerAssemblies);
-                analyzerAssemblyPaths = this.analyzerInstaller.InstallAssemblies(profile.Deployment.NuGetPackages);
+                this.logger.LogInfo(Resources.RAP_ProvisioningAnalyzerAssemblies);
+                analyzerAssemblyPaths = this.analyzerInstaller.InstallAssemblies(profile.Deployment.Plugins);
             }
             return analyzerAssemblyPaths;
         }

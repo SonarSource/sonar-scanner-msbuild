@@ -13,9 +13,9 @@ namespace SonarQube.TeamBuild.PreProcessor
     public interface IAnalyzerInstaller
     {
         /// <summary>
-        /// Provisions the analyzer assemblies belonging to the specified packages
+        /// Provisions the analyzer assemblies belonging to the specified plugins
         /// </summary>
         /// <returns>Paths to the analyzer assemblies and their dependencies</returns>
-        IEnumerable<string> InstallAssemblies(IEnumerable<NuGetPackageInfo> packages);
+        IEnumerable<string> InstallAssemblies(IEnumerable<Plugin> plugins);
     }
 }

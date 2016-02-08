@@ -224,21 +224,26 @@ function VerifyAnalysisResults
 {    
     WaitForAllBackgroundTasksToComplete
 
-    $expectedRuleViolations = @("fxcop:DoNotPassLiteralsAsLocalizedParameters", "fxcop:DoNotRaiseReservedExceptionTypes", "csharpsquid:S2228", "csharpsquid:S1134")
-
     $response = InvokeGetRestMethod "/api/issues/search?hideRules=true"
 
-    Assert ($response.paging.total -eq 4) "There should only be 4 issues"
-    Assert ($response.issues.Length -eq 4) "There should only be 4 issues"
+<# SONARMBRU-212: re-enable once the C# profile exporter returns information for SonarLint.
+   Currently it doesn't, which means we get different results when building in MSBuild 12 and 14.
+   In MSBuild 12, the SonarLint rules are still run post-process by the SonarLint.Runner,
+   but in MSBuild 14 they are not.
+
+    # Check only the expected rules were broken
+    $expectedRuleViolations = @("fxcop:DoNotPassLiteralsAsLocalizedParameters", "fxcop:DoNotRaiseReservedExceptionTypes", "csharpsquid:S2228", "csharpsquid:S1134")
 
     $brokenRules = $response.issues.rule
     $ruleDiff = Compare-Object $response.issues.rule $expectedRuleViolations
 
     Assert ($ruleDiff.Length -eq 0) "Expected 4 rules to be broken. Rules found: $brokenRules. Expected: $expectedRuleViolations"
+    Assert ($response.total -eq 4) ("There should only be 4 issues. Actual: " + $response.total)
+#>
     
     foreach ($issue in $issues)
     {
-        Assert ($issue.project -eq $sqProjectKey) "An issue was found not belonging to the project under test. Instead, it belongs to " + $issue.project        
+        Assert ($issue.project -eq $sqProjectKey) "An issue was found not belonging to the project under test. Instead, it belongs to " + $issue.project
     }
 }
 

@@ -10,15 +10,23 @@ using System;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
-    internal class PreprocessorObjectFactory : IPreprocessorObjectFactory
+    /// <summary>
+    /// Default implementation of the object factory interface that returns the
+    /// product implementations of the required classes
+    /// </summary>
+    /// <remarks>
+    /// Note: the factory is stateful and expects objects to be requested in the 
+    /// order they are used
+    /// </remarks>
+    public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     {
-        private static readonly IPreprocessorObjectFactory instance = new PreprocessorObjectFactory(); 
-
-        public static IPreprocessorObjectFactory Instance {  get { return instance; } }
-
-        private PreprocessorObjectFactory()
-        {
-        }
+        /// <summary>
+        /// Reference to the SonarQube server to query
+        /// </summary>
+        /// <remarks>Cannot be constructed at runtime until the command line arguments have been processed.
+        /// Once it has been created, it is stored so the factory can use the same instance when
+        /// constructing the analyzer provider</remarks>
+        private ISonarQubeServer server;
 
         #region IPreprocessorObjectFactory methods
 
@@ -37,7 +45,8 @@ namespace SonarQube.TeamBuild.PreProcessor
             string password = args.GetSetting(SonarProperties.SonarPassword, null);
             string hostUrl = args.GetSetting(SonarProperties.HostUrl, null);
 
-            return new SonarWebService(new WebClientDownloader(username, password), hostUrl, logger);
+            this.server = new SonarWebService(new WebClientDownloader(username, password), hostUrl, logger);
+            return server;
         }
 
         public ITargetsInstaller CreateTargetInstaller()
@@ -52,8 +61,12 @@ namespace SonarQube.TeamBuild.PreProcessor
                 throw new ArgumentNullException("logger");
             }
 
-            //TODO - return embedded analyzer installer
-            throw new NotImplementedException();
+            if (this.server == null)
+            {
+                throw new InvalidOperationException(Resources.FACTORY_InternalError_MissingServer);
+            }
+
+            return new Roslyn.RoslynAnalyzerProvider(new Roslyn.EmbeddedAnalyzerInstaller(this.server, logger), logger);
         }
 
         #endregion

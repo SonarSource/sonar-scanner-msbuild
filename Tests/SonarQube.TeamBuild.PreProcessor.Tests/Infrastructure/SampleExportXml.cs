@@ -14,9 +14,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     {
         #region Example of XML exported by the Java plugin
 
+        public const string RoslynExportedPluginKey = "csharp";
+
         public const string RoslynExportedAdditionalFileName = "SonarLint.xml";
         public const string RoslynExportedPackageId = "SonarLint";
         public const string RoslynExportedPackageVersion = "1.6.0";
+
         public const string RoslynExportedValidSonarLintXml = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0"">
   <Configuration>
