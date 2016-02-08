@@ -15,10 +15,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         #region Example of XML exported by the Java plugin
 
         public const string RoslynExportedPluginKey = "csharp";
+        public const string RoslynStaticResourceName = "SonarLint.zip";
 
         public const string RoslynExportedAdditionalFileName = "SonarLint.xml";
         public const string RoslynExportedPackageId = "SonarLint";
-        public const string RoslynExportedPackageVersion = "1.6.0";
+        public const string RoslynExportedPackageVersion = "1.7.0";
 
         public const string RoslynExportedValidSonarLintXml = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0"">
@@ -156,6 +157,27 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         <Rule Id=""S105"" Action=""Warning"" />
         <Rule Id=""S2290"" Action=""Warning"" />
         <Rule Id=""S103"" Action=""Warning"" />
+        <Rule Id=""S3456"" Action=""None"" />
+        <Rule Id=""S3457"" Action=""None"" />
+        <Rule Id=""S1185"" Action=""None"" />
+        <Rule Id=""S1858"" Action=""None"" />
+        <Rule Id=""S1144"" Action=""None"" />
+      </Rules>
+      <Rules AnalyzerId=""Wintellect.Analyzers"" RuleNamespace=""Wintellect.Analyzers"">
+        <Rule Id=""Wintellect009"" Action=""Warning"" />
+        <Rule Id=""Wintellect011"" Action=""Warning"" />
+        <Rule Id=""Wintellect010"" Action=""Warning"" />
+        <Rule Id=""Wintellect002"" Action=""Warning"" />
+        <Rule Id=""Wintellect013"" Action=""Warning"" />
+        <Rule Id=""Wintellect012"" Action=""Warning"" />
+        <Rule Id=""Wintellect001"" Action=""Warning"" />
+        <Rule Id=""Wintellect004"" Action=""Warning"" />
+        <Rule Id=""Wintellect014"" Action=""Warning"" />
+        <Rule Id=""Wintellect003"" Action=""Warning"" />
+        <Rule Id=""Wintellect006"" Action=""Warning"" />
+        <Rule Id=""Wintellect005"" Action=""Warning"" />
+        <Rule Id=""Wintellect008"" Action=""Warning"" />
+        <Rule Id=""Wintellect007"" Action=""Warning"" />
       </Rules>
     </RuleSet>
     <AdditionalFiles>
@@ -163,8 +185,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     </AdditionalFiles>
   </Configuration>
   <Deployment>
+    <Plugins>
+      <Plugin Key=""csharp"" Version=""1.7.0"" StaticResourceName=""SonarLint.zip"" />
+      <Plugin Key=""wintellect.analyzers"" Version=""1.0.5"" StaticResourceName=""Wintellect.Analyzers.1.0.5.0.zip"" />
+    </Plugins>
     <NuGetPackages>
-      <NuGetPackage Id=""SonarLint"" Version=""1.6.0"" />
+      <NuGetPackage Id=""SonarLint"" Version=""1.7.0"" />
+      <NuGetPackage Id=""Wintellect.Analyzers"" Version=""1.0.5.0"" />
     </NuGetPackages>
   </Deployment>
 </RoslynExportProfile>
