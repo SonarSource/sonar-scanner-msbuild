@@ -61,6 +61,24 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cache hit: using plugin files from {0}.
+        /// </summary>
+        internal static string EAI_CacheHit {
+            get {
+                return ResourceManager.GetString("EAI_CacheHit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cache miss: plugin files were not found in the local cache.
+        /// </summary>
+        internal static string EAI_CacheMiss {
+            get {
+                return ResourceManager.GetString("EAI_CacheMiss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fetching resource for plugin: {0}, version {1}. Resource: {2}.
         /// </summary>
         internal static string EAI_FetchingPluginResource {
@@ -106,11 +124,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using cached resource: {0}.
+        ///   Looks up a localized string similar to Processing plugin: {0} version {1}.
         /// </summary>
-        internal static string EAI_UsingCachedResource {
+        internal static string EAI_ProcessingPlugin {
             get {
-                return ResourceManager.GetString("EAI_UsingCachedResource", resourceCulture);
+                return ResourceManager.GetString("EAI_ProcessingPlugin", resourceCulture);
             }
         }
     }

@@ -9,15 +9,22 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Net;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
     public class WebClientDownloader : IDownloader
     {
+        private readonly ILogger logger;
         private readonly WebClient client;
 
-        public WebClientDownloader(string username, string password)
+        public WebClientDownloader(string username, string password, ILogger logger)
         {
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+
             // SONARMSBRU-169 Support TLS versions 1.0, 1.1 and 1.2
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
@@ -53,6 +60,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public bool TryDownloadIfExists(string url, out string contents)
         {
+            this.logger.LogDebug(Resources.MSG_Downloading, url);
             string data = null;
 
             bool success = DoIgnoringMissingUrls(() => data = client.DownloadString(url));
@@ -62,11 +70,15 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public bool TryDownloadFileIfExists(string url, string targetFilePath)
         {
+            this.logger.LogDebug(Resources.MSG_DownloadingFile, url, targetFilePath);
+
             return DoIgnoringMissingUrls(() => client.DownloadFile(url, targetFilePath));
         }
 
         public string Download(string url)
         {
+            this.logger.LogDebug(Resources.MSG_Downloading, url);
+
             return client.DownloadString(url);
         }
 

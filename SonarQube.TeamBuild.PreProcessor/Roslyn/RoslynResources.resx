@@ -117,8 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="EAI_CacheHit" xml:space="preserve">
+    <value>Cache hit: using plugin files from {0}</value>
+  </data>
+  <data name="EAI_CacheMiss" xml:space="preserve">
+    <value>Cache miss: plugin files were not found in the local cache</value>
+  </data>
   <data name="EAI_FetchingPluginResource" xml:space="preserve">
     <value>Fetching resource for plugin: {0}, version {1}. Resource: {2}</value>
+  </data>
+  <data name="EAI_ProcessingPlugin" xml:space="preserve">
+    <value>Processing plugin: {0} version {1}</value>
   </data>
   <data name="EAI_InstallingAnalyzers" xml:space="preserve">
     <value>Installing required Roslyn analyzers...</value>
@@ -131,8 +140,5 @@
   </data>
   <data name="EAI_PluginResourceNotFound" xml:space="preserve">
     <value>Plugin resource not found: {0}, version {1}. Resource: {2}. The rules for this plugin will not be executed.</value>
-  </data>
-  <data name="EAI_UsingCachedResource" xml:space="preserve">
-    <value>Using cached resource: {0}</value>
   </data>
 </root>

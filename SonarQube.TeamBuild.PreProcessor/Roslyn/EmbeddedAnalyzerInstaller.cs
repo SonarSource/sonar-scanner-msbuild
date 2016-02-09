@@ -8,6 +8,7 @@
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
     /// can't then use them.
     /// </para>
     /// <para>
-    /// The plugin resources are cached locally under %temp%\.sq\.static\[package_version]\[resource]
+    /// The plugin resources are cached locally under %temp%\.sonarqube\.static\[package_version]\[resource]
     /// If the required version is available locally then it will not be downloaded from the
     /// SonarQube server.
     /// </para>
@@ -36,6 +37,20 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         private readonly ISonarQubeServer server;
         private readonly string localCacheDirectory;
         private readonly ILogger logger;
+
+        /// <summary>
+        /// Returns a unique directory for the specific resource
+        /// </summary>
+        public static string GetResourceSpecificDir(string baseDir, Plugin plugin)
+        {
+            // Format is: [base]\[plugin.version]\[resource name]
+
+            string pluginDir = GetPluginSpecificDir(baseDir, plugin);
+            string resourceFolder = StripInvalidDirectoryChars(plugin.StaticResourceName);
+
+            string fullDir = Path.Combine(pluginDir, resourceFolder);
+            return fullDir;
+        }
 
         public EmbeddedAnalyzerInstaller(ISonarQubeServer server, ILogger logger)
             : this(server, GetLocalCacheDirectory(), logger)
@@ -105,54 +120,75 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         /// </summary>
         private static string GetLocalCacheDirectory()
         {
-            string localCache = Path.Combine(Path.GetTempPath(), ".sq", ".static");
+            string localCache = Path.Combine(Path.GetTempPath(), ".sonarqube", ".static");
             return localCache;
         }
         
         private IEnumerable<string> GetPluginResourceFiles(Plugin plugin)
         {
+            this.logger.LogDebug(RoslynResources.EAI_ProcessingPlugin, plugin.Key, plugin.Version);
+
             string cacheDir = GetResourceSpecificDir(this.localCacheDirectory, plugin);
 
-            if (Directory.Exists(cacheDir))
+            IEnumerable<string> allFiles = FetchFilesFromCache(cacheDir);
+
+            if (allFiles.Any())
             {
-                this.logger.LogDebug(RoslynResources.EAI_UsingCachedResource, cacheDir);
+                this.logger.LogDebug(RoslynResources.EAI_CacheHit, cacheDir);
             }
             else
             {
-                FetchResourceFromServer(plugin, cacheDir);
+                this.logger.LogDebug(RoslynResources.EAI_CacheMiss);
+                if (FetchResourceFromServer(plugin, cacheDir))
+                {
+                    allFiles = FetchFilesFromCache(cacheDir);
+                    Debug.Assert(allFiles.Any(), "Expecting to find files in cache after successfully fetch from server");
+                }
             }
 
-            string[] allFiles = Directory.GetFiles(cacheDir, "*.*", SearchOption.AllDirectories);
             return allFiles;
         }
 
-        private void FetchResourceFromServer(Plugin plugin, string targetDir)
+        private IEnumerable<string> FetchFilesFromCache(string pluginCacheDir)
         {
-            logger.LogDebug(RoslynResources.EAI_FetchingPluginResource, plugin.Key, plugin.Version, plugin.StaticResourceName);
+            string[] allFiles = null;
+            if (Directory.Exists(pluginCacheDir))
+            {
+                allFiles = Directory.GetFiles(pluginCacheDir, "*.*", SearchOption.AllDirectories);
+            }
+            return allFiles ?? Enumerable.Empty<string>();
+        }
+
+        private bool FetchResourceFromServer(Plugin plugin, string targetDir)
+        {
+            this.logger.LogDebug(RoslynResources.EAI_FetchingPluginResource, plugin.Key, plugin.Version, plugin.StaticResourceName);
 
             Directory.CreateDirectory(targetDir);
 
-            if (server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir))
+            bool success = server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir);
+
+            if (success)
             {
                 string targetFilePath = Path.Combine(targetDir, plugin.StaticResourceName);
 
                 if (IsZipFile(targetFilePath))
                 {
-                    logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
+                    this.logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
                     ZipFile.ExtractToDirectory(targetFilePath, targetDir);
                 }
             }
             else
             {
-                logger.LogWarning(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName);
+                this.logger.LogWarning(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName);
             }
+            return success;
         }
 
         /// <summary>
         /// Returns a version-specific directory in which the plugin resources
         /// will be cached
         /// </summary>
-        public static string GetPluginSpecificDir(string baseDir, Plugin plugin)
+        private static string GetPluginSpecificDir(string baseDir, Plugin plugin)
         {
             // Format is: [base]\[plugin_version]
             string pluginVersionFolder = string.Format(System.Globalization.CultureInfo.InvariantCulture,
@@ -165,29 +201,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return fullDir;
         }
 
-        /// <summary>
-        /// Returns a unique directory for the specific resource
-        /// </summary>
-        public static string GetResourceSpecificDir(string baseDir, Plugin plugin)
-        {
-            // Format is: [base]\[plugin.version]\[resource name]
-
-            string pluginDir = GetPluginSpecificDir(baseDir, plugin);
-            string resourceFolder = StripInvalidDirectoryChars(plugin.StaticResourceName);
-
-            string fullDir = Path.Combine(pluginDir, resourceFolder);
-            return fullDir;
-        }
-
-
         private static string StripInvalidDirectoryChars(string folderName)
         {
             return StripInvalidChars(folderName, Path.GetInvalidPathChars());
-        }
-
-        private static string StripInvalidFileChars(string folderName)
-        {
-            return StripInvalidChars(folderName, Path.GetInvalidFileNameChars());
         }
 
         private static string StripInvalidChars(string text, char[] invalidChars)
@@ -203,7 +219,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             }
             return sb.ToString();
         }
-
 
         private static bool IsZipFile(string fileName)
         {

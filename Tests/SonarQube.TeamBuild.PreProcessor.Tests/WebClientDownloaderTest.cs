@@ -11,6 +11,8 @@ using System.Text;
 using System.Collections.Generic;
 using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TestUtilities;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 {
@@ -20,17 +22,19 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         [TestMethod]
         public void Credentials()
         {
+            ILogger logger = new TestLogger();
+
             WebClientDownloader downloader;
-            downloader = new WebClientDownloader(null, null);
+            downloader = new WebClientDownloader(null, null, logger);
             Assert.AreEqual(null, downloader.GetHeader(HttpRequestHeader.Authorization));
 
-            downloader = new WebClientDownloader("da39a3ee5e6b4b0d3255bfef95601890afd80709", null);
+            downloader = new WebClientDownloader("da39a3ee5e6b4b0d3255bfef95601890afd80709", null, logger);
             Assert.AreEqual("Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=", downloader.GetHeader(HttpRequestHeader.Authorization));
 
-            downloader = new WebClientDownloader(null, "password");
+            downloader = new WebClientDownloader(null, "password", logger);
             Assert.AreEqual(null, downloader.GetHeader(HttpRequestHeader.Authorization));
 
-            downloader = new WebClientDownloader("admin", "password");
+            downloader = new WebClientDownloader("admin", "password", logger);
             Assert.AreEqual("Basic YWRtaW46cGFzc3dvcmQ=", downloader.GetHeader(HttpRequestHeader.Authorization));
         }
 
@@ -39,7 +43,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         {
             try
             {
-                new WebClientDownloader("user:name", "");
+                new WebClientDownloader("user:name", "", new TestLogger());
             }
             catch (ArgumentException e)
             {
@@ -57,7 +61,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         {
             try
             {
-                new WebClientDownloader("héhé", "password");
+                new WebClientDownloader("héhé", "password", new TestLogger());
             }
             catch (ArgumentException e)
             {
@@ -75,7 +79,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         {
             try
             {
-                new WebClientDownloader("username", "héhé");
+                new WebClientDownloader("username", "héhé", new TestLogger());
             }
             catch (ArgumentException e)
             {

@@ -191,6 +191,24 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Downloading from {0}....
+        /// </summary>
+        public static string MSG_Downloading {
+            get {
+                return ResourceManager.GetString("MSG_Downloading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading file from {0} to {1}....
+        /// </summary>
+        public static string MSG_DownloadingFile {
+            get {
+                return ResourceManager.GetString("MSG_DownloadingFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Downloading {0} from {1} to {2}.
         /// </summary>
         public static string MSG_DownloadingZip {

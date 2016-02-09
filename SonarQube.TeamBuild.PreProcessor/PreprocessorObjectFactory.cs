@@ -45,7 +45,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             string password = args.GetSetting(SonarProperties.SonarPassword, null);
             string hostUrl = args.GetSetting(SonarProperties.HostUrl, null);
 
-            this.server = new SonarWebService(new WebClientDownloader(username, password), hostUrl, logger);
+            this.server = new SonarWebService(new WebClientDownloader(username, password, logger), hostUrl, logger);
             return server;
         }
 

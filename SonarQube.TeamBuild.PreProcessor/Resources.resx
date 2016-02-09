@@ -163,6 +163,12 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   <data name="MSG_CreatingFolders" xml:space="preserve">
     <value>Creating config and output folders...</value>
   </data>
+  <data name="MSG_Downloading" xml:space="preserve">
+    <value>Downloading from {0}...</value>
+  </data>
+  <data name="MSG_DownloadingFile" xml:space="preserve">
+    <value>Downloading file from {0} to {1}...</value>
+  </data>
   <data name="MSG_DownloadingZip" xml:space="preserve">
     <value>Downloading {0} from {1} to {2}</value>
   </data>

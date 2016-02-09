@@ -192,6 +192,43 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedFilesInCache(5, localCacheDir); // files for both plugins should exist
         }
 
+        [TestMethod]
+        public void EmbeddedInstall_EmptyCacheDirectoryExists_CacheMissAndServerCalled()
+        {
+            // Arrange
+            string localCacheDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            TestLogger logger = new TestLogger();
+
+            Plugin requestA = new Plugin("p111", "1.0-SNAPSHOT", "p1.zip");
+
+            MockSonarQubeServer mockServer = new MockSonarQubeServer();
+            AddPlugin(mockServer, requestA, "aaa.txt");
+
+            IList<string> expectedPlugin111Paths = CalculateExpectedCachedFilePaths(localCacheDir, requestA, "p1.zip", "aaa.txt");
+            Assert.AreNotEqual(0, expectedPlugin111Paths.Count, "Test setup error: expecting at least one file path");
+
+            // Create the expected directories, but not the files
+            foreach(string file in expectedPlugin111Paths)
+            {
+                string dir = Path.GetDirectoryName(file);
+                Directory.CreateDirectory(dir);
+            }
+
+            AssertExpectedFilesInCache(0, localCacheDir); // cache should be empty to start with
+            Assert.AreNotEqual(0, Directory.GetDirectories(localCacheDir, "*.*", SearchOption.AllDirectories)); // ... but should have directories
+
+
+            EmbeddedAnalyzerInstaller testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+
+            // 1. Empty directory = cache miss -> server called
+            IEnumerable<string> actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA });
+            mockServer.AssertMethodCalled(DownloadEmbeddedFileMethodName, 1); // should have tried to download
+
+            AssertExpectedFilesReturned(expectedPlugin111Paths, actualFiles);
+            AssertExpectedFilesExist(expectedPlugin111Paths);
+            AssertExpectedFilesInCache(2, localCacheDir);
+        }
+
         #endregion
 
         #region Private methods
