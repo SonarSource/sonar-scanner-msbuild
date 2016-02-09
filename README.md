@@ -4,3 +4,7 @@
 ## Documentation
 
 http://redirect.sonarsource.com/doc/msbuild-sq-runner.html
+
+## Issue Tracker
+
+https://jira.sonarsource.com/browse/SONARMSBRU
