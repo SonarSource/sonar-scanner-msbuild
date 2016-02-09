@@ -71,13 +71,12 @@ xxx yyy
         {
             // Arrange
 
-            // Previously the script used "TIMEOUT 2" to pause execution in
-            // the spawned process. However, the test was failing on some machines
-            // with the error "Input redirection is not supported, exiting the process immediately."
-            // Pinging a non-existent address with a timeout is an alternative 
-            // that works if the machine is connected to the internet
+            // Calling TIMEOUT can fail on some older OSes (e.g. Windows 7) with the error 
+            // "Input redirection is not supported, exiting the process immediately."
+            // However, it works reliably on the CI machines. Alternatives such as
+            // pinging a non-existent address with a timeout were not reliable.
             string exeName = TestUtils.WriteBatchFileForTest(TestContext,
-@"@ping 1.1.1.1 -n 1 -w 2000 >nul
+@"TIMEOUT 1
 @echo Hello world
 ");
 
@@ -95,11 +94,13 @@ xxx yyy
 
             // Assert
             timer.Stop(); // Sanity check that the process actually timed out
+            logger.LogInfo("Test output: test ran for {0}ms", timer.ElapsedMilliseconds);
             Assert.IsTrue(timer.ElapsedMilliseconds >= 100, "Test error: batch process exited too early. Elapsed time(ms): {0}", timer.ElapsedMilliseconds);
 
             Assert.IsFalse(success, "Expecting the process to have failed");
             Assert.AreEqual(ProcessRunner.ErrorCode, runner.ExitCode, "Unexpected exit code");
             logger.AssertMessageNotLogged("Hello world");
+            logger.AssertWarningsLogged(1); // expecting a warning about the timeout
 
             // Give the spawned process a chance to terminate.
             // This isn't essential (and having a Sleep in the test isn't ideal), but it stops
