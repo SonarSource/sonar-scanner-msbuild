@@ -8,6 +8,7 @@
 using Microsoft.Build.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TestUtilities;
@@ -76,13 +77,21 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             GetAnalyzerSettings testSubject = new GetAnalyzerSettings();
 
-            string[] expectedAnalyzers = new string[] { "c:\\analyzer1.dll", "c:\\analyzer2.dll" };
+            string[] expectedAnalyzers = new string[] { "c:\\analyzer1.DLL", "c:\\analyzer2.dll" };
             string[] expectedAdditionalFiles = new string[] { "c:\\add1.txt", "d:\\add2.txt" };
+
+            // SONARMSBRU-216: non-assembly files should be filtered out
+            List<string> filesInConfig = new List<string>(expectedAnalyzers);
+            filesInConfig.Add("c:\\not_an_assembly.exe");
+            filesInConfig.Add("c:\\not_an_assembly.zip");
+            filesInConfig.Add("c:\\not_an_assembly.txt");
+            filesInConfig.Add("c:\\not_an_assembly.dll.foo");
+            filesInConfig.Add("c:\\not_an_assembly.winmd");
 
             AnalysisConfig config = new AnalysisConfig();
             config.AnalyzerSettings = new AnalyzerSettings();
             config.AnalyzerSettings.RuleSetFilePath = "f:\\yyy.ruleset";
-            config.AnalyzerSettings.AnalyzerAssemblyPaths = expectedAnalyzers.ToList();
+            config.AnalyzerSettings.AnalyzerAssemblyPaths = filesInConfig;
             config.AnalyzerSettings.AdditionalFilePaths = expectedAdditionalFiles.ToList();
             string fullPath = Path.Combine(testDir, FileConstants.ConfigFileName);
             config.Save(fullPath);

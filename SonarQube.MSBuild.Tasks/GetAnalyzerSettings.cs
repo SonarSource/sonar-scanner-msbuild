@@ -8,6 +8,8 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using SonarQube.Common;
+using System;
+using System.Linq;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -16,6 +18,9 @@ namespace SonarQube.MSBuild.Tasks
     /// </summary>
     public class GetAnalyzerSettings : Task
     {
+
+        private const string DllExtension = ".dll";
+
         #region Input properties
 
         /// <summary>
@@ -65,7 +70,7 @@ namespace SonarQube.MSBuild.Tasks
 
                     if (settings.AnalyzerAssemblyPaths != null)
                     {
-                        this.AnalyzerFilePaths = settings.AnalyzerAssemblyPaths.ToArray();
+                        this.AnalyzerFilePaths = settings.AnalyzerAssemblyPaths.Where(f => IsAssemblyLibraryFileName(f)).ToArray();
                     }
 
                     if (settings.AdditionalFilePaths != null)
@@ -79,5 +84,19 @@ namespace SonarQube.MSBuild.Tasks
         }
 
         #endregion Overrides
+
+        #region Private methods
+
+        /// <summary>
+        /// Returns whether the supplied string is an assembly library (i.e. dll)
+        /// </summary>
+        private static bool IsAssemblyLibraryFileName(string filePath)
+        {
+            // Not expecting .winmd or .exe files to contain Roslyn analyzers
+            // so we'll ignore them
+            return filePath.EndsWith(DllExtension, StringComparison.OrdinalIgnoreCase);
+        }
+
+        #endregion
     }
 }
