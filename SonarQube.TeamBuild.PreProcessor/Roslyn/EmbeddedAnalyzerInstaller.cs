@@ -142,7 +142,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 if (FetchResourceFromServer(plugin, cacheDir))
                 {
                     allFiles = FetchFilesFromCache(cacheDir);
-                    Debug.Assert(allFiles.Any(), "Expecting to find files in cache after successfully fetch from server");
+                    Debug.Assert(allFiles.Any(), "Expecting to find files in cache after successful fetch from server");
                 }
             }
 
