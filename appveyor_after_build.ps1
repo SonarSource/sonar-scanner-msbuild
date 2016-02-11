@@ -103,9 +103,6 @@ function InstallCsPlugin
     [System.IO.File]::Copy($csPluginPath, $destination, $true);
 }
 
-
-
-
 function WaitForSonarQubeToHaveStarted
 {
     $command = { InvokeGetRestMethod "/api/projects/index?search=projectundertest"} 
@@ -169,12 +166,10 @@ function InvokeUpload {
         $basicAuthValue = GetSonarQubeAdminAuthHeader
         $client.DefaultRequestHeaders.Add("Authorization", $basicAuthValue)
 
-
         $formData = New-Object System.Net.Http.MultipartFormDataContent
         $formData.Add($stringContent, $formFieldName, "UNUSED");
         
-        return $client.PostAsync($requestUrl, $formData).Result
-        
+        return $client.PostAsync($requestUrl, $formData).Result        
     }
     finally
     {
@@ -206,7 +201,6 @@ function UploadTestQualityProfile
 
     $response = InvokeUpload "/api/profiles/restore" "backup" $qualityProfile
 }
-
 
 function SetTestQualityProfileAsDefault
 {
@@ -298,7 +292,7 @@ function BuildAndAnalyzeProjectUnderTest
     RunProcessAndWaitForFinish $bootstrapperPath @("begin", "/k:$sqProjectKey", "/n:$sqProjectKey", "/v:1")
 
     echo "Step 5.7: Building the project under test"
-    RunProcessAndWaitForFinish $msbuildPath @($projectUnderTestPath, "/v:n")
+    RunProcessAndWaitForFinish $msbuildPath @($projectUnderTestPath, "/v:n", "/p:DoNotExcludeProjectsFromAnalysis=true")
 
     echo "Step 5.8: Ending analysis"
     RunProcessAndWaitForFinish $bootstrapperPath "end"

@@ -11,6 +11,9 @@
     <AssemblyName>ProjectUnderTest</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+	<!-- This project purposely contains major analysis issues. As such it should not be analyzed in normal builds of the MSBuild SonarQube scanner, 
+	such as CI builds. Integration tests are expected to build using /p:DoNotExcludeProjectsFromAnalysis=true to get SonarQube analysis -->
+	<SonarQubeExclude Condition=" '$(DoNotExcludeProjectsFromAnalysis)' != 'true' ">true</SonarQubeExclude>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
