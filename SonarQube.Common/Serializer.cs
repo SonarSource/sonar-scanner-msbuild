@@ -37,7 +37,7 @@ namespace SonarQube.Common
 
             // Serialize to memory first to reduce the opportunity for intermittent
             // locking issues when writing the file
-            MemoryStream stream = new MemoryStream();
+            using (MemoryStream stream = new MemoryStream())
             using (StreamWriter writer = new StreamWriter(stream))
             {
                 Write(model, writer);
