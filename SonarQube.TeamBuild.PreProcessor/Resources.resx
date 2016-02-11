@@ -238,4 +238,10 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   <data name="WARN_ExistingGlobalTargets" xml:space="preserve">
     <value>This version of the SonarQube Scanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional.</value>
   </data>
+  <data name="WCD_UserNameCannotContainColon" xml:space="preserve">
+    <value>username cannot contain the ':' character due to basic authentication limitations</value>
+  </data>
+  <data name="WCD_UserNameMustBeAscii" xml:space="preserve">
+    <value>username and password should contain only ASCII characters due to basic authentication limitations</value>
+  </data>
 </root>

@@ -37,7 +37,7 @@ namespace SonarQube.Common
 
             // Serialize to memory first to reduce the opportunity for intermittent
             // locking issues when writing the file
-            using (MemoryStream stream = new MemoryStream())
+            MemoryStream stream = new MemoryStream();
             using (StreamWriter writer = new StreamWriter(stream))
             {
                 Write(model, writer);
@@ -55,7 +55,7 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("model");
             }
             StringBuilder sb = new StringBuilder();
-            using (StringWriter writer = new StringWriter(sb))
+            using (StringWriter writer = new StringWriter(sb, System.Globalization.CultureInfo.InvariantCulture))
             {
                 Write(model, writer);
             }

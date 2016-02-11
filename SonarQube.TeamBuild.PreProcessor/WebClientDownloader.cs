@@ -18,7 +18,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         private readonly ILogger logger;
         private readonly WebClient client;
 
-        public WebClientDownloader(string username, string password, ILogger logger)
+        public WebClientDownloader(string userName, string password, ILogger logger)
         {
             if (logger == null)
             {
@@ -35,18 +35,18 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             this.client = new WebClient();
-            if (username != null)
+            if (userName != null)
             {
-                if (username.Contains(':'))
+                if (userName.Contains(':'))
                 {
-                    throw new ArgumentException("username cannot contain the ':' character due to basic authentication limitations");
+                    throw new ArgumentException(Resources.WCD_UserNameCannotContainColon);
                 }
-                if (!IsAscii(username) || !IsAscii(password))
+                if (!IsAscii(userName) || !IsAscii(password))
                 {
-                    throw new ArgumentException("username and password should contain only ASCII characters due to basic authentication limitations");
+                    throw new ArgumentException(Resources.WCD_UserNameMustBeAscii);
                 }
 
-                var credentials = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}:{1}", username, password);
+                var credentials = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}:{1}", userName, password);
                 credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(credentials));
                 client.Headers[HttpRequestHeader.Authorization] = "Basic " + credentials;
             }

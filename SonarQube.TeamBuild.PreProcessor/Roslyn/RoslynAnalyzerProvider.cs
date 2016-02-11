@@ -27,10 +27,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         private readonly IAnalyzerInstaller analyzerInstaller;
         private readonly ILogger logger;
-        private ISonarQubeServer server;
-        private TeamBuildSettings settings;
-        private string projectKey;
-        private string projectBranch;
+        private ISonarQubeServer sqServer;
+        private TeamBuildSettings sqSettings;
+        private string sqProjectKey;
+        private string sqProjectBranch;
 
         #region Public methods
 
@@ -48,28 +48,28 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             this.logger = logger;
         }
 
-        public AnalyzerSettings SetupAnalyzers(ISonarQubeServer sqServer, TeamBuildSettings teamBuildSettings, string sqProjectKey, string sqProjectBranch)
+        public AnalyzerSettings SetupAnalyzers(ISonarQubeServer server, TeamBuildSettings settings, string projectKey, string projectBranch)
         {
-            if (sqServer == null)
+            if (server == null)
             {
                 throw new ArgumentNullException("server");
             }
-            if (teamBuildSettings == null)
+            if (settings == null)
             {
                 throw new ArgumentNullException("settings");
             }
-            if (string.IsNullOrWhiteSpace(sqProjectKey))
+            if (string.IsNullOrWhiteSpace(projectKey))
             {
                 throw new ArgumentNullException("projectKey");
             }
 
             AnalyzerSettings analyzerSettings = null;
-            if (IsCSharpPluginInstalled(sqServer))
+            if (IsCSharpPluginInstalled(server))
             {
-                this.server = sqServer;
-                this.settings = teamBuildSettings;
-                this.projectKey = sqProjectKey;
-                this.projectBranch = sqProjectBranch;
+                this.sqServer = server;
+                this.sqSettings = settings;
+                this.sqProjectKey = projectKey;
+                this.sqProjectBranch = projectBranch;
 
                 RoslynExportProfile profile = TryGetRoslynConfigForProject();
                 if (profile != null)
@@ -97,19 +97,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         private RoslynExportProfile TryGetRoslynConfigForProject()
         {
             string qualityProfile;
-            if (!this.server.TryGetQualityProfile(projectKey, projectBranch, CSharpLanguage, out qualityProfile))
+            if (!this.sqServer.TryGetQualityProfile(sqProjectKey, sqProjectBranch, CSharpLanguage, out qualityProfile))
             {
-                this.logger.LogDebug(Resources.RAP_NoProfileForProject, this.projectKey);
+                this.logger.LogDebug(Resources.RAP_NoProfileForProject, this.sqProjectKey);
                 return null;
             }
 
             string profileContent = null;
-            if (!server.TryGetProfileExport(qualityProfile, CSharpLanguage, RoslynCSharpFormatName, out profileContent))
+            if (!sqServer.TryGetProfileExport(qualityProfile, CSharpLanguage, RoslynCSharpFormatName, out profileContent))
             {
-                this.logger.LogDebug(Resources.RAP_ProfileExportNotFound, RoslynCSharpFormatName, this.projectKey);
+                this.logger.LogDebug(Resources.RAP_ProfileExportNotFound, RoslynCSharpFormatName, this.sqProjectKey);
                 return null;
             }
-            this.logger.LogDebug(Resources.RAP_ProfileExportFound, RoslynCSharpFormatName, this.projectKey);
+            this.logger.LogDebug(Resources.RAP_ProfileExportFound, RoslynCSharpFormatName, this.sqProjectKey);
 
             RoslynExportProfile profile = null;
             using (StringReader reader = new StringReader(profileContent))
@@ -149,7 +149,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             }
             else
             {
-                rulesetFilePath = GetRulesetFilePath(this.settings);
+                rulesetFilePath = GetRulesetFilePath(this.sqSettings);
                 this.logger.LogDebug(Resources.RAP_UnpackingRuleset, rulesetFilePath);
 
                 XmlDocument doc = new XmlDocument();
@@ -190,7 +190,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 return null;
             }
 
-            string fullPath = Path.Combine(this.settings.SonarConfigDirectory, file.FileName);
+            string fullPath = Path.Combine(this.sqSettings.SonarConfigDirectory, file.FileName);
             if (File.Exists(fullPath))
             {
                 this.logger.LogDebug(Resources.RAP_AdditionalFileAlreadyExists, file.FileName, fullPath);

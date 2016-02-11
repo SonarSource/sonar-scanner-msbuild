@@ -41,55 +41,22 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         [TestMethod]
         public void SemicolonInUsername()
         {
-            try
-            {
-                new WebClientDownloader("user:name", "", new TestLogger());
-            }
-            catch (ArgumentException e)
-            {
-                if ("username cannot contain the ':' character due to basic authentication limitations".Equals(e.Message))
-                {
-                    return;
-                }
-            }
-
-            Assert.Fail();
+            ArgumentException actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("user:name", "", new TestLogger()));
+            Assert.AreEqual(Resources.WCD_UserNameCannotContainColon, actual.Message);
         }
 
         [TestMethod]
         public void AccentsInUsername()
         {
-            try
-            {
-                new WebClientDownloader("héhé", "password", new TestLogger());
-            }
-            catch (ArgumentException e)
-            {
-                if ("username and password should contain only ASCII characters due to basic authentication limitations".Equals(e.Message))
-                {
-                    return;
-                }
-            }
-
-            Assert.Fail();
+            ArgumentException actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("héhé", "password", new TestLogger()));
+            Assert.AreEqual(Resources.WCD_UserNameMustBeAscii, actual.Message);
         }
 
         [TestMethod]
         public void AccentsInPassword()
         {
-            try
-            {
-                new WebClientDownloader("username", "héhé", new TestLogger());
-            }
-            catch (ArgumentException e)
-            {
-                if ("username and password should contain only ASCII characters due to basic authentication limitations".Equals(e.Message))
-                {
-                    return;
-                }
-            }
-
-            Assert.Fail();
+            ArgumentException actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("username", "héhé", new TestLogger()));
+            Assert.AreEqual(Resources.WCD_UserNameMustBeAscii, actual.Message);
         }
     }
 }

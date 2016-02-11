@@ -414,5 +414,23 @@ namespace SonarQube.TeamBuild.PreProcessor {
                 return ResourceManager.GetString("WARN_ExistingGlobalTargets", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to username cannot contain the &apos;:&apos; character due to basic authentication limitations.
+        /// </summary>
+        public static string WCD_UserNameCannotContainColon {
+            get {
+                return ResourceManager.GetString("WCD_UserNameCannotContainColon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to username and password should contain only ASCII characters due to basic authentication limitations.
+        /// </summary>
+        public static string WCD_UserNameMustBeAscii {
+            get {
+                return ResourceManager.GetString("WCD_UserNameMustBeAscii", resourceCulture);
+            }
+        }
     }
 }

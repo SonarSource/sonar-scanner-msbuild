@@ -149,7 +149,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return allFiles;
         }
 
-        private IEnumerable<string> FetchFilesFromCache(string pluginCacheDir)
+        private static IEnumerable<string> FetchFilesFromCache(string pluginCacheDir)
         {
             string[] allFiles = null;
             if (Directory.Exists(pluginCacheDir))

@@ -62,6 +62,25 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             logger.AssertErrorsLogged(1);
         }
 
+        [TestMethod]
+        public void TaskUtils_TryGetMissingConfig_NoError()
+        {
+            // Arrange
+            ILogger logger = new TestLogger();
+
+            // 1. Null -> no error
+            AnalysisConfig actual = TaskUtilities.TryGetConfig(null, logger);
+            Assert.IsNull(actual);
+
+            // 2. Empty -> no error
+            actual = TaskUtilities.TryGetConfig(string.Empty, logger);
+            Assert.IsNull(actual);
+
+            // 3. Missing -> no error
+            actual = TaskUtilities.TryGetConfig("c:\\missing\\dir", logger);
+            Assert.IsNull(actual);
+        }
+
         #endregion
 
         #region Public test helpers

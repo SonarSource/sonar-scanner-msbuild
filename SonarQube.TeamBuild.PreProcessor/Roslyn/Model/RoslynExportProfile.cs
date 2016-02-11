@@ -30,35 +30,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         [XmlIgnore]
         public string FileName { get; private set; }
 
-        /// <summary>
-        /// Saves the project to the specified file as XML
-        /// </summary>
-        public void Save(string fileName)
-        {
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                throw new ArgumentNullException("fileName");
-            }
-
-            Serializer.SaveModel(this, fileName);
-            this.FileName = fileName;
-        }
-
-        /// <summary>
-        /// Loads and returns project info from the specified XML file
-        /// </summary>
-        public static RoslynExportProfile Load(string fileName)
-        {
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                throw new ArgumentNullException("fileName");
-            }
-
-            RoslynExportProfile model = Serializer.LoadModel<RoslynExportProfile>(fileName);
-            model.FileName = fileName;
-            return model;
-        }
-
         public static RoslynExportProfile Load(TextReader reader)
         {
             XmlSerializer serializer = new XmlSerializer(typeof(RoslynExportProfile));

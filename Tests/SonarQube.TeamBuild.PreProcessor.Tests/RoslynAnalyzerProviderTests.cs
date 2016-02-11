@@ -27,6 +27,29 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         #region Tests
 
         [TestMethod]
+        public void RoslynConfig_ConstructorArgumentChecks()
+        {
+            AssertException.Expects<ArgumentNullException>(() => new RoslynAnalyzerProvider(null, new TestLogger()));
+            AssertException.Expects<ArgumentNullException>(() => new RoslynAnalyzerProvider(new MockAnalyzerInstaller(), null));
+        }
+
+        [TestMethod]
+        public void RoslynConfig_SetupAnalyzers_ArgumentChecks()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+            TeamBuildSettings settings = CreateSettings(this.TestContext.DeploymentDirectory);
+            MockSonarQubeServer mockServer = CreateValidServer("valid.project", null, "valid.profile");
+
+            RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
+
+            // Act and assert (branch can be null)
+            AssertException.Expects<ArgumentNullException>(() => testSubject.SetupAnalyzers(null, settings, "project", "branch"));
+            AssertException.Expects<ArgumentNullException>(() => testSubject.SetupAnalyzers(mockServer, null, "project", "branch"));
+            AssertException.Expects<ArgumentNullException>(() => testSubject.SetupAnalyzers(mockServer, settings, null, "branch"));
+        }
+
+        [TestMethod]
         public void RoslynConfig_PluginNotInstalled()
         {
             // Arrange
@@ -68,7 +91,32 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             logger.AssertErrorsLogged(0);
         }
-        
+
+        [TestMethod]
+        public void RoslynConfig_ProfileExportIsUnavailable_FailsGracefully()
+        {
+            // Arrange
+            string rootDir = CreateTestFolders();
+            TestLogger logger = new TestLogger();
+            TeamBuildSettings settings = CreateSettings(rootDir);
+
+            // Create a server that doesn't export the expected format (simulates
+            // calling an older plugin version)
+            MockSonarQubeServer mockServer = CreateValidServer("valid.project", null, "valid.profile");
+            QualityProfile csProfile = mockServer.Data.FindProfile("valid.profile", RoslynAnalyzerProvider.CSharpLanguage);
+            csProfile.SetExport(RoslynAnalyzerProvider.RoslynCSharpFormatName, null);
+            
+            RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
+
+            // Act
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
+
+            // Assert
+            AssertAnalyzerSetupNotPerformed(actualSettings, rootDir);
+
+            logger.AssertErrorsLogged(0);
+        }
+
         [TestMethod]
         public void RoslynConfig_MissingRuleset()
         {
