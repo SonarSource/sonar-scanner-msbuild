@@ -86,7 +86,7 @@ function FetchAndUnzip
 
 function DownloadAndMavenBuildFromGitHub
 {
-    param ([string]$Project, [string]$Sha1)
+    param ([string]$Project, [string]$Sha1, [string]$AdditionalMvnParameters = "")
 
 
     $url = "https://github.com/$Project/archive/$Sha1.zip"    
@@ -105,7 +105,7 @@ function DownloadAndMavenBuildFromGitHub
     try
     {
         # remove -q to see the build details
-        mvn clean package "--batch-mode" "-DskipTests" "-q"
+        mvn clean package "--batch-mode" "-DskipTests" "-q" $AdditionalMvnParameters
         CheckLastExitCode
     }
     finally

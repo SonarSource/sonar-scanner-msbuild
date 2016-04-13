@@ -45,7 +45,7 @@ else
 {
     echo "Running CI build"
     echo "Building the latest working C# plugin"
-    DownloadAndMavenBuildFromGitHub "SonarSource/sonar-csharp" "master"
+    DownloadAndMavenBuildFromGitHub "SonarSource/sonar-csharp" "master" "-PnoVersionNumberInJar"
 
     CopyCsharpPluginForPatching
 }
