@@ -13,6 +13,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <SonarQubeExclude>True</SonarQubeExclude>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,7 +35,8 @@
   <PropertyGroup>
     <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\..</SourcesRoot>
     <DestinationDir>$(SourcesRoot)\DeploymentArtifacts\BuildAgentPayload\$(Configuration)\</DestinationDir>
-    <!-- OutputPath is required by the Clean and Rebuild tasks --><!--
+    <!-- OutputPath is required by the Clean and Rebuild tasks -->
+    <!--
     <OutputPath>$(DestinationDir)</OutputPath>-->
   </PropertyGroup>
   <ItemGroup>

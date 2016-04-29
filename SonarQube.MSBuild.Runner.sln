@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.MSBuild.Tasks", "SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
 EndProject
@@ -44,6 +44,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildAgentPayload", "PackagingProjects\BuildAgentPayload\BuildAgentPayload.csproj", "{ECEADD3A-5992-420F-950D-510BBDDC06E1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "V0_9UpgradeMessageExe", "V0_9UpgradeMessageExe\V0_9UpgradeMessageExe.csproj", "{D35AF999-A91E-4DE2-93D7-858DFB4DD063}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{78700959-9C9B-4566-B245-48BBE5D403F6}"
+	ProjectSection(SolutionItems) = preProject
+		SonarQube\SolutionBinding.sqconfig = SonarQube\SolutionBinding.sqconfig
+		SonarQube\sonar-msbuild-runnerCSharp.ruleset = SonarQube\sonar-msbuild-runnerCSharp.ruleset
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
