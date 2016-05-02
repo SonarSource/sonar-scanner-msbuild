@@ -49,7 +49,7 @@
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\MSBuild.SonarQube.Internal.PostProcess.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarRunner.Shim\bin\$(Configuration)\SonarRunner.Shim.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarRunner.Shim\bin\$(Configuration)\Newtonsoft.Json.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarRunner.Shim\sonar-runner.zip" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarRunner.Shim\sonar-scanner.zip" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\TeamBuild.SonarQube.Integration.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\SonarQube.Integration.Tasks.dll" />
     <ProjectReference Include="..\..\V0_9UpgradeMessageExe\V0_9UpgradeMessageExe.csproj">

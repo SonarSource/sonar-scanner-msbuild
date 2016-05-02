@@ -120,18 +120,9 @@ namespace SonarRunner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to The SonarQube Scanner did not complete successfully.
         /// </summary>
-        public static string ERR_SonarRunnerExecutionFailed {
+        public static string ERR_SonarScannerExecutionFailed {
             get {
-                return ResourceManager.GetString("ERR_SonarRunnerExecutionFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Calling the SonarQube Scanner....
-        /// </summary>
-        public static string MSG_CallingSonarRunner {
-            get {
-                return ResourceManager.GetString("MSG_CallingSonarRunner", resourceCulture);
+                return ResourceManager.GetString("ERR_SonarScannerExecutionFailed", resourceCulture);
             }
         }
         
@@ -226,38 +217,47 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Calling the SonarQube Scanner....
+        /// </summary>
+        public static string MSG_SonarScannerCalling {
+            get {
+                return ResourceManager.GetString("MSG_SonarScannerCalling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The SonarQube Scanner has finished.
         /// </summary>
-        public static string MSG_SonarRunnerCompleted {
+        public static string MSG_SonarScannerCompleted {
             get {
-                return ResourceManager.GetString("MSG_SonarRunnerCompleted", resourceCulture);
+                return ResourceManager.GetString("MSG_SonarScannerCompleted", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The SONAR_RUNNER_HOME environment variable is not required and will be ignored..
+        ///   Looks up a localized string similar to The SONAR_SCANNER_HOME environment variable is not required and will be ignored..
         /// </summary>
-        public static string MSG_SonarRunnerHomeIsSet {
+        public static string MSG_SonarScannerHomeIsSet {
             get {
-                return ResourceManager.GetString("MSG_SonarRunnerHomeIsSet", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {0} is not configured. Setting it to the default value of {1}.
-        /// </summary>
-        public static string MSG_SonarRunnerOptsDefaultUsed {
-            get {
-                return ResourceManager.GetString("MSG_SonarRunnerOptsDefaultUsed", resourceCulture);
+                return ResourceManager.GetString("MSG_SonarScannerHomeIsSet", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to {0} is already set. Value: {1}.
         /// </summary>
-        public static string MSG_SonarRunOptsAlreadySet {
+        public static string MSG_SonarScannerOptsAlreadySet {
             get {
-                return ResourceManager.GetString("MSG_SonarRunOptsAlreadySet", resourceCulture);
+                return ResourceManager.GetString("MSG_SonarScannerOptsAlreadySet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} is not configured. Setting it to the default value of {1}.
+        /// </summary>
+        public static string MSG_SonarScannerOptsDefaultUsed {
+            get {
+                return ResourceManager.GetString("MSG_SonarScannerOptsDefaultUsed", resourceCulture);
             }
         }
         

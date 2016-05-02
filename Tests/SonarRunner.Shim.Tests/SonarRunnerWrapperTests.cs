@@ -27,7 +27,7 @@ namespace SonarRunner.Shim.Tests
         #region Tests
 
         [TestMethod]
-        public void SonarRunnerHome_NoMessageIfNotAlreadySet()
+        public void SonarScannerHome_NoMessageIfNotAlreadySet()
         {
             // Arrange
             TestLogger testLogger = new TestLogger();
@@ -36,7 +36,7 @@ namespace SonarRunner.Shim.Tests
 
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName, null);
+                scope.SetVariable(SonarRunnerWrapper.SonarScannerHomeVariableName, null);
                 AnalysisConfig config = new AnalysisConfig() { SonarRunnerWorkingDirectory = this.TestContext.DeploymentDirectory };
 
                 // Act
@@ -44,16 +44,16 @@ namespace SonarRunner.Shim.Tests
 
                 // Assert
                 VerifyProcessRunOutcome(testLogger, this.TestContext.DeploymentDirectory, success, true);
-                testLogger.AssertMessageNotLogged(SonarRunner.Shim.Resources.MSG_SonarRunnerHomeIsSet);
+                testLogger.AssertMessageNotLogged(SonarRunner.Shim.Resources.MSG_SonarScannerHomeIsSet);
             }
         }
 
         [TestMethod]
-        public void SonarRunnerHome_MessageLoggedIfAlreadySet()
+        public void SonarScannerHome_MessageLoggedIfAlreadySet()
         {
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(SonarRunnerWrapper.SonarRunnerHomeVariableName, "some_path");
+                scope.SetVariable(SonarRunnerWrapper.SonarScannerHomeVariableName, "some_path");
 
                 // Arrange
                 TestLogger testLogger = new TestLogger();

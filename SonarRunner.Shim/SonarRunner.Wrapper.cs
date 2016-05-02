@@ -18,17 +18,16 @@ namespace SonarRunner.Shim
     public class SonarRunnerWrapper : ISonarRunner
     {
         /// <summary>
-        /// Env variable that controls the amount of memory the JVM can use for the sonar-runner.
+        /// Env variable that controls the amount of memory the JVM can use for the sonar-scanner.
         /// </summary>
         /// <remarks>Large projects error out with OutOfMemoryException if not set</remarks>
-        private const string SonarRunnerOptsVariableName = "SONAR_RUNNER_OPTS";
+        private const string SonarScannerOptsVariableName = "SONAR_SCANNER_OPTS";
 
         /// <summary>
-        /// Env variable that locates the sonar-runner
+        /// Env variable that locates the sonar-scanner
         /// </summary>
-        /// <remarks>We asked users to set this in the 0.9 version so that the sonar-runner is discoverable but
-        /// in 1.0+ this is not needed and setting it can cause the sonar-runner to fail</remarks>
-        public const string SonarRunnerHomeVariableName = "SONAR_RUNNER_HOME";
+        /// <remarks>Existing values set by the user might cause failures/remarks>
+        public const string SonarScannerHomeVariableName = "SONAR_SCANNER_HOME";
 
         /// <summary>
         /// Name of the command line argument used to specify the generated project settings file to use
@@ -114,13 +113,13 @@ namespace SonarRunner.Shim
             string fullPath = null;
 
             var binFolder = config.SonarBinDir;
-            var sonarRunnerZip = Path.Combine(binFolder, "sonar-runner.zip");
-            var sonarRunnerDestinationFolder = Path.Combine(binFolder, "sonar-runner");
+            var sonarRunnerZip = Path.Combine(binFolder, "sonar-scanner.zip");
+            var sonarRunnerDestinationFolder = Path.Combine(binFolder, "sonar-scanner");
 
             if (Utilities.TryEnsureEmptyDirectories(logger, sonarRunnerDestinationFolder))
             {
                 ZipFile.ExtractToDirectory(sonarRunnerZip, sonarRunnerDestinationFolder);
-                fullPath = Path.Combine(sonarRunnerDestinationFolder, @"bin\sonar-runner.bat");
+                fullPath = Path.Combine(sonarRunnerDestinationFolder, @"bin\sonar-scanner.bat");
             }
 
             return fullPath;
@@ -131,14 +130,14 @@ namespace SonarRunner.Shim
             Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
             Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
 
-            IgnoreSonarRunnerHome(logger);
+            IgnoreSonarScannerHome(logger);
 
             IEnumerable<string> allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments, config);
 
             IDictionary<string, string> envVarsDictionary = GetAdditionalEnvVariables(logger);
             Debug.Assert(envVarsDictionary != null);
 
-            logger.LogInfo(Resources.MSG_CallingSonarRunner);
+            logger.LogInfo(Resources.MSG_SonarScannerCalling);
 
             Debug.Assert(!String.IsNullOrWhiteSpace(config.SonarRunnerWorkingDirectory), "The working dir should have been set in the analysis config");
             Debug.Assert(Directory.Exists(config.SonarRunnerWorkingDirectory), "The working dir should exist");
@@ -158,22 +157,22 @@ namespace SonarRunner.Shim
 
             if (success)
             {
-                logger.LogInfo(Resources.MSG_SonarRunnerCompleted);
+                logger.LogInfo(Resources.MSG_SonarScannerCompleted);
             }
             else
             {
-                logger.LogError(Resources.ERR_SonarRunnerExecutionFailed);
+                logger.LogError(Resources.ERR_SonarScannerExecutionFailed);
             }
             return success;
         }
 
-        private static void IgnoreSonarRunnerHome(ILogger logger)
+        private static void IgnoreSonarScannerHome(ILogger logger)
         {
             if (!String.IsNullOrWhiteSpace(
-                Environment.GetEnvironmentVariable(SonarRunnerHomeVariableName)))
+                Environment.GetEnvironmentVariable(SonarScannerHomeVariableName)))
             {
-                logger.LogInfo(Resources.MSG_SonarRunnerHomeIsSet);
-                Environment.SetEnvironmentVariable(SonarRunnerHomeVariableName, String.Empty);
+                logger.LogInfo(Resources.MSG_SonarScannerHomeIsSet);
+                Environment.SetEnvironmentVariable(SonarScannerHomeVariableName, String.Empty);
             }
         }
 
@@ -185,30 +184,30 @@ namespace SonarRunner.Shim
         {
             IDictionary<string, string> envVarsDictionary = new Dictionary<string, string>();
 
-            // Always set a value for SONAR_RUNNER_OPTS just in case it is set at process-level
+            // Always set a value for SONAR_SCANNER_OPTS just in case it is set at process-level
             // which wouldn't be inherited by the child sonar-runner process.
-            string sonarRunnerOptsValue = GetSonarRunnerOptsValue(logger);
-            envVarsDictionary.Add(SonarRunnerOptsVariableName, sonarRunnerOptsValue);
+            string sonarScannerOptsValue = GetSonarScannerOptsValue(logger);
+            envVarsDictionary.Add(SonarScannerOptsVariableName, sonarScannerOptsValue);
 
             return envVarsDictionary;
         }
 
         /// <summary>
-        /// Get the value of the SONAR_RUNNER_OPTS variable that controls the amount of memory available to the JDK so that the sonar-runner doesn't
+        /// Get the value of the SONAR_SCANNER_OPTS variable that controls the amount of memory available to the JDK so that the sonar-runner doesn't
         /// hit OutOfMemory exceptions. If no env variable with this name is defined then a default value is used.
         /// </summary>
-        private static string GetSonarRunnerOptsValue(ILogger logger)
+        private static string GetSonarScannerOptsValue(ILogger logger)
         {
-            string existingValue = Environment.GetEnvironmentVariable(SonarRunnerOptsVariableName);
+            string existingValue = Environment.GetEnvironmentVariable(SonarScannerOptsVariableName);
 
             if (!String.IsNullOrWhiteSpace(existingValue))
             {
-                logger.LogInfo(Resources.MSG_SonarRunOptsAlreadySet, SonarRunnerOptsVariableName, existingValue);
+                logger.LogInfo(Resources.MSG_SonarScannerOptsAlreadySet, SonarScannerOptsVariableName, existingValue);
                 return existingValue;
             }
             else
             {
-                logger.LogInfo(Resources.MSG_SonarRunnerOptsDefaultUsed, SonarRunnerOptsVariableName, SonarRunnerOptsDefaultValue);
+                logger.LogInfo(Resources.MSG_SonarScannerOptsDefaultUsed, SonarScannerOptsVariableName, SonarRunnerOptsDefaultValue);
                 return SonarRunnerOptsDefaultValue;
             }
         }

@@ -117,7 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="MSG_CallingSonarRunner" xml:space="preserve">
+  <data name="MSG_SonarScannerCalling" xml:space="preserve">
     <value>Calling the SonarQube Scanner...</value>
   </data>
   <data name="WARN_FileIsOutsideProjectDirectory" xml:space="preserve">
@@ -135,7 +135,7 @@
   <data name="MSG_PropertiesGenerationFailed" xml:space="preserve">
     <value>Generation of the sonar-properties file failed. Unable to complete SonarQube analysis.</value>
   </data>
-  <data name="MSG_SonarRunnerCompleted" xml:space="preserve">
+  <data name="MSG_SonarScannerCompleted" xml:space="preserve">
     <value>The SonarQube Scanner has finished</value>
   </data>
   <data name="MSG_WritingSummary" xml:space="preserve">
@@ -156,13 +156,13 @@
   <data name="ERR_NoValidProjectInfoFiles" xml:space="preserve">
     <value>No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.</value>
   </data>
-  <data name="ERR_SonarRunnerExecutionFailed" xml:space="preserve">
+  <data name="ERR_SonarScannerExecutionFailed" xml:space="preserve">
     <value>The SonarQube Scanner did not complete successfully</value>
   </data>
-  <data name="MSG_SonarRunnerOptsDefaultUsed" xml:space="preserve">
+  <data name="MSG_SonarScannerOptsDefaultUsed" xml:space="preserve">
     <value>{0} is not configured. Setting it to the default value of {1}</value>
   </data>
-  <data name="MSG_SonarRunOptsAlreadySet" xml:space="preserve">
+  <data name="MSG_SonarScannerOptsAlreadySet" xml:space="preserve">
     <value>{0} is already set. Value: {1}</value>
   </data>
   <data name="REPORT_ExcludedProjectsTitle" xml:space="preserve">
@@ -198,8 +198,8 @@
   <data name="WARN_InvalidProjectGuid" xml:space="preserve">
     <value>The project has an invalid GUID "{0}". The project will not be analyzed by SonarQube. Project file: {1}</value>
   </data>
-  <data name="MSG_SonarRunnerHomeIsSet" xml:space="preserve">
-    <value>The SONAR_RUNNER_HOME environment variable is not required and will be ignored.</value>
+  <data name="MSG_SonarScannerHomeIsSet" xml:space="preserve">
+    <value>The SONAR_SCANNER_HOME environment variable is not required and will be ignored.</value>
   </data>
   <data name="MSG_SettingAnalysisProperty" xml:space="preserve">
     <value>Setting analysis property: {0}={1}</value>
