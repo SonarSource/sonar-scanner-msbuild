@@ -20,15 +20,23 @@ namespace SonarQube.MSBuild.Tasks
     /// </summary>
     public class AttachBuildWrapper : Task
     {
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetModuleHandle(string lpModuleName);
+
         // See https://jira.sonarsource.com/browse/CPP-1458 for the specification of the files contained in the C++ static resource zip
         private const string BuildWrapperExeName = "build-wrapper-win-x86-64.exe";
         private const string AttachedBinaryFileName32 = "interceptor32.dll";
         private const string AttachedBinaryFileName64 = "interceptor64.dll";
         private const string BuildWrapperSubDirName = "build-wrapper-win-x86";
 
-        private const int BuildWrapperTimeoutInMs = 5000;
-
         private static readonly string[] RequiredFileNames = new string[] { BuildWrapperExeName, AttachedBinaryFileName32, AttachedBinaryFileName64 };
+
+        /// <summary>
+        /// The length of time to wait for the build wrapper to be launched succesfully
+        /// </summary>
+        private readonly int buildWrapperTimeoutInMs;
+
+        private const int DefaultBuildWrapperTimeoutInMs = 5000;
 
         #region Input properties
 
@@ -45,6 +53,17 @@ namespace SonarQube.MSBuild.Tasks
         public string OutputDirectoryPath { get; set; }
 
         #endregion Input properties
+
+        // Constructor used for testing
+        public AttachBuildWrapper() : this(DefaultBuildWrapperTimeoutInMs)
+        {
+        }
+
+        public AttachBuildWrapper(int buildWrapperTimeoutInMs)
+            : base()
+        {
+            this.buildWrapperTimeoutInMs = buildWrapperTimeoutInMs;
+        }
 
         public override bool Execute()
         {
@@ -64,7 +83,6 @@ namespace SonarQube.MSBuild.Tasks
                 else
                 {
                     Directory.CreateDirectory(this.OutputDirectoryPath);
-
                     success = this.Attach();
                 }
             }
@@ -91,9 +109,27 @@ namespace SonarQube.MSBuild.Tasks
             }
         }
 
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr GetModuleHandle(string lpModuleName);
+        private bool CheckRequiredFilesExist()
+        {
+            bool allExist = true;
 
+            string binDir = this.BuildWrapperBinaryDir;
+
+            foreach (string fileName in RequiredFileNames)
+            {
+                string fullName = Path.Combine(binDir, fileName);
+                if (!File.Exists(fullName))
+                {
+                    this.Log.LogError(Resources.BuildWrapper_RequiredFileMissing, fullName);
+                    allExist = false;
+                }
+            }
+            return allExist;
+        }
+
+        /// <summary>
+        /// Checks whether the build wrapper is already attached
+        /// </summary>
         private bool IsAlreadyAttached()
         {
             string markerDll32 = Path.Combine(this.BuildWrapperBinaryDir, AttachedBinaryFileName32);
@@ -112,13 +148,17 @@ namespace SonarQube.MSBuild.Tasks
             return false;
         }
 
+        /// <summary>
+        /// Launches the build wrapper and asks it to attach to the current process.
+        /// Returns whether the build wrapper was succesfully attached or not.
+        /// </summary>
         private bool Attach()
         {
             string currentPID = Process.GetCurrentProcess().Id.ToString();
 
             string monitorExeFilePath = Path.Combine(this.BuildWrapperBinaryDir, BuildWrapperExeName);
             ProcessRunnerArguments args = new ProcessRunnerArguments(monitorExeFilePath, new MSBuildLoggerAdapter(this.Log));
-            args.TimeoutInMilliseconds = BuildWrapperTimeoutInMs;
+            args.TimeoutInMilliseconds = this.buildWrapperTimeoutInMs;
 
             // See https://jira.sonarsource.com/browse/CPP-1469 for the specification of the arguments to pass to the C++ plugin
             // --msbuild - task < PID > < OUTPUT_DIR >
@@ -139,24 +179,6 @@ namespace SonarQube.MSBuild.Tasks
             }
 
             return success;
-        }
-
-        private bool CheckRequiredFilesExist()
-        {
-            bool allExist = true;
-
-            string binDir = this.BuildWrapperBinaryDir;
-
-            foreach (string fileName in RequiredFileNames)
-            {
-                string fullName = Path.Combine(binDir, fileName);
-                if (!File.Exists(fullName))
-                {
-                    this.Log.LogError(Resources.BuildWrapper_RequiredFileMissing, fullName);
-                    allExist = false;
-                }
-            }
-            return allExist;
         }
 
         #endregion Private methods

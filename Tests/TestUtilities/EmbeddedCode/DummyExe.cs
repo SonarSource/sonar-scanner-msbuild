@@ -13,6 +13,10 @@
 
     To use the template, load the resource as a string and replace the
     string "EXITCODE_PLACEHOLDER" with the exit code value to be returned.
+
+    To embed additional code into the executable (e.g. to throw an exception
+    or to add a delay), set the string "ADDITIONALCODE_PLACEHOLDER" to the
+    code to be included.
 */
 
 using System.IO;
@@ -28,6 +32,8 @@ namespace SonarQube.Bootstrapper.Tests.Dummy
             File.WriteAllLines(logFile, args);
 
             int exitCode = EXITCODE_PLACEHOLDER;
+
+            ADDITIONALCODE_PLACEHOLDER
 
             return exitCode;
         }

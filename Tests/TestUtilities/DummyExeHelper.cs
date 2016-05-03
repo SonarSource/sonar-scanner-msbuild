@@ -37,7 +37,12 @@ namespace TestUtilities
 
         public static string CreateDummyExe(string outputDir, string exeName, int exitCode)
         {
-            string code = GetDummyExeSource(exitCode);
+            return CreateDummyExe(outputDir, exeName, exitCode, null);
+        }
+
+        public static string CreateDummyExe(string outputDir, string exeName, int exitCode, string additionalCode)
+        {
+            string code = GetDummyExeSource(exitCode, additionalCode);
             string asmPath = Path.Combine(outputDir, exeName);
             CompileAssembly(code, asmPath);
             return asmPath;
@@ -104,7 +109,7 @@ namespace TestUtilities
 
         #region Private methods
 
-        private static string GetDummyExeSource(int returnCode)
+        private static string GetDummyExeSource(int returnCode, string additionalCode)
         {
             string code;
             string resourceName = "TestUtilities.EmbeddedCode.DummyExe.cs";
@@ -116,6 +121,7 @@ namespace TestUtilities
             }
 
             code = code.Replace("EXITCODE_PLACEHOLDER", returnCode.ToString());
+            code = code.Replace("ADDITIONALCODE_PLACEHOLDER", additionalCode);
             return code;
         }
 

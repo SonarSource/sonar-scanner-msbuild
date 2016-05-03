@@ -29,7 +29,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // Arrange
             string testFolder = TestUtils.GetTestSpecificFolderName(this.TestContext);
 
-            for (int i = 0; i < TaskExecutionContent.RequiredFileNames.Length; i++)
+            for (int i = 0; i < TaskExecutionContext.RequiredFileNames.Length; i++)
             {
                 // Clean up after the previous iteration
                 if (Directory.Exists(testFolder))
@@ -38,7 +38,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 }
                 Directory.CreateDirectory(testFolder);
                 DummyBuildEngine dummyEngine = new DummyBuildEngine();
-                TaskExecutionContent taskContext = new TaskExecutionContent(testFolder, 0 /* returns failure code */ );
+                TaskExecutionContext taskContext = new TaskExecutionContext(testFolder, 0 /* returns failure code */ );
 
                 string missingFilePath = taskContext.RequiredFilePaths[i];
 
@@ -61,7 +61,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             string outputFolder = Path.Combine(rootBinFolder, "output"); // expected location: does not exist
             DummyBuildEngine dummyEngine = new DummyBuildEngine();
 
-            TaskExecutionContent taskContext = new TaskExecutionContent(rootBinFolder, 0 /* returns success code */ );
+            TaskExecutionContext taskContext = new TaskExecutionContext(rootBinFolder, 0 /* returns success code */ );
 
             AttachBuildWrapper testSubject = CreateTestSubject(dummyEngine, rootBinFolder, outputFolder);
 
@@ -92,7 +92,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             string outputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "output");
             DummyBuildEngine dummyEngine = new DummyBuildEngine();
 
-            TaskExecutionContent taskContext = new TaskExecutionContent(rootBinFolder, 1 /* returns failure code */ );
+            TaskExecutionContext taskContext = new TaskExecutionContext(rootBinFolder, 1 /* returns failure code */ );
 
             AttachBuildWrapper testSubject = CreateTestSubject(dummyEngine, rootBinFolder, outputFolder);
 
@@ -113,15 +113,79 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 outputFolder);
         }
 
-
         [TestMethod]
-        public void AttachBW_AlreadyAttached_BuildWrapperNotCalled()
+        public void AttachBW_NotAttached_ExeThrows_TaskFails()
         {
             // Arrange
+            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            DummyBuildEngine dummyEngine = new DummyBuildEngine();
+
+            TaskExecutionContext dummy = new TaskExecutionContext(testFolder, 0 /* returns success code */,
+                // Embed additional code in the dummy exe
+                @"throw new System.Exception(""XXX thrown error should be captured"");");
+
+            AttachBuildWrapper testSubject = CreateTestSubject(dummyEngine, testFolder, testFolder);
 
             // Act
+            bool result = testSubject.Execute();
 
             // Assert
+            Assert.IsFalse(result, "Not expecting the task to succeed");
+
+            dummyEngine.AssertSingleErrorExists(SonarQube.MSBuild.Tasks.Resources.BuildWrapper_FailedToAttach);
+            dummyEngine.AssertNoWarnings();
+
+            dummyEngine.AssertSingleErrorExists("XXX thrown error should be captured");
+        }
+
+        [TestMethod]
+        public void AttachBW_NotAttached_ConsoleOutputIsCaptured()
+        {
+            // Arrange
+            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            DummyBuildEngine dummyEngine = new DummyBuildEngine();
+
+            TaskExecutionContext taskContext = new TaskExecutionContext(testFolder, 0 /* returns success code */,
+                // Embed additional code in the dummy exe
+                @"System.Console.WriteLine(""AAA standard output should be captured"");
+                  System.Console.Error.WriteLine(""BBB standard error should be captured"");");
+
+            AttachBuildWrapper testSubject = CreateTestSubject(dummyEngine, testFolder, testFolder);
+
+            // Act
+            bool result = testSubject.Execute();
+
+            // Assert
+            Assert.IsTrue(result, "Expecting the task to succeed");
+
+            dummyEngine.AssertNoWarnings();
+
+            dummyEngine.AssertSingleMessageExists("AAA standard output should be captured");
+            dummyEngine.AssertSingleErrorExists("BBB standard error should be captured");
+        }
+
+        [TestMethod]
+        public void AttachBW_NotAttached_Timeout_TaskFails()
+        {
+            // Arrange
+            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            DummyBuildEngine dummyEngine = new DummyBuildEngine();
+
+            TaskExecutionContext taskContext = new TaskExecutionContext(testFolder, 0 /* returns success code */,
+                // Embed additional code in the dummy exe - pause execution for 100 ms
+                @"System.Threading.Thread.Sleep(200);");
+
+            AttachBuildWrapper testSubject = new AttachBuildWrapper(11 /* timeout after 11 ms */);
+            InitializeTask(testSubject, dummyEngine, testFolder, testFolder);
+
+            // Act
+            bool result = testSubject.Execute();
+
+            // Assert
+            Assert.IsFalse(result, "Not expecting the task to succeed - should have timed out");
+
+            dummyEngine.AssertSingleErrorExists(SonarQube.MSBuild.Tasks.Resources.BuildWrapper_FailedToAttach);
+            dummyEngine.AssertSingleWarningExists("11"); // expecting a warning with the timeout value
         }
 
         #endregion
@@ -131,14 +195,18 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         private static AttachBuildWrapper CreateTestSubject(DummyBuildEngine engine, string binPath, string outputPath)
         {
             AttachBuildWrapper task = new AttachBuildWrapper();
-            task.BuildEngine = engine;
-            task.BinDirectoryPath = binPath;
-            task.OutputDirectoryPath = outputPath;
-
+            InitializeTask(task, engine, binPath, outputPath);
             return task;
         }
 
-        private string AssertLogFileExists(TaskExecutionContent taskContext)
+        private static void InitializeTask(AttachBuildWrapper task, DummyBuildEngine engine, string binPath, string outputPath)
+        {
+            task.BuildEngine = engine;
+            task.BinDirectoryPath = binPath;
+            task.OutputDirectoryPath = outputPath;
+        }
+
+        private string AssertLogFileExists(TaskExecutionContext taskContext)
         {
             return DummyExeHelper.AssertLogFileExists(taskContext.ExpectedLogFilePath, this.TestContext);
         }
@@ -149,7 +217,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         /// Helper class that sets up the directories and files required
         /// to run the task sucessfully
         /// </summary>
-        private class TaskExecutionContent
+        private class TaskExecutionContext
         {
             private const string BuildWrapperSubDirName = "build-wrapper-win-x86";
 
@@ -161,12 +229,18 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             private readonly IList<string> requiredFilePaths;
             private readonly string logFilePath;
 
+            public TaskExecutionContext(string rootDir, int exeReturnCode)
+                : this(rootDir, exeReturnCode, null)
+            {
+            }
+
             /// <summary>
             /// Create the required files on disk
             /// </summary>
             /// <param name="rootDir">The root bin directory for the task</param>
             /// <param name="exeReturnCode">The exit code that should be returned by the build wrapper executable</param>
-            public TaskExecutionContent(string rootDir, int exeReturnCode)
+            /// <param name="additionalCode">Any additional code to be embedded in the dummy build wrapper exectuable</param>
+            public TaskExecutionContext(string rootDir, int exeReturnCode, string additionalCode)
             {
                 this.buildWrapperBinPath = Path.Combine(rootDir, BuildWrapperSubDirName);
                 Directory.CreateDirectory(buildWrapperBinPath);
@@ -179,7 +253,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 }
 
                 // Create a dummy monitor exe - this file will actually be executed
-                DummyExeHelper.CreateDummyExe(buildWrapperBinPath, BuildWrapperExeName, exeReturnCode);
+                DummyExeHelper.CreateDummyExe(buildWrapperBinPath, BuildWrapperExeName, exeReturnCode, additionalCode);
                 this.logFilePath = DummyExeHelper.GetLogFilePath(buildWrapperBinPath, BuildWrapperExeName);
 
                 // Finally, create dummy files for all of the other required for which the content doesn't matter
