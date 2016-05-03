@@ -193,4 +193,19 @@ Error: {1}</value>
   <data name="AnalyzerSettings_NotSpecifiedInConfig" xml:space="preserve">
     <value>Analyzer settings have not been specified in the analysis config file</value>
   </data>
+  <data name="BuildWrapper_AlreadyAttached" xml:space="preserve">
+    <value>BuildWrapper: the build wrapper is already attached to the current process ({0})</value>
+  </data>
+  <data name="BuildWrapper_AttachedSuccessfully" xml:space="preserve">
+    <value>BuildWrapper: the build wrapper attached successfully</value>
+  </data>
+  <data name="BuildWrapper_FailedToAttach" xml:space="preserve">
+    <value>BuildWrapper: failed to attach to the current process</value>
+  </data>
+  <data name="BuildWrapper_RequiredFileMissing" xml:space="preserve">
+    <value>BuildWrapper: cannot find required file: {0}</value>
+  </data>
+  <data name="BuildWrapper_WaitingForAttach" xml:space="preserve">
+    <value>BuildWrapper: waiting for the build wrapper to attach to the current process ({0})...</value>
+  </data>
 </root>

@@ -35,18 +35,28 @@ namespace TestUtilities
             return CreateDummyExe(dummyBinDir, PostProcessorExeName, exitCode);
         }
 
+        public static string CreateDummyExe(string outputDir, string exeName, int exitCode)
+        {
+            string code = GetDummyExeSource(exitCode);
+            string asmPath = Path.Combine(outputDir, exeName);
+            CompileAssembly(code, asmPath);
+            return asmPath;
+        }
+
         #endregion
 
         #region Checks
 
         public static string AssertDummyPreProcLogExists(string dummyBinDir, TestContext testContext)
         {
-            return AssertLogFileExists(dummyBinDir, PreProcessorExeName, testContext);
+            string logFilePath = GetLogFilePath(dummyBinDir, PreProcessorExeName);
+            return AssertLogFileExists(logFilePath, testContext);
         }
 
         public static string AssertDummyPostProcLogExists(string dummyBinDir, TestContext testContext)
         {
-            return AssertLogFileExists(dummyBinDir, PostProcessorExeName, testContext);
+            string logFilePath = GetLogFilePath(dummyBinDir, PostProcessorExeName);
+            return AssertLogFileExists(logFilePath, testContext);
         }
 
         public static string AssertDummyPreProcLogDoesNotExist(string dummyBinDir)
@@ -58,7 +68,14 @@ namespace TestUtilities
         {
             return AssertLogFileDoesNotExist(dummyBinDir, PostProcessorExeName);
         }
-        
+
+        public static string GetLogFilePath(string dummyBinDir, string exeName)
+        {
+            string logFilePath = Path.Combine(dummyBinDir, exeName);
+            logFilePath = Path.ChangeExtension(logFilePath, ".log");
+            return logFilePath;
+        }
+
         public static void AssertExpectedLogContents(string logPath, params string[] expected)
         {
             Assert.IsTrue(File.Exists(logPath), "Expected log file does not exist: {0}", logPath);
@@ -68,16 +85,14 @@ namespace TestUtilities
             CollectionAssert.AreEqual(expected ?? new string[] { }, actualLines, "Log file does not have the expected content");
         }
 
-        private static string AssertLogFileExists(string dummyBinDir, string exeName, TestContext testContext)
+        public static string AssertLogFileExists(string logFilePath, TestContext testContext)
         {
-            string logFilePath = GetLogFilePath(dummyBinDir, exeName);
-
             Assert.IsTrue(File.Exists(logFilePath), "Expecting the dummy exe log to exist. File: {0}", logFilePath);
             testContext.AddResultFile(logFilePath);
             return logFilePath;
         }
 
-        private static string AssertLogFileDoesNotExist(string dummyBinDir, string exeName)
+        public static string AssertLogFileDoesNotExist(string dummyBinDir, string exeName)
         {
             string logFilePath = GetLogFilePath(dummyBinDir, exeName);
 
@@ -88,14 +103,6 @@ namespace TestUtilities
         #endregion
 
         #region Private methods
-
-        private static string CreateDummyExe(string outputDir, string exeName, int exitCode)
-        {
-            string code = GetDummyExeSource(exitCode);
-            string asmPath = Path.Combine(outputDir, exeName);
-            CompileAssembly(code, asmPath);
-            return asmPath;
-        }
 
         private static string GetDummyExeSource(int returnCode)
         {
@@ -135,13 +142,6 @@ namespace TestUtilities
                 }
                 Assert.Fail("Test setup error: failed to create dynamic assembly. See the test output for compiler output");
             }
-        }
-
-        private static string GetLogFilePath(string dummyBinDir, string exeName)
-        {
-            string logFilePath = Path.Combine(dummyBinDir, exeName);
-            logFilePath = Path.ChangeExtension(logFilePath, ".log");
-            return logFilePath;
         }
 
         #endregion
