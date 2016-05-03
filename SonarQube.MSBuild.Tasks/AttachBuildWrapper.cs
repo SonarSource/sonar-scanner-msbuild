@@ -67,6 +67,9 @@ namespace SonarQube.MSBuild.Tasks
 
         public override bool Execute()
         {
+            Debug.Assert(!string.IsNullOrWhiteSpace(this.BinDirectoryPath), "Expecting the BinDirectoryPath to have been set");
+            Debug.Assert(!string.IsNullOrWhiteSpace(this.OutputDirectoryPath), "Expecting the OutputDirectoryPath to have been set");
+
             bool success = CheckRequiredFilesExist();
             if (!success)
             {
@@ -77,7 +80,7 @@ namespace SonarQube.MSBuild.Tasks
             {
                 if (this.IsAlreadyAttached())
                 {
-                    this.Log.LogMessage(MessageImportance.Low, Resources.BuildWrapper_AlreadyAttached);
+                    this.Log.LogMessage(MessageImportance.Low, Resources.BuildWrapper_AlreadyAttached, GetProcessId());
                     success = true;
                 }
                 else
@@ -104,7 +107,7 @@ namespace SonarQube.MSBuild.Tasks
         {
             get
             {
-                Debug.Assert(!string.IsNullOrWhiteSpace(this.BinDirectoryPath), "Expecting the BinDirectoryPath to havbe been set");
+                Debug.Assert(!string.IsNullOrWhiteSpace(this.BinDirectoryPath), "Expecting the BinDirectoryPath to have been set");
                 return Path.Combine(this.BinDirectoryPath, BuildWrapperSubDirName);
             }
         }
@@ -154,7 +157,7 @@ namespace SonarQube.MSBuild.Tasks
         /// </summary>
         private bool Attach()
         {
-            string currentPID = Process.GetCurrentProcess().Id.ToString();
+            string currentPID = GetProcessId();
 
             string monitorExeFilePath = Path.Combine(this.BuildWrapperBinaryDir, BuildWrapperExeName);
             ProcessRunnerArguments args = new ProcessRunnerArguments(monitorExeFilePath, new MSBuildLoggerAdapter(this.Log));
@@ -179,6 +182,11 @@ namespace SonarQube.MSBuild.Tasks
             }
 
             return success;
+        }
+
+        private static string GetProcessId()
+        {
+            return Process.GetCurrentProcess().Id.ToString();
         }
 
         #endregion Private methods
