@@ -205,6 +205,30 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #endregion
 
+        #region SQL Server projects tests
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")] // SONARMSBRU-235: SQL Server projects should be excluded from analysis
+        public void WriteProjectInfo_SqlServerProjectsAreExcluded()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+            preImportProperties["SqlTargetName"] = "non-empty";
+
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
+
+            // Act
+            ProjectInfo projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+            // Assert
+            AssertProjectIsExcluded(projectInfo);
+        }
+
+        #endregion
+
         #region Fakes projects tests
 
         [TestMethod]
@@ -221,7 +245,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             WellKnownProjectProperties preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
             preImportProperties.AssemblyName = "f.fAKes";
-            
+
             ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "f.proj");
 
             // Act
@@ -355,7 +379,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "agC.proj.txt");
             ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
-            
+
             // Files we don't expect to be included
             AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, "TRUE"); // only AutoGen, set to true
             AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false", "truE"); // exclude=false, autogen=true
@@ -366,7 +390,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string compile1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, null); // no metadata
             string autogenContentFalseAndIncluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false", "FALSe"); // exclude=false, autogen=false
             string autogenCompileFalseAndIncluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false", "faLSE"); // exclude=false, autogen=false
-            
+
             // Act
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
 
@@ -426,7 +450,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string fooType1 = AddFileToProject(projectRoot, "fooType", sonarQubeExclude: null);
             string xxxType1 = AddFileToProject(projectRoot, "xxxType", sonarQubeExclude: null);
             AddFileToProject(projectRoot, "barType", sonarQubeExclude: null);
-            
+
             // Files we'd normally expect to be included by default
             AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, sonarQubeExclude: null);
             AddFileToProject(projectRoot, TargetProperties.ItemType_Content, sonarQubeExclude: null);
@@ -476,7 +500,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         #endregion
-        
+
         #region Miscellaneous tests
 
         [TestMethod]
@@ -649,7 +673,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             {
                 preImportProperties.SonarQubeConfigPath = Path.GetTempPath();
             }
-            
+
             ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, preImportProperties);
 
             return projectRoot;
@@ -683,7 +707,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             {
                 logger.AssertNoWarningsOrErrors();
             }
-            
+
             // Check expected project outputs
             Assert.AreEqual(1, Directory.EnumerateDirectories(rootOutputFolder).Count(), "Only expecting one child directory to exist under the root analysis output folder");
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
@@ -705,8 +729,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             if (sonarQubeExclude != null)
             {
                 newItem.AddMetadata(TargetProperties.SonarQubeExcludeMetadata, sonarQubeExclude);
-            }          
-            
+            }
+
             return newItem.Include;
         }
 
@@ -791,7 +815,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         private static ProjectItemElement AddItem(ProjectRootElement projectRoot, string itemTypeName, string include, params string[] idAndValuePairs)
         {
             ProjectItemElement item = projectRoot.AddItem(itemTypeName, include);
-            
+
             int remainder;
             Math.DivRem(idAndValuePairs.Length, 2, out remainder);
             Assert.AreEqual(0, remainder, "Test setup error: the supplied list should contain id-location pairs");
