@@ -240,39 +240,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             MockSonarQubeServer mockServer = new MockSonarQubeServer();
             mockServer.Data.InstalledPlugins.Add(pluginKey);
-            mockServer.Data.AddEmbeddedFile(pluginKey, "embeddedFile1.zip", CreateDummyZipFile("file1.dll", "file2.txt"));
+            mockServer.Data.AddEmbeddedZipFile(pluginKey, "embeddedFile1.zip", "file1.dll", "file2.txt");
             return mockServer;
         }
         
         private void AddPlugin(MockSonarQubeServer mockServer, Plugin plugin, params string[] files)
         {
             mockServer.Data.InstalledPlugins.Add(plugin.Key);
-            mockServer.Data.AddEmbeddedFile(plugin.Key, plugin.StaticResourceName, CreateDummyZipFile(files));
-        }
-
-        private byte[] CreateDummyZipFile(params string[] contentFileNames)
-        {
-            string fileName = "dummy.zip";
-
-            // Create a temporary directory structure
-            string tempDir = TestUtils.CreateTestSpecificFolder(this.TestContext, System.Guid.NewGuid().ToString());
-            string zipDir = Path.Combine(tempDir, "zipDir");
-            Directory.CreateDirectory(zipDir);
-            string zippedFilePath = Path.Combine(tempDir, fileName);
-
-            // Create and read the zip file           
-            foreach(string contentFileName in contentFileNames)
-            {
-                TestUtils.CreateTextFile(zipDir, contentFileName, "dummy file content");
-            }
-            
-            ZipFile.CreateFromDirectory(zipDir, zippedFilePath);
-            byte[] zipData = File.ReadAllBytes(zippedFilePath);
-
-            // Cleanup
-            Directory.Delete(tempDir, true);
-
-            return zipData;
+            mockServer.Data.AddEmbeddedZipFile(plugin.Key, plugin.StaticResourceName, files);
         }
 
         private static IList<string> CalculateExpectedCachedFilePaths(string baseDir, Plugin plugin, params string[] fileNames)

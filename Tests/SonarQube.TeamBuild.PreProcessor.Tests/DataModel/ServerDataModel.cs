@@ -7,7 +7,10 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
@@ -71,6 +74,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             this.embeddedFilesMap.Add(GetEmbeddedFileKey(pluginKey, embeddedFileName), content);
         }
 
+        public void AddEmbeddedZipFile(string pluginKey, string embeddedFileName, params string[] contentFileNames)
+        {
+            this.embeddedFilesMap.Add(GetEmbeddedFileKey(pluginKey, embeddedFileName), CreateDummyZipFile(contentFileNames));
+        }
+
         #endregion
 
         #region Locator methods
@@ -100,6 +108,38 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             return pluginKey + "___" + embeddedFileName;
         }
+        #endregion
+
+
+        #region Private methods
+
+        private byte[] CreateDummyZipFile(params string[] contentFileNames)
+        {
+            string fileName = "dummy.zip";
+
+            // Create a temporary directory structure
+            string tempDir = Path.Combine(Path.GetTempPath(), "sqTestsTemp", System.Guid.NewGuid().ToString());
+            Directory.CreateDirectory(tempDir);
+
+            string zipDir = Path.Combine(tempDir, "zipDir");
+            Directory.CreateDirectory(zipDir);
+            string zippedFilePath = Path.Combine(tempDir, fileName);
+
+            // Create and read the zip file           
+            foreach (string contentFileName in contentFileNames)
+            {
+                TestUtils.CreateTextFile(zipDir, contentFileName, "dummy file content");
+            }
+
+            ZipFile.CreateFromDirectory(zipDir, zippedFilePath);
+            byte[] zipData = File.ReadAllBytes(zippedFilePath);
+
+            // Cleanup
+            Directory.Delete(tempDir, true);
+
+            return zipData;
+        }
+
         #endregion
     }
 }

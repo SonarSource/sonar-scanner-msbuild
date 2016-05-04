@@ -70,6 +70,33 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The C++ plugin is not installed on the SonarQube server so C++ projects will not automatically be analyzed by the SonarQube Scanner for MSBuild.
+        /// </summary>
+        public static string BW_CppPluginNotInstalled {
+            get {
+                return ResourceManager.GetString("BW_CppPluginNotInstalled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The installed version of the C++ plugin does not support integration with the SonarQube Scanner for MSBuild. Please upgrade to the latest version of the C++ plugin..
+        /// </summary>
+        public static string BW_CppPluginUpgradeRequired {
+            get {
+                return ResourceManager.GetString("BW_CppPluginUpgradeRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading the C++ build wrapper....
+        /// </summary>
+        public static string BW_DownloadingBuildWrapper {
+            get {
+                return ResourceManager.GetString("BW_DownloadingBuildWrapper", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to /install:[true|false] - install standard MSBuild targets required for analysis (default true).
         /// </summary>
         public static string CmdLine_ArgDescription_InstallTargets {

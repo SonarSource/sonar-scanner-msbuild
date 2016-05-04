@@ -58,6 +58,7 @@
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
     <Compile Include="AnalysisConfigGeneratorTests.cs" />
+    <Compile Include="BuildWrapperInstallerTests.cs" />
     <Compile Include="EmbeddedAnalyzerInstallerTests.cs" />
     <Compile Include="ArgumentProcessorTests.cs" />
     <Compile Include="Infrastructure\MockAnalyzerInstaller.cs" />
