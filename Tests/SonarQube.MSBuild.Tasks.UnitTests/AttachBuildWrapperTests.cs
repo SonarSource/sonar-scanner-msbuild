@@ -220,14 +220,11 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         /// </summary>
         private class TaskExecutionContext
         {
-            private const string BuildWrapperSubDirName = "build-wrapper-win-x86";
-
             // Required files:
             private const string BuildWrapperExeName32 = "build-wrapper-win-x86-32.exe";
             private const string BuildWrapperExeName64 = "build-wrapper-win-x86-64.exe";
             public static readonly string[] RequiredFileNames = new string[] { BuildWrapperExeName32, BuildWrapperExeName64, "interceptor32.dll", "interceptor64.dll" };
 
-            private readonly string buildWrapperBinPath;
             private readonly IList<string> requiredFilePaths;
             private readonly string logFilePath;
 
@@ -244,27 +241,22 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             /// <param name="additionalCode">Any additional code to be embedded in the dummy build wrapper exectuable</param>
             public TaskExecutionContext(string rootDir, int exeReturnCode, string additionalCode)
             {
-                this.buildWrapperBinPath = Path.Combine(rootDir, BuildWrapperSubDirName);
-                Directory.CreateDirectory(buildWrapperBinPath);
-
                 // Work out the full paths to all of the required files
                 this.requiredFilePaths = new List<string>();
                 foreach (string requiredFileName in RequiredFileNames)
                 {
-                    this.requiredFilePaths.Add(Path.Combine(this.BuildWrapperBinPath, requiredFileName));
+                    this.requiredFilePaths.Add(Path.Combine(rootDir, requiredFileName));
                 }
 
                 // Create a dummy monitor exe - this file will actually be executed
                 string exeName = Environment.Is64BitProcess ? BuildWrapperExeName64 : BuildWrapperExeName32;
 
-                DummyExeHelper.CreateDummyExe(buildWrapperBinPath, exeName, exeReturnCode, additionalCode);
-                this.logFilePath = DummyExeHelper.GetLogFilePath(buildWrapperBinPath, exeName);
+                DummyExeHelper.CreateDummyExe(rootDir, exeName, exeReturnCode, additionalCode);
+                this.logFilePath = DummyExeHelper.GetLogFilePath(rootDir, exeName);
 
                 // Finally, create dummy files for all of the other required for which the content doesn't matter
                 CreateMissingRequiredFiles();
             }
-
-            public string BuildWrapperBinPath { get { return this.buildWrapperBinPath; } }
 
             public IList<string> RequiredFilePaths { get { return this.requiredFilePaths; } }
 

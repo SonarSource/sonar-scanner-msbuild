@@ -28,7 +28,6 @@ namespace SonarQube.MSBuild.Tasks
         private const string BuildWrapperExeName64 = "build-wrapper-win-x86-64.exe";
         private const string AttachedBinaryFileName32 = "interceptor32.dll";
         private const string AttachedBinaryFileName64 = "interceptor64.dll";
-        private const string BuildWrapperSubDirName = "build-wrapper-win-x86";
 
         private static readonly string[] RequiredFileNames = new string[] { BuildWrapperExeName32, BuildWrapperExeName64, AttachedBinaryFileName32, AttachedBinaryFileName64 };
 
@@ -101,27 +100,13 @@ namespace SonarQube.MSBuild.Tasks
 
         #region Private methods
 
-        /// <summary>
-        /// Returns the full path to the directory that should contain the build wrapper binaries
-        /// </summary>
-        private string BuildWrapperBinaryDir
-        {
-            get
-            {
-                Debug.Assert(!string.IsNullOrWhiteSpace(this.BinDirectoryPath), "Expecting the BinDirectoryPath to have been set");
-                return Path.Combine(this.BinDirectoryPath, BuildWrapperSubDirName);
-            }
-        }
-
         private bool CheckRequiredFilesExist()
         {
             bool allExist = true;
 
-            string binDir = this.BuildWrapperBinaryDir;
-
             foreach (string fileName in RequiredFileNames)
             {
-                string fullName = Path.Combine(binDir, fileName);
+                string fullName = Path.Combine(this.BinDirectoryPath, fileName);
                 if (!File.Exists(fullName))
                 {
                     this.Log.LogError(Resources.BuildWrapper_RequiredFileMissing, fullName);
@@ -138,7 +123,7 @@ namespace SonarQube.MSBuild.Tasks
         {
             string markerDllName = (Environment.Is64BitProcess ? AttachedBinaryFileName64 : AttachedBinaryFileName32);
 
-            string fullMarkerDllPath = Path.Combine(this.BuildWrapperBinaryDir, markerDllName);
+            string fullMarkerDllPath = Path.Combine(this.BinDirectoryPath, markerDllName);
 
             return IsModuleLoaded(fullMarkerDllPath);
         }
@@ -163,14 +148,18 @@ namespace SonarQube.MSBuild.Tasks
 
             // Choose either the 32- or 64-bit version of the monitor to match the current process
             string exeName = (Environment.Is64BitProcess ? BuildWrapperExeName64 : BuildWrapperExeName32);
-            string monitorExeFilePath = Path.Combine(this.BuildWrapperBinaryDir, exeName);
+            string monitorExeFilePath = Path.Combine(this.BinDirectoryPath, exeName);
 
             ProcessRunnerArguments args = new ProcessRunnerArguments(monitorExeFilePath, new MSBuildLoggerAdapter(this.Log));
             args.TimeoutInMilliseconds = this.buildWrapperTimeoutInMs;
 
             // See https://jira.sonarsource.com/browse/CPP-1469 for the specification of the arguments to pass to the Cpp plugin
             // --msbuild - task < PID > < OUTPUT_DIR >
-            args.CmdLineArgs = new string[] { "--msbuild-task", currentPID, OutputDirectoryPath };
+            args.CmdLineArgs = new string[] {
+                "--msbuild-task",
+                currentPID,
+                Path.GetFullPath(OutputDirectoryPath) // make sure the path is in canonical form
+            };
 
             this.Log.LogMessage(MessageImportance.Low, Resources.BuildWrapper_WaitingForAttach, currentPID);
 

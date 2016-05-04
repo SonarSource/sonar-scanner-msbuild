@@ -110,6 +110,7 @@
   <UsingTask TaskName="WriteProjectInfoFile" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="IsTestFileByName" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="GetAnalyzerSettings" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
+  <UsingTask TaskName="AttachBuildWrapper" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
 
   <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
@@ -525,4 +526,62 @@
   <!-- **************************************************************************** -->
   <!-- End of StyleCop section-->
   <!-- **************************************************************************** -->
+
+
+  <!-- **************************************************************************** -->
+  <!-- C++ build wrapper section -->
+  <!-- **************************************************************************** -->
+  <!-- For C++ projects, if the SonarQube build wrapper is available then call it
+       before compilation starts so it can monitor the calls to the compiler.
+       
+       It is assumed the build wrapper binaries are in the same location as this targets
+       file (which is were the SonarQube Scanner for MSBuild will download it to).
+       
+       If you want to use a pre-installed version of the build wrapper, set the
+       property $(SQBuildWrapperBinPath) explicitly to the directory containing the binaries.
+       
+       If you want to disable the build wrapper integration with MSBuild, set the
+       property $(SQSkipBuildWrapper) to "true".
+       
+       Note: the target "ClCompile" specified in "BeforeTargets" only exists for C++ projects
+       so this target won't be run for other projects.
+       -->
+
+  <PropertyGroup>
+    <!-- Set defaults if explicit values have not been provided.
+         Note: setting this property in the SonarQubeBeforeClCompile target doesn't work:
+         the calculated value is not passed to the AttachSonarQubeBuildWrapper target.-->
+    <SQBuildWrapperBinPath Condition=" $(SQBuildWrapperBinPath) == '' ">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.Tasks.dll))\build-wrapper-win-x86</SQBuildWrapperBinPath>
+  </PropertyGroup>
+  
+  <Target Name="SonarQubeBeforeClCompile" BeforeTargets="ClCompile" Condition=" $(SonarQubeTempPath) != '' AND $(SQSkipBuildWrapper) != 'true' ">
+
+    <PropertyGroup>
+      <!-- Check whether the build wrapper exes can be found -->
+      <SQBuildWrapperMarkerFile>$(SQBuildWrapperBinPath)\build-wrapper-win-x86-32.exe</SQBuildWrapperMarkerFile>
+      <SQBuildWrapperExists>$([System.IO.File]::Exists($(SQBuildWrapperMarkerFile)))</SQBuildWrapperExists>
+    </PropertyGroup>
+
+    <CallTarget Targets="AttachSonarQubeBuildWrapper" Condition=" $(SQBuildWrapperExists) == 'true' " />
+    
+  </Target>
+  
+  <Target Name="AttachSonarQubeBuildWrapper" >
+    <Message Importance="low" Text="Build wrapper binaries found in $(SQBuildWrapperBinPath)"/>
+
+    <PropertyGroup>
+      <SQBuildWrapperOutputPath Condition=" $(SQBuildWrapperOutputPath) == '' ">$(SonarQubeOutputPath)\bw\</SQBuildWrapperOutputPath>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(SQBuildWrapperOutputPath)" />
+    <AttachBuildWrapper
+        BinDirectoryPath="$(SQBuildWrapperBinPath)"
+        OutputDirectoryPath="$(SQBuildWrapperOutputPath)"
+        />
+  </Target>
+  
+  <!-- **************************************************************************** -->
+  <!-- End of C++ build wrapper section -->
+  <!-- **************************************************************************** -->
+
 </Project>
