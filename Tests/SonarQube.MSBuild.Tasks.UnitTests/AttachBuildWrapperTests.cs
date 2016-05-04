@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -222,8 +223,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             private const string BuildWrapperSubDirName = "build-wrapper-win-x86";
 
             // Required files:
-            private const string BuildWrapperExeName = "build-wrapper-win-x86-64.exe";
-            public static readonly string[] RequiredFileNames = new string[] { BuildWrapperExeName, "interceptor32.dll", "interceptor64.dll" };
+            private const string BuildWrapperExeName32 = "build-wrapper-win-x86-32.exe";
+            private const string BuildWrapperExeName64 = "build-wrapper-win-x86-64.exe";
+            public static readonly string[] RequiredFileNames = new string[] { BuildWrapperExeName32, BuildWrapperExeName64, "interceptor32.dll", "interceptor64.dll" };
 
             private readonly string buildWrapperBinPath;
             private readonly IList<string> requiredFilePaths;
@@ -253,8 +255,10 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 }
 
                 // Create a dummy monitor exe - this file will actually be executed
-                DummyExeHelper.CreateDummyExe(buildWrapperBinPath, BuildWrapperExeName, exeReturnCode, additionalCode);
-                this.logFilePath = DummyExeHelper.GetLogFilePath(buildWrapperBinPath, BuildWrapperExeName);
+                string exeName = Environment.Is64BitProcess ? BuildWrapperExeName64 : BuildWrapperExeName32;
+
+                DummyExeHelper.CreateDummyExe(buildWrapperBinPath, exeName, exeReturnCode, additionalCode);
+                this.logFilePath = DummyExeHelper.GetLogFilePath(buildWrapperBinPath, exeName);
 
                 // Finally, create dummy files for all of the other required for which the content doesn't matter
                 CreateMissingRequiredFiles();
