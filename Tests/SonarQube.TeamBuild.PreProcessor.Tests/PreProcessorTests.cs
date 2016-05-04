@@ -20,7 +20,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public TestContext TestContext { get; set; }
 
         #region Tests
-        
+
         [TestMethod]
         public void PreProc_InvalidArgs()
         {
@@ -28,7 +28,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             MockSonarQubeServer mockServer = new MockSonarQubeServer();
 
             TeamBuildPreProcessor preprocessor = new TeamBuildPreProcessor(
-                new MockObjectFactory(mockServer, new MockTargetsInstaller(), new MockRoslynAnalyzerProvider()), 
+                new MockObjectFactory(mockServer, new MockTargetsInstaller(), new MockRoslynAnalyzerProvider(), new MockBuildWrapperInstaller()),
                 new TestLogger());
 
             // Act and assert
@@ -41,6 +41,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Checks end-to-end happy path for the pre-processor i.e.
             // * arguments are parsed
             // * targets are installed
+            // * build wrapper installer is called
             // * server properties are fetched
             // * rulesets are generated
             // * config file is created
@@ -48,7 +49,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Arrange
             string workingDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             TestLogger logger = new TestLogger();
-            
+
             // Configure the server
             MockSonarQubeServer mockServer = new MockSonarQubeServer();
 
@@ -79,8 +80,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
 
             MockTargetsInstaller mockTargetsInstaller = new MockTargetsInstaller();
+            MockBuildWrapperInstaller mockBuildWrapperInstaller = new MockBuildWrapperInstaller();
 
-            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller, mockAnalyzerProvider);
+            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller, mockAnalyzerProvider, mockBuildWrapperInstaller);
 
 
             string[] validArgs = new string[] {
@@ -113,6 +115,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockTargetsInstaller.AssertsTargetsCopied();
             mockServer.AssertMethodCalled("GetProperties", 1);
             mockServer.AssertMethodCalled("GetInternalKeys", 2); // C# and VB
+
+            mockBuildWrapperInstaller.AssertExpectedCallCount(1);
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);

@@ -61,6 +61,7 @@
     <Compile Include="EmbeddedAnalyzerInstallerTests.cs" />
     <Compile Include="ArgumentProcessorTests.cs" />
     <Compile Include="Infrastructure\MockAnalyzerInstaller.cs" />
+    <Compile Include="Infrastructure\MockBuildWrapperInstaller.cs" />
     <Compile Include="Infrastructure\MockRoslynAnalyzerProvider.cs" />
     <Compile Include="Infrastructure\MockSonarQubeServer.cs" />
     <Compile Include="Infrastructure\MockObjectFactory.cs" />

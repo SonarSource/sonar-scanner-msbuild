@@ -89,9 +89,13 @@ namespace SonarQube.TeamBuild.PreProcessor
                 return false;
             }
 
+            ISonarQubeServer server = this.factory.CreateSonarQubeServer(args, this.logger);
+
+            InstallBuildWrapper(server, teamBuildSettings.SonarBinDirectory);
+
             IDictionary<string, string> serverSettings;
             AnalyzerSettings analyzerSettings;
-            if (!FetchArgumentsAndRulesets(args, teamBuildSettings, out serverSettings, out analyzerSettings))
+            if (!FetchArgumentsAndRulesets(server, args, teamBuildSettings, out serverSettings, out analyzerSettings))
             {
                 return false;
             }
@@ -120,13 +124,12 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
         }
 
-        private bool FetchArgumentsAndRulesets(ProcessedArgs args, TeamBuildSettings settings, out IDictionary<string, string> serverSettings, out AnalyzerSettings analyzerSettings)
+        private bool FetchArgumentsAndRulesets(ISonarQubeServer server, ProcessedArgs args, TeamBuildSettings settings, out IDictionary<string, string> serverSettings, out AnalyzerSettings analyzerSettings)
         {
             string hostUrl = args.GetSetting(SonarProperties.HostUrl);
             serverSettings = null;
             analyzerSettings = null;
 
-            ISonarQubeServer server = this.factory.CreateSonarQubeServer(args, this.logger);
             try
             {
                 this.logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
@@ -142,7 +145,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                 this.logger.LogInfo(Resources.MSG_GeneratingRulesets);
                 GenerateFxCopRuleset(server, args.ProjectKey, projectBranch,
                     "csharp", "cs", "fxcop", Path.Combine(settings.SonarConfigDirectory, FxCopCSharpRuleset));
-                GenerateFxCopRuleset(server, args.ProjectKey, projectBranch, 
+                GenerateFxCopRuleset(server, args.ProjectKey, projectBranch,
                     "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(settings.SonarConfigDirectory, FxCopVBNetRuleset));
 
                 IAnalyzerProvider analyzerProvider = this.factory.CreateAnalyzerProvider(this.logger);
@@ -171,6 +174,13 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             this.logger.LogDebug(Resources.MSG_GeneratingRuleset, path);
             RulesetGenerator.Generate(server, requiredPluginKey, language, repository, projectKey, projectBranch, path);
+        }
+
+        private void InstallBuildWrapper(ISonarQubeServer server, string binDirectory)
+        {
+            IBuildWrapperInstaller installer = this.factory.CreateBuildWrapperInstaller(this.logger);
+            Debug.Assert(installer != null, "Factory should not return null");
+            installer.InstallBuildWrapper(server, binDirectory);
         }
 
         #endregion Private methods

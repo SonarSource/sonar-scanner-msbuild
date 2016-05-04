@@ -15,7 +15,7 @@ namespace SonarQube.TeamBuild.PreProcessor
     /// product implementations of the required classes
     /// </summary>
     /// <remarks>
-    /// Note: the factory is stateful and expects objects to be requested in the 
+    /// Note: the factory is stateful and expects objects to be requested in the
     /// order they are used
     /// </remarks>
     public class PreprocessorObjectFactory : IPreprocessorObjectFactory
@@ -67,6 +67,16 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             return new Roslyn.RoslynAnalyzerProvider(new Roslyn.EmbeddedAnalyzerInstaller(this.server, logger), logger);
+        }
+
+        public IBuildWrapperInstaller CreateBuildWrapperInstaller(ILogger logger)
+        {
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+
+            return new BuildWrapperInstaller(logger);
         }
 
         #endregion
