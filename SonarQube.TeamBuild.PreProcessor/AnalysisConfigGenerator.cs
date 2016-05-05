@@ -48,7 +48,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             if (programmaticProperties == null)
             {
-                throw new ArgumentNullException(nameof(programmaticProperties));
+                throw new ArgumentNullException("programmaticProperties");
             }
             if (logger == null)
             {
