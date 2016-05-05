@@ -128,6 +128,15 @@ namespace SonarRunner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The build wrapper output property {0} has been set and is valid. Specified directory: {1}.
+        /// </summary>
+        public static string MSG_BuildWrapperPropertyIsValid {
+            get {
+                return ResourceManager.GetString("MSG_BuildWrapperPropertyIsValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generating SonarQube project properties file to {0}.
         /// </summary>
         public static string MSG_GeneratingProjectProperties {
@@ -169,6 +178,15 @@ namespace SonarRunner.Shim {
         public static string MSG_PropertiesGenerationFailed {
             get {
                 return ResourceManager.GetString("MSG_PropertiesGenerationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The directory specified in property {0} either does not exist or is empty. The property will be removed. Specified directory: {1}.
+        /// </summary>
+        public static string MSG_RemovingBuildWrapperAnalysisProperty {
+            get {
+                return ResourceManager.GetString("MSG_RemovingBuildWrapperAnalysisProperty", resourceCulture);
             }
         }
         
