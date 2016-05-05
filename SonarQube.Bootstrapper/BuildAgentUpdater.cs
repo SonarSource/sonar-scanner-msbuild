@@ -56,8 +56,8 @@ namespace SonarQube.Bootstrapper
                     {
                         return false;
                     }
-
-                    throw;
+                    logger.LogError(Resources.ERROR_FailedToUpdateRunnerBinaries, ex);
+                    return false;
                 }
 
                 logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
