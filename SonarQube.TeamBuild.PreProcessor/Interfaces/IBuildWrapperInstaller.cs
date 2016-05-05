@@ -5,6 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using SonarQube.Common;
+
 namespace SonarQube.TeamBuild.PreProcessor
 {
     /// <summary>
@@ -17,7 +19,9 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// server. Does nothing if the C++ plugin is not installed.
         /// </summary>
         /// <param name="server">The SonarQube server to use</param>
-        /// <param name="binDirectory">The location into with the embedded zip should be unzipped</param>
-        void InstallBuildWrapper(ISonarQubeServer server, string binDirectory);
+        /// <param name="binDirectory">The location into which the embedded zip should be unzipped</param>
+        /// <param name="outputDirectory">The standard analysis output directory</param>
+        /// <returns>Returns any analysis properties that should be passed to the sonar-runner. Will no return null.</returns>
+        AnalysisProperties InstallBuildWrapper(ISonarQubeServer server, string binDirectory, string outputDirectory);
     }
 }

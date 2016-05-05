@@ -18,6 +18,8 @@ namespace SonarQube.TeamBuild.PreProcessor
         public const string CppPluginKey = "cpp";
         public const string BuildWrapperStaticResourceName = "build-wrapper-win-x86.zip";
 
+        public const string BuildWrapperOutputPropertyKey = "sonar.cfamily.build-wrapper-output";
+
         private readonly ILogger logger;
 
         public BuildWrapperInstaller(ILogger logger)
@@ -31,7 +33,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #region IBuildWrapperInstaller methods
 
-        public void InstallBuildWrapper(ISonarQubeServer server, string binDirectory)
+        public AnalysisProperties InstallBuildWrapper(ISonarQubeServer server, string binDirectory, string outputDirectory)
         {
             if (server == null)
             {
@@ -42,14 +44,20 @@ namespace SonarQube.TeamBuild.PreProcessor
                 throw new ArgumentNullException("binDirectory");
             }
 
-            if (IsCppPluginInstalled(server))
+            AnalysisProperties properties = new AnalysisProperties();
+
+            if (IsCppPluginInstalled(server) &&
+                FetchResourceFromServer(server, binDirectory))
             {
-                FetchResourceFromServer(server, binDirectory);
+                string bwOutputDir = Path.Combine(outputDirectory, "bw");
+                properties.Add(new Property() { Id = BuildWrapperOutputPropertyKey, Value = bwOutputDir });
             }
             else
             {
                 this.logger.LogInfo(Resources.BW_CppPluginNotInstalled);
             }
+
+            return properties;
         }
 
         #endregion
@@ -61,7 +69,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             return server.GetInstalledPlugins().Contains(CppPluginKey);
         }
 
-        private void FetchResourceFromServer(ISonarQubeServer server, string targetDir)
+        private bool FetchResourceFromServer(ISonarQubeServer server, string targetDir)
         {
             this.logger.LogDebug(Resources.BW_DownloadingBuildWrapper);
 
@@ -82,9 +90,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             else
             {
                 // We assume that the absence of the embedded zip means that an old
-                // version of the C++ plugin is installed
+                // version of the Cpp plugin is installed
                 this.logger.LogWarning(Resources.BW_CppPluginUpgradeRequired);
             }
+            return success;
         }
 
         private static bool IsZipFile(string fileName)

@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
@@ -25,12 +26,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region IBuildWrapperInstaller methods
 
-        void IBuildWrapperInstaller.InstallBuildWrapper(ISonarQubeServer server, string binDirectory)
+        AnalysisProperties IBuildWrapperInstaller.InstallBuildWrapper(ISonarQubeServer server, string binDirectory, string outputDirectory)
         {
             Assert.IsNotNull(server, "Supplied server should not be null");
             Assert.IsFalse(string.IsNullOrWhiteSpace(binDirectory), "Supplied bin directory should not be null or empty");
+            Assert.IsFalse(string.IsNullOrWhiteSpace(outputDirectory), "Supplied output directory should not be null or empty");
 
             this.callCount++;
+
+            return new AnalysisProperties();
         }
 
         #endregion

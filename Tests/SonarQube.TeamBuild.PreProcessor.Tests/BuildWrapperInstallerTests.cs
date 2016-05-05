@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using System.IO;
 using TestUtilities;
 
@@ -14,6 +15,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     [TestClass]
     public class BuildWrapperInstallerTests
     {
+        private const string BuildWrapperOutputSettingName = "sonar.cfamily.build-wrapper-output";
+
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -30,7 +33,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             BuildWrapperInstaller testSubject = new BuildWrapperInstaller(logger);
 
             // Act
-            testSubject.InstallBuildWrapper(mockServer, rootDir);
+            AnalysisProperties properties = testSubject.InstallBuildWrapper(mockServer, rootDir, "c:\\output\\");
 
             // Assert
             logger.AssertSingleInfoMessageExists(SonarQube.TeamBuild.PreProcessor.Resources.BW_CppPluginNotInstalled);
@@ -38,6 +41,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertWarningsLogged(0);
 
             AssertNoFilesExist(rootDir);
+
+            Assert.IsNotNull(properties, "Returned properties should not be null");
+            Assert.AreEqual(0, properties.Count, "Not expecting any properties to be set");
         }
 
         [TestMethod]
@@ -56,13 +62,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             BuildWrapperInstaller testSubject = new BuildWrapperInstaller(logger);
 
             // Act
-            testSubject.InstallBuildWrapper(mockServer, rootDir);
+            AnalysisProperties properties = testSubject.InstallBuildWrapper(mockServer, rootDir, "c:\\output\\");
 
             // Assert
             logger.AssertSingleWarningExists(SonarQube.TeamBuild.PreProcessor.Resources.BW_CppPluginUpgradeRequired);
             logger.AssertErrorsLogged(0);
 
             AssertNoFilesExist(rootDir);
+
+            Assert.IsNotNull(properties, "Returned properties should not be null");
+            Assert.AreEqual(0, properties.Count, "Not expecting any properties to be set");
         }
 
         [TestMethod]
@@ -85,7 +94,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             BuildWrapperInstaller testSubject = new BuildWrapperInstaller(logger);
 
             // Act
-            testSubject.InstallBuildWrapper(mockServer, rootDir);
+            AnalysisProperties properties = testSubject.InstallBuildWrapper(mockServer, rootDir, "c:\\output\\");
 
             // Assert
             logger.AssertErrorsLogged(0);
@@ -94,6 +103,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertFileExists(rootDir, "file1.txt");
             AssertFileExists(rootDir, "file2.txt");
             AssertFileExists(rootDir, "file3.txt");
+
+            // Check that the expected build wrapper properties are set
+            Assert.IsNotNull(properties, "Returned properties should not be null");
+            Assert.AreEqual(1, properties.Count, "Expecting one property to be set");
+
+            Property buildWrapperOutputProperty;
+            bool found = Property.TryGetProperty(BuildWrapperOutputSettingName, properties, out buildWrapperOutputProperty);
+            Assert.IsTrue(found, "Expected property was not found");
+            Assert.AreEqual("c:\\output\\bw", buildWrapperOutputProperty.Value, "Build output property does not have the expected value");
         }
 
         #endregion

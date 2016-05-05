@@ -91,7 +91,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             ISonarQubeServer server = this.factory.CreateSonarQubeServer(args, this.logger);
 
-            InstallBuildWrapper(server, teamBuildSettings.SonarBinDirectory);
+            AnalysisProperties buildWrapperSettings = InstallBuildWrapper(server, teamBuildSettings.SonarBinDirectory, teamBuildSettings.SonarOutputDirectory);
 
             IDictionary<string, string> serverSettings;
             AnalyzerSettings analyzerSettings;
@@ -101,7 +101,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             Debug.Assert(analyzerSettings != null, "Not expecting the analyzer settings to be null");
 
-            AnalysisConfigGenerator.GenerateFile(args, teamBuildSettings, serverSettings, analyzerSettings, this.logger);
+            AnalysisConfigGenerator.GenerateFile(args, teamBuildSettings, serverSettings, analyzerSettings, buildWrapperSettings, this.logger);
 
             return true;
         }
@@ -176,11 +176,11 @@ namespace SonarQube.TeamBuild.PreProcessor
             RulesetGenerator.Generate(server, requiredPluginKey, language, repository, projectKey, projectBranch, path);
         }
 
-        private void InstallBuildWrapper(ISonarQubeServer server, string binDirectory)
+        private AnalysisProperties InstallBuildWrapper(ISonarQubeServer server, string binDirectory, string outputDirectory)
         {
             IBuildWrapperInstaller installer = this.factory.CreateBuildWrapperInstaller(this.logger);
             Debug.Assert(installer != null, "Factory should not return null");
-            installer.InstallBuildWrapper(server, binDirectory);
+            return installer.InstallBuildWrapper(server, binDirectory, outputDirectory);
         }
 
         #endregion Private methods
