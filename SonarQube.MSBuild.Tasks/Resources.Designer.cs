@@ -97,6 +97,15 @@ namespace SonarQube.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to BuildWrapper: internal error. Invalid analysis config file - the build wrapper output directory must be supplied.
+        /// </summary>
+        public static string BuildWrapper_MissingOutputDirectory {
+            get {
+                return ResourceManager.GetString("BuildWrapper_MissingOutputDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to BuildWrapper: cannot find required file: {0}.
         /// </summary>
         public static string BuildWrapper_RequiredFileMissing {

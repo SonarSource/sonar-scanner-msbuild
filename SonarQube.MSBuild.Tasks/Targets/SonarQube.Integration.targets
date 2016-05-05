@@ -569,14 +569,10 @@
   <Target Name="AttachSonarQubeBuildWrapper" >
     <Message Importance="low" Text="Build wrapper binaries found in $(SQBuildWrapperBinPath)"/>
 
-    <PropertyGroup>
-      <SQBuildWrapperOutputPath Condition=" $(SQBuildWrapperOutputPath) == '' ">$(SonarQubeOutputPath)\bw\</SQBuildWrapperOutputPath>
-    </PropertyGroup>
-
     <MakeDir Directories="$(SQBuildWrapperOutputPath)" />
     <AttachBuildWrapper
+        AnalysisConfigDir="$(SonarQubeConfigPath)"
         BinDirectoryPath="$(SQBuildWrapperBinPath)"
-        OutputDirectoryPath="$(SQBuildWrapperOutputPath)"
         />
   </Target>
   

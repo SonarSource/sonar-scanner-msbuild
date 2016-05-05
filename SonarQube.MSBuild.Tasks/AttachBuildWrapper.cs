@@ -32,6 +32,11 @@ namespace SonarQube.MSBuild.Tasks
         private static readonly string[] RequiredFileNames = new string[] { BuildWrapperExeName32, BuildWrapperExeName64, AttachedBinaryFileName32, AttachedBinaryFileName64 };
 
         /// <summary>
+        /// Name of the C++ plugin property that specifies where the build wrapper output is written
+        /// </summary>
+        private const string BuildWrapperOutputPropertyKey = "sonar.cfamily.build-wrapper-output";
+
+        /// <summary>
         /// The length of time to wait for the build wrapper to be launched succesfully
         /// </summary>
         private readonly int buildWrapperTimeoutInMs;
@@ -47,10 +52,10 @@ namespace SonarQube.MSBuild.Tasks
         public string BinDirectoryPath { get; set; }
 
         /// <summary>
-        /// Directory in which the build wrapper to write the collected data
+        /// The directory containing the analysis config settings file
         /// </summary>
         [Required]
-        public string OutputDirectoryPath { get; set; }
+        public string AnalysisConfigDir { get; set; }
 
         #endregion Input properties
 
@@ -68,39 +73,32 @@ namespace SonarQube.MSBuild.Tasks
         public override bool Execute()
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(this.BinDirectoryPath), "Expecting the BinDirectoryPath to have been set");
-            Debug.Assert(!string.IsNullOrWhiteSpace(this.OutputDirectoryPath), "Expecting the OutputDirectoryPath to have been set");
+            Debug.Assert(!string.IsNullOrWhiteSpace(this.AnalysisConfigDir), "Expecting the AnalysisConfigDir to have been set");
 
-            bool success = CheckRequiredFilesExist();
-            if (!success)
+            if (!CheckRequiredBinariesExist())
             {
                 return false;
             }
 
-            try
+            if (this.IsAlreadyAttached())
             {
-                if (this.IsAlreadyAttached())
-                {
-                    this.Log.LogMessage(MessageImportance.Low, Resources.BuildWrapper_AlreadyAttached, GetProcessId());
-                    success = true;
-                }
-                else
-                {
-                    Directory.CreateDirectory(this.OutputDirectoryPath);
-                    success = this.Attach();
-                }
-            }
-            catch (Exception ex)
-            {
-                this.Log.LogErrorFromException(ex, true, true, null);
-                success = false;
+                this.Log.LogMessage(MessageImportance.Low, Resources.BuildWrapper_AlreadyAttached, GetProcessId());
+                return true;
             }
 
-            return success;
+            string outputDirectory;
+            if (this.TryGetOutputDirectory(out outputDirectory))
+            {
+                Directory.CreateDirectory(outputDirectory);
+                return this.Attach(outputDirectory);
+            }
+
+            return false;
         }
 
         #region Private methods
 
-        private bool CheckRequiredFilesExist()
+        private bool CheckRequiredBinariesExist()
         {
             bool allExist = true;
 
@@ -114,6 +112,31 @@ namespace SonarQube.MSBuild.Tasks
                 }
             }
             return allExist;
+        }
+
+        /// <summary>
+        /// Tries to get the location to which the build output files should be written from the config file
+        /// </summary>
+        private bool TryGetOutputDirectory(out string outputDir)
+        {
+            outputDir = null;
+
+            AnalysisConfig config = TaskUtilities.TryGetConfig(this.AnalysisConfigDir, new MSBuildLoggerAdapter(this.Log));
+            if (config == null)
+            {
+                return false;
+            }
+
+            config.GetAnalysisSettings(false).TryGetValue(BuildWrapperOutputPropertyKey, out outputDir);
+
+            if (string.IsNullOrWhiteSpace(outputDir))
+            {
+                this.Log.LogError(Resources.BuildWrapper_MissingOutputDirectory);
+                return false;
+            }
+
+            outputDir = Path.GetFullPath(outputDir); // make sure the path is in canonical form
+            return true;
         }
 
         /// <summary>
@@ -142,7 +165,7 @@ namespace SonarQube.MSBuild.Tasks
         /// Launches the build wrapper and asks it to attach to the current process.
         /// Returns whether the build wrapper was succesfully attached or not.
         /// </summary>
-        private bool Attach()
+        private bool Attach(string outputDirectory)
         {
             string currentPID = GetProcessId();
 
@@ -158,7 +181,7 @@ namespace SonarQube.MSBuild.Tasks
             args.CmdLineArgs = new string[] {
                 "--msbuild-task",
                 currentPID,
-                Path.GetFullPath(OutputDirectoryPath) // make sure the path is in canonical form
+                outputDirectory
             };
 
             this.Log.LogMessage(MessageImportance.Low, Resources.BuildWrapper_WaitingForAttach, currentPID);

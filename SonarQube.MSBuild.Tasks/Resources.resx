@@ -208,4 +208,7 @@ Error: {1}</value>
   <data name="BuildWrapper_WaitingForAttach" xml:space="preserve">
     <value>BuildWrapper: waiting for the build wrapper to attach to the current process ({0})...</value>
   </data>
+  <data name="BuildWrapper_MissingOutputDirectory" xml:space="preserve">
+    <value>BuildWrapper: internal error. Invalid analysis config file - the build wrapper output directory must be supplied</value>
+  </data>
 </root>
