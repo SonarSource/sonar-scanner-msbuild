@@ -324,7 +324,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 }
 
                 // Create a dummy monitor exe - this file will actually be executed
-                string exeName = Environment.Is64BitProcess ? BuildWrapperExeName64 : BuildWrapperExeName32;
+                string exeName = Environment.Is64BitOperatingSystem ? BuildWrapperExeName64 : BuildWrapperExeName32;
 
                 DummyExeHelper.CreateDummyExe(taskBinDir, exeName, exeReturnCode, additionalCode);
                 this.logFilePath = DummyExeHelper.GetLogFilePath(taskBinDir, exeName);

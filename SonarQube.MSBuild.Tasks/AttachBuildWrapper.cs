@@ -144,7 +144,7 @@ namespace SonarQube.MSBuild.Tasks
         /// </summary>
         private bool IsAlreadyAttached()
         {
-            string markerDllName = (Environment.Is64BitProcess ? AttachedBinaryFileName64 : AttachedBinaryFileName32);
+            string markerDllName = (Environment.Is64BitOperatingSystem ? AttachedBinaryFileName64 : AttachedBinaryFileName32);
 
             string fullMarkerDllPath = Path.Combine(this.BinDirectoryPath, markerDllName);
 
@@ -170,7 +170,7 @@ namespace SonarQube.MSBuild.Tasks
             string currentPID = GetProcessId();
 
             // Choose either the 32- or 64-bit version of the monitor to match the current process
-            string exeName = (Environment.Is64BitProcess ? BuildWrapperExeName64 : BuildWrapperExeName32);
+            string exeName = (Environment.Is64BitOperatingSystem ? BuildWrapperExeName64 : BuildWrapperExeName32);
             string monitorExeFilePath = Path.Combine(this.BinDirectoryPath, exeName);
 
             ProcessRunnerArguments args = new ProcessRunnerArguments(monitorExeFilePath, new MSBuildLoggerAdapter(this.Log));
