@@ -156,7 +156,7 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to __Analysis failed for SonarQube project {0}__.
+        ///   Looks up a localized string similar to Analysis failed for SonarQube project {0}.
         /// </summary>
         internal static string Report_MdSummaryAnalysisFailed {
             get {
@@ -165,7 +165,7 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to __Analysis succeeded for SonarQube project {0}__ [Analysis results]({1}).
+        ///   Looks up a localized string similar to Analysis succeeded for SonarQube project {0} [Analysis results]({1}).
         /// </summary>
         internal static string Report_MdSummaryAnalysisSucceeded {
             get {
@@ -192,7 +192,7 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to #SonarQube Analysis Report.
+        ///   Looks up a localized string similar to SonarQube Analysis Report.
         /// </summary>
         internal static string Report_MdSummaryTitle {
             get {
