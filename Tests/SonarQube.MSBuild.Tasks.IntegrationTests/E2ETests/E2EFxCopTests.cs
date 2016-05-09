@@ -22,6 +22,34 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         #region Tests
 
         [TestMethod]
+        [Description("SONARMSBRU-193 RunCodeAnalysisOnce should not be set on C++ projects due to unwanted side-effects")]
+        public void E2E_FxCop_NotExecutedOnCppProjects()
+        {
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            preImportProperties.SonarQubeTempPath = rootOutputFolder;
+            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
+            preImportProperties.SonarQubeConfigPath = rootInputFolder;
+
+            preImportProperties["Language"] = "C++";
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
+
+            BuildLogger logger = new BuildLogger();
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger);
+
+            // Assert
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+            BuildAssertions.AssertPropertyDoesNotExist(result.ProjectStateAfterBuild, "RunCodeAnalysisOnce");
+
+            AssertFxCopNotExecuted(logger);
+        }
+
+        [TestMethod]
         [Description("When FxCop rules are enabled, but FxCop is not installed (only MSBuild is), analysis should fail")]
         public void E2E_FxCop_FailIfEnabledButNotInstalled()
         {
@@ -71,7 +99,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             preImportProperties.SonarQubeOutputPath = "";
             preImportProperties.TeamBuild2105BuildDirectory = "";
             preImportProperties.TeamBuildLegacyBuildDirectory = "";
-            
+
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, preImportProperties);
 
             BuildLogger logger = new BuildLogger();
@@ -209,7 +237,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             preImportProperties.CodeAnalysisRuleset = "specifiedInProject.ruleset";
 
             // we expect these values to be overridden
-            preImportProperties.TreatWarningsAsErrors = "true"; 
+            preImportProperties.TreatWarningsAsErrors = "true";
             preImportProperties.WarningsAsErrors = "CS0111;CS0222";
             preImportProperties.WarningLevel = "3";
 
@@ -336,7 +364,7 @@ End Class");
 
             itemPath = TestUtils.CreateTextFile(rootInputFolder, "code1.cs", "class myclassXXX{} // wrong item type");
             projectRoot.AddItem("CompileXXX", itemPath);
-            
+
             projectRoot.Save();
 
             BuildLogger logger = new BuildLogger();
@@ -350,10 +378,10 @@ End Class");
             logger.AssertExpectedTargetOrdering(
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.OverrideFxCopSettingsTarget,
-                
+
                 TargetConstants.FxCopTarget,
                 TargetConstants.SetFxCopResultsTarget, // should set the FxCop results after the platform "run Fx Cop" target
-                
+
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.WriteProjectDataTarget);

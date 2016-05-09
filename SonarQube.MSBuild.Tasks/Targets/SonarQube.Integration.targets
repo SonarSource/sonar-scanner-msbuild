@@ -196,7 +196,7 @@
       <!-- Remove based on absolute path -->
       <SQIntermediateFiles Include="$(SQFullIntermediateOutputPath)**\*.*" />
       <!-- Remove based on relative path -->
-      <SQIntermediateFiles Include="$(BaseIntermediateOutputPath)**\*.*" />    
+      <SQIntermediateFiles Include="$(BaseIntermediateOutputPath)**\*.*" />
       <SonarQubeAnalysisFiles Remove="@(SQIntermediateFiles)" />
     </ItemGroup>
 
@@ -302,9 +302,10 @@
        any values passed on the MSBuild command line or in <PropertyGroups>.
        -->
 
-  <!-- The FxCop targets are conditionally imported so we need to make sure the required condition
-       is true early enough. -->
-  <PropertyGroup Condition=" $(SonarQubeTempPath) != '' ">
+  <!-- The FxCop targets are conditionally imported so we need to make sure the required condition is true early enough. -->
+  <!-- SONARMSBRU-193 On C++ projects setting RunCodeAnalysisOnce has unwanted side-effects -->
+  <!-- Note: $(Language) is already available here. For order evaluation details, see: msbuild /preprocess:out.txt project.proj -->
+  <PropertyGroup Condition=" $(SonarQubeTempPath) != '' AND ( $(Language) == 'C#' OR $(Language) == 'VB' ) ">
     <RunCodeAnalysisOnce>true</RunCodeAnalysisOnce>
   </PropertyGroup>
 
@@ -462,7 +463,7 @@
     </GetAnalyzerSettings>
 
     <PropertyGroup>
-      <!-- https://jira.sonarsource.com/browse/SONARMSBRU-211 - the name of the report should be unique 
+      <!-- https://jira.sonarsource.com/browse/SONARMSBRU-211 - the name of the report should be unique
       as the TargetDir can point to the same directory for multiple projects, leading to the report being overwritten.
       This style of naming is consistent with how FxCop names its report.-->
       <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)$(TargetFileName).RoslynCA.json</ErrorLog>
@@ -533,16 +534,16 @@
   <!-- **************************************************************************** -->
   <!-- For C++ projects, if the SonarQube build wrapper is available then call it
        before compilation starts so it can monitor the calls to the compiler.
-       
+
        It is assumed the build wrapper binaries are in the same location as this targets
        file (which is were the SonarQube Scanner for MSBuild will download it to).
-       
+
        If you want to use a pre-installed version of the build wrapper, set the
        property $(SQBuildWrapperBinPath) explicitly to the directory containing the binaries.
-       
+
        If you want to disable the build wrapper integration with MSBuild, set the
        property $(SQSkipBuildWrapper) to "true".
-       
+
        Note: the target "ClCompile" specified in "BeforeTargets" only exists for C++ projects
        so this target won't be run for other projects.
        -->
@@ -553,7 +554,7 @@
          the calculated value is not passed to the AttachSonarQubeBuildWrapper target.-->
     <SQBuildWrapperBinPath Condition=" $(SQBuildWrapperBinPath) == '' ">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.Tasks.dll))\build-wrapper-win-x86</SQBuildWrapperBinPath>
   </PropertyGroup>
-  
+
   <Target Name="SonarQubeBeforeClCompile" BeforeTargets="ClCompile" Condition=" $(SonarQubeTempPath) != '' AND $(SQSkipBuildWrapper) != 'true' ">
 
     <PropertyGroup>
@@ -563,9 +564,9 @@
     </PropertyGroup>
 
     <CallTarget Targets="AttachSonarQubeBuildWrapper" Condition=" $(SQBuildWrapperExists) == 'true' " />
-    
+
   </Target>
-  
+
   <Target Name="AttachSonarQubeBuildWrapper" >
     <Message Importance="low" Text="Build wrapper binaries found in $(SQBuildWrapperBinPath)"/>
 
@@ -575,7 +576,7 @@
         BinDirectoryPath="$(SQBuildWrapperBinPath)"
         />
   </Target>
-  
+
   <!-- **************************************************************************** -->
   <!-- End of C++ build wrapper section -->
   <!-- **************************************************************************** -->

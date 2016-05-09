@@ -74,7 +74,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             {
                 throw new ArgumentNullException("descriptor");
             }
-            
+
             ProjectRootElement projectRoot = BuildUtilities.CreateAnalysisProject(testContext, descriptor, preImportProperties);
 
             projectRoot.ToolsVersion = MSBuildToolsVersionForTestProjects;
@@ -93,9 +93,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// <param name="preImportProperties">Any properties that need to be set before the C# targets are imported. Can be null.</param>
         /// <param name="importsBeforeTargets">Any targets that should be imported before the C# targets are imported. Optional.</param>
         public static ProjectRootElement CreateMinimalBuildableProject(IDictionary<string, string> preImportProperties, bool isVBProject, params string[] importsBeforeTargets)
-        {       
+        {
             ProjectRootElement root = ProjectRootElement.Create();
-            
+
             foreach(string importTarget in importsBeforeTargets)
             {
                 Assert.IsTrue(File.Exists(importTarget), "Test error: the specified target file does not exist. Path: {0}", importTarget);
@@ -114,6 +114,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             if (preImportProperties == null || !preImportProperties.ContainsKey("OutputPath"))
             {
                 root.AddProperty("OutputPath", @"bin\");
+            }
+
+            // Ensure the language is set
+            if (preImportProperties == null || !preImportProperties.ContainsKey("Language"))
+            {
+                root.AddProperty("Language", isVBProject ? "VB" : "C#");
             }
 
             // Import the standard Microsoft targets
@@ -168,7 +174,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             {
                 throw new ArgumentNullException("logger");
             }
-            
+
             ProjectInstance projectInstance = new ProjectInstance(projectRoot);
             return BuildTargets(projectInstance, logger, targets);
         }
@@ -189,12 +195,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             {
                 throw new ArgumentNullException("logger");
             }
-            
+
             BuildParameters parameters = new BuildParameters();
             parameters.Loggers = new ILogger[] { logger ?? new BuildLogger() };
-            parameters.UseSynchronousLogging = true; 
+            parameters.UseSynchronousLogging = true;
             parameters.ShutdownInProcNodeOnBuildFinish = true; // required, other we can get an "Attempted to access an unloaded AppDomain" exception when the test finishes.
-            
+
             BuildRequestData requestData = new BuildRequestData(projectInstance, targets);
 
             BuildResult result = null;
@@ -221,7 +227,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         #region Miscellaneous public methods
 
         /// <summary>
-        /// Sets properties to disable the normal ImportAfter/ImportBefore behaviour to 
+        /// Sets properties to disable the normal ImportAfter/ImportBefore behaviour to
         /// prevent any additional targets from being picked up.
         /// This is necessary so the tests run correctly on machines that have
         /// the installation targets installed.
