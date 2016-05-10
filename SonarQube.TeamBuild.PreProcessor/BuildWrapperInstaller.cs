@@ -46,11 +46,13 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             AnalysisProperties properties = new AnalysisProperties();
 
-            if (IsCppPluginInstalled(server) &&
-                FetchResourceFromServer(server, binDirectory))
+            if (IsCppPluginInstalled(server))
             {
-                string bwOutputDir = Path.Combine(outputDirectory, "bw");
-                properties.Add(new Property() { Id = BuildWrapperOutputPropertyKey, Value = bwOutputDir });
+                if (FetchResourceFromServer(server, binDirectory))
+                {
+                    string bwOutputDir = Path.Combine(outputDirectory, "bw");
+                    properties.Add(new Property() { Id = BuildWrapperOutputPropertyKey, Value = bwOutputDir });
+                }
             }
             else
             {
@@ -79,13 +81,10 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             if (success)
             {
-                string targetFilePath = Path.Combine(targetDir, BuildWrapperStaticResourceName);
+                this.logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
 
-                if (IsZipFile(targetFilePath))
-                {
-                    this.logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
-                    ZipFile.ExtractToDirectory(targetFilePath, targetDir);
-                }
+                string targetFilePath = Path.Combine(targetDir, BuildWrapperStaticResourceName);
+                ZipFile.ExtractToDirectory(targetFilePath, targetDir);
             }
             else
             {
@@ -94,11 +93,6 @@ namespace SonarQube.TeamBuild.PreProcessor
                 this.logger.LogWarning(Resources.BW_CppPluginUpgradeRequired);
             }
             return success;
-        }
-
-        private static bool IsZipFile(string fileName)
-        {
-            return string.Equals(".zip", Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase);
         }
 
         #endregion

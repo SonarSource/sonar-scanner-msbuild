@@ -65,8 +65,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AnalysisProperties properties = testSubject.InstallBuildWrapper(mockServer, rootDir, "c:\\output\\");
 
             // Assert
-            logger.AssertSingleWarningExists(SonarQube.TeamBuild.PreProcessor.Resources.BW_CppPluginUpgradeRequired);
+            logger.AssertSingleWarningExists(Resources.BW_CppPluginUpgradeRequired);
             logger.AssertErrorsLogged(0);
+            logger.AssertMessageNotLogged(Resources.BW_CppPluginNotInstalled);
 
             AssertNoFilesExist(rootDir);
 
