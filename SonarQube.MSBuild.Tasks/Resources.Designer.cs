@@ -88,7 +88,7 @@ namespace SonarQube.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to BuildWrapper: failed to attach to the current process.
+        ///   Looks up a localized string similar to BuildWrapper: failed to attach to the current process. Update the MSBuild Scanner for SonarQube, the C++ and C# plugins to their latest versions and contact the SonarSource support team if this error persists. Note: You can also set the MSBuild property SQEnableBuildWrapper to false to disable the C++ build wrapper integration and get rid of this error..
         /// </summary>
         public static string BuildWrapper_FailedToAttach {
             get {

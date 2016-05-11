@@ -200,7 +200,7 @@ Error: {1}</value>
     <value>BuildWrapper: the build wrapper attached successfully</value>
   </data>
   <data name="BuildWrapper_FailedToAttach" xml:space="preserve">
-    <value>BuildWrapper: failed to attach to the current process</value>
+    <value>BuildWrapper: failed to attach to the current process. Update the MSBuild Scanner for SonarQube, the C++ and C# plugins to their latest versions and contact the SonarSource support team if this error persists. Note: You can also set the MSBuild property SQEnableBuildWrapper to false to disable the C++ build wrapper integration and get rid of this error.</value>
   </data>
   <data name="BuildWrapper_RequiredFileMissing" xml:space="preserve">
     <value>BuildWrapper: cannot find required file: {0}</value>
