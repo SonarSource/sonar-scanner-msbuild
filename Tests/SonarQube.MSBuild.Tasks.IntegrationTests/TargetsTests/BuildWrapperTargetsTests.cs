@@ -80,6 +80,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Assert
             logger.AssertTargetExecuted(TargetConstants.BuildWrapperBeforeClCompileTarget);
             logger.AssertTargetNotExecuted(TargetConstants.BuildWrapperAttachTarget);
+            logger.AssertNoWarningsOrErrors();
         }
 
         [TestMethod]
@@ -160,6 +161,37 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Note: task should fail because not all required files are present. However,
             // the important thing for this test is that is executed.
             logger.AssertTaskExecuted(TargetConstants.BuildWrapperAttachTask);
+        }
+
+        [TestMethod]
+        public void SQBeforeClCompile_SpecifiedWrapperLocation_BinariesNotFound_BuildFails()
+        {
+            // Arrange
+            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
+            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
+            BuildLogger logger = new BuildLogger();
+
+            WellKnownProjectProperties properties = new WellKnownProjectProperties();
+            properties.SonarQubeTempPath = rootInputFolder;
+            properties.BuildWrapperSkipFlag = "false";
+            properties.SonarQubeOutputPath = rootOutputFolder;
+
+            string buildWrapperDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "dummyBW");
+
+            properties.BuildWrapperBinPath = buildWrapperDir;
+
+            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
+
+            // Act
+            BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.BuildWrapperBeforeClCompileTarget);
+
+            // Assert
+            Assert.AreEqual(1, logger.Errors.Count);
+            Assert.IsTrue(logger.Errors[0].Message.Contains("Could not find the build wrapper binaries"));
+
+            logger.AssertTargetExecuted(TargetConstants.BuildWrapperBeforeClCompileTarget);
+            logger.AssertTargetNotExecuted(TargetConstants.BuildWrapperAttachTarget);
+            logger.AssertTargetNotExecuted(TargetConstants.BuildWrapperAttachTask);
         }
 
         #endregion

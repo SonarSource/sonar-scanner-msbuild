@@ -552,6 +552,7 @@
     <!-- Set defaults if explicit values have not been provided.
          Note: setting this property in the SonarQubeBeforeClCompile target doesn't work:
          the calculated value is not passed to the AttachSonarQubeBuildWrapper target.-->
+    <SQBuildWrapperExplicitBinPathSet Condition=" $(SQBuildWrapperBinPath) != '' ">true</SQBuildWrapperExplicitBinPathSet>
     <SQBuildWrapperBinPath Condition=" $(SQBuildWrapperBinPath) == '' ">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.Tasks.dll))\build-wrapper-win-x86</SQBuildWrapperBinPath>
   </PropertyGroup>
 
@@ -563,6 +564,7 @@
       <SQBuildWrapperExists>$([System.IO.File]::Exists($(SQBuildWrapperMarkerFile)))</SQBuildWrapperExists>
     </PropertyGroup>
 
+    <Error Text="Could not find the build wrapper binaries in $(SQBuildWrapperBinPath): Either unset the SQBuildWrapperBinPath MSBuild property, or set it to valid folder." Condition=" $(SQBuildWrapperExplicitBinPathSet) == 'true' AND $(SQBuildWrapperExists) == 'false' " />
     <CallTarget Targets="AttachSonarQubeBuildWrapper" Condition=" $(SQBuildWrapperExists) == 'true' " />
 
   </Target>
