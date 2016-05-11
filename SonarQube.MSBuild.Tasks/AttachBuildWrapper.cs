@@ -41,7 +41,7 @@ namespace SonarQube.MSBuild.Tasks
         /// </summary>
         private readonly int buildWrapperTimeoutInMs;
 
-        private const int DefaultBuildWrapperTimeoutInMs = 5000;
+        private const int DefaultBuildWrapperTimeoutInMs = 60000;
 
         #region Input properties
 
