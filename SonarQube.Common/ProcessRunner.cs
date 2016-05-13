@@ -64,11 +64,8 @@ namespace SonarQube.Common
             SetEnvironmentVariables(psi, runnerArgs.EnvironmentVariables, runnerArgs.Logger);
 
             bool succeeded;
-            Process process = null;
-            try
+            using (var process = new Process())
             {
-                process = new Process();
-
                 process.StartInfo = psi;
                 process.ErrorDataReceived += OnErrorDataReceived;
                 process.OutputDataReceived += OnOutputDataReceived;
@@ -102,18 +99,21 @@ namespace SonarQube.Common
                 else
                 {
                     this.ExitCode = ErrorCode;
-                    this.outputLogger.LogWarning(Resources.WARN_ExecutionTimedOut, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+
+                    try
+                    {
+                        process.Kill();
+                        this.outputLogger.LogWarning(Resources.WARN_ExecutionTimedOutKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+                    }
+                    catch
+                    {
+                        this.outputLogger.LogWarning(Resources.WARN_ExecutionTimedOutNotKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+                    }
                 }
 
                 succeeded = succeeded && (this.ExitCode == 0);
             }
-            finally
-            {
-                process.ErrorDataReceived -= OnErrorDataReceived;
-                process.OutputDataReceived -= OnOutputDataReceived;
 
-                process.Dispose();
-            }
             return succeeded;
         }
 

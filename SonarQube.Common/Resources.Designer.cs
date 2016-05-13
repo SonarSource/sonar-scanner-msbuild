@@ -417,11 +417,20 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Timed out after waiting {0} ms for process {1} to complete. The process may still be running..
+        ///   Looks up a localized string similar to Timed out after waiting {0} ms for process {1} to complete: it has been terminated, but its child processes may still be running..
         /// </summary>
-        public static string WARN_ExecutionTimedOut {
+        public static string WARN_ExecutionTimedOutKilled {
             get {
-                return ResourceManager.GetString("WARN_ExecutionTimedOut", resourceCulture);
+                return ResourceManager.GetString("WARN_ExecutionTimedOutKilled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Timed out after waiting {0} ms for process {1} to complete: it could not be terminated and might still be running..
+        /// </summary>
+        public static string WARN_ExecutionTimedOutNotKilled {
+            get {
+                return ResourceManager.GetString("WARN_ExecutionTimedOutNotKilled", resourceCulture);
             }
         }
         

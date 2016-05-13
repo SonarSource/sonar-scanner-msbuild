@@ -130,8 +130,8 @@
   <data name="MSG_ExecutionExitCode" xml:space="preserve">
     <value>Process returned exit code {0}</value>
   </data>
-  <data name="WARN_ExecutionTimedOut" xml:space="preserve">
-    <value>Timed out after waiting {0} ms for process {1} to complete. The process may still be running.</value>
+  <data name="WARN_ExecutionTimedOutKilled" xml:space="preserve">
+    <value>Timed out after waiting {0} ms for process {1} to complete: it has been terminated, but its child processes may still be running.</value>
   </data>
   <data name="MSG_RetryingOperation" xml:space="preserve">
     <value>Retrying...</value>
@@ -244,5 +244,8 @@
   </data>
   <data name="ERROR_TrustFailure" xml:space="preserve">
     <value>A server certificate could not be validated. Possible cause: you are using a self-signed SSL certificate but the certificate has not been installed on the client machine. Please make sure that you can access {0} without encountering certificate errors.</value>
+  </data>
+  <data name="WARN_ExecutionTimedOutNotKilled" xml:space="preserve">
+    <value>Timed out after waiting {0} ms for process {1} to complete: it could not be terminated and might still be running.</value>
   </data>
 </root>

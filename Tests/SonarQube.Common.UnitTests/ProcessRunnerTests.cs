@@ -71,7 +71,7 @@ xxx yyy
         {
             // Arrange
 
-            // Calling TIMEOUT can fail on some older OSes (e.g. Windows 7) with the error 
+            // Calling TIMEOUT can fail on some older OSes (e.g. Windows 7) with the error
             // "Input redirection is not supported, exiting the process immediately."
             // However, it works reliably on the CI machines. Alternatives such as
             // pinging a non-existent address with a timeout were not reliable.
@@ -102,14 +102,7 @@ xxx yyy
             Assert.AreEqual(ProcessRunner.ErrorCode, runner.ExitCode, "Unexpected exit code");
             logger.AssertMessageNotLogged("Hello world");
             logger.AssertWarningsLogged(1); // expecting a warning about the timeout
-
-            // Give the spawned process a chance to terminate.
-            // This isn't essential (and having a Sleep in the test isn't ideal), but it stops
-            // the test framework outputting this warning which appears in the TeamBuild summary:
-            // "System.AppDomainUnloadedException: Attempted to access an unloaded AppDomain. This can happen 
-            // if the test(s) started a thread but did not stop it. Make sure that all the threads started by 
-            // the test(s) are stopped before completion."
-            System.Threading.Thread.Sleep(1100);
+            Assert.IsTrue(logger.Warnings.Single().Contains("has been terminated"));
         }
 
         [TestMethod]
@@ -261,7 +254,7 @@ xxx yyy
                 "\"quoted\"",
                 "\"quoted with spaces\"",
                 "/test:\"quoted arg\"",
-                "unquoted with spaces", 
+                "unquoted with spaces",
                 "quote in \"the middle",
                 "quotes \"& ampersands",
                 "\"multiple \"\"\"      quotes \" ");
@@ -332,7 +325,7 @@ xxx yyy
 
             // Check that the public and private arguments are passed to the child process
             string exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, this.TestContext);
-            DummyExeHelper.AssertExpectedLogContents(exeLogFile, allArgs); 
+            DummyExeHelper.AssertExpectedLogContents(exeLogFile, allArgs);
         }
 
         #endregion
