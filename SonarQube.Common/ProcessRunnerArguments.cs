@@ -71,7 +71,7 @@ namespace SonarQube.Common
 
         public ILogger Logger { get { return this.logger; } }
 
-        public string GetQuotedCommandLineArgs()
+        public string GetEscapedArguments()
         {
             if (this.CmdLineArgs == null) { return null; }
 
@@ -128,18 +128,59 @@ namespace SonarQube.Common
         }
 
         /// <summary>
-        /// According to https://msdn.microsoft.com/en-us/library/system.diagnostics.processstartinfo.arguments(v=vs.110).aspx
-        /// quotes have to be doubled. Also, to avoid problems when the argument has spaces or chars such as & which are problematic in .bat files, 
-        /// enclose the entire argument in quotes
+        /// The CreateProcess Win32 API call only takes 1 string for all arguments.
+        /// Ultimately, it is the responsibility of each program to decide how to split this string into multiple arguments.
+        ///
+        /// See:
+        /// https://blogs.msdn.microsoft.com/oldnewthing/20100917-00/?p=12833/
+        /// https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/
+        /// http://www.daviddeley.com/autohotkey/parameters/parameters.htm
         /// </summary>
         private static string EscapeArgument(string arg)
         {
             Debug.Assert(arg != null, "Not expecting an argument to be null");
-            
-            string quotedArg = arg.Replace("\"", "\"\"");
-            quotedArg = "\"" + quotedArg + "\"";
 
-            return quotedArg;
+            var sb = new StringBuilder();
+
+            sb.Append("\"");
+            for (int i = 0; i < arg.Length; i++)
+            {
+                int numberOfBackslashes = 0;
+                for (; i < arg.Length && arg[i] == '\\'; i++)
+                {
+                    numberOfBackslashes++;
+                }
+
+                if (i == arg.Length)
+                {
+                    //
+                    // Escape all backslashes, but let the terminating
+                    // double quotation mark we add below be interpreted
+                    // as a metacharacter.
+                    //
+                    sb.Append('\\', numberOfBackslashes * 2);
+                }
+                else if (arg[i] == '"')
+                {
+                    //
+                    // Escape all backslashes and the following
+                    // double quotation mark.
+                    //
+                    sb.Append('\\', numberOfBackslashes * 2 + 1);
+                    sb.Append(arg[i]);
+                }
+                else
+                {
+                    //
+                    // Backslashes aren't special here.
+                    //
+                    sb.Append('\\', numberOfBackslashes);
+                    sb.Append(arg[i]);
+                }
+            }
+            sb.Append("\"");
+
+            return sb.ToString();
         }
 
         #endregion

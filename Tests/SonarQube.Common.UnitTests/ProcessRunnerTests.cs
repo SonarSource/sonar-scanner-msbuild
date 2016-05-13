@@ -228,7 +228,8 @@ xxx yyy
 
             TestLogger logger = new TestLogger();
             ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, logger);
-            args.CmdLineArgs = new string[] {
+
+            var expected = new[] {
                 "unquoted",
                 "\"quoted\"",
                 "\"quoted with spaces\"",
@@ -236,7 +237,15 @@ xxx yyy
                 "unquoted with spaces",
                 "quote in \"the middle",
                 "quotes \"& ampersands",
-                "\"multiple \"\"\"      quotes \" "};
+                "\"multiple \"\"\"      quotes \" ",
+                "trailing backslash \\",
+                "all special chars: \\ / : * ? \" < > | %",
+                "injection \" > foo.txt",
+                "injection \" & echo haha",
+                "double escaping \\\" > foo.txt"
+            };
+
+            args.CmdLineArgs = expected;
 
             ProcessRunner runner = new ProcessRunner();
 
@@ -249,15 +258,7 @@ xxx yyy
 
             // Check that the public and private arguments are passed to the child process
             string exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, this.TestContext);
-            DummyExeHelper.AssertExpectedLogContents(exeLogFile,
-                "unquoted",
-                "\"quoted\"",
-                "\"quoted with spaces\"",
-                "/test:\"quoted arg\"",
-                "unquoted with spaces",
-                "quote in \"the middle",
-                "quotes \"& ampersands",
-                "\"multiple \"\"\"      quotes \" ");
+            DummyExeHelper.AssertExpectedLogContents(exeLogFile, expected);
         }
 
 
