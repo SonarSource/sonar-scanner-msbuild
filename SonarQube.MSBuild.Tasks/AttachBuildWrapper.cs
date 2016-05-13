@@ -173,7 +173,7 @@ namespace SonarQube.MSBuild.Tasks
             string exeName = (Environment.Is64BitOperatingSystem ? BuildWrapperExeName64 : BuildWrapperExeName32);
             string monitorExeFilePath = Path.Combine(this.BinDirectoryPath, exeName);
 
-            ProcessRunnerArguments args = new ProcessRunnerArguments(monitorExeFilePath, new MSBuildLoggerAdapter(this.Log));
+            ProcessRunnerArguments args = new ProcessRunnerArguments(monitorExeFilePath, false, new MSBuildLoggerAdapter(this.Log));
             args.TimeoutInMilliseconds = this.buildWrapperTimeoutInMs;
 
             // See https://jira.sonarsource.com/browse/CPP-1469 for the specification of the arguments to pass to the Cpp plugin

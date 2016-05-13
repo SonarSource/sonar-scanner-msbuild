@@ -29,7 +29,7 @@ namespace SonarQube.Common.UnitTests
             string exeName = TestUtils.WriteBatchFileForTest(TestContext, "exit -2");
 
             TestLogger logger = new TestLogger();
-            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, logger);
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger);
             ProcessRunner runner = new ProcessRunner();
 
             // Act
@@ -51,7 +51,7 @@ xxx yyy
 ");
 
             TestLogger logger = new TestLogger();
-            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, logger);
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger);
             ProcessRunner runner = new ProcessRunner();
 
             // Act
@@ -81,7 +81,7 @@ xxx yyy
 ");
 
             TestLogger logger = new TestLogger();
-            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, logger)
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger)
             {
                 TimeoutInMilliseconds = 100
             };
@@ -122,7 +122,7 @@ xxx yyy
                 { "PROCESS_VAR2", "PROCESS_VAR2 value" },
                 { "PROCESS_VAR3", "PROCESS_VAR3 value" } };
 
-            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, logger)
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger)
             {
                 EnvironmentVariables = envVariables
             };
@@ -167,7 +167,7 @@ xxx yyy
                     { "proc.runner.test.process", "process override" },
                     { "proc.runner.test.user", "user override" } };
 
-                ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, logger)
+                ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger)
                 {
                     EnvironmentVariables = envVariables
                 };
@@ -204,7 +204,7 @@ xxx yyy
 
             // Arrange
             TestLogger logger = new TestLogger();
-            ProcessRunnerArguments args = new ProcessRunnerArguments("missingExe.foo", logger);
+            ProcessRunnerArguments args = new ProcessRunnerArguments("missingExe.foo", false, logger);
             ProcessRunner runner = new ProcessRunner();
 
             // Act
@@ -227,7 +227,7 @@ xxx yyy
             string exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
 
             TestLogger logger = new TestLogger();
-            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, logger);
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, false, logger);
 
             var expected = new[] {
                 "unquoted",
@@ -261,6 +261,52 @@ xxx yyy
             DummyExeHelper.AssertExpectedLogContents(exeLogFile, expected);
         }
 
+        [TestMethod]
+        public void ProcRunner_ArgumentQuotingForwardedByBatchScript()
+        {
+            // Checks arguments passed to a batch script which itself passes them on are correctly escaped
+
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            // Create a dummy exe that will produce a log file showing any input args
+            string exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
+
+            string batchName = TestUtils.WriteBatchFileForTest(TestContext, "\"" + exeName + "\" %*");
+
+            TestLogger logger = new TestLogger();
+            ProcessRunnerArguments args = new ProcessRunnerArguments(batchName, true, logger);
+
+            var expected = new[] {
+                "unquoted",
+                "\"quoted\"",
+                "\"quoted with spaces\"",
+                "/test:\"quoted arg\"",
+                "unquoted with spaces",
+                "quote in \"the middle",
+                "quotes \"& ampersands",
+                "\"multiple \"\"\"      quotes \" ",
+                "trailing backslash \\",
+                "all special chars: \\ / : * ? \" < > | %",
+                "injection \" > foo.txt",
+                "injection \" & echo haha",
+                "double escaping \\\" > foo.txt"
+            };
+
+            args.CmdLineArgs = expected;
+
+            ProcessRunner runner = new ProcessRunner();
+
+            // Act
+            bool success = runner.Execute(args);
+
+            // Assert
+            Assert.IsTrue(success, "Expecting the process to have succeeded");
+            Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
+
+            // Check that the public and private arguments are passed to the child process
+            string exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, this.TestContext);
+            DummyExeHelper.AssertExpectedLogContents(exeLogFile, expected);
+        }
 
         [TestMethod]
         [WorkItem(126)] // Exclude secrets from log data: http://jira.sonarsource.com/browse/SONARMSBRU-126
@@ -302,7 +348,7 @@ xxx yyy
 
             string[] allArgs = sensitiveArgs.Union(publicArgs).ToArray();
 
-            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(exeName, logger)
+            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(exeName, false, logger)
             {
                 CmdLineArgs = allArgs
             };

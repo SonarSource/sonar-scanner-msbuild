@@ -34,7 +34,7 @@ namespace SonarQube.Common
         };
 
 
-        public ProcessRunnerArguments(string exeName, ILogger logger)
+        public ProcessRunnerArguments(string exeName, bool isBatchScript, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(exeName))
             {
@@ -47,6 +47,7 @@ namespace SonarQube.Common
 
             this.exeName = exeName;
             this.logger = logger;
+            this.IsBatchScript = isBatchScript;
 
             this.TimeoutInMilliseconds = Timeout.Infinite;
         }
@@ -64,6 +65,8 @@ namespace SonarQube.Common
 
         public int TimeoutInMilliseconds { get; set; }
 
+        private bool IsBatchScript { get; set; }
+
         /// <summary>
         /// Additional environments variables that should be set/overridden for the process. Can be null.
         /// </summary>
@@ -75,7 +78,14 @@ namespace SonarQube.Common
         {
             if (this.CmdLineArgs == null) { return null; }
 
-            return string.Join(" ", this.CmdLineArgs.Select(a => EscapeArgument(a)));
+            var result = string.Join(" ", this.CmdLineArgs.Select(a => EscapeArgument(a)));
+
+            if (IsBatchScript)
+            {
+                result = ShellEscape(result);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -180,6 +190,47 @@ namespace SonarQube.Common
             }
             sb.Append("\"");
 
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Batch scripts are evil.
+        /// The escape character in batch is '^'.
+        ///
+        /// Example:
+        /// script.bat : echo %*
+        /// cmd.exe: script.bat foo^>out.txt
+        ///
+        /// This passes the argument "foo >out.txt" to script.bat.
+        /// Variable expansion happen before execution (i.e. it is preprocessing), so the script becomes:
+        ///
+        /// echo foo>out.txt
+        ///
+        /// which will write "foo" into the file "out.txt"
+        ///
+        /// To avoid this, one must call:
+        /// cmd.exe: script.bat foo^^^>out.txt
+        ///
+        /// which gets rewritten into: echo foo^>out.txt
+        /// and then executed.
+        ///
+        /// Note: Delayed expansion is not available for %*, %1
+        /// set foo=%* and set foo="%*" with echo !foo!
+        /// will only move the command injection away from the "echo" to the "set" itself.
+        /// </summary>
+        private static string ShellEscape(string argLine)
+        {
+            var sb = new StringBuilder();
+            foreach (var c in argLine)
+            {
+                // This escape is required after %* is expanded to prevent command injections
+                sb.Append('^');
+                sb.Append('^');
+
+                // This escape is required only to pass the argument line to the batch script
+                sb.Append('^');
+                sb.Append(c);
+            }
             return sb.ToString();
         }
 
