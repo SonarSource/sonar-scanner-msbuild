@@ -112,6 +112,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             set { this[TargetProperties.BuildDirectory_TFS2015] = value; }
         }
 
+        public string BuildingInsideVS
+        {
+            get { return this.GetValueOrNull(TargetProperties.BuildingInsideVS); }
+            set { this[TargetProperties.BuildingInsideVS] = value; }
+        }
+
         public string MSBuildExtensionsPath
         {
             get { return this.GetValueOrNull(TargetProperties.MSBuildExtensionsPath); }

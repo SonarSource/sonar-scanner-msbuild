@@ -61,7 +61,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string SonarQubeOutputPath = "SonarQubeOutputPath";
         public const string SonarQubeTempPath = "SonarQubeTempPath";
         public const string SonarBuildTasksAssemblyFile = "SonarQubeBuildTasksAssemblyFile";
-        public const string AutoImportProperty = "AutoImportSonarQubeAnalysisTargets";
 
         public const string SonarQubeTestProject = "SonarQubeTestProject";
         public const string SonarQubeExcludeMetadata = "SonarQubeExclude";
@@ -85,6 +84,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public const string IsInTeamBuild = "TF_Build"; // Common to legacy and non-legacy TeamBuilds
         public const string ProjectName = "MSBuildProjectName";
+
+        public const string BuildingInsideVS = "BuildingInsideVisualStudio";
 
         // Roslyn
         public const string ResolvedCodeAnalysisRuleset = "ResolvedCodeAnalysisRuleSet";

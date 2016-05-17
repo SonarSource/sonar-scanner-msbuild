@@ -13,8 +13,7 @@
 
     <SonarQubeTempPath Condition=" $(SonarQubeBuildDirectory) != '' AND Exists('$(SonarQubeBuildDirectory)\.sonarqube\conf\SonarQubeAnalysisConfig.xml') ">$(SonarQubeBuildDirectory)\.sonarqube</SonarQubeTempPath>
 
-    <AutoImportSonarQubeAnalysisTargets Condition=" $(SonarQubeTempPath) != '' ">true</AutoImportSonarQubeAnalysisTargets>
-  </PropertyGroup>
+    </PropertyGroup>
 
   <!-- **************************************************************************** -->
   <!-- Compute the path to the targets if not specified -->
@@ -29,7 +28,7 @@
   <PropertyGroup Condition=" $(SonarQubeTargetsPath) != '' AND $(SonarQubeTargetFilePath) == '' ">
     <SonarQubeTargetFilePath>$(SonarQubeTargetsPath)\SonarQube.Integration.targets</SonarQubeTargetFilePath>
   </PropertyGroup>
-  <Import Condition=" $(SonarQubeTargetsImported) != 'true' AND Exists('$(SonarQubeTargetFilePath)') " Project="$(SonarQubeTargetFilePath)" />
+  <Import Condition=" $(SonarQubeTargetsImported) != 'true' AND $(BuildingInsideVisualStudio) != 'true' AND Exists('$(SonarQubeTargetFilePath)') " Project="$(SonarQubeTargetFilePath)" />
 
   <!-- **************************************************************************** -->
   <!-- Diagnostic/error-checking target
@@ -40,7 +39,7 @@
         
         Writes out diagnostic information to help with troubleshooting.  -->
   <!-- **************************************************************************** -->
-  <Target Name="SonarQubeImportBeforeInfo" Condition=" $(SonarQubeTempPath) != '' " BeforeTargets="CoreCompile">
+  <Target Name="SonarQubeImportBeforeInfo" Condition=" $(SonarQubeTempPath) != '' AND $(BuildingInsideVisualStudio) != 'true' " BeforeTargets="CoreCompile">
 
     <PropertyGroup>
       <AnalysisTargetsFileFound Condition=" Exists('$(SonarQubeTargetFilePath)') " >true</AnalysisTargetsFileFound>

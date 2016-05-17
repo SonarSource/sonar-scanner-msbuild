@@ -67,6 +67,37 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        [Description("Checks the properties are not set if the project is building inside Visual Studio")]
+        public void ImportsBefore_BuildingInsideVS_NotImported()
+        {
+            // 1. Pre-build
+            // Arrange
+            string dummySonarTargetsDir = this.EnsureDummyIntegrationTargetsFileExists();
+
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            preImportProperties.SonarQubeTempPath = Path.GetTempPath();
+            preImportProperties.SonarQubeTargetsPath = Path.GetDirectoryName(dummySonarTargetsDir);
+            preImportProperties.BuildingInsideVS = "tRuE"; // should not be case-sensitive
+
+            // Act
+            ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
+
+            // Assert
+            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeTargetFilePath, dummySonarTargetsDir);
+            AssertAnalysisTargetsAreNotImported(projectInstance);
+
+
+            // 2. Now build -> succeeds
+            BuildLogger logger = new BuildLogger();
+
+            BuildResult result = BuildUtilities.BuildTargets(projectInstance, logger);
+
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+            logger.AssertTargetNotExecuted(TargetConstants.ImportBeforeInfoTarget);
+            logger.AssertExpectedErrorCount(0);
+        }
+
+        [TestMethod]
         [Description("Checks what happens if the analysis targets cannot be located")]
         public void ImportsBefore_MissingAnalysisTargets()
         {
@@ -132,96 +163,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             logger.AssertTargetExecuted(TargetConstants.ImportBeforeInfoTarget);
             logger.AssertExpectedErrorCount(0);
         }
-
-        [TestMethod]
-        [Description("Checks that the targets are automatically imported if the running under TeamBuild and no explicit settings have been applied")]
-        public void ImportsBefore_AutoImport_IsAutoImported()
-        {
-            // 0. Set up
-            WellKnownProjectProperties preImportProperties;
-
-            string testDir = TestUtils.EnsureTestSpecificFolder(this.TestContext);
-            EnsureDummyAnalysisConfigFileExists(testDir);
-
-            // 1. RunSonarAnalysisQube is not set, Legacy TFS path -> auto-import
-            preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.SonarQubeTempPath = "";
-            preImportProperties.TeamBuild2105BuildDirectory = "";
-            preImportProperties.TeamBuildLegacyBuildDirectory = testDir;
-            preImportProperties.SonarQubeTargetsPath = "shouldn't matter if this is set";
-            
-            // Act
-            ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
-
-            // Assert
-            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.AutoImportProperty, "true");
-
-            // 2. RunSonarAnalysisQube is not set, non-legacy TFS path -> auto-import
-            preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.SonarQubeTempPath = "";
-            preImportProperties.TeamBuild2105BuildDirectory = testDir;
-            preImportProperties.TeamBuildLegacyBuildDirectory = "";
-            preImportProperties.SonarQubeTargetsPath = "shouldn't matter if this is set";
-
-            // Act
-            projectInstance = this.CreateAndEvaluateProject(preImportProperties);
-
-            // Assert
-            BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.AutoImportProperty, "true");
-        }
-
-        [TestMethod]
-        [Description("Checks that the targets are automatically imported if the running under TeamBuild and no explicit settings have been applied")]
-        public void ImportsBefore_AutoImport_NotAutoImported()
-        {
-            // 0. Set up
-            WellKnownProjectProperties preImportProperties;
-
-            string testDir = TestUtils.EnsureTestSpecificFolder(this.TestContext);
-            string configFilePath = EnsureDummyAnalysisConfigFileExists(testDir);
-
-            // 1. Temp path is set -> not auto-imported
-            preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.SonarQubeTempPath = "foo";
-            preImportProperties.TeamBuild2105BuildDirectory = testDir;
-            preImportProperties.TeamBuildLegacyBuildDirectory = "";
-            preImportProperties.SonarQubeTargetsPath = "shouldn't matter if this is set";
-
-            // Act
-            ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
-
-            // Assert
-            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.AutoImportProperty);
-
-            // 2. TeamBuild paths are not set -> not auto-imported
-            preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.SonarQubeTempPath = "";
-            preImportProperties.TeamBuild2105BuildDirectory = "";
-            preImportProperties.TeamBuildLegacyBuildDirectory = "";
-            preImportProperties.SonarQubeTargetsPath = "shouldn't matter if this is set";
-
-            // Act
-            projectInstance = this.CreateAndEvaluateProject(preImportProperties);
-
-            // Assert
-            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.AutoImportProperty);
-
-            // 3. File does not exist -> not auto-imported
-            File.Delete(configFilePath);
-
-            preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.SonarQubeTempPath = "";
-            preImportProperties.TeamBuild2105BuildDirectory = testDir;
-            preImportProperties.TeamBuildLegacyBuildDirectory = "";
-            preImportProperties.SonarQubeTargetsPath = "shouldn't matter if this is set";
-
-            // Act
-            projectInstance = this.CreateAndEvaluateProject(preImportProperties);
-
-            // Assert
-            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.AutoImportProperty);
-        }
-
+        
         #endregion
 
         #region Private methods
