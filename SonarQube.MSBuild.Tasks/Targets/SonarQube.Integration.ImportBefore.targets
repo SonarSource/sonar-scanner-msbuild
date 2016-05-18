@@ -13,7 +13,7 @@
 
     <SonarQubeTempPath Condition=" $(SonarQubeBuildDirectory) != '' AND Exists('$(SonarQubeBuildDirectory)\.sonarqube\conf\SonarQubeAnalysisConfig.xml') ">$(SonarQubeBuildDirectory)\.sonarqube</SonarQubeTempPath>
 
-    </PropertyGroup>
+  </PropertyGroup>
 
   <!-- **************************************************************************** -->
   <!-- Compute the path to the targets if not specified -->
@@ -55,7 +55,7 @@
     <Message Condition=" $(ReportAnalysisTargetsError) == 'true'"
       Importance="high"
       Text="Calculated location for the analysis targets file: $(SonarQubeTargetFilePath)" />
-    
+
     <!-- We include name of the project being built in the error message as
       it helps provide some context in TeamBuild scenarios when the error message
       appears on the build summary page. -->
