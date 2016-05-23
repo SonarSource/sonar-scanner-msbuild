@@ -120,15 +120,6 @@
   <data name="AssemblyDescription" xml:space="preserve">
     <value>SonarQube Scanner for MSBuild Begin Step</value>
   </data>
-  <data name="BW_CppPluginNotInstalled" xml:space="preserve">
-    <value>The C++ plugin is not installed on the SonarQube server so C++ projects will not automatically be analyzed by the SonarQube Scanner for MSBuild</value>
-  </data>
-  <data name="BW_CppPluginUpgradeRequired" xml:space="preserve">
-    <value>The installed version of the C++ plugin does not support integration with the SonarQube Scanner for MSBuild. Please upgrade to the latest version of the C++ plugin.</value>
-  </data>
-  <data name="BW_DownloadingBuildWrapper" xml:space="preserve">
-    <value>Downloading the C++ build wrapper...</value>
-  </data>
   <data name="CmdLine_ArgDescription_InstallTargets" xml:space="preserve">
     <value>/install:[true|false] - install standard MSBuild targets required for analysis (default true)</value>
   </data>

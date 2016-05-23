@@ -232,10 +232,4 @@ Possible causes:
   <data name="MSG_SarifFileIsValid" xml:space="preserve">
     <value>The supplied Code Analysis ErrorLog file is a valid json file and does not need to be fixed: {0}</value>
   </data>
-  <data name="MSG_BuildWrapperPropertyIsValid" xml:space="preserve">
-    <value>The build wrapper output property {0} has been set and is valid. Specified directory: {1}</value>
-  </data>
-  <data name="MSG_RemovingBuildWrapperAnalysisProperty" xml:space="preserve">
-    <value>The directory specified in property {0} either does not exist or is empty. The property will be removed. Specified directory: {1}</value>
-  </data>
 </root>

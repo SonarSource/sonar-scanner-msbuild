@@ -136,18 +136,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             set { this[TargetProperties.ProjectTypeGuids] = value; }
         }
 
-        public string BuildWrapperSkipFlag
-        {
-            get { return this.GetValueOrNull(TargetProperties.BuildWrapperSkipFlag); }
-            set { this[TargetProperties.BuildWrapperSkipFlag] = value; }
-        }
-
-        public string BuildWrapperBinPath
-        {
-            get { return this.GetValueOrNull(TargetProperties.BuildWrapperBinPath); }
-            set { this[TargetProperties.BuildWrapperBinPath] = value; }
-        }
-
         #endregion
 
         #region Private methods

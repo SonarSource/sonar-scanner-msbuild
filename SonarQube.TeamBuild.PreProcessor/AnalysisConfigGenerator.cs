@@ -22,12 +22,10 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <param name="buildSettings">Build environment settings</param>
         /// <param name="serverProperties">Analysis properties downloaded from the SonarQube server</param>
         /// <param name="analyzerSettings">Specifies the Roslyn analyzers to use</param>
-        /// <param name="programmaticProperties">Any additional programmatically set analysis properties. Any user-specified values will take priority</param>
         public static AnalysisConfig GenerateFile(ProcessedArgs args,
             TeamBuildSettings buildSettings,
             IDictionary<string, string> serverProperties,
             AnalyzerSettings analyzerSettings,
-            AnalysisProperties programmaticProperties,
             ILogger logger)
         {
             if (args == null)
@@ -45,10 +43,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             if (analyzerSettings == null)
             {
                 throw new ArgumentNullException("analyzerSettings");
-            }
-            if (programmaticProperties == null)
-            {
-                throw new ArgumentNullException("programmaticProperties");
             }
             if (logger == null)
             {
@@ -81,12 +75,8 @@ namespace SonarQube.TeamBuild.PreProcessor
                 }
             }
 
-            // Add command line arguments and programmatic properties.
-            // Command line arguments take precedence
-            AggregatePropertiesProvider aggProvider = new AggregatePropertiesProvider(args.LocalProperties, new ListPropertiesProvider(programmaticProperties));
-
             config.LocalSettings = new AnalysisProperties();
-            foreach (var property in aggProvider.GetAllProperties())
+            foreach (var property in args.LocalProperties.GetAllProperties())
             {
                 AddSetting(config.LocalSettings, property.Id, property.Value);
             }

@@ -70,60 +70,6 @@ namespace SonarQube.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to BuildWrapper: the build wrapper is already attached to the current process ({0}).
-        /// </summary>
-        public static string BuildWrapper_AlreadyAttached {
-            get {
-                return ResourceManager.GetString("BuildWrapper_AlreadyAttached", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to BuildWrapper: the build wrapper attached successfully.
-        /// </summary>
-        public static string BuildWrapper_AttachedSuccessfully {
-            get {
-                return ResourceManager.GetString("BuildWrapper_AttachedSuccessfully", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to BuildWrapper: failed to attach to the current process. Update the MSBuild Scanner for SonarQube, the C++ and C# plugins to their latest versions and contact the SonarSource support team if this error persists. Note: You can also set the MSBuild property SQEnableBuildWrapper to false to disable the C++ build wrapper integration and get rid of this error..
-        /// </summary>
-        public static string BuildWrapper_FailedToAttach {
-            get {
-                return ResourceManager.GetString("BuildWrapper_FailedToAttach", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to BuildWrapper: internal error. Invalid analysis config file - the build wrapper output directory must be supplied.
-        /// </summary>
-        public static string BuildWrapper_MissingOutputDirectory {
-            get {
-                return ResourceManager.GetString("BuildWrapper_MissingOutputDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to BuildWrapper: cannot find required file: {0}.
-        /// </summary>
-        public static string BuildWrapper_RequiredFileMissing {
-            get {
-                return ResourceManager.GetString("BuildWrapper_RequiredFileMissing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to BuildWrapper: waiting for the build wrapper to attach to the current process ({0})....
-        /// </summary>
-        public static string BuildWrapper_WaitingForAttach {
-            get {
-                return ResourceManager.GetString("BuildWrapper_WaitingForAttach", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The configured regular expression for detecting test projects is invalid.
         ///Check the &quot;{2}&quot; setting in the SonarQube portal.
         ///Expression: {0}

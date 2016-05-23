@@ -43,11 +43,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string SetStyleCopSettingsTarget = "SetStyleCopAnalysisSettings";
         public const string StyleCopProjectPathItemName = "sonar.stylecop.projectFilePath";
 
-        // Build wrapper
-        public const string BuildWrapperBeforeClCompileTarget = "SonarQubeBeforeClCompile";
-        public const string BuildWrapperAttachTarget = "AttachSonarQubeBuildWrapper";
-        public const string BuildWrapperAttachTask = "AttachBuildWrapper";
-
         public const string MsTestProjectTypeGuid = "3AC096D0-A1C2-E12C-1390-A8335801FDAB";
     }
 
@@ -95,10 +90,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string Language = "Language"; // Language of the project: normally "C#" or "VB"
         public const string AnalyzerItemType = "Analyzer";
         public const string AdditionalFilesItemType = "AdditionalFiles";
-
-        // Build wrapper
-        public const string BuildWrapperSkipFlag = "SQSkipBuildWrapper";
-        public const string BuildWrapperBinPath = "SQBuildWrapperBinPath";
 
         // Legacy TeamBuild environment variables (XAML Builds)
         public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";

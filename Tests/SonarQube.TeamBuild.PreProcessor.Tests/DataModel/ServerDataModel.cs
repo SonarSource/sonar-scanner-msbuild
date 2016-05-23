@@ -53,7 +53,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             QualityProfile profile = this.FindProfile(name, language);
             Assert.IsNull(profile, "A quality profile already exists. Name: {0}, language: {1}", name, language);
-                
+
             profile = new QualityProfile(name, language);
             this.qualityProfiles.Add(profile);
             return profile;
@@ -67,11 +67,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             QualityProfile profile = this.FindProfile(profileName, rule.Language);
 
             profile.AddRule(rule);
-        }
-
-        public void AddEmbeddedFile(string pluginKey, string embeddedFileName, byte[] content)
-        {
-            this.embeddedFilesMap.Add(GetEmbeddedFileKey(pluginKey, embeddedFileName), content);
         }
 
         public void AddEmbeddedZipFile(string pluginKey, string embeddedFileName, params string[] contentFileNames)
@@ -125,7 +120,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Directory.CreateDirectory(zipDir);
             string zippedFilePath = Path.Combine(tempDir, fileName);
 
-            // Create and read the zip file           
+            // Create and read the zip file
             foreach (string contentFileName in contentFileNames)
             {
                 TestUtils.CreateTextFile(zipDir, contentFileName, "dummy file content");

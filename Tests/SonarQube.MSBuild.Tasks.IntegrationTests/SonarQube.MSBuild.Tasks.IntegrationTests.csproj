@@ -71,7 +71,6 @@
     <Compile Include="Infrastructure\BuildLogger.cs" />
     <Compile Include="Infrastructure\TargetConstants.cs" />
     <Compile Include="Infrastructure\WellKnownProjectProperties.cs" />
-    <Compile Include="TargetsTests\BuildWrapperTargetsTests.cs" />
     <Compile Include="TargetsTests\ImportBeforeTargetsTests.cs" />
     <Compile Include="TargetsTests\RoslynTargetsTests.cs" />
     <Compile Include="TargetsTests\SetStyleCopPropertiesTargetTests.cs" />

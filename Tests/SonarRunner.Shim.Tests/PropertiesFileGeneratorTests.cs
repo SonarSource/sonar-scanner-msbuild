@@ -193,7 +193,7 @@ namespace SonarRunner.Shim.Tests
 
             // Mock SARIF fixer simulates fixable SARIF with fixed name
             string returnPathDir = Path.GetDirectoryName(testSarifPath);
-            string returnPathFileName = Path.GetFileNameWithoutExtension(testSarifPath) + 
+            string returnPathFileName = Path.GetFileNameWithoutExtension(testSarifPath) +
                 RoslynV1SarifFixer.FixedFileSuffix + Path.GetExtension(testSarifPath);
 
             MockRoslynV1SarifFixer mockSarifFixer = new MockRoslynV1SarifFixer(returnPathFileName);
@@ -387,7 +387,7 @@ namespace SonarRunner.Shim.Tests
         {
             // 0. Arrange
             TestLogger logger = new TestLogger();
-         
+
             // Act
             ProjectInfoAnalysisResult result = ExecuteAndCheckSucceeds("disableBootstrapper", logger);
 
@@ -403,7 +403,7 @@ namespace SonarRunner.Shim.Tests
             // 0. Arrange
             TestLogger logger = new TestLogger();
 
-            // Try to explicitly enable the setting            
+            // Try to explicitly enable the setting
             Property bootstrapperProperty = new Property() { Id = PropertiesFileGenerator.VSBootstrapperPropertyKey, Value = "true" };
 
             // Act
@@ -430,75 +430,6 @@ namespace SonarRunner.Shim.Tests
             provider.AssertSettingExists(PropertiesFileGenerator.VSBootstrapperPropertyKey, "false");
             logger.AssertSingleDebugMessageExists(PropertiesFileGenerator.VSBootstrapperPropertyKey);
             logger.AssertWarningsLogged(0); // not expecting a warning if the user has supplied the value we want
-        }
-
-        [TestMethod]
-        public void FileGen_BuildWrapperOutputDirIsMissing_PropertyNotWritten()
-        {
-            // Arrange
-            TestLogger logger = new TestLogger();
-            Property buildWrapperProperty = new Property() { Id = PropertiesFileGenerator.BuildWrapperOutputDirectoryKey, Value = "non-existent directory" };
-
-            // Act
-            ProjectInfoAnalysisResult result = ExecuteAndCheckSucceeds("buildwrapper_missingdir", logger, buildWrapperProperty);
-
-            // Assert
-            SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingDoesNotExist(PropertiesFileGenerator.BuildWrapperOutputDirectoryKey);
-
-            logger.AssertSingleDebugMessageExists(PropertiesFileGenerator.BuildWrapperOutputDirectoryKey, "non-existent directory");
-            logger.AssertWarningsLogged(0);
-            logger.AssertErrorsLogged(0);
-        }
-
-        [TestMethod]
-        public void FileGen_BuildWrapperOutputDirIsEmpty_PropertyNotWritten()
-        {
-            // Arrange
-            // Create empty folder with empty child folder
-            string emptyFolderPath = TestUtils.CreateTestSpecificFolder(this.TestContext, "empty_bw_output");
-            TestUtils.CreateTestSpecificFolder(this.TestContext, "empty_bw_output\\childDir");
-
-            TestLogger logger = new TestLogger();
-            Property buildWrapperProperty = new Property() { Id = PropertiesFileGenerator.BuildWrapperOutputDirectoryKey, Value = emptyFolderPath };
-
-            // Act
-            ProjectInfoAnalysisResult result = ExecuteAndCheckSucceeds("buildwrapper_emptydir", logger, buildWrapperProperty);
-
-            // Assert
-            SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingDoesNotExist(PropertiesFileGenerator.BuildWrapperOutputDirectoryKey);
-
-            logger.AssertSingleDebugMessageExists(PropertiesFileGenerator.BuildWrapperOutputDirectoryKey, emptyFolderPath);
-            logger.AssertWarningsLogged(0);
-            logger.AssertErrorsLogged(0);
-        }
-
-        [TestMethod]
-        public void FileGen_BuildWrapperOutputDirContainsFiles_PropertyIsWritten()
-        {
-            // Arrange
-            // Create directory and file in child directory
-            string bwOutputPath = TestUtils.CreateTestSpecificFolder(this.TestContext, "bw_output_withFiles");
-            string childDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "bw_output_withFiles\\childDir");
-            string contentFilePath = Path.Combine(childDir, "dummy.txt");
-            File.WriteAllText(contentFilePath, "dummy bw output");
-
-            TestLogger logger = new TestLogger();
-            Property buildWrapperProperty = new Property() { Id = PropertiesFileGenerator.BuildWrapperOutputDirectoryKey, Value = bwOutputPath };
-
-            // Act
-            ProjectInfoAnalysisResult result = ExecuteAndCheckSucceeds("buildwrapper_dirwithfiles", logger, buildWrapperProperty);
-
-            // Assert
-            SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            string expectedPropertyValue = PropertiesWriter.Escape(bwOutputPath); // property is a path so it will be escaped
-            provider.AssertSettingExists(PropertiesFileGenerator.BuildWrapperOutputDirectoryKey, expectedPropertyValue);
-
-            logger.AssertSingleDebugMessageExists(PropertiesFileGenerator.BuildWrapperOutputDirectoryKey, bwOutputPath);
-
-            logger.AssertWarningsLogged(0);
-            logger.AssertErrorsLogged(0);
         }
 
         #endregion
@@ -669,7 +600,7 @@ namespace SonarRunner.Shim.Tests
                 ProjectType = projectType,
                 IsExcluded = isExcluded,
             };
-            
+
             if (additionalProperties != null)
             {
                 project.AnalysisSettings = additionalProperties;

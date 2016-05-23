@@ -53,7 +53,6 @@
     <Compile Include="IsTestFileByName.cs" />
     <Compile Include="MergeRuleSets.cs" />
     <Compile Include="MSBuildLoggerAdapter.cs" />
-    <Compile Include="AttachBuildWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>

@@ -56,10 +56,8 @@
     </Compile>
     <Compile Include="AnalysisConfigGenerator.cs" />
     <Compile Include="ArgumentProcessor.cs" />
-    <Compile Include="BuildWrapperInstaller.cs" />
     <Compile Include="Interfaces\IAnalyzerInstaller.cs" />
     <Compile Include="Interfaces\IAnalyzerProvider.cs" />
-    <Compile Include="Interfaces\IBuildWrapperInstaller.cs" />
     <Compile Include="Interfaces\IDownloader.cs" />
     <Compile Include="Interfaces\IPreprocessorObjectFactory.cs" />
     <Compile Include="Interfaces\ITargetsInstaller.cs" />

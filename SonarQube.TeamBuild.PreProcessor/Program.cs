@@ -26,7 +26,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             IPreprocessorObjectFactory factory = new PreprocessorObjectFactory();
             TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(factory, logger);
             bool success = preProcessor.Execute(args);
-           
+
             return success ? SuccessCode : ErrorCode;
         }
     }

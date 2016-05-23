@@ -20,8 +20,6 @@ namespace SonarRunner.Shim
 
         public const string VSBootstrapperPropertyKey = "sonar.visualstudio.enable";
 
-        public const string BuildWrapperOutputDirectoryKey = "sonar.cfamily.build-wrapper-output";
-
         #region Public methods
 
         /// <summary>
@@ -92,7 +90,7 @@ namespace SonarRunner.Shim
         }
 
         /// <summary>
-        /// Loads SARIF reports from the given projects and attempts to fix 
+        /// Loads SARIF reports from the given projects and attempts to fix
         /// improper escaping from Roslyn V1 (VS 2015 RTM) where appropriate.
         /// </summary>
         private static void FixSarifReport(ILogger logger, IEnumerable<ProjectInfo> projects, IRoslynV1SarifFixer fixer /* for test */)
@@ -273,9 +271,6 @@ namespace SonarRunner.Shim
             // There are some properties we want to override regardless of what the user sets
             AddOrSetProperty(VSBootstrapperPropertyKey, "false", properties, logger);
 
-            // Special case processing for known properties
-            RemoveBuildWrapperSettingIfDirectoryEmpty(properties, logger);
-
             return properties;
         }
 
@@ -301,39 +296,6 @@ namespace SonarRunner.Shim
                     property.Value = value;
                 }
             }
-        }
-
-        /// <summary>
-        /// Passing in an invalid value for the build wrapper output directory will cause the C++ plugin to
-        /// fail (invalid = missing or empty directory) so we'll remove invalid settings
-        /// </summary>
-        private static void RemoveBuildWrapperSettingIfDirectoryEmpty(AnalysisProperties properties, ILogger logger)
-        {
-            // The property is set early in the analysis process before any projects are analysed. We can't
-            // tell at this point if the directory missing/empty is error or not - it could just be that all
-            // of the Cpp projects have been excluded from analysis.
-            // We're assuming that if the build wrapper output was not written due to an error elsewhere then
-            // that error will have been logged or reported at the point it occurred. Consequently, we;ll
-            // just write debug output to record what we're doing.
-            Property directoryProperty;
-            if (Property.TryGetProperty(BuildWrapperOutputDirectoryKey, properties, out directoryProperty))
-            {
-                string path = directoryProperty.Value;
-                if (!Directory.Exists(path) || IsDirectoryEmpty(path))
-                {
-                    logger.LogDebug(Resources.MSG_RemovingBuildWrapperAnalysisProperty, BuildWrapperOutputDirectoryKey, path);
-                    properties.Remove(directoryProperty);
-                }
-                else
-                {
-                    logger.LogDebug(Resources.MSG_BuildWrapperPropertyIsValid, BuildWrapperOutputDirectoryKey, path);
-                }
-            }
-        }
-
-        private static bool IsDirectoryEmpty(string path)
-        {
-            return Directory.GetFiles(path, "*.*", SearchOption.AllDirectories).Length == 0;
         }
 
         #endregion

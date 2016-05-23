@@ -30,10 +30,5 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// Creates and returns the component that provisions the Roslyn analyzers
         /// </summary>
         IAnalyzerProvider CreateAnalyzerProvider(ILogger logger);
-
-        /// <summary>
-        /// Creates and returns the component that installs the C++ build wrapper
-        /// </summary>
-        IBuildWrapperInstaller CreateBuildWrapperInstaller(ILogger logger);
     }
 }

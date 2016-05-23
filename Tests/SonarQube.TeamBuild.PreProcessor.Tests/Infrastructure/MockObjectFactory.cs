@@ -15,19 +15,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         private readonly ISonarQubeServer server;
         private readonly IAnalyzerProvider analyzerProvider;
         private readonly ITargetsInstaller targetsInstaller;
-        private readonly IBuildWrapperInstaller buildWrapperInstaller;
 
         public MockObjectFactory(ISonarQubeServer server)
         {
             this.server = server;
         }
 
-        public MockObjectFactory(ISonarQubeServer server, ITargetsInstaller targetsInstaller, IAnalyzerProvider analyzerProvider, IBuildWrapperInstaller buildWrapperInstaller)
+        public MockObjectFactory(ISonarQubeServer server, ITargetsInstaller targetsInstaller, IAnalyzerProvider analyzerProvider)
         {
             this.server = server;
             this.targetsInstaller = targetsInstaller;
             this.analyzerProvider = analyzerProvider;
-            this.buildWrapperInstaller = buildWrapperInstaller;
         }
 
         #region PreprocessorObjectFactory methods
@@ -50,13 +48,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             return this.targetsInstaller;
         }
-
-        public IBuildWrapperInstaller CreateBuildWrapperInstaller(ILogger logger)
-        {
-            Assert.IsNotNull(logger);
-            return this.buildWrapperInstaller;
-        }
-
 
         #endregion
     }

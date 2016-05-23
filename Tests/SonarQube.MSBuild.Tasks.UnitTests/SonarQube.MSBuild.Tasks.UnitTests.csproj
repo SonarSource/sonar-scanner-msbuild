@@ -57,7 +57,6 @@
     <Compile Include="..\..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-    <Compile Include="AttachBuildWrapperTests.cs" />
     <Compile Include="GetAnalyzerSettingsTests.cs" />
     <Compile Include="Infrastructure\DummyBuildEngine.cs" />
     <Compile Include="IsTestFileByNameTests.cs" />

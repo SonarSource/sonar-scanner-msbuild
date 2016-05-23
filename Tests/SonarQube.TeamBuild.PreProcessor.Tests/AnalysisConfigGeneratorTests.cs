@@ -49,7 +49,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Directory.CreateDirectory(tbSettings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(args, tbSettings, serverSettings, analyzerSettings, new AnalysisProperties(), logger);
+            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(args, tbSettings, serverSettings, analyzerSettings, logger);
 
             // Assert
             AssertConfigFileExists(actualConfig);
@@ -103,7 +103,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new AnalyzerSettings(), new AnalysisProperties(), logger);
+            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new AnalyzerSettings(), logger);
 
             // Assert
             AssertConfigFileExists(actualConfig);
@@ -139,7 +139,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // Sensitive values - should not be written to the config file
             cmdLineArgs.AddProperty(SonarProperties.DbPassword, "secret db password");
- 
+
             // Create a settings file with public and sensitive data
             AnalysisProperties fileSettings = new AnalysisProperties();
             fileSettings.Add(new Property() { Id = "file.public.key", Value = "file public value" });
@@ -160,18 +160,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             serverProperties.Add("sonar.vbnet.license.secured", "secret license");
             serverProperties.Add("sonar.cpp.License.Secured", "secret license 2");
 
-            // Programmatic properties
-            AnalysisProperties progProperties = new AnalysisProperties();
-            // Non-sensitive
-            progProperties.Add(new Property() { Id = "prog.key.1", Value = "prog value 1" });
-            // Sensitive
-            progProperties.Add(new Property() { Id = SonarProperties.DbUserName, Value = "secret db user" });
-
             TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            AnalysisConfig config = AnalysisConfigGenerator.GenerateFile(args, settings, serverProperties, new AnalyzerSettings(), progProperties, logger);
+            AnalysisConfig config = AnalysisConfigGenerator.GenerateFile(args, settings, serverProperties, new AnalyzerSettings(), logger);
 
             // Assert
             AssertConfigFileExists(config);
@@ -189,52 +182,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedLocalSetting("sonar.user.license.secured", "user input license", config); // we only filter out *.secured server settings
             AssertExpectedLocalSetting("sonar.value", "value.secured", config);
             AssertExpectedLocalSetting("server.key.secured.xxx", "not really secure", config);
-            AssertExpectedLocalSetting("prog.key.1", "prog value 1", config);
             AssertExpectedServerSetting("server.key.1", "server value 1", config);
 
             AssertFileDoesNotContainText(config.FileName, "file.public.key"); // file settings values should not be in the config
             AssertFileDoesNotContainText(config.FileName, "secret"); // sensitive data should not be in config
-        }
-
-        [TestMethod]
-        public void AnalysisConfGen_CommandLineAndProgrammaticProperties()
-        {
-            // Arrange
-            TestLogger logger = new TestLogger();
-
-            string analysisDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            TeamBuildSettings tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
-
-            Dictionary<string, string> emptyServerProperties = new Dictionary<string, string>();
-            AnalyzerSettings emptyAnalyzerSettings = new AnalyzerSettings();
-            Directory.CreateDirectory(tbSettings.SonarConfigDirectory); // config directory needs to exist
-
-            // Define a set of user properties
-            ListPropertiesProvider userProperties = new ListPropertiesProvider();
-            userProperties.AddProperty("sonar.host.url", "http://host"); // required
-            userProperties.AddProperty("user1", "user value 1");
-            userProperties.AddProperty("shared.key.1", "user value for shared.key.1");
-            ProcessedArgs cmdLineArgs = new ProcessedArgs("key", "name", "version", false, userProperties, EmptyPropertyProvider.Instance);
-            
-            // Define a set of programmatic properties
-            AnalysisProperties programmaticProperties = new AnalysisProperties();
-            programmaticProperties.Add(new Property() { Id = "prog1", Value = "prog value 1" });
-            programmaticProperties.Add(new Property() { Id = "shared.key.1", Value = "prog value for shared.key.1" });
-
-
-            // Act
-            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(cmdLineArgs, tbSettings, emptyServerProperties, emptyAnalyzerSettings, programmaticProperties, logger);
-
-            // Assert
-            AssertConfigFileExists(actualConfig);
-            logger.AssertErrorsLogged(0);
-            logger.AssertWarningsLogged(0);
-
-            // Check that user properties take precedence over the programmatic ones
-            AssertExpectedLocalSetting("sonar.host.url", "http://host", actualConfig);
-            AssertExpectedLocalSetting("user1", "user value 1", actualConfig);
-            AssertExpectedLocalSetting("shared.key.1", "user value for shared.key.1", actualConfig);
-            AssertExpectedLocalSetting("prog1", "prog value 1", actualConfig);
         }
 
         #endregion Tests

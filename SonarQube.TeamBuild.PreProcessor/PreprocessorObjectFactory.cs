@@ -69,16 +69,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             return new Roslyn.RoslynAnalyzerProvider(new Roslyn.EmbeddedAnalyzerInstaller(this.server, logger), logger);
         }
 
-        public IBuildWrapperInstaller CreateBuildWrapperInstaller(ILogger logger)
-        {
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
-
-            return new BuildWrapperInstaller(logger);
-        }
-
         #endregion
 
     }
