@@ -192,7 +192,7 @@ namespace SonarQube.TeamBuild.Integration
 
             List<string> args = new List<string>();
             args.Add("analyze");
-            args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, @"/output:""{0}""", outputXmlFilePath));
+            args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, @"/output:{0}", outputXmlFilePath));
             args.Add(inputBinaryFilePath);
 
             ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(converterExeFilePath, false, logger)

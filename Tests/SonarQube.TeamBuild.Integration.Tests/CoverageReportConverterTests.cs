@@ -30,7 +30,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             string inputFilePath = Path.Combine(testDir, "input.txt");
             File.WriteAllText(inputFilePath, "dummy input file");
-            
+
             string converterFilePath = Path.Combine(testDir, "converter.bat");
             File.WriteAllText(converterFilePath,
 @"
@@ -41,7 +41,7 @@ echo foo > """ + outputFilePath + @"""");
 
             // Act
             bool success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
-            
+
             // Assert
             Assert.IsTrue(success, "Expecting the process to succeed");
 
@@ -104,6 +104,36 @@ echo foo > """ + outputFilePath + @"""");
             logger.AssertSingleErrorExists(inputFilePath); // error message should refer to the input file
 
             Assert.IsFalse(File.Exists(outputFilePath), "Not expecting the output file to exist");
+        }
+
+        [TestMethod]
+        public void Conv_HasThreeArguments()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string outputFilePath = Path.Combine(testDir, "output.txt");
+
+            string inputFilePath = Path.Combine(testDir, "input.txt");
+            File.WriteAllText(inputFilePath, "dummy input file");
+
+            string converterFilePath = Path.Combine(testDir, "converter.bat");
+            File.WriteAllText(converterFilePath,
+@"
+set argC=0
+for %%x in (%*) do Set /A argC+=1
+
+echo Converter called with %argC% args
+echo success > """ + outputFilePath + @"""");
+
+            // Act
+            bool success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+
+            // Assert
+            Assert.IsTrue(success, "Expecting the process to succeed");
+
+            logger.AssertMessageLogged("Converter called with 3 args");
         }
 
         #endregion
