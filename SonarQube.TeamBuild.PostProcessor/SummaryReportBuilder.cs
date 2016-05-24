@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Web;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
@@ -185,8 +184,6 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             using (StreamWriter sw = new StreamWriter(summaryMdPath, append: false))
             {
-                sw.WriteLine(Resources.Report_MdSummaryTitle);
-
                 if (summaryData.Succeeded)
                 {
                     sw.WriteLine(Resources.Report_MdSummaryAnalysisSucceeded, summaryData.ProjectDescription, summaryData.DashboardUrl);
