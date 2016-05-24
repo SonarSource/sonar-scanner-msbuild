@@ -40,8 +40,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             public const string ProjectName = "projectName.id";
             public const string ProjectVersion = "projectVersion.id";
             public const string InstallLoaderTargets = "installLoaderTargets.id";
-            public const string RunnerPropertiesPath = "runnerPropertiesPath.id";
-            public const string DynamicSetting = "dynamicSetting.id";
         }
 
         private static IList<ArgumentDescriptor> Descriptors;

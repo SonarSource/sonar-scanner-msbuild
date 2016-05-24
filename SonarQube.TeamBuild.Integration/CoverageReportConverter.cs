@@ -30,8 +30,6 @@ namespace SonarQube.TeamBuild.Integration
         /// </summary>
         private const string TeamToolPathandExeName = @"Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe";
 
-        private const int ConversionTimeoutMs = 5000;
-
         private string conversionToolPath;
 
         #region IReportConverter interface
