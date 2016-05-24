@@ -192,15 +192,6 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube Analysis Report.
-        /// </summary>
-        internal static string Report_MdSummaryTitle {
-            get {
-                return ResourceManager.GetString("Report_MdSummaryTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to   Product projects: {0}, test projects: {1}.
         /// </summary>
         internal static string Report_ProductAndTestMessage {
