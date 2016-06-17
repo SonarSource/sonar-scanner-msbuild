@@ -208,14 +208,14 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   <data name="RAP_AdditionalFileNameMustBeSpecified" xml:space="preserve">
     <value>The Roslyn profile exporter returned an AdditionalFile that does not specify a file name. The AdditionalFile will be ignored.</value>
   </data>
-  <data name="RAP_CSharpPluginNotInstalled" xml:space="preserve">
-    <value>C# plugin is not installed so there is no C# ruleset or Roslyn analyzer information to retrieve</value>
-  </data>
   <data name="RAP_NoAnalyzerPluginsSpecified" xml:space="preserve">
-    <value>No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run</value>
+    <value>No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for {0}</value>
+  </data>
+  <data name="RAP_NoPluginInstalled" xml:space="preserve">
+    <value>No plugins found with rulesets for Roslyn analyzer</value>
   </data>
   <data name="RAP_NoProfileForProject" xml:space="preserve">
-    <value>Could not obtain a C# profile for project '{0}'</value>
+    <value>Could not obtain a {0} profile for project '{1}'</value>
   </data>
   <data name="RAP_ProfileDoesNotContainRuleset" xml:space="preserve">
     <value>The exported profile does not contain a ruleset</value>
@@ -227,7 +227,7 @@ The full path to a settings file can also be supplied. If it is not supplied, th
     <value>Could not find profile export '{0}' for project '{1}'</value>
   </data>
   <data name="RAP_ProvisioningAnalyzerAssemblies" xml:space="preserve">
-    <value>Provisioning analyzer assemblies...</value>
+    <value>Provisioning analyzer assemblies for {0}...</value>
   </data>
   <data name="RAP_UnpackingRuleset" xml:space="preserve">
     <value>Writing Roslyn generated ruleset to {0}...</value>

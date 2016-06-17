@@ -22,7 +22,7 @@ namespace SonarQube.Common
         {
         }
 
-        public AnalyzerSettings(string ruleSetFilePath, IEnumerable<string> analyzerAssemblies, IEnumerable<string> additionalFiles)
+        public AnalyzerSettings(string language, string ruleSetFilePath, IEnumerable<string> analyzerAssemblies, IEnumerable<string> additionalFiles)
         {
             if (string.IsNullOrWhiteSpace(ruleSetFilePath))
             {
@@ -37,10 +37,16 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("additionalFiles");
             }
 
+            this.Language = language;
             this.RuleSetFilePath = ruleSetFilePath;
             this.AnalyzerAssemblyPaths = new List<string>(analyzerAssemblies);
             this.AdditionalFilePaths = new List<string>(additionalFiles);
         }
+
+        /// <summary>
+        /// Language which this settings refers to
+        /// </summary>
+        public string Language { get; set; }
 
         /// <summary>
         /// Path to the ruleset for the Roslyn analyzers

@@ -61,7 +61,7 @@ namespace SonarQube.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analyzer settings have not been specified in the analysis config file.
+        ///   Looks up a localized string similar to Analyzer settings for language {0} have not been specified in the analysis config file.
         /// </summary>
         public static string AnalyzerSettings_NotSpecifiedInConfig {
             get {

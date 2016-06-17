@@ -25,28 +25,28 @@ namespace SonarQube.TeamBuild.PreProcessor
         public static AnalysisConfig GenerateFile(ProcessedArgs args,
             TeamBuildSettings buildSettings,
             IDictionary<string, string> serverProperties,
-            AnalyzerSettings analyzerSettings,
+            List<AnalyzerSettings> analyzersSettings,
             ILogger logger)
         {
             if (args == null)
             {
-                throw new ArgumentNullException("args");
+                throw new ArgumentNullException(nameof(args));
             }
             if (buildSettings == null)
             {
-                throw new ArgumentNullException("settings");
+                throw new ArgumentNullException(nameof(buildSettings));
             }
             if (serverProperties == null)
             {
-                throw new ArgumentNullException("serverProperties");
+                throw new ArgumentNullException(nameof(serverProperties));
             }
-            if (analyzerSettings == null)
+            if (analyzersSettings == null)
             {
-                throw new ArgumentNullException("analyzerSettings");
+                throw new ArgumentNullException(nameof(analyzersSettings));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             AnalysisConfig config = new AnalysisConfig();
@@ -87,7 +87,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                 config.SetSettingsFilePath(args.PropertiesFileName);
             }
 
-            config.AnalyzerSettings = analyzerSettings;
+            config.AnalyzersSettings = analyzersSettings;
 
             config.Save(buildSettings.AnalysisConfigFilePath);
 

@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.PreProcessor.Roslyn;
+using System.Collections.Generic;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
@@ -23,14 +24,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region IAnalyzerProvider methods
 
-        AnalyzerSettings IAnalyzerProvider.SetupAnalyzers(ISonarQubeServer server, TeamBuildSettings settings, string projectKey, string projectBranch)
+        IEnumerable<AnalyzerSettings> IAnalyzerProvider.SetupAnalyzers(ISonarQubeServer server, TeamBuildSettings settings, string projectKey, string projectBranch)
         {
             Assert.IsNotNull(server);
             Assert.IsNotNull(settings);
             Assert.IsFalse(string.IsNullOrWhiteSpace(projectKey));
             // projectBranch can be null
-
-            return this.SettingsToReturn;
+            List<AnalyzerSettings> analyzersSettings = new List<AnalyzerSettings>();
+            analyzersSettings.Add(this.SettingsToReturn);
+            return analyzersSettings;
         }
 
         #endregion

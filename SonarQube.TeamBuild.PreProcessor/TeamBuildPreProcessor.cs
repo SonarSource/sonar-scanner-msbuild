@@ -8,6 +8,7 @@
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -92,14 +93,14 @@ namespace SonarQube.TeamBuild.PreProcessor
             ISonarQubeServer server = this.factory.CreateSonarQubeServer(args, this.logger);
 
             IDictionary<string, string> serverSettings;
-            AnalyzerSettings analyzerSettings;
-            if (!FetchArgumentsAndRulesets(server, args, teamBuildSettings, out serverSettings, out analyzerSettings))
+            List<AnalyzerSettings> analyzersSettings;
+            if (!FetchArgumentsAndRulesets(server, args, teamBuildSettings, out serverSettings, out analyzersSettings))
             {
                 return false;
             }
-            Debug.Assert(analyzerSettings != null, "Not expecting the analyzer settings to be null");
+            Debug.Assert(analyzersSettings != null, "Not expecting the analyzers settings to be null");
 
-            AnalysisConfigGenerator.GenerateFile(args, teamBuildSettings, serverSettings, analyzerSettings, this.logger);
+            AnalysisConfigGenerator.GenerateFile(args, teamBuildSettings, serverSettings, analyzersSettings, this.logger);
 
             return true;
         }
@@ -122,11 +123,11 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
         }
 
-        private bool FetchArgumentsAndRulesets(ISonarQubeServer server, ProcessedArgs args, TeamBuildSettings settings, out IDictionary<string, string> serverSettings, out AnalyzerSettings analyzerSettings)
+        private bool FetchArgumentsAndRulesets(ISonarQubeServer server, ProcessedArgs args, TeamBuildSettings settings, out IDictionary<string, string> serverSettings, out List<AnalyzerSettings> analyzersSettings)
         {
             string hostUrl = args.GetSetting(SonarProperties.HostUrl);
             serverSettings = null;
-            analyzerSettings = null;
+            analyzersSettings = new List<AnalyzerSettings>();
 
             try
             {
@@ -149,7 +150,8 @@ namespace SonarQube.TeamBuild.PreProcessor
                 IAnalyzerProvider analyzerProvider = this.factory.CreateAnalyzerProvider(this.logger);
                 Debug.Assert(analyzerProvider != null, "Factory should not return null");
 
-                analyzerSettings = analyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey, projectBranch);
+                IEnumerable<AnalyzerSettings> analyzers = analyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey, projectBranch);
+                analyzersSettings.AddRange(analyzers);
             }
             catch (WebException ex)
             {

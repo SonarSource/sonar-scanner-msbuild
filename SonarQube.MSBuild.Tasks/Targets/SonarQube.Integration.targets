@@ -308,13 +308,17 @@
     <RunCodeAnalysisOnce>true</RunCodeAnalysisOnce>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <SQLanguage Condition="$(Language) == 'C#'">cs</SQLanguage>
+    <SQLanguage Condition="$(Language) == 'VB'">vbnet</SQLanguage>
+  </PropertyGroup>
+
   <!-- Check whether or not FxCop should be executed, even if FxCop isn't installed and all targets depending on RunCodeAnalysis are skipped -->
   <Target Name="DetectFxCopRuleset" Condition=" $(SonarQubeTempPath) != '' "
         BeforeTargets="CoreCompile">
     <PropertyGroup>
       <!-- Compute the ruleset filename -->
-      <SonarQubeRulesetFileName Condition=" $(SonarQubeRulesetFileName) == '' AND $(Language) == 'C#' ">SonarQubeFxCop-cs.ruleset</SonarQubeRulesetFileName>
-      <SonarQubeRulesetFileName Condition=" $(SonarQubeRulesetFileName) == '' AND $(Language) == 'VB' ">SonarQubeFxCop-vbnet.ruleset</SonarQubeRulesetFileName>
+      <SonarQubeRulesetFileName Condition=" $(SonarQubeRulesetFileName) == ''">SonarQubeFxCop-$(SQLanguage).ruleset</SonarQubeRulesetFileName>
 
       <!-- Check if the ruleset exists -->
       <SonarQubeRulesetFullName>$(SonarQubeConfigPath)\$(SonarQubeRulesetFileName)</SonarQubeRulesetFullName>
@@ -455,7 +459,7 @@
   <Target Name="SetRoslynCodeAnalysisProperties">
 
     <!-- Fetch the relevant settings from the config file -->
-    <GetAnalyzerSettings AnalysisConfigDir="$(SonarQubeConfigPath)">
+    <GetAnalyzerSettings AnalysisConfigDir="$(SonarQubeConfigPath)" Language="$(SQLanguage)">
       <Output TaskParameter="RuleSetFilePath" PropertyName="SQRuleSetFilePath" />
       <Output TaskParameter="AnalyzerFilePaths" ItemName="SQAnalyzerFilePaths" />
       <Output TaskParameter="AdditionalFiles" ItemName="SQAdditionalFiles" />
@@ -487,7 +491,8 @@
       BeforeTargets="WriteSonarQubeProjectData">
 
     <ItemGroup>
-      <SonarQubeSetting Include="sonar.cs.roslyn.reportFilePath"
+      
+      <SonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePath"
          Condition=" $(ErrorLog) != '' AND  $([System.IO.File]::Exists($(ErrorLog))) == 'true' ">
         <Value>$(ErrorLog)</Value>
       </SonarQubeSetting>
@@ -503,7 +508,7 @@
   <!-- Set the analysis properties required by the StyleCop plugin. The actual execution of
        StyleCop is handled by the plugin. -->
   <Target Name="SetStyleCopAnalysisSettings"
-        Condition=" $(SonarQubeTempPath) != '' "
+        Condition=" $(SonarQubeTempPath) != '' AND $(Language) == 'C#'"
         BeforeTargets="WriteSonarQubeProjectData">
 
     <!-- Work out if the item has already been set -->

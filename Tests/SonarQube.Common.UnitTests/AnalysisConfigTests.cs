@@ -59,17 +59,20 @@ namespace SonarQube.Common.UnitTests
             originalConfig.ServerSettings = new AnalysisProperties();
             originalConfig.ServerSettings.Add(new Property() { Id = "server.key", Value = "server.value" });
 
-            originalConfig.AnalyzerSettings = new AnalyzerSettings();
-            originalConfig.AnalyzerSettings.RuleSetFilePath = "ruleset path";
+            AnalyzerSettings settings = new AnalyzerSettings();
 
-            originalConfig.AnalyzerSettings.AdditionalFilePaths = new List<string>();
-            originalConfig.AnalyzerSettings.AdditionalFilePaths.Add("additional path1");
-            originalConfig.AnalyzerSettings.AdditionalFilePaths.Add("additional path2");
+            settings.RuleSetFilePath = "ruleset path";
 
-            originalConfig.AnalyzerSettings.AnalyzerAssemblyPaths = new List<string>();
-            originalConfig.AnalyzerSettings.AnalyzerAssemblyPaths.Add("analyzer path1");
-            originalConfig.AnalyzerSettings.AnalyzerAssemblyPaths.Add("analyzer path2");
+            settings.AdditionalFilePaths = new List<string>();
+            settings.AdditionalFilePaths.Add("additional path1");
+            settings.AdditionalFilePaths.Add("additional path2");
 
+            settings.AnalyzerAssemblyPaths = new List<string>();
+            settings.AnalyzerAssemblyPaths.Add("analyzer path1");
+            settings.AnalyzerAssemblyPaths.Add("analyzer path2");
+
+            originalConfig.AnalyzersSettings = new List<AnalyzerSettings>();
+            originalConfig.AnalyzersSettings.Add(settings);
 
             string fileName = Path.Combine(testFolder, "config1.xml");
 
@@ -153,18 +156,20 @@ namespace SonarQube.Common.UnitTests
   <LocalSettings>
     <Property Name=""local.key"">local.value</Property>
   </LocalSettings>
-  <AnalyzerSettings>
-    <RuleSetFilePath>d:\ruleset path.ruleset</RuleSetFilePath>
-    <AnalyzerAssemblyPaths>
-      <Path>c:\analyzer1.dll</Path>
-    </AnalyzerAssemblyPaths>
-    <AdditionalFilePaths>
+  <AnalyzersSettings>
+    <AnalyzerSettings>
+      <RuleSetFilePath>d:\ruleset path.ruleset</RuleSetFilePath>
+      <AnalyzerAssemblyPaths>
+        <Path>c:\analyzer1.dll</Path>
+      </AnalyzerAssemblyPaths>
+      <AdditionalFilePaths>
 
-      <MoreUnexpectedData><Foo /></MoreUnexpectedData>
+        <MoreUnexpectedData><Foo /></MoreUnexpectedData>
 
-      <Path>c:\additional1.txt</Path>
-    </AdditionalFilePaths>
-  </AnalyzerSettings>
+        <Path>c:\additional1.txt</Path>
+      </AdditionalFilePaths>
+    </AnalyzerSettings>
+  </AnalyzersSettings>
 </AnalysisConfig>";
 
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
@@ -184,12 +189,18 @@ namespace SonarQube.Common.UnitTests
             expected.ServerSettings.Add(new Property() { Id = "server.key", Value = "server.value" });
             expected.LocalSettings = new AnalysisProperties();
             expected.LocalSettings.Add(new Property() { Id = "local.key", Value = "local.value" });
-            expected.AnalyzerSettings = new AnalyzerSettings();
-            expected.AnalyzerSettings.RuleSetFilePath = "d:\\ruleset path.ruleset";
-            expected.AnalyzerSettings.AdditionalFilePaths = new List<string>();
-            expected.AnalyzerSettings.AdditionalFilePaths.Add("c:\\additional1.txt");
-            expected.AnalyzerSettings.AnalyzerAssemblyPaths = new List<string>();
-            expected.AnalyzerSettings.AnalyzerAssemblyPaths.Add("c:\\analyzer1.dll");
+
+            AnalyzerSettings settings = new AnalyzerSettings();
+
+            settings = new AnalyzerSettings();
+            settings.RuleSetFilePath = "d:\\ruleset path.ruleset";
+            settings.AdditionalFilePaths = new List<string>();
+            settings.AdditionalFilePaths.Add("c:\\additional1.txt");
+            settings.AnalyzerAssemblyPaths = new List<string>();
+            settings.AnalyzerAssemblyPaths.Add("c:\\analyzer1.dll");
+
+            expected.AnalyzersSettings = new List<AnalyzerSettings>();
+            expected.AnalyzersSettings.Add(settings);
 
             AssertExpectedValues(expected, actual);
         }
@@ -223,7 +234,7 @@ namespace SonarQube.Common.UnitTests
 
             CompareAdditionalSettings(expected, actual);
 
-            CompareAnalyzerSettings(expected.AnalyzerSettings, actual.AnalyzerSettings);
+            CompareAnalyzerSettings(expected.AnalyzersSettings, actual.AnalyzersSettings);
         }
 
         private static void CompareAdditionalSettings(AnalysisConfig expected, AnalysisConfig actual)
@@ -253,20 +264,30 @@ namespace SonarQube.Common.UnitTests
             Assert.AreEqual(expectedValue, actualSetting.Value, "Setting does not have the expected value. SettingId: {0}", settingId);
         }
 
-        private static void CompareAnalyzerSettings(AnalyzerSettings expected, AnalyzerSettings actual)
+        private static void CompareAnalyzerSettings(IList<AnalyzerSettings> expectedList, IList<AnalyzerSettings> actualList)
         {
-            if (expected == null)
+            Assert.IsNotNull(actualList, "Not expecting the AnalyzersSettings to be null for a reloaded file");
+
+            if (expectedList == null)
             {
-                Assert.IsNull(actual, "Expecting the reloaded analyzer settings to be null");
+                Assert.IsTrue(actualList.Count == 0, "Expecting the reloaded analyzers settings to be empty");
                 return;
             }
 
-            Assert.IsNotNull(actual, "Not expecting the actual analyzer settings to be null for a reloaded file");
+            Assert.IsNotNull(actualList, "Not expecting the actual analyzers settings to be null for a reloaded file");
 
-            Assert.AreEqual(expected.RuleSetFilePath, actual.RuleSetFilePath, "Unexpected Ruleset value");
+            Assert.AreEqual(expectedList.Count, actualList.Count, "Expecting number of analyzer settings to be the same");
+            
+            for(int i = 0; i < actualList.Count; i++)
+            {
+                AnalyzerSettings actual = actualList[i];
+                AnalyzerSettings expected = expectedList[i];
 
-            CollectionAssert.AreEqual(expected.AnalyzerAssemblyPaths, actual.AnalyzerAssemblyPaths, "Analyzer assembly paths do not match");
-            CollectionAssert.AreEqual(expected.AdditionalFilePaths, actual.AdditionalFilePaths, "Additional file paths do not match");
+                Assert.AreEqual(expected.RuleSetFilePath, actual.RuleSetFilePath, "Unexpected Ruleset value");
+
+                CollectionAssert.AreEqual(expected.AnalyzerAssemblyPaths, actual.AnalyzerAssemblyPaths, "Analyzer assembly paths do not match");
+                CollectionAssert.AreEqual(expected.AdditionalFilePaths, actual.AdditionalFilePaths, "Additional file paths do not match");
+            }
         }
 
         #endregion

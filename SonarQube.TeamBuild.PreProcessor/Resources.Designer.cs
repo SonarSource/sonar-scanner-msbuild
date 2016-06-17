@@ -326,16 +326,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to C# plugin is not installed so there is no C# ruleset or Roslyn analyzer information to retrieve.
-        /// </summary>
-        public static string RAP_CSharpPluginNotInstalled {
-            get {
-                return ResourceManager.GetString("RAP_CSharpPluginNotInstalled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run.
+        ///   Looks up a localized string similar to No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for {0}.
         /// </summary>
         public static string RAP_NoAnalyzerPluginsSpecified {
             get {
@@ -344,7 +335,16 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not obtain a C# profile for project &apos;{0}&apos;.
+        ///   Looks up a localized string similar to No plugins found with rulesets for Roslyn analyzer.
+        /// </summary>
+        public static string RAP_NoPluginInstalled {
+            get {
+                return ResourceManager.GetString("RAP_NoPluginInstalled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not obtain a {0} profile for project &apos;{1}&apos;.
         /// </summary>
         public static string RAP_NoProfileForProject {
             get {
@@ -380,7 +380,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Provisioning analyzer assemblies....
+        ///   Looks up a localized string similar to Provisioning analyzer assemblies for {0}....
         /// </summary>
         public static string RAP_ProvisioningAnalyzerAssemblies {
             get {

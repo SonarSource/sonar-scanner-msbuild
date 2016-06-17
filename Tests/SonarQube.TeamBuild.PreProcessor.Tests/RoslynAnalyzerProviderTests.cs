@@ -63,10 +63,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
             
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
+            IEnumerable<AnalyzerSettings> actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
-            AssertAnalyzerSetupNotPerformed(actualSettings, rootDir);
+            AssertNoRulesetFiles(actualSettings, rootDir);
 
             logger.AssertErrorsLogged(0);
         }
@@ -84,10 +84,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "unknown.project", null);
+            IEnumerable<AnalyzerSettings> actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "unknown.project", null);
 
             // Assert
-            AssertAnalyzerSetupNotPerformed(actualSettings, rootDir);
+            AssertNoRulesetFiles(actualSettings, rootDir);
 
             logger.AssertErrorsLogged(0);
         }
@@ -104,15 +104,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // calling an older plugin version)
             MockSonarQubeServer mockServer = CreateValidServer("valid.project", null, "valid.profile");
             QualityProfile csProfile = mockServer.Data.FindProfile("valid.profile", RoslynAnalyzerProvider.CSharpLanguage);
-            csProfile.SetExport(RoslynAnalyzerProvider.RoslynCSharpFormatName, null);
+            csProfile.SetExport(RoslynAnalyzerProvider.GetRoslynFormatName(RoslynAnalyzerProvider.CSharpLanguage), null);
             
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
+            IEnumerable<AnalyzerSettings> actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
-            AssertAnalyzerSetupNotPerformed(actualSettings, rootDir);
+            AssertNoRulesetFiles(actualSettings, rootDir);
 
             logger.AssertErrorsLogged(0);
         }
@@ -127,7 +127,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             MockSonarQubeServer mockServer = CreateValidServer("valid.project", null, "valid.profile");
             QualityProfile csProfile = mockServer.Data.FindProfile("valid.profile", RoslynAnalyzerProvider.CSharpLanguage);
-            csProfile.SetExport(RoslynAnalyzerProvider.RoslynCSharpFormatName, @"<?xml version=""1.0"" encoding=""utf-8""?>
+            csProfile.SetExport(RoslynAnalyzerProvider.GetRoslynFormatName(RoslynAnalyzerProvider.CSharpLanguage), @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0="">
   <Configuration>
     <!-- Missing ruleset -->
@@ -142,10 +142,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
+            IEnumerable<AnalyzerSettings> actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
-            AssertAnalyzerSetupNotPerformed(actualSettings, rootDir);
+            AssertNoRulesetFiles(actualSettings, rootDir);
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
@@ -171,10 +171,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", "missingBranch");
+            IEnumerable<AnalyzerSettings> actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", "missingBranch");
 
             // Assert
-            AssertAnalyzerSetupNotPerformed(actualSettings, rootDir);
+            AssertNoRulesetFiles(actualSettings, rootDir);
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
@@ -197,18 +197,72 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
+            IEnumerable<AnalyzerSettings> actualSettingsEnum = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
+            CheckContainsOneAnalyzer(actualSettingsEnum);
+            AnalyzerSettings actualSettings = actualSettingsEnum.First();
             CheckSettingsInvariants(actualSettings);
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
 
-            CheckRuleset(actualSettings, rootDir);
+            CheckRuleset(actualSettings, rootDir, RoslynAnalyzerProvider.CSharpLanguage);
             CheckExpectedAdditionalFiles(testProfile, actualSettings);
 
             mockInstaller.AssertExpectedPluginsRequested(testProfile.Plugins);
             CheckExpectedAssemblies(actualSettings, "c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
+        }
+
+        [TestMethod]
+        public void RoslynConfig_MultipleLanguages()
+        {
+            string profileName = "valid.profile";
+            string projectKey = "projectKey";
+            string projectBranch = null;
+
+            // Arrange
+            string rootDir = CreateTestFolders();
+            TestLogger logger = new TestLogger();
+            TeamBuildSettings settings = CreateSettings(rootDir);
+
+            // Add CSharp
+            WellKnownProfile testCSProfile = CreateValidCSharpProfile();
+            MockSonarQubeServer mockServer = CreateServer(projectKey, projectBranch, profileName, testCSProfile);
+
+            // Add VBNet
+            WellKnownProfile testVBNetProfile = CreateValidVBNetProfile();
+            mockServer.Data.AddQualityProfile(profileName, RoslynAnalyzerProvider.VBNetLanguage)
+             .AddProject(projectKey)
+             .AddProject("dummy")
+             .SetExport(testVBNetProfile.Format, testVBNetProfile.Content);
+
+            mockServer.Data.InstalledPlugins.Add(RoslynAnalyzerProvider.VBNetPluginKey);
+            mockServer.Data.AddRepository(RoslynAnalyzerProvider.VBNetRepositoryKey, RoslynAnalyzerProvider.VBNetLanguage);
+
+            // Test
+            MockAnalyzerInstaller mockInstaller = new MockAnalyzerInstaller();
+            mockInstaller.AssemblyPathsToReturn = new HashSet<string>(new string[] { "c:\\assembly1.dll", "d:\\foo\\assembly2.dll" });
+
+            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
+
+            // Act
+            IEnumerable<AnalyzerSettings> actualSettingsEnum = testSubject.SetupAnalyzers(mockServer, settings, projectKey, null);
+
+            // Assert
+            Assert.IsTrue(actualSettingsEnum.Count() == 2, "Expecting settings list to have 2 elements (CS and VBNet), but had {0}", actualSettingsEnum.Count());
+
+            foreach (AnalyzerSettings actualSettings in actualSettingsEnum)
+            {
+                CheckSettingsInvariants(actualSettings);
+                CheckRuleset(actualSettings, rootDir, actualSettings.Language);
+                CheckExpectedAssemblies(actualSettings, "c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
+            }
+
+            logger.AssertWarningsLogged(0);
+            logger.AssertErrorsLogged(0);
+
+            mockInstaller.AssertExpectedPluginsRequested(testVBNetProfile.Plugins);
+            mockInstaller.AssertExpectedPluginsRequested(testCSProfile.Plugins);
         }
 
         [TestMethod]
@@ -233,14 +287,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", "aBranch");
+            IEnumerable<AnalyzerSettings> actualSettingsEnum = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", "aBranch");
 
             // Assert
+            CheckContainsOneAnalyzer(actualSettingsEnum);
+            AnalyzerSettings actualSettings = actualSettingsEnum.First();
             CheckSettingsInvariants(actualSettings);
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
 
-            CheckRuleset(actualSettings, rootDir);
+            CheckRuleset(actualSettings, rootDir, RoslynAnalyzerProvider.CSharpLanguage);
             CheckExpectedAdditionalFiles(branchSpecificProfile, actualSettings);
 
             mockInstaller.AssertExpectedPluginsRequested(branchSpecificProfile.Plugins);
@@ -261,13 +317,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
+            IEnumerable<AnalyzerSettings> actualSettingsEnum = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
+            CheckContainsOneAnalyzer(actualSettingsEnum);
+            AnalyzerSettings actualSettings = actualSettingsEnum.First();
             CheckSettingsInvariants(actualSettings);
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
-            CheckRuleset(actualSettings, rootDir);
+            CheckRuleset(actualSettings, rootDir, RoslynAnalyzerProvider.CSharpLanguage);
             CheckExpectedAdditionalFiles(testProfile, actualSettings);
 
             // Check the additional file is valid XML
@@ -289,7 +347,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             string expectedFileContent = "bar";
 
-            csProfile.SetExport(RoslynAnalyzerProvider.RoslynCSharpFormatName, @"<?xml version=""1.0"" encoding=""utf-8""?>
+            csProfile.SetExport(RoslynAnalyzerProvider.GetRoslynFormatName(RoslynAnalyzerProvider.CSharpLanguage), @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0="">
   <Configuration>
     <RuleSet />
@@ -304,11 +362,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
+            IEnumerable<AnalyzerSettings> actualSettingsEnum = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
+            CheckContainsOneAnalyzer(actualSettingsEnum);
+            AnalyzerSettings actualSettings = actualSettingsEnum.First();
             CheckSettingsInvariants(actualSettings);
-            CheckRuleset(actualSettings, rootDir);
+            CheckRuleset(actualSettings, rootDir, RoslynAnalyzerProvider.CSharpLanguage);
             CheckExpectedAdditionalFileExists("foo.txt", expectedFileContent, actualSettings);
 
             logger.AssertErrorsLogged(0);
@@ -328,7 +388,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             MockSonarQubeServer mockServer = CreateValidServer("valid.project", null, "valid.profile");
             QualityProfile csProfile = mockServer.Data.FindProfile("valid.profile", RoslynAnalyzerProvider.CSharpLanguage);
-            csProfile.SetExport(RoslynAnalyzerProvider.RoslynCSharpFormatName, @"<?xml version=""1.0"" encoding=""utf-8""?>
+            csProfile.SetExport(RoslynAnalyzerProvider.GetRoslynFormatName(RoslynAnalyzerProvider.CSharpLanguage), @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0="">
   <Configuration>
     <RuleSet />
@@ -344,11 +404,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
+            IEnumerable<AnalyzerSettings> actualSettingsEnum = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
+            CheckContainsOneAnalyzer(actualSettingsEnum);
+            AnalyzerSettings actualSettings = actualSettingsEnum.First();
             CheckSettingsInvariants(actualSettings);
-            CheckRuleset(actualSettings, rootDir);
+            CheckRuleset(actualSettings, rootDir, RoslynAnalyzerProvider.CSharpLanguage);
             CheckExpectedAdditionalFileExists("foo.txt", expectedFileContent, actualSettings);
             CheckExpectedAdditionalFileExists("file2.txt", string.Empty, actualSettings);
 
@@ -366,7 +428,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             MockSonarQubeServer mockServer = CreateValidServer("valid.project", null, "valid.profile");
             QualityProfile csProfile = mockServer.Data.FindProfile("valid.profile", RoslynAnalyzerProvider.CSharpLanguage);
-            csProfile.SetExport(RoslynAnalyzerProvider.RoslynCSharpFormatName, @"<?xml version=""1.0"" encoding=""utf-8""?>
+            csProfile.SetExport(RoslynAnalyzerProvider.GetRoslynFormatName(RoslynAnalyzerProvider.CSharpLanguage), @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RoslynExportProfile Version=""1.0="">
   <Configuration>
     <RuleSet />
@@ -380,9 +442,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
+            IEnumerable<AnalyzerSettings> actualSettingsEnum = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
             // Assert
+            CheckContainsOneAnalyzer(actualSettingsEnum);
+            AnalyzerSettings actualSettings = actualSettingsEnum.First();
             CheckSettingsInvariants(actualSettings);
 
             CheckExpectedAssemblies(actualSettings /* none */ );
@@ -421,7 +485,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return CreateServer(validProjectKey, validProjectBranch, validProfileName, CreateValidCSharpProfile());
         }
 
-        private MockSonarQubeServer CreateServer(string projectKey, string projectBranch, string profileName, WellKnownProfile profile)
+        private MockSonarQubeServer CreateServer(string projectKey, string projectBranch, string profileName, WellKnownProfile csProfile)
         {
             ServerDataModel model = new ServerDataModel();
 
@@ -435,12 +499,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             MockSonarQubeServer server = new MockSonarQubeServer();
             server.Data = model;
 
-            AddWellKnownProfileToServer(projectKey, projectBranch, profileName, profile, server);
+            AddWellKnownProfileToServer(projectKey, projectBranch, profileName, csProfile, server);
 
             return server;
         }
 
-        private void AddWellKnownProfileToServer(string projectKey, string projectBranch, string profileName, WellKnownProfile profile, MockSonarQubeServer server)
+        private void AddWellKnownProfileToServer(string projectKey, string projectBranch, string profileName, WellKnownProfile csProfile, MockSonarQubeServer server)
         {
             string projectId = projectKey;
             if (!String.IsNullOrWhiteSpace(projectBranch))
@@ -451,13 +515,69 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             server.Data.AddQualityProfile(profileName, "vb")
                 .AddProject(projectId)
                 .AddProject(profileName)
-                .SetExport(profile.Format, "Invalid content - this export should not be requested");
+                .SetExport(csProfile.Format, "Invalid content - this export should not be requested");
 
             // Create a C# quality profile for the supplied profile
             server.Data.AddQualityProfile(profileName, RoslynAnalyzerProvider.CSharpLanguage)
                 .AddProject(projectId)
                 .AddProject("dummy project3") // more dummy data - apply the quality profile to another dummy project
-                .SetExport(profile.Format, profile.Content);
+                .SetExport(csProfile.Format, csProfile.Content);
+        }
+
+        private static WellKnownProfile CreateValidVBNetProfile()
+        {
+            string file1Content = @"<AnalysisInput>
+    <Rules>
+    <Rule>
+        <Key>S1067</Key>
+        <Parameters>
+        <Parameter>
+            <Key>max</Key>
+            <Value>3</Value>
+        </Parameter>
+        </Parameters>
+    </Rule>
+    </Rules>
+    <Files>
+    </Files>
+</AnalysisInput>
+";
+
+            string file2Content = "<Foo />";
+
+            string xml = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RoslynExportProfile Version=""1.0="">
+  <Configuration>
+    <RuleSet Name=""Rules for SonarQube"" Description=""This rule set was automatically generated from SonarQube."" ToolsVersion=""14.0"">
+      <Rules AnalyzerId=""SonarLint.VisualBasic"" RuleNamespace=""SonarLint.VisualBasic"">
+        <Rule Id=""S2372"" Action=""Warning"" />
+        <Rule Id=""S2350"" Action=""Warning"" />
+        <!-- other rules omitted -->
+      </Rules>
+    </RuleSet>
+    <AdditionalFiles>
+      <AdditionalFile FileName=""SonarLint.xml"" >" + GetBase64EncodedString(file1Content) + @"</AdditionalFile>
+      <AdditionalFile FileName=""MyAnalyzerData.xml"" >" + GetBase64EncodedString(file2Content) + @"</AdditionalFile>
+    </AdditionalFiles>
+  </Configuration>
+
+  <Deployment>
+    <Plugins>
+      <Plugin Key=""vbnet"" Version=""1.13.0"" />
+    </Plugins>
+    <NuGetPackages>
+      <NuGetPackage Id=""SonarAnalyzer.VisualBasic"" Version=""1.13.0"" />
+    </NuGetPackages>
+  </Deployment>
+</RoslynExportProfile>";
+
+            WellKnownProfile profile = new WellKnownProfile(RoslynAnalyzerProvider.GetRoslynFormatName(RoslynAnalyzerProvider.VBNetLanguage), xml);
+            profile.SetAdditionalFile("SonarLint.xml", file1Content);
+            profile.SetAdditionalFile("MyAnalyzerData.xml", file2Content);
+
+            profile.AddPlugin("vbnet");
+
+            return profile;
         }
 
         private static WellKnownProfile CreateValidCSharpProfile()
@@ -512,7 +632,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
   </Deployment>
 </RoslynExportProfile>";
 
-            WellKnownProfile profile = new WellKnownProfile(RoslynAnalyzerProvider.RoslynCSharpFormatName, xml);
+            WellKnownProfile profile = new WellKnownProfile(RoslynAnalyzerProvider.GetRoslynFormatName(RoslynAnalyzerProvider.CSharpLanguage), xml);
             profile.SetAdditionalFile("SonarLint.xml", file1Content);
             profile.SetAdditionalFile("MyAnalyzerData.xml", file2Content);
 
@@ -524,7 +644,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static WellKnownProfile CreateRealSonarLintProfile()
         {
-            WellKnownProfile profile = new WellKnownProfile(RoslynAnalyzerProvider.RoslynCSharpFormatName, SampleExportXml.RoslynExportedValidSonarLintXml);
+            WellKnownProfile profile = new WellKnownProfile(RoslynAnalyzerProvider.GetRoslynFormatName(RoslynAnalyzerProvider.CSharpLanguage), SampleExportXml.RoslynExportedValidSonarLintXml);
             profile.SetAdditionalFile(SampleExportXml.RoslynExportedAdditionalFileName, null /* don't check */);
             profile.AddPlugin(SampleExportXml.RoslynExportedPluginKey);
 
@@ -537,9 +657,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return settings;
         }
 
-        private static string GetExpectedRulesetFilePath(string rootDir)
+        private static string GetExpectedRulesetFilePath(string rootDir, string language)
         {
-            return Path.Combine(GetConfPath(rootDir), RoslynAnalyzerProvider.RoslynCSharpRulesetFileName);
+            return Path.Combine(GetConfPath(rootDir), RoslynAnalyzerProvider.GetRoslynRulesetFileName(language));
         }
 
         private static string GetConfPath(string rootDir)
@@ -561,6 +681,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region Checks
 
+        private static void CheckContainsOneAnalyzer(IEnumerable<AnalyzerSettings> actualSettingsList)
+        {
+            Assert.IsNotNull(actualSettingsList, "Not expecting the settings list to be null");
+            Assert.IsTrue(actualSettingsList.Count() == 1, "Expecting settings list to have one element");
+        }
+
         private static void CheckSettingsInvariants(AnalyzerSettings actualSettings)
         {
             Assert.IsNotNull(actualSettings, "Not expecting the config to be null");
@@ -576,7 +702,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsTrue(File.Exists(actualSettings.RuleSetFilePath), "Specified ruleset does not exist: {0}", actualSettings.RuleSetFilePath);
         }
 
-        private void CheckRuleset(AnalyzerSettings actualSettings, string rootTestDir)
+        private void CheckRuleset(AnalyzerSettings actualSettings, string rootTestDir, string language)
         {
             Assert.IsFalse(string.IsNullOrWhiteSpace(actualSettings.RuleSetFilePath), "Ruleset file path should be set");
             Assert.IsTrue(Path.IsPathRooted(actualSettings.RuleSetFilePath), "Ruleset file path should be absolute");
@@ -585,9 +711,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             CheckFileIsXml(actualSettings.RuleSetFilePath);
 
-            Assert.AreEqual(RoslynAnalyzerProvider.RoslynCSharpRulesetFileName, Path.GetFileName(actualSettings.RuleSetFilePath), "Ruleset file does not have the expected name");
+            Assert.AreEqual(RoslynAnalyzerProvider.GetRoslynRulesetFileName(language), Path.GetFileName(actualSettings.RuleSetFilePath), "Ruleset file does not have the expected name");
 
-            string expectedFilePath = GetExpectedRulesetFilePath(rootTestDir);
+            string expectedFilePath = GetExpectedRulesetFilePath(rootTestDir, language);
             Assert.AreEqual(expectedFilePath, actualSettings.RuleSetFilePath, "Ruleset was not written to the expected location");
 
         }
@@ -623,11 +749,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             }
         }
 
-        private static void AssertAnalyzerSetupNotPerformed(AnalyzerSettings actualSettings, string rootTestDir)
+        private static void AssertNoRulesetFiles(IEnumerable<AnalyzerSettings> actualSettings, string rootTestDir)
         {
             Assert.IsNotNull(actualSettings, "Not expecting the settings to be null");
 
-            string filePath = GetExpectedRulesetFilePath(rootTestDir);
+            string filePath = GetExpectedRulesetFilePath(rootTestDir, RoslynAnalyzerProvider.CSharpLanguage);
+            Assert.IsFalse(File.Exists(filePath), "Not expecting the ruleset file to exist: {0}", filePath);
+
+            filePath = GetExpectedRulesetFilePath(rootTestDir, RoslynAnalyzerProvider.VBNetLanguage);
             Assert.IsFalse(File.Exists(filePath), "Not expecting the ruleset file to exist: {0}", filePath);
         }
 

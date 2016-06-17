@@ -125,8 +125,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual("name", actualConfig.SonarProjectName, "Unexpected project name");
             Assert.AreEqual("1.0", actualConfig.SonarProjectVersion, "Unexpected project version");
 
-            Assert.IsNotNull(actualConfig.AnalyzerSettings, "Analyzer settings should not be null");
-            Assert.AreEqual("c:\\xxx.ruleset", actualConfig.AnalyzerSettings.RuleSetFilePath, "Unexpected ruleset path");
+            Assert.IsNotNull(actualConfig.AnalyzersSettings, "Analyzer settings should not be null");
+            Assert.IsTrue(actualConfig.AnalyzersSettings.Count == 1);
+            Assert.AreEqual("c:\\xxx.ruleset", actualConfig.AnalyzersSettings[0].RuleSetFilePath, "Unexpected ruleset path");
 
             AssertExpectedLocalSetting(SonarProperties.HostUrl, "http://host", actualConfig);
             AssertExpectedLocalSetting("cmd.line1", "cmdline.value.1", actualConfig);

@@ -89,14 +89,27 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             filesInConfig.Add("c:\\not_an_assembly.winmd");
 
             AnalysisConfig config = new AnalysisConfig();
-            config.AnalyzerSettings = new AnalyzerSettings();
-            config.AnalyzerSettings.RuleSetFilePath = "f:\\yyy.ruleset";
-            config.AnalyzerSettings.AnalyzerAssemblyPaths = filesInConfig;
-            config.AnalyzerSettings.AdditionalFilePaths = expectedAdditionalFiles.ToList();
+            config.AnalyzersSettings = new List<AnalyzerSettings>();
+            
+            AnalyzerSettings settings = new AnalyzerSettings();
+            settings.Language = "my lang";
+            settings.RuleSetFilePath = "f:\\yyy.ruleset";
+            settings.AnalyzerAssemblyPaths = filesInConfig;
+            settings.AdditionalFilePaths = expectedAdditionalFiles.ToList();
+            config.AnalyzersSettings.Add(settings);
+
+            AnalyzerSettings anotherSettings = new AnalyzerSettings();
+            anotherSettings.Language = "cobol";
+            anotherSettings.RuleSetFilePath = "f:\\xxx.ruleset";
+            anotherSettings.AnalyzerAssemblyPaths = filesInConfig;
+            anotherSettings.AdditionalFilePaths = expectedAdditionalFiles.ToList();
+            config.AnalyzersSettings.Add(anotherSettings);
+
             string fullPath = Path.Combine(testDir, FileConstants.ConfigFileName);
             config.Save(fullPath);
 
             testSubject.AnalysisConfigDir = testDir;
+            testSubject.Language = "my lang";
 
             // Act
             ExecuteAndCheckSuccess(testSubject);

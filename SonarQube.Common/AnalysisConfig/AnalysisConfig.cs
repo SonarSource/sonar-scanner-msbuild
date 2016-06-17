@@ -71,7 +71,7 @@ namespace SonarQube.Common
         /// <summary>
         /// Configuration for Roslyn analysers
         /// </summary>
-        public AnalyzerSettings AnalyzerSettings { get; set; }
+        public List<AnalyzerSettings> AnalyzersSettings { get; set; }
 
         #endregion
 

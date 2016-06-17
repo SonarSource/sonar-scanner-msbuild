@@ -10,6 +10,7 @@ using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -42,10 +43,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string[] expectedAdditionalFiles = new string[] { "c:\\config.1.txt", "c:\\config.2.txt" };
 
             AnalysisConfig config = new AnalysisConfig();
-            config.AnalyzerSettings = new AnalyzerSettings();
-            config.AnalyzerSettings.RuleSetFilePath = "d:\\my.ruleset";
-            config.AnalyzerSettings.AnalyzerAssemblyPaths = expectedAssemblies.ToList();
-            config.AnalyzerSettings.AdditionalFilePaths = expectedAdditionalFiles.ToList();
+
+            AnalyzerSettings analyzerSettings = new AnalyzerSettings();
+            analyzerSettings.Language = "cs";
+            analyzerSettings.RuleSetFilePath = "d:\\my.ruleset";
+            analyzerSettings.AnalyzerAssemblyPaths = expectedAssemblies.ToList();
+            analyzerSettings.AdditionalFilePaths = expectedAdditionalFiles.ToList();
+            config.AnalyzersSettings = new List<AnalyzerSettings>();
+            config.AnalyzersSettings.Add(analyzerSettings);
+
             string configFilePath = Path.Combine(confDir, FileConstants.ConfigFileName);
             config.Save(configFilePath);
 

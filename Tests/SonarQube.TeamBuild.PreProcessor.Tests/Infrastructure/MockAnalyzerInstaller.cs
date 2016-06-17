@@ -17,8 +17,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         #region Test helpers
 
         public ISet<string> AssemblyPathsToReturn { get; set; }
-        
-        public IEnumerable<Plugin> SuppliedPlugins { get; private set; }
+
+        public List<Plugin> SuppliedPlugins = new List<Plugin>();
 
         #endregion
 
@@ -30,12 +30,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             {
                 AssertExpectedPluginRequested(plugin);
             }
-            Assert.AreEqual(plugins.Count(), this.SuppliedPlugins.Count(), "Unexpected number of plugins requested");
         }
 
         public void AssertExpectedPluginRequested(string key)
         {
-            Assert.IsNotNull(this.SuppliedPlugins, "No plugins have been requested");
+            Assert.IsFalse(this.SuppliedPlugins == null || !this.SuppliedPlugins.Any(), "No plugins have been requested");
             bool found = this.SuppliedPlugins.Any(p => string.Equals(key, p.Key, System.StringComparison.Ordinal));
             Assert.IsTrue(found, "Expected plugin was not requested. Id: {0}", key);
         }
@@ -48,7 +47,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             Assert.IsNotNull(plugins, "Supplied list of plugins should not be null");
 
-            this.SuppliedPlugins = plugins;
+            this.SuppliedPlugins.AddRange(plugins);
 
             return this.AssemblyPathsToReturn;
         }

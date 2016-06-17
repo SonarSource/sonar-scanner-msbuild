@@ -46,10 +46,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             analyzerSettings.AnalyzerAssemblyPaths = new List<string>();
             analyzerSettings.AnalyzerAssemblyPaths.Add("f:\\temp\\analyzer1.dll");
 
+            List<AnalyzerSettings> analyzersSettings = new List<AnalyzerSettings>();
+            analyzersSettings.Add(analyzerSettings);
             Directory.CreateDirectory(tbSettings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(args, tbSettings, serverSettings, analyzerSettings, logger);
+            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(args, tbSettings, serverSettings, analyzersSettings, logger);
 
             // Assert
             AssertConfigFileExists(actualConfig);
@@ -73,8 +75,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Property serverProperty = actualConfig.ServerSettings.SingleOrDefault(s => string.Equals(s.Id, "server.key.1", System.StringComparison.Ordinal));
             Assert.IsNotNull(serverProperty);
             Assert.AreEqual("server.value.1", serverProperty.Value);
-
-            Assert.AreSame(analyzerSettings, actualConfig.AnalyzerSettings);
+            Assert.AreSame(analyzerSettings, actualConfig.AnalyzersSettings[0]);
         }
 
         [TestMethod]
@@ -103,7 +104,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new AnalyzerSettings(), logger);
+            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), logger);
 
             // Assert
             AssertConfigFileExists(actualConfig);
@@ -164,7 +165,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            AnalysisConfig config = AnalysisConfigGenerator.GenerateFile(args, settings, serverProperties, new AnalyzerSettings(), logger);
+            AnalysisConfig config = AnalysisConfigGenerator.GenerateFile(args, settings, serverProperties, new List<AnalyzerSettings>(), logger);
 
             // Assert
             AssertConfigFileExists(config);

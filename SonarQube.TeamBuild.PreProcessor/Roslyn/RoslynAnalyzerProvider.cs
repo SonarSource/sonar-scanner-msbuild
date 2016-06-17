@@ -18,12 +18,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
     public class RoslynAnalyzerProvider : IAnalyzerProvider
     {
-        public const string RoslynCSharpFormatName = "roslyn-cs";
-        public const string RoslynCSharpRulesetFileName = "SonarQubeRoslyn-cs.ruleset";
+        public const string RoslynFormatNamePrefix = "roslyn-{0}";
+        public const string RoslynRulesetFileName = "SonarQubeRoslyn-{0}.ruleset";
 
         public const string CSharpLanguage = "cs";
         public const string CSharpPluginKey = "csharp";
         public const string CSharpRepositoryKey = "csharp";
+
+        public const string VBNetLanguage = "vbnet";
+        public const string VBNetPluginKey = "vbnet";
+        public const string VBNetRepositoryKey = "vbnet";
 
         private readonly IAnalyzerInstaller analyzerInstaller;
         private readonly ILogger logger;
@@ -48,7 +52,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             this.logger = logger;
         }
 
-        public AnalyzerSettings SetupAnalyzers(ISonarQubeServer server, TeamBuildSettings settings, string projectKey, string projectBranch)
+        public IEnumerable<AnalyzerSettings> SetupAnalyzers(ISonarQubeServer server, TeamBuildSettings settings, string projectKey, string projectBranch)
         {
             if (server == null)
             {
@@ -63,53 +67,71 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 throw new ArgumentNullException("projectKey");
             }
 
-            AnalyzerSettings analyzerSettings = null;
-            if (IsCSharpPluginInstalled(server))
-            {
-                this.sqServer = server;
-                this.sqSettings = settings;
-                this.sqProjectKey = projectKey;
-                this.sqProjectBranch = projectBranch;
+            this.sqServer = server;
+            this.sqSettings = settings;
+            this.sqProjectKey = projectKey;
+            this.sqProjectBranch = projectBranch;
 
-                RoslynExportProfile profile = TryGetRoslynConfigForProject();
+            IList<AnalyzerSettings> analyzersSettings = new List<AnalyzerSettings>();
+            IEnumerable<string> installedPlugins = server.GetInstalledPlugins();
+
+            if (installedPlugins.Contains(CSharpPluginKey))
+            {
+                RoslynExportProfile profile = TryGetRoslynConfigForProject(CSharpLanguage);
                 if (profile != null)
                 {
-                    analyzerSettings = ProcessProfile(profile);
+                    analyzersSettings.Add(ProcessExportedProfile(profile, CSharpLanguage));
                 }
             }
-            else
+            if (installedPlugins.Contains(VBNetPluginKey))
             {
-                logger.LogDebug(Resources.RAP_CSharpPluginNotInstalled);
+                RoslynExportProfile profile = TryGetRoslynConfigForProject(VBNetLanguage);
+                if (profile != null)
+                {
+                    analyzersSettings.Add(ProcessExportedProfile(profile, VBNetLanguage));
+                }
             }
 
-            return analyzerSettings ?? new AnalyzerSettings(); // return emtpy settings rather than null
+            if (!analyzersSettings.Any())
+            {
+                logger.LogDebug(Resources.RAP_NoPluginInstalled);
+            }
+
+            return analyzersSettings;
+        }
+
+        public static string GetRoslynFormatName(string language)
+        {
+            return string.Format(RoslynFormatNamePrefix, language);
+        }
+
+        public static string GetRoslynRulesetFileName(string language)
+        {
+            return string.Format(RoslynRulesetFileName, language);
         }
 
         #endregion
 
         #region Private methods
 
-        private static bool IsCSharpPluginInstalled(ISonarQubeServer server)
+        private RoslynExportProfile TryGetRoslynConfigForProject(string language)
         {
-            return server.GetInstalledPlugins().Contains(CSharpPluginKey);
-        }
-        
-        private RoslynExportProfile TryGetRoslynConfigForProject()
-        {
+            string roslynFormatName = GetRoslynFormatName(language);
             string qualityProfile;
-            if (!this.sqServer.TryGetQualityProfile(sqProjectKey, sqProjectBranch, CSharpLanguage, out qualityProfile))
+
+            if (!this.sqServer.TryGetQualityProfile(sqProjectKey, sqProjectBranch, language, out qualityProfile))
             {
-                this.logger.LogDebug(Resources.RAP_NoProfileForProject, this.sqProjectKey);
+                this.logger.LogDebug(Resources.RAP_NoProfileForProject, language, this.sqProjectKey);
                 return null;
             }
 
             string profileContent = null;
-            if (!sqServer.TryGetProfileExport(qualityProfile, CSharpLanguage, RoslynCSharpFormatName, out profileContent))
+            if (!sqServer.TryGetProfileExport(qualityProfile, language, roslynFormatName, out profileContent))
             {
-                this.logger.LogDebug(Resources.RAP_ProfileExportNotFound, RoslynCSharpFormatName, this.sqProjectKey);
+                this.logger.LogDebug(Resources.RAP_ProfileExportNotFound, roslynFormatName, this.sqProjectKey);
                 return null;
             }
-            this.logger.LogDebug(Resources.RAP_ProfileExportFound, RoslynCSharpFormatName, this.sqProjectKey);
+            this.logger.LogDebug(Resources.RAP_ProfileExportFound, roslynFormatName, this.sqProjectKey);
 
             RoslynExportProfile profile = null;
             using (StringReader reader = new StringReader(profileContent))
@@ -120,27 +142,26 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return profile;
         }
 
-        private AnalyzerSettings ProcessProfile(RoslynExportProfile profile)
+        private AnalyzerSettings ProcessExportedProfile(RoslynExportProfile profile, string language)
         {
             Debug.Assert(profile != null, "Expecting a valid profile");
 
-            string rulesetFilePath = this.UnpackRuleset(profile);
+            string rulesetFilePath = this.UnpackRuleset(profile, language);
             if (rulesetFilePath == null)
             {
                 return null;
             }
 
-            IEnumerable<string> additionalFiles = this.UnpackAdditionalFiles(profile);
+            IEnumerable<string> additionalFiles = this.UnpackAdditionalFiles(profile, language);
+            IEnumerable<string> analyzersAssemblies = this.FetchAnalyzerAssemblies(profile, language);
 
-            IEnumerable<string> analyzersAssemblies = this.FetchAnalyzerAssemblies(profile);
-
-            AnalyzerSettings compilerConfig = new AnalyzerSettings(rulesetFilePath,
+            AnalyzerSettings compilerConfig = new AnalyzerSettings(language, rulesetFilePath,
                 analyzersAssemblies ?? Enumerable.Empty<string>(),
                 additionalFiles ?? Enumerable.Empty<string>());
             return compilerConfig;
         }
 
-        private string UnpackRuleset(RoslynExportProfile profile)
+        private string UnpackRuleset(RoslynExportProfile profile, string language)
         {
             string rulesetFilePath = null;
             if (profile.Configuration.RuleSet == null)
@@ -149,7 +170,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             }
             else
             {
-                rulesetFilePath = GetRulesetFilePath(this.sqSettings);
+                rulesetFilePath = GetRulesetFilePath(this.sqSettings, language);
                 this.logger.LogDebug(Resources.RAP_UnpackingRuleset, rulesetFilePath);
 
                 XmlDocument doc = new XmlDocument();
@@ -159,19 +180,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return rulesetFilePath;
         }
 
-        private static string GetRulesetFilePath(TeamBuildSettings settings)
+        private static string GetRulesetFilePath(TeamBuildSettings settings, string language)
         {
-            return Path.Combine(settings.SonarConfigDirectory, RoslynCSharpRulesetFileName);
+            return Path.Combine(settings.SonarConfigDirectory, GetRoslynRulesetFileName(language));
         }
 
-        private IEnumerable<string> UnpackAdditionalFiles(RoslynExportProfile profile)
+        private IEnumerable<string> UnpackAdditionalFiles(RoslynExportProfile profile, string language)
         {
             Debug.Assert(profile.Configuration != null, "Supplied configuration should not be null");
 
             List<string> additionalFiles = new List<string>();
             foreach(AdditionalFile item in profile.Configuration.AdditionalFiles)
             {
-                string filePath = ProcessAdditionalFile(item);
+                string filePath = ProcessAdditionalFile(item, language);
                 if (filePath != null)
                 {
                     Debug.Assert(File.Exists(filePath), "Expecting the additional file to exist: {0}", filePath);
@@ -182,7 +203,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return additionalFiles;
         }
 
-        private string ProcessAdditionalFile(AdditionalFile file)
+        private string ProcessAdditionalFile(AdditionalFile file, string language)
         {
             if (string.IsNullOrWhiteSpace(file.FileName))
             {
@@ -190,7 +211,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 return null;
             }
 
-            string fullPath = Path.Combine(this.sqSettings.SonarConfigDirectory, file.FileName);
+            string langDir = Path.Combine(this.sqSettings.SonarConfigDirectory, language);
+            Directory.CreateDirectory(langDir);
+
+            string fullPath = Path.Combine(langDir, file.FileName);
             if (File.Exists(fullPath))
             {
                 this.logger.LogDebug(Resources.RAP_AdditionalFileAlreadyExists, file.FileName, fullPath);
@@ -202,16 +226,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return fullPath;
         }
         
-        private IEnumerable<string> FetchAnalyzerAssemblies(RoslynExportProfile profile)
+        private IEnumerable<string> FetchAnalyzerAssemblies(RoslynExportProfile profile, string language)
         {
             IEnumerable<string> analyzerAssemblyPaths = null;
             if (profile.Deployment == null || profile.Deployment.Plugins == null || profile.Deployment.Plugins.Count == 0)
             {
-                this.logger.LogInfo(Resources.RAP_NoAnalyzerPluginsSpecified);
+                this.logger.LogInfo(Resources.RAP_NoAnalyzerPluginsSpecified, language);
             }
             else
             {
-                this.logger.LogInfo(Resources.RAP_ProvisioningAnalyzerAssemblies);
+                this.logger.LogInfo(Resources.RAP_ProvisioningAnalyzerAssemblies, language);
                 analyzerAssemblyPaths = this.analyzerInstaller.InstallAssemblies(profile.Deployment.Plugins);
             }
             return analyzerAssemblyPaths;

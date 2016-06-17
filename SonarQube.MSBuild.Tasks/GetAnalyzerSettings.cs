@@ -10,6 +10,7 @@ using Microsoft.Build.Utilities;
 using SonarQube.Common;
 using System;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -30,6 +31,11 @@ namespace SonarQube.MSBuild.Tasks
         public string AnalysisConfigDir { get; set; }
 
         /// <summary>
+        /// The language for which we are gettings the settings
+        /// </summary>
+        public string Language { get; set; }
+
+        /// <summary>
         /// Path to the generated ruleset file to use
         /// </summary>
         [Output]
@@ -45,7 +51,7 @@ namespace SonarQube.MSBuild.Tasks
         /// List of additional files to pass to the compiler
         /// </summary>
         [Output]
-        public string[] AdditionalFiles{ get; private set; }
+        public string[] AdditionalFiles { get; private set; }
 
         #endregion Input properties
 
@@ -56,26 +62,34 @@ namespace SonarQube.MSBuild.Tasks
             bool taskSuccess = true;
 
             AnalysisConfig config = TaskUtilities.TryGetConfig(this.AnalysisConfigDir, new MSBuildLoggerAdapter(this.Log));
-            
-            if (config != null)
+
+            if (config != null && Language != null)
             {
-                AnalyzerSettings settings = config.AnalyzerSettings;
-                if (settings == null)
+                IList<AnalyzerSettings> analyzers = config.AnalyzersSettings;
+                if (analyzers == null)
                 {
-                    this.Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig);
+                    this.Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
                 }
                 else
                 {
-                    this.RuleSetFilePath = settings.RuleSetFilePath;
-
-                    if (settings.AnalyzerAssemblyPaths != null)
+                    AnalyzerSettings settings = analyzers.SingleOrDefault(s => Language.Equals(s.Language));
+                    if (settings != null)
                     {
-                        this.AnalyzerFilePaths = settings.AnalyzerAssemblyPaths.Where(f => IsAssemblyLibraryFileName(f)).ToArray();
+                        this.RuleSetFilePath = settings.RuleSetFilePath;
+
+                        if (settings.AnalyzerAssemblyPaths != null)
+                        {
+                            this.AnalyzerFilePaths = settings.AnalyzerAssemblyPaths.Where(f => IsAssemblyLibraryFileName(f)).ToArray();
+                        }
+
+                        if (settings.AdditionalFilePaths != null)
+                        {
+                            this.AdditionalFiles = settings.AdditionalFilePaths.ToArray();
+                        }
                     }
-
-                    if (settings.AdditionalFilePaths != null)
+                    else
                     {
-                        this.AdditionalFiles = settings.AdditionalFilePaths.ToArray();
+                        this.Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
                     }
                 }
             }
