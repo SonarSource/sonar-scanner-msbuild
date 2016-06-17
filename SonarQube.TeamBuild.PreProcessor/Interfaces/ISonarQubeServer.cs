@@ -7,6 +7,7 @@
 
 using System.Collections.Generic;
 using SonarQube.Common;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -16,20 +17,14 @@ namespace SonarQube.TeamBuild.PreProcessor
     /// </summary>
     public interface ISonarQubeServer
     {
-        /// <summary>
-        /// Get all the active rules (of the given language and repository) in the given quality profile name
-        /// </summary>
-        IEnumerable<string> GetActiveRuleKeys(string qualityProfile, string language, string repository);
+        IList<string> GetInactiveRules(string qprofile, string language);
+
+        IList<ActiveRule> GetActiveRules(string qprofile);
 
         /// <summary>
         /// Get all keys of all installed plugins
         /// </summary>
         IEnumerable<string> GetInstalledPlugins();
-
-        /// <summary>
-        /// Get the key -> internal keys mapping (of the given language and repository)
-        /// </summary>
-        IDictionary<string, string> GetInternalKeys(string repository);
 
         /// <summary>
         /// Get all the properties of a project
@@ -40,13 +35,6 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// Get the name of the quality profile (of the given language) to be used by the given project key
         /// </summary>
         bool TryGetQualityProfile(string projectKey, string projectBranch, string language, out string qualityProfile);
-
-        /// <summary>
-        /// Get the quality profile for the given language in the specified format
-        /// </summary>
-        /// <param name="format">The format in which the profile should be exported e.g. sonarlint-vs-cs</param>
-        /// <returns>True if the profile could be returned, otherwise false</returns>
-        bool TryGetProfileExport(string qualityProfile, string language, string format, out string content);
 
         /// <summary>
         /// Attempts to download a file embedded in the "static" folder in a plugin jar

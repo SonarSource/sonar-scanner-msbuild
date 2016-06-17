@@ -101,7 +101,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             foreach (Plugin plugin in plugins)
             {
                 IEnumerable<string> files = GetPluginResourceFiles(plugin);
-                foreach(string file in files)
+                foreach (string file in files)
                 {
                     allFiles.Add(file);
                 }
@@ -123,7 +123,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             string localCache = Path.Combine(Path.GetTempPath(), ".sonarqube", ".static");
             return localCache;
         }
-        
+
         private IEnumerable<string> GetPluginResourceFiles(Plugin plugin)
         {
             this.logger.LogDebug(RoslynResources.EAI_ProcessingPlugin, plugin.Key, plugin.Version);

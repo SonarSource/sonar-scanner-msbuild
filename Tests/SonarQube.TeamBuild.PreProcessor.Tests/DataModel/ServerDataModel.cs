@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -16,20 +17,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
     internal class ServerDataModel
     {
-        private readonly IList<Repository> repos;
         private readonly IList<QualityProfile> qualityProfiles;
         private readonly IDictionary<string, byte[]> embeddedFilesMap;
-
+    
         public ServerDataModel()
         {
-            this.repos = new List<Repository>();
             this.qualityProfiles = new List<QualityProfile>();
             this.ServerProperties = new Dictionary<string, string>();
             this.InstalledPlugins = new List<string>();
             this.embeddedFilesMap = new Dictionary<string, byte[]>();
         }
-
-        public IEnumerable<Repository> Repositories {  get { return this.repos; } }
 
         public IEnumerable<QualityProfile> QualityProfiles { get { return this.qualityProfiles; } }
 
@@ -39,34 +36,26 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region Builder methods
 
-        public Repository AddRepository(string repositoryKey, string language)
+        public QualityProfile AddQualityProfile(string id, string language)
         {
-            Repository repo = this.FindRepository(repositoryKey, language);
-            Assert.IsNull(repo, "A repository already exists. Key: {0}, language: {1}", repositoryKey, language);
+            QualityProfile profile = this.FindProfile(id);
+            Assert.IsNull(profile, "A quality profile already exists. Id: {0}, language: {1}", id, language);
 
-            repo = new Repository(repositoryKey, language);
-            this.repos.Add(repo);
-            return repo;
-        }
-
-        public QualityProfile AddQualityProfile(string name, string language)
-        {
-            QualityProfile profile = this.FindProfile(name, language);
-            Assert.IsNull(profile, "A quality profile already exists. Name: {0}, language: {1}", name, language);
-
-            profile = new QualityProfile(name, language);
+            profile = new QualityProfile(id, language);
             this.qualityProfiles.Add(profile);
             return profile;
         }
 
-        public void AddRuleToProfile(string ruleId, string profileName)
+        public void AddActiveRuleToProfile(string qProfile, ActiveRule rule)
         {
-            // We're assuming rule ids are unique across repositories
-            Rule rule = this.repos.SelectMany(repo => repo.Rules.Where(r => string.Equals(ruleId, r.Key))).Single();
+            QualityProfile profile = this.FindProfile(qProfile);
+            profile.ActiveRules.Add(rule);
+        }
 
-            QualityProfile profile = this.FindProfile(profileName, rule.Language);
-
-            profile.AddRule(rule);
+        public void AddInactiveRuleToProfile(string qProfile, string ruleKey)
+        {
+            QualityProfile profile = this.FindProfile(qProfile);
+            profile.InactiveRules.Add(ruleKey);
         }
 
         public void AddEmbeddedZipFile(string pluginKey, string embeddedFileName, params string[] contentFileNames)
@@ -78,17 +67,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region Locator methods
 
-        public Repository FindRepository(string repositoryKey, string language)
+        public QualityProfile FindProfile(string id)
         {
-            // Multiple profiles can have the same name; look for a profile where the language matches the rule language
-            Repository repo = this.repos.SingleOrDefault(r => string.Equals(r.Key, repositoryKey) && string.Equals(r.Language, language));
-            return repo;
-        }
-
-        public QualityProfile FindProfile(string name, string language)
-        {
-            // Multiple profiles can have the same name; look for a profile where the language matches the rule language
-            QualityProfile profile = this.qualityProfiles.SingleOrDefault(qp => string.Equals(qp.Name, name) && string.Equals(qp.Language, language));
+            QualityProfile profile = this.qualityProfiles.SingleOrDefault(qp => string.Equals(qp.Id, id));
             return profile;
         }
 

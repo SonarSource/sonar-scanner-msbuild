@@ -8,6 +8,7 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -47,35 +48,35 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             string qualityProfile;
 
             // Check that profiles are correctly defaulted as well as branch-specific
-            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar"] = "[{\"name\":\"profile1\",\"language\":\"cs\",\"default\":true}]";
-            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AaBranch"] = "[{\"name\":\"profile2\",\"language\":\"cs\",\"default\":false}]";
-            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AanotherBranch"] = "[{\"name\":\"profile3\",\"language\":\"cs\",\"default\":false}]";
+            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar"] = "[{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\",\"default\":true}]";
+            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AaBranch"] = "[{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"cs\",\"default\":false}]";
+            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AanotherBranch"] = "[{\"key\":\"profile3k\",\"name\":\"profile3\",\"language\":\"cs\",\"default\":false}]";
             // default
             result = ws.TryGetQualityProfile("foo bar", null, "cs", out qualityProfile);
             Assert.IsTrue(result);
-            Assert.AreEqual("profile1", qualityProfile);
+            Assert.AreEqual("profile1k", qualityProfile);
             // branch specific
             result = ws.TryGetQualityProfile("foo bar", "aBranch", "cs", out qualityProfile);
             Assert.IsTrue(result);
-            Assert.AreEqual("profile2", qualityProfile);
+            Assert.AreEqual("profile2k", qualityProfile);
             result = ws.TryGetQualityProfile("foo bar", "anotherBranch", "cs", out qualityProfile);
             Assert.IsTrue(result);
-            Assert.AreEqual("profile3", qualityProfile);
+            Assert.AreEqual("profile3k", qualityProfile);
 
-            downloader.Pages["http://myhost:222/api/profiles/list?language=cs"] = "[{\"name\":\"profile1\",\"language\":\"cs\",\"default\":true},{\"name\":\"profile2\",\"language\":\"vbnet\",\"default\":false}]";
+            downloader.Pages["http://myhost:222/api/profiles/list?language=cs"] = "[{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\",\"default\":true},{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"vbnet\",\"default\":false}]";
             result = ws.TryGetQualityProfile("bar", null, "cs", out qualityProfile);
             Assert.IsTrue(result);
-            Assert.AreEqual("profile1", qualityProfile);
+            Assert.AreEqual("profile1k", qualityProfile);
 
-            downloader.Pages["http://myhost:222/api/profiles/list?language=vbnet"] = "[{\"name\":\"profile1\",\"language\":\"vbnet\",\"default\":true},{\"name\":\"profile2\",\"language\":\"vbnet\",\"default\":false}]";
+            downloader.Pages["http://myhost:222/api/profiles/list?language=vbnet"] = "[{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"vbnet\",\"default\":true},{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"vbnet\",\"default\":false}]";
             result = ws.TryGetQualityProfile("bar", null, "vbnet", out qualityProfile);
             Assert.IsTrue(result);
-            Assert.AreEqual("profile1", qualityProfile);
+            Assert.AreEqual("profile1k", qualityProfile);
 
-            downloader.Pages["http://myhost:222/api/profiles/list?language=cs"] = "[{\"name\":\"profile1\",\"language\":\"cs\",\"default\":false},{\"name\":\"profile2\",\"language\":\"cs\",\"default\":true}]";
+            downloader.Pages["http://myhost:222/api/profiles/list?language=cs"] = "[{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\",\"default\":false},{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"cs\",\"default\":true}]";
             result = ws.TryGetQualityProfile("bar", null, "cs", out qualityProfile);
             Assert.IsTrue(result);
-            Assert.AreEqual("profile2", qualityProfile);
+            Assert.AreEqual("profile2k", qualityProfile);
 
             downloader.Pages["http://myhost:222/api/profiles/list?language=vbnet"] = "[]";
             result = ws.TryGetQualityProfile("foo", null, "vbnet", out qualityProfile);
@@ -84,70 +85,134 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
-        public void GetActiveRuleKeys()
+        public void GetActiveRules()
         {
-            downloader.Pages["http://myhost:222/api/profiles/index?language=cs&name=Sonar+way"] = "[{\"name\":\"Sonar way\",\"language\":\"cs\",\"default\":true}]";
-            var expected = new List<string>();
-            var actual = new List<string>(ws.GetActiveRuleKeys("Sonar way", "cs", "fxcop"));
-            Assert.AreEqual(true, expected.SequenceEqual(actual));
+            downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
+            @" { total: 3, p: 1, ps: 2, 
+            rules: [{
+                key: ""vbnet:S2368"",
+                repo: ""vbnet"",
+                name: ""Public methods should not have multidimensional array parameters"",
+                severity: ""MAJOR"",
+                lang: ""vbnet"",
+                params: [ ],
+                type: ""CODE_SMELL""
+            },
+            {
+                key: ""common-vbnet:InsufficientCommentDensity"",
+                repo: ""common-vbnet"",
+                internalKey: ""InsufficientCommentDensity.internal"",
+                name: ""Source files should have a sufficient density of comment lines"",
+                severity: ""MAJOR"",
+                lang: ""vbnet"",
+                params: [
+                {
+                    key: ""minimumCommentDensity"",
+                    defaultValue: ""25"",
+                    type: ""FLOAT""
+                }
+                ],
+                type: ""CODE_SMELL""
+            }],
 
-            downloader.Pages["http://myhost:222/api/profiles/index?language=cs&name=Sonar+way"] = "[{\"name\":\"Sonar way\",\"language\":\"cs\",\"default\":true,\"rules\":[{\"key\":\"SomeFxCopKey1\",\"repo\":\"fxcop\",\"severity\":\"MAJOR\"}]}]";
-            expected = new List<string>();
-            expected.Add("SomeFxCopKey1");
-            actual = new List<string>(ws.GetActiveRuleKeys("Sonar way", "cs", "fxcop"));
-            Assert.AreEqual(true, expected.SequenceEqual(actual));
+            actives: {
+                ""vbnet:S2368"": [
+                {
+                    qProfile: ""vbnet - sonar - way - 34825"",
+                    inherit: ""NONE"",
+                    severity: ""MAJOR"",
+                    params: [ ]
+                }
+                ],
+                ""common-vbnet:InsufficientCommentDensity"": [
+                {
+                    qProfile: ""vbnet - sonar - way - 34825"",
+                    inherit: ""NONE"",
+                    severity: ""MAJOR"",
+                    params: [
+                    {
+                        key: ""minimumCommentDensity"",
+                        value: ""50""
+                    }
+                    ]
+                }
+                ]
+            }
+            }";
 
-            downloader.Pages["http://myhost:222/api/profiles/index?language=cs&name=My+quality+profile"] = "[{\"name\":\"Sonar way\",\"language\":\"cs\",\"default\":true,\"rules\":[{\"key\":\"SomeFxCopKey1\",\"repo\":\"fxcop\",\"severity\":\"MAJOR\"}]}]";
-            expected = new List<string>();
-            expected.Add("SomeFxCopKey1");
-            actual = new List<string>(ws.GetActiveRuleKeys("My quality profile", "cs", "fxcop"));
-            Assert.AreEqual(true, expected.SequenceEqual(actual));
+            downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=2"] =
+            @" { total: 3, p: 2, ps: 2, 
+            rules: [{
+                key: ""vbnet:S2346"",
+                repo: ""vbnet"",
+                name: ""Flags enumerations zero-value members should be named \""None\"""",
+                severity: ""MAJOR"",
+                lang: ""vbnet"",
+                params: [ ],
+                type: ""CODE_SMELL""
+            }],
 
-            downloader.Pages["http://myhost:222/api/profiles/index?language=cs&name=Sonar+way"] = "[{\"name\":\"Sonar way\",\"language\":\"cs\",\"default\":true,\"rules\":[{\"key\":\"SomeFxCopKey1\",\"repo\":\"fxcop\",\"severity\":\"MAJOR\"},{\"key\":\"SomeSonarKey1\",\"repo\":\"cs\",\"severity\":\"MAJOR\"}]}]";
-            expected = new List<string>();
-            expected.Add("SomeFxCopKey1");
-            actual = new List<string>(ws.GetActiveRuleKeys("Sonar way", "cs", "fxcop"));
-            Assert.AreEqual(true, expected.SequenceEqual(actual));
+            actives: {
+                ""vbnet:S2346"": [
+                {
+                    qProfile: ""vbnet - sonar - way - 34825"",
+                    inherit: ""NONE"",
+                    severity: ""MAJOR"",
+                    params: [ ]
+                }
+                ]
+            }
+            }";
 
-            downloader.Pages["http://myhost:222/api/profiles/index?language=cs&name=Sonar+way"] = "[{\"name\":\"Sonar way\",\"language\":\"cs\",\"default\":true,\"rules\":[{\"key\":\"SomeFxCopKey1\",\"repo\":\"fxcop\",\"severity\":\"MAJOR\"},{\"key\":\"SomeFxCopKey2\",\"repo\":\"fxcop\",\"severity\":\"MAJOR\"}]}]";
-            expected = new List<string>();
-            expected.Add("SomeFxCopKey1");
-            expected.Add("SomeFxCopKey2");
-            actual = new List<string>(ws.GetActiveRuleKeys("Sonar way", "cs", "fxcop"));
-            Assert.AreEqual(true, expected.SequenceEqual(actual));
+            IList<ActiveRule> actual = ws.GetActiveRules("qp");
+            Assert.AreEqual(3, actual.Count());
 
-            downloader.Pages["http://myhost:222/api/profiles/index?language=vbnet&name=Sonar+way"] = "[{\"name\":\"Sonar way\",\"language\":\"vbnet\",\"default\":true,\"rules\":[{\"key\":\"SomeFxCopKey1\",\"repo\":\"fxcop-vbnet\",\"severity\":\"MAJOR\"},{\"key\":\"SomeFxCopKey2\",\"repo\":\"fxcop-vbnet\",\"severity\":\"MAJOR\"}]}]";
-            expected = new List<string>();
-            expected.Add("SomeFxCopKey1");
-            expected.Add("SomeFxCopKey2");
-            actual = new List<string>(ws.GetActiveRuleKeys("Sonar way", "vbnet", "fxcop-vbnet"));
-            Assert.AreEqual(true, expected.SequenceEqual(actual));
+            Assert.AreEqual("vbnet", actual[0].RepoKey);
+            Assert.AreEqual("S2368", actual[0].RuleKey);
+            Assert.AreEqual("S2368", actual[0].GetInternalKeyOrKey());
+            Assert.AreEqual(null, actual[0].TemplateKey);
+            Assert.AreEqual(0, actual[0].Parameters.Count());
 
-            downloader.Pages["http://myhost:222/api/profiles/index?language=cs&name=Sonar+way"] = "[{\"name\":\"Sonar way\",\"language\":\"cs\",\"default\":true,\"rules\":[{\"key\":\"My_Own_FxCop_Rule\",\"repo\":\"fxcop\",\"severity\":\"MAJOR\",\"params\":[{\"key\":\"CheckId\",\"value\":\"CA_MyOwnCustomRule\"}]}]}]";
-            expected = new List<string>();
-            expected.Add("CA_MyOwnCustomRule");
-            actual = new List<string>(ws.GetActiveRuleKeys("Sonar way", "cs", "fxcop"));
-            Assert.AreEqual(true, expected.SequenceEqual(actual));
+            Assert.AreEqual("common-vbnet", actual[1].RepoKey);
+            Assert.AreEqual("InsufficientCommentDensity", actual[1].RuleKey);
+            Assert.AreEqual("InsufficientCommentDensity.internal", actual[1].GetInternalKeyOrKey());
+            Assert.AreEqual(null, actual[1].TemplateKey);
+            Assert.AreEqual(1, actual[1].Parameters.Count());
+            Assert.IsTrue(actual[1].Parameters.First().Equals(new KeyValuePair<string, string>("minimumCommentDensity", "50")));
+
+            Assert.AreEqual("vbnet", actual[2].RepoKey);
+            Assert.AreEqual("S2346", actual[2].RuleKey);
+            Assert.AreEqual("S2346", actual[2].GetInternalKeyOrKey());
+            Assert.AreEqual(null, actual[2].TemplateKey);
+            Assert.AreEqual(0, actual[2].Parameters.Count());
         }
 
         [TestMethod]
-        public void GetActiveRuleKeysShouldUrlEscapeQualityProfile()
+        public void GetInactiveRulesAndEscapeUrl()
         {
-            downloader.Pages["http://myhost:222/api/profiles/index?language=cs&name=Sonar%23way"] = "[{\"name\":\"Sonar#way\",\"language\":\"cs\",\"default\":true}]";
-            var expected = new List<string>();
-            var actual = new List<string>(ws.GetActiveRuleKeys("Sonar#way", "cs", "fxcop"));
-            Assert.AreEqual(true, expected.SequenceEqual(actual));
-        }
+            downloader.Pages["http://myhost:222/api/rules/search?f=internalKey&ps=500&activation=false&qprofile=my%23qp&p=1&languages=cs"] = @"
+            {
+            total: 3,
+            p: 1,
+            ps: 500,
+            rules: [
+                {
+                    key: ""csharpsquid:S2757"",
+                    type: ""BUG""
+                },
+                {
+                    key: ""csharpsquid:S1117"",
+                    type: ""CODE_SMELL""
+                },
+                {
+                    key: ""csharpsquid:S1764"",
+                    type: ""BUG""
+                }
+            ]}";
 
-        [TestMethod]
-        public void GetInternalKeys()
-        {
-            downloader.Pages["http://myhost:222/api/rules/search?f=internalKey&ps=" + int.MaxValue + "&repositories=fxcop"] = "{\"total\":2,\"p\":1,\"ps\":10,\"rules\":[{\"key\":\"fxcop:My_Own_FxCop_Rule\"},{\"key\":\"fxcop:UriParametersShouldNotBeStrings\",\"internalKey\":\"CA1054\"}]}";
-            var expected = new Dictionary<string, string>();
-            expected["fxcop:UriParametersShouldNotBeStrings"] = "CA1054";
-            var actual = ws.GetInternalKeys("fxcop");
-
-            Assert.AreEqual(true, expected.Count == actual.Count && !expected.Except(actual).Any());
+            IList<string> rules = ws.GetInactiveRules("my#qp", "cs");
+            string[] expected = { "csharpsquid:S2757", "csharpsquid:S1117", "csharpsquid:S1764" };
+            CollectionAssert.AreEqual(rules.ToArray(), expected);
         }
 
         [TestMethod]
@@ -189,78 +254,6 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             var actual = new List<string>(ws.GetInstalledPlugins());
 
             Assert.AreEqual(true, expected.SequenceEqual(actual));
-        }
-
-        // TODO Rewrite this as a data driven unit test to not duplicate the test contents?
-        [TestMethod]
-        public void ServerUrlWithTrailingSlash()
-        {
-            ws = new SonarWebService(downloader, "http://myhost:222/", new TestLogger());
-
-            // Check that profiles are correctly defaulted as well as branch-specific
-            // This test includes a regression scenario for SONARMSBRU-187:
-            // Requesting properties for project:branch should return branch-specific data
-            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar"] = "[{\"name\":\"profile1\",\"language\":\"cs\",\"default\":true}]";
-            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AaBranch"] = "[{\"name\":\"profile2\",\"language\":\"cs\",\"default\":false}]";
-            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AanotherBranch"] = "[{\"name\":\"profile3\",\"language\":\"cs\",\"default\":false}]";
-            string qualityProfile1;
-            string qualityProfile2;
-            string qualityProfile3;
-            bool result1 = ws.TryGetQualityProfile("foo bar", null, "cs", out qualityProfile1);
-            bool result2 = ws.TryGetQualityProfile("foo bar", "aBranch", "cs", out qualityProfile2);
-            bool result3 = ws.TryGetQualityProfile("foo bar", "anotherBranch", "cs", out qualityProfile3);
-
-            Assert.IsTrue(result1);
-            Assert.IsTrue(result2);
-            Assert.IsTrue(result3);
-            Assert.AreEqual("profile1", qualityProfile1);
-            Assert.AreEqual("profile2", qualityProfile2);
-            Assert.AreEqual("profile3", qualityProfile3);
-
-            Assert.IsTrue(result1);
-            Assert.IsTrue(result2);
-            Assert.IsTrue(result3);
-            Assert.AreEqual("profile1", qualityProfile1);
-            Assert.AreEqual("profile2", qualityProfile2);
-            Assert.AreEqual("profile3", qualityProfile3);
-
-            downloader.Pages["http://myhost:222/api/profiles/index?language=cs&name=Sonar+way"] = "[{\"name\":\"Sonar way\",\"language\":\"cs\",\"default\":true}]";
-            var expected1 = new List<string>();
-            var actual1 = new List<string>(ws.GetActiveRuleKeys("Sonar way", "cs", "foo"));
-            Assert.AreEqual(true, expected1.SequenceEqual(actual1));
-
-            downloader.Pages["http://myhost:222/api/rules/search?f=internalKey&ps=" + int.MaxValue + "&repositories=fxcop"] = "{\"total\":2,\"p\":1,\"ps\":10,\"rules\":[{\"key\":\"fxcop:My_Own_FxCop_Rule\"},{\"key\":\"fxcop:UriParametersShouldNotBeStrings\",\"internalKey\":\"CA1054\"}]}";
-            var expected2 = new Dictionary<string, string>();
-            expected2["fxcop:UriParametersShouldNotBeStrings"] = "CA1054";
-            var actual2 = ws.GetInternalKeys("fxcop");
-
-            Assert.AreEqual(true, expected2.Count == actual2.Count && !expected2.Except(actual2).Any());
-
-            downloader.Pages["http://myhost:222/api/properties?resource=foo+bar"] = "[{\"key\": \"sonar.property1\",\"value\": \"value1\"},{\"key\": \"sonar.property2\",\"value\": \"value2\"}]";
-            downloader.Pages["http://myhost:222/api/properties?resource=foo+bar%3AaBranch"] = "[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]";
-
-            var expected3_1 = new Dictionary<string, string>();
-            expected3_1["sonar.property1"] = "value1";
-            expected3_1["sonar.property2"] = "value2";
-            expected3_1["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
-            var actual3_1 = ws.GetProperties("foo bar");
-
-            var expected3_2 = new Dictionary<string, string>();
-            expected3_2["sonar.property1"] = "anotherValue1";
-            expected3_2["sonar.property2"] = "anotherValue2";
-            expected3_2["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
-            var actual3_2 = ws.GetProperties("foo bar", "aBranch");
-
-            Assert.AreEqual(true, expected3_1.Count == actual3_1.Count && !expected3_1.Except(actual3_1).Any());
-            Assert.AreEqual(true, expected3_2.Count == actual3_2.Count && !expected3_2.Except(actual3_2).Any());
-
-            downloader.Pages["http://myhost:222/api/updatecenter/installed_plugins"] = "[{\"key\":\"visualstudio\",\"name\":\"...\",\"version\":\"1.2\"},{\"key\":\"csharp\",\"name\":\"C#\",\"version\":\"4.0\"}]";
-            var expected4 = new List<string>();
-            expected4.Add("visualstudio");
-            expected4.Add("csharp");
-            var actual4 = new List<string>(ws.GetInstalledPlugins());
-
-            Assert.AreEqual(true, expected4.SequenceEqual(actual4));
         }
 
         [TestMethod]

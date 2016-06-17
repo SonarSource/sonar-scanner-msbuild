@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 using System;
 using System.Collections.Generic;
 
@@ -12,21 +13,20 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
     internal class QualityProfile
     {
-        private readonly string name;
+        private readonly string id;
         private readonly string language;
         private readonly ISet<string> projectIds;
 
-        private readonly ISet<Rule> activeRules;
+        private readonly IList<string> inactiveRules;
+        private readonly IList<ActiveRule> activeRules;
 
-        private readonly IDictionary<string, string> formatToContentExportMap;
-
-        public QualityProfile(string name, string language)
+        public QualityProfile(string id, string language)
         {
-            this.name = name;
+            this.id = id;
             this.language = language;
             this.projectIds = new HashSet<string>();
-            this.activeRules = new HashSet<Rule>();
-            this.formatToContentExportMap = new Dictionary<string, string>();
+            this.inactiveRules = new List<string>();
+            this.activeRules = new List<ActiveRule>();
         }
 
         public QualityProfile AddProject(string projectKey, string projectBranch = null)
@@ -41,30 +41,23 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return this;
         }
 
-        public QualityProfile AddRule(Rule rule)
+        public QualityProfile AddRule(ActiveRule rule)
         {
             this.activeRules.Add(rule);
             return this;
         }
 
-        public QualityProfile SetExport(string format, string content)
+        public QualityProfile AddInactiveRule(string ruleKey)
         {
-            this.formatToContentExportMap[format] = content;
+            this.inactiveRules.Add(ruleKey);
             return this;
         }
 
-        public string Name { get { return this.name; } }
+        public string Id { get { return this.id; } }
         public string Language { get { return this.language; } }
         public IEnumerable<string> Projects { get { return this.projectIds; } }
-        public ISet<Rule> ActiveRules { get { return this.activeRules; } }
-        public IDictionary<string, string> FormatToContentExports {  get { return this.formatToContentExportMap; } }
-
-        public string GetExport(string format)
-        {
-            string content;
-            this.formatToContentExportMap.TryGetValue(format, out content);
-            return content;
-        }
+        public IList<ActiveRule> ActiveRules { get { return this.activeRules; } }
+        public IList<string> InactiveRules { get { return this.inactiveRules; } }
 
     }
 }

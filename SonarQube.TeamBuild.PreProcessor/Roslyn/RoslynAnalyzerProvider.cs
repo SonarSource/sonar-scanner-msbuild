@@ -7,12 +7,12 @@
 
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Xml;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
@@ -20,6 +20,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
     {
         public const string RoslynFormatNamePrefix = "roslyn-{0}";
         public const string RoslynRulesetFileName = "SonarQubeRoslyn-{0}.ruleset";
+
+        private static readonly string SONARANALYZER_PARTIAL_REPO_KEY = "sonaranalyzer-{0}";
+        private static readonly string ROSLYN_REPOSITORY_PREFIX = "roslyn.";
 
         public const string CSharpLanguage = "cs";
         public const string CSharpPluginKey = "csharp";
@@ -31,10 +34,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         private readonly IAnalyzerInstaller analyzerInstaller;
         private readonly ILogger logger;
-        private ISonarQubeServer sqServer;
         private TeamBuildSettings sqSettings;
-        private string sqProjectKey;
-        private string sqProjectBranch;
+        private IDictionary<string, string> sqServerSettings;
 
         #region Public methods
 
@@ -42,62 +43,54 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         {
             if (analyzerInstaller == null)
             {
-                throw new ArgumentNullException("analyzerInstaller");
+                throw new ArgumentNullException("analyzerInstaller must not be null");
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException("logger must not be null");
             }
             this.analyzerInstaller = analyzerInstaller;
             this.logger = logger;
         }
 
-        public IEnumerable<AnalyzerSettings> SetupAnalyzers(ISonarQubeServer server, TeamBuildSettings settings, string projectKey, string projectBranch)
+        public AnalyzerSettings SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings,
+            IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules, string language)
         {
-            if (server == null)
-            {
-                throw new ArgumentNullException("server");
-            }
             if (settings == null)
             {
-                throw new ArgumentNullException("settings");
+                throw new ArgumentNullException("settings must not be null");
             }
-            if (string.IsNullOrWhiteSpace(projectKey))
+            if (language == null)
             {
-                throw new ArgumentNullException("projectKey");
+                throw new ArgumentNullException("language must not be null");
+            }
+            if (serverSettings == null)
+            {
+                throw new ArgumentNullException("serverSettings must not be null");
+            }
+            if (serverSettings == null)
+            {
+                throw new ArgumentNullException("serverSettings must not be null");
+            }
+            if (activeRules == null)
+            {
+                throw new ArgumentNullException("activeRules must not be null");
+            }
+            if (!activeRules.Any())
+            {
+                return null;
             }
 
-            this.sqServer = server;
             this.sqSettings = settings;
-            this.sqProjectKey = projectKey;
-            this.sqProjectBranch = projectBranch;
+            this.sqServerSettings = serverSettings;
 
-            IList<AnalyzerSettings> analyzersSettings = new List<AnalyzerSettings>();
-            IEnumerable<string> installedPlugins = server.GetInstalledPlugins();
-
-            if (installedPlugins.Contains(CSharpPluginKey))
-            {
-                RoslynExportProfile profile = TryGetRoslynConfigForProject(CSharpLanguage);
-                if (profile != null)
-                {
-                    analyzersSettings.Add(ProcessExportedProfile(profile, CSharpLanguage));
-                }
-            }
-            if (installedPlugins.Contains(VBNetPluginKey))
-            {
-                RoslynExportProfile profile = TryGetRoslynConfigForProject(VBNetLanguage);
-                if (profile != null)
-                {
-                    analyzersSettings.Add(ProcessExportedProfile(profile, VBNetLanguage));
-                }
-            }
-
-            if (!analyzersSettings.Any())
+            AnalyzerSettings analyzer = ConfigureAnalyzer(language, activeRules, inactiveRules);
+            if (analyzer == null)
             {
                 logger.LogDebug(Resources.RAP_NoPluginInstalled);
             }
 
-            return analyzersSettings;
+            return analyzer;
         }
 
         public static string GetRoslynFormatName(string language)
@@ -109,51 +102,22 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         {
             return string.Format(RoslynRulesetFileName, language);
         }
-
         #endregion
 
         #region Private methods
 
-        private RoslynExportProfile TryGetRoslynConfigForProject(string language)
+        private AnalyzerSettings ConfigureAnalyzer(string language, IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules)
         {
-            string roslynFormatName = GetRoslynFormatName(language);
-            string qualityProfile;
-
-            if (!this.sqServer.TryGetQualityProfile(sqProjectKey, sqProjectBranch, language, out qualityProfile))
-            {
-                this.logger.LogDebug(Resources.RAP_NoProfileForProject, language, this.sqProjectKey);
-                return null;
-            }
-
-            string profileContent = null;
-            if (!sqServer.TryGetProfileExport(qualityProfile, language, roslynFormatName, out profileContent))
-            {
-                this.logger.LogDebug(Resources.RAP_ProfileExportNotFound, roslynFormatName, this.sqProjectKey);
-                return null;
-            }
-            this.logger.LogDebug(Resources.RAP_ProfileExportFound, roslynFormatName, this.sqProjectKey);
-
-            RoslynExportProfile profile = null;
-            using (StringReader reader = new StringReader(profileContent))
-            {
-                profile = RoslynExportProfile.Load(reader);
-            }
-
-            return profile;
-        }
-
-        private AnalyzerSettings ProcessExportedProfile(RoslynExportProfile profile, string language)
-        {
-            Debug.Assert(profile != null, "Expecting a valid profile");
-
-            string rulesetFilePath = this.UnpackRuleset(profile, language);
+            RoslynRuleSetGenerator ruleSetGenerator = new RoslynRuleSetGenerator(sqServerSettings, logger);
+            RuleSet ruleSet = ruleSetGenerator.generate(activeRules, inactiveRules, language);
+            string rulesetFilePath = this.WriteRuleset(ruleSet, language);
             if (rulesetFilePath == null)
             {
                 return null;
             }
 
-            IEnumerable<string> additionalFiles = this.UnpackAdditionalFiles(profile, language);
-            IEnumerable<string> analyzersAssemblies = this.FetchAnalyzerAssemblies(profile, language);
+            IEnumerable<string> additionalFiles = this.WriteAdditionalFiles(language, activeRules);
+            IEnumerable<string> analyzersAssemblies = this.FetchAnalyzerAssemblies(activeRules, language);
 
             AnalyzerSettings compilerConfig = new AnalyzerSettings(language, rulesetFilePath,
                 analyzersAssemblies ?? Enumerable.Empty<string>(),
@@ -161,10 +125,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return compilerConfig;
         }
 
-        private string UnpackRuleset(RoslynExportProfile profile, string language)
+        public string WriteRuleset(RuleSet ruleSet, string language)
         {
             string rulesetFilePath = null;
-            if (profile.Configuration.RuleSet == null)
+            if (ruleSet == null || ruleSet.Rules == null || !ruleSet.Rules.Any())
             {
                 this.logger.LogDebug(Resources.RAP_ProfileDoesNotContainRuleset);
             }
@@ -173,9 +137,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 rulesetFilePath = GetRulesetFilePath(this.sqSettings, language);
                 this.logger.LogDebug(Resources.RAP_UnpackingRuleset, rulesetFilePath);
 
-                XmlDocument doc = new XmlDocument();
-                doc.LoadXml(profile.Configuration.RuleSet.OuterXml);
-                doc.Save(rulesetFilePath);
+                ruleSet.Save(rulesetFilePath);
             }
             return rulesetFilePath;
         }
@@ -185,60 +147,115 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return Path.Combine(settings.SonarConfigDirectory, GetRoslynRulesetFileName(language));
         }
 
-        private IEnumerable<string> UnpackAdditionalFiles(RoslynExportProfile profile, string language)
+        private IEnumerable<string> WriteAdditionalFiles(string language, IEnumerable<ActiveRule> activeRules)
         {
-            Debug.Assert(profile.Configuration != null, "Supplied configuration should not be null");
+            Debug.Assert(activeRules != null, "Supplied active rules should not be null");
 
             List<string> additionalFiles = new List<string>();
-            foreach(AdditionalFile item in profile.Configuration.AdditionalFiles)
+            string filePath = WriteSonarLintXmlFile(language, activeRules);
+            if (filePath != null)
             {
-                string filePath = ProcessAdditionalFile(item, language);
-                if (filePath != null)
-                {
-                    Debug.Assert(File.Exists(filePath), "Expecting the additional file to exist: {0}", filePath);
-                    additionalFiles.Add(filePath);
-                }
+                Debug.Assert(File.Exists(filePath), "Expecting the additional file to exist: {0}", filePath);
+                additionalFiles.Add(filePath);
             }
 
             return additionalFiles;
         }
 
-        private string ProcessAdditionalFile(AdditionalFile file, string language)
+        private string WriteSonarLintXmlFile(string language, IEnumerable<ActiveRule> activeRules)
         {
-            if (string.IsNullOrWhiteSpace(file.FileName))
+            if (string.IsNullOrWhiteSpace(language))
             {
                 this.logger.LogDebug(Resources.RAP_AdditionalFileNameMustBeSpecified);
                 return null;
             }
 
+            string content;
+            if (language.Equals(CSharpLanguage))
+            {
+                content = RoslynSonarLint.generateXml(activeRules, "csharpsquid");
+            }
+            else
+            {
+                content = RoslynSonarLint.generateXml(activeRules, "vbnet");
+            }
+
             string langDir = Path.Combine(this.sqSettings.SonarConfigDirectory, language);
             Directory.CreateDirectory(langDir);
 
-            string fullPath = Path.Combine(langDir, file.FileName);
+            string fullPath = Path.Combine(langDir, "SonarLint.xml");
             if (File.Exists(fullPath))
             {
-                this.logger.LogDebug(Resources.RAP_AdditionalFileAlreadyExists, file.FileName, fullPath);
+                this.logger.LogDebug(Resources.RAP_AdditionalFileAlreadyExists, language, fullPath);
                 return null;
             }
 
             this.logger.LogDebug(Resources.RAP_WritingAdditionalFile, fullPath);
-            File.WriteAllBytes(fullPath, file.Content ?? new byte[] { });
+            File.WriteAllText(fullPath, content);
             return fullPath;
         }
-        
-        private IEnumerable<string> FetchAnalyzerAssemblies(RoslynExportProfile profile, string language)
+
+        public IEnumerable<string> FetchAnalyzerAssemblies(IEnumerable<ActiveRule> activeRules, string language)
         {
+            ICollection<string> repoKeys = activeRulesPartialRepoKey(activeRules, language);
+            IList<Plugin> plugins = new List<Plugin>();
+
+            foreach (string repoKey in repoKeys)
+            {
+                Debug.WriteLine(repoKey);
+                //TODO fail if property doesn't exist?
+                string pluginkey = sqServerSettings[pluginKeyPropertyKey(repoKey)];
+                string pluginVersion = sqServerSettings[pluginVersionPropertyKey(repoKey)];
+                string staticResourceName = sqServerSettings[staticResourceNamePropertyKey(repoKey)];
+
+                plugins.Add(new Plugin(pluginkey, pluginVersion, staticResourceName));
+            }
+
             IEnumerable<string> analyzerAssemblyPaths = null;
-            if (profile.Deployment == null || profile.Deployment.Plugins == null || profile.Deployment.Plugins.Count == 0)
+            if (plugins == null || plugins.Count == 0)
             {
                 this.logger.LogInfo(Resources.RAP_NoAnalyzerPluginsSpecified, language);
             }
             else
             {
                 this.logger.LogInfo(Resources.RAP_ProvisioningAnalyzerAssemblies, language);
-                analyzerAssemblyPaths = this.analyzerInstaller.InstallAssemblies(profile.Deployment.Plugins);
+                analyzerAssemblyPaths = this.analyzerInstaller.InstallAssemblies(plugins);
             }
             return analyzerAssemblyPaths;
+        }
+
+        private static String pluginKeyPropertyKey(String partialRepoKey)
+        {
+            return partialRepoKey + ".pluginKey";
+        }
+
+        private static String pluginVersionPropertyKey(String partialRepoKey)
+        {
+            return partialRepoKey + ".pluginVersion";
+        }
+
+        private static String staticResourceNamePropertyKey(String partialRepoKey)
+        {
+            return partialRepoKey + ".staticResourceName";
+        }
+
+        ICollection<string> activeRulesPartialRepoKey(IEnumerable<ActiveRule> activeRules, string language)
+        {
+            ISet<string> list = new HashSet<string>();
+
+            foreach (ActiveRule activeRule in activeRules)
+            {
+                if (activeRule.RepoKey.StartsWith(ROSLYN_REPOSITORY_PREFIX))
+                {
+                    list.Add(activeRule.RepoKey.Substring(ROSLYN_REPOSITORY_PREFIX.Length));
+                }
+                else if ("csharpsquid".Equals(activeRule.RepoKey) || "vbnet".Equals(activeRule.RepoKey))
+                {
+                    list.Add(string.Format(SONARANALYZER_PARTIAL_REPO_KEY, language));
+                }
+            }
+
+            return list;
         }
 
         #endregion

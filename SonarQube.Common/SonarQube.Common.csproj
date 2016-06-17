@@ -51,6 +51,9 @@
     <Compile Include="AnalysisConfig\AnalyzerSettings.cs" />
     <Compile Include="AnalysisConfig\ConfigSetting.cs" />
     <Compile Include="AnalysisConfig\AnalysisConfigExtensions.cs" />
+    <Compile Include="AnalysisConfig\Rule.cs" />
+    <Compile Include="AnalysisConfig\Rules.cs" />
+    <Compile Include="AnalysisConfig\RuleSet.cs" />
     <Compile Include="AnalysisProperties\EmptyPropertyProvider.cs" />
     <Compile Include="AnalysisProperties\ListSettingsProvider.cs" />
     <Compile Include="CommandLine\ArgumentInstance.cs" />

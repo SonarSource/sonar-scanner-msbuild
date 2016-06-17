@@ -7,19 +7,30 @@
 
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
     public class TeamBuildPreProcessor
     {
-        public const string FxCopCSharpRuleset = "SonarQubeFxCop-cs.ruleset";
-        public const string FxCopVBNetRuleset = "SonarQubeFxCop-vbnet.ruleset";
+        public const string CSharpLanguage = "cs";
+        public const string CSharpPluginKey = "csharp";
+        public const string CSharpRepositoryKey = "csharp";
+
+        public const string VBNetLanguage = "vbnet";
+        public const string VBNetPluginKey = "vbnet";
+        public const string VBNetRepositoryKey = "vbnet";
+
+        public const string FxCopRulesetName = "SonarQubeFxCop-{0}.ruleset";
+
+        private readonly static List<PluginDefinition> plugins;
+        private readonly static PluginDefinition csharp;
 
         private readonly IPreprocessorObjectFactory factory;
         private readonly ILogger logger;
@@ -30,17 +41,41 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             if (factory == null)
             {
-                throw new ArgumentNullException("factory");
+                throw new ArgumentNullException("factory must not be null");
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException("logger must not be null");
             }
             this.factory = factory;
             this.logger = logger;
         }
 
+        static TeamBuildPreProcessor()
+        {
+            plugins = new List<PluginDefinition>();
+            csharp = new PluginDefinition(CSharpLanguage, CSharpPluginKey, CSharpRepositoryKey);
+            plugins.Add(csharp);
+            plugins.Add(new PluginDefinition(VBNetLanguage, VBNetPluginKey, VBNetRepositoryKey));
+        }
+
         #endregion Constructor(s)
+
+        #region Inner class
+        class PluginDefinition
+        {
+            public string Language { get; private set; }
+            public string PluginKey { get; private set; }
+            public string RepositoryKey { get; private set; }
+
+            public PluginDefinition(string language, string pluginKey, string repositoryKey)
+            {
+                this.Language = language;
+                this.PluginKey = pluginKey;
+                this.RepositoryKey = repositoryKey;
+            }
+        }
+        #endregion
 
         #region Public methods
 
@@ -140,18 +175,58 @@ namespace SonarQube.TeamBuild.PreProcessor
                 // Fetch the SonarQube project properties
                 serverSettings = server.GetProperties(args.ProjectKey, projectBranch);
 
-                // Generate the FxCop rulesets
-                this.logger.LogInfo(Resources.MSG_GeneratingRulesets);
-                GenerateFxCopRuleset(server, args.ProjectKey, projectBranch,
-                    "csharp", "cs", "fxcop", Path.Combine(settings.SonarConfigDirectory, FxCopCSharpRuleset));
-                GenerateFxCopRuleset(server, args.ProjectKey, projectBranch,
-                    "vbnet", "vbnet", "fxcop-vbnet", Path.Combine(settings.SonarConfigDirectory, FxCopVBNetRuleset));
+                // Fetch installed plugins
+                IEnumerable<string> installedPlugins = server.GetInstalledPlugins();
 
-                IAnalyzerProvider analyzerProvider = this.factory.CreateAnalyzerProvider(this.logger);
-                Debug.Assert(analyzerProvider != null, "Factory should not return null");
+                foreach (PluginDefinition plugin in plugins)
+                {
+                    if (!installedPlugins.Contains(plugin.PluginKey))
+                    {
+                        continue;
+                    }
 
-                IEnumerable<AnalyzerSettings> analyzers = analyzerProvider.SetupAnalyzers(server, settings, args.ProjectKey, projectBranch);
-                analyzersSettings.AddRange(analyzers);
+                    // Fetch project quality profile
+                    string qualityProfile;
+                    if (!server.TryGetQualityProfile(args.ProjectKey, projectBranch, plugin.Language, out qualityProfile))
+                    {
+                        continue;
+                    }
+
+                    // Fetch rules
+                    IList<ActiveRule> activeRules = server.GetActiveRules(qualityProfile);
+
+                    if (!activeRules.Any())
+                    {
+                        logger.LogDebug(Resources.RAP_NoActiveRules, plugin.Language);
+                        continue;
+                    }
+
+                    IList<string> inactiveRules = server.GetInactiveRules(qualityProfile, plugin.Language);
+
+                    this.logger.LogInfo(Resources.MSG_GeneratingRulesets);
+                    string fxCopPath = Path.Combine(settings.SonarConfigDirectory, string.Format(FxCopRulesetName, plugin.Language));
+                    if (plugin.Language.Equals(VBNetLanguage))
+                    {
+                        GenerateFxCopRuleset("fxcop-vbnet", activeRules, fxCopPath);
+                    }
+                    else
+                    {
+                        GenerateFxCopRuleset("fxcop", activeRules, fxCopPath);
+                    }
+
+                    // Generate Roslyn analyzers settings and rulesets
+                    IAnalyzerProvider analyzerProvider = this.factory.CreateRoslynAnalyzerProvider(this.logger);
+                    Debug.Assert(analyzerProvider != null, "Factory should not return null");
+
+                    AnalyzerSettings analyzer = analyzerProvider.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules,
+                        plugin.Language);
+
+                    if (analyzer != null)
+                    {
+                        analyzersSettings.Add(analyzer);
+                    }
+                }
+
             }
             catch (WebException ex)
             {
@@ -170,10 +245,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             return true;
         }
 
-        private void GenerateFxCopRuleset(ISonarQubeServer server, string projectKey, string projectBranch, string requiredPluginKey, string language, string repository, string path)
+        private void GenerateFxCopRuleset(string repository, IList<ActiveRule> activeRules, string path)
         {
             this.logger.LogDebug(Resources.MSG_GeneratingRuleset, path);
-            RulesetGenerator.Generate(server, requiredPluginKey, language, repository, projectKey, projectBranch, path);
+            this.factory.CreateRulesetGenerator().Generate(repository, activeRules, path);
         }
 
         #endregion Private methods

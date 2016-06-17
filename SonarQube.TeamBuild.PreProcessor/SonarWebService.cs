@@ -7,8 +7,10 @@
 
 using Newtonsoft.Json.Linq;
 using SonarQube.Common;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -43,7 +45,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #region ISonarQubeServer interface
 
-        public bool TryGetQualityProfile(string projectKey, string projectBranch, string language, out string qualityProfile)
+        public bool TryGetQualityProfile(string projectKey, string projectBranch, string language, out string qualityProfileKey)
         {
             string projectId = GetProjectIdentifier(projectKey, projectBranch);
 
@@ -58,47 +60,93 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             if (!profiles.Any())
             {
-                qualityProfile = null;
+                qualityProfileKey = null;
                 return false;
             }
 
-            var profile = profiles.Count > 1 ? profiles.Where(p => "True".Equals(p["default"].ToString())).Single() : profiles.Single();
-            qualityProfile = profile["name"].ToString();
+            var profile = profiles.Count > 1 ? profiles.Single(p => "True".Equals(p["default"].ToString())) : profiles.Single();
+            Debug.WriteLine(profile.ToString());
+            qualityProfileKey = profile["key"].ToString();
             return true;
         }
 
-        public IEnumerable<string> GetActiveRuleKeys(string qualityProfile, string language, string repository)
+        /// <summary>
+        /// Retrieves rule keys of rules having a given language and that are not activated in a given profile.
+        /// 
+        /// </summary>
+        /// <param name="qprofile">Quality profile key.</param>
+        /// <param name="language">Rule Language.</param>
+        /// <returns>Non-activated rule keys, including repo. Example: csharpsquid:S1100</returns>
+        public IList<string> GetInactiveRules(string qprofile, string language)
         {
-            var ws = GetUrl("/api/profiles/index?language={0}&name={1}", language, qualityProfile);
-            var contents = this.downloader.Download(ws);
+            int fetched = 0;
+            int page = 1;
+            int total;
+            var ruleList = new List<string>();
 
-            var profiles = JArray.Parse(contents);
-            var rules = profiles.Single()["rules"];
-            if (rules == null) {
-                return Enumerable.Empty<string>();
-            }
-            
-            return rules
-                .Where(r => repository.Equals(r["repo"].ToString()))
-                .Select(
-                r =>
-                {
-                    var checkIdParameter = r["params"] == null ? null : r["params"].Where(p => "CheckId".Equals(p["key"].ToString())).SingleOrDefault();
-                    return checkIdParameter == null ? r["key"].ToString() : checkIdParameter["value"].ToString();
-                });
+            do
+            {
+                var ws = GetUrl("/api/rules/search?f=internalKey&ps=500&activation=false&qprofile={0}&p={1}&languages={2}", qprofile, page.ToString(), language);
+                var contents = this.downloader.Download(ws);
+                var json = JObject.Parse(contents);
+                total = Convert.ToInt32(json["total"]);
+                fetched += Convert.ToInt32(json["ps"]);
+                page++;
+                var rules = json["rules"].Children<JObject>();
+
+                ruleList.AddRange(rules.Select(r => r["key"].ToString()));
+            } while (fetched < total);
+
+            return ruleList;
         }
 
-        public IDictionary<string, string> GetInternalKeys(string repository)
+        /// <summary>
+        /// Retrieves active rules from the quality profile with the given ID, including their parameters and template keys.
+        /// 
+        /// </summary>
+        /// <param name="qprofile">Quality profile id.</param>
+        /// <returns>List of active rules</returns>
+        public IList<ActiveRule> GetActiveRules(string qprofile)
         {
-            var ws = GetUrl("/api/rules/search?f=internalKey&ps={0}&repositories={1}", int.MaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture), repository);
-            var contents = this.downloader.Download(ws);
+            int fetched = 0;
+            int page = 1;
+            int total;
+            var activeRuleList = new List<ActiveRule>();
 
-            var rules = JObject.Parse(contents);
-            var keysToIds = rules["rules"]
-                .Where(r => r["internalKey"] != null)
-                .ToDictionary(r => r["key"].ToString(), r => r["internalKey"].ToString());
+            do
+            {
+                var ws = GetUrl("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile={0}&p={1}", qprofile, page.ToString());
+                var contents = this.downloader.Download(ws);
+                var json = JObject.Parse(contents);
+                total = Convert.ToInt32(json["total"]);
+                fetched += Convert.ToInt32(json["ps"]);
+                page++;
+                var rules = json["rules"].Children<JObject>();
+                var actives = json["actives"];
 
-            return keysToIds;
+                activeRuleList.AddRange(rules.Select(r =>
+                {
+                    ActiveRule activeRule = new ActiveRule(r["repo"].ToString(), parseRuleKey(r["key"].ToString()));
+                    if (r["internalKey"] != null)
+                    {
+                        activeRule.InternalKey = r["internalKey"].ToString();
+                    }
+                    if (r["templateKey"] != null)
+                    {
+                        activeRule.TemplateKey = r["templateKey"].ToString();
+                    }
+
+                    var active = actives[r["key"].ToString()];
+                    var listParams = active.Single()["params"].Children<JObject>();
+                    activeRule.Parameters = listParams.ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
+
+                    //var checkIdParameter = r["params"] == null ? null : r["params"].Where(p => "CheckId".Equals(p["key"].ToString())).SingleOrDefault();
+                    //return checkIdParameter == null ? r["key"].ToString() : checkIdParameter["value"].ToString();
+                    return activeRule;
+                }));
+            } while (fetched < total);
+
+            return activeRuleList;
         }
 
         /// <summary>
@@ -117,7 +165,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             string projectId = GetProjectIdentifier(projectKey, projectBranch);
-           
+
             string ws = GetUrl("/api/properties?resource={0}", projectId);
             this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
             var contents = this.downloader.Download(ws);
@@ -143,29 +191,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             var plugins = JArray.Parse(contents);
 
             return plugins.Select(plugin => plugin["key"].ToString());
-        }
-
-        /// <summary>
-        /// Attempts to download the quality profile in the specified format
-        /// </summary>
-        public bool TryGetProfileExport(string qualityProfile, string language, string format, out string content)
-        {
-            if (string.IsNullOrWhiteSpace(qualityProfile))
-            {
-                throw new ArgumentNullException("qualityProfile");
-            }
-            if (string.IsNullOrWhiteSpace(language))
-            {
-                throw new ArgumentNullException("language");
-            }
-            if (string.IsNullOrWhiteSpace(format))
-            {
-                throw new ArgumentNullException("format");
-            }
-
-            string url = GetUrl("/profiles/export?format={0}&language={1}&name={2}", format, language, qualityProfile);
-            bool success = this.downloader.TryDownloadIfExists(url, out content);
-            return success;
         }
 
         public bool TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
@@ -195,6 +220,12 @@ namespace SonarQube.TeamBuild.PreProcessor
         #endregion
 
         #region Private methods
+
+        private static string parseRuleKey(string key)
+        {
+            int pos = key.IndexOf(':');
+            return key.Substring(pos + 1);
+        }
 
         /// <summary>
         /// Concatenates project key and branch into one string.

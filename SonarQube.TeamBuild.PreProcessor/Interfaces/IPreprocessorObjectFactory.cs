@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
+using SonarQube.TeamBuild.PreProcessor.Interfaces;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -29,6 +30,8 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <summary>
         /// Creates and returns the component that provisions the Roslyn analyzers
         /// </summary>
-        IAnalyzerProvider CreateAnalyzerProvider(ILogger logger);
+        IAnalyzerProvider CreateRoslynAnalyzerProvider(ILogger logger);
+
+        IRulesetGenerator CreateRulesetGenerator();
     }
 }

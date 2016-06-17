@@ -326,6 +326,15 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No active rules for {0}.
+        /// </summary>
+        public static string RAP_NoActiveRules {
+            get {
+                return ResourceManager.GetString("RAP_NoActiveRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for {0}.
         /// </summary>
         public static string RAP_NoAnalyzerPluginsSpecified {

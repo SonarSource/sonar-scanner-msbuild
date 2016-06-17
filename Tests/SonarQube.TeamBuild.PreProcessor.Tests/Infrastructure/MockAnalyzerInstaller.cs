@@ -8,6 +8,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.TeamBuild.PreProcessor.Roslyn;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -46,7 +47,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         IEnumerable<string> IAnalyzerInstaller.InstallAssemblies(IEnumerable<Plugin> plugins)
         {
             Assert.IsNotNull(plugins, "Supplied list of plugins should not be null");
-
+            foreach(Plugin p in plugins)
+            {
+                Debug.WriteLine(p.StaticResourceName);
+            }
             this.SuppliedPlugins.AddRange(plugins);
 
             return this.AssemblyPathsToReturn;

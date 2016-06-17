@@ -5,6 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using SonarQube.TeamBuild.PreProcessor.Interfaces;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,67 +14,31 @@ using System.Linq;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
-    public static class RulesetGenerator
+    public sealed class RulesetGenerator : IRulesetGenerator
     {
-        #region Public methods
+        #region #region IRulesetGenerator interface
 
         /// <summary>
-        /// Retrieves settings from the SonarQube server and generates a an FxCop file on disc
+        /// Generates an FxCop file on disc containing all internalKeys from rules belonging to the given repo.
         /// </summary>
-        /// <param name="server">SonarQube server instance</param>
-        /// <param name="requiredPluginKey">The plugin key that defines the given language</param>
-        /// <param name="language">The language of the FxCop repository</param>
         /// <param name="fxCopRepositoryKey">The key of the FxCop repository</param>
-        /// <param name="sonarProjectKey">The key of the SonarQube project for which the ruleset should be generated</param>
-        /// <param name="sonarProjectBranch">The branch of the SonarQube project for which the ruleset should be generated (optional).</param>
         /// <param name="outputFilePath">The full path to the file to be generated</param>
-        public static void Generate(ISonarQubeServer server, string requiredPluginKey, string language, string fxCopRepositoryKey, string sonarProjectKey, string sonarProjectBranch, string outputFilePath)
+        public void Generate(string fxCopRepositoryKey, IList<ActiveRule> activeRules, string outputFilePath)
         {
-            if (server == null)
-            {
-                throw new ArgumentNullException("server");
-            }
-            if (string.IsNullOrWhiteSpace(requiredPluginKey))
-            {
-                throw new ArgumentNullException("requiredPluginKey");
-            }
-            if (string.IsNullOrWhiteSpace(language))
-            {
-                throw new ArgumentNullException("language");
-            }
             if (string.IsNullOrWhiteSpace(fxCopRepositoryKey))
             {
                 throw new ArgumentNullException("fxCopRepositoryKey");
             }
-            if (string.IsNullOrWhiteSpace(sonarProjectKey))
+            if (activeRules == null)
             {
-                throw new ArgumentNullException("sonarProjectKey");
-            }
-            if (string.IsNullOrWhiteSpace(outputFilePath))
-            {
-                throw new ArgumentNullException("outputFilePath");
+                throw new ArgumentNullException("activeRules");
             }
 
-            IEnumerable<string> activeRuleKeys = Enumerable.Empty<string>();
-            if (server.GetInstalledPlugins().Contains(requiredPluginKey))
-            {
-                string qualityProfile;
-                if (server.TryGetQualityProfile(sonarProjectKey, sonarProjectBranch, language, out qualityProfile))
-                {
-                    activeRuleKeys = server.GetActiveRuleKeys(qualityProfile, language, fxCopRepositoryKey);
-                }
-            }
+            IEnumerable<ActiveRule> fxCopActiveRules = activeRules.Where(r => r.RepoKey.Equals(fxCopRepositoryKey));
 
-            if (activeRuleKeys.Any())
+            if (fxCopActiveRules.Any())
             {
-                var internalKeys = server.GetInternalKeys(fxCopRepositoryKey);
-                var ids = activeRuleKeys.Select(
-                    k =>
-                    {
-                        var fullKey = fxCopRepositoryKey + ':' + k;
-                        return internalKeys.ContainsKey(fullKey) ? internalKeys[fullKey] : k;
-                    });
-
+                var ids = fxCopActiveRules.Select(r => r.GetInternalKeyOrKey());
                 File.WriteAllText(outputFilePath, RulesetWriter.ToString(ids));
             }
             else

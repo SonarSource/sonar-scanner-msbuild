@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,37 +39,37 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region ISonarQubeServer methods
 
-        IEnumerable<string> ISonarQubeServer.GetActiveRuleKeys(string qualityProfile, string language, string repository)
+        IList<ActiveRule> ISonarQubeServer.GetActiveRules(string qprofile)
         {
             this.LogMethodCalled();
 
-            Assert.IsFalse(string.IsNullOrEmpty(qualityProfile), "Quality profile is required");
-            Assert.IsFalse(string.IsNullOrEmpty(language), "Language is required");
-            Assert.IsFalse(string.IsNullOrEmpty(repository), "Repository is required");
+            Assert.IsFalse(string.IsNullOrEmpty(qprofile), "Quality profile is required");
 
-            QualityProfile profile = this.Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Name, qualityProfile) && string.Equals(qp.Language, language));
+            QualityProfile profile = this.Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qprofile));
+            if (profile == null)
+            {
+                return null;
+            }
+            return profile.ActiveRules;
+        }
 
+        IList<string> ISonarQubeServer.GetInactiveRules(string qprofile, string language)
+        {
+            this.LogMethodCalled();
+            Assert.IsFalse(string.IsNullOrEmpty(qprofile), "Quality profile is required");
+            QualityProfile profile = this.Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qprofile));
             if (profile == null)
             {
                 return null;
             }
 
-            return profile.ActiveRules.Where(r => string.Equals(r.Repository.Key, repository)).Select(r => r.Key);
+            return profile.InactiveRules;
         }
 
         IEnumerable<string> ISonarQubeServer.GetInstalledPlugins()
         {
             this.LogMethodCalled();
             return this.Data.InstalledPlugins;
-        }
-
-        IDictionary<string, string> ISonarQubeServer.GetInternalKeys(string repository)
-        {
-            this.LogMethodCalled();
-
-            Assert.IsFalse(string.IsNullOrEmpty(repository), "Repository is required");
-
-            return this.Data.Repositories.SelectMany(repo => repo.Rules).ToDictionary(r => r.Key, r => r.InternalKey);
         }
 
         IDictionary<string, string> ISonarQubeServer.GetProperties(string projectKey, string projectBranch)
@@ -95,22 +96,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             QualityProfile profile = this.Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Language, language) && qp.Projects.Contains(projectId));
 
-            qualityProfile = profile == null ? null : profile.Name;
+            qualityProfile = profile == null ? null : profile.Id;
             return profile != null;
-        }
-
-        bool ISonarQubeServer.TryGetProfileExport(string qualityProfile, string language, string format, out string content)
-        {
-            this.LogMethodCalled();
-
-            Assert.IsFalse(string.IsNullOrEmpty(qualityProfile), "Quality profile is required");
-            Assert.IsFalse(string.IsNullOrEmpty(language), "Language is required");
-            Assert.IsFalse(string.IsNullOrEmpty(format), "Format is required");
-
-            QualityProfile profile = this.Data.FindProfile(qualityProfile, language);
-
-            content = profile != null ? profile.GetExport(format) : null;
-            return content != null;
         }
 
         bool ISonarQubeServer.TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)

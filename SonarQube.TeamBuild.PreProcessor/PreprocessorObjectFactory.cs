@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
+using SonarQube.TeamBuild.PreProcessor.Interfaces;
 using System;
 
 namespace SonarQube.TeamBuild.PreProcessor
@@ -54,7 +55,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             return new TargetsInstaller();
         }
 
-        public IAnalyzerProvider CreateAnalyzerProvider(ILogger logger)
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ILogger logger)
         {
             if (logger == null)
             {
@@ -67,6 +68,11 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             return new Roslyn.RoslynAnalyzerProvider(new Roslyn.EmbeddedAnalyzerInstaller(this.server, logger), logger);
+        }
+
+        public IRulesetGenerator CreateRulesetGenerator()
+        {
+            return new RulesetGenerator();
         }
 
         #endregion

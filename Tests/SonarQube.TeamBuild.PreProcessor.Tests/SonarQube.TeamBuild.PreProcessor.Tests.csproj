@@ -62,12 +62,12 @@
     <Compile Include="ArgumentProcessorTests.cs" />
     <Compile Include="Infrastructure\MockAnalyzerInstaller.cs" />
     <Compile Include="Infrastructure\MockRoslynAnalyzerProvider.cs" />
+    <Compile Include="Infrastructure\MockRulesetGenerator.cs" />
     <Compile Include="Infrastructure\MockSonarQubeServer.cs" />
     <Compile Include="Infrastructure\MockObjectFactory.cs" />
     <Compile Include="Infrastructure\MockTargetsInstaller.cs" />
     <Compile Include="DataModel\ServerDataModel.cs" />
     <Compile Include="Infrastructure\PreProcessAsserts.cs" />
-    <Compile Include="Infrastructure\SampleExportXml.cs" />
     <Compile Include="PreProcessorExeTests.cs" />
     <Compile Include="PreprocessorObjectFactoryTests.cs" />
     <Compile Include="PreProcessorTests.cs" />
@@ -75,12 +75,10 @@
     <Compile Include="ProcessedArgsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RoslynAnalyzerProviderTests.cs" />
-    <Compile Include="RoslynExportProfileTests.cs" />
+    <Compile Include="RoslynRuleSetGeneratorTests.cs" />
     <Compile Include="RulesetGeneratorTests.cs" />
     <Compile Include="RulesetWriterTest.cs" />
     <Compile Include="DataModel\QualityProfile.cs" />
-    <Compile Include="DataModel\Repository.cs" />
-    <Compile Include="DataModel\Rule.cs" />
     <Compile Include="SonarWebServiceTest.cs" />
     <Compile Include="TargetsInstallerTests.cs" />
     <Compile Include="V0_9UpgradeMessageTests.cs" />

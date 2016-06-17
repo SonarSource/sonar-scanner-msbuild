@@ -31,7 +31,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertException.Expects<ArgumentNullException>(() => testSubject.CreateSonarQubeServer(validArgs, null));
 
             // 2. CreateAnalyzerProvider method
-            AssertException.Expects<ArgumentNullException>(() => testSubject.CreateAnalyzerProvider(null));
+            AssertException.Expects<ArgumentNullException>(() => testSubject.CreateRoslynAnalyzerProvider(null));
         }
 
         [TestMethod]
@@ -51,7 +51,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsNotNull(actual);
 
             // 3. Now create the analyzer provider
-            actual = testSubject.CreateAnalyzerProvider(logger);
+            actual = testSubject.CreateRoslynAnalyzerProvider(logger);
             Assert.IsNotNull(actual);
         }
 
@@ -63,7 +63,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory();
 
             // 2. Act and assert
-            AssertException.Expects<InvalidOperationException>(() => testSubject.CreateAnalyzerProvider(logger));
+            AssertException.Expects<InvalidOperationException>(() => testSubject.CreateRoslynAnalyzerProvider(logger));
         }
 
         #endregion

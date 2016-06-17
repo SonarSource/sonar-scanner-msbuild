@@ -60,15 +60,13 @@
     <Compile Include="Interfaces\IAnalyzerProvider.cs" />
     <Compile Include="Interfaces\IDownloader.cs" />
     <Compile Include="Interfaces\IPreprocessorObjectFactory.cs" />
+    <Compile Include="Interfaces\IRulesetGenerator.cs" />
     <Compile Include="Interfaces\ITargetsInstaller.cs" />
     <Compile Include="Interfaces\ISonarQubeServer.cs" />
-    <Compile Include="Roslyn\EmbeddedAnalyzerInstaller.cs" />
+    <Compile Include="Roslyn\ActiveRule.cs" />
     <Compile Include="Roslyn\Model\Plugin.cs" />
-    <Compile Include="Roslyn\Model\AdditionalFile.cs" />
-    <Compile Include="Roslyn\Model\Configuration.cs" />
-    <Compile Include="Roslyn\Model\Deployment.cs" />
-    <Compile Include="Roslyn\Model\NuGetPackageInfo.cs" />
-    <Compile Include="Roslyn\Model\RoslynExportProfile.cs" />
+    <Compile Include="Roslyn\RoslynRuleSetGenerator.cs" />
+    <Compile Include="Roslyn\EmbeddedAnalyzerInstaller.cs" />
     <Compile Include="Roslyn\RoslynAnalyzerProvider.cs" />
     <Compile Include="Roslyn\RoslynResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -84,6 +82,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Roslyn\RoslynSonarLint.cs" />
     <Compile Include="RulesetGenerator.cs" />
     <Compile Include="RulesetWriter.cs" />
     <Compile Include="SonarWebService.cs" />

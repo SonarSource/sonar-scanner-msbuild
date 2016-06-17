@@ -7,6 +7,7 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -37,6 +38,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static void AssertRuleIdExists(XDocument doc, string ruleId)
         {
+            Debug.WriteLine(doc.ToString());
             XElement element = doc.Descendants().Single(e => e.Name == "Rule" && HasRuleIdAttribute(e, ruleId));
             Assert.IsNotNull(element, "Could not find ruleId with expected id: {0}", ruleId);
         }
