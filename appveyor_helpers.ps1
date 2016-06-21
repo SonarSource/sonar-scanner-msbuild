@@ -9,12 +9,9 @@ if (!$env:APPVEYOR)
 #
 # Returns true if the current build is triggered by a Pull Request on a specific configuration
 #
-# Remark: We should only run PR-CA once, but Appveyor does not offer a mechanism to differentiate between runs from the same matrix. 
-# As a workaround, we set an extra variable (PR-CA) in the matrix. We also check the os input to not run PR-CA for each "os" 
-#
 function IsPRCABuild
 {
-    if ($env:APPVEYOR_PULL_REQUEST_NUMBER -and $env:PR_CA -and ($env:os -eq "Visual Studio 2015"))
+    if ($env:APPVEYOR_PULL_REQUEST_NUMBER)
     {
         return $true;
     }

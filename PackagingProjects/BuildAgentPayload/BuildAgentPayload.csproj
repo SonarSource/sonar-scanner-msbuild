@@ -72,9 +72,13 @@
   <Target Name="CreatePayload" AfterTargets="Build">
     <CallTarget Targets="CleanExistingPayload" />
     <CallTarget Targets="CopyPayloadFiles" />
+    <CallTarget Targets="ZipPayloadFiles" />
   </Target>
   <Target Name="CopyPayloadFiles">
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(DestinationDir)" />
+  </Target>
+  <Target Name="ZipPayloadFiles">
+    <Exec Command="PowerShell -command Compress-Archive -Path $(DestinationDir)* -DestinationPath $(DestinationDir)\SonarQube.Scanner.MSBuild.zip" />
   </Target>
   <Target Name="CleanExistingPayload" AfterTargets="Clean">
     <RemoveDir Directories="$(DestinationDir)" />

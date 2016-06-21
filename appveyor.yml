@@ -21,12 +21,6 @@ cache:
 
 configuration: Release
 
-environment:
-  matrix:
-  - SQ_Version: '5.6'  
-    PR_CA: '1'
-    
-
 before_build:
   - ps: ./appveyor_before_build.ps1
   - nuget restore
@@ -34,7 +28,9 @@ before_build:
 build:
   verbosity: minimal
   project: SonarQube.Scanner.MSBuild.sln
-
+ 
+on_success:
+  - ps: ./appveyor_on_success.ps1
 
 on_finish:
 # Uncomment this to be able to RDP into the build agent
