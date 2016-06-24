@@ -41,12 +41,14 @@
   </PropertyGroup>
   <ItemGroup>
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Common.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\MSBuild.SonarQube.Runner.exe" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Scanner.MSBuild.exe" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\MSBuild.SonarQube.Runner.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Analysis.xml" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration)== 'Debug'">
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Common.pdb" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\MSBuild.SonarQube.Runner.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Scanner.MSBuild.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\MSBuild.SonarQube.Runner.pdb" />
   </ItemGroup>
   <!-- Reference to dependencies to ensure the build order is correct -->
   <ItemGroup>
@@ -61,6 +63,10 @@
     <ProjectReference Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj">
       <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>
       <Name>SonarQube.MSBuild.Tasks</Name>
+    </ProjectReference>
+    <ProjectReference Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\SonarQube.Old.Bootstrapper.csproj">
+      <Project>{35848c6e-2018-4831-94fa-40d7e45b5a09}</Project>
+      <Name>SonarQube.Old.Bootstrapper</Name>
     </ProjectReference>
   </ItemGroup>
   <Target Name="CreatePayload" AfterTargets="Build">
