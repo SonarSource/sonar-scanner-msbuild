@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.sonarsource.parent</groupId>
+    <artifactId>parent</artifactId>
+    <version>23</version>
+    <relativePath />
+  </parent>
+
+  <groupId>org.sonarsource.scanner.msbuild</groupId>
+  <artifactId>scanner-msbuild-its</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <name>Scanner for MSBuild :: Integration Tests</name>
+
+  <inceptionYear>2016</inceptionYear>
+  
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.sonarsource.orchestrator</groupId>
+      <artifactId>sonar-orchestrator</artifactId>
+      <version>3.13-build575</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.2</version>
+    </dependency>
+
+    <!--  Force Maven to download it -->
+    <dependency>
+      <groupId>org.sonarsource.dotnet</groupId>
+      <artifactId>sonar-csharp-plugin</artifactId>
+      <version>5.1</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.4.1</version>
+    </dependency>
+  </dependencies>
+
+  
+</project>
