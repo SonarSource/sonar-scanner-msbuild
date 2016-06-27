@@ -1,7 +1,5 @@
 version: 1.0.{build}
 os:
-- Visual Studio 2013
-# only run PR-CA on the VS 2015 OS - please change the scripts if this string changes
 - Visual Studio 2015
 
 install:
@@ -25,8 +23,7 @@ configuration: Release
 
 environment:
   matrix:
-  - SQ_Version: '4.5.6'    
-  - SQ_Version: '5.2'  
+  - SQ_Version: '5.6'  
     PR_CA: '1'
     
 
@@ -37,10 +34,7 @@ before_build:
 build:
   verbosity: minimal
   project: SonarQube.Scanner.MSBuild.sln
- 
-after_build:
-  - ps: ./appveyor_after_build.ps1
-  
+
 
 on_finish:
 # Uncomment this to be able to RDP into the build agent
