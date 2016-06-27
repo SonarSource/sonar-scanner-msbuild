@@ -169,20 +169,20 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 
             Assert.AreEqual("vbnet", actual[0].RepoKey);
             Assert.AreEqual("S2368", actual[0].RuleKey);
-            Assert.AreEqual("S2368", actual[0].GetInternalKeyOrKey());
+            Assert.AreEqual("S2368", actual[0].InternalKeyOrKey);
             Assert.AreEqual(null, actual[0].TemplateKey);
             Assert.AreEqual(0, actual[0].Parameters.Count());
 
             Assert.AreEqual("common-vbnet", actual[1].RepoKey);
             Assert.AreEqual("InsufficientCommentDensity", actual[1].RuleKey);
-            Assert.AreEqual("InsufficientCommentDensity.internal", actual[1].GetInternalKeyOrKey());
+            Assert.AreEqual("InsufficientCommentDensity.internal", actual[1].InternalKeyOrKey);
             Assert.AreEqual(null, actual[1].TemplateKey);
             Assert.AreEqual(1, actual[1].Parameters.Count());
             Assert.IsTrue(actual[1].Parameters.First().Equals(new KeyValuePair<string, string>("minimumCommentDensity", "50")));
 
             Assert.AreEqual("vbnet", actual[2].RepoKey);
             Assert.AreEqual("S2346", actual[2].RuleKey);
-            Assert.AreEqual("S2346", actual[2].GetInternalKeyOrKey());
+            Assert.AreEqual("S2346", actual[2].InternalKeyOrKey);
             Assert.AreEqual(null, actual[2].TemplateKey);
             Assert.AreEqual(0, actual[2].Parameters.Count());
         }

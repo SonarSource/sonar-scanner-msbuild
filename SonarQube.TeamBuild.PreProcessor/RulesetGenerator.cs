@@ -38,7 +38,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             if (fxCopActiveRules.Any())
             {
-                var ids = fxCopActiveRules.Select(r => r.GetInternalKeyOrKey());
+                var ids = fxCopActiveRules.Select(r => r.InternalKeyOrKey);
                 File.WriteAllText(outputFilePath, RulesetWriter.ToString(ids));
             }
             else

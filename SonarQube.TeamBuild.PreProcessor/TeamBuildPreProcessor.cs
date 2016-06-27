@@ -21,11 +21,9 @@ namespace SonarQube.TeamBuild.PreProcessor
     {
         public const string CSharpLanguage = "cs";
         public const string CSharpPluginKey = "csharp";
-        public const string CSharpRepositoryKey = "csharp";
 
         public const string VBNetLanguage = "vbnet";
         public const string VBNetPluginKey = "vbnet";
-        public const string VBNetRepositoryKey = "vbnet";
 
         public const string FxCopRulesetName = "SonarQubeFxCop-{0}.ruleset";
 
@@ -41,11 +39,11 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             if (factory == null)
             {
-                throw new ArgumentNullException("factory must not be null");
+                throw new ArgumentNullException(nameof(factory));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger must not be null");
+                throw new ArgumentNullException(nameof(logger));
             }
             this.factory = factory;
             this.logger = logger;
@@ -54,9 +52,9 @@ namespace SonarQube.TeamBuild.PreProcessor
         static TeamBuildPreProcessor()
         {
             plugins = new List<PluginDefinition>();
-            csharp = new PluginDefinition(CSharpLanguage, CSharpPluginKey, CSharpRepositoryKey);
+            csharp = new PluginDefinition(CSharpLanguage, CSharpPluginKey);
             plugins.Add(csharp);
-            plugins.Add(new PluginDefinition(VBNetLanguage, VBNetPluginKey, VBNetRepositoryKey));
+            plugins.Add(new PluginDefinition(VBNetLanguage, VBNetPluginKey));
         }
 
         #endregion Constructor(s)
@@ -66,13 +64,11 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             public string Language { get; private set; }
             public string PluginKey { get; private set; }
-            public string RepositoryKey { get; private set; }
 
-            public PluginDefinition(string language, string pluginKey, string repositoryKey)
+            public PluginDefinition(string language, string pluginKey)
             {
                 this.Language = language;
                 this.PluginKey = pluginKey;
-                this.RepositoryKey = repositoryKey;
             }
         }
         #endregion

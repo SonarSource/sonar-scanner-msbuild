@@ -43,11 +43,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         {
             if (analyzerInstaller == null)
             {
-                throw new ArgumentNullException("analyzerInstaller must not be null");
+                throw new ArgumentNullException(nameof(analyzerInstaller));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger must not be null");
+                throw new ArgumentNullException(nameof(logger));
             }
             this.analyzerInstaller = analyzerInstaller;
             this.logger = logger;
@@ -58,23 +58,23 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         {
             if (settings == null)
             {
-                throw new ArgumentNullException("settings must not be null");
+                throw new ArgumentNullException(nameof(settings));
             }
             if (language == null)
             {
-                throw new ArgumentNullException("language must not be null");
+                throw new ArgumentNullException(nameof(language));
             }
             if (serverSettings == null)
             {
-                throw new ArgumentNullException("serverSettings must not be null");
+                throw new ArgumentNullException(nameof(serverSettings));
             }
-            if (serverSettings == null)
+            if (inactiveRules == null)
             {
-                throw new ArgumentNullException("serverSettings must not be null");
+                throw new ArgumentNullException(nameof(inactiveRules));
             }
             if (activeRules == null)
             {
-                throw new ArgumentNullException("activeRules must not be null");
+                throw new ArgumentNullException(nameof(activeRules));
             }
             if (!activeRules.Any())
             {
@@ -239,7 +239,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return partialRepoKey + ".staticResourceName";
         }
 
-        ICollection<string> activeRulesPartialRepoKey(IEnumerable<ActiveRule> activeRules, string language)
+        private static ICollection<string> activeRulesPartialRepoKey(IEnumerable<ActiveRule> activeRules, string language)
         {
             ISet<string> list = new HashSet<string>();
 

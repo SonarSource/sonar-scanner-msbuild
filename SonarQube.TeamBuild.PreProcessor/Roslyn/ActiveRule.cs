@@ -14,6 +14,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
         public string InternalKey { set; get; }
         public Dictionary<string, string> Parameters { set; get; }
 
+        public string InternalKeyOrKey
+        {
+            get { return InternalKey ?? RuleKey; }
+        }
+
         public ActiveRule()
         {
 
@@ -30,11 +35,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
             this.RepoKey = repoKey;
             this.RuleKey = ruleKey;
             this.InternalKey = InternalKey;
-        }
-
-        public string GetInternalKeyOrKey()
-        {
-            return InternalKey ?? RuleKey;
         }
     }
 }

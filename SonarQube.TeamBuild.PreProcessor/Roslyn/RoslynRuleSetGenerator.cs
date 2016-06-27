@@ -23,11 +23,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
         {
             if (serverSettings == null)
             {
-                throw new ArgumentNullException("serverSettings must not be null");
+                throw new ArgumentNullException(nameof(serverSettings));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger must not be null");
+                throw new ArgumentNullException(nameof(logger));
             }
             this.logger = logger;
             this.serverSettings = serverSettings;
@@ -41,11 +41,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
             }
             if (inactiveRules == null)
             {
-                throw new ArgumentNullException("inactiveRules must not be null");
+                throw new ArgumentNullException(nameof(inactiveRules));
             }
             if (language == null)
             {
-                throw new ArgumentNullException("language must not be null");
+                throw new ArgumentNullException(nameof(language));
             }
 
             Dictionary<string, List<ActiveRule>> activeRulesByPartialRepoKey = activeRoslynRulesByPartialRepoKey(activeRules, language);
