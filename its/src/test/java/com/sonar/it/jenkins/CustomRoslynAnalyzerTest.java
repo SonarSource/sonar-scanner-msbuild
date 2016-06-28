@@ -33,7 +33,7 @@ import org.sonar.wsclient.issue.IssueQuery;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ScannerMSBuildTest {
+public class CustomRoslynAnalyzerTest {
 
   @ClassRule
   public static TemporaryFolder temp = new TemporaryFolder();
@@ -46,8 +46,10 @@ public class ScannerMSBuildTest {
     @Override
     protected void beforeAll() {
       Path modifiedCs = TestUtils.prepareCSharpPlugin(temp);
+      Path customRoslyn = TestUtils.getCustomRoslynPlugin();
       ORCHESTRATOR = Orchestrator.builderEnv()
         .addPlugin(FileLocation.of(modifiedCs.toFile()))
+        .addPlugin(FileLocation.of(customRoslyn.toFile()))
         .build();
       ORCHESTRATOR.start();
     }
@@ -60,9 +62,9 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testSample() throws Exception {
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
     ORCHESTRATOR.getServer().provisionProject("foo", "Foo");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile("foo", "cs", "ProfileForTest");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile("foo", "cs", "ProfileForTestCustomRoslyn");
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
     ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
@@ -77,6 +79,6 @@ public class ScannerMSBuildTest {
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    assertThat(issues).hasSize(4);
+    assertThat(issues).hasSize(4 + 33);
   }
 }
