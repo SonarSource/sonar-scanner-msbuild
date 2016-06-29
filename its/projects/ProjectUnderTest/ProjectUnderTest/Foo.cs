@@ -20,6 +20,7 @@ namespace ProjectUnderTest
     *   S228 (do not use Console)
     *   S1134 (no 'F i x m e' comments)
     *   S1135 (no 'T O D O' comments)  -- not in quality profile
+    *   S107 (method should not have to many parameters) -- not in quality profile, and only triggered with the right parameters
     *
     * Also triggered: 
     *   common-cs:InsufficientCommentDensity -- not in quality profile
@@ -46,6 +47,11 @@ namespace ProjectUnderTest
                 // Violates FxCop's CA2201: Do not raise reserved exception types (major issue)
                 throw new Exception("Hello world");
             }
+        }
+        
+        public int test(int i1, int i2, int i3)
+        {
+        	return i1 + i2 + i3;
         }
     }
 }

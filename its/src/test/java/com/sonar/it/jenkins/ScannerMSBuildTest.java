@@ -20,9 +20,12 @@
 package com.sonar.it.jenkins;
 
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
+
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import org.junit.ClassRule;
@@ -61,14 +64,14 @@ public class ScannerMSBuildTest {
   @Test
   public void testSample() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
-    ORCHESTRATOR.getServer().provisionProject("foo", "Foo");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile("foo", "cs", "ProfileForTest");
+    ORCHESTRATOR.getServer().provisionProject("sample", "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile("sample", "cs", "ProfileForTest");
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
     ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
       .addArgument("begin")
-      .setProjectKey("foo")
-      .setProjectName("Foo")
+      .setProjectKey("sample")
+      .setProjectName("sample")
       .setProjectVersion("1.0"));
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
@@ -78,5 +81,47 @@ public class ScannerMSBuildTest {
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).hasSize(4);
+  }
+  
+  @Test
+  public void testParameters() throws Exception {
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileParameters.xml"));
+    ORCHESTRATOR.getServer().provisionProject("parameters", "parameters");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile("parameters", "cs", "ProfileForTestParameters");
+
+    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .addArgument("begin")
+      .setProjectKey("parameters")
+      .setProjectName("parameters")
+      .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .addArgument("end"));
+
+    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    assertThat(issues).hasSize(1);
+    assertThat(issues.get(0).message()).isEqualTo("Method has 3 parameters, which is greater than the 2 authorized.");
+    assertThat(issues.get(0).ruleKey()).isEqualTo("S107");
+  }
+  
+  @Test
+  public void testVerbose() throws IOException {
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject("verbose", "verbose");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile("verbose", "cs", "ProfileForTest");
+
+    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    BuildResult result = ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .addArgument("begin")
+      .setProjectKey("verbose")
+      .setProjectName("verbose")
+      .setProjectVersion("1.0")
+      .addArgument("/d:sonar.verbose=true"));
+    
+    assertThat(result.getLogs()).contains("Downloading from http://localhost");
+    assertThat(result.getLogs()).contains("sonar.verbose=true was specified - setting the log verbosity to 'Debug'");
   }
 }
