@@ -23,7 +23,7 @@
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
       <artifactId>sonar-orchestrator</artifactId>
-      <version>3.13-build575</version>
+      <version>3.13-build576</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
