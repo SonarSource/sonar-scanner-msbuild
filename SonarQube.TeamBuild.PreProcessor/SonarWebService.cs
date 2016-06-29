@@ -10,7 +10,6 @@ using SonarQube.Common;
 using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -65,7 +64,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             var profile = profiles.Count > 1 ? profiles.Single(p => "True".Equals(p["default"].ToString())) : profiles.Single();
-            Debug.WriteLine(profile.ToString());
             qualityProfileKey = profile["key"].ToString();
             return true;
         }
@@ -139,9 +137,10 @@ namespace SonarQube.TeamBuild.PreProcessor
                     var active = actives[r["key"].ToString()];
                     var listParams = active.Single()["params"].Children<JObject>();
                     activeRule.Parameters = listParams.ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
-
-                    //var checkIdParameter = r["params"] == null ? null : r["params"].Where(p => "CheckId".Equals(p["key"].ToString())).SingleOrDefault();
-                    //return checkIdParameter == null ? r["key"].ToString() : checkIdParameter["value"].ToString();
+                    if (activeRule.Parameters.ContainsKey("CheckId"))
+                    {
+                        activeRule.RuleKey = activeRule.Parameters["CheckId"];
+                    }
                     return activeRule;
                 }));
             } while (fetched < total);
