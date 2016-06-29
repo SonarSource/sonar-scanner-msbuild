@@ -8,7 +8,7 @@ function DeployOnRepox()
 
     $command = 'mvn --% --batch-mode --quiet --settings "maven-settings.xml" "org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy-file" ' +
         '-DrepositoryId=releases ' +
-        '-Durl=' + $env:ARTIFACTORY_URL + '/' + $env:ARTIFACTORY_DEPLOY_REPO + ';buildNumber=' + $env:APPVEYOR_BUILD_NUMBER + ' ' +
+        '-Durl=' + $env:ARTIFACTORY_URL + '/' + $env:ARTIFACTORY_DEPLOY_REPO + ';build.name=sonar-msbuild-runner;build.number=' + $env:APPVEYOR_BUILD_NUMBER + ' ' +
         '"-DgroupId=org.sonarsource.scanner.msbuild" ' +
         '"-DartifactId=sonar-scanner-msbuild" ' +
         '-Dclassifier=' + $classifier + ' ' +
