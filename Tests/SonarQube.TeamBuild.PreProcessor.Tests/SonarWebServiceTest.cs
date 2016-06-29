@@ -85,6 +85,49 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
+        public void GetActiveRules_UseParamAsKey()
+        {
+            downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
+                @"{ total: 1, p: 1, ps: 1, 
+            rules: [{
+                key: ""vbnet:S2368"",
+                repo: ""vbnet"",
+                name: ""Public methods should not have multidimensional array parameters"",
+                severity: ""MAJOR"",
+                lang: ""vbnet"",
+                params: [ ],
+                type: ""CODE_SMELL""
+            }],
+
+            actives: {
+                ""vbnet:S2368"": [
+                {
+                    qProfile: ""qp"",
+                    inherit: ""NONE"",
+                    severity: ""MAJOR"",
+                    params: [
+                    {
+                      key: ""CheckId"",
+                      value: ""OverwrittenId"",
+                      type: ""FLOAT""
+                    }
+                    ]
+                }
+                ]
+            }
+            }";
+
+            IList<ActiveRule> actual = ws.GetActiveRules("qp");
+            Assert.AreEqual(1, actual.Count());
+
+            Assert.AreEqual("vbnet", actual[0].RepoKey);
+            Assert.AreEqual("OverwrittenId", actual[0].RuleKey);
+            Assert.AreEqual("OverwrittenId", actual[0].InternalKeyOrKey);
+            Assert.AreEqual(null, actual[0].TemplateKey);
+            Assert.AreEqual(1, actual[0].Parameters.Count());
+        }
+
+        [TestMethod]
         public void GetActiveRules()
         {
             downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
