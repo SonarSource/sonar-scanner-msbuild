@@ -81,7 +81,9 @@ public class TestUtils {
         .setGroupId("org.sonarsource.scanner.msbuild").setArtifactId("sonar-scanner-msbuild")
         .setVersion(scannerVersion).setClassifier("impl").withPackaging("zip").build();
       scannerImpl = t.resolve("sonar-scanner-msbuild-impl.zip");
-      locators.copyToFile(scannerImplLocation, scannerImpl.toFile());
+      if (locators.copyToFile(scannerImplLocation, scannerImpl.toFile()) == null) {
+        throw new IllegalStateException("Unable to find sonar-scanner-msbuild " + scannerVersion + " in local Maven repository");
+      }
     } else {
       // Run locally
       LOG.info("Updating C# plugin ({}) with local build of Scanner For MSBuild implementation", pluginVersion);

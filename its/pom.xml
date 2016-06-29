@@ -16,8 +16,9 @@
   <name>Scanner for MSBuild :: Integration Tests</name>
 
   <inceptionYear>2016</inceptionYear>
-  
-  
+
+
+
   <dependencies>
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
@@ -30,13 +31,13 @@
       <version>1.7.2</version>
     </dependency>
 
-    <!--  Force Maven to download it -->
+    <!-- Force Maven to download this artifact -->
     <dependency>
       <groupId>org.sonarsource.dotnet</groupId>
       <artifactId>sonar-csharp-plugin</artifactId>
       <version>5.1</version>
     </dependency>
-    
+
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
@@ -44,5 +45,68 @@
     </dependency>
   </dependencies>
 
-  
+  <profiles>
+    <profile>
+      <id>download-qa-artifacts</id>
+      <activation>
+        <property>
+          <name>env.CI_BUILD_NUMBER</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.gmaven</groupId>
+            <artifactId>groovy-maven-plugin</artifactId>
+            <version>2.0</version>
+            <executions>
+              <execution>
+                <id>compute-qa-version</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>execute</goal>
+                </goals>
+                <configuration>
+                  <source>
+                    String assembly = new File(project.basedir, '../AssemblyInfo.Shared.cs').getText('UTF-8')
+                    def matcher = assembly =~ /(?s).*\[assembly: AssemblyVersion\("(.*?)"\)\].*/
+                    assert matcher.matches()
+                    project.properties['scanner.version'] = matcher[0][1] + '-build' + System.getenv()['CI_BUILD_NUMBER']
+                  </source>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.10</version>
+            <executions>
+              <execution>
+                <id>download-qa-scanner</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>get</goal>
+                </goals>
+                <configuration>
+                  <artifact>org.sonarsource.scanner.msbuild:sonar-scanner-msbuild:${scanner.version}:zip</artifact>
+                </configuration>
+              </execution>
+              <execution>
+                <id>download-qa-scanner-impl</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>get</goal>
+                </goals>
+                <configuration>
+                  <artifact>org.sonarsource.scanner.msbuild:sonar-scanner-msbuild:${scanner.version}:zip:impl</artifact>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>
