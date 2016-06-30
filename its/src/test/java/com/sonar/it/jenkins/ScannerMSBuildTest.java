@@ -121,6 +121,38 @@ public class ScannerMSBuildTest {
   }
 
   @Test
+  public void testFxCopCustom() throws Exception {
+    String response = ORCHESTRATOR.getServer().adminWsClient().post("api/rules/create",
+      "name", "customfxcop",
+      "severity", "MAJOR",
+      "custom_key", "customfxcop",
+      "markdown_description", "custom rule",
+      "template_key", "fxcop:CustomRuleTemplate",
+      "params", "CheckId=CA2201");
+
+    System.out.println("RESPONSE: " + response);
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileFxCop.xml"));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTestFxCop");
+
+    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectName("sample")
+      .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .addArgument("end"));
+
+    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    assertThat(issues).hasSize(1);
+    assertThat(issues.get(0).ruleKey()).isEqualTo("fxcop:customfxcop");
+  }
+
+  @Test
   public void testVerbose() throws IOException {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "verbose");

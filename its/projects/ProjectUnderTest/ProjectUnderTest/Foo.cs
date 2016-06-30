@@ -17,7 +17,7 @@ namespace ProjectUnderTest
     * CA1303 (Do not pass literals as localized params)
 
     * SonarLint violations
-    *   S228 (do not use Console)
+    *   S2228 (do not use Console)
     *   S1134 (no 'F i x m e' comments)
     *   S1135 (no 'T O D O' comments)  -- not in quality profile
     *   S107 (method should not have to many parameters) -- not in quality profile, and only triggered with the right parameters
