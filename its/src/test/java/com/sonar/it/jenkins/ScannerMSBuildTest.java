@@ -92,6 +92,8 @@ public class ScannerMSBuildTest {
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).hasSize(4);
     assertThat(getFileMeasure("ncloc").getIntValue()).isEqualTo(23);
+    assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(37);
+    assertThat(getFileMeasure("lines").getIntValue()).isEqualTo(58);
   }
 
   @Test

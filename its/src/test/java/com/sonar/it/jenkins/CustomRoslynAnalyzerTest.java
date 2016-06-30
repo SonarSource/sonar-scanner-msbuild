@@ -25,6 +25,7 @@ import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.nio.file.Path;
 import java.util.List;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -60,6 +61,11 @@ public class CustomRoslynAnalyzerTest {
     }
   };
 
+  @Before
+  public void cleanup() {
+    ORCHESTRATOR.resetData();
+  }
+
   @Test
   public void testSample() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
@@ -79,6 +85,6 @@ public class CustomRoslynAnalyzerTest {
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    assertThat(issues).hasSize(4 + 33);
+    assertThat(issues).hasSize(4 + 37);
   }
 }
