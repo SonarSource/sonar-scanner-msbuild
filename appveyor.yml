@@ -45,7 +45,3 @@ notifications:
   on_build_failure: true
   on_build_status_changed: false
 
-- provider: Webhook
-  url:
-    secure: bs6pI9K81qMyrgBaPXpWz/v/pNIjmK/jucewicHvDI8v3Gychl6N3GaGw7+aap3ruoo5l0JF2F28LplMmcRuw+3S4EvTt44cyEAMzOjKe/ezeCndTfaAO9OUjHGHrWSzzXJUwbhNfSY/p7vSSKw93Q==
-  on_build_success: true
