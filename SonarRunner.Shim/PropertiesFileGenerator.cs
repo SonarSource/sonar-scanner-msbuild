@@ -58,7 +58,7 @@ namespace SonarRunner.Shim
                 return new ProjectInfoAnalysisResult();
             }
 
-            FixSarifReports(logger, projects, fixer);
+            TryFixSarifReports(logger, projects, fixer);
 
             PropertiesWriter writer = new PropertiesWriter(config);
 
@@ -96,17 +96,17 @@ namespace SonarRunner.Shim
         /// Loads SARIF reports from the given projects and attempts to fix
         /// improper escaping from Roslyn V1 (VS 2015 RTM) where appropriate.
         /// </summary>
-        private static void FixSarifReports(ILogger logger, IEnumerable<ProjectInfo> projects, IRoslynV1SarifFixer fixer /* for test */)
+        private static void TryFixSarifReports(ILogger logger, IEnumerable<ProjectInfo> projects, IRoslynV1SarifFixer fixer /* for test */)
         {
             // attempt to fix invalid project-level SARIF emitted by Roslyn 1.0 (VS 2015 RTM)
             foreach (ProjectInfo project in projects)
             {
-                FixSarifReport(logger, project, fixer, RoslynV1SarifFixer.CSharpLanguage, ReportFileCsharpPropertyKey);
-                FixSarifReport(logger, project, fixer, RoslynV1SarifFixer.VBNetLanguage, ReportFileVbnetPropertyKey);
+                TryFixSarifReport(logger, project, fixer, RoslynV1SarifFixer.CSharpLanguage, ReportFileCsharpPropertyKey);
+                TryFixSarifReport(logger, project, fixer, RoslynV1SarifFixer.VBNetLanguage, ReportFileVbnetPropertyKey);
             }
         }
 
-        private static void FixSarifReport(ILogger logger, ProjectInfo project, IRoslynV1SarifFixer fixer, string language, string reportFilePropertyKey)
+        private static void TryFixSarifReport(ILogger logger, ProjectInfo project, IRoslynV1SarifFixer fixer, string language, string reportFilePropertyKey)
         {
             Property reportPathProperty;
             bool tryResult = project.TryGetAnalysisSetting(reportFilePropertyKey, out reportPathProperty);
