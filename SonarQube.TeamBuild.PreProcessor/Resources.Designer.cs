@@ -344,6 +344,15 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No analyzer assemblies were specified for rule repository {0} in language {1}.
+        /// </summary>
+        public static string RAP_NoAssembliesForRepo {
+            get {
+                return ResourceManager.GetString("RAP_NoAssembliesForRepo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No plugins found with rulesets for Roslyn analyzer.
         /// </summary>
         public static string RAP_NoPluginInstalled {

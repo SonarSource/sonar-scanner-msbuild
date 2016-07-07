@@ -202,11 +202,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
             foreach (string repoKey in repoKeys)
             {
-                Debug.WriteLine(repoKey);
-                //TODO fail if property doesn't exist?
-                string pluginkey = sqServerSettings[pluginKeyPropertyKey(repoKey)];
-                string pluginVersion = sqServerSettings[pluginVersionPropertyKey(repoKey)];
-                string staticResourceName = sqServerSettings[staticResourceNamePropertyKey(repoKey)];
+                string pluginkey;
+                string pluginVersion;
+                string staticResourceName;
+                if (!sqServerSettings.TryGetValue(pluginKeyPropertyKey(repoKey), out pluginkey)
+                    || !sqServerSettings.TryGetValue(pluginVersionPropertyKey(repoKey), out pluginVersion)
+                    || !sqServerSettings.TryGetValue(staticResourceNamePropertyKey(repoKey), out staticResourceName)) {
+                    this.logger.LogInfo(Resources.RAP_NoAssembliesForRepo, repoKey, language);
+                    continue;
+                }
 
                 plugins.Add(new Plugin(pluginkey, pluginVersion, staticResourceName));
             }

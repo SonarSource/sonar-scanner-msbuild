@@ -11,6 +11,7 @@ using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.PreProcessor.Roslyn;
 using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -48,6 +49,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // Act and assert
             AssertException.Expects<ArgumentNullException>(() => testSubject.SetupAnalyzer(null, serverSettings, activeRules, inactiveRules, pluginKey));
+            AssertException.Expects<ArgumentNullException>(() => testSubject.SetupAnalyzer(settings, null, activeRules, inactiveRules, pluginKey));
+            AssertException.Expects<ArgumentNullException>(() => testSubject.SetupAnalyzer(settings, serverSettings, null, inactiveRules, pluginKey));
+            AssertException.Expects<ArgumentNullException>(() => testSubject.SetupAnalyzer(settings, serverSettings, activeRules, null, pluginKey));
+            AssertException.Expects<ArgumentNullException>(() => testSubject.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, null));
         }
 
         [TestMethod]
@@ -65,6 +70,49 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // Act and assert
             Assert.IsNull(testSubject.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, pluginKey));
+        }
+
+        [TestMethod]
+        public void RoslynConfig_NoAssemblies()
+        {
+            // Arrange
+            string rootFolder = CreateTestFolders();
+            TestLogger logger = new TestLogger();
+            IList<ActiveRule> activeRules = createActiveRules();
+            IList<string> inactiveRules = createInactiveRules();
+            string language = RoslynAnalyzerProvider.CSharpLanguage;
+
+            // missing properties to get plugin related properties
+            IDictionary<string, string> serverSettings = new Dictionary<string, string>();
+            serverSettings.Add("wintellect.analyzerId", "Wintellect.Analyzers");
+            serverSettings.Add("wintellect.ruleNamespace", "Wintellect.Analyzers");
+            serverSettings.Add("sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp");
+            serverSettings.Add("sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp");
+
+            MockAnalyzerInstaller mockInstaller = new MockAnalyzerInstaller();
+            mockInstaller.AssemblyPathsToReturn = new HashSet<string>(new string[] { "c:\\assembly1.dll", "d:\\foo\\assembly2.dll" });
+            TeamBuildSettings settings = CreateSettings(rootFolder);
+
+            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
+
+            // Act
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, language);
+
+            // Assert
+            CheckSettingsInvariants(actualSettings);
+            logger.AssertWarningsLogged(0);
+            logger.AssertErrorsLogged(0);
+
+            CheckRuleset(actualSettings, rootFolder, language);
+            Assert.IsTrue(!actualSettings.AnalyzerAssemblyPaths.Any());
+            List<string> plugins = new List<string>();
+            mockInstaller.AssertExpectedPluginsRequested(plugins);
+        }
+
+        [TestMethod]
+        public void RoslynConfig_GetRoslynFormatName()
+        {
+            Assert.AreEqual("roslyn-cs", RoslynAnalyzerProvider.GetRoslynFormatName(RoslynAnalyzerProvider.CSharpLanguage));
         }
 
         [TestMethod]
@@ -123,8 +171,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             </Rules>
             */
             List<ActiveRule> rules = new List<ActiveRule>();
-
-            rules.Add(new ActiveRule("csharpsquid", "S1116"));
+            ActiveRule ruleWithParameter = new ActiveRule("csharpsquid", "S1116");
+            Dictionary<string, string> p = new Dictionary<string, string>();
+            p.Add("key", "value");
+            ruleWithParameter.Parameters = p; 
+            rules.Add(ruleWithParameter);
             rules.Add(new ActiveRule("csharpsquid", "S1125"));
             rules.Add(new ActiveRule("roslyn.wintellect", "Wintellect003"));
 
@@ -252,6 +303,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
   <Rules>
     <Rule>
       <Key>S1116</Key>
+      <Parameters>
+        <Parameter>
+          <Key>key</Key>
+          <Value>value</Value>
+        </Parameter>
+      </Parameters>
     </Rule>
     <Rule>
       <Key>S1125</Key>

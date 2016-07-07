@@ -214,6 +214,9 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   <data name="RAP_NoAnalyzerPluginsSpecified" xml:space="preserve">
     <value>No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for {0}</value>
   </data>
+  <data name="RAP_NoAssembliesForRepo" xml:space="preserve">
+    <value>No analyzer assemblies were specified for rule repository {0} in language {1}</value>
+  </data>
   <data name="RAP_NoPluginInstalled" xml:space="preserve">
     <value>No plugins found with rulesets for Roslyn analyzer</value>
   </data>
