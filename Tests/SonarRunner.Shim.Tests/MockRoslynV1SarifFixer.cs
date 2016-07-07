@@ -4,11 +4,6 @@
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
 //-----------------------------------------------------------------------
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SonarQube.Common;
 
 namespace SonarRunner.Shim.Tests
@@ -22,6 +17,8 @@ namespace SonarRunner.Shim.Tests
 
         public int CallCount { get; set; }
 
+        public string LastLanguage { get; set; }
+
         public MockRoslynV1SarifFixer(string returnVal)
         {
             this.ReturnVal = returnVal;
@@ -32,9 +29,10 @@ namespace SonarRunner.Shim.Tests
 
         #region IRoslynV1SarifFixer
 
-        public string LoadAndFixFile(string sarifPath, ILogger logger)
+        public string LoadAndFixFile(string sarifPath, string language, ILogger logger)
         {
             CallCount++;
+            LastLanguage = language;
             return ReturnVal;
         }
 

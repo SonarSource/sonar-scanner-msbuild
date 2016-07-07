@@ -15,21 +15,30 @@ namespace SonarRunner.Shim
 {
     public class RoslynV1SarifFixer : IRoslynV1SarifFixer
     {
-
-        public const string ReportFilePropertyKey = "sonar.cs.roslyn.reportFilePath";
-
         public /* for test */ const string FixedFileSuffix = "_fixed";
+
+        public const string CSharpLanguage = "cs";
+        public const string VBNetLanguage = "vbnet";
 
         #region Private Methods
 
         /// <summary>
         /// Returns true if the given SARIF came from the VS 2015 RTM Roslyn, which does not provide correct output.
         /// </summary>
-        private static bool IsSarifFromRoslynV1(string input)
+        private static bool IsSarifFromRoslynV1(string input, string language)
         {
             // low risk of false positives / false negatives
-            return (input.Contains(@"""toolName"": ""Microsoft (R) Visual C# Compiler""")
-                && input.Contains(@"""productVersion"": ""1.0.0"""));
+            if (language.Equals(CSharpLanguage))
+            {
+                return (input.Contains(@"""toolName"": ""Microsoft (R) Visual C# Compiler""")
+                    && input.Contains(@"""productVersion"": ""1.0.0"""));
+            } else if(language.Equals(VBNetLanguage))
+            {
+                return (input.Contains(@"""toolName"": ""Microsoft (R) Visual Basic Compiler""")
+                    && input.Contains(@"""productVersion"": ""1.0.0"""));
+            }
+
+            throw new ArgumentException("unknown language: " + language);
         }
 
         /// <summary>
@@ -96,7 +105,7 @@ namespace SonarRunner.Shim
 
         #region IRoslynV1SarifFixer
 
-        public string LoadAndFixFile(string sarifFilePath, ILogger logger)
+        public string LoadAndFixFile(string sarifFilePath, string language, ILogger logger)
         {
             if (!File.Exists(sarifFilePath))
             {
@@ -115,7 +124,7 @@ namespace SonarRunner.Shim
             }
             logger.LogDebug(Resources.MSG_SarifFileIsInvalid, sarifFilePath);
 
-            if (!IsSarifFromRoslynV1(inputSarifFileString))
+            if (!IsSarifFromRoslynV1(inputSarifFileString, language))
             {
                 // invalid input NOT from Roslyn V1 -> unfixable
                 logger.LogWarning(Resources.WARN_SarifFixFail);

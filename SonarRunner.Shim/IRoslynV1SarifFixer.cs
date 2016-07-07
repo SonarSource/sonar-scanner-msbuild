@@ -16,6 +16,6 @@ namespace SonarRunner.Shim
         /// Returns a string representing a path to a valid JSON file suitable for upload to server,
         /// or null if this is not possible.
         /// </summary>
-        string LoadAndFixFile(string sarifFilePath, ILogger logger);
+        string LoadAndFixFile(string sarifFilePath, string language, ILogger logger);
     }
 }

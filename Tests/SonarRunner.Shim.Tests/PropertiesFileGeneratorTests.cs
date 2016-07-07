@@ -151,7 +151,7 @@ namespace SonarRunner.Shim.Tests
 
             // Create SARIF report path property and add it to the project info
             AnalysisProperties projectSettings = new AnalysisProperties();
-            projectSettings.Add(new Property() { Id = RoslynV1SarifFixer.ReportFilePropertyKey, Value = testSarifPath });
+            projectSettings.Add(new Property() { Id = PropertiesFileGenerator.ReportFileCsharpPropertyKey, Value = testSarifPath });
             Guid projectGuid = Guid.NewGuid();
             CreateProjectWithFiles("withFiles1", testDir, projectGuid, true, projectSettings);
 
@@ -170,7 +170,7 @@ namespace SonarRunner.Shim.Tests
 
             // Already valid SARIF -> no change in file -> unchanged property
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + RoslynV1SarifFixer.ReportFilePropertyKey, escapedMockReturnPath);
+            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFileCsharpPropertyKey, escapedMockReturnPath);
         }
 
         [TestMethod]
@@ -184,7 +184,7 @@ namespace SonarRunner.Shim.Tests
 
             // Create SARIF report path property and add it to the project info
             AnalysisProperties projectSettings = new AnalysisProperties();
-            projectSettings.Add(new Property() { Id = RoslynV1SarifFixer.ReportFilePropertyKey, Value = testSarifPath });
+            projectSettings.Add(new Property() { Id = PropertiesFileGenerator.ReportFileCsharpPropertyKey, Value = testSarifPath });
             Guid projectGuid = Guid.NewGuid();
             CreateProjectWithFiles("withFiles1", testDir, projectGuid, true, projectSettings);
 
@@ -204,10 +204,50 @@ namespace SonarRunner.Shim.Tests
 
             // Assert
             Assert.AreEqual(1, mockSarifFixer.CallCount);
+            Assert.AreEqual(RoslynV1SarifFixer.CSharpLanguage, mockSarifFixer.LastLanguage);
+
 
             // Fixable SARIF -> new file saved -> changed property
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + RoslynV1SarifFixer.ReportFilePropertyKey, escapedMockReturnPath);
+            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFileCsharpPropertyKey, escapedMockReturnPath);
+        }
+
+        [TestMethod]
+        public void FileGen_ValidFiles_WithFixableSarif_VBNet()
+        {
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            // SARIF file path
+            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+
+            // Create SARIF report path property and add it to the project info
+            AnalysisProperties projectSettings = new AnalysisProperties();
+            projectSettings.Add(new Property() { Id = PropertiesFileGenerator.ReportFileVbnetPropertyKey, Value = testSarifPath });
+            Guid projectGuid = Guid.NewGuid();
+            CreateProjectWithFiles("withFiles1", testDir, projectGuid, true, projectSettings);
+
+            TestLogger logger = new TestLogger();
+            AnalysisConfig config = CreateValidConfig(testDir);
+
+            // Mock SARIF fixer simulates fixable SARIF with fixed name
+            string returnPathDir = Path.GetDirectoryName(testSarifPath);
+            string returnPathFileName = Path.GetFileNameWithoutExtension(testSarifPath) +
+                RoslynV1SarifFixer.FixedFileSuffix + Path.GetExtension(testSarifPath);
+
+            MockRoslynV1SarifFixer mockSarifFixer = new MockRoslynV1SarifFixer(returnPathFileName);
+            string escapedMockReturnPath = mockSarifFixer.ReturnVal.Replace(@"\", @"\\");
+
+            // Act
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger, mockSarifFixer);
+
+            // Assert
+            Assert.AreEqual(1, mockSarifFixer.CallCount);
+            Assert.AreEqual(RoslynV1SarifFixer.VBNetLanguage, mockSarifFixer.LastLanguage);
+
+            // Fixable SARIF -> new file saved -> changed property
+            SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFileVbnetPropertyKey, escapedMockReturnPath);
         }
 
         [TestMethod]
@@ -222,7 +262,7 @@ namespace SonarRunner.Shim.Tests
 
             // Create SARIF report path property and add it to the project info
             AnalysisProperties projectSettings = new AnalysisProperties();
-            projectSettings.Add(new Property() { Id = RoslynV1SarifFixer.ReportFilePropertyKey, Value = testSarifPath });
+            projectSettings.Add(new Property() { Id = PropertiesFileGenerator.ReportFileCsharpPropertyKey, Value = testSarifPath });
             Guid projectGuid = Guid.NewGuid();
             CreateProjectWithFiles("withFiles1", testDir, projectGuid, true, projectSettings);
 
@@ -243,7 +283,7 @@ namespace SonarRunner.Shim.Tests
 
             // Unfixable SARIF -> cannot fix -> report file property removed
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingDoesNotExist(projectGuid.ToString().ToUpper() + "." + RoslynV1SarifFixer.ReportFilePropertyKey);
+            provider.AssertSettingDoesNotExist(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFileCsharpPropertyKey);
         }
 
         [TestMethod]

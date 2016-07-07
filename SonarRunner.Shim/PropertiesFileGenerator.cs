@@ -20,6 +20,9 @@ namespace SonarRunner.Shim
 
         public const string VSBootstrapperPropertyKey = "sonar.visualstudio.enable";
 
+        public const string ReportFileCsharpPropertyKey = "sonar.cs.roslyn.reportFilePath";
+        public const string ReportFileVbnetPropertyKey = "sonar.vbnet.roslyn.reportFilePath";
+
         #region Public methods
 
         /// <summary>
@@ -55,7 +58,7 @@ namespace SonarRunner.Shim
                 return new ProjectInfoAnalysisResult();
             }
 
-            FixSarifReport(logger, projects, fixer);
+            FixSarifReports(logger, projects, fixer);
 
             PropertiesWriter writer = new PropertiesWriter(config);
 
@@ -93,32 +96,38 @@ namespace SonarRunner.Shim
         /// Loads SARIF reports from the given projects and attempts to fix
         /// improper escaping from Roslyn V1 (VS 2015 RTM) where appropriate.
         /// </summary>
-        private static void FixSarifReport(ILogger logger, IEnumerable<ProjectInfo> projects, IRoslynV1SarifFixer fixer /* for test */)
+        private static void FixSarifReports(ILogger logger, IEnumerable<ProjectInfo> projects, IRoslynV1SarifFixer fixer /* for test */)
         {
             // attempt to fix invalid project-level SARIF emitted by Roslyn 1.0 (VS 2015 RTM)
             foreach (ProjectInfo project in projects)
             {
-                Property reportPathProperty;
-                bool tryResult = project.TryGetAnalysisSetting(RoslynV1SarifFixer.ReportFilePropertyKey, out reportPathProperty);
-                if (tryResult)
+                FixSarifReport(logger, project, fixer, RoslynV1SarifFixer.CSharpLanguage, ReportFileCsharpPropertyKey);
+                FixSarifReport(logger, project, fixer, RoslynV1SarifFixer.VBNetLanguage, ReportFileVbnetPropertyKey);
+            }
+        }
+
+        private static void FixSarifReport(ILogger logger, ProjectInfo project, IRoslynV1SarifFixer fixer, string language, string reportFilePropertyKey)
+        {
+            Property reportPathProperty;
+            bool tryResult = project.TryGetAnalysisSetting(reportFilePropertyKey, out reportPathProperty);
+            if (tryResult)
+            {
+                string reportPath = reportPathProperty.Value;
+                string fixedPath = fixer.LoadAndFixFile(reportPath, language, logger);
+
+                if (!reportPath.Equals(fixedPath)) // only need to alter the property if there was no change
                 {
-                    string reportPath = reportPathProperty.Value;
-                    string fixedPath = fixer.LoadAndFixFile(reportPath, logger);
+                    // remove the property ahead of changing it
+                    // if the new path is null, the file was unfixable and we should leave the property out
+                    project.AnalysisSettings.Remove(reportPathProperty);
 
-                    if (!reportPath.Equals(fixedPath)) // only need to alter the property if there was no change
+                    if (fixedPath != null)
                     {
-                        // remove the property ahead of changing it
-                        // if the new path is null, the file was unfixable and we should leave the property out
-                        project.AnalysisSettings.Remove(reportPathProperty);
-
-                        if (fixedPath != null)
-                        {
-                            // otherwise, set the property value (results in no change if the file was already valid)
-                            Property newReportPathProperty = new Property();
-                            newReportPathProperty.Id = RoslynV1SarifFixer.ReportFilePropertyKey;
-                            newReportPathProperty.Value = fixedPath;
-                            project.AnalysisSettings.Add(newReportPathProperty);
-                        }
+                        // otherwise, set the property value (results in no change if the file was already valid)
+                        Property newReportPathProperty = new Property();
+                        newReportPathProperty.Id = reportFilePropertyKey;
+                        newReportPathProperty.Value = fixedPath;
+                        project.AnalysisSettings.Add(newReportPathProperty);
                     }
                 }
             }
