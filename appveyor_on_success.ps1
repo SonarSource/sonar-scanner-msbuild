@@ -21,7 +21,7 @@ function DeployOnRepox()
 
 
 
-    if ($env:APPVEYOR_REPO_BRANCH -eq "master")
+    if ($env:APPVEYOR_REPO_BRANCH -eq "master" -and -not $env:APPVEYOR_PULL_REQUEST_NUMBER)
     {
         $strPath = FindSingleFile ([System.IO.Path]::Combine($PSScriptRoot, "DeploymentArtifacts", "BuildAgentPayload", "Release")) "SonarQube.Scanner.MSBuild.exe"
         $Assembly = [Reflection.Assembly]::Loadfile($strPath)
