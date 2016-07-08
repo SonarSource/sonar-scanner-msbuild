@@ -26,7 +26,7 @@ namespace SonarQube.Common
         public string ToolsVersion { get; set; }
 
         [XmlElement]
-        public List<Rules> Rules { get; set; }
+        public List<Rules> Rules { get; } = new List<Rules>();
 
         public void Save(string fileName)
         {

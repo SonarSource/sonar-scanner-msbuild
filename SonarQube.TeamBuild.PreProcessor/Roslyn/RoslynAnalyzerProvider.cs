@@ -108,7 +108,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         private AnalyzerSettings ConfigureAnalyzer(string language, IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules)
         {
-            RoslynRuleSetGenerator ruleSetGenerator = new RoslynRuleSetGenerator(sqServerSettings, logger);
+            RoslynRuleSetGenerator ruleSetGenerator = new RoslynRuleSetGenerator(sqServerSettings);
             RuleSet ruleSet = ruleSetGenerator.generate(activeRules, inactiveRules, language);
             string rulesetFilePath = this.WriteRuleset(ruleSet, language);
             if (rulesetFilePath == null)

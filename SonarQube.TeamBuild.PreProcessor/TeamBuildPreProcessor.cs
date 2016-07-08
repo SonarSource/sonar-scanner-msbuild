@@ -27,8 +27,8 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public const string FxCopRulesetName = "SonarQubeFxCop-{0}.ruleset";
 
-        private readonly static List<PluginDefinition> plugins;
-        private readonly static PluginDefinition csharp;
+        private readonly static List<PluginDefinition> plugins = new List<PluginDefinition>();
+        private readonly static PluginDefinition csharp = new PluginDefinition(CSharpLanguage, CSharpPluginKey);
 
         private readonly IPreprocessorObjectFactory factory;
         private readonly ILogger logger;
@@ -51,8 +51,6 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         static TeamBuildPreProcessor()
         {
-            plugins = new List<PluginDefinition>();
-            csharp = new PluginDefinition(CSharpLanguage, CSharpPluginKey);
             plugins.Add(csharp);
             plugins.Add(new PluginDefinition(VBNetLanguage, VBNetPluginKey));
         }

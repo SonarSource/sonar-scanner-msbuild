@@ -34,7 +34,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
         {
             this.RepoKey = repoKey;
             this.RuleKey = ruleKey;
-            this.InternalKey = InternalKey;
+            this.InternalKey = internalKey;
         }
     }
 }

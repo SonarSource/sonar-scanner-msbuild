@@ -14,22 +14,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
 {
     public class RoslynRuleSetGenerator
     {
-        private static readonly string SONARANALYZER_PARTIAL_REPO_KEY = "sonaranalyzer-{0}";
-        private static readonly string ROSLYN_REPOSITORY_PREFIX = "roslyn.";
+        private const string SONARANALYZER_PARTIAL_REPO_KEY = "sonaranalyzer-{0}";
+        private const string ROSLYN_REPOSITORY_PREFIX = "roslyn.";
         private readonly IDictionary<string, string> serverSettings;
-        private readonly ILogger logger;
 
-        public RoslynRuleSetGenerator(IDictionary<string, string> serverSettings, ILogger logger)
+        public RoslynRuleSetGenerator(IDictionary<string, string> serverSettings)
         {
             if (serverSettings == null)
             {
                 throw new ArgumentNullException(nameof(serverSettings));
             }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            this.logger = logger;
             this.serverSettings = serverSettings;
         }
 
@@ -52,12 +46,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
             Dictionary<string, List<string>> inactiveRulesByRepoKey = getInactiveRulesByRepoKey(inactiveRules);
 
             RuleSet ruleSet = new RuleSet();
-            List<Rules> rulesList = new List<Rules>();
 
             ruleSet.Name = "Rules for SonarQube";
             ruleSet.Description = "This rule set was automatically generated from SonarQube";
             ruleSet.ToolsVersion = "14.0";
-            ruleSet.Rules = rulesList;
 
             foreach (KeyValuePair<string, List<ActiveRule>> entry in activeRulesByPartialRepoKey)
             {
@@ -75,7 +67,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
                 {
                     rules.RuleList.AddRange(otherRules.Select(r => new Rule(r, "None")).ToList());
                 }
-                rulesList.Add(rules);
+                ruleSet.Rules.Add(rules);
             }
 
             return ruleSet;

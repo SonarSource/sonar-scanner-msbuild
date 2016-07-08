@@ -25,14 +25,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         [TestMethod]
         public void RoslynRuleSet_ConstructorArgumentChecks()
         {
-            AssertException.Expects<ArgumentNullException>(() => new RoslynRuleSetGenerator(null, new TestLogger()));
+            AssertException.Expects<ArgumentNullException>(() => new RoslynRuleSetGenerator(null));
         }
 
         [TestMethod]
         public void RoslynRuleSet_GeneratorArgumentChecks()
         {
             IDictionary<string, string> dict = new Dictionary<string, string>();
-            RoslynRuleSetGenerator generator = new RoslynRuleSetGenerator(dict, new TestLogger());
+            RoslynRuleSetGenerator generator = new RoslynRuleSetGenerator(dict);
             IEnumerable<ActiveRule> activeRules = new List<ActiveRule>();
             IEnumerable<string> inactiveRules = new List<string>();
             string language = "cs";
@@ -46,7 +46,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void RoslynRuleSet_Empty()
         {
             IDictionary<string, string> dict = new Dictionary<string, string>();
-            RoslynRuleSetGenerator generator = new RoslynRuleSetGenerator(dict, new TestLogger());
+            RoslynRuleSetGenerator generator = new RoslynRuleSetGenerator(dict);
             List<ActiveRule> activeRules = new List<ActiveRule>();
             IEnumerable<string> inactiveRules = new List<string>();
             string language = "cs";
@@ -76,7 +76,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             dict.Add("custom.analyzerId", "SonarAnalyzer.Custom");
             dict.Add("custom.ruleNamespace", "SonarAnalyzer.Custom");
 
-            RoslynRuleSetGenerator generator = new RoslynRuleSetGenerator(dict, new TestLogger());
+            RoslynRuleSetGenerator generator = new RoslynRuleSetGenerator(dict);
             List<ActiveRule> activeRules = new List<ActiveRule>();
             List<string> inactiveRules = new List<string>();
             string language = "cs";
