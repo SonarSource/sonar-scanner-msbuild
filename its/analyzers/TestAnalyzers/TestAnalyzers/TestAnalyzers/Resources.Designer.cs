@@ -64,27 +64,54 @@ namespace TestAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to This rule will create an issue for every source code line.
         /// </summary>
-        internal static string AnalyzerDescription {
+        internal static string AnalyzerS1234Description {
             get {
-                return ResourceManager.GetString("AnalyzerDescription", resourceCulture);
+                return ResourceManager.GetString("AnalyzerS1234Description", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to One issue per line.
         /// </summary>
-        internal static string AnalyzerMessageFormat {
+        internal static string AnalyzerS1234MessageFormat {
             get {
-                return ResourceManager.GetString("AnalyzerMessageFormat", resourceCulture);
+                return ResourceManager.GetString("AnalyzerS1234MessageFormat", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to One issue per line.
         /// </summary>
-        internal static string AnalyzerTitle {
+        internal static string AnalyzerS1234Title {
             get {
-                return ResourceManager.GetString("AnalyzerTitle", resourceCulture);
+                return ResourceManager.GetString("AnalyzerS1234Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The rule will create a single issue without a location.
+        /// </summary>
+        internal static string AnalyzerS1235Description {
+            get {
+                return ResourceManager.GetString("AnalyzerS1235Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Issue without location.
+        /// </summary>
+        internal static string AnalyzerS1235MessageFormat {
+            get {
+                return ResourceManager.GetString("AnalyzerS1235MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Issue without location.
+        /// </summary>
+        internal static string AnalyzerS1235Title {
+            get {
+                return ResourceManager.GetString("AnalyzerS1235Title", resourceCulture);
             }
         }
     }

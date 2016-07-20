@@ -1,14 +1,12 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using TestAnalyzers;
 using TestHelper;
 
 namespace TestAnalyzers.Test
 {
     [TestClass]
-    public class UnitTest : DiagnosticVerifier
+    public class OneIssuePerLineAnalyzerTest : DiagnosticVerifier
     {
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {

@@ -33,5 +33,11 @@
       <priority>MAJOR</priority>
       <parameters/>
     </rule>
+    <rule>
+      <repositoryKey>roslyn.sonaranalyzer.scanner.integrationtest.cs</repositoryKey>
+      <key>S1235</key>
+      <priority>MAJOR</priority>
+      <parameters/>
+    </rule>
   </rules>
 </profile>

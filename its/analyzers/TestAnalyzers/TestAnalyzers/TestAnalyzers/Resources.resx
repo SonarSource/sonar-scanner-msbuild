@@ -117,16 +117,28 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AnalyzerDescription" xml:space="preserve">
+  <data name="AnalyzerS1234Description" xml:space="preserve">
     <value>This rule will create an issue for every source code line</value>
     <comment>An optional longer localizable description of the diagnostic.</comment>
   </data>
-  <data name="AnalyzerMessageFormat" xml:space="preserve">
+  <data name="AnalyzerS1234MessageFormat" xml:space="preserve">
     <value>One issue per line</value>
     <comment>The format-able message the diagnostic displays.</comment>
   </data>
-  <data name="AnalyzerTitle" xml:space="preserve">
+  <data name="AnalyzerS1234Title" xml:space="preserve">
     <value>One issue per line</value>
+    <comment>The title of the diagnostic.</comment>
+  </data>
+  <data name="AnalyzerS1235Description" xml:space="preserve">
+    <value>The rule will create a single issue without a location</value>
+    <comment>An optional longer localizable description of the diagnostic.</comment>
+  </data>
+  <data name="AnalyzerS1235MessageFormat" xml:space="preserve">
+    <value>Issue without location</value>
+    <comment>The format-able message the diagnostic displays.</comment>
+  </data>
+  <data name="AnalyzerS1235Title" xml:space="preserve">
+    <value>Issue without location</value>
     <comment>The title of the diagnostic.</comment>
   </data>
 </root>

@@ -85,6 +85,6 @@ public class CustomRoslynAnalyzerTest {
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    assertThat(issues).hasSize(4 + 37);
+    assertThat(issues).hasSize(4 + 37 + 1);
   }
 }
