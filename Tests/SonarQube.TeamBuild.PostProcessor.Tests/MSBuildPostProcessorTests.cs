@@ -82,9 +82,10 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             context.CodeCoverage.AssertInitializedCalled();
             context.CodeCoverage.AssertExecuteCalled();
             context.Runner.AssertExecuted();
+
             context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-runner fails
 
-            CollectionAssert.AreEqual(new string[] { }, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
+            CollectionAssert.AreEqual(new string[] { "-Dsonar.scanAllFiles=true" }, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
@@ -111,7 +112,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             context.Runner.AssertExecuted();
             context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-runner fails
 
-            CollectionAssert.AreEqual(new string[] { }, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
+            CollectionAssert.AreEqual(new string[] {"-Dsonar.scanAllFiles=true" }, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
@@ -159,7 +160,8 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
                 "-Dsonar.jdbc.password=dbpwd",
                 "-Dsonar.jdbc.username=dbuser",
                 "-Dsonar.password=\"my pwd\"",
-                "-Dsonar.login=login"
+                "-Dsonar.login=login",
+                "-Dsonar.scanAllFiles=true"
             };
 
             // Act

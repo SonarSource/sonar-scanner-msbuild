@@ -18,6 +18,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         private readonly ICoverageReportProcessor codeCoverageProcessor;
         private readonly ISummaryReportBuilder reportBuilder;
         private readonly ISonarRunner sonarRunner;
+        private readonly static string scanAllFiles = "-Dsonar.scanAllFiles=true";
 
         public MSBuildPostProcessor(ICoverageReportProcessor codeCoverageProcessor, ISonarRunner runner, ISummaryReportBuilder reportBuilder)
         {
@@ -168,6 +169,11 @@ namespace SonarQube.TeamBuild.PostProcessor
                 {
                     args.Add(property.AsSonarRunnerArg());
                 }
+            }
+
+            if (!args.Contains(scanAllFiles))
+            {
+                args.Add(scanAllFiles);
             }
 
             return args;
