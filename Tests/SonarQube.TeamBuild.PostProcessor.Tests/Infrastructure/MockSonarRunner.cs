@@ -18,6 +18,8 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         #region Test Helpers
 
+        public string ErrorToLog { get; set; }
+
         public ProjectInfoAnalysisResult ValueToReturn { get; set; }
 
         public IEnumerable<string> SuppliedCommandLineArgs { get; set; }
@@ -31,6 +33,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             Assert.IsFalse(this.methodCalled, "Runner should only be called once");
             this.methodCalled = true;
             this.SuppliedCommandLineArgs = userCmdLineArguments;
+            logger.LogError(this.ErrorToLog);
 
             return this.ValueToReturn;
         }

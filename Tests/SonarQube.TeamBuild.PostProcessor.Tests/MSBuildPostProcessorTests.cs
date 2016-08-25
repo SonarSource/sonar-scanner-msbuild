@@ -92,6 +92,33 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         }
 
         [TestMethod]
+        public void PostProc_ExecutionSucceedsWithErrorLogs()
+        {
+            // Arrange
+            PostProcTestContext context = new PostProcTestContext(this.TestContext);
+            context.Runner.ValueToReturn = new ProjectInfoAnalysisResult();
+            context.Runner.ValueToReturn.RanToCompletion = true;
+            context.Runner.ErrorToLog = "Errors";
+
+            // Act
+            bool success = Execute(context);
+
+            // Assert
+            Assert.IsTrue(success, "Expecting post-processor to have succeeded");
+
+            context.CodeCoverage.AssertInitializedCalled();
+            context.CodeCoverage.AssertExecuteCalled();
+            context.Runner.AssertExecuted();
+
+            context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-runner fails
+
+            CollectionAssert.AreEqual(new string[] { "-Dsonar.scanAllFiles=true" }, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
+
+            context.Logger.AssertErrorsLogged(1);
+            context.Logger.AssertWarningsLogged(0);
+        }
+
+        [TestMethod]
         [Description("The coverage processing has 2 paths for fail - initialisation failures which are non-critical and processing errors that stop the post-processor workflow")]
         public void PostProc_ExecutionSucceedsIfCoverageNotInitialised()
         {
