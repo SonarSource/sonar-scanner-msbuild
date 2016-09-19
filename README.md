@@ -16,3 +16,8 @@ Requirements:
 - Visual Studio 2015
 - [Team Foundation Server 2013 Update 4 Object Model Installer](https://visualstudiogallery.msdn.microsoft.com/19311823-5262-4e63-a586-2283384ae3bf)
 - [MsBuild 12](https://www.microsoft.com/en-us/download/confirmation.aspx?id=40760)
+
+Install NuGet packages: right click on the solution in Visual Studio, and select **Restore NuGet Packages**.
+Alternatively, using the [nuget.exe](https://dist.nuget.org/index.html) on the command line:
+
+    nuget restore path\to\solution.sln
