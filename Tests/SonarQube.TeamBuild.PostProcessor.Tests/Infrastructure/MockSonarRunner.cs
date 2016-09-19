@@ -33,7 +33,10 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             Assert.IsFalse(this.methodCalled, "Runner should only be called once");
             this.methodCalled = true;
             this.SuppliedCommandLineArgs = userCmdLineArguments;
-            logger.LogError(this.ErrorToLog);
+            if (this.ErrorToLog != null)
+            {
+                logger.LogError(this.ErrorToLog);
+            }
 
             return this.ValueToReturn;
         }
