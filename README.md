@@ -21,3 +21,5 @@ Install NuGet packages: right click on the solution in Visual Studio, and select
 Alternatively, using the [nuget.exe](https://dist.nuget.org/index.html) on the command line:
 
     nuget restore path\to\solution.sln
+    
+Or inside the project's directory, simply `nuget restore` without parameters.
