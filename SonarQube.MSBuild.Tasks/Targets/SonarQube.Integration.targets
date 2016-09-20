@@ -369,6 +369,7 @@
       <CodeAnalysisForceOutput>true</CodeAnalysisForceOutput>
       <CodeAnalysisGenerateSuccessFile>true</CodeAnalysisGenerateSuccessFile>
       <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+      <CodeAnalysisRuleSetOverrides></CodeAnalysisRuleSetOverrides>
 
       <!-- Make sure no warnings are treated as errors -->
       <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
