@@ -133,7 +133,7 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The C# plugin installed on the SonarQube server is not compatible with the SonarQube analysis agent (i.e. the MSBuild.SonarQube.Runner.exe, or the build automation task). Either check the compatibility matrix or get the latest versions for both..
+        ///   Looks up a localized string similar to The C# plugin installed on the SonarQube server is not compatible with the SonarQube analysis agent (i.e. the MSBuild.SonarQube.Scanner.exe, or the build automation task). Either check the compatibility matrix or get the latest versions for both..
         /// </summary>
         public static string ERROR_VersionMismatch {
             get {

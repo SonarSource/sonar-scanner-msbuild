@@ -9,7 +9,7 @@ using SonarQube.Common;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SonarRunner.Shim
+namespace SonarScanner.Shim
 {
     public class ProjectInfoAnalysisResult
     {

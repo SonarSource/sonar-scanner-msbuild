@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarRunner.Shim;
+using SonarScanner.Shim;
 using System;
 using System.IO;
 using TestUtilities;

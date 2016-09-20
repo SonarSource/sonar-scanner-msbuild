@@ -31,7 +31,7 @@ namespace SonarQube.Common
         /// Runs the specified executable and returns a boolean indicating success or failure
         /// </summary>
         /// <remarks>The standard and error output will be streamed to the logger. Child processes do not inherit the env variables from the parent automatically</remarks>
-        public bool Execute(ProcessRunnerArguments runnerArgs)
+        public bool Execute(ProcessScannerArguments runnerArgs)
         {
             if (runnerArgs == null)
             {

@@ -7,7 +7,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
-using SonarRunner.Shim;
+using SonarScanner.Shim;
 using TestUtilities;
 using System.Linq;
 
@@ -36,7 +36,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.CodeCoverage.AssertInitializedCalled();
             context.CodeCoverage.AssertExecuteCalled();
-            context.Runner.AssertNotExecuted();
+            context.Scanner.AssertNotExecuted();
             context.ReportBuilder.AssertNotExecuted();
 
             context.Logger.AssertErrorsLogged(0);
@@ -44,12 +44,12 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         }
 
         [TestMethod]
-        public void PostProc_ExecutionFailsIfSonarRunnerFails()
+        public void PostProc_ExecutionFailsIfSonarScannerFails()
         {
             // Arrange
             PostProcTestContext context = new PostProcTestContext(this.TestContext);
-            context.Runner.ValueToReturn = new ProjectInfoAnalysisResult();
-            context.Runner.ValueToReturn.RanToCompletion = false;
+            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult();
+            context.Scanner.ValueToReturn.RanToCompletion = false;
 
             // Act
             bool success = Execute(context);
@@ -58,8 +58,8 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             Assert.IsFalse(success, "Not expecting post-processor to have succeeded");
 
             context.CodeCoverage.AssertExecuteCalled();
-            context.Runner.AssertExecuted();
-            context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-runner fails
+            context.Scanner.AssertExecuted();
+            context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-scanner fails
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
@@ -70,8 +70,8 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             PostProcTestContext context = new PostProcTestContext(this.TestContext);
-            context.Runner.ValueToReturn = new ProjectInfoAnalysisResult();
-            context.Runner.ValueToReturn.RanToCompletion = true;
+            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult();
+            context.Scanner.ValueToReturn.RanToCompletion = true;
 
             // Act
             bool success = Execute(context);
@@ -81,11 +81,11 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.CodeCoverage.AssertInitializedCalled();
             context.CodeCoverage.AssertExecuteCalled();
-            context.Runner.AssertExecuted();
+            context.Scanner.AssertExecuted();
 
-            context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-runner fails
+            context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-scanner fails
 
-            CollectionAssert.AreEqual(new string[] { "-Dsonar.scanAllFiles=true" }, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
+            CollectionAssert.AreEqual(new string[] { "-Dsonar.scanAllFiles=true" }, context.Scanner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-scanner");
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
@@ -96,9 +96,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             PostProcTestContext context = new PostProcTestContext(this.TestContext);
-            context.Runner.ValueToReturn = new ProjectInfoAnalysisResult();
-            context.Runner.ValueToReturn.RanToCompletion = true;
-            context.Runner.ErrorToLog = "Errors";
+            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult();
+            context.Scanner.ValueToReturn.RanToCompletion = true;
+            context.Scanner.ErrorToLog = "Errors";
 
             // Act
             bool success = Execute(context);
@@ -108,11 +108,11 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.CodeCoverage.AssertInitializedCalled();
             context.CodeCoverage.AssertExecuteCalled();
-            context.Runner.AssertExecuted();
+            context.Scanner.AssertExecuted();
 
-            context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-runner fails
+            context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-scanner fails
 
-            CollectionAssert.AreEqual(new string[] { "-Dsonar.scanAllFiles=true" }, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
+            CollectionAssert.AreEqual(new string[] { "-Dsonar.scanAllFiles=true" }, context.Scanner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-scanner");
 
             context.Logger.AssertErrorsLogged(1);
             context.Logger.AssertWarningsLogged(0);
@@ -125,8 +125,8 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             // Arrange
             PostProcTestContext context = new PostProcTestContext(this.TestContext);
             context.CodeCoverage.InitialiseValueToReturn = false;
-            context.Runner.ValueToReturn = new ProjectInfoAnalysisResult();
-            context.Runner.ValueToReturn.RanToCompletion = true;
+            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult();
+            context.Scanner.ValueToReturn.RanToCompletion = true;
 
             // Act
             bool success = Execute(context);
@@ -136,10 +136,10 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.CodeCoverage.AssertInitializedCalled();
             context.CodeCoverage.AssertExecuteNotCalled();
-            context.Runner.AssertExecuted();
-            context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-runner fails
+            context.Scanner.AssertExecuted();
+            context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-scanner fails
 
-            CollectionAssert.AreEqual(new string[] {"-Dsonar.scanAllFiles=true" }, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
+            CollectionAssert.AreEqual(new string[] {"-Dsonar.scanAllFiles=true" }, context.Scanner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-scanner");
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
@@ -159,7 +159,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.CodeCoverage.AssertInitialisedNotCalled();
             context.CodeCoverage.AssertExecuteNotCalled();
-            context.Runner.AssertNotExecuted();
+            context.Scanner.AssertNotExecuted();
             context.ReportBuilder.AssertNotExecuted();
 
             context.Logger.AssertErrorsLogged(1);
@@ -171,8 +171,8 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             PostProcTestContext context = new PostProcTestContext(this.TestContext);
-            context.Runner.ValueToReturn = new ProjectInfoAnalysisResult();
-            context.Runner.ValueToReturn.RanToCompletion = true;
+            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult();
+            context.Scanner.ValueToReturn.RanToCompletion = true;
 
             string[] suppliedArgs = new string[]
             {
@@ -199,10 +199,10 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.CodeCoverage.AssertExecuteCalled();
             context.CodeCoverage.AssertInitializedCalled();
-            context.Runner.AssertExecuted();
+            context.Scanner.AssertExecuted();
             context.ReportBuilder.AssertExecuted();
 
-            CollectionAssert.AreEqual(expectedArgs, context.Runner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
+            CollectionAssert.AreEqual(expectedArgs, context.Scanner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
@@ -219,7 +219,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             private readonly TeamBuildSettings settings;
 
             private readonly MockCodeCoverageProcessor codeCoverage;
-            private readonly MockSonarRunner runner;
+            private readonly MockSonarScanner scanner;
             private readonly MockSummaryReportBuilder reportBuilder;
 
             public PostProcTestContext(TestContext testContext)
@@ -229,7 +229,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
                 this.logger = new TestLogger();
                 this.codeCoverage = new MockCodeCoverageProcessor();
-                this.runner = new MockSonarRunner();
+                this.scanner = new MockSonarScanner();
                 this.reportBuilder = new MockSummaryReportBuilder();
 
                 this.codeCoverage.InitialiseValueToReturn = true;
@@ -239,7 +239,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             public AnalysisConfig Config { get; set; }
             public TeamBuildSettings Settings { get { return this.settings; } }
             public MockCodeCoverageProcessor CodeCoverage {  get { return this.codeCoverage; } }
-            public MockSonarRunner Runner { get { return this.runner; } }
+            public MockSonarScanner Scanner { get { return this.scanner; } }
             public MockSummaryReportBuilder ReportBuilder { get { return this.reportBuilder; } }
             public TestLogger Logger { get { return this.logger; } }
         }
@@ -248,7 +248,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         private static bool Execute(PostProcTestContext context, params string[] args)
         {
-            MSBuildPostProcessor proc = new MSBuildPostProcessor(context.CodeCoverage, context.Runner, context.ReportBuilder);
+            MSBuildPostProcessor proc = new MSBuildPostProcessor(context.CodeCoverage, context.Scanner, context.ReportBuilder);
             bool success = proc.Execute(args, context.Config, context.Settings, context.Logger);
             return success;
         }

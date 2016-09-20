@@ -271,7 +271,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             Assert.AreEqual(Path.Combine(expectedAnalysisDir, "bin"), actual.SonarBinDirectory, "Unexpected bin dir");
             Assert.AreEqual(Path.Combine(expectedAnalysisDir, "conf", FileConstants.ConfigFileName), actual.AnalysisConfigFilePath, "Unexpected analysis file path");
 
-            Assert.AreEqual(Directory.GetParent(expectedAnalysisDir).FullName, actual.SonarRunnerWorkingDirectory, "Unexpected sonar-runner working dir");
+            Assert.AreEqual(Directory.GetParent(expectedAnalysisDir).FullName, actual.SonarScannerWorkingDirectory, "Unexpected sonar-scanner working dir");
         }
 
         private static void CheckExpectedTimeoutReturned(string envValue, int expected)

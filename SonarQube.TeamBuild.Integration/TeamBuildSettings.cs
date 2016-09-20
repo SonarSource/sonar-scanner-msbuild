@@ -107,10 +107,10 @@ namespace SonarQube.TeamBuild.Integration
             // We expect the bootstrapper to have set the WorkingDir of the processors to be the temp dir (i.e. .sonarqube)
             settings.AnalysisBaseDirectory = Directory.GetCurrentDirectory();
 
-            // https://jira.sonarsource.com/browse/SONARMSBRU-100 the sonar-runner should be able to locate files such as the resharper output
+            // https://jira.sonarsource.com/browse/SONARMSBRU-100 the sonar-scanner should be able to locate files such as the resharper output
             // via relative paths, at least in the msbuild scenario, so the working directory should be The directory from which the user issued the command
             // Note that this will not work for TFS Build / XAML Build as the sources directory is more difficult to compute
-            settings.SonarRunnerWorkingDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+            settings.SonarScannerWorkingDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
 
             return settings;
         }
@@ -247,9 +247,9 @@ namespace SonarQube.TeamBuild.Integration
         }
 
         /// <summary>
-        /// The working directory that will be set when the sonar-runner will be spawned
+        /// The working directory that will be set when the sonar-scanner will be spawned
         /// </summary>
-        public string SonarRunnerWorkingDirectory { get; private set; }
+        public string SonarScannerWorkingDirectory { get; private set; }
 
         #endregion Public calculated properties
 
@@ -270,7 +270,7 @@ namespace SonarQube.TeamBuild.Integration
             {
                 BuildEnvironment = BuildEnvironment.NotTeamBuild,
                 AnalysisBaseDirectory = analysisBaseDirectory,
-                SonarRunnerWorkingDirectory = Directory.GetParent(analysisBaseDirectory).FullName,
+                SonarScannerWorkingDirectory = Directory.GetParent(analysisBaseDirectory).FullName,
                 SourcesDirectory = Directory.GetParent(analysisBaseDirectory).FullName
             };
 

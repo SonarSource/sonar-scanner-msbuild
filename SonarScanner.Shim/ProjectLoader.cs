@@ -12,7 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace SonarRunner.Shim
+namespace SonarScanner.Shim
 {
     public static class ProjectLoader
     {

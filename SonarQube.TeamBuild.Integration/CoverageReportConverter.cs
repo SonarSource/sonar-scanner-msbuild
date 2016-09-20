@@ -193,7 +193,7 @@ namespace SonarQube.TeamBuild.Integration
             args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, @"/output:{0}", outputXmlFilePath));
             args.Add(inputBinaryFilePath);
 
-            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(converterExeFilePath, false, logger)
+            ProcessScannerArguments scannerArgs = new ProcessScannerArguments(converterExeFilePath, false, logger)
             {
                 WorkingDirectory = Path.GetDirectoryName(outputXmlFilePath),
                 CmdLineArgs = args,
@@ -201,7 +201,7 @@ namespace SonarQube.TeamBuild.Integration
             };
 
             ProcessRunner runner = new ProcessRunner();
-            bool success = runner.Execute(runnerArgs);
+            bool success = runner.Execute(scannerArgs);
 
             if (success)
             {

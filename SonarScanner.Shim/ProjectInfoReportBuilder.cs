@@ -12,7 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace SonarRunner.Shim
+namespace SonarScanner.Shim
 {
     /// <summary>
     /// Outputs a report summarising the project info files that were found.

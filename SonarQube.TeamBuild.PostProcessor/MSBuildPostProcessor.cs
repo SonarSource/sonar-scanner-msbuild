@@ -7,7 +7,7 @@
 
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
-using SonarRunner.Shim;
+using SonarScanner.Shim;
 using System;
 using System.Collections.Generic;
 
@@ -17,16 +17,16 @@ namespace SonarQube.TeamBuild.PostProcessor
     {
         private readonly ICoverageReportProcessor codeCoverageProcessor;
         private readonly ISummaryReportBuilder reportBuilder;
-        private readonly ISonarRunner sonarRunner;
+        private readonly ISonarScanner sonarScanner;
         private readonly static string scanAllFiles = "-Dsonar.scanAllFiles=true";
 
-        public MSBuildPostProcessor(ICoverageReportProcessor codeCoverageProcessor, ISonarRunner runner, ISummaryReportBuilder reportBuilder)
+        public MSBuildPostProcessor(ICoverageReportProcessor codeCoverageProcessor, ISonarScanner scanner, ISummaryReportBuilder reportBuilder)
         {
             if (codeCoverageProcessor == null)
             {
                 throw new ArgumentNullException("codeCoverageProcessor");
             }
-            if (runner == null)
+            if (scanner == null)
             {
                 throw new ArgumentNullException("param");
             }
@@ -36,7 +36,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
 
             this.codeCoverageProcessor = codeCoverageProcessor;
-            this.sonarRunner = runner;
+            this.sonarScanner = scanner;
             this.reportBuilder = reportBuilder;
         }
 
@@ -82,7 +82,7 @@ namespace SonarQube.TeamBuild.PostProcessor
                 return false;
             }
 
-            ProjectInfoAnalysisResult result = InvokeSonarRunner(provider, config, logger);
+            ProjectInfoAnalysisResult result = InvokeSonarScanner(provider, config, logger);
             this.reportBuilder.GenerateReports(settings, config, result, logger);
             return result.RanToCompletion;
         }
@@ -149,17 +149,17 @@ namespace SonarQube.TeamBuild.PostProcessor
             return true;
         }
 
-        private ProjectInfoAnalysisResult InvokeSonarRunner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, ILogger logger)
+        private ProjectInfoAnalysisResult InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, ILogger logger)
         {
-            IEnumerable<string> args = GetSonarRunnerArgs(cmdLineArgs);
+            IEnumerable<string> args = GetSonarScannerArgs(cmdLineArgs);
 
             logger.IncludeTimestamp = false;
-            ProjectInfoAnalysisResult result = this.sonarRunner.Execute(config, args, logger);
+            ProjectInfoAnalysisResult result = this.sonarScanner.Execute(config, args, logger);
             logger.IncludeTimestamp = true;
             return result;
         }
 
-        private static IEnumerable<string> GetSonarRunnerArgs(IAnalysisPropertyProvider provider)
+        private static IEnumerable<string> GetSonarScannerArgs(IAnalysisPropertyProvider provider)
         {
             IList<string> args = new List<string>();
 
@@ -167,7 +167,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             {
                 foreach (Property property in provider.GetAllProperties())
                 {
-                    args.Add(property.AsSonarRunnerArg());
+                    args.Add(property.AsSonarScannerArg());
                 }
             }
 

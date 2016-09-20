@@ -142,7 +142,7 @@
     <value>{0} failed. Exit code: {1}</value>
   </data>
   <data name="ERROR_VersionMismatch" xml:space="preserve">
-    <value>The C# plugin installed on the SonarQube server is not compatible with the SonarQube analysis agent (i.e. the MSBuild.SonarQube.Runner.exe, or the build automation task). Either check the compatibility matrix or get the latest versions for both.</value>
+    <value>The C# plugin installed on the SonarQube server is not compatible with the SonarQube analysis agent (i.e. the MSBuild.SonarQube.Scanner.exe, or the build automation task). Either check the compatibility matrix or get the latest versions for both.</value>
   </data>
   <data name="MSG_CheckingForUpdates" xml:space="preserve">
     <value>Checking for updates...</value>

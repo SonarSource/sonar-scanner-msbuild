@@ -73,9 +73,9 @@
       <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>
       <Name>SonarQube.TeamBuild.Integration</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SonarRunner.Shim\SonarRunner.Shim.csproj">
+    <ProjectReference Include="..\SonarScanner.Shim\SonarScanner.Shim.csproj">
       <Project>{c28a09bf-6025-4ea1-90d7-4d5ec0af815d}</Project>
-      <Name>SonarRunner.Shim</Name>
+      <Name>SonarScanner.Shim</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

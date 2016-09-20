@@ -46,22 +46,22 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         public void AssertExecuteCalled()
         {
-            Assert.IsTrue(this.processCoverageMethodCalled, "Expecting the sonar-runner to have been called");
+            Assert.IsTrue(this.processCoverageMethodCalled, "Expecting the sonar-scanner to have been called");
         }
 
         public void AssertExecuteNotCalled()
         {
-            Assert.IsFalse(this.processCoverageMethodCalled, "Not expecting the sonar-runner to have been called");
+            Assert.IsFalse(this.processCoverageMethodCalled, "Not expecting the sonar-scanner to have been called");
         }
 
         public void AssertInitializedCalled()
         {
-            Assert.IsTrue(this.initalisedCalled, "Expecting the sonar-runner to have been called");
+            Assert.IsTrue(this.initalisedCalled, "Expecting the sonar-scanner to have been called");
         }
 
         public void AssertInitialisedNotCalled()
         {
-            Assert.IsFalse(this.initalisedCalled, "Not expecting the sonar-runner to have been called");
+            Assert.IsFalse(this.initalisedCalled, "Not expecting the sonar-scanner to have been called");
         }
 
 

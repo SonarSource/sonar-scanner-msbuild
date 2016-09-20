@@ -16,7 +16,7 @@ using System.Text.RegularExpressions;
 namespace TestUtilities
 {
     /// <summary>
-    /// Utility class that reads properties from a standard format SonarQube properties file (e.g. sonar-runner.properties)
+    /// Utility class that reads properties from a standard format SonarQube properties file (e.g. sonar-scanner.properties)
     /// </summary>
     public class SQPropertiesFileReader
     {

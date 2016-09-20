@@ -11,7 +11,7 @@ using SonarQube.Common;
 using System;
 using System.IO;
 
-namespace SonarRunner.Shim
+namespace SonarScanner.Shim
 {
     public class RoslynV1SarifFixer : IRoslynV1SarifFixer
     {

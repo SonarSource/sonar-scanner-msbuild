@@ -9,6 +9,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("MSBuild.SonarQube.Runner")]
-[assembly: AssemblyProduct("MSBuild.SonarQube.Runner")]
+[assembly: AssemblyTitle("MSBuild.SonarQube.Scanner")]
+[assembly: AssemblyProduct("MSBuild.SonarQube.Scanner")]
 [assembly: AssemblyDescription("")]

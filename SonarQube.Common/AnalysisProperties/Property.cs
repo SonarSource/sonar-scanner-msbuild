@@ -43,13 +43,13 @@ namespace SonarQube.Common
         /// </summary>
         public bool ContainsSensitiveData()
         {
-            return ProcessRunnerArguments.ContainsSensitiveData(this.Id) || ProcessRunnerArguments.ContainsSensitiveData(this.Value);
+            return ProcessScannerArguments.ContainsSensitiveData(this.Id) || ProcessScannerArguments.ContainsSensitiveData(this.Value);
         }
 
         /// <summary>
-        /// Returns the property formatted as a sonar-runner "-D" argument
+        /// Returns the property formatted as a sonar-scanner "-D" argument
         /// </summary>
-        public string AsSonarRunnerArg()
+        public string AsSonarScannerArg()
         {
             return string.Format(System.Globalization.CultureInfo.InvariantCulture, "-D{0}={1}", this.Id, this.Value);
         }

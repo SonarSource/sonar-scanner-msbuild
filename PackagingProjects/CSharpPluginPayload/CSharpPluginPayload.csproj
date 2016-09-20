@@ -48,9 +48,9 @@
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SupportedBootstrapperVersions.xml" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SonarQube.Common.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\MSBuild.SonarQube.Internal.PostProcess.exe" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarRunner.Shim\bin\$(Configuration)\SonarRunner.Shim.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarRunner.Shim\bin\$(Configuration)\Newtonsoft.Json.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarRunner.Shim\sonar-scanner.zip" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\SonarScanner.Shim.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\Newtonsoft.Json.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\sonar-scanner-*.zip" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\TeamBuild.SonarQube.Integration.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\SonarQube.Integration.Tasks.dll" />
     <ProjectReference Include="..\..\V0_9UpgradeMessageExe\V0_9UpgradeMessageExe.csproj">
@@ -76,16 +76,16 @@
       <Project>{f43364bb-e460-4ac4-87e9-de460a9f55f5}</Project>
       <Name>SonarQube.TeamBuild.PreProcessor</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SourcesRoot)\SonarRunner.Shim\SonarRunner.Shim.csproj">
+    <ProjectReference Include="$(SourcesRoot)\SonarScanner.Shim\SonarScanner.Shim.csproj">
       <Project>{c28a09bf-6025-4ea1-90d7-4d5ec0af815d}</Project>
-      <Name>SonarRunner.Shim</Name>
+      <Name>SonarScanner.Shim</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Condition="$(Configuration)== 'Debug'">
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\MSBuild.SonarQube.Internal.PreProcess.pdb" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\SonarQube.Common.pdb" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\MSBuild.SonarQube.Internal.PostProcess.pdb" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarRunner.Shim\bin\$(Configuration)\SonarRunner.Shim.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\SonarScanner.Shim.pdb" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\TeamBuild.SonarQube.Integration.pdb" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\SonarQube.Integration.Tasks.pdb" />
   </ItemGroup>

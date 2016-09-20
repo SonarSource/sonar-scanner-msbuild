@@ -215,7 +215,7 @@
     <value>Execution failed. The specified executable does not exist: {0}</value>
   </data>
   <data name="ERROR_ConnectionFailed" xml:space="preserve">
-    <value>Could not connect to the SonarQube server. Check the url is correct and that the server is available. Url: {0}</value>
+    <value>Could not connect to the SonarQube server. Check the URL is correct and that the server is available. URL: {0}</value>
   </data>
   <data name="ERROR_UrlNameResolutionFailed" xml:space="preserve">
     <value>The name of the SonarQube server could not be resolved. Check the url is correct and that the server is available. Url: {0}</value>
@@ -237,7 +237,7 @@
     <value>sonar.verbose={0} was specified - setting the log verbosity to '{1}'</value>
   </data>
   <data name="ERROR_FileNotFound" xml:space="preserve">
-    <value>Could not find a file on the SonarQube server. Url: {0}</value>
+    <value>Could not find a file on the SonarQube server. URL: {0}</value>
   </data>
   <data name="ERROR_SettingsFileNotFound" xml:space="preserve">
     <value>The settings file could not be found</value>

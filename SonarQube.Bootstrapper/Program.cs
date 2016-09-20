@@ -88,7 +88,7 @@ namespace SonarQube.Bootstrapper
 
             var preprocessorFilePath = settings.PreProcessorFilePath;
 
-            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(preprocessorFilePath, false, logger)
+            ProcessScannerArguments runnerArgs = new ProcessScannerArguments(preprocessorFilePath, false, logger)
             {
                 CmdLineArgs = settings.ChildCmdLineArgs,
                 WorkingDirectory = settings.TempDirectory,
@@ -108,7 +108,7 @@ namespace SonarQube.Bootstrapper
                 return ErrorCode;
             }
 
-            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(settings.PostProcessorFilePath, false, logger)
+            ProcessScannerArguments runnerArgs = new ProcessScannerArguments(settings.PostProcessorFilePath, false, logger)
             {
                 CmdLineArgs = settings.ChildCmdLineArgs,
                 WorkingDirectory = settings.TempDirectory

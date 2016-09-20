@@ -11,7 +11,7 @@ using System.IO;
 using System.Collections.Generic;
 using TestUtilities;
 
-namespace SonarRunner.Shim.Tests
+namespace SonarScanner.Shim.Tests
 {
     #region Tests
 

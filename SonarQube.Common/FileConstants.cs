@@ -11,7 +11,7 @@ namespace SonarQube.Common
     {
         /// <summary>
         /// Name of the per-project file that contain information used
-        /// during analysis and when generating the sonar-runner.properties file
+        /// during analysis and when generating the sonar-scanner.properties file
         /// </summary>
         public const string ProjectInfoFileName = "ProjectInfo.xml";
 

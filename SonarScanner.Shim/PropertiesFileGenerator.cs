@@ -12,7 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace SonarRunner.Shim
+namespace SonarScanner.Shim
 {
     public static class PropertiesFileGenerator
     {
@@ -27,7 +27,7 @@ namespace SonarRunner.Shim
 
         /// <summary>
         /// Locates the ProjectInfo.xml files and uses the information in them to generate
-        /// a sonar-runner properties file
+        /// a sonar-scanner properties file
         /// </summary>
         /// <returns>Information about each of the project info files that was processed, together with
         /// the full path to generated file.

@@ -29,6 +29,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private readonly static List<PluginDefinition> plugins = new List<PluginDefinition>();
         private readonly static PluginDefinition csharp = new PluginDefinition(CSharpLanguage, CSharpPluginKey);
+        private readonly static PluginDefinition vbnet = new PluginDefinition(VBNetLanguage, VBNetPluginKey);
 
         private readonly IPreprocessorObjectFactory factory;
         private readonly ILogger logger;
@@ -52,7 +53,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         static TeamBuildPreProcessor()
         {
             plugins.Add(csharp);
-            plugins.Add(new PluginDefinition(VBNetLanguage, VBNetPluginKey));
+            plugins.Add(vbnet);
         }
 
         #endregion Constructor(s)

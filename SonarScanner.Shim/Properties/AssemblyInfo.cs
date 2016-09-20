@@ -9,6 +9,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("SonarRunner.Shim.Tests")]
-[assembly: AssemblyProduct("SonarRunner.Shim.Tests")]
+[assembly: AssemblyTitle("SonarScanner.Shim")]
+[assembly: AssemblyProduct("SonarScanner.Shim")]
 [assembly: AssemblyDescription("")]

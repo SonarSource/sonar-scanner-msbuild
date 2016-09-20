@@ -5,12 +5,12 @@
     This file contains targets to integrate SonarQube and MSBuild.
 
     The targets will produce an output folder structure containing information required
-    by the sonar-runner.
+    by the sonar-scanner.
 
     A subdirectory will be created for each MSBuild project. Information about the project
     will be written to a file called "ProjectInfo.xml". Additional files may also be written
     containing information required by different analysers. In particular, a file will be written
-    containing the list of files in the project that should be analysed by the sonar-runner.
+    containing the list of files in the project that should be analysed by the sonar-scanner.
 
     The output will only be produced if the property $(SonarQubeTempPath) and
     is specified. $(SonarQubeTempPath) is the root folder under which per-analysis output
@@ -236,7 +236,7 @@
       <AnalysisFileList>$(ProjectSpecificDir)\FilesToAnalyze.txt</AnalysisFileList>
     </PropertyGroup>
 
-    <!-- Write out a list of files to analyze that will be passed to the sonar-runner -->
+    <!-- Write out a list of files to analyze that will be passed to the sonar-scanner -->
     <WriteLinesToFile Condition=" $(AnalysisFilesExist) == 'true' "
             File="$(AnalysisFileList)"
             Lines="%(SonarQubeAnalysisFiles.FullPath)"

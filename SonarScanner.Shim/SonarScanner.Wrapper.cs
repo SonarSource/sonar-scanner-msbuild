@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SonarRunnerWrapper.cs" company="SonarSource SA and Microsoft Corporation">
+// <copyright file="SonarScannerWrapper.cs" company="SonarSource SA and Microsoft Corporation">
 //   Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
 //   Licensed under the MIT License. See License.txt in the project root for license information.
 // </copyright>
@@ -13,9 +13,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 
-namespace SonarRunner.Shim
+namespace SonarScanner.Shim
 {
-    public class SonarRunnerWrapper : ISonarRunner
+    public class SonarScannerWrapper : ISonarScanner
     {
         /// <summary>
         /// Env variable that controls the amount of memory the JVM can use for the sonar-scanner.
@@ -35,19 +35,19 @@ namespace SonarRunner.Shim
         public const string ProjectSettingsFileArgName = "project.settings";
 
         /// <summary>
-        /// Additional arguments that will always be passed to the runner
+        /// Additional arguments that will always be passed to the scanner
         /// </summary>
-        public const string StandardAdditionalRunnerArguments = "-e"; // -e = produce execution errors to assist with troubleshooting
+        public const string StandardAdditionalScannerArguments = "-e"; // -e = produce execution errors to assist with troubleshooting
 
         /// <summary>
-        /// Default value for the SONAR_RUNNER_OPTS
+        /// Default value for the SONAR_SCANNER_OPTS
         /// </summary>
-        /// <remarks>Reserving more than is available on the agent will cause the sonar-runner to fail</remarks>
-        private const string SonarRunnerOptsDefaultValue = "-Xmx1024m";
+        /// <remarks>Reserving more than is available on the agent will cause the sonar-scanner to fail</remarks>
+        private const string SonarScannerOptsDefaultValue = "-Xmx1024m";
 
         private const string CmdLineArgPrefix = "-D";
 
-        #region ISonarRunner interface
+        #region ISonarScanner interface
 
         public ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger)
         {
@@ -69,7 +69,7 @@ namespace SonarRunner.Shim
             result.RanToCompletion = false;
 
             SonarProjectPropertiesValidator.Validate(
-                config.SonarRunnerWorkingDirectory,
+                config.SonarScannerWorkingDirectory,
                 result.Projects,
                 onValid: () =>
                 {
@@ -84,7 +84,7 @@ namespace SonarRunner.Shim
             return result;
         }
 
-        #endregion ISonarRunner interface
+        #endregion ISonarScanner interface
 
         #region Private methods
 
@@ -100,7 +100,7 @@ namespace SonarRunner.Shim
             }
             else
             {
-                string exeFileName = FindRunnerExe(config, logger);
+                string exeFileName = FindScannerExe(config, logger);
                 if (exeFileName != null)
                 {
                     result.RanToCompletion = ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, result.FullPropertiesFilePath);
@@ -108,18 +108,18 @@ namespace SonarRunner.Shim
             }
         }
 
-        private static string FindRunnerExe(AnalysisConfig config, ILogger logger)
+        private static string FindScannerExe(AnalysisConfig config, ILogger logger)
         {
             string fullPath = null;
 
             var binFolder = config.SonarBinDir;
-            var sonarRunnerZip = Path.Combine(binFolder, "sonar-scanner.zip");
-            var sonarRunnerDestinationFolder = Path.Combine(binFolder, "sonar-scanner");
+            var sonarScannerZip = Path.Combine(binFolder, "sonar-scanner.zip");
+            var sonarScannerDestinationFolder = Path.Combine(binFolder, "sonar-scanner");
 
-            if (Utilities.TryEnsureEmptyDirectories(logger, sonarRunnerDestinationFolder))
+            if (Utilities.TryEnsureEmptyDirectories(logger, sonarScannerDestinationFolder))
             {
-                ZipFile.ExtractToDirectory(sonarRunnerZip, sonarRunnerDestinationFolder);
-                fullPath = Path.Combine(sonarRunnerDestinationFolder, @"bin\sonar-scanner.bat");
+                ZipFile.ExtractToDirectory(sonarScannerZip, sonarScannerDestinationFolder);
+                fullPath = Path.Combine(sonarScannerDestinationFolder, @"bin\sonar-scanner.bat");
             }
 
             return fullPath;
@@ -139,13 +139,13 @@ namespace SonarRunner.Shim
 
             logger.LogInfo(Resources.MSG_SonarScannerCalling);
 
-            Debug.Assert(!String.IsNullOrWhiteSpace(config.SonarRunnerWorkingDirectory), "The working dir should have been set in the analysis config");
-            Debug.Assert(Directory.Exists(config.SonarRunnerWorkingDirectory), "The working dir should exist");
+            Debug.Assert(!String.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
+            Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
 
-            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(exeFileName, true, logger)
+            ProcessScannerArguments scannerArgs = new ProcessScannerArguments(exeFileName, true, logger)
             {
                 CmdLineArgs = allCmdLineArgs,
-                WorkingDirectory = config.SonarRunnerWorkingDirectory,
+                WorkingDirectory = config.SonarScannerWorkingDirectory,
                 EnvironmentVariables = envVarsDictionary
             };
 
@@ -153,7 +153,7 @@ namespace SonarRunner.Shim
 
             // SONARMSBRU-202 Note that the Sonar Scanner may write warnings to stderr so
             // we should only rely on the exit code when deciding if it ran successfully
-            bool success = runner.Execute(runnerArgs);
+            bool success = runner.Execute(scannerArgs);
 
             if (success)
             {
@@ -178,14 +178,14 @@ namespace SonarRunner.Shim
 
         /// <summary>
         /// Returns any additional environment variables that need to be passed to
-        /// the sonar-runner
+        /// the sonar-scanner
         /// </summary>
         private static IDictionary<string, string> GetAdditionalEnvVariables(ILogger logger)
         {
             IDictionary<string, string> envVarsDictionary = new Dictionary<string, string>();
 
             // Always set a value for SONAR_SCANNER_OPTS just in case it is set at process-level
-            // which wouldn't be inherited by the child sonar-runner process.
+            // which wouldn't be inherited by the child sonar-scanner process.
             string sonarScannerOptsValue = GetSonarScannerOptsValue(logger);
             envVarsDictionary.Add(SonarScannerOptsVariableName, sonarScannerOptsValue);
 
@@ -193,7 +193,7 @@ namespace SonarRunner.Shim
         }
 
         /// <summary>
-        /// Get the value of the SONAR_SCANNER_OPTS variable that controls the amount of memory available to the JDK so that the sonar-runner doesn't
+        /// Get the value of the SONAR_SCANNER_OPTS variable that controls the amount of memory available to the JDK so that the sonar-scanner doesn't
         /// hit OutOfMemory exceptions. If no env variable with this name is defined then a default value is used.
         /// </summary>
         private static string GetSonarScannerOptsValue(ILogger logger)
@@ -207,29 +207,29 @@ namespace SonarRunner.Shim
             }
             else
             {
-                logger.LogInfo(Resources.MSG_SonarScannerOptsDefaultUsed, SonarScannerOptsVariableName, SonarRunnerOptsDefaultValue);
-                return SonarRunnerOptsDefaultValue;
+                logger.LogInfo(Resources.MSG_SonarScannerOptsDefaultUsed, SonarScannerOptsVariableName, SonarScannerOptsDefaultValue);
+                return SonarScannerOptsDefaultValue;
             }
         }
 
         /// <summary>
-        /// Returns all of the command line arguments to pass to sonar-runner
+        /// Returns all of the command line arguments to pass to sonar-scanner
         /// </summary>
         private static IEnumerable<string> GetAllCmdLineArgs(string projectSettingsFilePath, IEnumerable<string> userCmdLineArguments, AnalysisConfig config)
         {
             // We don't know what all of the valid command line arguments are so we'll
-            // just pass them on for the sonar-runner to validate.
+            // just pass them on for the sonar-scanner to validate.
             List<string> args = new List<string>(userCmdLineArguments);
 
             // Add any sensitive arguments supplied in the config should be passed on the command line
             args.AddRange(GetSensitiveFileSettings(config, userCmdLineArguments));
 
             // Add the project settings file and the standard options.
-            // Experimentation suggests that the sonar-runner won't error if duplicate arguments
+            // Experimentation suggests that the sonar-scanner won't error if duplicate arguments
             // are supplied - it will just use the last argument.
             // So we'll set our additional properties last to make sure they take precedence.
             args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}={2}", CmdLineArgPrefix, ProjectSettingsFileArgName, projectSettingsFilePath));
-            args.Add(StandardAdditionalRunnerArguments);
+            args.Add(StandardAdditionalScannerArguments);
 
             return args;
         }
@@ -239,7 +239,7 @@ namespace SonarRunner.Shim
             IEnumerable<Property> allPropertiesFromConfig = config.GetAnalysisSettings(false).GetAllProperties();
 
             return allPropertiesFromConfig.Where(p => p.ContainsSensitiveData() && !UserSettingExists(p, userCmdLineArguments))
-                .Select(p => p.AsSonarRunnerArg());
+                .Select(p => p.AsSonarScannerArg());
         }
 
         private static bool UserSettingExists(Property fileProperty, IEnumerable<string> userArgs)

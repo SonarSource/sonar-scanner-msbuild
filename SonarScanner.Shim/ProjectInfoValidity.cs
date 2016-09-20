@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace SonarRunner.Shim
+namespace SonarScanner.Shim
 {
     /// <summary>
     /// Enumeration listing processing status codes that indicate whether a project

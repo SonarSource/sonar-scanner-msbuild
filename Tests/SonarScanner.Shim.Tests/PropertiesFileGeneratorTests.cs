@@ -12,7 +12,7 @@ using System.IO;
 using System.Linq;
 using TestUtilities;
 
-namespace SonarRunner.Shim.Tests
+namespace SonarScanner.Shim.Tests
 {
     [TestClass]
     public class PropertiesFileGeneratorTests
@@ -505,7 +505,7 @@ namespace SonarRunner.Shim.Tests
 
         private static void AssertFailedToCreatePropertiesFiles(ProjectInfoAnalysisResult result, TestLogger logger)
         {
-            Assert.IsNull(result.FullPropertiesFilePath, "Not expecting the sonar-runner properties file to have been set");
+            Assert.IsNull(result.FullPropertiesFilePath, "Not expecting the sonar-scanner properties file to have been set");
             Assert.AreEqual(false, result.RanToCompletion, "Expecting the property file generation to have failed");
 
             AssertNoValidProjects(result);
@@ -515,7 +515,7 @@ namespace SonarRunner.Shim.Tests
 
         private void AssertPropertiesFilesCreated(ProjectInfoAnalysisResult result, TestLogger logger)
         {
-            Assert.IsNotNull(result.FullPropertiesFilePath, "Expecting the sonar-runner properties file to have been set");
+            Assert.IsNotNull(result.FullPropertiesFilePath, "Expecting the sonar-scanner properties file to have been set");
 
             AssertValidProjectsExist(result);
             this.TestContext.AddResultFile(result.FullPropertiesFilePath);

@@ -10,21 +10,21 @@ using System.Linq;
 using System.Collections.Generic;
 using SonarQube.Common;
 
-namespace SonarRunner.Shim
+namespace SonarScanner.Shim
 {
     public static class SonarProjectPropertiesValidator
     {
         /// <summary>
         /// Verifies that no sonar-project.properties conflicting with the generated one exists within the project
         /// </summary>
-        /// <param name="sonarRunnerCwd">Solution folder to check</param>
+        /// <param name="sonarScannerCwd">Solution folder to check</param>
         /// <param name="projects">MSBuild projects to check, only valid ones will be verified</param>
         /// <param name="onValid">Called when validation succeeded</param>
         /// <param name="onInvalid">Called when validation fails, with the list of folders containing a sonar-project.properties file</param>
-        public static void Validate(string sonarRunnerCwd, IDictionary<ProjectInfo, ProjectInfoValidity> projects, Action onValid, Action<IList<string>> onInvalid)
+        public static void Validate(string sonarScannerCwd, IDictionary<ProjectInfo, ProjectInfoValidity> projects, Action onValid, Action<IList<string>> onInvalid)
         {
             var folders = new List<string>();
-            folders.Add(sonarRunnerCwd);
+            folders.Add(sonarScannerCwd);
             folders.AddRange(projects.Where(p => p.Value == ProjectInfoValidity.Valid).Select(p => Path.GetDirectoryName(p.Key.FullPath)));
 
             var invalidFolders = folders.Where(f => !Validate(f)).ToList();

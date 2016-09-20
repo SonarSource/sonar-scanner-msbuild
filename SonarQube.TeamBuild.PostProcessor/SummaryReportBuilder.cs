@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
-using SonarRunner.Shim;
+using SonarScanner.Shim;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -87,7 +87,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             CreateSummaryMdFile(summaryData);
 
-            // Write the dashboard link to the output. The sonar-runner will have written it out earlier,
+            // Write the dashboard link to the output. The sonar-scanner will have written it out earlier,
             // but writing it again here puts it very close to the end of the output - easier to find,
             // especially when running from the command line.
             if (this.result.RanToCompletion)

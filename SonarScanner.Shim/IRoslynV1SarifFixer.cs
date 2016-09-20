@@ -7,7 +7,7 @@
 
 using SonarQube.Common;
 
-namespace SonarRunner.Shim
+namespace SonarScanner.Shim
 {
     public interface IRoslynV1SarifFixer
     {

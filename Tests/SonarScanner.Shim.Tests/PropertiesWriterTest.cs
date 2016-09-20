@@ -13,7 +13,7 @@ using System.IO;
 using System.Linq;
 using TestUtilities;
 
-namespace SonarRunner.Shim.Tests
+namespace SonarScanner.Shim.Tests
 {
     [TestClass]
     public class PropertiesWriterTest
@@ -26,10 +26,10 @@ namespace SonarRunner.Shim.Tests
         [TestMethod]
         public void PropertiesWriterEscape()
         {
-            Assert.AreEqual("foo", SonarRunner.Shim.PropertiesWriter.Escape("foo"));
-            Assert.AreEqual(@"C:\\File.cs", SonarRunner.Shim.PropertiesWriter.Escape(@"C:\File.cs"));
-            Assert.AreEqual(@"\u4F60\u597D", SonarRunner.Shim.PropertiesWriter.Escape("你好"));
-            Assert.AreEqual(@"\u000A", SonarRunner.Shim.PropertiesWriter.Escape("\n"));
+            Assert.AreEqual("foo", SonarScanner.Shim.PropertiesWriter.Escape("foo"));
+            Assert.AreEqual(@"C:\\File.cs", SonarScanner.Shim.PropertiesWriter.Escape(@"C:\File.cs"));
+            Assert.AreEqual(@"\u4F60\u597D", SonarScanner.Shim.PropertiesWriter.Escape("你好"));
+            Assert.AreEqual(@"\u000A", SonarScanner.Shim.PropertiesWriter.Escape("\n"));
         }
 
         [TestMethod]

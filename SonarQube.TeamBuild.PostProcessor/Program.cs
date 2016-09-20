@@ -7,7 +7,7 @@
 
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
-using SonarRunner.Shim;
+using SonarScanner.Shim;
 using System.Diagnostics;
 using System.IO;
 
@@ -36,7 +36,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
             else
             {
-                MSBuildPostProcessor postProcessor = new MSBuildPostProcessor(new CoverageReportProcessor(), new SonarRunnerWrapper(), new SummaryReportBuilder());
+                MSBuildPostProcessor postProcessor = new MSBuildPostProcessor(new CoverageReportProcessor(), new SonarScannerWrapper(), new SummaryReportBuilder());
 
                 succeeded = postProcessor.Execute(args, config, settings, logger);
             }

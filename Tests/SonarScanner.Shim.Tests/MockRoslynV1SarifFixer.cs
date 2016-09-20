@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------
 using SonarQube.Common;
 
-namespace SonarRunner.Shim.Tests
+namespace SonarScanner.Shim.Tests
 {
     class MockRoslynV1SarifFixer : IRoslynV1SarifFixer
     {

@@ -67,7 +67,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual(tbSettings.SonarBinDirectory, actualConfig.SonarBinDir);
             Assert.AreEqual(tbSettings.SonarConfigDirectory, actualConfig.SonarConfigDir);
             Assert.AreEqual(tbSettings.SonarOutputDirectory, actualConfig.SonarOutputDir);
-            Assert.AreEqual(tbSettings.SonarRunnerWorkingDirectory, actualConfig.SonarRunnerWorkingDirectory);
+            Assert.AreEqual(tbSettings.SonarScannerWorkingDirectory, actualConfig.SonarScannerWorkingDirectory);
             Assert.AreEqual(tbSettings.BuildUri, actualConfig.GetBuildUri());
             Assert.AreEqual(tbSettings.TfsUri, actualConfig.GetTfsUri());
 
@@ -118,7 +118,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertFileDoesNotContainText(actualConfig.FileName, "file.only");
 
             Assert.AreEqual(settings.SourcesDirectory, actualConfig.SourcesDirectory);
-            Assert.AreEqual(settings.SonarRunnerWorkingDirectory, actualConfig.SonarRunnerWorkingDirectory);
+            Assert.AreEqual(settings.SonarScannerWorkingDirectory, actualConfig.SonarScannerWorkingDirectory);
         }
 
         [TestMethod]

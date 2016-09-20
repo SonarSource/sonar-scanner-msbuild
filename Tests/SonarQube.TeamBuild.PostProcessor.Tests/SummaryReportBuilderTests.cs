@@ -8,7 +8,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.TeamBuild.PostProcessor;
-using SonarRunner.Shim;
+using SonarScanner.Shim;
 using SonarQube.Common;
 using TestUtilities;
 using SonarQube.TeamBuild.Integration;

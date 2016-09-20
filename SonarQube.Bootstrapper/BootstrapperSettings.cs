@@ -14,7 +14,7 @@ namespace SonarQube.Bootstrapper
 {
     public class BootstrapperSettings : IBootstrapperSettings
     {
-        // FIX - should also include the sonar-runner.zip. Consider moving to SonarQube.Common.
+        // FIX - should also include the sonar-scanner-[version].zip. Consider moving to SonarQube.Common.
 
         #region Logical Bootstrapper Version values
 

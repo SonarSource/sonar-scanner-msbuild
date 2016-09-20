@@ -29,9 +29,9 @@ namespace SonarQube.Common
         /// <summary>
         /// The working directory as perceived by the user, i.e. the current directory for command line builds
         /// </summary>
-        /// <remarks>Users expect to specify paths relative to the working directory and not to the location of the sonar-runner program.
+        /// <remarks>Users expect to specify paths relative to the working directory and not to the location of the sonar-scanner program.
         ///  See https://jira.sonarsource.com/browse/SONARMSBRU-100 for details.</remarks>
-        public string SonarRunnerWorkingDirectory { get; set; }
+        public string SonarScannerWorkingDirectory { get; set; }
 
         /// <summary>
         /// Parent directory of the source files. 
@@ -54,7 +54,7 @@ namespace SonarQube.Common
         /// List of additional configuration-related settings
         /// e.g. the build system identifier, if appropriate.
         /// </summary>
-        /// <remarks>These settings will not be supplied to the sonar-runner.</remarks>
+        /// <remarks>These settings will not be supplied to the sonar-scanner.</remarks>
         public List<ConfigSetting> AdditionalConfig { get; set; }
 
         /// <summary>

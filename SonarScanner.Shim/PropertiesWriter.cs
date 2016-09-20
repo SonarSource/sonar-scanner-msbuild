@@ -14,7 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace SonarRunner.Shim
+namespace SonarScanner.Shim
 {
     public class PropertiesWriter
     {
@@ -200,7 +200,7 @@ namespace SonarRunner.Shim
 
         private static void AppendKeyValue(StringBuilder sb, string key, string value)
         {
-            Debug.Assert(!ProcessRunnerArguments.ContainsSensitiveData(key) && !ProcessRunnerArguments.ContainsSensitiveData(value),
+            Debug.Assert(!ProcessScannerArguments.ContainsSensitiveData(key) && !ProcessScannerArguments.ContainsSensitiveData(value),
                 "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}", key);
 
             sb.Append(key);
