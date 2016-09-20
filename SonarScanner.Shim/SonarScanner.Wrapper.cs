@@ -47,6 +47,8 @@ namespace SonarScanner.Shim
 
         private const string CmdLineArgPrefix = "-D";
 
+        private const string SonarScannerVersion = "2.8";
+
         #region ISonarScanner interface
 
         public ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger)
@@ -113,7 +115,7 @@ namespace SonarScanner.Shim
             string fullPath = null;
 
             var binFolder = config.SonarBinDir;
-            var sonarScannerZip = Path.Combine(binFolder, "sonar-scanner.zip");
+            var sonarScannerZip = Path.Combine(binFolder, "sonar-scanner-" + SonarScannerVersion + ".zip");
             var sonarScannerDestinationFolder = Path.Combine(binFolder, "sonar-scanner");
 
             if (Utilities.TryEnsureEmptyDirectories(logger, sonarScannerDestinationFolder))
