@@ -58,8 +58,7 @@ namespace SonarQube.Bootstrapper
         #region Public methods
 
         /// <summary>
-        /// Attempts to process the supplied command line arguments and
-        /// reports any errors using the logger.
+        /// Attempts to process the supplied command line arguments and reports any errors using the logger.
         /// Returns false if any parsing errors were encountered.
         /// </summary>
         public static bool TryProcessArgs(string[] commandLineArgs, ILogger logger, out IBootstrapperSettings settings)

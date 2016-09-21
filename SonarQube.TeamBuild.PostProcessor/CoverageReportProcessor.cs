@@ -7,6 +7,7 @@
 
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.Integration.Interfaces;
 using System;
 using System.Diagnostics;
 
@@ -18,7 +19,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private bool initialisedSuccesfully;
 
-        public bool Initialise(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
+        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger)
         {
             if (settings == null)
             {
@@ -41,7 +42,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         /// <summary>
         /// Factory method to create a coverage report processor for the current build environment.
         /// </summary>
-        private void TryCreateCoverageReportProcessor(TeamBuildSettings settings)
+        private void TryCreateCoverageReportProcessor(ITeamBuildSettings settings)
         {
             if (settings.BuildEnvironment == BuildEnvironment.TeamBuild)
             {

@@ -56,7 +56,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             return this.client.Headers[header];
         }
- 
+
         #region IDownloaderMethods
 
         public bool TryDownloadIfExists(string url, out string contents)
@@ -129,12 +129,9 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!this.disposed && disposing)
+            if (!this.disposed && disposing && this.client != null)
             {
-                if (this.client != null)
-                {
-                    this.client.Dispose();
-                }
+                this.client.Dispose();
             }
 
             this.disposed = true;

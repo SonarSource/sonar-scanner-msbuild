@@ -96,7 +96,7 @@ namespace SonarQube.Common
             {
                 throw new ArgumentNullException("location");
             }
-            
+
 
             if (projectInfo.AnalysisResults == null)
             {
@@ -148,12 +148,9 @@ namespace SonarQube.Common
             string location = null;
 
             AnalysisResult result = null;
-            if (projectInfo.TryGetAnalyzerResult(analysisType, out result))
+            if (projectInfo.TryGetAnalyzerResult(analysisType, out result) && File.Exists(result.Location))
             {
-                if (File.Exists(result.Location))
-                {
-                    location = result.Location;
-                }
+                location = result.Location;
             }
             return location;
         }

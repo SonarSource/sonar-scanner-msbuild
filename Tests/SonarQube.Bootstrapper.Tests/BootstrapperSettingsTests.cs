@@ -18,8 +18,6 @@ namespace SonarQube.Bootstrapper.Tests
     {
         public TestContext TestContext { get; set; }
 
-        private static readonly string DownloadFolderRelativePath = Path.Combine(BootstrapperSettings.RelativePathToTempDir, BootstrapperSettings.RelativePathToDownloadDir);
-
         #region Tests
 
         [TestMethod]
@@ -48,69 +46,13 @@ namespace SonarQube.Bootstrapper.Tests
                 // 1. Default value -> relative to download dir
                 IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, "http://sq", LoggerVerbosity.Debug, logger);
                 AssertExpectedServerUrl("http://sq", settings);
-                AssertExpectedPreProcessPath(Path.Combine(@"c:\temp", DownloadFolderRelativePath, BootstrapperSettings.PreProcessorExeName), settings);
-                AssertExpectedPostProcessPath(Path.Combine(@"c:\temp", DownloadFolderRelativePath, BootstrapperSettings.PostProcessorExeName), settings);
-            }
-        }
 
-        [TestMethod]
-        public void BootSettings_DownloadDirFromEnvVars()
-        {
-            // 0. Setup
-            TestLogger logger = new TestLogger();
-
-            // 1. Legacy TFS variable will be used if available
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, "legacy tf build");
-                scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
-
-                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, "http://sq", LoggerVerbosity.Debug, logger);
-                AssertExpectedDownloadDir(Path.Combine("legacy tf build", DownloadFolderRelativePath), settings);
-            }
-
-            // 2. TFS2015 variable will be used if available
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, null);
-                scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, "tfs build");
-
-                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, "http://sq", LoggerVerbosity.Debug, logger);
-                AssertExpectedDownloadDir(Path.Combine("tfs build", DownloadFolderRelativePath), settings);
-            }
-
-            // 3. CWD has least precedence over env variables
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, null);
-                scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
-
-                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, "http://sq", LoggerVerbosity.Debug, logger);
-                AssertExpectedDownloadDir(Path.Combine(Directory.GetCurrentDirectory(), DownloadFolderRelativePath), settings);
             }
         }
 
         #endregion Tests
 
         #region Checks
-
-        private static void AssertExpectedDownloadDir(string expected, IBootstrapperSettings settings)
-        {
-            string actual = settings.DownloadDirectory;
-            Assert.AreEqual(expected, actual, "Unexpected download dir", true /* ignore case */);
-        }
-
-        private static void AssertExpectedPreProcessPath(string expected, IBootstrapperSettings settings)
-        {
-            string actual = settings.PreProcessorFilePath;
-            Assert.AreEqual(expected, actual, true /* ignore case */, "Unexpected PreProcessFilePath");
-        }
-
-        private static void AssertExpectedPostProcessPath(string expected, IBootstrapperSettings settings)
-        {
-            string actual = settings.PostProcessorFilePath;
-            Assert.AreEqual(expected, actual, true /* ignore case */, "Unexpected PostProcessFilePath");
-        }
 
         private static void AssertExpectedServerUrl(string expected, IBootstrapperSettings settings)
         {

@@ -36,26 +36,26 @@ namespace SonarScanner.Shim
                 return null;
             }
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
 
             foreach (char c in value)
             {
                 if (c == '\\')
                 {
-                    sb.Append("\\\\");
+                    builder.Append("\\\\");
                 }
                 else if (IsAscii(c) && !char.IsControl(c))
                 {
-                    sb.Append(c);
+                    builder.Append(c);
                 }
                 else
                 {
-                    sb.Append("\\u");
-                    sb.Append(((int)c).ToString("X4", CultureInfo.InvariantCulture));
+                    builder.Append("\\u");
+                    builder.Append(((int)c).ToString("X4", CultureInfo.InvariantCulture));
                 }
             }
 
-            return sb.ToString();
+            return builder.ToString();
         }
 
         public PropertiesWriter(AnalysisConfig config)

@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.Integration.Interfaces;
 using SonarScanner.Shim;
 
 namespace SonarQube.TeamBuild.PostProcessor
@@ -17,6 +17,6 @@ namespace SonarQube.TeamBuild.PostProcessor
     /// <remarks>Interface added for testability</remarks>
     public interface ISummaryReportBuilder
     {
-        void GenerateReports(TeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger);
+        void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger);
     }
 }

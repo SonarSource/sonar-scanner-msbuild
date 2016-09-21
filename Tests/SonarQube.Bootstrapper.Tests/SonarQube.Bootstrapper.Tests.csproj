@@ -35,6 +35,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Castle.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Castle.Core.3.3.3\lib\net45\Castle.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Moq, Version=4.5.22.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Moq.4.5.22\lib\net45\Moq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <Choose>
@@ -57,9 +65,7 @@
     <Compile Include="BootstrapperExeTests.cs" />
     <Compile Include="BootstrapperSettingsTests.cs" />
     <Compile Include="Infrastructure\BootstrapperTestUtils.cs" />
-    <Compile Include="BuildAgentUpdaterTests.cs" />
     <Compile Include="DefaultPropertiesFileTests.cs" />
-    <Compile Include="Infrastructure\MockBuildAgentUpdater.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -71,6 +77,22 @@
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>SonarQube.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj">
+      <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>
+      <Name>SonarQube.TeamBuild.Integration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SonarQube.TeamBuild.PostProcessor\SonarQube.TeamBuild.PostProcessor.csproj">
+      <Project>{80f02fad-fe7e-41b6-9151-bb650fdd6103}</Project>
+      <Name>SonarQube.TeamBuild.PostProcessor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SonarQube.TeamBuild.PreProcessor\SonarQube.TeamBuild.PreProcessor.csproj">
+      <Project>{f43364bb-e460-4ac4-87e9-de460a9f55f5}</Project>
+      <Name>SonarQube.TeamBuild.PreProcessor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SonarScanner.Shim\SonarScanner.Shim.csproj">
+      <Project>{c28a09bf-6025-4ea1-90d7-4d5ec0af815d}</Project>
+      <Name>SonarScanner.Shim</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj">
       <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>
       <Name>TestUtilities</Name>
@@ -78,6 +100,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="License.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

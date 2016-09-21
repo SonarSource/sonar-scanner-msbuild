@@ -239,13 +239,10 @@ namespace SonarScanner.Shim
         private static string TryGetFxCopReport(ProjectInfo project, ILogger logger)
         {
             string fxCopReport = project.TryGetAnalysisFileLocation(AnalysisType.FxCop);
-            if (fxCopReport != null)
+            if (fxCopReport != null && !File.Exists(fxCopReport))
             {
-                if (!File.Exists(fxCopReport))
-                {
-                    fxCopReport = null;
-                    logger.LogWarning(Resources.WARN_FxCopReportNotFound, fxCopReport);
-                }
+                fxCopReport = null;
+                logger.LogWarning(Resources.WARN_FxCopReportNotFound, fxCopReport);
             }
 
             return fxCopReport;
@@ -254,13 +251,10 @@ namespace SonarScanner.Shim
         private static string TryGetCodeCoverageReport(ProjectInfo project, ILogger logger)
         {
             string vsCoverageReport = project.TryGetAnalysisFileLocation(AnalysisType.VisualStudioCodeCoverage);
-            if (vsCoverageReport != null)
+            if (vsCoverageReport != null && !File.Exists(vsCoverageReport))
             {
-                if (!File.Exists(vsCoverageReport))
-                {
-                    vsCoverageReport = null;
-                    logger.LogWarning(Resources.WARN_CodeCoverageReportNotFound, vsCoverageReport);
-                }
+                vsCoverageReport = null;
+                logger.LogWarning(Resources.WARN_CodeCoverageReportNotFound, vsCoverageReport);
             }
             return vsCoverageReport;
         }

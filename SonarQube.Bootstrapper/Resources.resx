@@ -132,23 +132,14 @@
   <data name="ERROR_CmdLine_BothBeginAndEndSupplied" xml:space="preserve">
     <value>Invalid command line parameters. Please specify either 'begin' or 'end', not both.</value>
   </data>
-  <data name="ERROR_FailedToUpdateRunnerBinaries" xml:space="preserve">
-    <value>Failed to update the SonarQube Scanner for MSBuild binaries. Check the server url, verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted.</value>
-  </data>
-  <data name="ERROR_PostProcessExeNotFound" xml:space="preserve">
-    <value>The End Step executable was not found '{0}'. Please check that the begin step, the build step and the end step are all executed in the same directory.</value>
+  <data name="ERROR_ConfigFileNotFound" xml:space="preserve">
+    <value>SonarQube analysis could not be completed because the analysis configuration file could not be found.</value>
   </data>
   <data name="ERROR_ProcessingFailed" xml:space="preserve">
     <value>{0} failed. Exit code: {1}</value>
   </data>
   <data name="ERROR_VersionMismatch" xml:space="preserve">
     <value>The C# plugin installed on the SonarQube server is not compatible with the SonarQube analysis agent (i.e. the MSBuild.SonarQube.Scanner.exe, or the build automation task). Either check the compatibility matrix or get the latest versions for both.</value>
-  </data>
-  <data name="MSG_CheckingForUpdates" xml:space="preserve">
-    <value>Checking for updates...</value>
-  </data>
-  <data name="MSG_DownloadingZip" xml:space="preserve">
-    <value>Downloading {0} from {1} to {2}</value>
   </data>
   <data name="MSG_ExtractingFiles" xml:space="preserve">
     <value>Extracting files to {0}...</value>
@@ -163,7 +154,7 @@
     <value>{0} succeeded.</value>
   </data>
   <data name="MSG_ServerUrl" xml:space="preserve">
-    <value>SonarQube server url: {0}</value>
+    <value>SonarQube server URL: {0}</value>
   </data>
   <data name="MSG_UsingBuildEnvironmentVariable" xml:space="preserve">
     <value>Using environment variable '{0}', value '{1}'</value>

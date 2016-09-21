@@ -35,19 +35,16 @@
   <PropertyGroup>
     <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\..</SourcesRoot>
     <DestinationDir>$(SourcesRoot)\DeploymentArtifacts\BuildAgentPayload\$(Configuration)\</DestinationDir>
-    <WorkDestinationDir>$(DestinationDir)\Work</WorkDestinationDir>
+    <WorkDestinationDir>$(DestinationDir)Work</WorkDestinationDir>
     <!-- OutputPath is required by the Clean and Rebuild tasks -->
-    <!--
-    <OutputPath>$(DestinationDir)</OutputPath>-->
   </PropertyGroup>
   <ItemGroup>
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Common.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Scanner.MSBuild.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\MSBuild.SonarQube.Runner.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Analysis.xml" />
+    <FilesToCopy Include="$(SourcesRoot)\DeploymentArtifacts\CSharpPluginPayload\$(Configuration)\Work\*" />
   </ItemGroup>
-  <ItemGroup Condition="$(Configuration)== 'Debug'">
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Common.pdb" />
+  <ItemGroup Condition="$(Configuration) == 'Debug'">
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Scanner.MSBuild.pdb" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\MSBuild.SonarQube.Runner.pdb" />
   </ItemGroup>
@@ -56,10 +53,6 @@
     <ProjectReference Include="$(SourcesRoot)\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj">
       <Project>{60aacbb4-1661-4eeb-a029-91289c1d3f7e}</Project>
       <Name>SonarQube.Bootstrapper</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SourcesRoot)\SonarQube.Common\SonarQube.Common.csproj">
-      <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
-      <Name>SonarQube.Common</Name>
     </ProjectReference>
     <ProjectReference Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj">
       <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>

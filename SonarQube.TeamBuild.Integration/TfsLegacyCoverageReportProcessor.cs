@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -44,7 +45,7 @@ namespace SonarQube.TeamBuild.Integration
 
         #region Virtual methods
 
-        protected override bool TryGetBinaryReportFile(AnalysisConfig config, TeamBuildSettings settings, ILogger logger, out string binaryFilePath)
+        protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath)
         {
             IEnumerable<string> urls = this.urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri(), logger);
             Debug.Assert(urls != null, "Not expecting the returned list of urls to be null");

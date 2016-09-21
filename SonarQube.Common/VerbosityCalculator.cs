@@ -80,13 +80,10 @@ namespace SonarQube.Common
                 }
             }
 
-            if (!String.IsNullOrWhiteSpace(sonarLogValue))
+            if (!String.IsNullOrWhiteSpace(sonarLogValue) && sonarLogValue.Split('|').Any(s => s.Equals(SonarLogDebugValue, StringComparison.Ordinal)))
             {
-                if (sonarLogValue.Split('|').Any(s => s.Equals(SonarLogDebugValue, StringComparison.Ordinal)))
-                {
-                    logger.LogDebug(Resources.MSG_SonarLogLevelWasSpecified, sonarLogValue);
-                    return LoggerVerbosity.Debug;
-                }
+                logger.LogDebug(Resources.MSG_SonarLogLevelWasSpecified, sonarLogValue);
+                return LoggerVerbosity.Debug;
             }
 
             return DefaultLoggingVerbosity;

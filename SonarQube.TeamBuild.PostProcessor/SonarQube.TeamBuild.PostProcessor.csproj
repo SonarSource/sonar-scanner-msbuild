@@ -48,6 +48,7 @@
     </Compile>
     <Compile Include="ArgumentProcessor.cs" />
     <Compile Include="CoverageReportProcessor.cs" />
+    <Compile Include="Interfaces\IMSBuildPostProcessor.cs" />
     <Compile Include="Interfaces\ISummaryReportBuilder.cs" />
     <Compile Include="MSBuildPostProcessor.cs" />
     <Compile Include="Program.cs" />

@@ -14,35 +14,6 @@ namespace SonarQube.Bootstrapper
 {
     public class BootstrapperSettings : IBootstrapperSettings
     {
-        // FIX - should also include the sonar-scanner-[version].zip. Consider moving to SonarQube.Common.
-
-        #region Logical Bootstrapper Version values
-
-        // The following constants determine the "logical" api of the bootstrapper
-        // Server-side: specifies what it expects from the server - where to download the bits from, which exes to run.
-        // Client-side: specifies how the analysis working and bin directories are specified.
-
-        /// <summary>
-        /// The logical version of the bootstrapper API that the pre/post-processor must support
-        /// </summary>
-        /// <remarks>The version string should have at least a major and a minor component</remarks>
-        public const string LogicalVersionString = "1.0";
-
-        /// <summary>
-        /// The file name where the supported bootstrapper logical API versions are mentioned
-        /// </summary>
-        public const string SupportedVersionsFilename = "SupportedBootstrapperVersions.xml";
-
-        // Download-related values
-        public const string SonarQubeIntegrationFilename = "SonarQube.MSBuild.Runner.Implementation.zip";
-
-        public const string IntegrationUrlSuffix = "/static/csharp/" + SonarQubeIntegrationFilename;
-
-        // Exes to launched by the bootstrapper
-        public const string PreProcessorExeName = "MSBuild.SonarQube.Internal.PreProcess.exe";
-
-        public const string PostProcessorExeName = "MSBuild.SonarQube.Internal.PostProcess.exe";
-
         #region Working directory
 
         // Variables used when calculating the working directory
@@ -66,8 +37,6 @@ namespace SonarQube.Bootstrapper
 
         #endregion Working directory
 
-        #endregion Logical Bootstrapper Version values
-
         private readonly ILogger logger;
 
         private readonly string sonarQubeUrl;
@@ -76,8 +45,6 @@ namespace SonarQube.Bootstrapper
         private readonly LoggerVerbosity verbosity;
 
         private string tempDir;
-        private string preProcFilePath;
-        private string postProcFilePath;
 
         #region Constructor(s)
 
@@ -96,7 +63,6 @@ namespace SonarQube.Bootstrapper
             this.analysisPhase = phase;
             this.childCmdLineArgs = childCmdLineArgs;
             this.verbosity = verbosity;
-
             this.logger = logger;
         }
 
@@ -116,48 +82,6 @@ namespace SonarQube.Bootstrapper
                 }
                 return this.tempDir;
             }
-        }
-
-        public string DownloadDirectory
-        {
-            get
-            {
-                return Path.Combine(TempDirectory, RelativePathToDownloadDir);
-            }
-        }
-
-        public string PreProcessorFilePath
-        {
-            get
-            {
-                if (this.preProcFilePath == null)
-                {
-                    this.preProcFilePath = this.EnsurePathIsAbsolute(PreProcessorExeName);
-                }
-                return this.preProcFilePath;
-            }
-        }
-
-        public string PostProcessorFilePath
-        {
-            get
-            {
-                if (this.postProcFilePath == null)
-                {
-                    this.postProcFilePath = this.EnsurePathIsAbsolute(PostProcessorExeName);
-                }
-                return this.postProcFilePath;
-            }
-        }
-
-        public string SupportedBootstrapperVersionsFilePath
-        {
-            get { return this.EnsurePathIsAbsolute(SupportedVersionsFilename); }
-        }
-
-        public Version BootstrapperVersion
-        {
-            get { return new Version(LogicalVersionString); }
         }
 
         public AnalysisPhase Phase
@@ -210,23 +134,6 @@ namespace SonarQube.Bootstrapper
                 }
             }
             return result;
-        }
-
-        private string EnsurePathIsAbsolute(string file)
-        {
-            string absPath;
-
-            // If the path isn't rooted then assume it is in the download dir
-            if (Path.IsPathRooted(file))
-            {
-                absPath = file;
-            }
-            else
-            {
-                absPath = Path.Combine(this.DownloadDirectory, file);
-                absPath = Path.GetFullPath(absPath); // strip out relative elements
-            }
-            return absPath;
         }
 
         #endregion Private methods

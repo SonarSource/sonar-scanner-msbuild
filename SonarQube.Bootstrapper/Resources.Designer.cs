@@ -106,20 +106,11 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to update the SonarQube Scanner for MSBuild binaries. Check the server url, verify that the C# plugin is correctly installed on the SonarQube server and that the SonarQube server has been restarted..
+        ///   Looks up a localized string similar to SonarQube analysis could not be completed because the analysis configuration file could not be found..
         /// </summary>
-        public static string ERROR_FailedToUpdateRunnerBinaries {
+        public static string ERROR_ConfigFileNotFound {
             get {
-                return ResourceManager.GetString("ERROR_FailedToUpdateRunnerBinaries", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The End Step executable was not found &apos;{0}&apos;. Please check that the begin step, the build step and the end step are all executed in the same directory..
-        /// </summary>
-        public static string ERROR_PostProcessExeNotFound {
-            get {
-                return ResourceManager.GetString("ERROR_PostProcessExeNotFound", resourceCulture);
+                return ResourceManager.GetString("ERROR_ConfigFileNotFound", resourceCulture);
             }
         }
         
@@ -138,24 +129,6 @@ namespace SonarQube.Bootstrapper {
         public static string ERROR_VersionMismatch {
             get {
                 return ResourceManager.GetString("ERROR_VersionMismatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Checking for updates....
-        /// </summary>
-        public static string MSG_CheckingForUpdates {
-            get {
-                return ResourceManager.GetString("MSG_CheckingForUpdates", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Downloading {0} from {1} to {2}.
-        /// </summary>
-        public static string MSG_DownloadingZip {
-            get {
-                return ResourceManager.GetString("MSG_DownloadingZip", resourceCulture);
             }
         }
         
@@ -196,7 +169,7 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube server url: {0}.
+        ///   Looks up a localized string similar to SonarQube server URL: {0}.
         /// </summary>
         public static string MSG_ServerUrl {
             get {
