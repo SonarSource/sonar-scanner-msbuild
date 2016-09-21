@@ -170,7 +170,7 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not connect to the SonarQube server. Check the URL is correct and that the server is available. URL: {0}.
+        ///   Looks up a localized string similar to Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: {0}.
         /// </summary>
         public static string ERROR_ConnectionFailed {
             get {

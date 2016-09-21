@@ -35,6 +35,7 @@
   <PropertyGroup>
     <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\..</SourcesRoot>
     <DestinationDir>$(SourcesRoot)\DeploymentArtifacts\BuildAgentPayload\$(Configuration)\</DestinationDir>
+    <WorkDestinationDir>$(DestinationDir)\Work</WorkDestinationDir>
     <!-- OutputPath is required by the Clean and Rebuild tasks -->
     <!--
     <OutputPath>$(DestinationDir)</OutputPath>-->
@@ -75,10 +76,10 @@
     <CallTarget Targets="ZipPayloadFiles" />
   </Target>
   <Target Name="CopyPayloadFiles">
-    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(DestinationDir)" />
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(WorkDestinationDir)" />
   </Target>
   <Target Name="ZipPayloadFiles">
-    <Exec Command="PowerShell -command Compress-Archive -Path $(DestinationDir)* -DestinationPath $(DestinationDir)\SonarQube.Scanner.MSBuild.zip" />
+    <Exec Command="PowerShell -command Compress-Archive -Path $(WorkDestinationDir)\* -DestinationPath $(DestinationDir)\SonarQube.Scanner.MSBuild.zip" />
   </Target>
   <Target Name="CleanExistingPayload" AfterTargets="Clean">
     <RemoveDir Directories="$(DestinationDir)" />
