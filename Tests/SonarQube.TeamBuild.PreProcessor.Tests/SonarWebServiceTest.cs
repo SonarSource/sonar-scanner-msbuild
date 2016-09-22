@@ -47,39 +47,43 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             bool result;
             string qualityProfile;
 
-            // Check that profiles are correctly defaulted as well as branch-specific
-            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar"] = "[{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\",\"default\":true}]";
-            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AaBranch"] = "[{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"cs\",\"default\":false}]";
-            downloader.Pages["http://myhost:222/api/profiles/list?language=cs&project=foo+bar%3AanotherBranch"] = "[{\"key\":\"profile3k\",\"name\":\"profile3\",\"language\":\"cs\",\"default\":false}]";
-            // default
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] = 
+                "[{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]";
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AaBranch"] =
+                "[{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]";
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AanotherBranch"] =
+                "[{\"key\":\"profile3k\",\"name\":\"profile3\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]";
+
+            // main
             result = ws.TryGetQualityProfile("foo bar", null, "cs", out qualityProfile);
             Assert.IsTrue(result);
             Assert.AreEqual("profile1k", qualityProfile);
+
             // branch specific
             result = ws.TryGetQualityProfile("foo bar", "aBranch", "cs", out qualityProfile);
             Assert.IsTrue(result);
             Assert.AreEqual("profile2k", qualityProfile);
+
             result = ws.TryGetQualityProfile("foo bar", "anotherBranch", "cs", out qualityProfile);
             Assert.IsTrue(result);
             Assert.AreEqual("profile3k", qualityProfile);
 
-            downloader.Pages["http://myhost:222/api/profiles/list?language=cs"] = "[{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\",\"default\":true},{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"vbnet\",\"default\":false}]";
-            result = ws.TryGetQualityProfile("bar", null, "cs", out qualityProfile);
+            // fallback to defaults
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?defaults=true"] =
+                "[{\"key\":\"profileDefault\",\"name\":\"profileDefault\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]";
+            result = ws.TryGetQualityProfile("non existing", null, "cs", out qualityProfile);
             Assert.IsTrue(result);
-            Assert.AreEqual("profile1k", qualityProfile);
+            Assert.AreEqual("profileDefault", qualityProfile);
 
-            downloader.Pages["http://myhost:222/api/profiles/list?language=vbnet"] = "[{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"vbnet\",\"default\":true},{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"vbnet\",\"default\":false}]";
-            result = ws.TryGetQualityProfile("bar", null, "vbnet", out qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profile1k", qualityProfile);
+            // no cs in list of profiles
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=java+foo+bar"] = "[{\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]";
+            result = ws.TryGetQualityProfile("java foo bar", null, "cs", out qualityProfile);
+            Assert.IsFalse(result);
+            Assert.IsNull(qualityProfile);
 
-            downloader.Pages["http://myhost:222/api/profiles/list?language=cs"] = "[{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\",\"default\":false},{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"cs\",\"default\":true}]";
-            result = ws.TryGetQualityProfile("bar", null, "cs", out qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profile2k", qualityProfile);
-
-            downloader.Pages["http://myhost:222/api/profiles/list?language=vbnet"] = "[]";
-            result = ws.TryGetQualityProfile("foo", null, "vbnet", out qualityProfile);
+            // empty
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=empty+foo+bar"] = "[]";
+            result = ws.TryGetQualityProfile("empty foo bar", null, "cs", out qualityProfile);
             Assert.IsFalse(result);
             Assert.IsNull(qualityProfile);
         }
