@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration.Interfaces;
 using System;
 using System.IO;
 
@@ -15,7 +16,7 @@ namespace SonarQube.TeamBuild.Integration
     /// Provides access to TeamBuild-specific settings and settings calculated
     /// from those settings
     /// </summary>
-    public class TeamBuildSettings
+    public class TeamBuildSettings : ITeamBuildSettings
     {
         public const int DefaultLegacyCodeCoverageTimeout = 30000; // ms    ( // was internal )
 

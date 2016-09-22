@@ -7,20 +7,23 @@
 
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.Integration.Interfaces;
+using SonarQube.TeamBuild.PostProcessor.Interfaces;
 using SonarScanner.Shim;
 using System;
 using System.Collections.Generic;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
-    public class MSBuildPostProcessor
+    public class MSBuildPostProcessor : IMSBuildPostProcessor
     {
         private readonly ICoverageReportProcessor codeCoverageProcessor;
         private readonly ISummaryReportBuilder reportBuilder;
         private readonly ISonarScanner sonarScanner;
+        private readonly ILogger logger;
         private readonly static string scanAllFiles = "-Dsonar.scanAllFiles=true";
 
-        public MSBuildPostProcessor(ICoverageReportProcessor codeCoverageProcessor, ISonarScanner scanner, ISummaryReportBuilder reportBuilder)
+        public MSBuildPostProcessor(ICoverageReportProcessor codeCoverageProcessor, ISonarScanner scanner, ISummaryReportBuilder reportBuilder, ILogger logger)
         {
             if (codeCoverageProcessor == null)
             {
@@ -34,13 +37,18 @@ namespace SonarQube.TeamBuild.PostProcessor
             {
                 throw new ArgumentNullException("reportBuilder");
             }
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
 
+            this.logger = logger;
             this.codeCoverageProcessor = codeCoverageProcessor;
             this.sonarScanner = scanner;
             this.reportBuilder = reportBuilder;
         }
 
-        public bool Execute(string[] args, AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
+        public bool Execute(string[] args, AnalysisConfig config, ITeamBuildSettings settings)
         {
             if (args == null)
             {
@@ -54,10 +62,6 @@ namespace SonarQube.TeamBuild.PostProcessor
             {
                 throw new ArgumentNullException("settings");
             }
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
 
             IAnalysisPropertyProvider provider;
             if (!ArgumentProcessor.TryProcessArgs(args, logger, out provider))
@@ -66,9 +70,9 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
 
             logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.GetAnalysisSettings(true), logger);
-            LogStartupSettings(config, settings, logger);
+            LogStartupSettings(config, settings);
 
-            if (!CheckEnvironmentConsistency(config, settings, logger))
+            if (!CheckEnvironmentConsistency(config, settings))
             {
                 return false;
             }
@@ -82,12 +86,12 @@ namespace SonarQube.TeamBuild.PostProcessor
                 return false;
             }
 
-            ProjectInfoAnalysisResult result = InvokeSonarScanner(provider, config, logger);
+            ProjectInfoAnalysisResult result = InvokeSonarScanner(provider, config);
             this.reportBuilder.GenerateReports(settings, config, result, logger);
             return result.RanToCompletion;
         }
 
-        private static void LogStartupSettings(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
+        private void LogStartupSettings(AnalysisConfig config, ITeamBuildSettings settings)
         {
             string configFileName = config == null ? string.Empty : config.FileName;
             logger.LogDebug(Resources.MSG_LoadingConfig, configFileName);
@@ -125,7 +129,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         /// matches that in the analysis config file.
         /// Used to detect invalid setups on the build agent.
         /// </summary>
-        private static bool CheckEnvironmentConsistency(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
+        private bool CheckEnvironmentConsistency(AnalysisConfig config, ITeamBuildSettings settings)
         {
             // Currently we're only checking that the build uris match as this is the most likely error
             // - it probably means that an old analysis config file has been left behind somehow
@@ -149,7 +153,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             return true;
         }
 
-        private ProjectInfoAnalysisResult InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, ILogger logger)
+        private ProjectInfoAnalysisResult InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config)
         {
             IEnumerable<string> args = GetSonarScannerArgs(cmdLineArgs);
 

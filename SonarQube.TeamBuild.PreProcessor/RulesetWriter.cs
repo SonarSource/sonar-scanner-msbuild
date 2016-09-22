@@ -18,7 +18,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             IEnumerable<string> effectiveIds = ids ?? Enumerable.Empty<string>();
             
-            var duplicates = effectiveIds.ToList().GroupBy(id => id).Where(g => g.Count() >= 2).Select(g => g.Key);
+            var duplicates = effectiveIds.GroupBy(id => id).Where(g => g.Count() >= 2).Select(g => g.Key);
             if (duplicates.Any())
             {
                 string message = string.Format(System.Globalization.CultureInfo.CurrentCulture, 

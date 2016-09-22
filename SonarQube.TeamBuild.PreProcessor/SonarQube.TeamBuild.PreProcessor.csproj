@@ -63,6 +63,7 @@
     <Compile Include="Interfaces\IRulesetGenerator.cs" />
     <Compile Include="Interfaces\ITargetsInstaller.cs" />
     <Compile Include="Interfaces\ISonarQubeServer.cs" />
+    <Compile Include="Interfaces\ITeamBuildPreProcessor.cs" />
     <Compile Include="Roslyn\ActiveRule.cs" />
     <Compile Include="Roslyn\Model\Plugin.cs" />
     <Compile Include="Roslyn\RoslynRuleSetGenerator.cs" />

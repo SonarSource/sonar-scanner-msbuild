@@ -30,31 +30,6 @@ namespace SonarQube.Bootstrapper
         /// </summary>
         string TempDirectory { get; }
 
-        /// <summary>
-        /// Directory into which the downloaded files should be placed, usually .sonarqube\bin
-        /// </summary>
-        string DownloadDirectory { get; }
-
-        /// <summary>
-        /// Full path to the pre-processor to be executed
-        /// </summary>
-        string PreProcessorFilePath { get; }
-
-        /// <summary>
-        /// Full path to the post-processor to be executed
-        /// </summary>
-        string PostProcessorFilePath { get; }
-
-        /// <summary>
-        /// Full path to the xml file containing the logical bootstrapper API versions supported by the pre/post-processors
-        /// </summary>
-        string SupportedBootstrapperVersionsFilePath { get; }
-
-        /// <summary>
-        /// Logical version of the bootstrapper 
-        /// </summary>
-        Version BootstrapperVersion { get; }
-
         AnalysisPhase Phase { get; }
 
         /// <summary>

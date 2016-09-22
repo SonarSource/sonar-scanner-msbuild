@@ -6,304 +6,215 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarQube.Common;
-using System;
+using SonarQube.TeamBuild.Integration.Interfaces;
+using SonarQube.TeamBuild.PostProcessor.Interfaces;
+using SonarQube.TeamBuild.PreProcessor;
 using System.IO;
 using TestUtilities;
+using static SonarQube.Bootstrapper.Program;
 
 namespace SonarQube.Bootstrapper.Tests
 {
     [TestClass]
     public class BootstrapperExeTests
     {
+        private string RootDir;
+        private string TempDir;
+        private Mock<IProcessFactory> MockProcessorFactory;
+        private Mock<ITeamBuildPreProcessor> MockPreProcessor;
+        private Mock<IMSBuildPostProcessor> MockPostProcessor;
+        private Mock<ITeamBuildSettings> MockTeamBuildSettings;
+
         public TestContext TestContext { get; set; }
+
+        [TestInitialize()]
+        public void MyTestInitialize() {
+            RootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            // this is the Temp folder used by Bootstrapper
+            TempDir = Path.Combine(RootDir, ".sonarqube");
+            string analysisConfigFile = Path.Combine(RootDir, "analysisConfig.xml");
+            createAnalysisConfig(analysisConfigFile);
+
+            mockProcessors(true, true);
+            MockTeamBuildSettings = new Mock<ITeamBuildSettings>();
+            MockTeamBuildSettings.SetupGet(x => x.AnalysisConfigFilePath).Returns(analysisConfigFile);
+        }
+
+        private void createAnalysisConfig(string filePath)
+        {
+            AnalysisConfig config = new AnalysisConfig();
+            config.Save(filePath);
+        }
+
+        private void mockProcessors(bool preProcessorOutcome, bool postProcessorOutcome)
+        {
+            MockPreProcessor = new Mock<ITeamBuildPreProcessor>();
+            MockPostProcessor = new Mock<IMSBuildPostProcessor>();
+            MockPreProcessor.Setup(x => x.Execute(It.IsAny<string[]>())).Returns(preProcessorOutcome);
+            MockPostProcessor.Setup(x => x.Execute(It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()
+                )).Returns(postProcessorOutcome);
+            MockProcessorFactory = new Mock<IProcessFactory>();
+            MockProcessorFactory.Setup(x => x.createPostProcessor()).Returns(MockPostProcessor.Object);
+            MockProcessorFactory.Setup(x => x.createPreProcessor()).Returns(MockPreProcessor.Object);
+        }
 
         #region Tests
 
         [TestMethod]
         public void Exe_ParsingFails()
         {
-            // Arrange
-            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-
-            using (InitializeNonTeamBuildEnvironment(rootDir))
+            using (InitializeNonTeamBuildEnvironment(RootDir))
             {
-                string binDir = CalculateBinDir(rootDir);
-
-                MockBuildAgentUpdater mockUpdater = new MockBuildAgentUpdater();
-
                 // Act
-                TestLogger logger = CheckExecutionFails(mockUpdater, "/d: badkey=123");
+                TestLogger logger = CheckExecutionFails("/d: badkey=123");
 
                 // Assert
-                mockUpdater.AssertUpdateNotAttempted();
-                mockUpdater.AssertVersionNotChecked();
-
-                AssertDirectoryDoesNotExist(binDir);
-
                 logger.AssertErrorsLogged();
             }
         }
 
         [TestMethod]
-        public void Exe_PreProc_UrlIsRequired()
+        public void Exe_PreProc_URLIsRequired()
         {
             // Arrange
             BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
-            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
-            using (InitializeNonTeamBuildEnvironment(rootDir))
+            using (InitializeNonTeamBuildEnvironment(RootDir))
             {
-                string binDir = CalculateBinDir(rootDir);
-
-                MockBuildAgentUpdater mockUpdater = new MockBuildAgentUpdater();
-
                 // Act
-                TestLogger logger = CheckExecutionFails(mockUpdater, "begin");
+                TestLogger logger = CheckExecutionFails("begin");
 
                 // Assert
-                mockUpdater.AssertUpdateNotAttempted();
-                mockUpdater.AssertVersionNotChecked();
-
-                AssertDirectoryDoesNotExist(binDir);
-
                 logger.AssertErrorLogged(SonarQube.Bootstrapper.Resources.ERROR_Args_UrlRequired);
                 logger.AssertErrorsLogged(1);
             }
         }
 
         [TestMethod]
-        public void Exe_PreProc_UpdateFails()
-        {
-            // Arrange
-            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            using (InitializeNonTeamBuildEnvironment(rootDir))
-            {
-                string binDir = CalculateBinDir(rootDir);
-                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://host:9000");
-                mockUpdater.TryUpdateReturnValue = false;
-
-                // Act
-                TestLogger logger = CheckExecutionFails(mockUpdater, "/d:sonar.host.url=http://host:9000", "begin");
-
-                // Assert
-                mockUpdater.AssertUpdateAttempted();
-                mockUpdater.AssertVersionNotChecked();
-
-                logger.AssertWarningsLogged(0);
-
-                AssertDirectoryExists(binDir);
-                logger.AssertErrorsLogged();
-            }
-        }
-
-        [TestMethod]
-        public void Exe_PreProc_VersionCheckFails()
-        {
-            // Arrange
-            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            using (InitializeNonTeamBuildEnvironment(rootDir))
-            {
-                string binDir = CalculateBinDir(rootDir);
-                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://ahost");
-                mockUpdater.VersionCheckReturnValue = false;
-
-                // Act
-                TestLogger logger = CheckExecutionFails(mockUpdater, "/d:sonar.host.url=http://ahost", "begin");
-
-                // Assert
-                mockUpdater.AssertUpdateAttempted();
-                mockUpdater.AssertVersionChecked();
-
-                AssertDirectoryExists(binDir);
-                DummyExeHelper.AssertDummyPreProcLogDoesNotExist(binDir);
-                DummyExeHelper.AssertDummyPostProcLogDoesNotExist(binDir);
-                logger.AssertErrorsLogged();
-                logger.AssertWarningsLogged(0);
-            }
-        }
-
-        [TestMethod]
-        public void Exe_PreProc_VersionCheckSucceeds_PreProcFails()
+        public void Exe_PreProcFails()
         {
             // Arrange
             BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
-            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            using (InitializeNonTeamBuildEnvironment(rootDir))
+            using (InitializeNonTeamBuildEnvironment(RootDir))
             {
-                string binDir = CalculateBinDir(rootDir);
-                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://host:9");
-
-                mockUpdater.Updating += (sender, args) =>
-                {
-                    AssertDirectoryExists(args.TargetDir);
-                    DummyExeHelper.CreateDummyPreProcessor(args.TargetDir, 1 /* pre-proc fails */);
-                };
+                mockProcessors(false, true);
 
                 // Act
-                TestLogger logger = CheckExecutionFails(mockUpdater,
-                    "begin",
+                TestLogger logger = CheckExecutionFails("begin",
                     "/install:true",  // this argument should just pass through
                     "/d:sonar.verbose=true",
                     "/d:sonar.host.url=http://host:9",
                     "/d:another.key=will be ignored");
 
                 // Assert
-                mockUpdater.AssertUpdateAttempted();
-                mockUpdater.AssertVersionChecked();
-
                 logger.AssertWarningsLogged(0);
                 logger.AssertVerbosity(LoggerVerbosity.Debug); // sonar.verbose=true was specified
 
-                string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath,
-                    "/install:true",
+                AssertPreProcessorArgs("/install:true",
                     "/d:sonar.verbose=true",
                     "/d:sonar.host.url=http://host:9",
                     "/d:another.key=will be ignored");
+
+                AssertPostProcessorNotCalled();
             }
         }
 
         [TestMethod]
-        public void Exe_PreProc_VersionCheckSucceeds_PreProcSucceeds()
+        public void Exe_PreProcSucceeds()
         {
             // Arrange
             BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
-            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            using (InitializeNonTeamBuildEnvironment(rootDir))
+            using (InitializeNonTeamBuildEnvironment(RootDir))
             {
-                string binDir = CalculateBinDir(rootDir);
-
-                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://anotherHost");
-
-                mockUpdater.Updating += (sender, args) =>
-                {
-                    AssertDirectoryExists(args.TargetDir);
-                    DummyExeHelper.CreateDummyPreProcessor(args.TargetDir, 0 /* pre-proc succeeds */);
-                };
-
                 // Act
-                TestLogger logger = CheckExecutionSucceeds(mockUpdater,
-                    "/d:sonar.host.url=http://anotherHost", "begin");
+                TestLogger logger = CheckExecutionSucceeds("/d:sonar.host.url=http://anotherHost", "begin");
 
                 // Assert
-                mockUpdater.AssertUpdateAttempted();
-                mockUpdater.AssertVersionChecked();
-
                 logger.AssertWarningsLogged(0);
                 logger.AssertVerbosity(VerbosityCalculator.DefaultLoggingVerbosity);
 
-                string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, "/d:sonar.host.url=http://anotherHost");
+                AssertPreProcessorArgs("/d:sonar.host.url=http://anotherHost");
             }
         }
 
         [TestMethod]
-        public void Exe_PostProc_ExecutableNotFound_PostProcFails()
+        public void Exe_PreProcCleansTemp()
         {
             // Arrange
-            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            using (InitializeNonTeamBuildEnvironment(rootDir))
+            BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+
+            using (InitializeNonTeamBuildEnvironment(RootDir))
             {
-                // a non-dummy post-processor is used to check that it fails with the correct error message
-                string binDir = CalculateBinDir(rootDir);
-                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://anotherHost");
-                
+                // Create dummy file in Temp
+                string filePath = Path.Combine(TempDir, "myfile");
+                Directory.CreateDirectory(TempDir);
+                FileStream stream = File.Create(filePath);
+                stream.Close();
+                Assert.IsTrue(File.Exists(filePath));
+
                 // Act
-                TestLogger logger = CheckExecutionFails(mockUpdater, "end");
-                
+                TestLogger logger = CheckExecutionSucceeds("/d:sonar.host.url=http://anotherHost", "begin");
+
                 // Assert
-                mockUpdater.AssertUpdateNotAttempted();
-                mockUpdater.AssertVersionNotChecked();
-                logger.AssertSingleErrorExists(binDir + "\\MSBuild.SonarQube.Internal.PostProcess.exe"); // expect an error message at least containing the 
+                Assert.IsFalse(File.Exists(filePath));
             }
         }
 
         [TestMethod]
         public void Exe_PostProc_Fails()
         {
-            // Arrange
-            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            using (InitializeNonTeamBuildEnvironment(rootDir))
+            using (InitializeNonTeamBuildEnvironment(RootDir))
             {
-                string binDir = CalculateBinDir(rootDir);
-                Directory.CreateDirectory(binDir);
-                DummyExeHelper.CreateDummyPostProcessor(binDir, 1 /* post-proc fails */);
-
-                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://h:9000");
+                mockProcessors(true, false);
+                // this is usually created by the PreProcessor
+                Directory.CreateDirectory(TempDir);
 
                 // Act
-                TestLogger logger = CheckExecutionFails(mockUpdater, "end");
+                TestLogger logger = CheckExecutionFails("end");
 
                 // Assert
-                mockUpdater.AssertUpdateNotAttempted();
-                mockUpdater.AssertVersionNotChecked();
                 logger.AssertWarningsLogged(0);
-
-                string logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath, null);
+                logger.AssertErrorsLogged(1);
+                AssertPostProcessorArgs();
             }
         }
 
         [TestMethod]
         public void Exe_PostProc_Succeeds()
         {
-            // Arrange
-            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            using (InitializeNonTeamBuildEnvironment(rootDir))
+            using (InitializeNonTeamBuildEnvironment(RootDir))
             {
-                string binDir = CalculateBinDir(rootDir);
-                Directory.CreateDirectory(binDir);
-                DummyExeHelper.CreateDummyPostProcessor(binDir, 0 /* success exit code */);
-
-                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://h:9000");
+                // this is usually created by the PreProcessor
+                Directory.CreateDirectory(TempDir);
 
                 // Act
-                TestLogger logger = CheckExecutionSucceeds(mockUpdater, "end", "other params", "yet.more.params");
+                TestLogger logger = CheckExecutionSucceeds("end", "other params", "yet.more.params");
 
                 // Assert
-                mockUpdater.AssertUpdateNotAttempted();
-                mockUpdater.AssertVersionNotChecked();
                 logger.AssertWarningsLogged(0);
 
                 // The bootstrapper pass through any parameters it doesn't recognise so the post-processor
                 // can decide whether to handle them or not
-                string logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
-                DummyExeHelper.AssertExpectedLogContents(logPath,
-                    "other params",
+                AssertPostProcessorArgs("other params",
                     "yet.more.params");
             }
         }
 
         [TestMethod]
-        public void Exe__Version0_9Compatibility()
+        public void Exe_PropertiesFile()
         {
-            // Tests compatibility with the bootstrapper API used in v0.9
-            // The pre-processor should be called if any arguments are passed.
-            // The post-processor should be called if no arguments are passed.
-
             // Default settings:
             // There must be a default settings file next to the bootstrapper exe to supply
             // the necessary settings, and the bootstrapper should pass this settings path
-            // to the pre-processor (since the pre-process is downloaded to a different
-            // directory).
+            // to the pre-processor 
 
             // Arrange
-            string rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            using (InitializeNonTeamBuildEnvironment(rootDir))
+            using (InitializeNonTeamBuildEnvironment(RootDir))
             {
-                string binDir = CalculateBinDir(rootDir);
-                MockBuildAgentUpdater mockUpdater = CreateValidUpdater(binDir, "http://host");
-
-                mockUpdater.Updating += (sender, args) =>
-                {
-                    Assert.IsTrue(Directory.Exists(args.TargetDir), "Expecting the target directory to have been created");
-                    DummyExeHelper.CreateDummyPreProcessor(args.TargetDir, 0 /* post-proc succeeds */);
-                    DummyExeHelper.CreateDummyPostProcessor(args.TargetDir, 0 /* post-proc succeeds */);
-                };
-
                 // Create a default properties file next to the exe
                 AnalysisProperties defaultProperties = new AnalysisProperties();
                 defaultProperties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://host" });
@@ -313,27 +224,21 @@ namespace SonarQube.Bootstrapper.Tests
                 try
                 {
                     // Call the pre-processor
-                    TestLogger logger = CheckExecutionSucceeds(mockUpdater, "/v:version", "/n:name", "/k:key");
+                    TestLogger logger = CheckExecutionSucceeds("/v:version", "/n:name", "/k:key");
                     logger.AssertWarningsLogged(1); // Should be warned once about the missing "begin" / "end"
                     logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb, ArgumentProcessor.EndVerb);
 
-                    mockUpdater.AssertUpdateAttempted();
-                    mockUpdater.AssertVersionChecked();
-
-                    string logPath = DummyExeHelper.AssertDummyPreProcLogExists(binDir, this.TestContext);
-                    DummyExeHelper.AssertExpectedLogContents(logPath,
-                        "/v:version",
+                   AssertPreProcessorArgs("/v:version",
                         "/n:name",
                         "/k:key",
                         "/s:" + defaultPropertiesFilePath);
 
-                    DummyExeHelper.AssertDummyPostProcLogDoesNotExist(binDir);
+                    AssertPostProcessorNotCalled();
 
                     // Call the post-process (no arguments)
-                    logger = CheckExecutionSucceeds(mockUpdater);
+                    logger = CheckExecutionSucceeds();
 
-                    logPath = DummyExeHelper.AssertDummyPostProcLogExists(binDir, this.TestContext);
-                    DummyExeHelper.AssertExpectedLogContents(logPath, null);
+                    AssertPostProcessorArgs();
 
                     logger.AssertWarningsLogged(1); // Should be warned once about the missing "begin" / "end"
                     logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb, ArgumentProcessor.EndVerb);
@@ -358,29 +263,6 @@ namespace SonarQube.Bootstrapper.Tests
             return scope;
         }
 
-        /// <summary>
-        /// Creates and returns a mock updater that execute successfully
-        /// </summary>
-        private static MockBuildAgentUpdater CreateValidUpdater(string binDir, string hostUrl)
-        {
-            string versionFile = Path.Combine(binDir, BootstrapperSettings.SupportedVersionsFilename);
-
-            MockBuildAgentUpdater mockUpdater = new MockBuildAgentUpdater();
-            mockUpdater.ExpectedHostUrl = hostUrl;
-            mockUpdater.ExpectedTargetDir = binDir;
-            mockUpdater.TryUpdateReturnValue = true;
-            mockUpdater.ExpectedVersionPath = versionFile;
-            mockUpdater.ExpectedVersion = new System.Version(BootstrapperSettings.LogicalVersionString);
-            mockUpdater.VersionCheckReturnValue = true;
-
-            return mockUpdater;
-        }
-
-        private static string CalculateBinDir(string rootDir)
-        {
-            return Path.Combine(rootDir, ".sonarqube", "bin");
-        }
-
         private static string CreateDefaultPropertiesFile(AnalysisProperties defaultProperties)
         {
             // NOTE: don't forget to delete this file when the test that uses it
@@ -394,11 +276,11 @@ namespace SonarQube.Bootstrapper.Tests
 
         #region Checks
 
-        private static TestLogger CheckExecutionFails(IBuildAgentUpdater updater, params string[] args)
+        private TestLogger CheckExecutionFails(params string[] args)
         {
             TestLogger logger = new TestLogger();
 
-            int exitCode = Bootstrapper.Program.Execute(args, updater, logger);
+            int exitCode = Bootstrapper.Program.Execute(args, MockProcessorFactory.Object, MockTeamBuildSettings.Object, logger);
 
             Assert.AreEqual(Bootstrapper.Program.ErrorCode, exitCode, "Bootstrapper did not return the expected exit code");
             logger.AssertErrorsLogged();
@@ -406,11 +288,11 @@ namespace SonarQube.Bootstrapper.Tests
             return logger;
         }
 
-        private static TestLogger CheckExecutionSucceeds(IBuildAgentUpdater updater, params string[] args)
+        private TestLogger CheckExecutionSucceeds(params string[] args)
         {
             TestLogger logger = new TestLogger();
 
-            int exitCode = Bootstrapper.Program.Execute(args, updater, logger);
+            int exitCode = Bootstrapper.Program.Execute(args, MockProcessorFactory.Object, MockTeamBuildSettings.Object, logger);
 
             Assert.AreEqual(0, exitCode, "Bootstrapper did not return the expected exit code");
             logger.AssertErrorsLogged(0);
@@ -418,14 +300,28 @@ namespace SonarQube.Bootstrapper.Tests
             return logger;
         }
 
-        private static void AssertDirectoryExists(string binDir)
+        private void AssertPostProcessorNotCalled()
         {
-            Assert.IsTrue(Directory.Exists(binDir), "Expecting the directory to exist. Directory: {0}", binDir);
+            MockPostProcessor.Verify(x => x.Execute(
+                It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()), 
+                Times.Never());
         }
 
-        private static void AssertDirectoryDoesNotExist(string binDir)
+        private void AssertPreProcessorNotCalled()
         {
-            Assert.IsFalse(Directory.Exists(binDir), "Not expecting directory to exist. Directory: {0}", binDir);
+            MockPreProcessor.Verify(x => x.Execute(It.IsAny<string[]>()), Times.Never());
+        }
+
+        private void AssertPostProcessorArgs(params string[] expectedArgs)
+        {
+            MockPostProcessor.Verify(x => x.Execute(
+                expectedArgs, It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()),
+                Times.Once());
+        }
+
+        private void AssertPreProcessorArgs(params string[] expectedArgs)
+        {
+            MockPreProcessor.Verify(x => x.Execute(expectedArgs), Times.Once());
         }
 
         #endregion Checks

@@ -85,18 +85,15 @@ namespace SonarQube.TeamBuild.Integration
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed && disposing)
+            if (!disposed && disposing && this.teamProjectCollection != null)
             {
-                if (this.teamProjectCollection != null)
-                {
-                    this.build.Save();
+                this.build.Save();
 
-                    this.teamProjectCollection.Dispose();
-                    this.teamProjectCollection = null;
-                    this.build = null;
-                }
+                this.teamProjectCollection.Dispose();
+                this.teamProjectCollection = null;
+                this.build = null;
             }
-        
+
             this.disposed = true;
         }
 

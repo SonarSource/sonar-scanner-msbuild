@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
-using System;
+using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.TeamBuild.Integration
 {
@@ -29,7 +29,7 @@ namespace SonarQube.TeamBuild.Integration
 
         #region Overrides
         
-        protected override bool TryGetBinaryReportFile(AnalysisConfig config, TeamBuildSettings settings, ILogger logger, out string binaryFilePath)
+        protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath)
         {
             binaryFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger);
 

@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration.Interfaces;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -18,7 +19,7 @@ namespace SonarQube.TeamBuild.Integration
         private readonly ICoverageReportConverter converter;
 
         private AnalysisConfig config;
-        private TeamBuildSettings settings;
+        private ITeamBuildSettings settings;
         private ILogger logger;
         
         private bool succesfullyInitialised = false;
@@ -35,7 +36,7 @@ namespace SonarQube.TeamBuild.Integration
         #region ICoverageReportProcessor interface
 
 
-        public bool Initialise(AnalysisConfig config, TeamBuildSettings settings, ILogger logger)
+        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger)
         {
             if (config == null)
             {
@@ -81,7 +82,7 @@ namespace SonarQube.TeamBuild.Integration
             return success;
         }
 
-        protected abstract bool TryGetBinaryReportFile(AnalysisConfig config, TeamBuildSettings settings, ILogger logger, out string binaryFilePath);
+        protected abstract bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath);
 
         #endregion
 

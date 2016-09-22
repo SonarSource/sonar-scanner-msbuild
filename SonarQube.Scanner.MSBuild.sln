@@ -42,6 +42,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.PostProcessor.Tests", "Tests\SonarQube.TeamBuild.PostProcessor.Tests\SonarQube.TeamBuild.PostProcessor.Tests.csproj", "{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildAgentPayload", "PackagingProjects\BuildAgentPayload\BuildAgentPayload.csproj", "{ECEADD3A-5992-420F-950D-510BBDDC06E1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{87887805-9389-4158-9C3F-BAD53908CC12} = {87887805-9389-4158-9C3F-BAD53908CC12}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "V0_9UpgradeMessageExe", "V0_9UpgradeMessageExe\V0_9UpgradeMessageExe.csproj", "{D35AF999-A91E-4DE2-93D7-858DFB4DD063}"
 EndProject

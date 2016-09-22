@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.Integration.Interfaces;
 using SonarScanner.Shim;
 using System;
 using System.Collections.Generic;
@@ -39,14 +40,14 @@ namespace SonarQube.TeamBuild.PostProcessor
         private AnalysisConfig config;
         private ILogger logger;
         private ProjectInfoAnalysisResult result;
-        private TeamBuildSettings settings;
+        private ITeamBuildSettings settings;
 
         #region IReportBuilder interface methods
 
         /// <summary>
         /// Generates summary reports for LegacyTeamBuild and for Build Vnext
         /// </summary>
-        public void GenerateReports(TeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
             if (settings == null)
             {

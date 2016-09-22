@@ -248,8 +248,8 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         private static bool Execute(PostProcTestContext context, params string[] args)
         {
-            MSBuildPostProcessor proc = new MSBuildPostProcessor(context.CodeCoverage, context.Scanner, context.ReportBuilder);
-            bool success = proc.Execute(args, context.Config, context.Settings, context.Logger);
+            MSBuildPostProcessor proc = new MSBuildPostProcessor(context.CodeCoverage, context.Scanner, context.ReportBuilder, context.Logger);
+            bool success = proc.Execute(args, context.Config, context.Settings);
             return success;
         }
 

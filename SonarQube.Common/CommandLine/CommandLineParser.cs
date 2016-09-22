@@ -46,7 +46,7 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("descriptors");
             }
 
-            if (!(descriptors.Select(d => d.Id).Distinct(ArgumentDescriptor.IdComparer).Count() == descriptors.Count()))
+            if (descriptors.Select(d => d.Id).Distinct(ArgumentDescriptor.IdComparer).Count() != descriptors.Count())
             {
                 throw new ArgumentException(Resources.ERROR_Parser_UniqueDescriptorIds, "descriptors");
             }
@@ -149,7 +149,7 @@ namespace SonarQube.Common
 
         private static string TryGetMatchingPrefix(ArgumentDescriptor descriptor, string argument)
         {
-            Debug.Assert(descriptor.Prefixes.Where(p => argument.StartsWith(p, ArgumentDescriptor.IdComparison)).Count() < 2,
+            Debug.Assert(descriptor.Prefixes.Count(p => argument.StartsWith(p, ArgumentDescriptor.IdComparison)) < 2,
                 "Not expecting the argument to match multiple prefixes");
 
             string match = null;

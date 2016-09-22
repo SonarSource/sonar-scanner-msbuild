@@ -75,6 +75,7 @@
     <Compile Include="CoverageReportConverter.cs" />
     <Compile Include="CoverageReportDownloader.cs" />
     <Compile Include="CoverageReportProcessorBase.cs" />
+    <Compile Include="Interfaces\ITeamBuildSettings.cs" />
     <Compile Include="TfsLegacyCoverageReportProcessor.cs" />
     <Compile Include="CoverageReportUrlProvider.cs" />
     <Compile Include="Interfaces\ICoverageReportProcessor.cs" />

@@ -17,7 +17,7 @@ using System.Net;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
-    public class TeamBuildPreProcessor
+    public class TeamBuildPreProcessor : ITeamBuildPreProcessor
     {
         public const string CSharpLanguage = "cs";
         public const string CSharpPluginKey = "csharp";

@@ -36,9 +36,8 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
             else
             {
-                MSBuildPostProcessor postProcessor = new MSBuildPostProcessor(new CoverageReportProcessor(), new SonarScannerWrapper(), new SummaryReportBuilder());
-
-                succeeded = postProcessor.Execute(args, config, settings, logger);
+                MSBuildPostProcessor postProcessor = new MSBuildPostProcessor(new CoverageReportProcessor(), new SonarScannerWrapper(), new SummaryReportBuilder(), logger);
+                succeeded = postProcessor.Execute(args, config, settings);
             }
 
             return succeeded ? SuccessCode : ErrorCode;

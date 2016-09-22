@@ -7,7 +7,7 @@
 using SonarQube.TeamBuild.Integration;
 using SonarQube.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.TeamBuild.PostProcessor.Tests
 {
@@ -25,7 +25,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         #region ICoverageReportProcessor interface
 
-        public bool Initialise(AnalysisConfig context, TeamBuildSettings settings, ILogger logger)
+        public bool Initialise(AnalysisConfig context, ITeamBuildSettings settings, ILogger logger)
         {
             Assert.IsFalse(this.initalisedCalled, "Expecting Initialise to be called only once");
             this.initalisedCalled = true;
