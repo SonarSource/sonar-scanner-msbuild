@@ -17,7 +17,7 @@ namespace SonarQube.Common
     /// <summary>
     /// Data class containing parameters required to execute a new process
     /// </summary>
-    public class ProcessScannerArguments
+    public class ProcessRunnerArguments
     {
         private readonly string exeName;
         private readonly ILogger logger;
@@ -34,7 +34,7 @@ namespace SonarQube.Common
         };
 
 
-        public ProcessScannerArguments(string exeName, bool isBatchScript, ILogger logger)
+        public ProcessRunnerArguments(string exeName, bool isBatchScript, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(exeName))
             {

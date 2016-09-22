@@ -81,6 +81,7 @@ namespace SonarQube.Bootstrapper
             logger.IncludeTimestamp = true;
 
             ITeamBuildPreProcessor preProcessor = processorFactory.createPreProcessor();
+            Directory.SetCurrentDirectory(settings.TempDirectory);
             bool success = preProcessor.Execute(settings.ChildCmdLineArgs.ToArray());
 
             return success ? SuccessCode : ErrorCode;

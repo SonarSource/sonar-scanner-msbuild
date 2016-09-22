@@ -245,6 +245,15 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fetching quality profile for project &apos;{0}&apos; from {1}....
+        /// </summary>
+        public static string MSG_FetchingQualityProfile {
+            get {
+                return ResourceManager.GetString("MSG_FetchingQualityProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generating the FxCop ruleset: {0}.
         /// </summary>
         public static string MSG_GeneratingRuleset {

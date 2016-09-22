@@ -22,7 +22,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             // Arrange
             TestLogger logger = new TestLogger();
-            ProcessScannerArguments scannerArgs = new ProcessScannerArguments(typeof(V0_9UpgradeMessageExe.Program).Assembly.Location, false, logger)
+            ProcessRunnerArguments scannerArgs = new ProcessRunnerArguments(typeof(V0_9UpgradeMessageExe.Program).Assembly.Location, false, logger)
             {
                 WorkingDirectory = this.TestContext.DeploymentDirectory
             };

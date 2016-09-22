@@ -43,6 +43,8 @@
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\MSBuild.SonarQube.Runner.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Analysis.xml" />
     <FilesToCopy Include="$(SourcesRoot)\DeploymentArtifacts\CSharpPluginPayload\$(Configuration)\Work\*" />
+    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.targets" />
+    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.ImportBefore.targets" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration) == 'Debug'">
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Scanner.MSBuild.pdb" />
@@ -70,6 +72,7 @@
   </Target>
   <Target Name="CopyPayloadFiles">
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(WorkDestinationDir)" />
+    <Copy SourceFiles="@(TargetsToCopy)" DestinationFolder="$(WorkDestinationDir)\Targets" />
   </Target>
   <Target Name="ZipPayloadFiles">
     <Exec Command="PowerShell -command Compress-Archive -Path $(WorkDestinationDir)\* -DestinationPath $(DestinationDir)\SonarQube.Scanner.MSBuild.zip" />
