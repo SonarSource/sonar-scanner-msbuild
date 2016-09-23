@@ -114,14 +114,14 @@ namespace SonarScanner.Shim
         {
             string fullPath = null;
 
-            var binFolder = config.SonarBinDir;
-            var sonarScannerZip = Path.Combine(binFolder, "sonar-scanner-" + SonarScannerVersion + ".zip");
-            var sonarScannerDestinationFolder = Path.Combine(binFolder, "sonar-scanner");
+            var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
+            var sonarScannerZip = Path.Combine(binFolder, "sonar-scanner-cli-" + SonarScannerVersion + ".zip");
+            var extractFolder = Path.Combine(binFolder, "sonar-scanner");
 
-            if (Utilities.TryEnsureEmptyDirectories(logger, sonarScannerDestinationFolder))
+            if (Utilities.TryEnsureEmptyDirectories(logger, extractFolder))
             {
-                ZipFile.ExtractToDirectory(sonarScannerZip, sonarScannerDestinationFolder);
-                fullPath = Path.Combine(sonarScannerDestinationFolder, @"bin\sonar-scanner.bat");
+                ZipFile.ExtractToDirectory(sonarScannerZip, extractFolder);
+                fullPath = Path.Combine(extractFolder, "sonar-scanner-" + SonarScannerVersion + @"\bin\sonar-scanner.bat");
             }
 
             return fullPath;

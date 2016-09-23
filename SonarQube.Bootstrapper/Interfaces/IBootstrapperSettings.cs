@@ -42,5 +42,10 @@ namespace SonarQube.Bootstrapper
         /// </summary>
         /// <remarks>Should be in sync with the SQ components</remarks>
         LoggerVerbosity LoggingVerbosity { get; }
+
+        /// <summary>
+        /// Path of the directory where scanner binaries are located
+        /// </summary>
+        string ScannerBinaryDirPath { get; }
     }
 }

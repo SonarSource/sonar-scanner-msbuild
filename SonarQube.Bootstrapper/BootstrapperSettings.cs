@@ -99,6 +99,11 @@ namespace SonarQube.Bootstrapper
             get { return this.verbosity; }
         }
 
+        public string ScannerBinaryDirPath
+        {
+            get { return Path.GetDirectoryName(typeof(BootstrapperSettings).Assembly.Location); }
+        }
+
         #endregion IBootstrapperSettings
 
         #region Private methods

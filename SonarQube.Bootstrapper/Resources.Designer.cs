@@ -106,7 +106,7 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube analysis could not be completed because the analysis configuration file could not be found..
+        ///   Looks up a localized string similar to SonarQube analysis could not be completed because the analysis configuration file could not be found: {0}..
         /// </summary>
         public static string ERROR_ConfigFileNotFound {
             get {
