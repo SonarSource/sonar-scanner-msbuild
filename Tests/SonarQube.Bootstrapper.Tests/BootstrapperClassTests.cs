@@ -12,38 +12,38 @@ using SonarQube.TeamBuild.Integration.Interfaces;
 using SonarQube.TeamBuild.PostProcessor.Interfaces;
 using SonarQube.TeamBuild.PreProcessor;
 using System.IO;
+using System.Linq;
 using TestUtilities;
 using static SonarQube.Bootstrapper.Program;
 
 namespace SonarQube.Bootstrapper.Tests
 {
     [TestClass]
-    public class BootstrapperExeTests
+    public class BootstrapperClassTests
     {
         private string RootDir;
         private string TempDir;
-        private Mock<IProcessFactory> MockProcessorFactory;
+        private Mock<IProcessorFactory> MockProcessorFactory;
         private Mock<ITeamBuildPreProcessor> MockPreProcessor;
         private Mock<IMSBuildPostProcessor> MockPostProcessor;
-        private Mock<ITeamBuildSettings> MockTeamBuildSettings;
 
         public TestContext TestContext { get; set; }
 
-        [TestInitialize()]
-        public void MyTestInitialize() {
+        [TestInitialize]
+        public void MyTestInitialize()
+        {
             RootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             // this is the Temp folder used by Bootstrapper
             TempDir = Path.Combine(RootDir, ".sonarqube");
-            string analysisConfigFile = Path.Combine(RootDir, "analysisConfig.xml");
+            // it will look in Directory.GetCurrentDir, which is RootDir.
+            string analysisConfigFile = Path.Combine(TempDir, "conf", "SonarQubeAnalysisConfig.xml");
             createAnalysisConfig(analysisConfigFile);
-
             mockProcessors(true, true);
-            MockTeamBuildSettings = new Mock<ITeamBuildSettings>();
-            MockTeamBuildSettings.SetupGet(x => x.AnalysisConfigFilePath).Returns(analysisConfigFile);
         }
 
         private void createAnalysisConfig(string filePath)
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
             AnalysisConfig config = new AnalysisConfig();
             config.Save(filePath);
         }
@@ -55,42 +55,12 @@ namespace SonarQube.Bootstrapper.Tests
             MockPreProcessor.Setup(x => x.Execute(It.IsAny<string[]>())).Returns(preProcessorOutcome);
             MockPostProcessor.Setup(x => x.Execute(It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()
                 )).Returns(postProcessorOutcome);
-            MockProcessorFactory = new Mock<IProcessFactory>();
+            MockProcessorFactory = new Mock<IProcessorFactory>();
             MockProcessorFactory.Setup(x => x.createPostProcessor()).Returns(MockPostProcessor.Object);
             MockProcessorFactory.Setup(x => x.createPreProcessor()).Returns(MockPreProcessor.Object);
         }
 
         #region Tests
-
-        [TestMethod]
-        public void Exe_ParsingFails()
-        {
-            using (InitializeNonTeamBuildEnvironment(RootDir))
-            {
-                // Act
-                TestLogger logger = CheckExecutionFails("/d: badkey=123");
-
-                // Assert
-                logger.AssertErrorsLogged();
-            }
-        }
-
-        [TestMethod]
-        public void Exe_PreProc_URLIsRequired()
-        {
-            // Arrange
-            BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
-
-            using (InitializeNonTeamBuildEnvironment(RootDir))
-            {
-                // Act
-                TestLogger logger = CheckExecutionFails("begin");
-
-                // Assert
-                logger.AssertErrorLogged(SonarQube.Bootstrapper.Resources.ERROR_Args_UrlRequired);
-                logger.AssertErrorsLogged(1);
-            }
-        }
 
         [TestMethod]
         public void Exe_PreProcFails()
@@ -103,7 +73,7 @@ namespace SonarQube.Bootstrapper.Tests
                 mockProcessors(false, true);
 
                 // Act
-                TestLogger logger = CheckExecutionFails("begin",
+                TestLogger logger = CheckExecutionFails(AnalysisPhase.PreProcessing, true,
                     "/install:true",  // this argument should just pass through
                     "/d:sonar.verbose=true",
                     "/d:sonar.host.url=http://host:9",
@@ -111,7 +81,7 @@ namespace SonarQube.Bootstrapper.Tests
 
                 // Assert
                 logger.AssertWarningsLogged(0);
-                logger.AssertVerbosity(LoggerVerbosity.Debug); // sonar.verbose=true was specified
+                logger.AssertVerbosity(LoggerVerbosity.Debug);
 
                 AssertPreProcessorArgs("/install:true",
                     "/d:sonar.verbose=true",
@@ -119,6 +89,23 @@ namespace SonarQube.Bootstrapper.Tests
                     "/d:another.key=will be ignored");
 
                 AssertPostProcessorNotCalled();
+            }
+        }
+
+        [TestMethod]
+        public void Exe_CopyDLLs()
+        {
+            // Arrange
+            BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+
+            using (InitializeNonTeamBuildEnvironment(RootDir))
+            {
+                // Act
+                TestLogger logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
+
+                // Assert
+                Assert.IsTrue(File.Exists(Path.Combine(TempDir, "bin", "SonarQube.Common.dll")));
+                Assert.IsTrue(File.Exists(Path.Combine(TempDir, "bin", "SonarQube.Integration.Tasks.dll")));
             }
         }
 
@@ -131,7 +118,7 @@ namespace SonarQube.Bootstrapper.Tests
             using (InitializeNonTeamBuildEnvironment(RootDir))
             {
                 // Act
-                TestLogger logger = CheckExecutionSucceeds("/d:sonar.host.url=http://anotherHost", "begin");
+                TestLogger logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
                 logger.AssertWarningsLogged(0);
@@ -157,7 +144,7 @@ namespace SonarQube.Bootstrapper.Tests
                 Assert.IsTrue(File.Exists(filePath));
 
                 // Act
-                TestLogger logger = CheckExecutionSucceeds("/d:sonar.host.url=http://anotherHost", "begin");
+                TestLogger logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
                 Assert.IsFalse(File.Exists(filePath));
@@ -174,7 +161,7 @@ namespace SonarQube.Bootstrapper.Tests
                 Directory.CreateDirectory(TempDir);
 
                 // Act
-                TestLogger logger = CheckExecutionFails("end");
+                TestLogger logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
 
                 // Assert
                 logger.AssertWarningsLogged(0);
@@ -192,61 +179,35 @@ namespace SonarQube.Bootstrapper.Tests
                 Directory.CreateDirectory(TempDir);
 
                 // Act
-                TestLogger logger = CheckExecutionSucceeds("end", "other params", "yet.more.params");
+                TestLogger logger = CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, "other params", "yet.more.params");
 
                 // Assert
                 logger.AssertWarningsLogged(0);
 
                 // The bootstrapper pass through any parameters it doesn't recognise so the post-processor
                 // can decide whether to handle them or not
-                AssertPostProcessorArgs("other params",
-                    "yet.more.params");
+                AssertPostProcessorArgs("other params", "yet.more.params");
             }
         }
 
         [TestMethod]
-        public void Exe_PropertiesFile()
+        public void Exe_PostProc_NoAnalysisConfig()
         {
-            // Default settings:
-            // There must be a default settings file next to the bootstrapper exe to supply
-            // the necessary settings, and the bootstrapper should pass this settings path
-            // to the pre-processor 
-
-            // Arrange
             using (InitializeNonTeamBuildEnvironment(RootDir))
             {
-                // Create a default properties file next to the exe
-                AnalysisProperties defaultProperties = new AnalysisProperties();
-                defaultProperties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://host" });
-                string defaultPropertiesFilePath = CreateDefaultPropertiesFile(defaultProperties);
+                // this is usually created by the PreProcessor
+                Directory.CreateDirectory(TempDir);
+
+                string analysisConfigFile = Path.Combine(TempDir, "conf", "SonarQubeAnalysisConfig.xml");
+                File.Delete(analysisConfigFile);
 
                 // Act
-                try
-                {
-                    // Call the pre-processor
-                    TestLogger logger = CheckExecutionSucceeds("/v:version", "/n:name", "/k:key");
-                    logger.AssertWarningsLogged(1); // Should be warned once about the missing "begin" / "end"
-                    logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb, ArgumentProcessor.EndVerb);
+                TestLogger logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false, "other params", "yet.more.params");
 
-                   AssertPreProcessorArgs("/v:version",
-                        "/n:name",
-                        "/k:key",
-                        "/s:" + defaultPropertiesFilePath);
-
-                    AssertPostProcessorNotCalled();
-
-                    // Call the post-process (no arguments)
-                    logger = CheckExecutionSucceeds();
-
-                    AssertPostProcessorArgs();
-
-                    logger.AssertWarningsLogged(1); // Should be warned once about the missing "begin" / "end"
-                    logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb, ArgumentProcessor.EndVerb);
-                }
-                finally
-                {
-                    File.Delete(defaultPropertiesFilePath);
-                }
+                // Assert
+                logger.AssertWarningsLogged(0);
+                logger.AssertErrorsLogged(2);
+                AssertPostProcessorNotCalled();
             }
         }
 
@@ -263,24 +224,16 @@ namespace SonarQube.Bootstrapper.Tests
             return scope;
         }
 
-        private static string CreateDefaultPropertiesFile(AnalysisProperties defaultProperties)
-        {
-            // NOTE: don't forget to delete this file when the test that uses it
-            // completes, otherwise it may affect subsequent tests.
-            string defaultPropertiesFilePath = BootstrapperTestUtils.GetDefaultPropertiesFilePath();
-            defaultProperties.Save(defaultPropertiesFilePath);
-            return defaultPropertiesFilePath;
-        }
-
         #endregion Private methods
 
         #region Checks
 
-        private TestLogger CheckExecutionFails(params string[] args)
+        private TestLogger CheckExecutionFails(AnalysisPhase phase, bool debug, params string[] args)
         {
             TestLogger logger = new TestLogger();
-
-            int exitCode = Bootstrapper.Program.Execute(args, MockProcessorFactory.Object, MockTeamBuildSettings.Object, logger);
+            IBootstrapperSettings settings = mockBootstrapSettings(phase, debug, args);
+            BootstrapperClass bootstrapper = new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
+            int exitCode = bootstrapper.Execute();
 
             Assert.AreEqual(Bootstrapper.Program.ErrorCode, exitCode, "Bootstrapper did not return the expected exit code");
             logger.AssertErrorsLogged();
@@ -288,11 +241,12 @@ namespace SonarQube.Bootstrapper.Tests
             return logger;
         }
 
-        private TestLogger CheckExecutionSucceeds(params string[] args)
+        private TestLogger CheckExecutionSucceeds(AnalysisPhase phase, bool debug, params string[] args)
         {
             TestLogger logger = new TestLogger();
-
-            int exitCode = Bootstrapper.Program.Execute(args, MockProcessorFactory.Object, MockTeamBuildSettings.Object, logger);
+            IBootstrapperSettings settings = mockBootstrapSettings(phase, debug, args);
+            BootstrapperClass bootstrapper = new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
+            int exitCode = bootstrapper.Execute();
 
             Assert.AreEqual(0, exitCode, "Bootstrapper did not return the expected exit code");
             logger.AssertErrorsLogged(0);
@@ -300,10 +254,28 @@ namespace SonarQube.Bootstrapper.Tests
             return logger;
         }
 
+        private IBootstrapperSettings mockBootstrapSettings(AnalysisPhase phase, bool debug, string[] args)
+        {
+            Mock<IBootstrapperSettings> mockBootstrapSettings;
+
+            File.Create(Path.Combine(RootDir, "SonarQube.Common.dll")).Close();
+            File.Create(Path.Combine(RootDir, "SonarQube.Integration.Tasks.dll")).Close();
+
+            mockBootstrapSettings = new Mock<IBootstrapperSettings>();
+            mockBootstrapSettings.SetupGet(x => x.ChildCmdLineArgs).Returns(args.ToArray);
+            mockBootstrapSettings.SetupGet(x => x.TempDirectory).Returns(TempDir);
+            mockBootstrapSettings.SetupGet(x => x.Phase).Returns(phase);
+            mockBootstrapSettings.SetupGet(x => x.SonarQubeUrl).Returns("url");
+            mockBootstrapSettings.SetupGet(x => x.ScannerBinaryDirPath).Returns(RootDir);
+            mockBootstrapSettings.SetupGet(x => x.LoggingVerbosity).Returns(debug ? LoggerVerbosity.Debug : LoggerVerbosity.Info);
+
+            return mockBootstrapSettings.Object;
+        }
+
         private void AssertPostProcessorNotCalled()
         {
             MockPostProcessor.Verify(x => x.Execute(
-                It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()), 
+                It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()),
                 Times.Never());
         }
 

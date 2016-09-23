@@ -43,7 +43,7 @@ namespace SonarQube.Common
         /// </summary>
         public bool ContainsSensitiveData()
         {
-            return ProcessScannerArguments.ContainsSensitiveData(this.Id) || ProcessScannerArguments.ContainsSensitiveData(this.Value);
+            return ProcessRunnerArguments.ContainsSensitiveData(this.Id) || ProcessRunnerArguments.ContainsSensitiveData(this.Value);
         }
 
         /// <summary>

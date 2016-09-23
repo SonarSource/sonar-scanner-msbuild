@@ -49,21 +49,24 @@ namespace SonarQube.TeamBuild.PreProcessor
             string projectId = GetProjectIdentifier(projectKey, projectBranch);
 
             string contents;
-            var ws = GetUrl("/api/profiles/list?language={0}&project={1}", language, projectId);
+            var ws = GetUrl("/api/qualityprofiles/search?projectKey={0}", projectId);
+            this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
             if (!this.downloader.TryDownloadIfExists(ws, out contents))
             {
-                ws = GetUrl("/api/profiles/list?language={0}", language);
+                ws = GetUrl("/api/qualityprofiles/search?defaults=true");
+                this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
                 contents = this.downloader.Download(ws);
             }
-            var profiles = JArray.Parse(contents);
+            var json = JObject.Parse(contents);
+            var profiles = json["profiles"].Children<JObject>();
 
-            if (!profiles.Any())
+            var profile = profiles.SingleOrDefault(p => language.Equals(p["language"].ToString()));
+            if(profile == null)
             {
                 qualityProfileKey = null;
                 return false;
             }
 
-            var profile = profiles.Count > 1 ? profiles.Single(p => "True".Equals(p["default"].ToString())) : profiles.Single();
             qualityProfileKey = profile["key"].ToString();
             return true;
         }

@@ -32,7 +32,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region ITargetsInstaller
 
-        public void InstallLoaderTargets(ILogger logger)
+        public void InstallLoaderTargets(ILogger logger, string workDirectory)
         {
             installLoaderTargetsCalled = true;
         }

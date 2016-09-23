@@ -16,6 +16,6 @@ namespace SonarQube.TeamBuild.PreProcessor
     /// </summary>
     public interface ITargetsInstaller
     {
-        void InstallLoaderTargets(ILogger logger);
+        void InstallLoaderTargets(ILogger logger, string workDirectory);
     }
 }

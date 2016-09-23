@@ -282,6 +282,8 @@ namespace SonarQube.Bootstrapper.Tests
             TestLogger logger = new TestLogger();
 
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath);
+            Assert.IsFalse(string.IsNullOrEmpty(settings.SonarQubeUrl));
+            CollectionAssert.Contains(settings.ChildCmdLineArgs.ToList(), "/s: " + fullPropertiesPath);
             Assert.AreEqual(LoggerVerbosity.Debug, settings.LoggingVerbosity);
 
             settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath, "/d:sonar.verbose=false");

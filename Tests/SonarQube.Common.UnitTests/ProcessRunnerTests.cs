@@ -29,7 +29,7 @@ namespace SonarQube.Common.UnitTests
             string exeName = TestUtils.WriteBatchFileForTest(TestContext, "exit -2");
 
             TestLogger logger = new TestLogger();
-            ProcessScannerArguments args = new ProcessScannerArguments(exeName, true, logger);
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger);
             ProcessRunner runner = new ProcessRunner();
 
             // Act
@@ -51,7 +51,7 @@ xxx yyy
 ");
 
             TestLogger logger = new TestLogger();
-            ProcessScannerArguments args = new ProcessScannerArguments(exeName, true, logger);
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger);
             ProcessRunner runner = new ProcessRunner();
 
             // Act
@@ -81,7 +81,7 @@ xxx yyy
 ");
 
             TestLogger logger = new TestLogger();
-            ProcessScannerArguments args = new ProcessScannerArguments(exeName, true, logger)
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger)
             {
                 TimeoutInMilliseconds = 100
             };
@@ -122,7 +122,7 @@ xxx yyy
                 { "PROCESS_VAR2", "PROCESS_VAR2 value" },
                 { "PROCESS_VAR3", "PROCESS_VAR3 value" } };
 
-            ProcessScannerArguments args = new ProcessScannerArguments(exeName, true, logger)
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger)
             {
                 EnvironmentVariables = envVariables
             };
@@ -167,7 +167,7 @@ xxx yyy
                     { "proc.runner.test.process", "process override" },
                     { "proc.runner.test.user", "user override" } };
 
-                ProcessScannerArguments args = new ProcessScannerArguments(exeName, true, logger)
+                ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger)
                 {
                     EnvironmentVariables = envVariables
                 };
@@ -204,7 +204,7 @@ xxx yyy
 
             // Arrange
             TestLogger logger = new TestLogger();
-            ProcessScannerArguments args = new ProcessScannerArguments("missingExe.foo", false, logger);
+            ProcessRunnerArguments args = new ProcessRunnerArguments("missingExe.foo", false, logger);
             ProcessRunner runner = new ProcessRunner();
 
             // Act
@@ -227,7 +227,7 @@ xxx yyy
             string exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
 
             TestLogger logger = new TestLogger();
-            ProcessScannerArguments args = new ProcessScannerArguments(exeName, false, logger);
+            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, false, logger);
 
             var expected = new[] {
                 "unquoted",
@@ -274,7 +274,7 @@ xxx yyy
             string batchName = TestUtils.WriteBatchFileForTest(TestContext, "\"" + exeName + "\" %*");
 
             TestLogger logger = new TestLogger();
-            ProcessScannerArguments args = new ProcessScannerArguments(batchName, true, logger);
+            ProcessRunnerArguments args = new ProcessRunnerArguments(batchName, true, logger);
 
             var expected = new[] {
                 "unquoted",
@@ -348,7 +348,7 @@ xxx yyy
 
             string[] allArgs = sensitiveArgs.Union(publicArgs).ToArray();
 
-            ProcessScannerArguments runnerArgs = new ProcessScannerArguments(exeName, false, logger)
+            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(exeName, false, logger)
             {
                 CmdLineArgs = allArgs
             };
