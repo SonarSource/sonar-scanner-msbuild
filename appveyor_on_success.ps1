@@ -6,7 +6,7 @@ function DeployOnRepox()
 
     echo "Deploy $file on repox with version $version"
 
-    $command = 'mvn --% --batch-mode --quiet --settings "maven-settings.xml" "org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy-file" ' +
+    $command = 'mvn --% --batch-mode --settings "maven-settings.xml" "org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy-file" ' +
         '-DrepositoryId=releases ' +
         '-Durl=' + $env:ARTIFACTORY_URL + '/' + $env:ARTIFACTORY_DEPLOY_REPO + ';build.name=sonar-msbuild-runner;build.number=' + $env:APPVEYOR_BUILD_NUMBER + ' ' +
         '"-DgroupId=org.sonarsource.scanner.msbuild" ' +
@@ -15,8 +15,7 @@ function DeployOnRepox()
         '-Dpackaging=zip ' + 
         '-Dversion=' + $version + ' ' + 
         '-Dfile=' + $file
-    $output = iex $command 1>&1
-	echo $output
+    iex $command
 	
     CheckLastExitCode
 }
