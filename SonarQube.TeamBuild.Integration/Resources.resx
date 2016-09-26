@@ -170,6 +170,9 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   <data name="TRX_DIAG_AbsoluteTrxPath" xml:space="preserve">
     <value>Absolute path to coverage file: {0}</value>
   </data>
+  <data name="TRX_DIAG_FolderPaths" xml:space="preserve">
+    <value>Looking for TRX files in: {0}</value>
+  </data>
   <data name="TRX_DIAG_LocatingTrx" xml:space="preserve">
     <value>Attempting to locate a test results (.trx) file...</value>
   </data>
@@ -186,7 +189,7 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
     <value>Located a test results file: {0}</value>
   </data>
   <data name="TRX_DIAG_TestResultsDirectoryNotFound" xml:space="preserve">
-    <value>Test results directory does not exist: {0}</value>
+    <value>Test results directory does not exist in {0}</value>
   </data>
   <data name="TRX_WARN_InvalidTrx" xml:space="preserve">
     <value>Located trx file is not a valid xml file. File: {0}. File load error: {1}</value>

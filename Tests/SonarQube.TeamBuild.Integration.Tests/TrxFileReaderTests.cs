@@ -77,6 +77,38 @@ namespace SonarQube.TeamBuild.Integration.Tests
         }
 
         [TestMethod, TestCategory("CodeCoverage")]
+        public void TrxReader_SingleTrxFileInSubfolder()
+        {
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "Dummy", "TestResults");
+            string trxFile = TestUtils.CreateTextFile(resultsDir, "no_attachments.trx",
+@"<?xml version=""1.0"" encoding=""UTF-8""?>
+<TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
+	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE"" xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
+  <TestSettings name=""default"" id=""bf0f0911-87a2-4413-aa12-36e177a9c5b3"" />
+  <ResultSummary outcome=""Completed"">
+    <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
+    <RunInfos />
+    <CollectorDataEntries />
+  </ResultSummary>
+</TestRun>
+");
+            TestLogger logger = new TestLogger();
+
+            // Act
+            string coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+
+            // Assert
+            Assert.AreEqual(null, coverageFilePath);
+
+            // Not finding attachment info in the file shouldn't cause a warning/error
+            logger.AssertErrorsLogged(0);
+            logger.AssertWarningsLogged(0);
+            logger.AssertInfoMessageExists(trxFile); // should be a message referring to the trx
+        }
+
+        [TestMethod, TestCategory("CodeCoverage")]
         public void TrxReader_TrxWithNoAttachments()
         {
             // Arrange
@@ -152,7 +184,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
-            
+
             logger.AssertSingleWarningExists(@"MACHINENAME\AAA.coverage", @"XXX.coverage"); // the warning should refer to both of the coverage files
             logger.AssertErrorsLogged(0);
         }

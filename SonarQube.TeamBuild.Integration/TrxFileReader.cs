@@ -18,25 +18,25 @@ namespace SonarQube.TeamBuild.Integration
     /* Build vNext code coverage processing:
     * -------------------------------------
     * We're assuming the standard Visual Studio Test step is being used.
-    * 
+    *
     * In the UI the user can specify:
     *  - the Run Settings File to use
     *  - the edition of VS to use
     *  - whether Code Coverage is enabled
-    * 
+    *
     * VSTest power shell script
     * -------------------------
     * The power shell script calls the "Invoke-VSTest" cmdlet, followed by the "Invoke_ResultPublisher" cmdlet.
     * One of the inputs to the "Invoke_ResultPublisher" cmdlet is the TRX file that was created by the tests.
     * The TRX file contains information about the results and about any additional additional collectors
     * that were executed, including the code coverage processor.
-    * 
+    *
     * The script assumes the TRX file is contained in the test results directory, which by default will be in
     * "[Agent.BuildDirectory]\TestResults".
     * If the user has specified a run settings file then it's possible that the test results
     * directory will have changed. However, the script doesn't seem to handle this case.
-    * 
-    * 
+    *
+    *
     */
 
     /// <summary>
@@ -99,34 +99,38 @@ namespace SonarQube.TeamBuild.Integration
             Debug.Assert(Directory.Exists(buildRootDirectory), "The specified build root directory should exist: " + buildRootDirectory);
 
             logger.LogInfo(Resources.TRX_DIAG_LocatingTrx);
+
+            string[] testDirectories = Directory.GetDirectories(buildRootDirectory, TestResultsFolderName, SearchOption.AllDirectories);
+
+            if (testDirectories == null ||
+                !testDirectories.Any())
+            {
+                logger.LogInfo(Resources.TRX_DIAG_TestResultsDirectoryNotFound, buildRootDirectory);
+                return null;
+            }
+
+            logger.LogInfo(Resources.TRX_DIAG_FolderPaths, string.Join(", ", testDirectories));
+
+            string[] trxFiles = testDirectories.SelectMany(dir => Directory.GetFiles(dir, "*.trx")).ToArray();
+
             string trxFilePath = null;
 
-            string testResultsPath = Path.Combine(buildRootDirectory, TestResultsFolderName);
-
-            if (Directory.Exists(testResultsPath))
+            switch (trxFiles.Length)
             {
-                string[] trxFiles = Directory.GetFiles(testResultsPath, "*.trx");
+                case 0:
+                    logger.LogInfo(Resources.TRX_DIAG_NoTestResultsFound);
+                    break;
 
-                switch (trxFiles.Length)
-                {
-                    case 0:
-                        logger.LogInfo(Resources.TRX_DIAG_NoTestResultsFound);
-                        break;
+                case 1:
+                    trxFilePath = trxFiles[0];
+                    logger.LogInfo(Resources.TRX_DIAG_SingleTrxFileFound, trxFilePath);
+                    break;
 
-                    case 1:
-                        trxFilePath = trxFiles[0];
-                        logger.LogInfo(Resources.TRX_DIAG_SingleTrxFileFound, trxFilePath);
-                        break;
-
-                    default:
-                        logger.LogWarning(Resources.TRX_WARN_MultipleTrxFilesFound, string.Join(", ", trxFiles));
-                        break;
-                }
+                default:
+                    logger.LogWarning(Resources.TRX_WARN_MultipleTrxFilesFound, string.Join(", ", trxFiles));
+                    break;
             }
-            else
-            {
-                logger.LogInfo(Resources.TRX_DIAG_TestResultsDirectoryNotFound, testResultsPath);
-            }
+
             return trxFilePath;
         }
 
@@ -170,7 +174,7 @@ namespace SonarQube.TeamBuild.Integration
 
             coverageFilePaths = null;
             bool continueProcessing = true;
-            
+
             List<string> runAttachments = new List<string>();
             try
             {
@@ -180,7 +184,7 @@ namespace SonarQube.TeamBuild.Integration
                 nsmgr.AddNamespace("x", CodeCoverageXmlNamespace);
 
                 XmlNodeList attachmentNodes = doc.SelectNodes("/x:TestRun/x:ResultSummary/x:CollectorDataEntries/x:Collector[@uri='datacollector://microsoft/CodeCoverage/2.0']/x:UriAttachments/x:UriAttachment/x:A", nsmgr);
-               
+
                 foreach (XmlNode attachmentNode in attachmentNodes)
                 {
                     XmlAttribute att = attachmentNode.Attributes["href"];

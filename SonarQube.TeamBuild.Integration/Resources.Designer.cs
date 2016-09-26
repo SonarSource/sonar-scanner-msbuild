@@ -215,6 +215,15 @@ namespace SonarQube.TeamBuild.Integration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Looking for TRX files in: {0}.
+        /// </summary>
+        internal static string TRX_DIAG_FolderPaths {
+            get {
+                return ResourceManager.GetString("TRX_DIAG_FolderPaths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attempting to locate a test results (.trx) file....
         /// </summary>
         internal static string TRX_DIAG_LocatingTrx {
@@ -260,7 +269,7 @@ namespace SonarQube.TeamBuild.Integration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Test results directory does not exist: {0}.
+        ///   Looks up a localized string similar to Test results directory does not exist in {0}.
         /// </summary>
         internal static string TRX_DIAG_TestResultsDirectoryNotFound {
             get {

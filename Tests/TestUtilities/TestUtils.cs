@@ -8,6 +8,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace TestUtilities
 {
@@ -24,9 +25,9 @@ namespace TestUtilities
         /// full path to the new folder.
         /// Throws if a test-specific folder already exists.
         /// </summary>
-        public static string CreateTestSpecificFolder(TestContext testContext, string optionalSubDirName = "")
+        public static string CreateTestSpecificFolder(TestContext testContext, params string[] optionalSubDirNames)
         {
-            string fullPath = DoCreateTestSpecificFolder(testContext, optionalSubDirName, throwIfExists: true);
+            string fullPath = DoCreateTestSpecificFolder(testContext, optionalSubDirNames, throwIfExists: true);
             return fullPath;
         }
 
@@ -34,9 +35,9 @@ namespace TestUtilities
         /// Ensures that a new folder specific to the current test exists and returns the
         /// full path to the new folder.
         /// </summary>
-        public static string EnsureTestSpecificFolder(TestContext testContext, string optionalSubDirName = "")
+        public static string EnsureTestSpecificFolder(TestContext testContext, params string[] optionalSubDirNames)
         {
-            string fullPath = DoCreateTestSpecificFolder(testContext, optionalSubDirName, throwIfExists: false);
+            string fullPath = DoCreateTestSpecificFolder(testContext, optionalSubDirNames, throwIfExists: false);
             return fullPath;
         }
 
@@ -93,7 +94,7 @@ namespace TestUtilities
             {
                 testContext.WriteLine("Extracting analysis target file to {0}", filePath);
                 EnsureTestSpecificFolder(testContext);
-                ExtractResourceToFile("TestUtilities.Embedded.SonarQube.Integration.targets", filePath);                
+                ExtractResourceToFile("TestUtilities.Embedded.SonarQube.Integration.targets", filePath);
             }
             return filePath;
         }
@@ -135,17 +136,18 @@ namespace TestUtilities
             return fileName;
         }
 
-       
+
         #endregion
 
         #region Private methods
 
-        private static string DoCreateTestSpecificFolder(TestContext testContext, string optionalSubDirName, bool throwIfExists)
+        private static string DoCreateTestSpecificFolder(TestContext testContext, string[] optionalSubDirNames, bool throwIfExists)
         {
             string fullPath = GetTestSpecificFolderName(testContext);
-            if (!string.IsNullOrEmpty(optionalSubDirName))
+            if (optionalSubDirNames != null &&
+                optionalSubDirNames.Any())
             {
-                fullPath = Path.Combine(fullPath, optionalSubDirName);
+                fullPath = Path.Combine(new[] { fullPath }.Concat(optionalSubDirNames).ToArray());
             }
 
             bool exists = Directory.Exists(fullPath);
