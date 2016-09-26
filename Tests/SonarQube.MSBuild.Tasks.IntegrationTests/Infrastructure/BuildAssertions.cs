@@ -50,15 +50,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public static void AssertExpectedPropertyValue(ProjectInstance projectInstance, string propertyName, string expectedValue)
         {
-            ProjectPropertyInstance propertyInstance = AssertPropertyExists(projectInstance, propertyName);
-            Assert.AreEqual(expectedValue, propertyInstance.EvaluatedValue, "Property '{0}' does not have the expected value", propertyName);
-        }
-
-        public static ProjectPropertyInstance AssertPropertyExists(ProjectInstance projectInstance, string propertyName)
-        {
             ProjectPropertyInstance propertyInstance = projectInstance.GetProperty(propertyName);
+            if (expectedValue == null &&
+                propertyInstance == null)
+            {
+                return;
+            }
+
             Assert.IsNotNull(propertyInstance, "The expected property does not exist: {0}", propertyName);
-            return propertyInstance;
+            Assert.AreEqual(expectedValue, propertyInstance.EvaluatedValue, "Property '{0}' does not have the expected value", propertyName);
         }
 
         public static void AssertPropertyDoesNotExist(ProjectInstance projectInstance, string propertyName)

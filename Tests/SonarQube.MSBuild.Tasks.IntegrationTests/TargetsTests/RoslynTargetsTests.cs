@@ -198,7 +198,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             logger.AssertTargetNotExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
 
-            AssertCodeAnalysisIsDisabled(result);
+            AssertCodeAnalysisIsDisabled(result, null);
         }
 
         [TestMethod]
@@ -209,6 +209,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildLogger logger = new BuildLogger();
             WellKnownProjectProperties properties = new WellKnownProjectProperties();
             properties.SonarQubeExclude = "TRUE"; // mark the project as excluded
+            properties.ResolvedCodeAnalysisRuleset = "Dummy value";
 
             ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
 
@@ -220,7 +221,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             logger.AssertTargetNotExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
 
-            AssertCodeAnalysisIsDisabled(result);
+            AssertCodeAnalysisIsDisabled(result, properties.ResolvedCodeAnalysisRuleset);
         }
 
         #endregion
@@ -365,11 +366,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #region Checks
 
-        private static void AssertCodeAnalysisIsDisabled(BuildResult result)
+        private static void AssertCodeAnalysisIsDisabled(BuildResult result, string expectedResolvedCodeAnalysisRuleset)
         {
             // Check the ruleset and error log are not set
             AssertExpectedErrorLog(result, string.Empty);
-            AssertExpectedResolvedRuleset(result, string.Empty);
+            AssertExpectedResolvedRuleset(result, expectedResolvedCodeAnalysisRuleset);
         }
 
         /// <summary>

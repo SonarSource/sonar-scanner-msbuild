@@ -450,7 +450,7 @@
 
     <PropertyGroup Condition=" $(SonarQubeDisableRoslynCodeAnalysis) == 'true' ">
       <ErrorLog></ErrorLog>
-      <ResolvedCodeAnalysisRuleSet></ResolvedCodeAnalysisRuleSet>
+      <!-- The ResolvedCodeAnalysisRuleSet property is not changed, which means the ruleset and the analyzers are not modified for test projects. -->
     </PropertyGroup>
     <!-- else -->
     <CallTarget Targets="SetRoslynCodeAnalysisProperties"
@@ -492,7 +492,7 @@
       BeforeTargets="WriteSonarQubeProjectData">
 
     <ItemGroup>
-      
+
       <SonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePath"
          Condition=" $(ErrorLog) != '' AND  $([System.IO.File]::Exists($(ErrorLog))) == 'true' ">
         <Value>$(ErrorLog)</Value>
