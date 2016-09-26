@@ -182,11 +182,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             string content;
             if (language.Equals(CSharpLanguage))
             {
-                content = RoslynSonarLint.generateXml(activeRules, "csharpsquid");
+                content = RoslynSonarLint.GenerateXml(activeRules, "csharpsquid");
             }
             else
             {
-                content = RoslynSonarLint.generateXml(activeRules, "vbnet");
+                content = RoslynSonarLint.GenerateXml(activeRules, "vbnet");
             }
 
             string langDir = Path.Combine(this.sqSettings.SonarConfigDirectory, language);

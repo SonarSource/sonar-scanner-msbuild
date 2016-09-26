@@ -70,7 +70,7 @@ namespace SonarQube.Bootstrapper
             Utilities.LogAssemblyVersion(Logger, typeof(Program).Assembly, Resources.AssemblyDescription);
             Logger.IncludeTimestamp = true;
 
-            ITeamBuildPreProcessor preProcessor = ProcessorFactory.createPreProcessor();
+            ITeamBuildPreProcessor preProcessor = ProcessorFactory.CreatePreProcessor();
             Directory.SetCurrentDirectory(BootstrapSettings.TempDirectory);
             bool success = preProcessor.Execute(BootstrapSettings.ChildCmdLineArgs.ToArray());
 
@@ -93,7 +93,7 @@ namespace SonarQube.Bootstrapper
             }
             else
             {
-                IMSBuildPostProcessor postProcessor = ProcessorFactory.createPostProcessor();
+                IMSBuildPostProcessor postProcessor = ProcessorFactory.CreatePostProcessor();
                 succeeded = postProcessor.Execute(BootstrapSettings.ChildCmdLineArgs.ToArray(), config, teamBuildSettings);
             }
 

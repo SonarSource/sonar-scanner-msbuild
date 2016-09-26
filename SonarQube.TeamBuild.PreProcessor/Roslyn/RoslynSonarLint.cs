@@ -15,7 +15,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
     static class RoslynSonarLint
     {
-        public static string generateXml(IEnumerable<ActiveRule> activeRules, string repoKey)
+        public static string GenerateXml(IEnumerable<ActiveRule> activeRules, string repoKey)
         {
             activeRules = activeRules.Where(ar => repoKey.Equals(ar.RepoKey));
 
@@ -30,7 +30,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 builder.AppendLine("    <Rule>");
                 string templateKey = activeRule.TemplateKey;
                 String ruleKey = templateKey == null ? activeRule.RuleKey : templateKey;
-                builder.AppendLine("      <Key>" + escapeXml(ruleKey) + "</Key>");
+                builder.AppendLine("      <Key>" + EscapeXml(ruleKey) + "</Key>");
 
                 if (activeRule.Parameters != null && activeRule.Parameters.Any())
                 {
@@ -38,8 +38,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                     foreach (KeyValuePair<string, string> entry in activeRule.Parameters)
                     {
                         builder.AppendLine("        <Parameter>");
-                        builder.AppendLine("          <Key>" + escapeXml(entry.Key) + "</Key>");
-                        builder.AppendLine("          <Value>" + escapeXml(entry.Value) + "</Value>");
+                        builder.AppendLine("          <Key>" + EscapeXml(entry.Key) + "</Key>");
+                        builder.AppendLine("          <Value>" + EscapeXml(entry.Value) + "</Value>");
                         builder.AppendLine("        </Parameter>");
                     }
                     builder.AppendLine("      </Parameters>");
@@ -56,7 +56,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return builder.ToString();
         }
 
-        private static String escapeXml(String str)
+        private static string EscapeXml(string str)
         {
             return str.Replace("&", "&amp;").Replace("\"", "&quot;").Replace("'", "&apos;").Replace("<", "&lt;").Replace(">", "&gt;");
         }

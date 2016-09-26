@@ -56,8 +56,8 @@ namespace SonarQube.Bootstrapper.Tests
             MockPostProcessor.Setup(x => x.Execute(It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()
                 )).Returns(postProcessorOutcome);
             MockProcessorFactory = new Mock<IProcessorFactory>();
-            MockProcessorFactory.Setup(x => x.createPostProcessor()).Returns(MockPostProcessor.Object);
-            MockProcessorFactory.Setup(x => x.createPreProcessor()).Returns(MockPreProcessor.Object);
+            MockProcessorFactory.Setup(x => x.CreatePostProcessor()).Returns(MockPostProcessor.Object);
+            MockProcessorFactory.Setup(x => x.CreatePreProcessor()).Returns(MockPreProcessor.Object);
         }
 
         #region Tests

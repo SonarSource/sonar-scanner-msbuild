@@ -10,6 +10,7 @@ using SonarQube.TeamBuild.Integration;
 using SonarScanner.Shim;
 using TestUtilities;
 using System.Linq;
+using Moq;
 
 namespace SonarQube.TeamBuild.PostProcessor.Tests
 {
@@ -41,6 +42,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
+
+            // Verify that the method was called at least once
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
         }
 
         [TestMethod]
@@ -63,6 +67,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
+
+            // Verify that the method was called at least once
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
         }
 
         [TestMethod]
@@ -89,6 +96,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
+
+            // Verify that the method was called at least once
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
         }
 
         [TestMethod]
@@ -116,6 +126,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.Logger.AssertErrorsLogged(1);
             context.Logger.AssertWarningsLogged(0);
+
+            // Verify that the method was called at least once
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
         }
 
         [TestMethod]
@@ -143,6 +156,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
+
+            // Verify that the method was called at least once
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
         }
 
         [TestMethod]
@@ -164,6 +180,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.Logger.AssertErrorsLogged(1);
             context.Logger.AssertWarningsLogged(0);
+
+            // Verify that the method was called at least once
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
         }
 
         [TestMethod]
@@ -206,6 +225,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
+
+            // Verify that the method was called at least once
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
         }
 
         #endregion
@@ -222,6 +244,8 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             private readonly MockSonarScanner scanner;
             private readonly MockSummaryReportBuilder reportBuilder;
 
+            public Mock<ITargetsUninstaller> TargetsUninstaller { get; }
+
             public PostProcTestContext(TestContext testContext)
             {
                 this.Config = new AnalysisConfig();
@@ -231,6 +255,16 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
                 this.codeCoverage = new MockCodeCoverageProcessor();
                 this.scanner = new MockSonarScanner();
                 this.reportBuilder = new MockSummaryReportBuilder();
+                this.TargetsUninstaller = new Mock<ITargetsUninstaller>();
+                var callCount = 0;
+                this.TargetsUninstaller
+                    .Setup(m => m.UninstallTargets(this.Logger))
+                    .Callback(() =>
+                    {
+                        // Verify that the method was called maximum once
+                        Assert.IsTrue(callCount == 0, "Method should be called exactly once");
+                        callCount++;
+                    });
 
                 this.codeCoverage.InitialiseValueToReturn = true;
                 this.codeCoverage.ProcessValueToReturn = true;
@@ -248,7 +282,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         private static bool Execute(PostProcTestContext context, params string[] args)
         {
-            MSBuildPostProcessor proc = new MSBuildPostProcessor(context.CodeCoverage, context.Scanner, context.ReportBuilder, context.Logger);
+            MSBuildPostProcessor proc = new MSBuildPostProcessor(context.CodeCoverage, context.Scanner, context.ReportBuilder, context.Logger, context.TargetsUninstaller.Object);
             bool success = proc.Execute(args, context.Config, context.Settings);
             return success;
         }

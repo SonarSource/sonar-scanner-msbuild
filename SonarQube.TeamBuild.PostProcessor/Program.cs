@@ -36,7 +36,13 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
             else
             {
-                MSBuildPostProcessor postProcessor = new MSBuildPostProcessor(new CoverageReportProcessor(), new SonarScannerWrapper(), new SummaryReportBuilder(), logger);
+                MSBuildPostProcessor postProcessor = new MSBuildPostProcessor(
+                    new CoverageReportProcessor(),
+                    new SonarScannerWrapper(),
+                    new SummaryReportBuilder(),
+                    logger,
+                    new TargetsUninstaller());
+
                 succeeded = postProcessor.Execute(args, config, settings);
             }
 

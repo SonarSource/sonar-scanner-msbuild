@@ -22,8 +22,10 @@ namespace SonarQube.TeamBuild.PostProcessor
         private readonly ISonarScanner sonarScanner;
         private readonly ILogger logger;
         private readonly static string scanAllFiles = "-Dsonar.scanAllFiles=true";
+        private readonly ITargetsUninstaller targetUninstaller;
 
-        public MSBuildPostProcessor(ICoverageReportProcessor codeCoverageProcessor, ISonarScanner scanner, ISummaryReportBuilder reportBuilder, ILogger logger)
+        public MSBuildPostProcessor(ICoverageReportProcessor codeCoverageProcessor, ISonarScanner scanner, ISummaryReportBuilder reportBuilder, ILogger logger,
+            ITargetsUninstaller targetUninstaller)
         {
             if (codeCoverageProcessor == null)
             {
@@ -41,11 +43,16 @@ namespace SonarQube.TeamBuild.PostProcessor
             {
                 throw new ArgumentNullException(nameof(logger));
             }
+            if (targetUninstaller == null)
+            {
+                throw new ArgumentNullException(nameof(targetUninstaller));
+            }
 
             this.logger = logger;
             this.codeCoverageProcessor = codeCoverageProcessor;
             this.sonarScanner = scanner;
             this.reportBuilder = reportBuilder;
+            this.targetUninstaller = targetUninstaller;
         }
 
         public bool Execute(string[] args, AnalysisConfig config, ITeamBuildSettings settings)
@@ -62,6 +69,8 @@ namespace SonarQube.TeamBuild.PostProcessor
             {
                 throw new ArgumentNullException(nameof(settings));
             }
+
+            this.targetUninstaller.UninstallTargets(logger);
 
             IAnalysisPropertyProvider provider;
             if (!ArgumentProcessor.TryProcessArgs(args, logger, out provider))

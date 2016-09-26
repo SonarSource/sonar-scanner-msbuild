@@ -50,6 +50,7 @@
     <Compile Include="CoverageReportProcessor.cs" />
     <Compile Include="Interfaces\IMSBuildPostProcessor.cs" />
     <Compile Include="Interfaces\ISummaryReportBuilder.cs" />
+    <Compile Include="Interfaces\ITargetsUninstaller.cs" />
     <Compile Include="MSBuildPostProcessor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -59,6 +60,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="SummaryReportBuilder.cs" />
+    <Compile Include="TargetsUninstaller.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

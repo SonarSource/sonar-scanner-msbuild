@@ -137,6 +137,12 @@ Expected location: {0}</value>
   <data name="MSG_LoadingConfig" xml:space="preserve">
     <value>Loading the SonarQube analysis config from {0}</value>
   </data>
+  <data name="MSG_UninstallTargets_CouldNotDelete" xml:space="preserve">
+    <value>Could not delete {0} from {1}</value>
+  </data>
+  <data name="MSG_UninstallTargets_NotExists" xml:space="preserve">
+    <value>{0} does not exist at {1}</value>
+  </data>
   <data name="Report_AnalysisFailed" xml:space="preserve">
     <value>Analysis failed for SonarQube project {0}</value>
   </data>

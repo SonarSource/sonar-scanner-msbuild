@@ -111,6 +111,24 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not delete {0} from {1}.
+        /// </summary>
+        internal static string MSG_UninstallTargets_CouldNotDelete {
+            get {
+                return ResourceManager.GetString("MSG_UninstallTargets_CouldNotDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} does not exist at {1}.
+        /// </summary>
+        internal static string MSG_UninstallTargets_NotExists {
+            get {
+                return ResourceManager.GetString("MSG_UninstallTargets_NotExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Analysis failed for SonarQube project {0}.
         /// </summary>
         internal static string Report_AnalysisFailed {

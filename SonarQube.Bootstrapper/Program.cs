@@ -37,8 +37,8 @@ namespace SonarQube.Bootstrapper
 
         public interface IProcessorFactory
         {
-            IMSBuildPostProcessor createPostProcessor();
-            ITeamBuildPreProcessor createPreProcessor();
+            IMSBuildPostProcessor CreatePostProcessor();
+            ITeamBuildPreProcessor CreatePreProcessor();
         }
 
         public class DefaultProcessorFactory : IProcessorFactory
@@ -49,12 +49,17 @@ namespace SonarQube.Bootstrapper
             {
                 this.logger = logger;
             }
-            public IMSBuildPostProcessor createPostProcessor()
+            public IMSBuildPostProcessor CreatePostProcessor()
             {
-                return new MSBuildPostProcessor(new CoverageReportProcessor(), new SonarScannerWrapper(), new SummaryReportBuilder(), logger);
+                return new MSBuildPostProcessor(
+                    new CoverageReportProcessor(),
+                    new SonarScannerWrapper(),
+                    new SummaryReportBuilder(),
+                    logger,
+                    new TargetsUninstaller());
             }
 
-            public ITeamBuildPreProcessor createPreProcessor()
+            public ITeamBuildPreProcessor CreatePreProcessor()
             {
                 IPreprocessorObjectFactory factory = new PreprocessorObjectFactory();
                 return new TeamBuildPreProcessor(factory, logger);

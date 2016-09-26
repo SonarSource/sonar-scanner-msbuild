@@ -24,22 +24,6 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <remarks> Can be overridden from the command line</remarks>
         public const bool DefaultInstallSetting = true;
 
-        public /* for test purposes */ const string LoaderBeforeTargetsName = "SonarQube.Integration.ImportBefore.targets";
-        public /* for test purposes */ const string LoaderTargetsName = "SonarQube.Integration.targets";
-
-        public /* for test purposes */ static IReadOnlyList<string> DestinationDirectories
-        {
-            get
-            {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                return new string[]
-                    {
-                        Path.Combine(appData, "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-                        Path.Combine(appData, "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore")
-                    };
-            }
-        }
-
         public void InstallLoaderTargets(ILogger logger, string workDirectory)
         {
             WarnOnGlobalTargetsFile(logger);
@@ -51,7 +35,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private static void InternalCopyTargetFileToProject(ILogger logger, string workDirectory)
         {
-            string sourceTargetsPath = Path.Combine(Path.GetDirectoryName(typeof(TeamBuildPreProcessor).Assembly.Location), "Targets", LoaderTargetsName);
+            string sourceTargetsPath = Path.Combine(Path.GetDirectoryName(typeof(TeamBuildPreProcessor).Assembly.Location), "Targets", FileConstants.IntegrationTargetsName);
             string[] dstTargetsPath = new string[] { Path.Combine(workDirectory, "bin", "targets") };
 
             // For old bootstrappers, the payload and targets are already installed at the destination
@@ -75,11 +59,11 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             logger.LogInfo(Resources.MSG_UpdatingMSBuildTargets);
 
-            string sourceTargetsPath = Path.Combine(Path.GetDirectoryName(typeof(TeamBuildPreProcessor).Assembly.Location), "Targets", LoaderBeforeTargetsName);
+            string sourceTargetsPath = Path.Combine(Path.GetDirectoryName(typeof(TeamBuildPreProcessor).Assembly.Location), "Targets", FileConstants.ImportBeforeTargetsName);
             Debug.Assert(File.Exists(sourceTargetsPath),
                 String.Format(System.Globalization.CultureInfo.InvariantCulture, "Could not find the loader .targets file at {0}", sourceTargetsPath));
 
-            CopyIfDifferent(sourceTargetsPath, DestinationDirectories, logger);
+            CopyIfDifferent(sourceTargetsPath, FileConstants.ImportBeforeDestinationDirectoryPaths, logger);
         }
 
         private static void CopyIfDifferent(string sourcePath, IEnumerable<string> destinationDirs, ILogger logger)
@@ -136,11 +120,11 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             foreach (string globalMsbuildTargetDir in globalMsbuildTargetsDirs)
             {
-                string existingFile = Path.Combine(globalMsbuildTargetDir, LoaderBeforeTargetsName);
+                string existingFile = Path.Combine(globalMsbuildTargetDir, FileConstants.ImportBeforeTargetsName);
 
                 if (File.Exists(existingFile))
                 {
-                    logger.LogWarning(Resources.WARN_ExistingGlobalTargets, LoaderBeforeTargetsName, globalMsbuildTargetDir);
+                    logger.LogWarning(Resources.WARN_ExistingGlobalTargets, FileConstants.ImportBeforeTargetsName, globalMsbuildTargetDir);
                 }
             }
         }

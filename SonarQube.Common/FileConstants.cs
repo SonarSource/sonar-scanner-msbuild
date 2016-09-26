@@ -5,6 +5,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+
 namespace SonarQube.Common
 {
     public static class FileConstants
@@ -19,5 +23,31 @@ namespace SonarQube.Common
         /// Name of the file containing analysis configuration settings
         /// </summary>
         public const string ConfigFileName = "SonarQubeAnalysisConfig.xml";
+
+        /// <summary>
+        /// Name of the import before target file
+        /// </summary>
+        public const string ImportBeforeTargetsName = "SonarQube.Integration.ImportBefore.targets";
+
+        /// <summary>
+        /// Name of the targets file that contains the integration pieces
+        /// </summary>
+        public const string IntegrationTargetsName = "SonarQube.Integration.targets";
+
+        /// <summary>
+        /// Path to the user specific ImportBefore folders
+        /// </summary>
+        public static IReadOnlyList<string> ImportBeforeDestinationDirectoryPaths
+        {
+            get
+            {
+                string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                return new string[]
+                {
+                    Path.Combine(appData, "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine(appData, "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore")
+                };
+            }
+        }
     }
 }
