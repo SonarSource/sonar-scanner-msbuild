@@ -15,7 +15,9 @@ function DeployOnRepox()
         '-Dpackaging=zip ' + 
         '-Dversion=' + $version + ' ' + 
         '-Dfile=' + $file
-    iex $command
+    $output = iex $command 1>&1
+	echo $output
+	
     CheckLastExitCode
 }
 
