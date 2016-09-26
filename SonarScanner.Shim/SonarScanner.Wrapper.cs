@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 
 namespace SonarScanner.Shim
@@ -102,29 +101,15 @@ namespace SonarScanner.Shim
             }
             else
             {
-                string exeFileName = FindScannerExe(config, logger);
-                if (exeFileName != null)
-                {
-                    result.RanToCompletion = ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, result.FullPropertiesFilePath);
-                }
+                string exeFileName = FindScannerExe();
+                result.RanToCompletion = ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, result.FullPropertiesFilePath);
             }
         }
 
-        private static string FindScannerExe(AnalysisConfig config, ILogger logger)
+        private static string FindScannerExe()
         {
-            string fullPath = null;
-
             var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
-            var sonarScannerZip = Path.Combine(binFolder, "sonar-scanner-cli-" + SonarScannerVersion + ".zip");
-            var extractFolder = Path.Combine(binFolder, "sonar-scanner");
-
-            if (Utilities.TryEnsureEmptyDirectories(logger, extractFolder))
-            {
-                ZipFile.ExtractToDirectory(sonarScannerZip, extractFolder);
-                fullPath = Path.Combine(extractFolder, "sonar-scanner-" + SonarScannerVersion + @"\bin\sonar-scanner.bat");
-            }
-
-            return fullPath;
+            return Path.Combine(binFolder, "sonar-scanner-" + SonarScannerVersion + @"\bin\sonar-scanner.bat");
         }
 
         public /* for test purposes */ static bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName)

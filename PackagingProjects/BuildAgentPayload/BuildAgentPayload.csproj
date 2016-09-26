@@ -42,7 +42,7 @@
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Scanner.MSBuild.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\MSBuild.SonarQube.Runner.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Analysis.xml" />
-    <FilesToCopy Include="$(SourcesRoot)\DeploymentArtifacts\CSharpPluginPayload\$(Configuration)\Work\*" />
+    <FilesToCopy Include="$(SourcesRoot)\DeploymentArtifacts\CSharpPluginPayload\$(Configuration)\Work\**\*" />
     <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.targets" />
     <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.ImportBefore.targets" />
   </ItemGroup>
@@ -71,7 +71,7 @@
     <CallTarget Targets="ZipPayloadFiles" />
   </Target>
   <Target Name="CopyPayloadFiles">
-    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(WorkDestinationDir)" />
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(WorkDestinationDir)\%(RecursiveDir)" />
     <Copy SourceFiles="@(TargetsToCopy)" DestinationFolder="$(WorkDestinationDir)\Targets" />
   </Target>
   <Target Name="ZipPayloadFiles">
