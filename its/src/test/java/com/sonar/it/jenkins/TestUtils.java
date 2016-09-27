@@ -42,6 +42,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.CheckForNull;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
@@ -67,13 +70,8 @@ public class TestUtils {
     Path modifiedCs = t.resolve("modified-chsarp.jar");
     locators.copyToFile(csharp, modifiedCs.toFile());
 
-    String scannerVersion;
-    String buildOnQa = System.getenv("CI_BUILD_NUMBER");
-    if (buildOnQa != null) {
-      scannerVersion = parseVersion() + "-build" + buildOnQa;
-    } else {
-      scannerVersion = configuration.getString("scannerForMSBuild.version");
-    }
+    String scannerVersion = getScannerVersion();
+
     Path scannerImpl;
     if (scannerVersion != null) {
       LOG.info("Updating C# plugin ({}) with Scanner For MSBuild implementation ({})", pluginVersion, scannerVersion);
@@ -92,6 +90,28 @@ public class TestUtils {
 
     replaceInZip(modifiedCs.toUri(), scannerImpl, "/static/SonarQube.MSBuild.Runner.Implementation.zip");
     return modifiedCs;
+  }
+  
+  @CheckForNull
+  public static String getScannerVersion() {
+    Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
+    String buildOnQa = System.getenv("CI_BUILD_NUMBER");
+    if (buildOnQa != null) {
+      return parseVersion() + "-build" + buildOnQa;
+    } else {
+      return configuration.getString("scannerForMSBuild.version");
+    }
+  }
+  
+  @CheckForNull
+  public static String getScannerBootstrapperVersion() {
+    Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
+    String buildOnQa = System.getenv("CI_BUILD_NUMBER");
+    if (buildOnQa != null) {
+      return parseVersion() + "-build" + buildOnQa;
+    } else {
+      return configuration.getString("scannerForMSBuild.version");
+    }
   }
 
   public static Path getCustomRoslynPlugin() {

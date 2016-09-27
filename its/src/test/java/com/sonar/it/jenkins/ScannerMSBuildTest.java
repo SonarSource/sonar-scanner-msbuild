@@ -39,6 +39,11 @@ import org.sonar.wsclient.services.ResourceQuery;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * csharpPlugin.version: csharp plugin to modify (installing scanner payload) and use. If not specified, uses 5.1. 
+ * scannerForMSBuild.version: scanner to use. If not specified, uses the one built in ../
+ * sonar.runtimeVersion: SQ to use
+ */
 public class ScannerMSBuildTest {
 
   private static final String PROJECT_KEY = "my.project";
@@ -49,7 +54,7 @@ public class ScannerMSBuildTest {
   public static TemporaryFolder temp = new TemporaryFolder();
 
   public static Orchestrator ORCHESTRATOR;
-
+  
   @ClassRule
   public static SingleStartExternalResource resource = new SingleStartExternalResource() {
 
@@ -67,7 +72,7 @@ public class ScannerMSBuildTest {
   };
 
   @Before
-  public void cleanup() {
+  public void setUp() {
     ORCHESTRATOR.resetData();
   }
 

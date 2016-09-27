@@ -31,7 +31,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
         {
             if (activeRules == null || !activeRules.Any())
             {
-                throw new ArgumentNullException("activeRules must not be null or empty");
+                throw new ArgumentNullException("activeRules");
             }
             if (inactiveRules == null)
             {
@@ -73,7 +73,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
             return ruleSet;
         }
 
-        private Dictionary<string, List<string>> getInactiveRulesByRepoKey(IEnumerable<string> inactiveRules)
+        private static Dictionary<string, List<string>> getInactiveRulesByRepoKey(IEnumerable<string> inactiveRules)
         {
             Dictionary<string, List<string>> dict = new Dictionary<string, List<string>>();
             foreach (string r in inactiveRules)
@@ -93,7 +93,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
             key = keyWithRepo.Substring(pos+1);
         }
 
-        Dictionary<string, List<ActiveRule>> activeRoslynRulesByPartialRepoKey(IEnumerable<ActiveRule> activeRules, string language)
+        private static Dictionary<string, List<ActiveRule>> activeRoslynRulesByPartialRepoKey(IEnumerable<ActiveRule> activeRules, string language)
         {
             Dictionary<string, List<ActiveRule>> rulesByPartialRepoKey = new Dictionary<string, List<ActiveRule>>();
 
@@ -138,7 +138,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
         {
             if (propertyKey == null)
             {
-                throw new ArgumentNullException("propertyKey must not be null");
+                throw new ArgumentNullException("propertyKey");
             }
             return serverSettings[propertyKey];
         }
