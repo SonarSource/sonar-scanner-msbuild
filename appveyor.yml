@@ -27,7 +27,7 @@ before_build:
   - nuget restore
   
 build:
-  verbosity: minimal
+  verbosity: detailed
   project: SonarQube.Scanner.MSBuild.sln
  
 on_success:
