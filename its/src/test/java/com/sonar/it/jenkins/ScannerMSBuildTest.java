@@ -93,8 +93,7 @@ public class ScannerMSBuildTest {
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
     ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
-      .addArgument("end")
-      .addArgument("/d:sonar.verbose=true"));
+      .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).hasSize(4);
