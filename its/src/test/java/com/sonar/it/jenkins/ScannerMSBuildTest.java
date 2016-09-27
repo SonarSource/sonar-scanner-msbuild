@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.wsclient.issue.Issue;
@@ -102,6 +103,7 @@ public class ScannerMSBuildTest {
     assertThat(getFileMeasure("lines").getIntValue()).isEqualTo(58);
   }
 
+  @Ignore
   @Test
   public void testParameters() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileParameters.xml"));
@@ -126,6 +128,7 @@ public class ScannerMSBuildTest {
     assertThat(issues.get(0).ruleKey()).isEqualTo("csharpsquid:S107");
   }
 
+  @Ignore
   @Test
   public void testFxCopCustom() throws Exception {
     String response = ORCHESTRATOR.getServer().adminWsClient().post("api/rules/create",
@@ -158,6 +161,7 @@ public class ScannerMSBuildTest {
     assertThat(issues.get(0).ruleKey()).isEqualTo("fxcop:customfxcop");
   }
 
+  @Ignore
   @Test
   public void testVerbose() throws IOException {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
@@ -176,6 +180,7 @@ public class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("sonar.verbose=true was specified - setting the log verbosity to 'Debug'");
   }
 
+  @Ignore
   @Test
   public void testAllProjectsExcluded() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));

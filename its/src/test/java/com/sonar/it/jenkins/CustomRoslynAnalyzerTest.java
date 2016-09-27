@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.wsclient.issue.Issue;
@@ -66,6 +67,7 @@ public class CustomRoslynAnalyzerTest {
     ORCHESTRATOR.resetData();
   }
 
+  @Ignore
   @Test
   public void testSample() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
