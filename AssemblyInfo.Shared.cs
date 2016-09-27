@@ -7,13 +7,13 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyVersion("2.1.0.0")]
-[assembly: AssemblyFileVersion("2.1.0.0")]
+[assembly: AssemblyVersion("2.2.0.0")]
+[assembly: AssemblyFileVersion("2.2.0.0")]
 
 [assembly: AssemblyConfiguration("")]
 
 [assembly: AssemblyCompany("SonarSource and Microsoft")]
-[assembly: AssemblyCopyright("Copyright © SonarSource and Microsoft 2015")]
+[assembly: AssemblyCopyright("Copyright © SonarSource and Microsoft 2015/2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
