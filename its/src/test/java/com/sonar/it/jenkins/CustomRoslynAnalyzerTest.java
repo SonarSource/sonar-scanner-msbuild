@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.wsclient.issue.Issue;
@@ -41,12 +40,14 @@ public class CustomRoslynAnalyzerTest {
   public static TemporaryFolder temp = new TemporaryFolder();
 
   public static Orchestrator ORCHESTRATOR;
+  private static String scannerVersion;
 
   @ClassRule
   public static SingleStartExternalResource resource = new SingleStartExternalResource() {
 
     @Override
     protected void beforeAll() {
+      scannerVersion = TestUtils.getScannerVersion();
       Path modifiedCs = TestUtils.prepareCSharpPlugin(temp);
       Path customRoslyn = TestUtils.getCustomRoslynPlugin();
       ORCHESTRATOR = Orchestrator.builderEnv()
@@ -67,7 +68,6 @@ public class CustomRoslynAnalyzerTest {
     ORCHESTRATOR.resetData();
   }
 
-  @Ignore
   @Test
   public void testSample() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
@@ -76,6 +76,7 @@ public class CustomRoslynAnalyzerTest {
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
     ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerVersion(scannerVersion)
       .addArgument("begin")
       .setProjectKey("foo")
       .setProjectName("Foo")

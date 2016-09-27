@@ -29,7 +29,6 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.wsclient.issue.Issue;
@@ -43,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * csharpPlugin.version: csharp plugin to modify (installing scanner payload) and use. If not specified, uses 5.1. 
  * scannerForMSBuild.version: scanner to use. If not specified, uses the one built in ../
+ * scannerForMSBuildPayload.version: scanner to embed in the csharp plugin. If not specified, uses the one built in ../
  * sonar.runtimeVersion: SQ to use
  */
 public class ScannerMSBuildTest {
@@ -55,12 +55,14 @@ public class ScannerMSBuildTest {
   public static TemporaryFolder temp = new TemporaryFolder();
 
   public static Orchestrator ORCHESTRATOR;
+  private static String scannerVersion;
   
   @ClassRule
   public static SingleStartExternalResource resource = new SingleStartExternalResource() {
 
     @Override
     protected void beforeAll() {
+      scannerVersion = TestUtils.getScannerVersion();
       Path modifiedCs = TestUtils.prepareCSharpPlugin(temp);
       ORCHESTRATOR = Orchestrator.builderEnv().addPlugin(FileLocation.of(modifiedCs.toFile())).build();
       ORCHESTRATOR.start();
@@ -85,11 +87,11 @@ public class ScannerMSBuildTest {
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
     ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerVersion(scannerVersion)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
-      .setProjectVersion("1.0")
-      .addArgument("/d:sonar.verbose=true"));
+      .setProjectVersion("1.0"));
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
@@ -103,7 +105,6 @@ public class ScannerMSBuildTest {
     assertThat(getFileMeasure("lines").getIntValue()).isEqualTo(58);
   }
 
-  @Ignore
   @Test
   public void testParameters() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileParameters.xml"));
@@ -112,6 +113,7 @@ public class ScannerMSBuildTest {
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
     ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerVersion(TestUtils.getScannerVersion())
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("parameters")
@@ -128,7 +130,6 @@ public class ScannerMSBuildTest {
     assertThat(issues.get(0).ruleKey()).isEqualTo("csharpsquid:S107");
   }
 
-  @Ignore
   @Test
   public void testFxCopCustom() throws Exception {
     String response = ORCHESTRATOR.getServer().adminWsClient().post("api/rules/create",
@@ -146,6 +147,7 @@ public class ScannerMSBuildTest {
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
     ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerVersion(TestUtils.getScannerVersion())
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
@@ -161,7 +163,6 @@ public class ScannerMSBuildTest {
     assertThat(issues.get(0).ruleKey()).isEqualTo("fxcop:customfxcop");
   }
 
-  @Ignore
   @Test
   public void testVerbose() throws IOException {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
@@ -170,6 +171,7 @@ public class ScannerMSBuildTest {
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
     BuildResult result = ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerVersion(TestUtils.getScannerVersion())
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("verbose")
@@ -180,7 +182,6 @@ public class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("sonar.verbose=true was specified - setting the log verbosity to 'Debug'");
   }
 
-  @Ignore
   @Test
   public void testAllProjectsExcluded() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
@@ -189,6 +190,7 @@ public class ScannerMSBuildTest {
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
     ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerVersion(TestUtils.getScannerVersion())
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
