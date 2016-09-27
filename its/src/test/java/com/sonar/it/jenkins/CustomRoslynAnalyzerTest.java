@@ -29,12 +29,15 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.wsclient.issue.Issue;
 import org.sonar.wsclient.issue.IssueQuery;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CustomRoslynAnalyzerTest {
+  private final static Logger LOG = LoggerFactory.getLogger(CustomRoslynAnalyzerTest.class);
 
   @ClassRule
   public static TemporaryFolder temp = new TemporaryFolder();
@@ -48,6 +51,7 @@ public class CustomRoslynAnalyzerTest {
     @Override
     protected void beforeAll() {
       scannerVersion = TestUtils.getScannerVersion();
+      LOG.info("Using Scanner for MSBuild " + scannerVersion);
       Path modifiedCs = TestUtils.prepareCSharpPlugin(temp);
       Path customRoslyn = TestUtils.getCustomRoslynPlugin();
       ORCHESTRATOR = Orchestrator.builderEnv()
@@ -85,6 +89,7 @@ public class CustomRoslynAnalyzerTest {
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
     ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerVersion(scannerVersion)
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();

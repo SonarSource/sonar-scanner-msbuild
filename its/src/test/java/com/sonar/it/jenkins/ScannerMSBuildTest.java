@@ -31,6 +31,8 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.wsclient.issue.Issue;
 import org.sonar.wsclient.issue.IssueQuery;
 import org.sonar.wsclient.services.Measure;
@@ -46,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * sonar.runtimeVersion: SQ to use
  */
 public class ScannerMSBuildTest {
-
+  private final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
   private static final String PROJECT_KEY = "my.project";
   private static final String MODULE_KEY = "my.project:my.project:1049030E-AC7A-49D0-BEDC-F414C5C7DDD8";
   private static final String FILE_KEY = MODULE_KEY + ":Foo.cs";
@@ -63,6 +65,7 @@ public class ScannerMSBuildTest {
     @Override
     protected void beforeAll() {
       scannerVersion = TestUtils.getScannerVersion();
+      LOG.info("Using Scanner for MSBuild " + scannerVersion);
       Path modifiedCs = TestUtils.prepareCSharpPlugin(temp);
       ORCHESTRATOR = Orchestrator.builderEnv().addPlugin(FileLocation.of(modifiedCs.toFile())).build();
       ORCHESTRATOR.start();
@@ -96,6 +99,7 @@ public class ScannerMSBuildTest {
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
     ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerVersion(scannerVersion)
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
@@ -122,6 +126,7 @@ public class ScannerMSBuildTest {
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
     ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerVersion(scannerVersion)
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
@@ -156,6 +161,7 @@ public class ScannerMSBuildTest {
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
     ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerVersion(scannerVersion)
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
@@ -199,6 +205,7 @@ public class ScannerMSBuildTest {
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/p:ExcludeProjectsFromAnalysis=true");
 
     BuildResult result = ORCHESTRATOR.executeBuildQuietly(ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerVersion(scannerVersion)
       .addArgument("end"));
 
     assertThat(result.isSuccess()).isFalse();
