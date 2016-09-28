@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.jenkins;
+package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.config.Configuration;

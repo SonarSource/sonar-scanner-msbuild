@@ -17,12 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.jenkins;
+package com.sonar.it.scanner.msbuild;
 
-import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
-import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -31,51 +29,22 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.wsclient.issue.Issue;
 import org.sonar.wsclient.issue.IssueQuery;
 import org.sonar.wsclient.services.Measure;
 import org.sonar.wsclient.services.Resource;
 import org.sonar.wsclient.services.ResourceQuery;
 
+import static com.sonar.it.scanner.msbuild.TestSuite.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * csharpPlugin.version: csharp plugin to modify (installing scanner payload) and use. If not specified, uses 5.1. 
- * scannerForMSBuild.version: scanner to use. If not specified, uses the one built in ../
- * scannerForMSBuildPayload.version: scanner to embed in the csharp plugin. If not specified, uses the one built in ../
- * sonar.runtimeVersion: SQ to use
- */
 public class ScannerMSBuildTest {
-  private final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
   private static final String PROJECT_KEY = "my.project";
   private static final String MODULE_KEY = "my.project:my.project:1049030E-AC7A-49D0-BEDC-F414C5C7DDD8";
   private static final String FILE_KEY = MODULE_KEY + ":Foo.cs";
 
   @ClassRule
   public static TemporaryFolder temp = new TemporaryFolder();
-
-  public static Orchestrator ORCHESTRATOR;
-  private static String scannerVersion;
-  
-  @ClassRule
-  public static SingleStartExternalResource resource = new SingleStartExternalResource() {
-
-    @Override
-    protected void beforeAll() {
-      scannerVersion = TestUtils.getScannerVersion();
-      LOG.info("Using Scanner for MSBuild " + scannerVersion);
-      Path modifiedCs = TestUtils.prepareCSharpPlugin(temp);
-      ORCHESTRATOR = Orchestrator.builderEnv().addPlugin(FileLocation.of(modifiedCs.toFile())).build();
-      ORCHESTRATOR.start();
-    }
-
-    @Override
-    protected void afterAll() {
-      ORCHESTRATOR.stop();
-    }
-  };
 
   @Before
   public void setUp() {

@@ -17,33 +17,42 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.jenkins;
+package com.sonar.it.scanner.msbuild;
 
-import com.sonar.orchestrator.Orchestrator;
-import com.sonar.orchestrator.build.ScannerForMSBuild;
-import com.sonar.orchestrator.junit.SingleStartExternalResource;
-import com.sonar.orchestrator.locator.FileLocation;
 import java.nio.file.Path;
-import java.util.List;
-import org.junit.Before;
+
 import org.junit.ClassRule;
-import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.wsclient.issue.Issue;
-import org.sonar.wsclient.issue.IssueQuery;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.junit.SingleStartExternalResource;
+import com.sonar.orchestrator.locator.FileLocation;
 
-public class CustomRoslynAnalyzerTest {
-  private final static Logger LOG = LoggerFactory.getLogger(CustomRoslynAnalyzerTest.class);
+
+/**
+ * csharpPlugin.version: csharp plugin to modify (installing scanner payload) and use. If not specified, uses 5.1. 
+ * scannerForMSBuild.version: scanner to use. If not specified, uses the one built in ../
+ * scannerForMSBuildPayload.version: scanner to embed in the csharp plugin. If not specified, uses the one built in ../
+ * sonar.runtimeVersion: SQ to use
+ */
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+  ScannerMSBuildTest.class,
+  CustomRoslynAnalyzerTest.class
+})
+
+public class TestSuite {
+  private final static Logger LOG = LoggerFactory.getLogger(TestSuite.class);
+
+  public static Orchestrator ORCHESTRATOR;
+  public static String scannerVersion;
 
   @ClassRule
   public static TemporaryFolder temp = new TemporaryFolder();
-
-  public static Orchestrator ORCHESTRATOR;
-  private static String scannerVersion;
 
   @ClassRule
   public static SingleStartExternalResource resource = new SingleStartExternalResource() {
@@ -66,33 +75,4 @@ public class CustomRoslynAnalyzerTest {
       ORCHESTRATOR.stop();
     }
   };
-
-  @Before
-  public void cleanup() {
-    ORCHESTRATOR.resetData();
-  }
-
-  @Test
-  public void testSample() throws Exception {
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
-    ORCHESTRATOR.getServer().provisionProject("foo", "Foo");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile("foo", "cs", "ProfileForTestCustomRoslyn");
-
-    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerVersion(scannerVersion)
-      .addArgument("begin")
-      .setProjectKey("foo")
-      .setProjectName("Foo")
-      .setProjectVersion("1.0"));
-
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
-
-    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerVersion(scannerVersion)
-      .addArgument("end"));
-
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    assertThat(issues).hasSize(4 + 37 + 1);
-  }
 }
