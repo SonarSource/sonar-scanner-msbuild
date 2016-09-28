@@ -165,6 +165,7 @@ public class TestUtils {
   public static Path projectDir(TemporaryFolder temp, String projectName) throws IOException {
     Path projectDir = Paths.get("projects").resolve(projectName);
     Path tmpProjectDir = temp.newFolder(projectName).toPath();
+    FileUtils.deleteDirectory(tmpProjectDir.toFile());
     FileUtils.copyDirectory(projectDir.toFile(), tmpProjectDir.toFile());
     return tmpProjectDir;
   }
