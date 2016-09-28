@@ -14,13 +14,11 @@ SQ_VERSION:
 
 exclude:
 # scanner 2.2 (DEV) doesn't use payload, so remove the variation of the payload
-  - SLAVE: windows        
-    SQ_VERSION: DEV        
+  - SQ_VERSION: DEV        
     SCANNER_PAYLOAD_VERSION: 2.1.0.0
     SCANNER_VERSION: DEV
     
-  - SLAVE: windows        
-    SQ_VERSION: LTS        
+  - SQ_VERSION: LTS        
     SCANNER_PAYLOAD_VERSION: 2.1.0.0
     SCANNER_VERSION: DEV
     
