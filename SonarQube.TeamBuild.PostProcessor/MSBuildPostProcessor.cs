@@ -27,19 +27,19 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             if (codeCoverageProcessor == null)
             {
-                throw new ArgumentNullException("codeCoverageProcessor");
+                throw new ArgumentNullException(nameof(codeCoverageProcessor));
             }
             if (scanner == null)
             {
-                throw new ArgumentNullException("param");
+                throw new ArgumentNullException(nameof(scanner));
             }
             if (reportBuilder == null)
             {
-                throw new ArgumentNullException("reportBuilder");
+                throw new ArgumentNullException(nameof(reportBuilder));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             this.logger = logger;
@@ -52,20 +52,21 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             if (args == null)
             {
-                throw new ArgumentNullException("args");
+                throw new ArgumentNullException(nameof(args));
             }
             if (config == null)
             {
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
             }
             if (settings == null)
             {
-                throw new ArgumentNullException("settings");
+                throw new ArgumentNullException(nameof(settings));
             }
 
             IAnalysisPropertyProvider provider;
             if (!ArgumentProcessor.TryProcessArgs(args, logger, out provider))
             {
+                // logging already done
                 return false;
             }
 
@@ -74,6 +75,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             if (!CheckEnvironmentConsistency(config, settings))
             {
+                // logging already done
                 return false;
             }
 
@@ -82,7 +84,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             if (initialised && !this.codeCoverageProcessor.ProcessCoverageReports())
             {
-                //  if processing fails, stop the workflow
+                // if processing fails, stop the workflow
                 return false;
             }
 

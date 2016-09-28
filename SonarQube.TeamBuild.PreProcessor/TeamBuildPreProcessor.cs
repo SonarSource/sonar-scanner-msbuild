@@ -77,21 +77,17 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public bool Execute(string[] args)
         {
-            bool success;
-
             ProcessedArgs processedArgs = ArgumentProcessor.TryProcessArgs(args, this.logger);
 
             if (processedArgs == null)
             {
-                success = false;
                 this.logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
+                return false;
             }
             else
             {
-                success = DoExecute(processedArgs);
+                return DoExecute(processedArgs);
             }
-
-            return success;
         }
 
         private bool DoExecute(ProcessedArgs args)
@@ -104,8 +100,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             TeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(this.logger);
 
-            // We're checking the args and environment variables so we can report all
-            // config errors to the user at once
+            // We're checking the args and environment variables so we can report all config errors to the user at once
             if (teamBuildSettings == null)
             {
                 this.logger.LogError(Resources.ERROR_CannotPerformProcessing);
@@ -156,7 +151,6 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private bool FetchArgumentsAndRulesets(ISonarQubeServer server, ProcessedArgs args, TeamBuildSettings settings, out IDictionary<string, string> serverSettings, out List<AnalyzerSettings> analyzersSettings)
         {
-            string hostUrl = args.GetSetting(SonarProperties.HostUrl);
             serverSettings = null;
             analyzersSettings = new List<AnalyzerSettings>();
 
@@ -185,6 +179,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                     string qualityProfile;
                     if (!server.TryGetQualityProfile(args.ProjectKey, projectBranch, plugin.Language, out qualityProfile))
                     {
+                        this.logger.LogDebug(Resources.RAP_NoQualityProfile, plugin.Language, args.ProjectKey);
                         continue;
                     }
 
@@ -193,7 +188,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
                     if (!activeRules.Any())
                     {
-                        logger.LogDebug(Resources.RAP_NoActiveRules, plugin.Language);
+                        this.logger.LogDebug(Resources.RAP_NoActiveRules, plugin.Language);
                         continue;
                     }
 
@@ -214,6 +209,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                     IAnalyzerProvider analyzerProvider = this.factory.CreateRoslynAnalyzerProvider(this.logger);
                     Debug.Assert(analyzerProvider != null, "Factory should not return null");
 
+                    // Will be null if the processing of settings and active rules resulted in an empty ruleset
                     AnalyzerSettings analyzer = analyzerProvider.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules,
                         plugin.Language);
 
@@ -226,6 +222,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             catch (WebException ex)
             {
+                string hostUrl = args.GetSetting(SonarProperties.HostUrl);
                 if (Utilities.HandleHostUrlWebException(ex, hostUrl, this.logger))
                 {
                     return false;

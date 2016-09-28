@@ -106,6 +106,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         #region Private methods
 
+        /// <summary>
+        /// Generated several files related to rulesets and roslyn analyzer assemblies.
+        /// Even if a non-empty set of active rules is provided, depending on the server settings of repo keys, we might have no rules in the ruleset.
+        /// In that case, this method returns null.
+        /// </summary>
         private AnalyzerSettings ConfigureAnalyzer(string language, IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules)
         {
             RoslynRuleSetGenerator ruleSetGenerator = new RoslynRuleSetGenerator(sqServerSettings);
@@ -125,6 +130,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return compilerConfig;
         }
 
+        /// <summary>
+        /// Write ruleset to a file.
+        /// Nothing will be written and null with be returned if the ruleset contains no rules
+        /// </summary>
         public string WriteRuleset(RuleSet ruleSet, string language)
         {
             string rulesetFilePath = null;

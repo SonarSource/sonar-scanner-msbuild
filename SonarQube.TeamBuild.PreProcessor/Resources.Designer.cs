@@ -380,6 +380,15 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No quality profile defined for language {0} and project {1}.
+        /// </summary>
+        public static string RAP_NoQualityProfile {
+            get {
+                return ResourceManager.GetString("RAP_NoQualityProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The exported profile does not contain a ruleset.
         /// </summary>
         public static string RAP_ProfileDoesNotContainRuleset {

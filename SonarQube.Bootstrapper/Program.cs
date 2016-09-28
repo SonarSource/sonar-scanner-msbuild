@@ -43,7 +43,7 @@ namespace SonarQube.Bootstrapper
 
         public class DefaultProcessorFactory : IProcessorFactory
         {
-            private ILogger logger;
+            private readonly ILogger logger;
 
             public DefaultProcessorFactory(ILogger logger)
             {

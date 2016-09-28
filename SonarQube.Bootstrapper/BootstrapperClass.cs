@@ -15,9 +15,9 @@ namespace SonarQube.Bootstrapper
         public const int ErrorCode = 1;
         public const int SuccessCode = 0;
 
-        private IProcessorFactory ProcessorFactory;
-        private IBootstrapperSettings BootstrapSettings;
-        private ILogger Logger;
+        private readonly IProcessorFactory ProcessorFactory;
+        private readonly IBootstrapperSettings BootstrapSettings;
+        private readonly ILogger Logger;
 
         public BootstrapperClass(IProcessorFactory processorFactory, IBootstrapperSettings bootstrapSettings, ILogger logger)
         {

@@ -29,7 +29,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             fileProps.AddProperty("file.key.1", "file value 1");
             fileProps.AddProperty("shared.key.1", "shared file value");
 
-            ProcessedArgs args = new ProcessedArgs("key", "name", "ver", true, cmdLineProps, fileProps);
+            ProcessedArgs args = new ProcessedArgs("key", "branch", "ver", true, cmdLineProps, fileProps);
 
             // 1. Throws on missing value
             AssertException.Expects<InvalidOperationException>(() => args.GetSetting("missing.property"));
@@ -57,7 +57,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             fileProps.AddProperty("file.key.1", "file value 1");
             fileProps.AddProperty("shared.key.1", "shared file value");
 
-            ProcessedArgs args = new ProcessedArgs("key", "name", "ver", false, cmdLineProps, fileProps);
+            ProcessedArgs args = new ProcessedArgs("key", "branch", "ver", false, cmdLineProps, fileProps);
 
             // 1. Missing key -> null
             string result;
@@ -124,7 +124,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             fileProperties.AddProperty("XXX", "file line value XXX - upper case");
 
             // Act
-            ProcessedArgs args = new ProcessedArgs("key", "name", "version", false, cmdLineProperties, fileProperties);
+            ProcessedArgs args = new ProcessedArgs("key", "branch", "version", false, cmdLineProperties, fileProperties);
 
             AssertExpectedValue("shared.key1", "cmd line value1 - should override server value", args);
             AssertExpectedValue("cmd.line.only", "cmd line value4 - only on command line", args);

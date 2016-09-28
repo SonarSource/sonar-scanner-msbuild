@@ -6,10 +6,11 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.PreProcessor.Interfaces;
 using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
-using SonarQube.TeamBuild.PreProcessor.Tests.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -36,7 +37,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             MockSonarQubeServer mockServer = new MockSonarQubeServer();
 
             TeamBuildPreProcessor preprocessor = new TeamBuildPreProcessor(
-                new MockObjectFactory(mockServer, new MockTargetsInstaller(), new MockRoslynAnalyzerProvider(), new MockRulesetGenerator()),
+                new MockObjectFactory(mockServer, new Mock<ITargetsInstaller>().Object, new MockRoslynAnalyzerProvider(), new Mock<IRulesetGenerator>().Object),
                 new TestLogger());
 
             // Act and assert
@@ -83,8 +84,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockAnalyzerProvider.SettingsToReturn = new AnalyzerSettings();
             mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
 
-            MockTargetsInstaller mockTargetsInstaller = new MockTargetsInstaller();
-            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller, mockAnalyzerProvider, new RulesetGenerator());
+            Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
+            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider, new RulesetGenerator());
 
             TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
@@ -104,7 +105,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Assert
             AssertDirectoriesCreated(settings);
 
-            mockTargetsInstaller.AssertsTargetsCopied();
+            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(logger, workingDir), Times.Once());
             mockServer.AssertMethodCalled("GetProperties", 1);
             mockServer.AssertMethodCalled("GetInstalledPlugins", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
@@ -139,8 +140,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockAnalyzerProvider.SettingsToReturn = new AnalyzerSettings();
             mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
 
-            MockTargetsInstaller mockTargetsInstaller = new MockTargetsInstaller();
-            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller, mockAnalyzerProvider, new RulesetGenerator());
+            Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
+            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider, new RulesetGenerator());
 
             TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
@@ -160,7 +161,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Assert
             AssertDirectoriesCreated(settings);
 
-            mockTargetsInstaller.AssertsTargetsCopied();
+            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(logger, workingDir), Times.Once());
             mockServer.AssertMethodCalled("GetProperties", 1);
             mockServer.AssertMethodCalled("GetInstalledPlugins", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 0); // No valid plugin
@@ -204,8 +205,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockAnalyzerProvider.SettingsToReturn = new AnalyzerSettings();
             mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
 
-            MockTargetsInstaller mockTargetsInstaller = new MockTargetsInstaller();
-            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller, mockAnalyzerProvider, new RulesetGenerator());
+            Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
+            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider, new RulesetGenerator());
 
             TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
@@ -225,7 +226,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Assert
             AssertDirectoriesCreated(settings);
 
-            mockTargetsInstaller.AssertsTargetsCopied();
+            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(logger, workingDir), Times.Once());
             mockServer.AssertMethodCalled("GetProperties", 1);
             mockServer.AssertMethodCalled("GetInstalledPlugins", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
