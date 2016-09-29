@@ -140,7 +140,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertErrorsLogged(0);
 
             CheckRuleset(actualSettings, rootFolder, language);
-            CheckExpectedAdditionalFiles(rootFolder, language, actualSettings);
+            CheckExpectedAdditionalFiles(rootFolder, language, settings.SonarOutputDirectory, actualSettings);
             CheckExpectedAssemblies(actualSettings, "c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
             List<string> plugins = new List<string>();
             plugins.Add("wintellect");
@@ -291,7 +291,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         }
 
-        private void CheckExpectedAdditionalFiles(string rootTestDir, string language, AnalyzerSettings actualSettings)
+        private void CheckExpectedAdditionalFiles(string rootTestDir, string language, string outDir, AnalyzerSettings actualSettings)
         {
             // Currently, only SonarLint.xml is written
             List<string> filePaths = actualSettings.AdditionalFilePaths;
@@ -300,6 +300,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             //string expectedContent = expected.AdditionalFiles[expectedFileName];
             CheckExpectedAdditionalFileExists("SonarLint.xml", @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <AnalysisInput>
+  <Settings>
+    <Setting>
+      <Key>
+        sonarqube.out.protobuf
+      </Key>
+      <Value>
+        " + Path.Combine(outDir, "protobuf") + @"
+      </Value>
+    </Setting>
+  </Settings>
   <Rules>
     <Rule>
       <Key>S1116</Key>

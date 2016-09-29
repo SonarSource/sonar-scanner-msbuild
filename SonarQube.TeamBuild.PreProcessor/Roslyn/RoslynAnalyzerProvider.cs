@@ -182,11 +182,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             string content;
             if (language.Equals(CSharpLanguage))
             {
-                content = RoslynSonarLint.GenerateXml(activeRules, "csharpsquid");
+                content = RoslynSonarLint.GenerateXml(activeRules, sqServerSettings, this.sqSettings.SonarOutputDirectory, language, "csharpsquid");
             }
             else
             {
-                content = RoslynSonarLint.GenerateXml(activeRules, "vbnet");
+                content = RoslynSonarLint.GenerateXml(activeRules, sqServerSettings, this.sqSettings.SonarOutputDirectory, language, "vbnet");
             }
 
             string langDir = Path.Combine(this.sqSettings.SonarConfigDirectory, language);
@@ -216,7 +216,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 string staticResourceName;
                 if (!sqServerSettings.TryGetValue(pluginKeyPropertyKey(repoKey), out pluginkey)
                     || !sqServerSettings.TryGetValue(pluginVersionPropertyKey(repoKey), out pluginVersion)
-                    || !sqServerSettings.TryGetValue(staticResourceNamePropertyKey(repoKey), out staticResourceName)) {
+                    || !sqServerSettings.TryGetValue(staticResourceNamePropertyKey(repoKey), out staticResourceName))
+                {
                     this.logger.LogInfo(Resources.RAP_NoAssembliesForRepo, repoKey, language);
                     continue;
                 }

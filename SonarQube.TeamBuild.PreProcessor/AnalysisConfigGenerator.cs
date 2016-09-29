@@ -69,7 +69,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             foreach (var property in serverProperties)
             {
-                if (!IsSecuredServerProperty(property.Key))
+                if (!Utilities.IsSecuredServerProperty(property.Key))
                 {
                     AddSetting(config.ServerSettings, property.Key, property.Value);
                 }
@@ -103,11 +103,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 properties.Add(new Property() { Id = id, Value = value });
             }
-        }
-
-        private static bool IsSecuredServerProperty(string s)
-        {
-            return s.EndsWith(".secured", StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

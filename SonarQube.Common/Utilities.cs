@@ -146,6 +146,11 @@ namespace SonarQube.Common
             return true;
         }
 
+        public static bool IsSecuredServerProperty(string s)
+        {
+            return s.EndsWith(".secured", StringComparison.InvariantCultureIgnoreCase);
+        }
+
         /// <summary>
         /// Common logic for handling web exceptions when connecting to the SonarQube server. Common exceptions 
         /// are handled by logging user friendly errors.
