@@ -20,7 +20,7 @@ if ($env:APPVEYOR_REPO_BRANCH -eq "master" -and -not $env:APPVEYOR_PULL_REQUEST_
     (Get-Content .\pom.xml) -replace 'scannerZipPath', "$scannerZipPath" | Set-Content .\pom.xml
         
     echo "set version $FinalVersion in pom.xml"
-    $command = 'mvn versions:set -DgenerateBackupPoms=false -DnewVersion='+$FinalVersion
+    $command = "mvn versions:set -DgenerateBackupPoms=false -DnewVersion='$FinalVersion'"
     iex $command
     echo "set version $FinalVersion in env VAR PROJECT_VERSION for artifactory buildinfo metadata"
     $env:PROJECT_VERSION=$FinalVersion
