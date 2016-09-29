@@ -1,41 +1,31 @@
 . ./appveyor_helpers.ps1
 
-function DeployOnRepox()
+if ($env:APPVEYOR_REPO_BRANCH -eq "master" -and -not $env:APPVEYOR_PULL_REQUEST_NUMBER)
 {
-    param ([Parameter(Mandatory=$true)][string]$file, [Parameter(Mandatory=$false)][string]$classifier, [Parameter(Mandatory=$true)][string]$version)
+    $strPath = FindSingleFile ([System.IO.Path]::Combine($PSScriptRoot, "DeploymentArtifacts", "BuildAgentPayload", "Release")) "SonarQube.Scanner.MSBuild.exe"
+    $Assembly = [Reflection.Assembly]::Loadfile($strPath)
 
-    echo "Deploy $file on repox with version $version"
+    $AssemblyName = $Assembly.GetName()
+    $Assemblyversion = $AssemblyName.version.ToString()
 
-    $command = 'mvn --% --batch-mode --settings "maven-settings.xml" "org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy-file" ' +
-        '-DrepositoryId=releases ' +
-        '-Durl=' + $env:ARTIFACTORY_URL + '/' + $env:ARTIFACTORY_DEPLOY_REPO + ';build.name=sonar-msbuild-runner;build.number=' + $env:APPVEYOR_BUILD_NUMBER + ' ' +
-        '"-DgroupId=org.sonarsource.scanner.msbuild" ' +
-        '"-DartifactId=sonar-scanner-msbuild" ' +
-        '-Dclassifier=' + $classifier + ' ' +
-        '-Dpackaging=zip ' + 
-        '-Dversion=' + $version + ' ' + 
-        '-Dfile=' + $file
+    $FinalVersion = $Assemblyversion + '-build' + $env:APPVEYOR_BUILD_NUMBER
+
+    # Upload artifacts on repox
+    $implZipPath = FindSingleFile ([System.IO.Path]::Combine($PSScriptRoot, "DeploymentArtifacts", "CSharpPluginPayload", "Release")) "SonarQube.MSBuild.Runner.Implementation.zip"
+    #DeployOnRepox $implZipPath "impl" $FinalVersion
+    $scannerZipPath = FindSingleFile ([System.IO.Path]::Combine($PSScriptRoot, "DeploymentArtifacts", "BuildAgentPayload", "Release")) "SonarQube.Scanner.MSBuild.zip"
+    #DeployOnRepox $scannerZipPath "" $FinalVersion
+    echo "replace zip filenames in pom.xml"
+    (Get-Content .\pom.xml) -replace 'implZipPath', "$implZipPath" | Set-Content .\pom.xml
+    (Get-Content .\pom.xml) -replace 'scannerZipPath', "$scannerZipPath" | Set-Content .\pom.xml
+        
+    echo "set version $FinalVersion in pom.xml"
+    $command = 'mvn versions:set -DgenerateBackupPoms=false -DnewVersion='+$FinalVersion
     iex $command
-	
-    CheckLastExitCode
+    echo "set version $FinalVersion in env VAR PROJECT_VERSION for artifactory buildinfo metadata"
+    $env:PROJECT_VERSION=$FinalVersion
+    echo "Deploy to repox with $FinalVersion"    
+    $command = 'mvn deploy -Pdeploy-sonarsource -B -e -V'
+    iex $command
 }
-
-
-
-    if ($env:APPVEYOR_REPO_BRANCH -eq "master" -and -not $env:APPVEYOR_PULL_REQUEST_NUMBER)
-    {
-        $strPath = FindSingleFile ([System.IO.Path]::Combine($PSScriptRoot, "DeploymentArtifacts", "BuildAgentPayload", "Release")) "SonarQube.Scanner.MSBuild.exe"
-        $Assembly = [Reflection.Assembly]::Loadfile($strPath)
-
-        $AssemblyName = $Assembly.GetName()
-        $Assemblyversion = $AssemblyName.version.ToString()
-
-        $FinalVersion = $Assemblyversion + '-build' + $env:APPVEYOR_BUILD_NUMBER
-
-        # Upload artifacts on repox
-        $implZipPath = FindSingleFile ([System.IO.Path]::Combine($PSScriptRoot, "DeploymentArtifacts", "CSharpPluginPayload", "Release")) "SonarQube.MSBuild.Runner.Implementation.zip"
-        DeployOnRepox $implZipPath "impl" $FinalVersion
-        $scannerZipPath = FindSingleFile ([System.IO.Path]::Combine($PSScriptRoot, "DeploymentArtifacts", "BuildAgentPayload", "Release")) "SonarQube.Scanner.MSBuild.zip"
-        DeployOnRepox $scannerZipPath "" $FinalVersion
-    }
 
