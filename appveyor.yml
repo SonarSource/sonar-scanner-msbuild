@@ -4,35 +4,7 @@ os:
 
 install:
   - git submodule update --init --recursive
-  - ps: |
-      Add-Type -AssemblyName System.IO.Compression.FileSystem
-      if (!(Test-Path -Path "C:\maven" )) {
-        (new-object System.Net.WebClient).DownloadFile(
-          'http://www.us.apache.org/dist/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.zip',
-          'C:\maven-bin.zip'
-        )
-        [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\maven-bin.zip", "C:\maven")
-      }
-      $travisUtilsVersion = "33"
-      $localPath = "$env:USERPROFILE\.local"
-      $travisUtilsPath = "$localPath\travis-utils-$travisUtilsVersion"
-      if (Test-Path $travisUtilsPath)
-      {
-        echo "Reusing the Travis Utils version $travisUtilsVersion already downloaded under $travisUtilsPath"
-      }
-      else
-      {
-        $url = "https://github.com/SonarSource/travis-utils/archive/v$travisUtilsVersion.zip"
-        echo "Downloading Travis Utils version $travisUtilsVersion from $url into $localPath"
-        FetchAndUnzip $url $localPath
-      }
-      $mavenLocal = "$env:USERPROFILE\.m2"
-      if (-not(Test-Path $mavenLocal))
-      {
-        mkdir $mavenLocal | Out-Null
-      }
-      echo "Installating Travis Utils public Maven settings.xml into $mavenLocal"
-      Copy-Item "$travisUtilsPath\m2\settings-public.xml" "$mavenLocal\settings.xml"
+  - ps: ./install_maven.ps1
   - cmd: SET PATH=C:\maven\apache-maven-3.2.5\bin;%JAVA_HOME%\bin;%PATH%
   - cmd: SET M2_HOME=C:\maven\apache-maven-3.2.5\
 
