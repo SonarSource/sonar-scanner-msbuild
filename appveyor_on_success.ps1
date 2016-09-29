@@ -24,6 +24,8 @@ if ($env:APPVEYOR_REPO_BRANCH -eq "master" -and -not $env:APPVEYOR_PULL_REQUEST_
     iex $command
     echo "set version $FinalVersion in env VAR PROJECT_VERSION for artifactory buildinfo metadata"
     $env:PROJECT_VERSION=$FinalVersion
+    echo "set the buildnumber to this job build number"
+    $env:BUILD_ID=$env:APPVEYOR_BUILD_NUMBER
     echo "Deploy to repox with $FinalVersion"    
     $command = 'mvn deploy -Pdeploy-sonarsource -B -e -V'
     iex $command
