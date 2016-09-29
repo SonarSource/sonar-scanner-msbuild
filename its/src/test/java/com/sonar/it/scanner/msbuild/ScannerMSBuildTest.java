@@ -83,6 +83,41 @@ public class ScannerMSBuildTest {
   }
   
   @Test
+  public void testExcludedAndTest() throws Exception {
+    String normalProjectKey = "my.project:my.project:B93B287C-47DB-4406-9EAB-653BCF7D20DC";
+    String testProjectKey = "my.project:my.project:2DC588FC-16FB-42F8-9FDA-193852E538AF";
+    
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "excludedAndTest");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
+
+    Path projectDir = TestUtils.projectDir(temp, "ExcludedTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectName("excludedAndTest")
+      .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("end"));
+    
+    // all issues and nloc are in the normal project
+    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    assertThat(issues).hasSize(4);
+    
+    issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create().componentRoots(normalProjectKey)).list();
+    assertThat(issues).hasSize(4);
+    
+    issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create().componentRoots(testProjectKey)).list();
+    assertThat(issues).hasSize(0);
+
+    assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(45);
+    assertThat(getProjectMeasure("ncloc", normalProjectKey).getIntValue()).isEqualTo(45);
+  }
+  
+  @Test
   public void testMultiLanguage() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileCSharp.xml"));
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileVBNet.xml"));
@@ -240,13 +275,16 @@ public class ScannerMSBuildTest {
   }
 
   private Measure getFileMeasure(String metricKey) {
-    Resource resource = ORCHESTRATOR.getServer().getWsClient().find(ResourceQuery.createForMetrics(FILE_KEY, metricKey));
+    return getProjectMeasure(metricKey, FILE_KEY);
+  }
+  
+  private Measure getProjectMeasure(String metricKey, String projectKey) {
+    Resource resource = ORCHESTRATOR.getServer().getWsClient().find(ResourceQuery.createForMetrics(projectKey, metricKey));
     return resource != null ? resource.getMeasure(metricKey) : null;
   }
 
   private Measure getProjectMeasure(String metricKey) {
-    Resource resource = ORCHESTRATOR.getServer().getWsClient().find(ResourceQuery.createForMetrics(PROJECT_KEY, metricKey));
-    return resource != null ? resource.getMeasure(metricKey) : null;
+    return getProjectMeasure(metricKey, PROJECT_KEY);
   }
 
 }

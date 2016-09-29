@@ -21,7 +21,7 @@
       <priority>MAJOR</priority>
       <parameters/>
     </rule>
-     <rule>
+    <rule>
       <repositoryKey>fxcop-vbnet</repositoryKey>
       <key>AvoidUncalledPrivateCode</key>
       <priority>MAJOR</priority>
