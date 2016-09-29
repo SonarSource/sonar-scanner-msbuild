@@ -140,6 +140,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
             {
                 throw new ArgumentNullException("propertyKey");
             }
+            if (!serverSettings.ContainsKey(propertyKey))
+            {
+                throw new ArgumentException("key doesn't exist: " + propertyKey);
+            }
             return serverSettings[propertyKey];
         }
     }

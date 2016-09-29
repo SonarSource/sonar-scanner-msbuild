@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<profile>
+  <name>ProfileForTestVBNet</name>
+  <language>vbnet</language>
+  <rules>
+    <rule>
+      <repositoryKey>vbnet</repositoryKey>
+      <key>S3385</key>
+      <priority>MAJOR</priority>
+      <parameters/>
+    </rule>
+    <rule>
+      <repositoryKey>vbnet</repositoryKey>
+      <key>S2358</key>
+      <priority>MAJOR</priority>
+      <parameters/>
+    </rule>
+    <rule>
+      <repositoryKey>fxcop-vbnet</repositoryKey>
+      <key>AvoidUnusedPrivateFields</key>
+      <priority>MAJOR</priority>
+      <parameters/>
+    </rule>
+     <rule>
+      <repositoryKey>fxcop-vbnet</repositoryKey>
+      <key>AvoidUncalledPrivateCode</key>
+      <priority>MAJOR</priority>
+      <parameters/>
+    </rule>
+  </rules>
+</profile>

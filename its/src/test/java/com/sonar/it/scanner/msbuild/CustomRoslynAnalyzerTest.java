@@ -19,7 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild;
 
-import com.sonar.orchestrator.build.ScannerForMSBuild;
+import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.nio.file.Path;
 import java.util.List;
@@ -35,7 +35,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class CustomRoslynAnalyzerTest {
   @ClassRule
-  public static TemporaryFolder temp = new TemporaryFolder();
+  public static TemporaryFolder temp = TestSuite.temp;
+
+  @ClassRule
+  public static SingleStartExternalResource resource = TestSuite.resource;
 
   @Before
   public void cleanup() {
@@ -49,8 +52,7 @@ public class CustomRoslynAnalyzerTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile("foo", "cs", "ProfileForTestCustomRoslyn");
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerVersion(scannerVersion)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("begin")
       .setProjectKey("foo")
       .setProjectName("Foo")
@@ -58,8 +60,7 @@ public class CustomRoslynAnalyzerTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerVersion(scannerVersion)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();

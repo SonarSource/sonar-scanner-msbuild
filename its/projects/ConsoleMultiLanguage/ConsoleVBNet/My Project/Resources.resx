@@ -46,7 +46,7 @@
     
     mimetype: application/x-microsoft.net.object.binary.base64
     value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : System.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
     
     mimetype: application/x-microsoft.net.object.soap.base64
@@ -60,7 +60,6 @@
             : and then encoded with base64 encoding.
     -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
@@ -69,10 +68,9 @@
               <xsd:sequence>
                 <xsd:element name="value" type="xsd:string" minOccurs="0" />
               </xsd:sequence>
-              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
               <xsd:attribute name="type" type="xsd:string" />
               <xsd:attribute name="mimetype" type="xsd:string" />
-              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="assembly">
@@ -87,10 +85,9 @@
                 <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
                 <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
               <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
               <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="resheader">
@@ -112,85 +109,9 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AssemblyDescription" xml:space="preserve">
-    <value>SonarQube Scanner for MSBuild End Step</value>
-  </data>
-  <data name="ERROR_BuildUrisDontMatch" xml:space="preserve">
-    <value>Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
-Build Uri from environment: {0}
-Build Uri from config: {1}
-Analysis config file: {2}
-Please delete the analysis config file and try the build again.</value>
-  </data>
-  <data name="ERROR_CmdLine_DisallowedArgument" xml:space="preserve">
-    <value>This setting is not valid in the "end" phase in this version of the C# plugin: {0}</value>
-  </data>
-  <data name="ERROR_ConfigFileNotFound" xml:space="preserve">
-    <value>SonarQube analysis could not be completed because the analysis configuration file could not be found.
-Expected location: {0}</value>
-  </data>
-  <data name="MSG_LoadingConfig" xml:space="preserve">
-    <value>Loading the SonarQube analysis config from {0}</value>
-  </data>
-  <data name="Report_AnalysisFailed" xml:space="preserve">
-    <value>Analysis failed for SonarQube project {0}</value>
-  </data>
-  <data name="Report_AnalysisSucceeded" xml:space="preserve">
-    <value>Analysis succeeded for SonarQube project {0} [(Analysis results)] ({1})</value>
-  </data>
-  <data name="Report_CreatingSummaryMarkdown" xml:space="preserve">
-    <value>Creating a summary markdown file...</value>
-  </data>
-  <data name="Report_InvalidSkippedAndExcludedMessage" xml:space="preserve">
-    <value>  Invalid projects: {0}, skipped projects: {1}, excluded projects: {2}</value>
-  </data>
-  <data name="Report_LinkToDashboard" xml:space="preserve">
-    <value>Analysis results: {0}</value>
-  </data>
-  <data name="Report_MdSummaryAnalysisFailed" xml:space="preserve">
-    <value>Analysis failed for SonarQube project {0}</value>
-  </data>
-  <data name="Report_MdSummaryAnalysisSucceeded" xml:space="preserve">
-    <value>Analysis succeeded for SonarQube project {0} [Analysis results]({1})</value>
-  </data>
-  <data name="Report_MdSummaryInvalidSkippedAndExcludedMessage" xml:space="preserve">
-    <value>- Invalid projects: {0}, skipped projects: {1}, excluded projects: {2}</value>
-  </data>
-  <data name="Report_MdSummaryProductAndTestMessage" xml:space="preserve">
-    <value>- Product projects: {0}, test projects: {1}</value>
-  </data>
-  <data name="Report_ProductAndTestMessage" xml:space="preserve">
-    <value>  Product projects: {0}, test projects: {1}</value>
-  </data>
-  <data name="Report_SonarQubeProjectDescription" xml:space="preserve">
-    <value>"{0}", version {2}</value>
-  </data>
-  <data name="Report_UpdatingTeamBuildSummary" xml:space="preserve">
-    <value>Updating the TeamBuild summary...</value>
-  </data>
-  <data name="SETTINGS_InLegacyTeamBuild" xml:space="preserve">
-    <value>Legacy TeamBuild environment detected</value>
-  </data>
-  <data name="SETTINGS_InTeamBuild" xml:space="preserve">
-    <value>TeamBuild environment detected</value>
-  </data>
-  <data name="SETTINGS_NotInTeamBuild" xml:space="preserve">
-    <value>Not running under TeamBuild</value>
-  </data>
-  <data name="SETTING_DumpSettings" xml:space="preserve">
-    <value>Analysis base directory: {0}
-Build directory: {1}
-Bin directory: {2}
-Config directory: {3}
-Output directory: {4}
-Config file: {5}</value>
-  </data>
-  <data name="WARN_CannotProcessCoverage" xml:space="preserve">
-    <value>Cannot process the code coverage information. Look at the previous warnings for details.</value>
-  </data>
 </root>

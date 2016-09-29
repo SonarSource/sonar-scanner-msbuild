@@ -20,7 +20,9 @@
 package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.config.Configuration;
+import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Locators;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
@@ -96,47 +98,36 @@ public class TestUtils {
     return modifiedCs;
   }
 
-  /**
-   * Try to get version of the Scanner for MSBuild to use (for bootstrapping builds).
-   * If the version is DEV, a CI_BUILD_NUMBER must be provided so that appveyor's build artifact is found in repox.
-   */
-  public static String getScannerVersion() {
+  @CheckForNull
+  private static String getScannerVersion() {
     Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
-    String version = configuration.getString("scannerForMSBuild.version");
-    if (version == null) {
-      throw new IllegalStateException("Version of Scanner for MSBuild not specified. Define 'scannerForMSBuild.version'.");
-    }
-    
-    if ("DEV".equals(version)) {
-      version = getDevScannerVersion();
-      if (version == null) {
-        throw new IllegalStateException("Version of Scanner for MSBuild is DEV but no CI_BUILD_NUMBER is specified.");
-      }
-    }
-    return version;
+    return configuration.getString("scannerForMSBuild.version");
   }
 
-  private static String getDevScannerVersion() {
-    String buildOnQa = System.getenv("CI_BUILD_NUMBER");
-    if (buildOnQa != null) {
-      return parseVersion() + "-build" + buildOnQa;
+  public static ScannerForMSBuild newScanner(Path projectDir) {
+    String scannerVersion = getScannerVersion();
+
+    if (scannerVersion != null) {
+      LOG.info("Using Scanner for MSBuild " + scannerVersion);
+      return ScannerForMSBuild.create(projectDir.toFile())
+        .setScannerVersion(scannerVersion);
+    } else {
+      // run locally
+      LOG.info("Using Scanner for MSBuild from the local build");
+      Path scannerZip = Paths.get("../DeploymentArtifacts/BuildAgentPayload/Release/SonarQube.Scanner.MSBuild.zip");
+      return ScannerForMSBuild.create(projectDir.toFile())
+        .setScannerLocation(FileLocation.of(scannerZip.toFile()));
     }
-    return null;
   }
 
   /**
    * Try to get version of the Scanner for MSBuild to embed in the C# plugin (use as payload).
-   * If the version is DEV, it will try to get CI_BUILD_NUMBER and create a version with it.
    * If no version is found, null is returned.
    */
   @CheckForNull
   public static String getScannerPayloadVersion() {
     Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
-    String version = configuration.getString("scannerForMSBuildPayload.version");
-    if ("DEV".equals(version)) {
-      version = getDevScannerVersion();
-    }
-    return version;
+    return configuration.getString("scannerForMSBuildPayload.version");
   }
 
   public static Path getCustomRoslynPlugin() {

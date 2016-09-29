@@ -20,11 +20,14 @@
 package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.build.ScannerForMSBuild;
+import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -44,8 +47,11 @@ public class ScannerMSBuildTest {
   private static final String FILE_KEY = MODULE_KEY + ":Foo.cs";
 
   @ClassRule
-  public static TemporaryFolder temp = new TemporaryFolder();
+  public static TemporaryFolder temp = TestSuite.temp;
 
+  @ClassRule
+  public static SingleStartExternalResource resource = TestSuite.resource;
+  
   @Before
   public void setUp() {
     ORCHESTRATOR.resetData();
@@ -58,8 +64,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerVersion(scannerVersion)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
@@ -67,8 +72,7 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerVersion(scannerVersion)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
@@ -76,6 +80,42 @@ public class ScannerMSBuildTest {
     assertThat(getFileMeasure("ncloc").getIntValue()).isEqualTo(23);
     assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(37);
     assertThat(getFileMeasure("lines").getIntValue()).isEqualTo(58);
+  }
+  
+  @Test
+  public void testMultiLanguage() throws Exception {
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileCSharp.xml"));
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileVBNet.xml"));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "multilang");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTestCSharp");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "vbnet", "ProfileForTestVBNet");
+
+    Path projectDir = TestUtils.projectDir(temp, "ConsoleMultiLanguage");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectName("multilang")
+      .setProjectVersion("1.0")
+      .setDebugLogs(true));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("end"));
+
+    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    // 4 CS, 1 VBNET
+    assertThat(issues).hasSize(5);
+    
+    // FxCop rules do not show up for VB.NET because that version of the plugin no longer contains them (moved to FxCop plugin)
+    List<String> keys = issues.stream().map(i -> i.ruleKey()).collect(Collectors.toList());
+    assertThat(keys).containsAll(Arrays.asList("vbnet:S3385", 
+      "fxcop:DoNotRaiseReservedExceptionTypes", 
+      "fxcop:DoNotPassLiteralsAsLocalizedParameters", 
+      "csharpsquid:S2228", 
+      "csharpsquid:S1134"));
+    
+    assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(65);
   }
 
   @Test
@@ -85,8 +125,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTestParameters");
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerVersion(TestUtils.getScannerVersion())
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("parameters")
@@ -94,8 +133,7 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerVersion(scannerVersion)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
@@ -120,8 +158,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTestFxCop");
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerVersion(TestUtils.getScannerVersion())
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
@@ -129,8 +166,7 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerVersion(scannerVersion)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
@@ -145,8 +181,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
-    BuildResult result = ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerVersion(TestUtils.getScannerVersion())
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("verbose")
@@ -164,8 +199,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
 
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerVersion(TestUtils.getScannerVersion())
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
@@ -173,13 +207,36 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/p:ExcludeProjectsFromAnalysis=true");
 
-    BuildResult result = ORCHESTRATOR.executeBuildQuietly(ScannerForMSBuild.create(projectDir.toFile())
-      .setScannerVersion(scannerVersion)
+    BuildResult result = ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(projectDir)
       .addArgument("end"));
 
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getLogs()).contains("The exclude flag has been set so the project will not be analyzed by SonarQube.");
     assertThat(result.getLogs()).contains("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
+  }
+  
+  @Test
+  public void testNoActiveRule() throws IOException {
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestEmptyQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "empty");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "EmptyProfileForTest");
+
+    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectName("empty")
+      .setProjectVersion("1.0")
+      .addArgument("/d:sonar.verbose=true"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    BuildResult result = ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(projectDir)
+      .addArgument("end"));
+
+    assertThat(result.isSuccess()).isTrue();
+    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    assertThat(issues).isEmpty();
   }
 
   private Measure getFileMeasure(String metricKey) {

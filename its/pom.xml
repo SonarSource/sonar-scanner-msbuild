@@ -17,13 +17,11 @@
 
   <inceptionYear>2016</inceptionYear>
 
-
-
   <dependencies>
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
       <artifactId>sonar-orchestrator</artifactId>
-      <version>3.13-build576</version>
+      <version>3.13-build724</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -53,6 +51,7 @@
             <configuration>
                 <includes>
                     <include>**/TestSuite.java</include>
+                    <include>**/VBNetTest.java</include>
                 </includes>
             </configuration>
         </plugin>

@@ -224,7 +224,7 @@ namespace SonarQube.TeamBuild.PostProcessor {
         ///Bin directory: {2}
         ///Config directory: {3}
         ///Output directory: {4}
-        ///Config file: {4}.
+        ///Config file: {5}.
         /// </summary>
         internal static string SETTING_DumpSettings {
             get {

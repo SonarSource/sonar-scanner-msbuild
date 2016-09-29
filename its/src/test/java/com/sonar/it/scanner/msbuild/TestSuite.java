@@ -25,12 +25,11 @@ import org.junit.ClassRule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.PluginLocation;
 
 
 /**
@@ -46,26 +45,23 @@ import com.sonar.orchestrator.locator.FileLocation;
 })
 
 public class TestSuite {
-  private final static Logger LOG = LoggerFactory.getLogger(TestSuite.class);
-
   public static Orchestrator ORCHESTRATOR;
-  public static String scannerVersion;
 
   @ClassRule
   public static TemporaryFolder temp = new TemporaryFolder();
 
   @ClassRule
   public static SingleStartExternalResource resource = new SingleStartExternalResource() {
-
     @Override
     protected void beforeAll() {
-      scannerVersion = TestUtils.getScannerVersion();
-      LOG.info("Using Scanner for MSBuild " + scannerVersion);
+      
       Path modifiedCs = TestUtils.prepareCSharpPlugin(temp);
       Path customRoslyn = TestUtils.getCustomRoslynPlugin();
       ORCHESTRATOR = Orchestrator.builderEnv()
         .addPlugin(FileLocation.of(modifiedCs.toFile()))
         .addPlugin(FileLocation.of(customRoslyn.toFile()))
+        .addPlugin(PluginLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", "2.5-SNAPSHOT"))
+        .activateLicense("vbnet")
         .build();
       ORCHESTRATOR.start();
     }

@@ -3,6 +3,7 @@
 set -euo pipefail
 set -x
 
+# if the version of the Scanner is "DEV", we build the version deployed in repox using the current assembly version and the build number (CI_BUILD_NUMBER)
 get_version() {
   if [ "DEV" == "$1" ]; then
     local assemblyInfoFile=../AssemblyInfo.Shared.cs
