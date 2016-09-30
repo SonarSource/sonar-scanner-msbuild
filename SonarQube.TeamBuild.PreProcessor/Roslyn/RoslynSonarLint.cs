@@ -17,7 +17,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
     static class RoslynSonarLint
     {
-        public static string GenerateXml(IEnumerable<ActiveRule> activeRules, IDictionary<string, string> serverSettings, string outDir, string language, string repoKey)
+        public static string GenerateXml(IEnumerable<ActiveRule> activeRules, IDictionary<string, string> serverSettings, string language, string repoKey)
         {
             var repoActiveRules = activeRules.Where(ar => repoKey.Equals(ar.RepoKey));
             var settings = serverSettings.Where(a => a.Key.StartsWith("sonar." + language + "."));
@@ -27,7 +27,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             builder.AppendLine("<AnalysisInput>");
 
             builder.AppendLine("  <Settings>");
-            WriteSetting(builder, "sonarqube.out.protobuf", Path.Combine(outDir, "protobuf"));
             foreach (KeyValuePair<string, string> pair in settings)
             {
                 if (!Utilities.IsSecuredServerProperty(pair.Key))
@@ -73,12 +72,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         private static void WriteSetting(StringBuilder builder, string key, string value)
         {
             builder.AppendLine("    <Setting>");
-            builder.AppendLine("      <Key>");
-            builder.AppendLine("        " + key);
-            builder.AppendLine("      </Key>");
-            builder.AppendLine("      <Value>");
-            builder.AppendLine("        " + value);
-            builder.AppendLine("      </Value>");
+            builder.AppendLine("      <Key>" + EscapeXml(key) + "</ Key >");
+            builder.AppendLine("      <Value>" + EscapeXml(value) + "</Value>");
             builder.AppendLine("    </Setting>");
         }
 

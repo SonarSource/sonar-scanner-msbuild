@@ -205,6 +205,27 @@
     </PropertyGroup>
   </Target>
 
+
+  <Target Name="CreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties"  Condition=" $(SonarQubeTempPath) != '' ">
+    <!-- **************************************************************************** -->
+    <!-- Create the project-specific directories for conf and out -->
+
+    <!-- Calculate a project-specific directory names for conf and out -->
+    <PropertyGroup>
+      <FolderDisambiguator Condition=" $(FolderDisambiguator)=='' ">_$(Platform)_$(Configuration)_$([System.DateTime]::Now.ToString("ffff"))</FolderDisambiguator>
+      <ProjectSpecificOutDir>$(SonarQubeOutputPath)$(MSBuildProjectName)$(FolderDisambiguator)</ProjectSpecificOutDir>
+      <ProjectSpecificConfDir>$(SonarQubeConfigPath)$(MSBuildProjectName)$(FolderDisambiguator)</ProjectSpecificConfDir>
+    </PropertyGroup>
+
+    <!-- Create the project-specific output folder -->
+    <RemoveDir Directories="$(ProjectSpecificOutDir)" />
+    <MakeDir Directories="$(ProjectSpecificOutDir)" />
+    
+    <!-- Create the project-specific conf folder -->
+    <RemoveDir Directories="$(ProjectSpecificConfDir)" />
+    <MakeDir Directories="$(ProjectSpecificConfDir)" />
+  </Target>
+  
   <!-- **************************************************************************** -->
   <!-- Write the project info file for the current project.
        Any targets which affect @(AnalysisResults) should be run before this target,
@@ -217,23 +238,10 @@
           Condition=" $(SonarQubeTempPath) != '' ">
 
     <!-- **************************************************************************** -->
-    <!-- Create the project-specific directory -->
-
-    <!-- Calculate a project-specific directory name -->
-    <PropertyGroup>
-      <FolderDisambiguator Condition=" $(FolderDisambiguator)=='' ">_$(Platform)_$(Configuration)_$([System.DateTime]::Now.ToString("ffff"))</FolderDisambiguator>
-      <ProjectSpecificDir>$(SonarQubeOutputPath)\$(MSBuildProjectName)$(FolderDisambiguator)</ProjectSpecificDir>
-    </PropertyGroup>
-
-    <!-- Create the project-specific output folder -->
-    <RemoveDir Directories="$(ProjectSpecificDir)" />
-    <MakeDir Directories="$(ProjectSpecificDir)" />
-
-    <!-- **************************************************************************** -->
     <!-- Write of file lists -->
     <PropertyGroup>
       <!-- Set the file name for the list file -->
-      <AnalysisFileList>$(ProjectSpecificDir)\FilesToAnalyze.txt</AnalysisFileList>
+      <AnalysisFileList>$(ProjectSpecificOutDir)\FilesToAnalyze.txt</AnalysisFileList>
     </PropertyGroup>
 
     <!-- Write out a list of files to analyze that will be passed to the sonar-scanner -->
@@ -261,7 +269,7 @@
        IsExcluded="$(SonarQubeExclude)"
        AnalysisResults="@(AnalysisResults)"
        AnalysisSettings="@(SonarQubeSetting)"
-       OutputFolder="$(ProjectSpecificDir)" />
+       OutputFolder="$(ProjectSpecificOutDir)" />
   </Target>
 
   <!-- **************************************************************************** -->
@@ -472,8 +480,14 @@
       This style of naming is consistent with how FxCop names its report.-->
       <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)$(TargetFileName).RoslynCA.json</ErrorLog>
       <ResolvedCodeAnalysisRuleSet>$(SQRuleSetFilePath)</ResolvedCodeAnalysisRuleSet>
+      <ProjectConfFilePath>$(ProjectSpecificConfDir)\ProjectOutFolderPath.txt</ProjectConfFilePath>
     </PropertyGroup>
-
+    
+    <WriteLinesToFile File="$(ProjectConfFilePath)"
+                    Lines="$(ProjectSpecificOutDir)"
+                    Overwrite="true">
+    </WriteLinesToFile>
+    
     <ItemGroup>
       <!-- Remove any existing analyzers and additional files -->
       <Analyzer Remove="@(Analyzer)" />
@@ -482,6 +496,7 @@
       <!-- Add specified analyzers and additional files (if any) -->
       <Analyzer Include="@(SQAnalyzerFilePaths)" />
       <AdditionalFiles Include="@(SQAdditionalFiles)" />
+      <AdditionalFiles Include="$(ProjectConfFilePath)" />
     </ItemGroup>
 
   </Target>

@@ -301,14 +301,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             CheckExpectedAdditionalFileExists("SonarLint.xml", @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <AnalysisInput>
   <Settings>
-    <Setting>
-      <Key>
-        sonarqube.out.protobuf
-      </Key>
-      <Value>
-        " + Path.Combine(outDir, "protobuf") + @"
-      </Value>
-    </Setting>
   </Settings>
   <Rules>
     <Rule>

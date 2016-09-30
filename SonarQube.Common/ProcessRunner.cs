@@ -23,8 +23,6 @@ namespace SonarQube.Common
 
         #region Public methods
 
-        public bool ErrorsLogged { get; private set; }
-
         public int ExitCode { get; private set; }
 
         /// <summary>
@@ -158,7 +156,6 @@ namespace SonarQube.Common
         {
             if (e.Data != null)
             {
-                this.ErrorsLogged = true;
                 this.outputLogger.LogError(e.Data);
             }
         }
