@@ -72,7 +72,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         private static void WriteSetting(StringBuilder builder, string key, string value)
         {
             builder.AppendLine("    <Setting>");
-            builder.AppendLine("      <Key>" + EscapeXml(key) + "</ Key >");
+            builder.AppendLine("      <Key>" + EscapeXml(key) + "</Key>");
             builder.AppendLine("      <Value>" + EscapeXml(value) + "</Value>");
             builder.AppendLine("    </Setting>");
         }
