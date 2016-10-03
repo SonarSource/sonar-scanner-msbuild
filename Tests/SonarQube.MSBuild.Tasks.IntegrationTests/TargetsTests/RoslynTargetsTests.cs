@@ -70,6 +70,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Act
             BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
 
+            string projectSpecificConfFilePath = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.ProjectConfFilePath);
+            string[] expectedRoslynAdditionalFiles = new string[] { "c:\\config.1.txt", "c:\\config.2.txt", projectSpecificConfFilePath };
+
             // Assert
             logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
             logger.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
@@ -78,7 +81,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Check the error log and ruleset properties are set
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertExpectedResolvedRuleset(result, "d:\\my.ruleset");
-            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expectedAdditionalFiles);
+            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expectedRoslynAdditionalFiles);
             AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, expectedAssemblies);
 
             BuildAssertions.AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
@@ -112,6 +115,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Act
             BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
 
+            string projectSpecificConfFilePath = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.ProjectConfFilePath);
+            string[] expectedRoslynAdditionalFiles = new string[] { projectSpecificConfFilePath };
+
             // Assert
             logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
             logger.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
@@ -121,7 +127,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertExpectedResolvedRuleset(result, string.Empty);
             BuildAssertions.AssertExpectedItemGroupCount(result, TargetProperties.AnalyzerItemType, 0);
-            BuildAssertions.AssertExpectedItemGroupCount(result, TargetProperties.AdditionalFilesItemType, 0);
+            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expectedRoslynAdditionalFiles);
         }
 
         [TestMethod]
