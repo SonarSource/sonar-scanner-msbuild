@@ -695,10 +695,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
                 // The "write" target depends on a couple of other targets having executed first to set properties appropriately
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
+                TargetConstants.CreateProjectSpecificDirs,
                 TargetConstants.WriteProjectDataTarget);
 
             // Assert
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.CalculateFilesToAnalyzeTarget);
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.CreateProjectSpecificDirs);
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.WriteProjectDataTarget);
 
             logger.AssertTargetExecuted(TargetConstants.WriteProjectDataTarget);

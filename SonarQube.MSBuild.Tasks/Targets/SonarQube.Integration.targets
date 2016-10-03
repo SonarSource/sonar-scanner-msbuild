@@ -206,15 +206,15 @@
   </Target>
 
 
-  <Target Name="CreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties"  Condition=" $(SonarQubeTempPath) != '' ">
+  <Target Name="CreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties;WriteSonarQubeProjectData"  Condition=" $(SonarQubeTempPath) != '' ">
     <!-- **************************************************************************** -->
     <!-- Create the project-specific directories for conf and out -->
 
     <!-- Calculate a project-specific directory names for conf and out -->
     <PropertyGroup>
       <FolderDisambiguator Condition=" $(FolderDisambiguator)=='' ">_$(Platform)_$(Configuration)_$([System.DateTime]::Now.ToString("ffff"))</FolderDisambiguator>
-      <ProjectSpecificOutDir>$(SonarQubeOutputPath)$(MSBuildProjectName)$(FolderDisambiguator)</ProjectSpecificOutDir>
-      <ProjectSpecificConfDir>$(SonarQubeConfigPath)$(MSBuildProjectName)$(FolderDisambiguator)</ProjectSpecificConfDir>
+      <ProjectSpecificOutDir>$(SonarQubeOutputPath)\$(MSBuildProjectName)$(FolderDisambiguator)</ProjectSpecificOutDir>
+      <ProjectSpecificConfDir>$(SonarQubeConfigPath)\$(MSBuildProjectName)$(FolderDisambiguator)</ProjectSpecificConfDir>
     </PropertyGroup>
 
     <!-- Create the project-specific output folder -->
@@ -233,7 +233,7 @@
   -->
   <!-- **************************************************************************** -->
   <Target Name="WriteSonarQubeProjectData"
-          DependsOnTargets="SonarQubeCategoriseProject;CalculateSonarQubeFilesToAnalyze"
+          DependsOnTargets="SonarQubeCategoriseProject;CalculateSonarQubeFilesToAnalyze;CreateProjectSpecificDirs"
           AfterTargets="Build"
           Condition=" $(SonarQubeTempPath) != '' ">
 
