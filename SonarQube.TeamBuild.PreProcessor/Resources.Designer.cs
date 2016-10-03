@@ -88,7 +88,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /name:[SonarQube project name].
+        ///   Looks up a localized string similar to /name:[SonarQube project name] - required for SonarQube &lt; 6.1.
         /// </summary>
         public static string CmdLine_ArgDescription_ProjectName {
             get {
@@ -97,7 +97,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /version:[SonarQube project version].
+        ///   Looks up a localized string similar to /version:[SonarQube project version] - required for SonarQube &lt; 6.1.
         /// </summary>
         public static string CmdLine_ArgDescription_ProjectVersion {
             get {

@@ -208,6 +208,14 @@ namespace SonarScanner.Shim
             sb.AppendLine(Escape(value));
         }
 
+        private static void AppendKeyValueIfNotEmpty(StringBuilder sb, string key, string value)
+        {
+            if(!string.IsNullOrEmpty(value))
+            {
+                AppendKeyValue(sb, key, value);
+            }
+        }
+
         private static bool IsAscii(char c)
         {
             return c <= sbyte.MaxValue;
@@ -216,8 +224,8 @@ namespace SonarScanner.Shim
         private void WriteSonarProjectInfo()
         {
             AppendKeyValue(sb, SonarProperties.ProjectKey, this.config.SonarProjectKey);
-            AppendKeyValue(sb, SonarProperties.ProjectName, this.config.SonarProjectName);
-            AppendKeyValue(sb, SonarProperties.ProjectVersion, this.config.SonarProjectVersion);
+            AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectName, this.config.SonarProjectName);
+            AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectVersion, this.config.SonarProjectVersion);
             AppendKeyValue(sb, SonarProperties.WorkingDirectory, Path.Combine(this.config.SonarOutputDir, ".sonar"));
             AppendKeyValue(sb, SonarProperties.ProjectBaseDir, ComputeProjectBaseDir());
 

@@ -51,7 +51,7 @@ public class ScannerMSBuildTest {
 
   @ClassRule
   public static SingleStartExternalResource resource = TestSuite.resource;
-  
+
   @Before
   public void setUp() {
     ORCHESTRATOR.resetData();
@@ -81,12 +81,35 @@ public class ScannerMSBuildTest {
     assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(37);
     assertThat(getFileMeasure("lines").getIntValue()).isEqualTo(58);
   }
-  
+
+  @Test
+  public void testNoProjectNameAndVersion() throws Exception {
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
+
+    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("end"));
+
+    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    assertThat(issues).hasSize(4);
+    assertThat(getFileMeasure("ncloc").getIntValue()).isEqualTo(23);
+    assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(37);
+    assertThat(getFileMeasure("lines").getIntValue()).isEqualTo(58);
+  }
+
   @Test
   public void testExcludedAndTest() throws Exception {
     String normalProjectKey = "my.project:my.project:B93B287C-47DB-4406-9EAB-653BCF7D20DC";
     String testProjectKey = "my.project:my.project:2DC588FC-16FB-42F8-9FDA-193852E538AF";
-    
+
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "excludedAndTest");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
@@ -102,23 +125,23 @@ public class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("end"));
-    
+
     // all issues and nloc are in the normal project
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).hasSize(4);
-    
+
     issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create().componentRoots(normalProjectKey)).list();
     assertThat(issues).hasSize(4);
-    
+
     issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create().componentRoots(testProjectKey)).list();
     assertThat(issues).hasSize(0);
-    
+
     // excluded project doesn't exist in SonarQube
 
     assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(45);
     assertThat(getProjectMeasure("ncloc", normalProjectKey).getIntValue()).isEqualTo(45);
   }
-  
+
   @Test
   public void testMultiLanguage() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileCSharp.xml"));
@@ -143,18 +166,18 @@ public class ScannerMSBuildTest {
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     // 2 CS, 2 cs-fxcop, 2 vbnet-fxcop, 2 vbnet
     assertThat(issues).hasSize(8);
-    
+
     // fxcop not working for vbnet because fxcop plugin is not installed
     List<String> keys = issues.stream().map(i -> i.ruleKey()).collect(Collectors.toList());
-    assertThat(keys).containsAll(Arrays.asList("vbnet:S3385", 
+    assertThat(keys).containsAll(Arrays.asList("vbnet:S3385",
       "vbnet:S2358",
-      "fxcop:DoNotRaiseReservedExceptionTypes", 
-      "fxcop:DoNotPassLiteralsAsLocalizedParameters", 
+      "fxcop:DoNotRaiseReservedExceptionTypes",
+      "fxcop:DoNotPassLiteralsAsLocalizedParameters",
       "fxcop-vbnet:AvoidUnusedPrivateFields",
       "fxcop-vbnet:AvoidUncalledPrivateCode",
-      "csharpsquid:S2228", 
+      "csharpsquid:S2228",
       "csharpsquid:S1134"));
-    
+
     // Program.cs 30
     // Properties/AssemblyInfo.cs 15
     // Ny Properties/AssemblyInfo.cs 13
@@ -258,7 +281,7 @@ public class ScannerMSBuildTest {
     assertThat(result.getLogs()).contains("The exclude flag has been set so the project will not be analyzed by SonarQube.");
     assertThat(result.getLogs()).contains("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
   }
-  
+
   @Test
   public void testNoActiveRule() throws IOException {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestEmptyQualityProfile.xml"));
@@ -286,7 +309,7 @@ public class ScannerMSBuildTest {
   private Measure getFileMeasure(String metricKey) {
     return getProjectMeasure(metricKey, FILE_KEY);
   }
-  
+
   private Measure getProjectMeasure(String metricKey, String projectKey) {
     Resource resource = ORCHESTRATOR.getServer().getWsClient().find(ResourceQuery.createForMetrics(projectKey, metricKey));
     return resource != null ? resource.getMeasure(metricKey) : null;

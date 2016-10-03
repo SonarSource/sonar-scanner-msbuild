@@ -32,14 +32,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException("key");
             }
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentNullException("name");
-            }
-            if (string.IsNullOrWhiteSpace(version))
-            {
-                throw new ArgumentNullException("version");
-            }
             if (cmdLineProperties == null)
             {
                 throw new ArgumentNullException("cmdLineProperties");

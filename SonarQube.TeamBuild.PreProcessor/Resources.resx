@@ -127,10 +127,10 @@
     <value>/key:[SonarQube project key]</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectName" xml:space="preserve">
-    <value>/name:[SonarQube project name]</value>
+    <value>/name:[SonarQube project name] - required for SonarQube &lt; 6.1</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectVersion" xml:space="preserve">
-    <value>/version:[SonarQube project version]</value>
+    <value>/version:[SonarQube project version] - required for SonarQube &lt; 6.1</value>
   </data>
   <data name="ERROR_Args_UrlRequired" xml:space="preserve">
     <value>The SonarQube URL must be supplied. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000).</value>

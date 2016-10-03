@@ -54,10 +54,10 @@ namespace SonarQube.TeamBuild.PreProcessor
                 id: KeywordIds.ProjectKey, prefixes: new string[] { "/key:", "/k:" }, required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectKey));
 
             Descriptors.Add(new ArgumentDescriptor(
-                id: KeywordIds.ProjectName, prefixes: new string[] { "/name:", "/n:" }, required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectName));
+                id: KeywordIds.ProjectName, prefixes: new string[] { "/name:", "/n:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectName));
 
             Descriptors.Add(new ArgumentDescriptor(
-                id: KeywordIds.ProjectVersion, prefixes: new string[] { "/version:", "/v:" }, required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion));
+                id: KeywordIds.ProjectVersion, prefixes: new string[] { "/version:", "/v:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion));
 
             Descriptors.Add(new ArgumentDescriptor(
               id: KeywordIds.InstallLoaderTargets, prefixes: new string[] { "/install:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets));
@@ -133,8 +133,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private static string GetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments)
         {
-            ArgumentInstance argument = arguments.Single(a => a.Descriptor.Id == id);
-            return argument.Value;
+            return arguments.Where(a => a.Descriptor.Id == id).Select(a => a.Value).SingleOrDefault();
         }
 
         /// <summary>

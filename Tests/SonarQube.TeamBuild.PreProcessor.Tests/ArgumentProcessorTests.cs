@@ -30,29 +30,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // 1. Null logger
             AssertException.Expects<ArgumentNullException>(() => ArgumentProcessor.TryProcessArgs(null, null));
 
-            // 2. All required arguments missing
+            // 2. required argument missing
             logger = CheckProcessingFails(/* no command line args */);
-            logger.AssertSingleErrorExists("/key:"); // we expect errors with info about the missing required parameters, which should include the primary alias
-            logger.AssertSingleErrorExists("/name:");
-            logger.AssertSingleErrorExists("/version:");
-            logger.AssertErrorsLogged(3);
-
-            // 3. Some required arguments missing
-            logger = CheckProcessingFails("/k:key", "/v:version");
-
-            logger.AssertErrorDoesNotExist("/key:");
-            logger.AssertErrorDoesNotExist("/version:");
-
-            logger.AssertSingleErrorExists("/name:");
+            logger.AssertSingleErrorExists("/key:"); // we expect error with info about the missing required parameter, which should include the primary alias
             logger.AssertErrorsLogged(1);
 
+            // 3. Only key and host URL are required 
+            ProcessedArgs args = CheckProcessingSucceeds("/k:key", "/d:sonar.host.url=myurl");
+            Assert.AreEqual(args.ProjectKey, "key");
+
             // 4. Argument is present but has no value
-            logger = CheckProcessingFails("/key:k1", "/name:n1", "/version:");
-
-            logger.AssertErrorDoesNotExist("/key:");
-            logger.AssertErrorDoesNotExist("/name:");
-
-            logger.AssertSingleErrorExists("/version:");
+            logger = CheckProcessingFails("/key:");
+            logger.AssertSingleErrorExists("/key:");
             logger.AssertErrorsLogged(1);
         }
 
@@ -157,9 +146,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertSingleErrorExists("/version=v1");
             // ... and errors for the missing required arguments
             logger.AssertSingleErrorExists("/key:");
-            logger.AssertSingleErrorExists("/name:");
-            logger.AssertSingleErrorExists("/version:");
-            logger.AssertErrorsLogged(6);
+            logger.AssertErrorsLogged(4);
         }
 
         [TestMethod]
@@ -294,11 +281,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertSingleErrorExists("/k:k2", "my.key"); // Warning about key appears twice
             logger.AssertSingleErrorExists("/k:key3", "my.key");
 
-            // ... and there should be warnings about other missing args too
-            logger.AssertSingleErrorExists("/version:");
-            logger.AssertSingleErrorExists("/name:");
-
-            logger.AssertErrorsLogged(4);
+            logger.AssertErrorsLogged(2);
         }
 
         [TestMethod]
