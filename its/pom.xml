@@ -63,7 +63,7 @@
             <include>**/VBNetTest.java</include>
           </includes>
           <systemProperties>
-            <scannerForMSBuild.version>${vbnetVersion}</scannerForMSBuild.version>
+            <vbnetVersion>${vbnetVersion}</vbnetVersion>
           </systemProperties>
         </configuration>
       </plugin>

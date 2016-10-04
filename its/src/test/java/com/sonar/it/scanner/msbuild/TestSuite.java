@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.PluginLocation;
@@ -73,9 +74,10 @@ public class TestSuite {
   };
   
   public static String getVBNetVersion() {
-    String version = System.getProperty("vbnetVersion");
+    Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
+    String version = configuration.getString("vbnetVersion");
     if(version != null) {
-      return null;
+      return version;
     }
     
     throw new IllegalStateException("Unspecified version of VB.NET plugin. Define 'vbnetVersion'");
