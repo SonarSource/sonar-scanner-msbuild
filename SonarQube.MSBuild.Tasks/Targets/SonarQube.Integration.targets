@@ -220,12 +220,12 @@
     <!-- Create the project-specific output folder -->
     <RemoveDir Directories="$(ProjectSpecificOutDir)" />
     <MakeDir Directories="$(ProjectSpecificOutDir)" />
-    
+
     <!-- Create the project-specific conf folder -->
     <RemoveDir Directories="$(ProjectSpecificConfDir)" />
     <MakeDir Directories="$(ProjectSpecificConfDir)" />
   </Target>
-  
+
   <!-- **************************************************************************** -->
   <!-- Write the project info file for the current project.
        Any targets which affect @(AnalysisResults) should be run before this target,
@@ -482,12 +482,12 @@
       <ResolvedCodeAnalysisRuleSet>$(SQRuleSetFilePath)</ResolvedCodeAnalysisRuleSet>
       <ProjectConfFilePath>$(ProjectSpecificConfDir)\ProjectOutFolderPath.txt</ProjectConfFilePath>
     </PropertyGroup>
-    
+
     <WriteLinesToFile File="$(ProjectConfFilePath)"
                     Lines="$(ProjectSpecificOutDir)"
                     Overwrite="true">
     </WriteLinesToFile>
-    
+
     <ItemGroup>
       <!-- Remove any existing analyzers and additional files -->
       <Analyzer Remove="@(Analyzer)" />
@@ -511,6 +511,10 @@
       <SonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePath"
          Condition=" $(ErrorLog) != '' AND  $([System.IO.File]::Exists($(ErrorLog))) == 'true' ">
         <Value>$(ErrorLog)</Value>
+      </SonarQubeSetting>
+      <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.workDirPath"
+         Condition=" $(ErrorLog) != '' AND  $([System.IO.File]::Exists($(ErrorLog))) == 'true' ">
+        <Value>$(SonarQubeOutputPath)\$(MSBuildProjectName)$(FolderDisambiguator)</Value>
       </SonarQubeSetting>
     </ItemGroup>
   </Target>
