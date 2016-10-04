@@ -136,7 +136,7 @@
     <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; [io.compression.zipfile]::ExtractToDirectory('$(OutputPath)$(ScannerCliArtifact)', '$(WorkDestinationDir)')&quot;" />
   </Target>
   <Target Name="ZipPayloadFiles">
-    <Exec Command="PowerShell -command Compress-Archive -Path $(WorkDestinationDir)\* -DestinationPath $(DestinationDir)\SonarQube.MSBuild.Runner.Implementation.zip" />
+    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; [io.compression.zipfile]::CreateFromDirectory('$(WorkDestinationDir)', '$(DestinationDir)\SonarQube.MSBuild.Runner.Implementation.zip')&quot;" />
   </Target>
   <Target Name="CleanExistingPayload" AfterTargets="Clean">
     <RemoveDir Directories="$(DestinationDir)" />
