@@ -22,6 +22,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
     public class RoslynTargetsTests
     {
         private const string RoslynAnalysisResultsSettingName = "sonar.cs.roslyn.reportFilePath";
+        private const string AnalyzerWorkDirectoryResultsSettingName = "sonar.cs.analyzer.workDirPath";
         private const string ErrorLogFilePattern = "{0}.RoslynCA.json";
 
         public TestContext TestContext { get; set; }
@@ -290,7 +291,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             properties.SonarQubeTempPath = rootInputFolder;
             properties[TargetProperties.ErrorLog] = resultsFile;
 
-            ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
+            string projectName = "MyProject";
+            ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, projectName + ".csproj", false);
+            ProjectRootElement projectRoot = BuildUtilities.CreateInitializedProjectRoot(this.TestContext, descriptor, properties);
+            string expectedWorkingDirectory = Path.Combine(rootInputFolder, "out") + "\\\\" + projectName;
 
             BuildLogger logger = new BuildLogger();
 
@@ -300,6 +304,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Assert
             logger.AssertTargetExecuted(TargetConstants.SetRoslynResultsTarget);
             BuildAssertions.AssertExpectedAnalysisSetting(result, RoslynAnalysisResultsSettingName, resultsFile);
+            BuildAssertions.AssertExpectedAnalysisSetting(result, AnalyzerWorkDirectoryResultsSettingName, expectedWorkingDirectory);
         }
 
         #endregion
