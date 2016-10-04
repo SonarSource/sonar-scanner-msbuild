@@ -29,11 +29,16 @@
       <version>1.7.2</version>
     </dependency>
 
-    <!-- Force Maven to download this artifact -->
+    <!-- Force Maven to download these artifacts -->
     <dependency>
       <groupId>org.sonarsource.dotnet</groupId>
       <artifactId>sonar-csharp-plugin</artifactId>
       <version>5.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sonarsource.dotnet</groupId>
+      <artifactId>sonar-vbnet-plugin</artifactId>
+      <version>2.5.0.240</version>
     </dependency>
 
     <dependency>

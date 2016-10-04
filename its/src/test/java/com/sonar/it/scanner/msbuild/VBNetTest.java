@@ -56,7 +56,7 @@ public class VBNetTest {
     protected void beforeAll() {
       
       ORCHESTRATOR = Orchestrator.builderEnv()
-        .addPlugin(PluginLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", "2.5-SNAPSHOT"))
+        .addPlugin(PluginLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", "2.5.0.240"))
         .addPlugin("fxcop")
         .activateLicense("vbnet")
         .build();

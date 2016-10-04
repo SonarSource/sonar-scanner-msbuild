@@ -60,7 +60,7 @@ public class TestSuite {
       ORCHESTRATOR = Orchestrator.builderEnv()
         .addPlugin(FileLocation.of(modifiedCs.toFile()))
         .addPlugin(FileLocation.of(customRoslyn.toFile()))
-        .addPlugin(PluginLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", "2.5-SNAPSHOT"))
+        .addPlugin(PluginLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", "2.5.0.240"))
         .activateLicense("vbnet")
         .build();
       ORCHESTRATOR.start();
