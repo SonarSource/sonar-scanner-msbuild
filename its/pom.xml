@@ -17,6 +17,10 @@
 
   <inceptionYear>2016</inceptionYear>
 
+  <properties>
+    <vbnetVersion>2.5.0.242</vbnetVersion>
+  </properties>
+  
   <dependencies>
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
@@ -36,9 +40,9 @@
       <version>5.1</version>
     </dependency>
     <dependency>
-      <groupId>org.sonarsource.dotnet</groupId>
+      <groupId>com.sonarsource.dotnet</groupId>
       <artifactId>sonar-vbnet-plugin</artifactId>
-      <version>2.5.0.240</version>
+      <version>${vbnetVersion}</version>
     </dependency>
 
     <dependency>
@@ -51,15 +55,18 @@
   <build>
     <plugins>
       <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-                <includes>
-                    <include>**/TestSuite.java</include>
-                    <include>**/VBNetTest.java</include>
-                </includes>
-            </configuration>
-        </plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>**/TestSuite.java</include>
+            <include>**/VBNetTest.java</include>
+          </includes>
+          <systemProperties>
+            <scannerForMSBuild.version>${vbnetVersion}</scannerForMSBuild.version>
+          </systemProperties>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   

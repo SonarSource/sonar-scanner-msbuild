@@ -60,7 +60,7 @@ public class TestSuite {
       ORCHESTRATOR = Orchestrator.builderEnv()
         .addPlugin(FileLocation.of(modifiedCs.toFile()))
         .addPlugin(FileLocation.of(customRoslyn.toFile()))
-        .addPlugin(PluginLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", "2.5.0.240"))
+        .addPlugin(PluginLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", getVBNetVersion()))
         .activateLicense("vbnet")
         .build();
       ORCHESTRATOR.start();
@@ -71,4 +71,13 @@ public class TestSuite {
       ORCHESTRATOR.stop();
     }
   };
+  
+  public static String getVBNetVersion() {
+    String version = System.getProperty("vbnetVersion");
+    if(version != null) {
+      return null;
+    }
+    
+    throw new IllegalStateException("Unspecified version of VB.NET plugin. Define 'vbnetVersion'");
+  }
 }
