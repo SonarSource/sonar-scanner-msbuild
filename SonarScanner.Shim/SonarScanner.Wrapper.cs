@@ -34,11 +34,6 @@ namespace SonarScanner.Shim
         public const string ProjectSettingsFileArgName = "project.settings";
 
         /// <summary>
-        /// Additional arguments that will always be passed to the scanner
-        /// </summary>
-        public const string StandardAdditionalScannerArguments = "-e"; // -e = produce execution errors to assist with troubleshooting
-
-        /// <summary>
         /// Default value for the SONAR_SCANNER_OPTS
         /// </summary>
         /// <remarks>Reserving more than is available on the agent will cause the sonar-scanner to fail</remarks>
@@ -216,7 +211,6 @@ namespace SonarScanner.Shim
             // are supplied - it will just use the last argument.
             // So we'll set our additional properties last to make sure they take precedence.
             args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}={2}", CmdLineArgPrefix, ProjectSettingsFileArgName, projectSettingsFilePath));
-            args.Add(StandardAdditionalScannerArguments);
 
             return args;
         }

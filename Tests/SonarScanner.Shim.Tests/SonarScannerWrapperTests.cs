@@ -114,11 +114,10 @@ namespace SonarScanner.Shim.Tests
             int loginIndex = CheckArgExists("-Dsonar.login=me", actualCmdLineArgs);
             int pwdIndex = CheckArgExists("-Dsonar.password=my.pwd", actualCmdLineArgs);
 
-            int standardArgsIndex = CheckArgExists(SonarScannerWrapper.StandardAdditionalScannerArguments, actualCmdLineArgs);
             int propertiesFileIndex = CheckArgExists(SonarScannerWrapper.ProjectSettingsFileArgName, actualCmdLineArgs);
 
-            Assert.IsTrue(loginIndex < standardArgsIndex && loginIndex < propertiesFileIndex, "User arguments should appear first");
-            Assert.IsTrue(pwdIndex < standardArgsIndex && pwdIndex < propertiesFileIndex, "User arguments should appear first");
+            Assert.IsTrue(loginIndex < propertiesFileIndex, "User arguments should appear first");
+            Assert.IsTrue(pwdIndex < propertiesFileIndex, "User arguments should appear first");
         }
 
         [TestMethod]
@@ -160,11 +159,10 @@ namespace SonarScanner.Shim.Tests
             int dbPwdIndex = CheckArgExists("-Dsonar.jdbc.password=file db pwd", actualCmdLineArgs); // sensitive value from file
             int userPwdIndex = CheckArgExists("-Dsonar.password=cmdline.password", actualCmdLineArgs); // sensitive value from cmd line: overrides file value
 
-            int standardArgsIndex = CheckArgExists(SonarScannerWrapper.StandardAdditionalScannerArguments, actualCmdLineArgs);
             int propertiesFileIndex = CheckArgExists(SonarScannerWrapper.ProjectSettingsFileArgName, actualCmdLineArgs);
 
-            Assert.IsTrue(dbPwdIndex < standardArgsIndex && dbPwdIndex < propertiesFileIndex, "User arguments should appear first");
-            Assert.IsTrue(userPwdIndex < standardArgsIndex && userPwdIndex < propertiesFileIndex, "User arguments should appear first");
+            Assert.IsTrue(dbPwdIndex < propertiesFileIndex, "User arguments should appear first");
+            Assert.IsTrue(userPwdIndex < propertiesFileIndex, "User arguments should appear first");
         }
 
         [TestMethod]
@@ -278,7 +276,6 @@ namespace SonarScanner.Shim.Tests
             string message = logger.AssertSingleInfoMessageExists(ExpectedConsoleMessagePrefix);
 
             CheckArgExists("-Dproject.settings=" + expectedPropertiesFilePath, message); // should always be passing the properties file
-            CheckArgExists(SonarScannerWrapper.StandardAdditionalScannerArguments, message); // standard args should always be passed
 
             return message;
         }
