@@ -144,6 +144,7 @@ public class ScannerMSBuildTest {
     // 2 CS, 2 cs-fxcop, 2 vbnet-fxcop, 2 vbnet
     assertThat(issues).hasSize(8);
     
+    // fxcop not working for vbnet because fxcop plugin is not installed
     List<String> keys = issues.stream().map(i -> i.ruleKey()).collect(Collectors.toList());
     assertThat(keys).containsAll(Arrays.asList("vbnet:S3385", 
       "vbnet:S2358",

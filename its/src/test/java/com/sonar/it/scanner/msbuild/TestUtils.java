@@ -67,7 +67,7 @@ public class TestUtils {
     }
     Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
     Locators locators = new Locators(configuration);
-    String pluginVersion = configuration.getString("csharpPlugin.version", "5.1");
+    String pluginVersion = TestSuite.getCSharpVersion();
     MavenLocation csharp = MavenLocation.create("org.sonarsource.dotnet", "sonar-csharp-plugin", pluginVersion);
     Path modifiedCs = t.resolve("modified-chsarp.jar");
     locators.copyToFile(csharp, modifiedCs.toFile());

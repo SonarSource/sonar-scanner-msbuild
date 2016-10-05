@@ -19,7 +19,7 @@
 
   <properties>
     <vbnetPlugin.version>2.5.0.243</vbnetPlugin.version>
-    <csharpPlugin.version>5.1</csharpPlugin.version>
+    <csharpPlugin.version>5.4-build243</csharpPlugin.version>
   </properties>
   
   <dependencies>
@@ -65,6 +65,7 @@
           </includes>
           <systemProperties>
             <vbnetPlugin.version>${vbnetPlugin.version}</vbnetPlugin.version>
+            <csharpPlugin.version>${csharpPlugin.version}</csharpPlugin.version>
           </systemProperties>
         </configuration>
       </plugin>

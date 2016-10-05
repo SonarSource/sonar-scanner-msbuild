@@ -84,4 +84,14 @@ public class TestSuite {
     
     throw new IllegalStateException("Unspecified version of VB.NET plugin. Define 'vbnetPlugin.version'");
   }
+  
+  public static String getCSharpVersion() {
+    Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
+    String version = configuration.getString("csharpPlugin.version");
+    if(version != null) {
+      return version;
+    }
+    
+    throw new IllegalStateException("Unspecified version of C# plugin. Define 'csharpPlugin.version'");
+  }
 }
