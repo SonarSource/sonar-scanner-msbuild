@@ -82,6 +82,12 @@ namespace SonarQube.Bootstrapper
             Utilities.LogAssemblyVersion(Logger, typeof(Program).Assembly, Resources.AssemblyDescription);
             Logger.IncludeTimestamp = true;
 
+            if (!Directory.Exists(BootstrapSettings.TempDirectory))
+            {
+                Logger.LogError(Resources.ERROR_TempDirDoesNotExist);
+                return ErrorCode;
+            }
+
             Directory.SetCurrentDirectory(BootstrapSettings.TempDirectory);
             ITeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(Logger);
             AnalysisConfig config = GetAnalysisConfig(teamBuildSettings.AnalysisConfigFilePath);

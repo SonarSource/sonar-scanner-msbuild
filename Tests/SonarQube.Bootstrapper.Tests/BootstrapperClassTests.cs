@@ -171,6 +171,21 @@ namespace SonarQube.Bootstrapper.Tests
         }
 
         [TestMethod]
+        public void Exe_PostProc_Fails_On_Missing_TempFolder()
+        {
+            Directory.Delete(TempDir, true);
+
+            using (InitializeNonTeamBuildEnvironment(RootDir))
+            {
+                // Act
+                TestLogger logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
+
+                // Assert
+                logger.AssertErrorsLogged(2);
+            }
+        }
+
+        [TestMethod]
         public void Exe_PostProc_Succeeds()
         {
             using (InitializeNonTeamBuildEnvironment(RootDir))

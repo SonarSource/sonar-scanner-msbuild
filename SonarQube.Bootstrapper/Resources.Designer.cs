@@ -124,6 +124,15 @@ namespace SonarQube.Bootstrapper {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Temporary analysis directory (usually .sonarqube) doesn&apos;t exist. The &quot;begin&quot; step was probably not executed..
+        /// </summary>
+        public static string ERROR_TempDirDoesNotExist {
+            get {
+                return ResourceManager.GetString("ERROR_TempDirDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The C# plugin installed on the SonarQube server is not compatible with the SonarQube analysis agent (i.e. the MSBuild.SonarQube.Scanner.exe, or the build automation task). Either check the compatibility matrix or get the latest versions for both..
         /// </summary>
         public static string ERROR_VersionMismatch {
