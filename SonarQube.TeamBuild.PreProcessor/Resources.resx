@@ -145,10 +145,8 @@
     <value>The following CheckId should not appear multiple times: {0}</value>
   </data>
   <data name="ERROR_InvalidCommandLineArgs" xml:space="preserve">
-    <value>Expecting at least three command line arguments:
+    <value>Expecting at least the following command line argument:
 - SonarQube project key
-- SonarQube project name
-- SonarQube project version
 The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.</value>
   </data>
   <data name="ERROR_InvalidProjectKeyArg" xml:space="preserve">

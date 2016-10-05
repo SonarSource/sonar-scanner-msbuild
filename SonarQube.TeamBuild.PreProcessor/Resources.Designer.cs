@@ -142,10 +142,8 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expecting at least three command line arguments:
+        ///   Looks up a localized string similar to Expecting at least the following command line argument:
         ///- SonarQube project key
-        ///- SonarQube project name
-        ///- SonarQube project version
         ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild..
         /// </summary>
         public static string ERROR_InvalidCommandLineArgs {
