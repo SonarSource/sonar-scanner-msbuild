@@ -503,7 +503,7 @@
 
   <Target Name="SetRoslynAnalysisResults"
       Condition=" $(SonarQubeTempPath) != '' "
-      AfterTargets="Build"
+      AfterTargets="Build;CreateProjectSpecificDirs"
       BeforeTargets="WriteSonarQubeProjectData">
 
     <ItemGroup>
@@ -512,9 +512,9 @@
          Condition=" $(ErrorLog) != '' AND  $([System.IO.File]::Exists($(ErrorLog))) == 'true' ">
         <Value>$(ErrorLog)</Value>
       </SonarQubeSetting>
-      <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.workDirPath"
+      <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPath"
          Condition=" $(ErrorLog) != '' AND  $([System.IO.File]::Exists($(ErrorLog))) == 'true' ">
-        <Value>$(SonarQubeOutputPath)\$(MSBuildProjectName)$(FolderDisambiguator)</Value>
+        <Value>$(ProjectSpecificOutDir)</Value>
       </SonarQubeSetting>
     </ItemGroup>
   </Target>

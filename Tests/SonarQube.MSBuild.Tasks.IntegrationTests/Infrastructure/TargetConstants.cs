@@ -93,6 +93,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string AdditionalFilesItemType = "AdditionalFiles";
         public const string ProjectConfFilePath = "ProjectConfFilePath";
 
+        public const string ProjectSpecificOutDir = "ProjectSpecificOutDir";
+
         // Legacy TeamBuild environment variables (XAML Builds)
         public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
         public const string BuildUri_Legacy = "TF_BUILD_BUILDURI";
