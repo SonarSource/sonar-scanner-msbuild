@@ -22,6 +22,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
     public class RoslynTargetsTests
     {
         private const string RoslynAnalysisResultsSettingName = "sonar.cs.roslyn.reportFilePath";
+        private const string AnalyzerWorkDirectoryResultsSettingName = "sonar.cs.analyzer.projectOutPath";
         private const string ErrorLogFilePattern = "{0}.RoslynCA.json";
 
         public TestContext TestContext { get; set; }
@@ -295,11 +296,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildLogger logger = new BuildLogger();
 
             // Act
-            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetRoslynResultsTarget);
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
+
+            string projectSpecificOutDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.ProjectSpecificOutDir);
 
             // Assert
+            logger.AssertTargetExecuted(TargetConstants.CreateProjectSpecificDirs);
             logger.AssertTargetExecuted(TargetConstants.SetRoslynResultsTarget);
             BuildAssertions.AssertExpectedAnalysisSetting(result, RoslynAnalysisResultsSettingName, resultsFile);
+            BuildAssertions.AssertExpectedAnalysisSetting(result, AnalyzerWorkDirectoryResultsSettingName, projectSpecificOutDir);
         }
 
         #endregion
