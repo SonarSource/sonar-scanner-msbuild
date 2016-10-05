@@ -35,6 +35,7 @@ import com.sonar.orchestrator.locator.PluginLocation;
 
 /**
  * csharpPlugin.version: csharp plugin to modify (installing scanner payload) and use. If not specified, uses 5.1. 
+ * vbnetPlugin.version: vbnet plugin to use. It not specified, it fails
  * scannerForMSBuild.version: scanner to use. If not specified, uses the one built in ../
  * scannerForMSBuildPayload.version: scanner to embed in the csharp plugin. If not specified, uses the one built in ../
  * sonar.runtimeVersion: SQ to use
@@ -62,6 +63,7 @@ public class TestSuite {
         .addPlugin(FileLocation.of(modifiedCs.toFile()))
         .addPlugin(FileLocation.of(customRoslyn.toFile()))
         .addPlugin(PluginLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", getVBNetVersion()))
+        .addPlugin("fxcop")
         .activateLicense("vbnet")
         .build();
       ORCHESTRATOR.start();
@@ -75,11 +77,11 @@ public class TestSuite {
   
   public static String getVBNetVersion() {
     Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
-    String version = configuration.getString("vbnetVersion");
+    String version = configuration.getString("vbnetPlugin.version");
     if(version != null) {
       return version;
     }
     
-    throw new IllegalStateException("Unspecified version of VB.NET plugin. Define 'vbnetVersion'");
+    throw new IllegalStateException("Unspecified version of VB.NET plugin. Define 'vbnetPlugin.version'");
   }
 }

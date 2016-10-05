@@ -112,6 +112,8 @@ public class ScannerMSBuildTest {
     
     issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create().componentRoots(testProjectKey)).list();
     assertThat(issues).hasSize(0);
+    
+    // excluded project doesn't exist in SonarQube
 
     assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(45);
     assertThat(getProjectMeasure("ncloc", normalProjectKey).getIntValue()).isEqualTo(45);
@@ -139,18 +141,24 @@ public class ScannerMSBuildTest {
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    // 4 CS, 1 VBNET
-    //assertThat(issues).hasSize(5);
+    // 2 CS, 2 cs-fxcop, 2 vbnet-fxcop, 2 vbnet
+    assertThat(issues).hasSize(8);
     
-    // FxCop rules do not show up for VB.NET because that version of the plugin no longer contains them (moved to FxCop plugin)
     List<String> keys = issues.stream().map(i -> i.ruleKey()).collect(Collectors.toList());
     assertThat(keys).containsAll(Arrays.asList("vbnet:S3385", 
+      "vbnet:S2358",
       "fxcop:DoNotRaiseReservedExceptionTypes", 
       "fxcop:DoNotPassLiteralsAsLocalizedParameters", 
+      "fxcop-vbnet:AvoidUnusedPrivateFields",
+      "fxcop-vbnet:AvoidUncalledPrivateCode",
       "csharpsquid:S2228", 
       "csharpsquid:S1134"));
     
-    assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(65);
+    // Program.cs 30
+    // Properties/AssemblyInfo.cs 15
+    // Ny Properties/AssemblyInfo.cs 13
+    // Module1.vb 10
+    assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(68);
   }
 
   @Test

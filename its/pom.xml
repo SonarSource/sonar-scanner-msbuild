@@ -18,7 +18,8 @@
   <inceptionYear>2016</inceptionYear>
 
   <properties>
-    <vbnetVersion>2.5.0.242</vbnetVersion>
+    <vbnetPlugin.version>2.5.0.243</vbnetPlugin.version>
+    <csharpPlugin.version>5.1</csharpPlugin.version>
   </properties>
   
   <dependencies>
@@ -37,12 +38,12 @@
     <dependency>
       <groupId>org.sonarsource.dotnet</groupId>
       <artifactId>sonar-csharp-plugin</artifactId>
-      <version>5.1</version>
+      <version>${csharpPlugin.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sonarsource.vbnet</groupId>
       <artifactId>sonar-vbnet-plugin</artifactId>
-      <version>${vbnetVersion}</version>
+      <version>${vbnetPlugin.version}</version>
     </dependency>
 
     <dependency>
