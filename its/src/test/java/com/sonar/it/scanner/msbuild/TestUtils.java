@@ -99,7 +99,7 @@ public class TestUtils {
   }
 
   @CheckForNull
-  private static String getScannerVersion() {
+  public static String getScannerVersion() {
     Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
     return configuration.getString("scannerForMSBuild.version");
   }

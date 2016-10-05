@@ -20,15 +20,16 @@
 package com.sonar.it.scanner.msbuild;
 
 import static com.sonar.it.scanner.msbuild.TestSuite.ORCHESTRATOR;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import org.junit.Assume;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -46,6 +47,12 @@ import com.sonar.orchestrator.locator.PluginLocation;
 public class VBNetTest {
   private static final String PROJECT_KEY = "my.project";
   private static final String FILE_KEY = "my.project:my.project:60FFCB5D-A35A-43B2-8FE3-F37C8F3B742B:Module1.vb"; 
+  
+  @BeforeClass
+  public static void checkSkip() {
+    Assume.assumeTrue("Disable for old scanner (needs C# plugin installed to get the payload)", 
+      TestUtils.getScannerVersion() == null || !TestUtils.getScannerVersion().equals("2.1.0.0"));
+  }
   
   @ClassRule
   public static TemporaryFolder temp = TestSuite.temp;
@@ -75,8 +82,7 @@ public class VBNetTest {
   }
   
   @Test
-  public void testMultiLanguage() throws Exception {
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileCSharp.xml"));
+  public void testVBNetOnly() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileVBNet.xml"));
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "multilang");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "vbnet", "ProfileForTestVBNet");
