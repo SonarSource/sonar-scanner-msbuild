@@ -1,7 +1,6 @@
 # Definition of QA pipeline at SonarSource
 
 SCANNER_PAYLOAD_VERSION:
-  - 2.1.0.0
   - DEV
 
 SCANNER_VERSION:
@@ -11,16 +10,6 @@ SCANNER_VERSION:
 SQ_VERSION:
   - DEV
   - LTS
-
-exclude:
-# scanner 2.2 (DEV) doesn't use payload, so remove the variation of the payload
-  - SQ_VERSION: DEV        
-    SCANNER_PAYLOAD_VERSION: 2.1.0.0
-    SCANNER_VERSION: DEV
-    
-  - SQ_VERSION: LTS        
-    SCANNER_PAYLOAD_VERSION: 2.1.0.0
-    SCANNER_VERSION: DEV
     
     
     

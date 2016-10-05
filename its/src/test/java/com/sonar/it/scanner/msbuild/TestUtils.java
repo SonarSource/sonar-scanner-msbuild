@@ -182,6 +182,7 @@ public class TestUtils {
     URI uri = URI.create("jar:" + zipUri);
     try (FileSystem zipfs = FileSystems.newFileSystem(uri, env)) {
       Path pathInZipfile = zipfs.getPath(dest);
+      LOG.info("Replacing " + pathInZipfile + " in " + src);
       Files.copy(src, pathInZipfile, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
       throw new IllegalStateException(e);
