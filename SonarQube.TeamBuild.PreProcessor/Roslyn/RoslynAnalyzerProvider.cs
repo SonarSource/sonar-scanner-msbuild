@@ -21,8 +21,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         public const string RoslynFormatNamePrefix = "roslyn-{0}";
         public const string RoslynRulesetFileName = "SonarQubeRoslyn-{0}.ruleset";
 
-        private static readonly string SONARANALYZER_PARTIAL_REPO_KEY = "sonaranalyzer-{0}";
-        private static readonly string ROSLYN_REPOSITORY_PREFIX = "roslyn.";
+        private const string SONARANALYZER_PARTIAL_REPO_KEY = "sonaranalyzer-{0}";
+        private const string ROSLYN_REPOSITORY_PREFIX = "roslyn.";
 
         public const string CSharpLanguage = "cs";
         public const string CSharpPluginKey = "csharp";

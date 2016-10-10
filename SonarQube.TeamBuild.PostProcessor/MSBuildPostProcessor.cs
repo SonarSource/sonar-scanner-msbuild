@@ -17,11 +17,12 @@ namespace SonarQube.TeamBuild.PostProcessor
 {
     public class MSBuildPostProcessor : IMSBuildPostProcessor
     {
+        private const string scanAllFiles = "-Dsonar.scanAllFiles=true";
+
         private readonly ICoverageReportProcessor codeCoverageProcessor;
         private readonly ISummaryReportBuilder reportBuilder;
         private readonly ISonarScanner sonarScanner;
         private readonly ILogger logger;
-        private readonly static string scanAllFiles = "-Dsonar.scanAllFiles=true";
         private readonly ITargetsUninstaller targetUninstaller;
 
         public MSBuildPostProcessor(ICoverageReportProcessor codeCoverageProcessor, ISonarScanner scanner, ISummaryReportBuilder reportBuilder, ILogger logger,

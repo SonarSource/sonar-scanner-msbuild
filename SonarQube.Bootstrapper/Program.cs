@@ -34,36 +34,5 @@ namespace SonarQube.Bootstrapper
             BootstrapperClass bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
             return bootstrapper.Execute();
         }
-
-        public interface IProcessorFactory
-        {
-            IMSBuildPostProcessor CreatePostProcessor();
-            ITeamBuildPreProcessor CreatePreProcessor();
-        }
-
-        public class DefaultProcessorFactory : IProcessorFactory
-        {
-            private readonly ILogger logger;
-
-            public DefaultProcessorFactory(ILogger logger)
-            {
-                this.logger = logger;
-            }
-            public IMSBuildPostProcessor CreatePostProcessor()
-            {
-                return new MSBuildPostProcessor(
-                    new CoverageReportProcessor(),
-                    new SonarScannerWrapper(),
-                    new SummaryReportBuilder(),
-                    logger,
-                    new TargetsUninstaller());
-            }
-
-            public ITeamBuildPreProcessor CreatePreProcessor()
-            {
-                IPreprocessorObjectFactory factory = new PreprocessorObjectFactory();
-                return new TeamBuildPreProcessor(factory, logger);
-            }
-        }
     }
 }

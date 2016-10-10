@@ -41,7 +41,7 @@ namespace SonarQube.Common
             {
                 throw new ArgumentNullException("op");
             }
-            
+
             logger.LogDebug(Resources.MSG_BeginningRetry, timeoutInMilliseconds, pauseBetweenTriesInMilliseconds);
 
             Stopwatch timer = Stopwatch.StartNew();
@@ -148,11 +148,11 @@ namespace SonarQube.Common
 
         public static bool IsSecuredServerProperty(string s)
         {
-            return s.EndsWith(".secured", StringComparison.InvariantCultureIgnoreCase);
+            return s.EndsWith(".secured", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
-        /// Common logic for handling web exceptions when connecting to the SonarQube server. Common exceptions 
+        /// Common logic for handling web exceptions when connecting to the SonarQube server. Common exceptions
         /// are handled by logging user friendly errors.
         /// </summary>
         /// <returns>True if the exception was handled</returns>

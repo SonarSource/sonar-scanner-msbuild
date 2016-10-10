@@ -50,7 +50,9 @@
     <Compile Include="ArgumentProcessor.cs" />
     <Compile Include="BootstrapperClass.cs" />
     <Compile Include="BootstrapperSettings.cs" />
+    <Compile Include="Interfaces\IProcessorFactory.cs" />
     <Compile Include="Interfaces\IBootstrapperSettings.cs" />
+    <Compile Include="DefaultProcessorFactory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">
