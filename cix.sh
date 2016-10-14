@@ -14,7 +14,7 @@ get_version() {
 	  exit 1
     fi
 	
-	output="${version}-build${CI_BUILD_NUMBER}"
+	output="${version}.${CI_BUILD_NUMBER}"
   else 
     output=$1
   fi
