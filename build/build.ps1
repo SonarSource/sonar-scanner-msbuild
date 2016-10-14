@@ -61,7 +61,13 @@ if ($env:IS_PULLREQUEST -eq "true") {
         [xml]$versionProps = Get-Content .\build\Version.props
         $version  = $versionProps.Project.PropertyGroup.MainVersion+".$buildversion"
 		write-host -f green "version: $version"
+		
+		$implZipPath    = Get-Item .\DeploymentArtifacts\CSharpPluginPayload\Release\SonarQube.MSBuild.Runner.Implementation.zip
+		$scannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\SonarQube.Scanner.MSBuild.zip
         
+		& "$env:WINDOWS_MVN_HOME\bin\mvn.bat" deploy:deploy-file -DgroupId="org.sonarsource.scanner.msbuild" -DartifactId="sonar-scanner-msbuild" -Dversion="$version" -Dpackaging="zip" -Dfile="$scannerZipPath" -Dfiles="$implZipPath" -Dclassifiers="impl" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
+        testExitCode
+		
     } else {
         write-host -f green "not on master"
     }

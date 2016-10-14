@@ -4,13 +4,6 @@ os:
 
 install:
   - git submodule update --init --recursive
-  - ps: ./install_maven.ps1
-  - cmd: SET PATH=C:\maven\apache-maven-3.2.5\bin;%JAVA_HOME%\bin;%PATH%
-  - cmd: SET M2_HOME=C:\maven\apache-maven-3.2.5\
-
-cache:
-  - C:\sonarqube\downloads -> appveyor.yml
-  - C:\users\appveyor\.m2 -> appveyor.yml
 
 configuration: Release
 
@@ -20,9 +13,6 @@ before_build:
 build:
   verbosity: minimal
   project: SonarQube.Scanner.MSBuild.sln
- 
-on_success:
-  - ps: ./appveyor_on_success.ps1
 
 on_finish:
 # Uncomment this to be able to RDP into the build agent
