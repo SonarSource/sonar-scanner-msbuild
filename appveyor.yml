@@ -15,7 +15,6 @@ cache:
 configuration: Release
 
 before_build:
-  - ps: ./appveyor_before_build.ps1
   - nuget restore
   
 build:

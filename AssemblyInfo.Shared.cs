@@ -7,8 +7,9 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyVersion("2.2.0.0")]
+[assembly: AssemblyVersion("2.2.0")]
 [assembly: AssemblyFileVersion("2.2.0.0")]
+[assembly: AssemblyInformationalVersion("Version:2.2.0.0 Branch:not-set Sha1:not-set")]
 
 [assembly: AssemblyConfiguration("")]
 
