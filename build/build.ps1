@@ -65,7 +65,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
 		$implZipPath    = Get-Item .\DeploymentArtifacts\CSharpPluginPayload\Release\SonarQube.MSBuild.Runner.Implementation.zip
 		$scannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\SonarQube.Scanner.MSBuild.zip
         
-		& "$env:WINDOWS_MVN_HOME\bin\mvn.bat" deploy:deploy-file -DgroupId="org.sonarsource.scanner.msbuild" -DartifactId="sonar-scanner-msbuild" -Dversion="$version" -Dpackaging="zip" -Dfile="$scannerZipPath" -Dfiles="$implZipPath" -Dclassifiers="impl" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
+		& "$env:WINDOWS_MVN_HOME\bin\mvn.bat" deploy:deploy-file -DgroupId="org.sonarsource.scanner.msbuild" -DartifactId="sonar-scanner-msbuild" -Dversion="$version" -Dpackaging="zip" -Dfile="$scannerZipPath" -Dfiles="$implZipPath" -Dclassifiers="impl" -Dtypes="zip" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
         testExitCode
 		
     } else {
