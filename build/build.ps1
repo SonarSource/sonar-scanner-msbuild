@@ -65,8 +65,21 @@ if ($env:IS_PULLREQUEST -eq "true") {
 		$implZipPath    = Get-Item .\DeploymentArtifacts\CSharpPluginPayload\Release\SonarQube.MSBuild.Runner.Implementation.zip
 		$scannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\SonarQube.Scanner.MSBuild.zip
         
-		& "$env:WINDOWS_MVN_HOME\bin\mvn.bat" deploy:deploy-file -DgroupId="org.sonarsource.scanner.msbuild" -DartifactId="sonar-scanner-msbuild" -Dversion="$version" -Dpackaging="zip" -Dfile="$scannerZipPath" -Dfiles="$implZipPath" -Dclassifiers="impl" -Dtypes="zip" -DrepositoryId="sonarsource-public-qa" -Durl="https://repox.sonarsource.com/sonarsource-public-qa"
-        testExitCode
+		#DeployOnRepox $scannerZipPath "" $version
+        write-host -f green  "replace zip filenames in pom.xml"
+        (Get-Content .\pom.xml) -replace 'implZipPath', "$implZipPath" | Set-Content .\pom.xml
+        (Get-Content .\pom.xml) -replace 'scannerZipPath', "$scannerZipPath" | Set-Content .\pom.xml
+            
+        write-host -f green  "set version $version in pom.xml"
+        $command = "mvn versions:set -DgenerateBackupPoms=false -DnewVersion='$version'"
+        iex $command
+        write-host -f green  "set version $version in env VAR PROJECT_VERSION for artifactory buildinfo metadata"
+        $env:PROJECT_VERSION=$version
+        write-host -f green  "set the buildnumber to this job build number"
+        $env:BUILD_ID=$env:BUILD_NUMBER
+        write-host -f green  "Deploy to repox with $version"    
+        $command = 'mvn deploy -Pdeploy-sonarsource -B -e -V'
+        iex $command
 		
     } else {
         write-host -f green "not on master"
