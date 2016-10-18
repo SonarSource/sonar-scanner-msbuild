@@ -23,6 +23,10 @@ get_version() {
 cd its
 
 get_version $SCANNER_VERSION
+if [ "DEV" == "$SCANNER_VERSION" ]; then
+   #store version for artifact promotion
+   echo "ARTIFACT=org/sonarsource/scanner/msbuild/sonar-scanner-msbuild/$SCANNER_VERSION" > artifact.properties
+fi
 SCANNER_VERSION=$output
 
 get_version $SCANNER_PAYLOAD_VERSION
