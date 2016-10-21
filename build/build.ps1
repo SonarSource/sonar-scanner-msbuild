@@ -80,6 +80,9 @@ if ($env:IS_PULLREQUEST -eq "true") {
         write-host -f green  "Deploy to repox with $version"    
         $command = 'mvn deploy -Pdeploy-sonarsource -B -e -V'
         iex $command
+
+        #create empty file to trigger qa
+        new-item -path . -name qa.properties -type "file"
 		
     } else {
         write-host -f green "not on master"
