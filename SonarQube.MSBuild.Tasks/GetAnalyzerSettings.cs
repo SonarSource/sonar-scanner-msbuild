@@ -11,6 +11,7 @@ using SonarQube.Common;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.IO;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -19,7 +20,6 @@ namespace SonarQube.MSBuild.Tasks
     /// </summary>
     public class GetAnalyzerSettings : Task
     {
-
         private const string DllExtension = ".dll";
 
         #region Input properties
@@ -29,6 +29,13 @@ namespace SonarQube.MSBuild.Tasks
         /// </summary>
         [Required]
         public string AnalysisConfigDir { get; set; }
+
+        /// <summary>
+        /// List of additional files that would be passed to the compiler if
+        /// no SonarQube analysis was happening.
+        /// </summary>
+        [Required]
+        public string[] OriginalAdditionalFiles { get; set; }
 
         /// <summary>
         /// The language for which we are gettings the settings
@@ -52,6 +59,13 @@ namespace SonarQube.MSBuild.Tasks
         /// </summary>
         [Output]
         public string[] AdditionalFiles { get; private set; }
+
+        /// <summary>
+        /// List of additional files that are originally passed to the compiler,
+        /// but <see cref="AdditionalFiles"/> contains an explicit override for them.
+        /// </summary>
+        [Output]
+        public string[] AdditionalFilesToRemove { get; private set; }
 
         #endregion Input properties
 
@@ -85,6 +99,15 @@ namespace SonarQube.MSBuild.Tasks
                         if (settings.AdditionalFilePaths != null)
                         {
                             this.AdditionalFiles = settings.AdditionalFilePaths.ToArray();
+
+                            HashSet<string> additionalFileNames = new HashSet<string>(
+                                this.AdditionalFiles
+                                    .Select(af => GetFileName(af))
+                                    .Where(n => !string.IsNullOrEmpty(n)));
+
+                            this.AdditionalFilesToRemove = (this.OriginalAdditionalFiles ?? Enumerable.Empty<string>())
+                                .Where(original => additionalFileNames.Contains(GetFileName(original)))
+                                .ToArray();
                         }
                     }
                     else
@@ -100,6 +123,18 @@ namespace SonarQube.MSBuild.Tasks
         #endregion Overrides
 
         #region Private methods
+
+        private static string GetFileName(string path)
+        {
+            try
+            {
+                return Path.GetFileName(path)?.ToLowerInvariant();
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+        }
 
         /// <summary>
         /// Returns whether the supplied string is an assembly library (i.e. dll)

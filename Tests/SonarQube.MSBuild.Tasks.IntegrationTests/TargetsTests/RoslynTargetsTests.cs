@@ -41,7 +41,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Create a valid config file containing analyzer settings
             string[] expectedAssemblies = new string[] { "c:\\data\\config.analyzer1.dll", "c:\\config2.dll" };
-            string[] expectedAdditionalFiles = new string[] { "c:\\config.1.txt", "c:\\config.2.txt" };
+            string[] analyzerAdditionalFiles = new string[] { "c:\\config.1.txt", "c:\\config.2.txt" };
 
             AnalysisConfig config = new AnalysisConfig();
 
@@ -49,7 +49,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             analyzerSettings.Language = "cs";
             analyzerSettings.RuleSetFilePath = "d:\\my.ruleset";
             analyzerSettings.AnalyzerAssemblyPaths = expectedAssemblies.ToList();
-            analyzerSettings.AdditionalFilePaths = expectedAdditionalFiles.ToList();
+            analyzerSettings.AdditionalFilePaths = analyzerAdditionalFiles.ToList();
             config.AnalyzersSettings = new List<AnalyzerSettings>();
             config.AnalyzersSettings.Add(analyzerSettings);
 
@@ -65,14 +65,92 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             projectRoot.AddItem(TargetProperties.AnalyzerItemType, "should.be.removed.analyzer1.dll");
             projectRoot.AddItem(TargetProperties.AnalyzerItemType, "c:\\should.be.removed.analyzer2.dll");
-            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "should.be.removed.additional1.txt");
-            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "should.be.removed.additional2.txt");
+
+            string[] notRemovedAdditionalFiles = new string[] { "should.not.be.removed.additional1.txt", "should.not.be.removed.additional2.txt" };
+
+            foreach (var notRemovedAdditionalFile in notRemovedAdditionalFiles)
+            {
+                projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, notRemovedAdditionalFile);
+            }
 
             // Act
             BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
 
             string projectSpecificConfFilePath = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.ProjectConfFilePath);
-            string[] expectedRoslynAdditionalFiles = new string[] { "c:\\config.1.txt", "c:\\config.2.txt", projectSpecificConfFilePath };
+            string[] expectedRoslynAdditionalFiles = new string[] { projectSpecificConfFilePath }
+                .Concat(analyzerAdditionalFiles)
+                .Concat(notRemovedAdditionalFiles)
+                .ToArray();
+
+            // Assert
+            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            logger.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
+            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
+
+            // Check the error log and ruleset properties are set
+            AssertErrorLogIsSetBySonarQubeTargets(result);
+            AssertExpectedResolvedRuleset(result, "d:\\my.ruleset");
+            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expectedRoslynAdditionalFiles);
+            AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, expectedAssemblies);
+
+            BuildAssertions.AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
+        }
+
+        [TestMethod]
+        [Description("Checks the happy path i.e. settings exist in config, no reason to exclude the project")]
+        public void Roslyn_Settings_ValidSetup_Override_AdditionalFiles()
+        {
+            // Arrange
+            BuildLogger logger = new BuildLogger();
+
+            // Set the config directory so the targets know where to look for the analysis config file
+            string confDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "config");
+
+            // Create a valid config file containing analyzer settings
+            string[] expectedAssemblies = new string[] { "c:\\data\\config.analyzer1.dll", "c:\\config2.dll" };
+            string analyzer1ExpectedFileName = "config.1.txt";
+            string[] analyzerAdditionalFiles = new string[] { "c:\\" + analyzer1ExpectedFileName, "c:\\config.2.txt" };
+
+            AnalysisConfig config = new AnalysisConfig();
+
+            AnalyzerSettings analyzerSettings = new AnalyzerSettings();
+            analyzerSettings.Language = "cs";
+            analyzerSettings.RuleSetFilePath = "d:\\my.ruleset";
+            analyzerSettings.AnalyzerAssemblyPaths = expectedAssemblies.ToList();
+            analyzerSettings.AdditionalFilePaths = analyzerAdditionalFiles.ToList();
+            config.AnalyzersSettings = new List<AnalyzerSettings>();
+            config.AnalyzersSettings.Add(analyzerSettings);
+
+            string configFilePath = Path.Combine(confDir, FileConstants.ConfigFileName);
+            config.Save(configFilePath);
+
+            // Create the project
+            WellKnownProjectProperties properties = new WellKnownProjectProperties();
+            properties.SonarQubeConfigPath = confDir;
+            properties.ResolvedCodeAnalysisRuleset = "c:\\should.be.overridden.ruleset";
+
+            ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
+
+            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "should.be.removed.analyzer1.dll");
+            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "c:\\should.be.removed.analyzer2.dll");
+
+            string[] notRemovedAdditionalFiles = new string[] { "should.not.be.removed.additional1.txt", "should.not.be.removed.additional2.txt" };
+
+            foreach (var notRemovedAdditionalFile in notRemovedAdditionalFiles)
+            {
+                projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, notRemovedAdditionalFile);
+            }
+
+            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "DummyPath\\" + analyzer1ExpectedFileName.ToUpperInvariant());
+
+            // Act
+            BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
+
+            string projectSpecificConfFilePath = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.ProjectConfFilePath);
+            string[] expectedRoslynAdditionalFiles = new string[] { projectSpecificConfFilePath }
+                .Concat(analyzerAdditionalFiles)
+                .Concat(notRemovedAdditionalFiles)
+                .ToArray();
 
             // Assert
             logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
@@ -111,13 +189,18 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
 
             projectRoot.AddItem(TargetProperties.AnalyzerItemType, "should.be.removed.analyzer1.dll");
-            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "should.be.removed.additional1.txt");
+            const string additionalFileName = "should.not.be.removed.additional1.txt";
+            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, additionalFileName);
 
             // Act
             BuildResult result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
 
             string projectSpecificConfFilePath = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.ProjectConfFilePath);
-            string[] expectedRoslynAdditionalFiles = new string[] { projectSpecificConfFilePath };
+
+            string[] expectedRoslynAdditionalFiles = new string[] {
+                projectSpecificConfFilePath,
+                additionalFileName /* additional files are not removed any longer */
+            };
 
             // Assert
             logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);

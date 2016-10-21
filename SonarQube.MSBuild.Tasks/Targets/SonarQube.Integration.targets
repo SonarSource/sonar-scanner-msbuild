@@ -468,10 +468,11 @@
   <Target Name="SetRoslynCodeAnalysisProperties">
 
     <!-- Fetch the relevant settings from the config file -->
-    <GetAnalyzerSettings AnalysisConfigDir="$(SonarQubeConfigPath)" Language="$(SQLanguage)">
+    <GetAnalyzerSettings AnalysisConfigDir="$(SonarQubeConfigPath)" Language="$(SQLanguage)" OriginalAdditionalFiles="@(AdditionalFiles)">
       <Output TaskParameter="RuleSetFilePath" PropertyName="SQRuleSetFilePath" />
       <Output TaskParameter="AnalyzerFilePaths" ItemName="SQAnalyzerFilePaths" />
       <Output TaskParameter="AdditionalFiles" ItemName="SQAdditionalFiles" />
+      <Output TaskParameter="AdditionalFilesToRemove" ItemName="SQAdditionalFilesToRemove" />
     </GetAnalyzerSettings>
 
     <PropertyGroup>
@@ -491,7 +492,7 @@
     <ItemGroup>
       <!-- Remove any existing analyzers and additional files -->
       <Analyzer Remove="@(Analyzer)" />
-      <AdditionalFiles Remove="@(AdditionalFiles)" />
+      <AdditionalFiles Remove="@(SQAdditionalFilesToRemove)" />
 
       <!-- Add specified analyzers and additional files (if any) -->
       <Analyzer Include="@(SQAnalyzerFilePaths)" />
