@@ -6,7 +6,6 @@ using SonarQube.TeamBuild.PreProcessor;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using static SonarQube.Bootstrapper.Program;
 
 namespace SonarQube.Bootstrapper
 {
@@ -62,7 +61,7 @@ namespace SonarQube.Bootstrapper
                 return ErrorCode;
             }
 
-            copyDLLs();
+            CopyDLLs();
             string server = BootstrapSettings.SonarQubeUrl;
             Debug.Assert(!string.IsNullOrWhiteSpace(server), "Not expecting the server URL to be null/empty");
             Logger.LogDebug(Resources.MSG_ServerUrl, server);
@@ -109,7 +108,7 @@ namespace SonarQube.Bootstrapper
         /// <summary>
         /// Copies DLLs needed by the targets file that is loaded by MSBuild to the project's .sonarqube directory
         /// </summary>
-        private void copyDLLs()
+        private void CopyDLLs()
         {
             string binDirPath = Path.Combine(BootstrapSettings.TempDirectory, "bin");
             Directory.CreateDirectory(binDirPath);

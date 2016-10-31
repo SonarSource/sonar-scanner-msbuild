@@ -134,10 +134,13 @@ namespace SonarScanner.Shim
                     property = "sonar.vbnet.fxcop.reportPath";
                 }
 
-                Debug.Assert(property != null, "FxCopReportFilePath is set but the language is unrecognised. Language: " + project.ProjectLanguage);
                 if (property != null)
                 {
                     AppendKeyValue(sb, guid, property, fxCopReportFilePath);
+                }
+                else
+                {
+                    Debug.Fail("FxCopReportFilePath is set but the language is unrecognised. Language: " + project.ProjectLanguage);
                 }
             }
 
@@ -237,7 +240,7 @@ namespace SonarScanner.Shim
         }
 
         /// <summary>
-        /// Appends the sonar.projectBaseDir value. This is calculated as follows: 
+        /// Appends the sonar.projectBaseDir value. This is calculated as follows:
         /// 1. the user supplied value, or if none
         /// 2. the sources directory if running from TFS Build or XAML Build, or
         /// 3. the common root path of projects, or if there isn't any
