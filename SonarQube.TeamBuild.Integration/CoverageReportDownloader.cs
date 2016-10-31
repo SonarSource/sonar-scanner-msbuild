@@ -69,7 +69,7 @@ namespace SonarQube.TeamBuild.Integration
 
         private VssHttpMessageHandler GetHttpHandler(string tfsUri, ILogger logger)
         {
-            VssCredentials vssCreds = null;
+            VssCredentials vssCreds;
             Uri tfsCollectionUri = new Uri(tfsUri);
 
             using (TfsTeamProjectCollection collection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(tfsCollectionUri))

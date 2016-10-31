@@ -114,7 +114,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         private AnalyzerSettings ConfigureAnalyzer(string language, IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules)
         {
             RoslynRuleSetGenerator ruleSetGenerator = new RoslynRuleSetGenerator(sqServerSettings);
-            RuleSet ruleSet = ruleSetGenerator.generate(activeRules, inactiveRules, language);
+            RuleSet ruleSet = ruleSetGenerator.Generate(activeRules, inactiveRules, language);
             string rulesetFilePath = this.WriteRuleset(ruleSet, language);
             if (rulesetFilePath == null)
             {
@@ -206,7 +206,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         public IEnumerable<string> FetchAnalyzerAssemblies(IEnumerable<ActiveRule> activeRules, string language)
         {
-            ICollection<string> repoKeys = activeRulesPartialRepoKey(activeRules, language);
+            ICollection<string> repoKeys = ActiveRulesPartialRepoKey(activeRules, language);
             IList<Plugin> plugins = new List<Plugin>();
 
             foreach (string repoKey in repoKeys)
@@ -214,9 +214,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 string pluginkey;
                 string pluginVersion;
                 string staticResourceName;
-                if (!sqServerSettings.TryGetValue(pluginKeyPropertyKey(repoKey), out pluginkey)
-                    || !sqServerSettings.TryGetValue(pluginVersionPropertyKey(repoKey), out pluginVersion)
-                    || !sqServerSettings.TryGetValue(staticResourceNamePropertyKey(repoKey), out staticResourceName))
+                if (!sqServerSettings.TryGetValue(PluginKeyPropertyKey(repoKey), out pluginkey)
+                    || !sqServerSettings.TryGetValue(PluginVersionPropertyKey(repoKey), out pluginVersion)
+                    || !sqServerSettings.TryGetValue(StaticResourceNamePropertyKey(repoKey), out staticResourceName))
                 {
                     this.logger.LogInfo(Resources.RAP_NoAssembliesForRepo, repoKey, language);
                     continue;
@@ -226,7 +226,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             }
 
             IEnumerable<string> analyzerAssemblyPaths = null;
-            if (plugins == null || plugins.Count == 0)
+            if (plugins.Count == 0)
             {
                 this.logger.LogInfo(Resources.RAP_NoAnalyzerPluginsSpecified, language);
             }
@@ -238,22 +238,22 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return analyzerAssemblyPaths;
         }
 
-        private static String pluginKeyPropertyKey(String partialRepoKey)
+        private static string PluginKeyPropertyKey(string partialRepoKey)
         {
             return partialRepoKey + ".pluginKey";
         }
 
-        private static String pluginVersionPropertyKey(String partialRepoKey)
+        private static string PluginVersionPropertyKey(string partialRepoKey)
         {
             return partialRepoKey + ".pluginVersion";
         }
 
-        private static String staticResourceNamePropertyKey(String partialRepoKey)
+        private static string StaticResourceNamePropertyKey(string partialRepoKey)
         {
             return partialRepoKey + ".staticResourceName";
         }
 
-        private static ICollection<string> activeRulesPartialRepoKey(IEnumerable<ActiveRule> activeRules, string language)
+        private static ICollection<string> ActiveRulesPartialRepoKey(IEnumerable<ActiveRule> activeRules, string language)
         {
             ISet<string> list = new HashSet<string>();
 

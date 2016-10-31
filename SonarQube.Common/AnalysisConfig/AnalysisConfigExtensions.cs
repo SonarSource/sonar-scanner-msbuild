@@ -78,7 +78,7 @@ namespace SonarQube.Common
             {
                 providers.Add(new ListPropertiesProvider(config.LocalSettings));
             }
-            
+
             // Add file settings
             string settingsFilePath = config.GetSettingsFilePath();
             if (settingsFilePath != null)
@@ -93,7 +93,7 @@ namespace SonarQube.Common
                 providers.Add(new ListPropertiesProvider(config.ServerSettings));
             }
 
-            IAnalysisPropertyProvider provider = null;
+            IAnalysisPropertyProvider provider;
             switch(providers.Count)
             {
                 case 0:

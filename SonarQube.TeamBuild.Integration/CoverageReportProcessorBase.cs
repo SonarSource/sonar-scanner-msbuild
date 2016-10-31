@@ -21,7 +21,7 @@ namespace SonarQube.TeamBuild.Integration
         private AnalysisConfig config;
         private ITeamBuildSettings settings;
         private ILogger logger;
-        
+
         private bool succesfullyInitialised = false;
 
         protected CoverageReportProcessorBase(ICoverageReportConverter converter)
@@ -112,13 +112,11 @@ namespace SonarQube.TeamBuild.Integration
         {
             foreach (string projectFolderPath in Directory.GetDirectories(sonarOutputDir))
             {
-                ProjectInfo projectInfo = null;
-
                 string projectInfoPath = Path.Combine(projectFolderPath, FileConstants.ProjectInfoFileName);
 
                 if (File.Exists(projectInfoPath))
                 {
-                    projectInfo = ProjectInfo.Load(projectInfoPath);
+                    ProjectInfo projectInfo = ProjectInfo.Load(projectInfoPath);
                     projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisType.VisualStudioCodeCoverage.ToString(), Location = coverageFilePath });
                     projectInfo.Save(projectInfoPath);
                 }

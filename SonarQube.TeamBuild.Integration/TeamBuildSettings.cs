@@ -34,7 +34,7 @@ namespace SonarQube.TeamBuild.Integration
             /// </summary>
             public const string LegacyCodeCoverageTimeoutInMs = "SQ_LegacyCodeCoverageInMs";
 
-            public const string IsInTeamBuild = "TF_Build"; // Common to legacy and non-legacy TeamBuilds
+            public const string IsInTeamFoundationBuild = "TF_Build"; // Common to legacy and non-legacy TeamBuilds
 
             // Legacy TeamBuild environment variables (XAML Builds)
             public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
@@ -65,7 +65,7 @@ namespace SonarQube.TeamBuild.Integration
                 throw new ArgumentNullException("logger");
             }
 
-            TeamBuildSettings settings = null;
+            TeamBuildSettings settings;
 
             BuildEnvironment env = GetBuildEnvironment();
             switch (env)
@@ -147,7 +147,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             get
             {
-                return TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamBuild, false);
+                return TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
             }
         }
 

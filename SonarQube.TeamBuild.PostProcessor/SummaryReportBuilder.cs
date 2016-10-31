@@ -138,7 +138,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             string sonarUrl;
 
-            if (String.IsNullOrWhiteSpace(branch))
+            if (string.IsNullOrWhiteSpace(branch))
             {
                 sonarUrl = string.Format(
                     System.Globalization.CultureInfo.InvariantCulture,
@@ -161,11 +161,10 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private static string FindBranch(AnalysisConfig config)
         {
-            string branch = null;
-
             IAnalysisPropertyProvider localSettings = config.GetAnalysisSettings(includeServerSettings: false);
             Debug.Assert(localSettings != null);
 
+            string branch;
             localSettings.TryGetValue(SonarProperties.ProjectBranch, out branch);
 
             return branch;
@@ -180,7 +179,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             this.logger.LogInfo(Resources.Report_CreatingSummaryMarkdown);
 
-            Debug.Assert(!String.IsNullOrEmpty(this.config.SonarOutputDir), "Could not find the output directory");
+            Debug.Assert(!string.IsNullOrEmpty(this.config.SonarOutputDir), "Could not find the output directory");
             string summaryMdPath = Path.Combine(this.config.SonarOutputDir, SummaryMdFilename);
 
             using (StreamWriter sw = new StreamWriter(summaryMdPath, append: false))

@@ -19,7 +19,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public static EnvironmentVariableScope CreateValidNonTeamBuildScope()
         {
             EnvironmentVariableScope scope = new EnvironmentVariableScope();
-            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, "false");
+            scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "false");
 
             scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, null);
             scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, null);

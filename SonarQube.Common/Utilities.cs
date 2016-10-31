@@ -25,7 +25,7 @@ namespace SonarQube.Common
         /// <returns>True if the operation succeed, otherwise false</returns>
         public static bool Retry(int timeoutInMilliseconds, int pauseBetweenTriesInMilliseconds, ILogger logger, Func<bool> op)
         {
-            if(timeoutInMilliseconds < 1)
+            if (timeoutInMilliseconds < 1)
             {
                 throw new ArgumentOutOfRangeException("timeoutInMilliseconds");
             }
@@ -209,13 +209,10 @@ namespace SonarQube.Common
         /// </summary>
         public static void SafeDispose(object instance)
         {
-            if (instance == null)
+            if (instance != null)
             {
                 IDisposable disposable = instance as IDisposable;
-                if (instance != null)
-                {
-                    disposable.Dispose();
-                }
+                disposable?.Dispose();
             }
         }
 

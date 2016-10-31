@@ -37,9 +37,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             IEnumerable<string> inactiveRules = new List<string>();
             string language = "cs";
 
-            AssertException.Expects<ArgumentNullException>(() => generator.generate(activeRules, inactiveRules, null));
-            AssertException.Expects<ArgumentNullException>(() => generator.generate(activeRules, null, language));
-            AssertException.Expects<ArgumentNullException>(() => generator.generate(null, inactiveRules, language));
+            AssertException.Expects<ArgumentNullException>(() => generator.Generate(activeRules, inactiveRules, null));
+            AssertException.Expects<ArgumentNullException>(() => generator.Generate(activeRules, null, language));
+            AssertException.Expects<ArgumentNullException>(() => generator.Generate(null, inactiveRules, language));
         }
 
         [TestMethod]
@@ -52,7 +52,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             string language = "cs";
             activeRules.Add(new ActiveRule("repo", "key"));
 
-            RuleSet ruleSet = generator.generate(activeRules, inactiveRules, language);
+            RuleSet ruleSet = generator.Generate(activeRules, inactiveRules, language);
             // No analyzer
             Assert.IsFalse(ruleSet.Rules.Any());
 
@@ -89,7 +89,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             inactiveRules.Add("csharpsquid:S1002");
             inactiveRules.Add("roslyn.custom:S1005");
 
-            RuleSet ruleSet = generator.generate(activeRules, inactiveRules, language);
+            RuleSet ruleSet = generator.Generate(activeRules, inactiveRules, language);
             string[] activatedCSharp = { "S1000", "S1001" };
             string[] activatedCustom = { "custom" };
 

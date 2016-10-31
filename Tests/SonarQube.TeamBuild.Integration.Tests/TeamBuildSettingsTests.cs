@@ -26,7 +26,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // 1. Env var not set
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, null);
+                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
                 result = TeamBuildSettings.IsInTeamBuild;
                 Assert.IsFalse(result);
             }
@@ -34,7 +34,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // 2. Env var set to a non-boolean -> false
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, "wibble");
+                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
                 result = TeamBuildSettings.IsInTeamBuild;
                 Assert.IsFalse(result);
             }
@@ -42,7 +42,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // 3. Env var set to false -> false
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, "false");
+                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "false");
                 result = TeamBuildSettings.IsInTeamBuild;
                 Assert.IsFalse(result);
             }
@@ -50,7 +50,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // 4. Env var set to true -> true
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, "TRUE");
+                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
                 result = TeamBuildSettings.IsInTeamBuild;
                 Assert.IsTrue(result);
             }
@@ -126,7 +126,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // 1. No environment vars set
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, null);
+                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
 
                 logger = new TestLogger();
                 settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
@@ -145,7 +145,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             // 2. Some Team build settings provided, but not marked as in team build
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, null);
+                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, "build uri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, "collection uri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_Legacy, "should be ignored");
@@ -174,7 +174,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, "TRUE");
+                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, "http://legacybuilduri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, "http://legacycollectionUri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_Legacy, "legacy build dir");
@@ -209,7 +209,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamBuild, "TRUE");
+                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "http://builduri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, "http://collectionUri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, "non-legacy team build");

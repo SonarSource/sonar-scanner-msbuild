@@ -73,51 +73,53 @@ namespace SonarQube.MSBuild.Tasks
 
         public override bool Execute()
         {
-            bool taskSuccess = true;
-
             AnalysisConfig config = TaskUtilities.TryGetConfig(this.AnalysisConfigDir, new MSBuildLoggerAdapter(this.Log));
+            ExecuteAnalysis(config);
 
-            if (config != null && Language != null)
+            return !this.Log.HasLoggedErrors;
+        }
+
+        private void ExecuteAnalysis(AnalysisConfig config)
+        {
+            if (config == null || Language == null)
             {
-                IList<AnalyzerSettings> analyzers = config.AnalyzersSettings;
-                if (analyzers == null)
-                {
-                    this.Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
-                }
-                else
-                {
-                    AnalyzerSettings settings = analyzers.SingleOrDefault(s => Language.Equals(s.Language));
-                    if (settings != null)
-                    {
-                        this.RuleSetFilePath = settings.RuleSetFilePath;
-
-                        if (settings.AnalyzerAssemblyPaths != null)
-                        {
-                            this.AnalyzerFilePaths = settings.AnalyzerAssemblyPaths.Where(f => IsAssemblyLibraryFileName(f)).ToArray();
-                        }
-
-                        if (settings.AdditionalFilePaths != null)
-                        {
-                            this.AdditionalFiles = settings.AdditionalFilePaths.ToArray();
-
-                            HashSet<string> additionalFileNames = new HashSet<string>(
-                                this.AdditionalFiles
-                                    .Select(af => GetFileName(af))
-                                    .Where(n => !string.IsNullOrEmpty(n)));
-
-                            this.AdditionalFilesToRemove = (this.OriginalAdditionalFiles ?? Enumerable.Empty<string>())
-                                .Where(original => additionalFileNames.Contains(GetFileName(original)))
-                                .ToArray();
-                        }
-                    }
-                    else
-                    {
-                        this.Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
-                    }
-                }
+                return;
             }
 
-            return !this.Log.HasLoggedErrors && taskSuccess;
+            IList<AnalyzerSettings> analyzers = config.AnalyzersSettings;
+            if (analyzers == null)
+            {
+                this.Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
+                return;
+            }
+
+            AnalyzerSettings settings = analyzers.SingleOrDefault(s => Language.Equals(s.Language));
+            if (settings == null)
+            {
+                this.Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
+                return;
+            }
+
+            this.RuleSetFilePath = settings.RuleSetFilePath;
+
+            if (settings.AnalyzerAssemblyPaths != null)
+            {
+                this.AnalyzerFilePaths = settings.AnalyzerAssemblyPaths.Where(f => IsAssemblyLibraryFileName(f)).ToArray();
+            }
+
+            if (settings.AdditionalFilePaths != null)
+            {
+                this.AdditionalFiles = settings.AdditionalFilePaths.ToArray();
+
+                HashSet<string> additionalFileNames = new HashSet<string>(
+                    this.AdditionalFiles
+                        .Select(af => GetFileName(af))
+                        .Where(n => !string.IsNullOrEmpty(n)));
+
+                this.AdditionalFilesToRemove = (this.OriginalAdditionalFiles ?? Enumerable.Empty<string>())
+                    .Where(original => additionalFileNames.Contains(GetFileName(original)))
+                    .ToArray();
+            }
         }
 
         #endregion Overrides

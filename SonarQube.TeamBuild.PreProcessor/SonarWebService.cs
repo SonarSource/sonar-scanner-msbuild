@@ -73,7 +73,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         /// <summary>
         /// Retrieves rule keys of rules having a given language and that are not activated in a given profile.
-        /// 
+        ///
         /// </summary>
         /// <param name="qprofile">Quality profile key.</param>
         /// <param name="language">Rule Language.</param>
@@ -103,7 +103,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         /// <summary>
         /// Retrieves active rules from the quality profile with the given ID, including their parameters and template keys.
-        /// 
+        ///
         /// </summary>
         /// <param name="qprofile">Quality profile id.</param>
         /// <returns>List of active rules</returns>
@@ -127,7 +127,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
                 activeRuleList.AddRange(rules.Select(r =>
                 {
-                    ActiveRule activeRule = new ActiveRule(r["repo"].ToString(), parseRuleKey(r["key"].ToString()));
+                    ActiveRule activeRule = new ActiveRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()));
                     if (r["internalKey"] != null)
                     {
                         activeRule.InternalKey = r["internalKey"].ToString();
@@ -153,7 +153,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         /// <summary>
         /// Retrieves project properties from the server.
-        /// 
+        ///
         /// Will fail with an exception if the downloaded return from the server is not a JSON array.
         /// </summary>
         /// <param name="projectKey">The SonarQube project key to retrieve properties for.</param>
@@ -175,7 +175,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             var properties = JArray.Parse(contents);
             var result = properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
 
-            // http://jira.sonarsource.com/browse/SONAR-5891 
+            // http://jira.sonarsource.com/browse/SONAR-5891
             if (!result.ContainsKey("sonar.cs.msbuild.testProjectPattern"))
             {
                 result["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
@@ -223,7 +223,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #region Private methods
 
-        private static string parseRuleKey(string key)
+        private static string ParseRuleKey(string key)
         {
             int pos = key.IndexOf(':');
             return key.Substring(pos + 1);
