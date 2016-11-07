@@ -1,8 +1,8 @@
 {
     "manifestVersion": 1,
     "id": "sonarqube-scanner-msbuild",
-    "version": "0.0.1",
     "name": "SonarQube Scanner for MSBuild",
+    "version": "0.0.4",
     "publisher": "sonarsource",
     "targets": [
         {
