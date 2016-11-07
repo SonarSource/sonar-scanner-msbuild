@@ -1,0 +1,70 @@
+{
+    "manifestVersion": 1,
+    "id": "sonarqube-scanner-msbuild",
+    "version": "0.0.1",
+    "name": "SonarQube Scanner for MSBuild",
+    "publisher": "sonarsource",
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],    
+    "description": "The SonarQube Scanner for MSBuild is the recommended way to launch a SonarQube analysis on MSBuild projects and solutions. This extension includes two tasks",
+    "categories": [
+        "Build and release"
+    ],
+    "icons": {
+        "default": "extension-icon.png"        
+    },
+    "tags": [
+        "build",
+        "ci",
+        "continuous integration"
+    ],
+	"content": {
+        "details": {
+            "path": "overview.md"
+        },
+        "license": {
+            "path": "license-terms.md"
+        }
+    },
+    "screenshots": [],
+	"links": {
+        "home": {
+            "uri": "http://www.sonarqube.org/"
+        }
+    },
+    "branding": {
+        "color": "rgb(67, 157, 210)",
+        "theme": "dark"
+    },
+    
+    "files": [
+        {
+            "path": "Tasks"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "EAC0BC9E-D29E-48F8-920F-4833DA6B513A",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "Tasks/SonarQubeScannerMsBuildBegin"
+            }
+        },
+        {
+            "id": "4F733B42-528E-4EE3-BCBC-2744511425F7",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "Tasks/SonarQubeScannerMsBuildEnd"
+            }
+        }
+    ]
+}
