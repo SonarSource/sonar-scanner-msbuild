@@ -160,3 +160,7 @@ $RECYCLE.BIN/
 .DS_Store
 
 /PackagingProjects/CSharpPluginPayload/TempJarDir
+
+# VSTS
+*.vsix
+.buildOutput/

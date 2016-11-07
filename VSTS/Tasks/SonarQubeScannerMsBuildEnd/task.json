@@ -1,0 +1,30 @@
+{
+    "id":  "4F733B42-528E-4EE3-BCBC-2744511425F7",
+    "name":  "SonarQubeScannerMsBuildEnd",
+    "friendlyName":  "[NEW] SonarQube Scanner for MSBuild - End Analysis",
+    "description":  "Finish the analysis and upload the results to SonarQube",
+    "helpMarkDown":  "[More Information](https://go.microsoft.com/fwlink/?LinkId=620063)",
+    "category":  "Build",
+    "visibility":  [
+                       "Build"
+                   ],
+    "author":  "SonarSource",
+    "version":  {
+                    "Major":  1,
+                    "Minor":  0,
+                    "Patch":  0
+                },
+    "demands":  [
+                    "msbuild",
+                    "java"
+                ],
+    "minimumAgentVersion":  "1.99.0",
+    "instanceNameFormat":  "Finish the analysis and upload the results to SonarQube",
+    "execution":  {
+                      "PowerShell":  {
+                                         "target":  "$(currentDirectory)\\SonarQubePostTest.ps1",
+                                         "argumentFormat":  "",
+                                         "workingDirectory":  "$(currentDirectory)"
+                                     }
+                  }
+}
