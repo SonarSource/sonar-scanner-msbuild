@@ -1,0 +1,74 @@
+{
+    "manifestVersion":  1,
+    "id":  "sonarqube-integration",
+    "name":  "SonarQube Integration ",
+    "version":  "1.0.0",
+    "publisher":  "sonarsource",
+    "targets":  [
+                    {
+                        "id":  "Microsoft.VisualStudio.Services"
+                    }
+                ],
+    "description":  "Use the SonarQube Scanner analysis build tasks in your continuous integration builds to understand the technical debt of your projects.",
+    "categories":  [
+                       "Build and release"
+                   ],
+    "icons":  {
+                  "default":  "extension-icon.png"
+              },
+    "tags":  [
+                 "build",
+                 "ci",
+                 "continuous integration"
+             ],
+    "content":  {
+                    "details":  {
+                                    "path":  "overview.md"
+                                },
+                    "license":  {
+                                    "path":  "license-terms.md"
+                                }
+                },
+    "screenshots":  [
+
+                    ],
+    "links":  {
+                  "home":  {
+                               "uri":  "http://www.sonarqube.org/"
+                           }
+              },
+    "branding":  {
+                     "color":  "rgb(67, 157, 210)",
+                     "theme":  "dark"
+                 },
+    "files":  [
+                  {
+                      "path":  "SonarQubeScannerMsBuildBegin"
+                  },
+                  {
+                      "path":  "SonarQubeScannerMsBuildEnd"
+                  }
+              ],
+    "contributions":  [
+                          {
+                              "id":  "EAC0BC9E-D29E-48F8-920F-4833DA6B513A",
+                              "type":  "ms.vss-distributed-task.task",
+                              "targets":  [
+                                              "ms.vss-distributed-task.tasks"
+                                          ],
+                              "properties":  {
+                                                 "name":  "SonarQubeScannerMsBuildBegin"
+                                             }
+                          },
+                          {
+                              "id":  "4F733B42-528E-4EE3-BCBC-2744511425F7",
+                              "type":  "ms.vss-distributed-task.task",
+                              "targets":  [
+                                              "ms.vss-distributed-task.tasks"
+                                          ],
+                              "properties":  {
+                                                 "name":  "SonarQubeScannerMsBuildEnd"
+                                             }
+                          }
+                      ]
+}
