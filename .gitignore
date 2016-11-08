@@ -160,3 +160,6 @@ $RECYCLE.BIN/
 .DS_Store
 
 /PackagingProjects/CSharpPluginPayload/TempJarDir
+VSTS/Tasks/SonarQubeScannerMsBuildBegin/SonarQube.Bootstrapper/
+*.vsix
+*.zip

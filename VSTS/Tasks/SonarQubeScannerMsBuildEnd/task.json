@@ -11,7 +11,7 @@
     "author": "SonarSource",
     "version": {
         "Major": 0,
-        "Minor": 0,
+        "Minor": 3,
         "Patch": 1
     },
     "demands": [

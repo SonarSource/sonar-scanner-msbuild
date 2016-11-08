@@ -7,4 +7,8 @@ $sonar_scanner_msbuild_file_name = "$PSScriptRoot\\sonar-scanner-msbuild.zip"
 (New-Object System.Net.WebClient).DownloadFile($sonar_scanner_url, $sonar_scanner_msbuild_file_name)
 
 Add-Type -AssemblyName "System.IO.Compression.FileSystem"
-[IO.Compression.ZipFile]::ExtractToDirectory($sonar_scanner_msbuild_file_name, "$PSScriptRoot\\Scanner")
+[IO.Compression.ZipFile]::ExtractToDirectory($sonar_scanner_msbuild_file_name, "$PSScriptRoot\\Tasks\\SonarQubeScannerMsBuildBegin\\SonarQube.Bootstrapper")
+
+
+
+
