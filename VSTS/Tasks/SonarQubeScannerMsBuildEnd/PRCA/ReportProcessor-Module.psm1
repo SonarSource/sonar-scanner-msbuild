@@ -2,7 +2,7 @@ $script:ProjectGuidAndFilePathMap = @{}
 $script:ComponentKeyAndPathMap = @{}
 $script:ComponentKeyAndRelativePathMap = @{}
 
-. $PSScriptRoot\SonarQubeHelper.ps1
+. $PSScriptRoot\..\SonarQubeHelper.ps1
 
 #region Public
 

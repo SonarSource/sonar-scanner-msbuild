@@ -22,6 +22,7 @@ function VerifyPrRun
     Register-Mock CreateAndUploadReport
     Register-Mock HandleCodeAnalysisReporting
     Register-Mock BreakBuildOnQualityGateFailure
+    Register-Mock Import-Module
     
     #Act
     . $PSScriptRoot\..\..\..\Tasks\SonarQubeScannerMsBuildEnd\SonarQubePostTest.ps1
@@ -44,6 +45,7 @@ function VerifyPrRun
     Unregister-Mock CreateAndUploadReport
     Unregister-Mock HandleCodeAnalysisReporting
     Unregister-Mock BreakBuildOnQualityGateFailure
+    Unregister-Mock Import-Module
     
     if ($SQPullRequestBotSetting -ne $null)
     {
