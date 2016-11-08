@@ -5,6 +5,7 @@ param()
 . $PSScriptRoot\..\..\..\Tasks\SonarQubeScannerMsBuildEnd\SonarQubeHelper.ps1
 
 $distributedTaskContext = 'Some distributed task context'
+[System.Environment]::SetEnvironmentVariable("MSBuild.SonarQube.Internal.ServerVersion", "");
 
 function VerifyVersionComparison
 {

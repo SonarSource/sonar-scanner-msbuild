@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param()
 
+$a = "$PSScriptRoot\..\..\..\..\Tasks\SonarQubeScannerMsBuildEnd\PRCA\ReportProcessor-Module.psm1";
 Import-Module -Name "$PSScriptRoot\..\..\..\..\Tasks\SonarQubeScannerMsBuildEnd\PRCA\ReportProcessor-Module.psm1" -Verbose
 
 . $PSScriptRoot\..\..\..\lib\Initialize-Test.ps1
