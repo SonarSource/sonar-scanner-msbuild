@@ -13,6 +13,7 @@ Register-Mock CreateAndUploadReport
 Register-Mock BreakBuildOnQualityGateFailure 
 Register-Mock IsFeatureEnabled {$true}
 Register-Mock HandleCodeAnalysisReporting
+Register-Mock Import-Module
 
 # Act
 . $PSScriptRoot\..\..\..\Tasks\SonarQubeScannerMsBuildEnd\SonarQubePostTest.ps1    
@@ -28,4 +29,4 @@ Unregister-Mock CreateAndUploadReport
 Unregister-Mock BreakBuildOnQualityGateFailure 
 Unregister-Mock IsFeatureEnabled 
 Unregister-Mock HandleCodeAnalysisReporting
-
+Unregister-Mock Import-Module

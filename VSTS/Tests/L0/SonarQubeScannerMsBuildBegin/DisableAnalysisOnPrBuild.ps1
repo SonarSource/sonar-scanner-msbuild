@@ -3,6 +3,7 @@ param()
 
 . $PSScriptRoot\..\..\lib\Initialize-Test.ps1
 
+
 # Arrange 
 $distributedTaskContext = 'Some distributed task context'
 
@@ -19,6 +20,7 @@ function VerifyPrRun
     Register-Mock IsPrBuild {$IsPrBuild}
     Register-Mock Write-Host
     Register-Mock InvokePreBuildTask
+    Register-Mock Import-Module
     
     #Act
     . $PSScriptRoot\..\..\..\Tasks\SonarQubeScannerMsBuildBegin\SonarQubePreBuild.ps1 -connectedServiceName "service" -projectKey "projectKey" -projectName "projectName" -projectVersion "1"
@@ -38,6 +40,7 @@ function VerifyPrRun
     Unregister-Mock IsPrBuild 
     Unregister-Mock Write-Host
     Unregister-Mock InvokePreBuildTask
+    Unregister-Mock Import-Module
     
     if ($SQPullRequestBotSetting -ne $null)
     {
