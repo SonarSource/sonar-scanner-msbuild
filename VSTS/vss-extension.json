@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "sonarqube-scanner-msbuild",
     "name": "SonarQube Scanner for MSBuild",
-    "version": "0.0.4",
+    "version": "0.5.5",
     "publisher": "sonarsource",
     "targets": [
         {
@@ -39,7 +39,6 @@
         "color": "rgb(67, 157, 210)",
         "theme": "dark"
     },
-    
     "files": [
         {
             "path": "Tasks"
@@ -64,6 +63,61 @@
             ],
             "properties": {
                 "name": "Tasks/SonarQubeScannerMsBuildEnd"
+            }
+        },
+        {
+            "id": "EDC775DD-1A82-4ADD-A073-7B5813E87202",
+            "description": "Service Endpoint type for SonarQube Connections",
+            "type": "ms.vss-endpoint.service-endpoint-type",
+            "targets": [
+                "ms.vss-endpoint.endpoint-types"
+            ],
+            "properties": {
+                "name": "sonarqube",
+                "displayName": "SonarQube Server Connection",
+                "url": {
+                    "displayName": "Server Url",
+                    "helpText": "Url for the SonarQube Server to connect to."
+                },
+                "dataSources": [
+                    {
+                        "name": "SonarQube Projects",
+                        "endpointUrl": "{{endpoint.url}}api/projects/index",
+                        "resultSelector": "jsonpath:$[*]"
+                    }
+                ],
+                "authenticationSchemes": [
+                    {
+                        "type": "ms.vss-endpoint.endpoint-auth-scheme-basic",
+                        "inputDescriptors": [
+                            {
+                                "id": "username",
+                                "name": "Username",
+                                "description": "Username",
+                                "inputMode": "textbox",
+                                "validation": {
+                                    "isRequired": false,
+                                    "dataType": "string"
+                                }
+                            },
+                            {
+                                "id": "password",
+                                "name": "Password",
+                                "description": "Password",
+                                "inputMode": "passwordbox",
+                                "isConfidential": true,
+                                "validation": {
+                                    "isRequired": false,
+                                    "dataType": "string"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "ms.vss-endpoint.endpoint-auth-scheme-token"
+                    }
+                ],
+                "helpMarkDown": "<a href=\"url-to-documentation\" target=\"_blank\"><b>Learn More</b></a>"
             }
         }
     ]
