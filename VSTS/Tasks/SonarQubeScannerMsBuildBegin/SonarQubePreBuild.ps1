@@ -2,6 +2,7 @@
 param(
     [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $connectedServiceName,
     [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $projectKey,
+    [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $projectName,
     [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $projectVersion,	
     [string]$dbUrl,
     [string]$dbUsername,
@@ -11,10 +12,6 @@ param(
     [string]$includeFullReport,
     [string]$breakBuild
 )
-
-# In the new VSTS Build Task we have only one project selector and there is no documented way to 
-# pass two values through one dropdown, hence we use the $projectKey for $projectName value. 
-$projectName = $projectKey
 
 Write-Verbose "Starting SonarQube Pre-Build Setup Step"
 

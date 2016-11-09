@@ -12,7 +12,7 @@
     "version": {
         "Major": 0,
         "Minor": 1,
-        "Patch": 7
+        "Patch": 10
     },
     "demands": [
         "msbuild",
@@ -45,10 +45,18 @@
     "inputs": [
         {
             "name": "projectKey",
-            "type": "pickList",
-            "label": "Project",
+            "type": "string",
+            "label": "Project Key",
             "required": true,
-            "helpMarkDown": "The SonarQube Project, changing this property will set the sonar.projectKey analysis parameter",
+            "helpMarkDown": "The SonarQube project unique key, i.e. sonar.projectKey",
+            "groupName": "project"
+        },
+        {
+            "name": "projectName",
+            "type": "string",
+            "label": "Project Name",
+            "required": true,
+            "helpMarkDown": "The SonarQube project name, i.e. sonar.projectName",
             "groupName": "project"
         },
         {
@@ -126,14 +134,6 @@
             "required": false,
             "helpMarkDown": "This option is only available when using a SonarQube server 5.3 or above. It will introduce delays as the build must wait for SonarQube to complete the analysis. [More information](https://go.microsoft.com/fwlink/?LinkId=722407)",
             "groupName": "advanced"
-        }
-    ],
-    "dataSourceBindings": [
-        {
-            "target": "projectKey",
-            "endpointId": "$(connectedServiceName)",
-            "dataSourceName": "SonarQube Projects",
-            "resultTemplate": "{\"Value\":\"{{{k}}}\",\"DisplayValue\":\"{{{nm}}}\"}"
         }
     ],
     "execution": {

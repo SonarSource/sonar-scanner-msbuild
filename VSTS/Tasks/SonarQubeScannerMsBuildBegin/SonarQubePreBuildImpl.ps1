@@ -96,7 +96,7 @@ function CreateCommandLineArgs
 
     if ([String]::IsNullOrWhiteSpace($serverUrl))
     {   
-		throw "Please setup a generic endpoint and specify the SonarQube Url as the Server Url" 
+		throw "Please setup a SonarQube Server endpoint and specify the SonarQube Url as the Server Url" 
 	}
 
 	[void]$sb.Append(" /d:sonar.host.url=" + (EscapeArg($serverUrl))) 
