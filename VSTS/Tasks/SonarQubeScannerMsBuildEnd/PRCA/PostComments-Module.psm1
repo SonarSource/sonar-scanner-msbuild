@@ -312,9 +312,11 @@ function MessageHasMatchingComments
 
 function BuildMessageToCommentDictonary
 {
-    param ([Array]$messages,      
-     [System.Collections.Generic.List[Microsoft.VisualStudio.Services.CodeReview.Discussion.WebApi.DiscussionThread]]$existingThreads,
-     [System.Collections.Generic.List[Microsoft.VisualStudio.Services.CodeReview.Discussion.WebApi.DiscussionComment]]$existingComments)
+    param (
+        [Array]$messages,      
+        [System.Collections.Generic.List[Microsoft.VisualStudio.Services.CodeReview.Discussion.WebApi.DiscussionThread]]$existingThreads,
+        [System.Collections.Generic.List[Microsoft.VisualStudio.Services.CodeReview.Discussion.WebApi.DiscussionComment]]$existingComments
+    )
      
      # reset any previous map
      $script:messageToCommentListMap = @{}
@@ -338,9 +340,11 @@ function BuildMessageToCommentDictonary
 #TODO: can be optimized by using a map of <Thread,List<Comments>> instead of 2 flat lists
 function GetMatchingComments
 {
-     param ([ValidateNotNull()][PSObject]$message,      
-     [System.Collections.Generic.List[Microsoft.VisualStudio.Services.CodeReview.Discussion.WebApi.DiscussionThread]]$existingThreads,
-     [System.Collections.Generic.List[Microsoft.VisualStudio.Services.CodeReview.Discussion.WebApi.DiscussionComment]]$existingComments)         
+    param (
+        [ValidateNotNull()][PSObject]$message,      
+        [System.Collections.Generic.List[Microsoft.VisualStudio.Services.CodeReview.Discussion.WebApi.DiscussionThread]]$existingThreads,
+        [System.Collections.Generic.List[Microsoft.VisualStudio.Services.CodeReview.Discussion.WebApi.DiscussionComment]]$existingComments
+    )         
      
      $resultList = @()
      

@@ -34,7 +34,8 @@ function StoreParametersInTaskContext
 		  [string]$bootstrapperPath,
 		  [string]$dashboardUrl,
           [string]$includeFullReport, 
-          [string]$breakBuild)
+          [string]$breakBuild
+    )
 	
     SetTaskContextVariable "MSBuild.SonarQube.Internal.BootstrapperPath" $bootstrapperPath    
     SetTaskContextVariable "MSBuild.SonarQube.HostUrl" $hostUrl
@@ -62,7 +63,8 @@ function StoreSensitiveParametersInTaskContext
 		  [string]$serverUsername,
 		  [string]$serverPassword,
 		  [string]$dbUsername,
-		  [string]$dbPassword)
+		  [string]$dbPassword
+    )
 
 	SetTaskContextVariable "MSBuild.SonarQube.ServerUsername" $serverUsername
 	SetTaskContextVariable "MSBuild.SonarQube.ServerPassword" $serverPassword
@@ -83,7 +85,8 @@ function CreateCommandLineArgs
 		  [string]$dbUsername,
 		  [string]$dbPassword,
           [string]$additionalArguments,
-          [string]$configFile)
+          [string]$configFile
+    )
 	
 
     $sb = New-Object -TypeName "System.Text.StringBuilder"; 
@@ -96,7 +99,7 @@ function CreateCommandLineArgs
 
     if ([String]::IsNullOrWhiteSpace($serverUrl))
     {   
-		throw "Please setup a generic endpoint and specify the SonarQube Url as the Server Url" 
+        throw "Please setup a SonarQube Server endpoint and specify the SonarQube Url as the Server Url" 
 	}
 
 	[void]$sb.Append(" /d:sonar.host.url=" + (EscapeArg($serverUrl))) 
