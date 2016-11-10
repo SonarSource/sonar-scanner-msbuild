@@ -23,10 +23,12 @@ function InitPostCommentsModule
 #
 function Test-InitPostCommentsModule
 {
-    param ([Microsoft.TeamFoundation.SourceControl.WebApi.GitHttpClient]$gitClient,
-    [Microsoft.VisualStudio.Services.CodeReview.Discussion.WebApi.DiscussionHttpClient]$discussionClient, 
-    [Microsoft.TeamFoundation.SourceControl.WebApi.GitPullRequest]$pullRequest, 
-    [string]$artifactUri)
+    param (
+        [Microsoft.TeamFoundation.SourceControl.WebApi.GitHttpClient]$gitClient,
+        [Microsoft.VisualStudio.Services.CodeReview.Discussion.WebApi.DiscussionHttpClient]$discussionClient, 
+        [Microsoft.TeamFoundation.SourceControl.WebApi.GitPullRequest]$pullRequest, 
+        [string]$artifactUri
+    )
     
     $script:gitClient = $gitClient
     $script:discussionClient = $discussionClient

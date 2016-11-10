@@ -69,9 +69,10 @@ function Retry
 {
     [CmdletBinding()]
     param (    
-    [Parameter(ValueFromPipeline,Mandatory)]$command,
-    [int]$maxRetries = 3, 
-    [int]$retryDelay = 1)    
+        [Parameter(ValueFromPipeline,Mandatory)]$command,
+        [int]$maxRetries = 3, 
+        [int]$retryDelay = 1
+    )            
 
     $success = $false
     $attemptNumber = 1
@@ -115,7 +116,8 @@ function RetryUntilTrue
     param (    
         [Parameter(ValueFromPipeline,Mandatory)]$command,        
         [int]$timeout = 60, 
-        [int]$retryDelay = 1)    
+        [int]$retryDelay = 1
+    )    
 
     $sw =  New-Object -TypeName "System.Diagnostics.Stopwatch"
     $sw.Start()
