@@ -2,8 +2,8 @@
 param()
 
 . $PSScriptRoot\..\..\lib\Initialize-Test.ps1
-. $PSScriptRoot\..\..\..\Tasks\Common\SonarQubeHelper.ps1
-. $PSScriptRoot\..\..\..\Tasks\SonarQubeScannerMsBuildBegin\SonarQubePreBuildImpl.ps1
+. $beginTaskFolder\SonarQubeHelper.ps1
+. $beginTaskFolder\SonarQubePreBuildImpl.ps1
 
 
 function RunTest

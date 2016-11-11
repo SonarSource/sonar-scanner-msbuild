@@ -1,7 +1,7 @@
 {
     "id":  "EAC0BC9E-D29E-48F8-920F-4833DA6B513A",
     "name":  "SonarQubeScannerMsBuildBegin",
-    "friendlyName":  "[NEW] SonarQube Scanner for MSBuild - Begin Analysis",
+    "friendlyName":  "SonarQube Scanner for MSBuild - Begin Analysis",
     "description":  "Fetch the Quality Profile from SonarQube to configure the analysis",
     "helpMarkDown":  "[More Information](https://go.microsoft.com/fwlink/?LinkId=620063)",
     "category":  "Build",

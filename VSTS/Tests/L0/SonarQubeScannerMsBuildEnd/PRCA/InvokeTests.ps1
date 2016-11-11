@@ -46,8 +46,8 @@ Add-Type -TypeDefinition $source -Language CSharp
 
 # import the module before initializing the test library to avoid "import-module" being mocked
 . $PSScriptRoot\..\..\..\lib\Initialize-Test.ps1
-. $PSScriptRoot\..\..\..\..\Tasks\SonarQubeScannerMsBuildEnd\PRCA\PostComments-Server.ps1
-. $PSScriptRoot\..\..\..\..\Tasks\Common\SonarQubeHelper.ps1
+. $endTaskFolder\PRCA\PostComments-Server.ps1
+. $endTaskFolder\SonarQubeHelper.ps1
 
 # Test 1 - call without params
 $bar = New-Object -TypeName "Test.Bar"

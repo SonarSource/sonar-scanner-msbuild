@@ -2,8 +2,8 @@
 param()
 
 . $PSScriptRoot\..\..\lib\Initialize-Test.ps1
-. $PSScriptRoot\..\..\..\Tasks\Common\SonarQubeHelper.ps1
-. $PSScriptRoot\..\..\..\Tasks\SonarQubeScannerMsBuildBegin\SonarQubePreBuildImpl.ps1
+. $beginTaskFolder\SonarQubeHelper.ps1
+. $beginTaskFolder\SonarQubePreBuildImpl.ps1
 
 
 ## Test Case 1 - Minimum configuration 
@@ -55,7 +55,7 @@ Assert-AreEqual ('begin /k:"pkey" /n:"Test Project" /v:"1.0" /d:sonar.host.url="
 
 
 # Test Case 3 - missing host url results in a user friendly exception
-Assert-Throws { CreateCommandLineArgs -projectKey "pkey" -projectName "Test Project" -projectVersion "1.0" } "Please setup a generic endpoint and specify the SonarQube Url as the Server Url" 
+Assert-Throws { CreateCommandLineArgs -projectKey "pkey" -projectName "Test Project" -projectVersion "1.0" } "Please setup a SonarQube Server endpoint and specify the SonarQube Url as the Server Url" 
 
 
 

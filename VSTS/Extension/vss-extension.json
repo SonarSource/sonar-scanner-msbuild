@@ -47,6 +47,9 @@
                   },
                   {
                       "path":  "SonarQubeScannerMsBuildEnd"
+                  },
+                  {
+                      "path":  "SonarQubeScannerCli"
                   }
               ],
     "contributions":  [
@@ -71,6 +74,16 @@
                                              }
                           },
                           {
+                              "id":  "3BDB2126-0CB2-4C5E-BCA3-114703F420BE",
+                              "type":  "ms.vss-distributed-task.task",
+                              "targets":  [
+                                              "ms.vss-distributed-task.tasks"
+                                          ],
+                              "properties":  {
+                                                 "name":  "SonarQubeScannerCli"
+                                             }
+                          },
+                          {
                               "id":  "EDC775DD-1A82-4ADD-A073-7B5813E87202",
                               "description":  "Service Endpoint type for SonarQube Connections",
                               "type":  "ms.vss-endpoint.service-endpoint-type",
@@ -79,7 +92,7 @@
                                           ],
                               "properties":  {
                                                  "name":  "sonarqube",
-                                                 "displayName":  "SonarQube Server",
+                                                 "displayName":  "SonarQube",
                                                  "url":  {
                                                              "displayName":  "Server Url",
                                                              "helpText":  "Url for the SonarQube Server to connect to."

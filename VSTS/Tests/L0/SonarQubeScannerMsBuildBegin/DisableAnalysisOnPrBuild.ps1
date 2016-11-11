@@ -23,7 +23,7 @@ function VerifyPrRun
     Register-Mock Import-Module
     
     #Act
-    . $PSScriptRoot\..\..\..\Tasks\SonarQubeScannerMsBuildBegin\SonarQubePreBuild.ps1 -connectedServiceName "service" -projectKey "projectKey" -projectName "projectName" -projectVersion "1"
+    . $beginTaskFolder\SonarQubePreBuild.ps1 -connectedServiceName "service" -projectKey "projectKey" -projectName "projectName" -projectVersion "1"
     
     # Assert
     if ($ExpectedToRun)

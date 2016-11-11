@@ -3,7 +3,9 @@ param (
 	[switch]$Clean,
 	[switch]$Build,
 	[switch]$Package,
-	[switch]$Publish
+	[switch]$Publish,
+	$Version,
+	$PublisherName	
 )
 
 # ----------------------------------------------------------------------
@@ -14,11 +16,21 @@ $sectionDisplayFormat = (("-"*25) + "[{0}]" + ("-"*25))
 # Directories
 $buildOutputDir = "$PSScriptRoot\.buildOutput"
 $distributionDir = "$buildOutputDir\dist"
+
 # Visual Studio MarketPlace
-$publisherName = "amaurysonarsource"
 $extensionId = "sonarqube-scanner-msbuild"
-$extensionVersion = "1.0.0"
-$vsixFile = "$distributionDir\$publisherName.$extensionId-$extensionVersion.vsix"
+
+if ([String]::IsNullOrWhiteSpace($Version))
+{
+	$Version = "1.0.0"		
+}
+
+if ([String]::IsNullOrWhiteSpace($PublisherName))
+{
+	$PublisherName = "amaurysonarsource"		
+}
+
+$vsixFile = "$distributionDir\$PublisherName.$extensionId-$Version.vsix"
 
 # Clean
 function Clean
@@ -28,7 +40,7 @@ function Clean
 	If (Test-Path $buildOutputDir) 
 	{
 		Write-Output "Deleting folder" $buildOutputDir
-		Remove-Item $buildOutputDir -recurse
+		Remove-Item $buildOutputDir -Recurse
 	}
 }
 
@@ -40,7 +52,8 @@ function PatchExtensionVersion
 	)
 	
 	$content = Get-Content $jsonFile -raw | ConvertFrom-Json
-	$content.version = $extensionVersion
+	$content.version = $Version
+
 	$content | ConvertTo-Json -Depth 100 | Set-Content $jsonFile
 }
 
@@ -51,7 +64,7 @@ function PatchTaskVersion
 		[string]$jsonFile
 	)
 	
-	$splittedVersion = $extensionVersion -split '\.'
+	$splittedVersion = $Version -split '\.'
 	
 	$content = Get-Content $jsonFile -raw | ConvertFrom-Json
 	$content.version.Major = [int]$splittedVersion[0]
@@ -80,17 +93,25 @@ function Build
 	Write-Output "Patching extension version"
 	PatchExtensionVersion "$extensionDir\vss-extension.json"
 	Write-Output "Copying extension files"
-	Copy-Item "$extensionDir\*" $buildOutputDir -recurse
+	Copy-Item "$extensionDir\*" $buildOutputDir -Recurse
 	
 	Write-Output "Patching 'SonarQubeScannerMsBuildBegin' task version"
 	PatchTaskVersion "$tasksDir\SonarQubeScannerMsBuildBegin\task.json"
+
 	Write-Output "Patching 'SonarQubeScannerMsBuildEnd' task version"
 	PatchTaskVersion "$tasksDir\SonarQubeScannerMsBuildEnd\task.json"
+
+	Write-Output "Patching 'SonarQubeScannerCli' task version"
+	PatchTaskVersion "$tasksDir\SonarQubeScannerCli\task.json"
+
 	Write-Output "Copying tasks files"
-	Copy-Item "$tasksDir\SonarQubeScannerMsBuildBegin" $buildOutputDir -recurse
-	Copy-Item "$tasksDir\SonarQubeScannerMsBuildEnd" $buildOutputDir -recurse
+	Copy-Item "$tasksDir\SonarQubeScannerMsBuildBegin" $buildOutputDir -Recurse
+	Copy-Item "$tasksDir\SonarQubeScannerMsBuildEnd" $buildOutputDir -Recurse
+	Copy-Item "$tasksDir\SonarQubeScannerCli" $buildOutputDir -Recurse
 	Copy-Item "$tasksDir\Common\SonarQubeHelper.ps1" "$buildOutputDir\SonarQubeScannerMsBuildBegin"
 	Copy-Item "$tasksDir\Common\SonarQubeHelper.ps1" "$buildOutputDir\SonarQubeScannerMsBuildEnd"
+	Copy-Item "$tasksDir\Common\SonarQubeHelper.ps1" "$buildOutputDir\SonarQubeScannerCli"
+
 
 	Write-Output "Downloading SonarQube Scanner for MSBuild"
 	(New-Object System.Net.WebClient).DownloadFile($sqScannerFileUrl, $sqScannerFilePath)
@@ -98,6 +119,8 @@ function Build
 	Write-Output "Extracting SonarQube Scanner for MSBuild"
 	Add-Type -AssemblyName "System.IO.Compression.FileSystem"
 	[IO.Compression.ZipFile]::ExtractToDirectory($sqScannerFilePath, "$buildOutputDir\SonarQubeScannerMsBuildBegin\SonarQubeScannerMsBuild")
+
+	Copy-Item "$buildOutputDir\SonarQubeScannerMsBuildBegin\SonarQubeScannerMsBuild\sonar-scanner-2.8" "$buildOutputDir\SonarQubeScannerCli\sonar-scanner" -Recurse
 }
 
 # Package
@@ -106,7 +129,7 @@ function Package
 	Write-Output ($sectionDisplayFormat -f "Package")
 
 	Write-Output "Creating vsix"	
-	tfx extension create --manifest-globs vss-extension.json --publisher $publisherName --extension-id $extensionId --root $buildOutputDir --output-path $vsixFile
+	tfx extension create --manifest-globs vss-extension.json --publisher $PublisherName --extension-id $extensionId --root $buildOutputDir --output-path $vsixFile
 	
 	If (-Not (Test-Path $vsixFile))
 	{
@@ -120,7 +143,7 @@ function Publish
 	Write-Output ($sectionDisplayFormat -f "Publish")
 	
 	Write-Output "Publishing vsix extension to the marketplace"
-	tfx extension publish --vsix $vsixFile --share-with $publisherName
+	tfx extension publish --vsix $vsixFile --share-with $PublisherName
 }
 
 # ----------------------------------------------------------------------

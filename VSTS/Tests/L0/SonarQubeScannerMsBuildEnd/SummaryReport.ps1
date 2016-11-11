@@ -1,8 +1,8 @@
 [CmdletBinding()]
 param()
 
-. $PSScriptRoot\..\..\..\Tasks\Common\SonarQubeHelper.ps1
-. $PSScriptRoot\..\..\..\Tasks\SonarQubeScannerMsBuildEnd\SummaryReport\ReportBuilder.ps1
+. $endTaskFolder\SonarQubeHelper.ps1
+. $endTaskFolder\SummaryReport\ReportBuilder.ps1
 . $PSScriptRoot\..\..\lib\Initialize-Test.ps1
     
 function CreateRandomDir

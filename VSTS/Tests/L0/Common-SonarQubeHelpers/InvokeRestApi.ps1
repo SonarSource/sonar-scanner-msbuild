@@ -2,7 +2,7 @@
 param()
 
 . $PSScriptRoot\..\..\lib\Initialize-Test.ps1
-. $PSScriptRoot\..\..\..\Tasks\Common\SonarQubeHelper.ps1
+. $beginTaskFolder\SonarQubeHelper.ps1
 
 # Common setup
 $distributedTaskContext = 'Some distributed task context'

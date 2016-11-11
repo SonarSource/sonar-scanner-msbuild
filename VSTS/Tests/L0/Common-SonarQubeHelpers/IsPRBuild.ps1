@@ -2,7 +2,7 @@
 param()
 
 . $PSScriptRoot\..\..\lib\Initialize-Test.ps1
-. $PSScriptRoot\..\..\..\Tasks\Common\SonarQubeHelper.ps1
+. $beginTaskFolder\SonarQubeHelper.ps1
 
 
 # Test 1 - other repository provider
