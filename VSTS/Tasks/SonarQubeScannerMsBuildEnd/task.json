@@ -1,7 +1,7 @@
 {
     "id":  "4F733B42-528E-4EE3-BCBC-2744511425F7",
     "name":  "SonarQubeScannerMsBuildEnd",
-    "friendlyName":  "[NEW] SonarQube Scanner for MSBuild - End Analysis",
+    "friendlyName":  "SonarQube Scanner for MSBuild - End Analysis",
     "description":  "Finish the analysis and upload the results to SonarQube",
     "helpMarkDown":  "[More Information](https://go.microsoft.com/fwlink/?LinkId=620063)",
     "category":  "Build",

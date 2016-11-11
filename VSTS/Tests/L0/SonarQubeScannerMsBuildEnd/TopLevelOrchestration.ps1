@@ -16,7 +16,7 @@ Register-Mock HandleCodeAnalysisReporting
 Register-Mock Import-Module
 
 # Act
-. $PSScriptRoot\..\..\..\Tasks\SonarQubeScannerMsBuildEnd\SonarQubePostTest.ps1    
+. $endTaskFolder\SonarQubePostTest.ps1    
 
 # Assert
 Assert-WasCalled InvokeMSBuildRunnerPostTest

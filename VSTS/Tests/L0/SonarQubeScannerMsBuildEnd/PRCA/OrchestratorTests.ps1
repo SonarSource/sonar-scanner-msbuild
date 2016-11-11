@@ -1,8 +1,8 @@
 [CmdletBinding()]
 param()
 
-. $PSScriptRoot\..\..\..\..\Tasks\Common\SonarQubeHelper.ps1
-. $PSScriptRoot\..\..\..\..\Tasks\SonarQubeScannerMsBuildEnd\PRCA\Orchestrator.ps1
+. $endTaskFolder\SonarQubeHelper.ps1
+. $endTaskFolder\PRCA\Orchestrator.ps1
 . $PSScriptRoot\..\..\..\lib\Initialize-Test.ps1
 
 function BuildIssue

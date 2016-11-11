@@ -1,5 +1,13 @@
 $testsRoot = "$PSScriptRoot\Tests\L0"
 
+$beginTaskFolder = "$PSScriptRoot\.buildOutput\SonarQubeScannerMsBuildBegin"
+$endTaskFolder = "$PSScriptRoot\.buildOutput\SonarQubeScannerMsBuildEnd"
+
+if (-not (Test-Path $beginTaskFolder) -Or -not (Test-Path $endTaskFolder))
+{
+    throw "Before running the tests, please, run "".\build.ps1 -Clean -Build"""
+}
+
 # SonarQubeHelper tests
 Write-Output "Testing SonarQubeHelper"
 & $testsRoot\Common-SonarQubeHelpers\InvokeRestApi.ps1

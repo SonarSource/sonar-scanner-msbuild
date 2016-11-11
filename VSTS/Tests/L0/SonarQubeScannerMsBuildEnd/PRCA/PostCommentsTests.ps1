@@ -293,7 +293,7 @@ Add-Type -TypeDefinition $source -Language CSharp
 
 
 # import the module before initializing the test library to avoid "import-module" being mocked
-Import-Module -Name "$PSScriptRoot\..\..\..\..\Tasks\SonarQubeScannerMsBuildEnd\PRCA\PostComments-Module.psm1" -Verbose
+Import-Module -Name "$endTaskFolder\PRCA\PostComments-Module.psm1" -Verbose
 . $PSScriptRoot\..\..\..\lib\Initialize-Test.ps1
 
 # Builds the input, similar to the ReportProcessor module output 

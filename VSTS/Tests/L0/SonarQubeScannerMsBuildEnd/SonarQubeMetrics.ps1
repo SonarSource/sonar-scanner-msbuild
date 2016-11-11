@@ -2,8 +2,8 @@
 param()
 
 
-. $PSScriptRoot\..\..\..\Tasks\Common\SonarQubeHelper.ps1
-. $PSScriptRoot\..\..\..\Tasks\SonarQubeScannerMsBuildEnd\SonarQubeMetrics.ps1
+. $endTaskFolder\SonarQubeHelper.ps1
+. $endTaskFolder\SonarQubeMetrics.ps1
 . $PSScriptRoot\..\..\lib\Initialize-Test.ps1
 
 # E2E test - waiting for the SQ analysis to complete and querying for the quality gate status
