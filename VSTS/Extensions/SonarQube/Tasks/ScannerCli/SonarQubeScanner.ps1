@@ -5,6 +5,7 @@ param(
     [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $projectKey,
     [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $projectName,
     [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $projectVersion,	
+    [string][Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()] $sources,	
     [string]$configFile
 )
 
@@ -20,7 +21,7 @@ function GetEndpointData
 
 	if (!$serviceEndpoint)
 	{
-		throw "A Connected Service with name '$ConnectedServiceName' could not be found.  Ensure that this Connected Service was successfully provisioned using the Services tab in the Admin UI."
+		throw "A Connected Service with name '$ConnectedServiceName' could not be found. Ensure that this Connected Service was successfully provisioned using the Services tab in the Admin UI."
 	}
 
 	$authScheme = $serviceEndpoint.Authorization.Scheme
@@ -41,33 +42,37 @@ function CreateCommandLineArgs
           [string]$serverUrl,
 	      [string]$serverUsername,
 		  [string]$serverPassword,
+		  [string]$sources,
           [string]$configFile
     )
 
     $sb = New-Object -TypeName "System.Text.StringBuilder"; 
 
-    [void]$sb.Append(" /Dsonar.projectKey=" + (EscapeArg($projectKey)));
+    [void]$sb.Append(" -Dsonar.projectKey=" + (EscapeArg($projectKey)));
 
-	[void]$sb.Append(" /Dsonar.projectName=" + (EscapeArg($projectName)));
+	[void]$sb.Append(" -Dsonar.projectName=" + (EscapeArg($projectName)));
 
-	[void]$sb.Append(" /Dsonar-projectVersion=" + (EscapeArg($projectVersion)));
+	[void]$sb.Append(" -Dsonar.projectVersion=" + (EscapeArg($projectVersion)));
 
     if ([String]::IsNullOrWhiteSpace($serverUrl))
     {   
         throw "Please setup a SonarQube Server endpoint and specify the SonarQube Url as the Server Url" 
 	}
 
-	[void]$sb.Append(" /Dsonar.host.url=" + (EscapeArg($serverUrl))) 
+	[void]$sb.Append(" -Dsonar.host.url=" + (EscapeArg($serverUrl))) 
 
     if (![String]::IsNullOrWhiteSpace($serverUsername))
     {
-        [void]$sb.Append(" /Dsonar.login=" + (EscapeArg($serverUsername))) 
+        [void]$sb.Append(" -Dsonar.login=" + (EscapeArg($serverUsername))) 
     }
 
     if (![String]::IsNullOrWhiteSpace($serverPassword))
     {
-        [void]$sb.Append(" /Dsonar.password=" + (EscapeArg($serverPassword))) 
+        [void]$sb.Append(" -Dsonar.password=" + (EscapeArg($serverPassword))) 
     }
+
+    [void]$sb.Append(" -Dsonar.sources=" + (EscapeArg($sources))) 
+    [void]$sb.Append(" -Dsonar.projectBaseDir=" + (EscapeArg($(Get-Item -Path ".\" -Verbose).FullName))) 
 
     if (IsFilePathSpecified $configFile)
     {
@@ -76,23 +81,22 @@ function CreateCommandLineArgs
             throw "Could not find the specified configuration file: $configFile" 
         }
 
-        [void]$sb.Append(" /Dproject.settings=" + (EscapeArg($configFile))) 
+        [void]$sb.Append(" -Dproject.settings=" + (EscapeArg($configFile))) 
     }
 
     return $sb.ToString();
 }
 
+# During PR builds only an "issues mode" analysis is allowed. The resulting issues are posted as code review comments. 
+# The feature can be toggled by the user and is OFF by default.  
+ExitOnPRBuild
+
 $serviceEndpoint = GetEndpointData $connectedServiceName
 Write-Verbose "Server Url: $($serviceEndpoint.Url)"
 
-# $dashboardUrl = GetDashboardUrl $serviceEndpoint.Url $projectKey
-# Write-Verbose "Dashboard Url: $dashboardUrl"
+$arguments = CreateCommandLineArgs $projectKey $projectName $projectVersion $serviceEndpoint.Url $serviceEndpoint.Authorization.Parameters.UserName $serviceEndpoint.Authorization.Parameters.Password $sources $configFile
+Write-Verbose "Arguments: $arguments"
 
-# $cmdLineArgs = UpdateArgsForPullRequestAnalysis $cmdLineArgs $serviceEndpoint
-# Write-Verbose -Verbose $cmdLineArgs
-
-$arguments = CreateCommandLineArgs $projectKey $projectName $projectVersion $serviceEndpoint.Url $serviceEndpoint.Authorization.Parameters.UserName $serviceEndpoint.Authorization.Parameters.Password $configFile
-
-$scannerPath = [System.IO.Path]::Combine($PSScriptRoot, "SonarQubeScannerCli\sonar-scanner\bin\sonar-scanner.bat")
+$scannerPath = [System.IO.Path]::Combine($PSScriptRoot, "sonar-scanner\bin\sonar-scanner.bat")
 
 Invoke-BatchScript $scannerPath -Arguments $arguments
