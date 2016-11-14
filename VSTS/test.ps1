@@ -1,11 +1,15 @@
 $testsRoot = "$PSScriptRoot\Tests\L0"
 
-$beginTaskFolder = "$PSScriptRoot\.buildOutput\SonarQubeScannerMsBuildBegin"
-$endTaskFolder = "$PSScriptRoot\.buildOutput\SonarQubeScannerMsBuildEnd"
+$tasksRoot = "$PSScriptRoot\build\Temp\Extensions\SonarQube\Tasks"
+$beginTaskFolder = "$tasksRoot\ScannerMsBuildBegin"
+$endTaskFolder = "$tasksRoot\ScannerMsBuildEnd"
 
-if (-not (Test-Path $beginTaskFolder) -Or -not (Test-Path $endTaskFolder))
+$ErrorActionPreference = "Stop"
+
+if (-Not (Test-Path $beginTaskFolder) -Or 
+    -Not (Test-Path $endTaskFolder))
 {
-    throw "Before running the tests, please, run "".\build.ps1 -Clean -Build"""
+    throw "Before running the tests, please, run "".\pack.ps1 [environment] [version]"""
 }
 
 # SonarQubeHelper tests

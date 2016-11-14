@@ -1,0 +1,11 @@
+{
+    "id": "sonarqube",
+    "name": "SonarQube",
+    "version": "set-by-pack.ps1",
+    "publisher": "sonarsource",
+    "public": true,
+    "branding": {
+        "color": "rgb(67, 157, 210)",
+        "theme": "dark"
+    }
+}

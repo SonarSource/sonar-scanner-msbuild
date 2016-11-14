@@ -1,0 +1,100 @@
+{
+    "id": "9F57024B-31F9-4E58-9E39-A47CCC098F03",
+    "name": "SonarQubeScannerCli",
+    "friendlyName": "SonarQube  Scanner CLI",
+    "description": "Perform a SonarQube analysis of the source code of your PHP, JavaScript... projects",
+    "helpMarkDown": "[More Information](http://redirect.sonarsource.com/doc/install-configure-scanner-tfs-ts.html)",
+    "category": "Build",
+    "visibility": [
+        "Build"
+    ],
+    "author": "sonarsource",
+    "version":  {
+        "Major": 0,
+        "Minor": 0,
+        "Patch": 0
+    },
+    "demands": [
+        "msbuild",
+        "java"
+    ],
+    "minimumAgentVersion": "1.95.0",
+    "instanceNameFormat": "Perform a SonarQube analysis",
+    "groups": [
+        {
+            "name": "serverSettings",
+            "displayName": "SonarQube Server",
+            "isExpanded": true
+        },
+        {
+            "name": "project",
+            "displayName": "SonarQube Project Settings",
+            "isExpanded": true
+        },
+        {
+            "name": "advanced",
+            "displayName": "Advanced",
+            "isExpanded": false
+        }
+    ],
+    "inputs": [
+        {
+            "name": "connectedServiceName",
+            "type": "connectedService:sonarqube",
+            "label": "SonarQube Endpoint",
+            "required": true,
+            "helpMarkDown": "The SonarQube Server Endpoint",
+            "groupName": "serverSettings"
+        },
+        {
+            "name": "projectKey",
+            "type": "string",
+            "label": "Project Key",
+            "required": true,
+            "helpMarkDown": "The SonarQube project unique key, i.e. sonar.projectKey",
+            "groupName": "project"
+        },
+        {
+            "name": "projectName",
+            "type": "string",
+            "label": "Project Name",
+            "required": true,
+            "helpMarkDown": "The SonarQube project name, i.e. sonar.projectName",
+            "groupName": "project"
+        },
+        {
+            "name": "projectVersion",
+            "type": "string",
+            "label": "Project Version",
+            "defaultValue": "1.0",
+            "required": true,
+            "helpMarkDown": "The SonarQube project version, i.e. sonar.projectVersion",
+            "groupName": "project"
+        },
+        {
+            "name": "sources",
+            "type": "string",
+            "label": "Sources",
+            "defaultValue": ".",
+            "required": true,
+            "helpMarkDown": "Comma-separated paths to directories containing source files, this value is set to the sonar.sources SonarQube property",
+            "groupName": "project"
+        },
+        {
+            "name": "configFile",
+            "type": "filePath",
+            "defaultValue": "",
+            "label": "Settings File",
+            "required": false,
+            "helpMarkDown": "You can also specify settings via a configuration file. More information is available [here](http://redirect.sonarsource.com/doc/install-configure-scanner-tfs-ts.html)",
+            "groupName": "advanced"
+        }
+    ],
+    "execution": {
+        "PowerShell": {
+            "target": "$(currentDirectory)\\SonarQubeScanner.ps1",
+            "argumentFormat": "",
+            "workingDirectory": "$(Build.Repository.LocalPath)"
+        }
+    }
+}

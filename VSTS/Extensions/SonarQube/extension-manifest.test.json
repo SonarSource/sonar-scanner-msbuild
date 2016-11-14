@@ -1,0 +1,11 @@
+{
+    "id": "sonarqube",
+    "name": "[Test] SonarQube",
+    "version": "set-by-pack.ps1",
+    "publisher": "amaurysonarsource",
+    "public": false,
+    "branding": {
+        "color": "#ff0000",
+        "theme": "dark"
+    }
+}
