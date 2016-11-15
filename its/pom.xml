@@ -18,8 +18,8 @@
   <inceptionYear>2016</inceptionYear>
 
   <properties>
-    <vbnetPlugin.version>2.5.0.243</vbnetPlugin.version>
-    <csharpPlugin.version>5.4-build243</csharpPlugin.version>
+    <vbnetPlugin.version>3.0.1.293</vbnetPlugin.version>
+    <csharpPlugin.version>5.5.0.479</csharpPlugin.version>
   </properties>
   
   <dependencies>
