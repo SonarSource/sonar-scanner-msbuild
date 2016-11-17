@@ -154,6 +154,48 @@ namespace SonarScanner.Shim.Tests
         }
 
         [TestMethod]
+        public void FileGen_ValidFiles_SourceEncoding_DefaultValue()
+        {
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            CreateProjectWithFiles("withFiles1", testDir);
+
+            TestLogger logger = new TestLogger();
+            AnalysisConfig config = CreateValidConfig(testDir);
+
+            // Act
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+
+            // Assert
+            var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
+            StringAssert.Contains(settingsFileContent, "sonar.sourceEncoding=UTF-8");
+        }
+
+        [TestMethod]
+        public void FileGen_ValidFiles_SourceEncoding_Provided()
+        {
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            CreateProjectWithFiles("withFiles1", testDir);
+
+            TestLogger logger = new TestLogger();
+            AnalysisConfig config = CreateValidConfig(testDir);
+
+            config.LocalSettings = new AnalysisProperties();
+            config.LocalSettings.Add(new Property { Id = SonarProperties.SourceEncoding, Value = "test-encoding-here" });
+
+            // Act
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+
+            // Assert
+            var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
+            StringAssert.Contains(settingsFileContent, "sonar.sourceEncoding=test-encoding-here");
+        }
+
+
+        [TestMethod]
         public void FileGen_ValidFiles_WithAlreadyValidSarif()
         {
             // Arrange

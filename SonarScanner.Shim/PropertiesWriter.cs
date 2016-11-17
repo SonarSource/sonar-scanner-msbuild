@@ -223,9 +223,6 @@ namespace SonarScanner.Shim
 
             sb.AppendLine();
 
-            sb.AppendLine("# FIXME: Encoding is hardcoded");
-            AppendKeyValue(sb, SonarProperties.SourceEncoding, "UTF-8");
-            sb.AppendLine();
         }
 
         #endregion
