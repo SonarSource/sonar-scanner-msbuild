@@ -114,9 +114,6 @@ sonar.projectVersion=1.0
 sonar.working.directory=C:\\my_folder\\.sonar
 sonar.projectBaseDir={5}
 
-# FIXME: Encoding is hardcoded
-sonar.sourceEncoding=UTF-8
-
 sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981FAFAF3A,DA0FCD82-9C5C-4666-9370-C7388281D49B
 
 ",
@@ -175,9 +172,6 @@ sonar.projectName=my_project_name
 sonar.projectVersion=1.0
 sonar.working.directory=C:\\my_folder\\.sonar
 sonar.projectBaseDir={1}
-
-# FIXME: Encoding is hardcoded
-sonar.sourceEncoding=UTF-8
 
 sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
 
