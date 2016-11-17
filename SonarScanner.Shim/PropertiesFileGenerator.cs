@@ -268,8 +268,19 @@ namespace SonarScanner.Shim
             AnalysisProperties properties = new AnalysisProperties();
 
             properties.AddRange(config.GetAnalysisSettings(false).GetAllProperties()
-                // Strip out any sensitive properties
-                .Where(p => !p.ContainsSensitiveData()));
+                      // Strip out any sensitive properties
+                      .Where(p => !p.ContainsSensitiveData()));
+
+            // Add default value for sonar.sourceEncoding if it is not already set
+            Property encodingProperty;
+            if (!Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out encodingProperty))
+            {
+                properties.Add(new Property
+                {
+                    Id = SonarProperties.SourceEncoding,
+                    Value = "UTF-8"
+                });
+            }
 
             // There are some properties we want to override regardless of what the user sets
             AddOrSetProperty(VSBootstrapperPropertyKey, "false", properties, logger);
