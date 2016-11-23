@@ -21,10 +21,11 @@ using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Xml;
 using System.Xml.Linq;
+using System.Text;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -58,6 +59,8 @@ namespace SonarQube.MSBuild.Tasks
 
         public bool IsExcluded { get; set; }
 
+        public string CodePage { get; set; }
+
         public ITaskItem[] AnalysisResults { get; set; }
 
         public ITaskItem[] AnalysisSettings { get; set; }
@@ -84,6 +87,9 @@ namespace SonarQube.MSBuild.Tasks
             pi.FullPath = this.FullProjectPath;
             pi.ProjectLanguage = this.ProjectLanguage;
 
+            Encoding encoding = ComputeEncoding(this.CodePage);
+            pi.Encoding = encoding.WebName;
+
             string guid = null;
             if (!string.IsNullOrEmpty(this.ProjectGuid))
             {
@@ -98,7 +104,6 @@ namespace SonarQube.MSBuild.Tasks
                         .Select(element => element.Attribute("Project")?.Value)
                         .FirstOrDefault();
             }
-
             Guid projectId;
             if (guid != null && Guid.TryParse(guid, out projectId))
             {
@@ -119,6 +124,42 @@ namespace SonarQube.MSBuild.Tasks
         #endregion
 
         #region Private methods
+
+        private Encoding ComputeEncoding(string codePage)
+        {
+            string cleanedCodePage = (codePage ?? string.Empty)
+                .Replace("\\", string.Empty)
+                .Replace("\"", string.Empty);
+
+            long codepageValue;
+            if (!string.IsNullOrWhiteSpace(cleanedCodePage) &&
+                long.TryParse(cleanedCodePage, NumberStyles.None, CultureInfo.InvariantCulture, out codepageValue) &&
+                codepageValue > 0)
+            {
+                try
+                {
+                    return Encoding.GetEncoding((int)codepageValue);
+                }
+                catch (Exception)
+                {
+                    // encoding doesn't exist
+                }
+            }
+
+            try
+            {
+                return Encoding.GetEncoding(0) ?? Encoding.GetEncoding(1252);
+            }
+            catch (NotSupportedException)
+            {
+                return Encoding.GetEncoding("Latin1");
+            }
+            catch (Exception)
+            {
+                this.Log.LogWarning(Resources.WPIF_WARN_NoEncoding, Encoding.UTF8.WebName);
+                return Encoding.UTF8;
+            }
+        }
 
         /// <summary>
         /// Attempts to convert the supplied task items into a list of <see cref="AnalysisResult"/> objects

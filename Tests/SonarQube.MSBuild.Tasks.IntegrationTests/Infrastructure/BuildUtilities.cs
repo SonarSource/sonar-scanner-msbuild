@@ -325,6 +325,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 root.AddProperty(TargetProperties.SonarQubeTestProject, "true");
             }
 
+            if (descriptor.Encoding != null)
+            {
+                root.AddProperty(TargetProperties.CodePage, descriptor.Encoding.CodePage.ToString());
+            }
+
             return root;
         }
 

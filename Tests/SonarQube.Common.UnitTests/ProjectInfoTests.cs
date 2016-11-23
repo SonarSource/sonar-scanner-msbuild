@@ -62,6 +62,7 @@ namespace SonarQube.Common.UnitTests
             originalProjectInfo.ProjectType = ProjectType.Product;
             originalProjectInfo.ProjectGuid = projectGuid;
             originalProjectInfo.ProjectName = "MyProject";
+            originalProjectInfo.Encoding = "MyEncoding";
 
             string fileName = Path.Combine(testFolder, "ProjectInfo1.xml");
 

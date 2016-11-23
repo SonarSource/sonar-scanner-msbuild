@@ -389,6 +389,15 @@ namespace SonarScanner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Property &quot;{0}&quot; is defined, but will be ignored during analysis..
+        /// </summary>
+        public static string WARN_PropertyIgnored {
+            get {
+                return ResourceManager.GetString("WARN_PropertyIgnored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to fix Code Analysis ErrorLog file. Please check that VS 2015 Update 1 (or later) is installed..
         /// </summary>
         public static string WARN_SarifFixFail {
