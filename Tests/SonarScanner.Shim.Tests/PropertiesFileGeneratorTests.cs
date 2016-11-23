@@ -54,9 +54,9 @@ namespace SonarScanner.Shim.Tests
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
             Guid duplicateGuid = Guid.NewGuid();
-            CreateProjectInfoInSubDir(testDir, "duplicate1", duplicateGuid, ProjectType.Product, false, "c:\\abc\\duplicateProject1.proj"); // not excluded
-            CreateProjectInfoInSubDir(testDir, "duplicate2", duplicateGuid, ProjectType.Test, false, "S:\\duplicateProject2.proj"); // not excluded
-            CreateProjectInfoInSubDir(testDir, "excluded", duplicateGuid, ProjectType.Product, true, null); // excluded
+            CreateProjectInfoInSubDir(testDir, "duplicate1", duplicateGuid, ProjectType.Product, false, "c:\\abc\\duplicateProject1.proj", "UTF-8"); // not excluded
+            CreateProjectInfoInSubDir(testDir, "duplicate2", duplicateGuid, ProjectType.Test, false, "S:\\duplicateProject2.proj", "UTF-8"); // not excluded
+            CreateProjectInfoInSubDir(testDir, "excluded", duplicateGuid, ProjectType.Product, true, null, "UTF-8"); // excluded
 
             TestLogger logger = new TestLogger();
             AnalysisConfig config = CreateValidConfig(testDir);
@@ -91,9 +91,9 @@ namespace SonarScanner.Shim.Tests
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
             Guid duplicateGuid = Guid.NewGuid();
-            CreateProjectInfoInSubDir(testDir, "excl1", duplicateGuid, ProjectType.Product, true, null); // excluded
-            CreateProjectInfoInSubDir(testDir, "excl2", duplicateGuid, ProjectType.Test, true, null); // excluded
-            CreateProjectInfoInSubDir(testDir, "notExcl", duplicateGuid, ProjectType.Product, false, null); // not excluded
+            CreateProjectInfoInSubDir(testDir, "excl1", duplicateGuid, ProjectType.Product, true, "UTF-8", null); // excluded
+            CreateProjectInfoInSubDir(testDir, "excl2", duplicateGuid, ProjectType.Test, true, "UTF-8", null); // excluded
+            CreateProjectInfoInSubDir(testDir, "notExcl", duplicateGuid, ProjectType.Product, false, "UTF-8", null); // not excluded
 
             TestLogger logger = new TestLogger();
             AnalysisConfig config = CreateValidConfig(testDir);
@@ -120,7 +120,7 @@ namespace SonarScanner.Shim.Tests
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
-            CreateProjectInfoInSubDir(testDir, "withoutFiles", Guid.NewGuid(), ProjectType.Product, false, null); // not excluded
+            CreateProjectInfoInSubDir(testDir, "withoutFiles", Guid.NewGuid(), ProjectType.Product, false, "UTF-8", null); // not excluded
             CreateProjectWithFiles("withFiles1", testDir);
             CreateProjectWithFiles("withFiles2", testDir);
 
@@ -138,25 +138,6 @@ namespace SonarScanner.Shim.Tests
 
             // One valid project info file -> file created
             AssertPropertiesFilesCreated(result, logger);
-        }
-
-        [TestMethod]
-        public void FileGen_ValidFiles_SourceEncoding_DefaultValue()
-        {
-            // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-
-            CreateProjectWithFiles("withFiles1", testDir);
-
-            TestLogger logger = new TestLogger();
-            AnalysisConfig config = CreateValidConfig(testDir);
-
-            // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
-
-            // Assert
-            var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
-            StringAssert.Contains(settingsFileContent, "sonar.sourceEncoding=UTF-8");
         }
 
         [TestMethod]
@@ -178,9 +159,8 @@ namespace SonarScanner.Shim.Tests
 
             // Assert
             var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
-            StringAssert.Contains(settingsFileContent, "sonar.sourceEncoding=test-encoding-here");
+            Assert.IsFalse(settingsFileContent.Contains("sonar.sourceEncoding=test-encoding-here"), "Command line parameter 'sonar.sourceEncoding' is ignored.");
         }
-
 
         [TestMethod]
         public void FileGen_ValidFiles_WithAlreadyValidSarif()
@@ -338,7 +318,7 @@ namespace SonarScanner.Shim.Tests
 
             string projectDir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "project");
             string projectPath = Path.Combine(projectDir, "project.proj");
-            string projectInfo = CreateProjectInfoInSubDir(testDir, "projectName", Guid.NewGuid(), ProjectType.Product, false, projectPath); // not excluded
+            string projectInfo = CreateProjectInfoInSubDir(testDir, "projectName", Guid.NewGuid(), ProjectType.Product, false, "UTF-8", projectPath); // not excluded
 
             // Create a content file, but not under the project directory
             string contentFileList = CreateFile(projectDir, "contentList.txt", Path.Combine(testDir, "contentFile1.txt"));
@@ -384,7 +364,8 @@ namespace SonarScanner.Shim.Tests
                 IsExcluded = false,
                 ProjectGuid = Guid.NewGuid(),
                 ProjectName = "project1.proj",
-                ProjectType = ProjectType.Product
+                ProjectType = ProjectType.Product,
+                Encoding = "UTF-8"
             };
 
             string analysisFileList = CreateFileList(projectBaseDir, "filesToAnalyze.txt", existingManagedFile, missingManagedFile, existingContentFile, missingContentFile);
@@ -625,7 +606,7 @@ namespace SonarScanner.Shim.Tests
             string projectFilePath = Path.Combine(projectDir, Path.ChangeExtension(projectName, "proj"));
 
             // Create a project info file in the correct location under the analysis root
-            string contentProjectInfo = CreateProjectInfoInSubDir(analysisRootPath, projectName, projectGuid, ProjectType.Product, false, projectFilePath, additionalProperties); // not excluded
+            string contentProjectInfo = CreateProjectInfoInSubDir(analysisRootPath, projectName, projectGuid, ProjectType.Product, false, projectFilePath, "UTF-8", additionalProperties); // not excluded
 
             // Create content / managed files if required
             if (createContentFiles)
@@ -669,7 +650,8 @@ namespace SonarScanner.Shim.Tests
         /// Creates a new project info file in a new subdirectory with the given additional properties.
         /// </summary>
         private static string CreateProjectInfoInSubDir(string parentDir,
-            string projectName, Guid projectGuid, ProjectType projectType, bool isExcluded, string fullProjectPath, AnalysisProperties additionalProperties = null)
+            string projectName, Guid projectGuid, ProjectType projectType, bool isExcluded, string fullProjectPath, string encoding,
+            AnalysisProperties additionalProperties = null)
         {
             string newDir = Path.Combine(parentDir, Guid.NewGuid().ToString());
             Directory.CreateDirectory(newDir); // ensure the directory exists
@@ -681,6 +663,7 @@ namespace SonarScanner.Shim.Tests
                 ProjectGuid = projectGuid,
                 ProjectType = projectType,
                 IsExcluded = isExcluded,
+                Encoding = encoding
             };
 
             if (additionalProperties != null)
