@@ -278,5 +278,14 @@ namespace SonarQube.MSBuild.Tasks {
                 return ResourceManager.GetString("WPIF_WARN_MissingValueMetadata", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not determine default project encoding, therefore {0} is being selected..
+        /// </summary>
+        public static string WPIF_WARN_NoEncoding {
+            get {
+                return ResourceManager.GetString("WPIF_WARN_NoEncoding", resourceCulture);
+            }
+        }
     }
 }

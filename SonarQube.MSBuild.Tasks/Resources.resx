@@ -193,4 +193,7 @@ Error: {1}</value>
   <data name="AnalyzerSettings_NotSpecifiedInConfig" xml:space="preserve">
     <value>Analyzer settings for language {0} have not been specified in the analysis config file</value>
   </data>
+  <data name="WPIF_WARN_NoEncoding" xml:space="preserve">
+    <value>Could not determine default project encoding, therefore {0} is being selected.</value>
+  </data>
 </root>

@@ -11,7 +11,9 @@ using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Text;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -28,7 +30,7 @@ namespace SonarQube.MSBuild.Tasks
         // TODO: we can get this from this.BuildEngine.ProjectFileOfTaskNode; we don't need the caller to supply it. Same for the full path
         [Required]
         public string ProjectName { get; set; }
-        
+
         [Required]
         public string FullProjectPath { get; set; }
 
@@ -42,6 +44,8 @@ namespace SonarQube.MSBuild.Tasks
         public bool IsTest { get; set; }
 
         public bool IsExcluded { get; set; }
+
+        public string CodePage { get; set; }
 
         public ITaskItem[] AnalysisResults { get; set; }
 
@@ -69,6 +73,9 @@ namespace SonarQube.MSBuild.Tasks
             pi.FullPath = this.FullProjectPath;
             pi.ProjectLanguage = this.ProjectLanguage;
 
+            Encoding encoding = ComputeEncoding(this.CodePage);
+            pi.Encoding = encoding.WebName;
+
             Guid projectId;
             if (Guid.TryParse(this.ProjectGuid, out projectId))
             {
@@ -89,6 +96,42 @@ namespace SonarQube.MSBuild.Tasks
         #endregion
 
         #region Private methods
+
+        private Encoding ComputeEncoding(string codePage)
+        {
+            string cleanedCodePage = (codePage ?? string.Empty)
+                .Replace("\\", string.Empty)
+                .Replace("\"", string.Empty);
+
+            long codepageValue;
+            if (!string.IsNullOrWhiteSpace(cleanedCodePage) &&
+                long.TryParse(cleanedCodePage, NumberStyles.None, CultureInfo.InvariantCulture, out codepageValue) &&
+                codepageValue > 0)
+            {
+                try
+                {
+                    return Encoding.GetEncoding((int)codepageValue);
+                }
+                catch (Exception)
+                {
+                    // encoding doesn't exist
+                }
+            }
+
+            try
+            {
+                return Encoding.GetEncoding(0) ?? Encoding.GetEncoding(1252);
+            }
+            catch (NotSupportedException)
+            {
+                return Encoding.GetEncoding("Latin1");
+            }
+            catch (Exception)
+            {
+                this.Log.LogWarning(Resources.WPIF_WARN_NoEncoding, Encoding.UTF8.WebName);
+                return Encoding.UTF8;
+            }
+        }
 
         /// <summary>
         /// Attempts to convert the supplied task items into a list of <see cref="AnalysisResult"/> objects
@@ -118,7 +161,7 @@ namespace SonarQube.MSBuild.Tasks
         private AnalysisResult TryCreateResultFromItem(ITaskItem taskItem)
         {
             Debug.Assert(taskItem != null, "Supplied task item should not be null");
-            
+
             AnalysisResult result = null;
 
             string id = taskItem.GetMetadata(BuildTaskConstants.ResultMetadataIdProperty);

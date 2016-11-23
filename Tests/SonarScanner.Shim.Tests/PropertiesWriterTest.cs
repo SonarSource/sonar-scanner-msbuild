@@ -51,8 +51,8 @@ namespace SonarScanner.Shim.Tests
             productFiles.Add(productFile);
             productFiles.Add(productChineseFile);
             productFiles.Add(missingFileOutsideProjectDir);
-            ProjectInfo productCS = CreateProjectInfo("你好", "DB2E5521-3172-47B9-BA50-864F12E6DFFF", productProject, false, productFiles, productFileListFilePath, productFxCopFilePath, productCoverageFilePath, ProjectLanguages.CSharp);
-            ProjectInfo productVB = CreateProjectInfo("vbProject", "B51622CF-82F4-48C9-9F38-FB981FAFAF3A", productProject, false, productFiles, productFileListFilePath, productFxCopFilePath, productCoverageFilePath, ProjectLanguages.VisualBasic);
+            ProjectInfo productCS = CreateProjectInfo("你好", "DB2E5521-3172-47B9-BA50-864F12E6DFFF", productProject, false, productFiles, productFileListFilePath, productFxCopFilePath, productCoverageFilePath, ProjectLanguages.CSharp, "UTF-8");
+            ProjectInfo productVB = CreateProjectInfo("vbProject", "B51622CF-82F4-48C9-9F38-FB981FAFAF3A", productProject, false, productFiles, productFileListFilePath, productFxCopFilePath, productCoverageFilePath, ProjectLanguages.VisualBasic, "UTF-8");
 
             string testBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_TestBaseDir");
             string testProject = CreateEmptyFile(testBaseDir, "MyTest.csproj");
@@ -61,7 +61,7 @@ namespace SonarScanner.Shim.Tests
 
             List<string> testFiles = new List<string>();
             testFiles.Add(testFile);
-            ProjectInfo test = CreateProjectInfo("my_test_project", "DA0FCD82-9C5C-4666-9370-C7388281D49B", testProject, true, testFiles, testFileListFilePath, null, null, ProjectLanguages.VisualBasic);
+            ProjectInfo test = CreateProjectInfo("my_test_project", "DA0FCD82-9C5C-4666-9370-C7388281D49B", testProject, true, testFiles, testFileListFilePath, null, null, ProjectLanguages.VisualBasic, "UTF-8");
 
             AnalysisConfig config = new AnalysisConfig()
             {
@@ -87,6 +87,7 @@ namespace SonarScanner.Shim.Tests
 @"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectKey=my_project_key:DB2E5521-3172-47B9-BA50-864F12E6DFFF
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName=\u4F60\u597D
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir={0}
+DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sourceEncoding=utf-8
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.cs.fxcop.reportPath={1}
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.cs.vscoveragexml.reportsPaths={2}
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources=\
@@ -97,6 +98,7 @@ DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources=\
 B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectKey=my_project_key:B51622CF-82F4-48C9-9F38-FB981FAFAF3A
 B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectName=vbProject
 B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectBaseDir={0}
+B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sourceEncoding=utf-8
 B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.vbnet.fxcop.reportPath={1}
 B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sources=\
 {0}\\File.cs
@@ -104,6 +106,7 @@ B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sources=\
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey=my_project_key:DA0FCD82-9C5C-4666-9370-C7388281D49B
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectName=my_test_project
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectBaseDir={3}
+DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sourceEncoding=utf-8
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources=
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
 {3}\\File.cs
@@ -141,7 +144,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
 
             List<string> productFiles = new List<string>();
             productFiles.Add(productFile);
-            ProjectInfo product = CreateProjectInfo("myproduct", "9507E2E6-7342-4A04-9CB9-B0C47C937019", productProject, false, productFiles, productFileListFilePath, productFxCopFilePath, null, "my.language");
+            ProjectInfo product = CreateProjectInfo("myproduct", "9507E2E6-7342-4A04-9CB9-B0C47C937019", productProject, false, productFiles, productFileListFilePath, productFxCopFilePath, null, "my.language", "UTF-8");
 
             AnalysisConfig config = new AnalysisConfig()
             {
@@ -164,6 +167,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
 @"9507E2E6-7342-4A04-9CB9-B0C47C937019.sonar.projectKey=my_project_key:9507E2E6-7342-4A04-9CB9-B0C47C937019
 9507E2E6-7342-4A04-9CB9-B0C47C937019.sonar.projectName=myproduct
 9507E2E6-7342-4A04-9CB9-B0C47C937019.sonar.projectBaseDir={0}
+9507E2E6-7342-4A04-9CB9-B0C47C937019.sonar.sourceEncoding=utf-8
 9507E2E6-7342-4A04-9CB9-B0C47C937019.sonar.sources=\
 {0}\\File.txt
 
@@ -280,7 +284,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             productFiles.Add(productFile);
             string productFileListFilePath = Path.Combine(projectBaseDir, "productManagedFiles.txt");
 
-            ProjectInfo product = CreateProjectInfo("AnalysisSettingsTest.proj", "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5", productProject, false, productFiles, productFileListFilePath, null, null, "language");
+            ProjectInfo product = CreateProjectInfo("AnalysisSettingsTest.proj", "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5", productProject, false, productFiles, productFileListFilePath, null, null, "language", "UTF-8");
 
             List<ProjectInfo> projects = new List<ProjectInfo>();
             projects.Add(product);
@@ -362,7 +366,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             {
                 foreach (string projectPath in projectPaths)
                 {
-                    var projectInfo = new ProjectInfo { FullPath = projectPath, ProjectLanguage = ProjectLanguages.CSharp };
+                    var projectInfo = new ProjectInfo { FullPath = projectPath, ProjectLanguage = ProjectLanguages.CSharp, Encoding = "UTF-8" };
                     writer.WriteSettingsForProject(projectInfo, Enumerable.Empty<string>(), "", "");
                 }
 
@@ -373,7 +377,8 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             }
         }
 
-        private static ProjectInfo CreateProjectInfo(string name, string projectId, string fullFilePath, bool isTest, IEnumerable<string> files, string fileListFilePath, string fxCopReportPath, string coverageReportPath, string language)
+        private static ProjectInfo CreateProjectInfo(string name, string projectId, string fullFilePath, bool isTest, IEnumerable<string> files,
+            string fileListFilePath, string fxCopReportPath, string coverageReportPath, string language, string encoding)
         {
             ProjectInfo projectInfo = new ProjectInfo()
             {
@@ -382,7 +387,8 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
                 FullPath = fullFilePath,
                 ProjectType = isTest ? ProjectType.Test : ProjectType.Product,
                 AnalysisResults = new List<AnalysisResult>(),
-                ProjectLanguage = language
+                ProjectLanguage = language,
+                Encoding = encoding
             };
 
             if (fxCopReportPath != null)
