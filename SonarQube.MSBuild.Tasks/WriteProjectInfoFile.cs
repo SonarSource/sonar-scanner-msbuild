@@ -18,6 +18,7 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using SonarQube.Common;
+using SonarQube.Common.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -37,6 +38,31 @@ namespace SonarQube.MSBuild.Tasks
     /// that are created.</remarks>
     public class WriteProjectInfoFile : Task
     {
+        #region Fields
+
+        private readonly IEncodingProvider _encodingProvider;
+
+        #endregion // Fields
+
+        #region Constructors
+
+        public WriteProjectInfoFile()
+            : this(new EncodingProvider())
+        {
+        }
+
+        public WriteProjectInfoFile(IEncodingProvider encodingProvider)
+        {
+            if (encodingProvider == null)
+            {
+                throw new ArgumentNullException(nameof(encodingProvider));
+            }
+
+            _encodingProvider = encodingProvider;
+        }
+
+        #endregion // Constructors
+
         #region Input properties
 
         // TODO: we can get this from this.BuildEngine.ProjectFileOfTaskNode; we don't need the caller to supply it. Same for the full path
@@ -86,9 +112,7 @@ namespace SonarQube.MSBuild.Tasks
             pi.ProjectName = this.ProjectName;
             pi.FullPath = this.FullProjectPath;
             pi.ProjectLanguage = this.ProjectLanguage;
-
-            Encoding encoding = ComputeEncoding(this.CodePage);
-            pi.Encoding = encoding.WebName;
+            pi.Encoding = ComputeEncoding(this.CodePage, this.ProjectLanguage)?.WebName;
 
             string guid = null;
             if (!string.IsNullOrEmpty(this.ProjectGuid))
@@ -125,12 +149,13 @@ namespace SonarQube.MSBuild.Tasks
 
         #region Private methods
 
-        private Encoding ComputeEncoding(string codePage)
+        private Encoding ComputeEncoding(string codePage, string projectLanguage)
         {
             string cleanedCodePage = (codePage ?? string.Empty)
                 .Replace("\\", string.Empty)
                 .Replace("\"", string.Empty);
 
+            // Always try first to return the CodePage specified into the .xxproj
             long codepageValue;
             if (!string.IsNullOrWhiteSpace(cleanedCodePage) &&
                 long.TryParse(cleanedCodePage, NumberStyles.None, CultureInfo.InvariantCulture, out codepageValue) &&
@@ -138,7 +163,7 @@ namespace SonarQube.MSBuild.Tasks
             {
                 try
                 {
-                    return Encoding.GetEncoding((int)codepageValue);
+                    return _encodingProvider.GetEncoding((int)codepageValue);
                 }
                 catch (Exception)
                 {
@@ -146,18 +171,25 @@ namespace SonarQube.MSBuild.Tasks
                 }
             }
 
+            // If project isn't .csproj nor .vbproj then return null
+            if (!ProjectLanguages.IsCSharpProject(projectLanguage) &&
+                !ProjectLanguages.IsVbProject(projectLanguage))
+            {
+                return null;
+            }
+
+            // Fallback to Roslyn like mechanism
             try
             {
-                return Encoding.GetEncoding(0) ?? Encoding.GetEncoding(1252);
+                return _encodingProvider.GetEncoding(0) ?? _encodingProvider.GetEncoding(1252);
             }
             catch (NotSupportedException)
             {
-                return Encoding.GetEncoding("Latin1");
+                return _encodingProvider.GetEncoding("Latin1");
             }
             catch (Exception)
             {
-                this.Log.LogWarning(Resources.WPIF_WARN_NoEncoding, Encoding.UTF8.WebName);
-                return Encoding.UTF8;
+                return null;
             }
         }
 

@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using TestUtilities;
 
 namespace SonarScanner.Shim.Tests
@@ -122,13 +123,13 @@ namespace SonarScanner.Shim.Tests
 
             // One valid project info file -> file
             AssertFailedToCreatePropertiesFiles(result, logger);
-            logger.AssertWarningsLogged(0); // not expecting any warnings
+            logger.AssertWarningsLogged(0); // expects no warning
         }
 
         [TestMethod]
         public void FileGen_ValidFiles()
         {
-            // Only non-excluded projects with files to analyse should be marked as valid
+            // Only non-excluded projects with files to analyze should be marked as valid
 
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
@@ -597,6 +598,95 @@ namespace SonarScanner.Shim.Tests
               teamBuildValue: null,
               userValue: "",
               projectPaths: new[] { @"f:\work\A\proj1.csproj", @"e:\work\B\proj2.csproj" });
+        }
+
+        [TestMethod]
+        public void EnsureAllProjectsHaveEncoding_WhenProjectEncodingIsNotNullAndSourceEncodingNotFound_DontWarnTheUser()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+            var encodingProvider = new EncodingProvider();
+            var projects = new[] { new ProjectInfo { Encoding = "something" } };
+
+            // Act
+            PropertiesFileGenerator.EnsureAllProjectsHaveEncoding(projects, null, encodingProvider, logger);
+
+            // Assert
+            logger.AssertMessageNotLogged(string.Format(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding));
+        }
+
+        [TestMethod]
+        public void EnsureAllProjectsHaveEncoding_WhenProjectEncodingIsNotNullAndSourceEncodingFound_WarnTheUser()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+            var encodingProvider = new EncodingProvider();
+            var projects = new[] { new ProjectInfo { Encoding = "something" } };
+            var analysisProperties = new AnalysisProperties();
+            var encoding = "utf-16";
+            analysisProperties.Add(new Property { Id = SonarProperties.SourceEncoding, Value = encoding });
+
+            // Act
+            PropertiesFileGenerator.EnsureAllProjectsHaveEncoding(projects, analysisProperties, encodingProvider, logger);
+
+            // Assert
+            logger.AssertMessageLogged(string.Format(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding));
+        }
+
+        [TestMethod]
+        public void EnsureAllProjectsHaveEncoding_WhenProjectEncodingIsNullAndPropertiesContainsSourceEncoding_SetEncodingToTheProject()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+            var encodingProvider = new EncodingProvider();
+            var projects = new[] { new ProjectInfo { Encoding = null } };
+            var analysisProperties = new AnalysisProperties();
+            var encoding = "utf-16";
+            analysisProperties.Add(new Property { Id = SonarProperties.SourceEncoding, Value = encoding });
+
+            // Act
+            PropertiesFileGenerator.EnsureAllProjectsHaveEncoding(projects, analysisProperties, encodingProvider, logger);
+
+            // Assert
+            logger.AssertMessageNotLogged(string.Format(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding));
+            Assert.AreEqual(projects[0].Encoding, encoding);
+        }
+
+        [TestMethod]
+        public void EnsureAllProjectsHaveEncoding_WhenProjectEncodingIsNullAndPropertiesDoesntContainSourceEncoding_SetEncodingToUTF8()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+            var encodingProvider = new EncodingProvider();
+            var projects = new[] { new ProjectInfo { Encoding = null } };
+            var analysisProperties = new AnalysisProperties();
+
+            // Act
+            PropertiesFileGenerator.EnsureAllProjectsHaveEncoding(projects, analysisProperties, encodingProvider, logger);
+
+            // Assert
+            logger.AssertMessageNotLogged(string.Format(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding));
+            logger.AssertSingleWarningExists(string.Format(Resources.WARN_NoEncoding, Encoding.UTF8.WebName));
+            Assert.AreEqual(projects[0].Encoding, "utf-8");
+        }
+
+        [TestMethod]
+        public void EnsureAllProjectsHaveEncoding_WhenProjectEncodingIsNullAndPropertiesContainsInvalidSourceEncoding_SetEncodingToUTF8()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+            var encodingProvider = new EncodingProvider();
+            var projects = new[] { new ProjectInfo { Encoding = null } };
+            var analysisProperties = new AnalysisProperties();
+            analysisProperties.Add(new Property { Id = SonarProperties.SourceEncoding, Value = "foo" });
+
+            // Act
+            PropertiesFileGenerator.EnsureAllProjectsHaveEncoding(projects, analysisProperties, encodingProvider, logger);
+
+            // Assert
+            logger.AssertMessageNotLogged(string.Format(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding));
+            logger.AssertSingleWarningExists(string.Format(Resources.WARN_NoEncoding, Encoding.UTF8.WebName));
+            Assert.AreEqual(projects[0].Encoding, "utf-8");
         }
 
         #endregion

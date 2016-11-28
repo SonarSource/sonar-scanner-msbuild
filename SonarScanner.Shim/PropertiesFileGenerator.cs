@@ -16,8 +16,10 @@
  */
 
 using SonarQube.Common;
+using SonarQube.Common.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -61,7 +63,7 @@ namespace SonarScanner.Shim
             string fileName = Path.Combine(config.SonarOutputDir, ProjectPropertiesFileName);
             logger.LogDebug(Resources.MSG_GeneratingProjectProperties, fileName);
 
-            IEnumerable<ProjectInfo> projects = ProjectLoader.LoadFrom(config.SonarOutputDir);
+            IEnumerable<ProjectInfo> projects = ProjectLoader.LoadFrom(config.SonarOutputDir).ToArray();
             if (projects == null || !projects.Any())
             {
                 logger.LogError(Resources.ERR_NoProjectInfoFilesFound);
@@ -81,8 +83,11 @@ namespace SonarScanner.Shim
 
             if (validProjects.Any() || result.SharedFiles.Any())
             {
+                AnalysisProperties properties = GetAnalysisProperties(config);
+                EnsureAllProjectsHaveEncoding(validProjects, properties, new EncodingProvider(), logger);
+
                 // Handle global settings
-                AnalysisProperties properties = GetAnalysisPropertiesToWrite(config, logger);
+                properties = GetAnalysisPropertiesToWrite(properties, logger);
                 writer.WriteGlobalSettings(properties);
 
                 string contents = writer.Flush();
@@ -200,6 +205,52 @@ namespace SonarScanner.Shim
                 }
             }
         }
+
+        internal /* for testing purpose */ static void EnsureAllProjectsHaveEncoding(IEnumerable<ProjectInfo> projects, AnalysisProperties properties, IEncodingProvider encodingProvider, ILogger logger)
+        {
+            foreach (var project in projects)
+            {
+                var sourceEncoding = GetSourceEncoding(properties, encodingProvider);
+
+                if (project.Encoding != null)
+                {
+                    if (sourceEncoding != null)
+                    {
+                        logger.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
+                    }
+                    continue;
+                }
+
+                if (sourceEncoding == null)
+                {
+                    sourceEncoding = Encoding.UTF8.WebName;
+                    logger.LogWarning(Resources.WARN_NoEncoding, sourceEncoding);
+                }
+                project.Encoding = sourceEncoding;
+            }
+        }
+
+        private static string GetSourceEncoding(AnalysisProperties properties, IEncodingProvider encodingProvider)
+        {
+            try
+            {
+                Property encodingProperty;
+                if (Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out encodingProperty))
+                {
+                    return encodingProvider.GetEncoding(encodingProperty.Value).WebName;
+                }
+            }
+            catch (Exception)
+            {
+                // encoding doesn't exist
+            }
+
+            return null;
+        }
+
+        #endregion
+
+        #region Private methods
 
         private static ProjectInfoAnalysisResult ProcessProjectInfoFiles(IEnumerable<ProjectInfo> projects, PropertiesWriter writer, ILogger logger, string projectBaseDir)
         {
@@ -327,10 +378,9 @@ namespace SonarScanner.Shim
         }
 
         /// <summary>
-        /// Returns all of the analysis properties that should
-        /// be written to the sonar-project properties file
+        /// Returns the analysis properties specified through the call.
         /// </summary>
-        private static AnalysisProperties GetAnalysisPropertiesToWrite(AnalysisConfig config, ILogger logger)
+        private static AnalysisProperties GetAnalysisProperties(AnalysisConfig config)
         {
             AnalysisProperties properties = new AnalysisProperties();
 
@@ -338,10 +388,17 @@ namespace SonarScanner.Shim
                       // Strip out any sensitive properties
                       .Where(p => !p.ContainsSensitiveData()));
 
+            return properties;
+        }
+
+        /// <summary>
+        /// Returns all of the analysis properties that should be written to the sonar-project properties file.
+        /// </summary>
+        private static AnalysisProperties GetAnalysisPropertiesToWrite(AnalysisProperties properties, ILogger logger)
+        {
             Property encodingProperty;
             if (Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out encodingProperty))
             {
-                logger.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
                 properties.Remove(encodingProperty);
             }
 
