@@ -59,6 +59,8 @@
     <Compile Include="CommandLine\ArgumentInstance.cs" />
     <Compile Include="CommandLine\ArgumentDescriptor.cs" />
     <Compile Include="CommandLine\CommandLineParser.cs" />
+    <Compile Include="EncodingProviderWrapper.cs" />
+    <Compile Include="Interfaces\IEncodingProvider.cs" />
     <Compile Include="VerbosityCalculator.cs" />
     <Compile Include="ProcessRunner.cs" />
     <Compile Include="ProcessRunnerArguments.cs" />

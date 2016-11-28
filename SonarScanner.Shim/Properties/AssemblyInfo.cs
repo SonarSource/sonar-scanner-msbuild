@@ -12,3 +12,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("SonarScanner.Shim")]
 [assembly: AssemblyProduct("SonarScanner.Shim")]
 [assembly: AssemblyDescription("")]
+[assembly: InternalsVisibleTo("SonarScanner.Shim.Tests")]
