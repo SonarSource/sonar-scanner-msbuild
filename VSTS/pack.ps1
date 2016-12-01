@@ -4,8 +4,16 @@ param
     [ValidateSet("Test", "Production")]
     [string]$environment,
     [Parameter(Mandatory=$true, HelpMessage="The three number version for this release")]
-    [string]$version
+    [string]$version,
+    [Parameter(Mandatory=$false, HelpMessage="Publisher name for 'Test' environment")]
+    [string]$publisherName
 )
+
+if ($environment -eq "Test" -and [string]::IsNullOrEmpty($publisherName))
+{
+    Write-Error "No publisher name specified for the Test environment"
+    return
+}
 
 $ErrorActionPreference = "Stop"
 
@@ -201,7 +209,14 @@ function Pack
     OverrideTaskLogos $extensionBuildTempPath $environment
     
     Write-Host "Creating VSIX using tfx..."
-    & tfx extension create --root $extensionBuildTempPath --manifest-globs extension-manifest.json --overridesFile $overridesFile --outputPath "$buildArtifactsPath\$environment" --no-prompt
+    if ($environment -eq "Test")
+    {
+        & tfx extension create --root $extensionBuildTempPath --manifest-globs extension-manifest.json --overridesFile $overridesFile --outputPath "$buildArtifactsPath\$environment" --no-prompt --publisher $publisherName
+    }
+    else
+    {
+        & tfx extension create --root $extensionBuildTempPath --manifest-globs extension-manifest.json --overridesFile $overridesFile --outputPath "$buildArtifactsPath\$environment" --no-prompt
+    }
 }
 
 UpdateTfxCli
