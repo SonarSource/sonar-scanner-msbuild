@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace TestUtilities
 {
@@ -58,9 +57,6 @@ namespace TestUtilities
         {
             this.AnalysisResults = new List<AnalysisResult>();
             this.Files = new List<FileInProject>();
-
-            // set default encoding
-            this.Encoding = Encoding.UTF8;
         }
 
         #region Public properties
@@ -76,12 +72,10 @@ namespace TestUtilities
                 return this.Files.Where(f => f.ItemGroup == CompilerInputItemGroup).Select(f => f.FilePath).ToList();
             }
         }
-
+        
         public bool IsTestProject { get; set; }
 
         public bool IsExcluded { get; set; }
-
-        public Encoding Encoding { get; set; }
 
         public List<AnalysisResult> AnalysisResults { get; private set; }
 
@@ -163,7 +157,6 @@ namespace TestUtilities
                 ProjectName = this.ProjectName,
                 ProjectType = this.IsTestProject ? ProjectType.Test : ProjectType.Product,
                 IsExcluded = this.IsExcluded,
-                Encoding = this.Encoding.WebName,
                 AnalysisResults = new List<AnalysisResult>(this.AnalysisResults)
             };
 

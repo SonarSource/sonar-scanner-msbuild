@@ -12,7 +12,6 @@ using SonarQube.Common;
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
@@ -503,45 +502,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         #endregion
 
         #region Miscellaneous tests
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        public void WriteProjectInfo_ProjectWithCodePage()
-        {
-            // Arrange
-            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
-            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
-
-            ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
-            descriptor.Encoding = Encoding.GetEncoding(1250);
-
-            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
-
-            // Act
-            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
-
-            // Assert
-            Assert.AreEqual(descriptor.Encoding.WebName, projectInfo.Encoding);
-        }
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        public void WriteProjectInfo_ProjectWithNoCodePage()
-        {
-            // Arrange
-            string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
-            string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
-
-            ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
-            descriptor.Encoding = null;
-            ProjectRootElement projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
-
-            // Act
-            ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
-
-            // Assert
-            Assert.AreEqual(Encoding.GetEncoding(0).WebName, projectInfo.Encoding);
-        }
 
         [TestMethod]
         [TestCategory("ProjectInfo")]

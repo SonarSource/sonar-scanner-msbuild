@@ -269,8 +269,7 @@
        IsExcluded="$(SonarQubeExclude)"
        AnalysisResults="@(AnalysisResults)"
        AnalysisSettings="@(SonarQubeSetting)"
-       OutputFolder="$(ProjectSpecificOutDir)"
-       CodePage="$(CodePage)"/>
+       OutputFolder="$(ProjectSpecificOutDir)" />
   </Target>
 
   <!-- **************************************************************************** -->

@@ -54,7 +54,6 @@
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-    <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="IRoslynV1SarifFixer.cs" />
     <Compile Include="ISonarScanner.cs" />
     <Compile Include="ProjectInfoAnalysisResult.cs" />

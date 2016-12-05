@@ -6,6 +6,8 @@
 //-----------------------------------------------------------------------
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("SonarScanner.Shim")]
 [assembly: AssemblyProduct("SonarScanner.Shim")]

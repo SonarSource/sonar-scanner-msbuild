@@ -53,7 +53,6 @@
     <EmbeddedResource Include="EmbeddedCode\DummyExe.cs" />
     <Compile Include="DummyExeHelper.cs" />
     <Compile Include="RuleSetAssertions.cs" />
-    <Compile Include="TestEncodingProvider.cs" />
     <Compile Include="WorkingDirectoryScope.cs" />
     <Compile Include="EnvironmentVariableScope.cs" />
     <Compile Include="SQPropertiesFileReader.cs" />

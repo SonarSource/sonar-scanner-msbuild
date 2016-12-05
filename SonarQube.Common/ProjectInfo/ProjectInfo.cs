@@ -77,15 +77,6 @@ namespace SonarQube.Common
         }
 
         /// <summary>
-        /// Encoding used for source files if no BOM is present
-        /// </summary>
-        public string Encoding
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// List of analysis results for the project
         /// </summary>
         public List<AnalysisResult> AnalysisResults { get; set; }

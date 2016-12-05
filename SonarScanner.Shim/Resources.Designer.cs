@@ -380,29 +380,11 @@ namespace SonarScanner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not determine default project encoding, therefore {0} is being selected..
-        /// </summary>
-        public static string WARN_NoEncoding {
-            get {
-                return ResourceManager.GetString("WARN_NoEncoding", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Overriding analysis property. Effective value: {0}={1}.
         /// </summary>
         public static string WARN_OverridingAnalysisProperty {
             get {
                 return ResourceManager.GetString("WARN_OverridingAnalysisProperty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Property &quot;{0}&quot; is defined, but will be ignored during analysis..
-        /// </summary>
-        public static string WARN_PropertyIgnored {
-            get {
-                return ResourceManager.GetString("WARN_PropertyIgnored", resourceCulture);
             }
         }
         
