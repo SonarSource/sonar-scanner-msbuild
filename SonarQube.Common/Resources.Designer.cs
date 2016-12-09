@@ -242,6 +242,15 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not authorize while connecting to the SonarQube server. Check your credentials and try again..
+        /// </summary>
+        public static string ERROR_UnauthorizedConnection {
+            get {
+                return ResourceManager.GetString("ERROR_UnauthorizedConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name of the SonarQube server could not be resolved. Check the url is correct and that the server is available. Url: {0}.
         /// </summary>
         public static string ERROR_UrlNameResolutionFailed {

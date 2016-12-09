@@ -248,4 +248,7 @@
   <data name="WARN_ExecutionTimedOutNotKilled" xml:space="preserve">
     <value>Timed out after waiting {0} ms for process {1} to complete: it could not be terminated and might still be running.</value>
   </data>
+  <data name="ERROR_UnauthorizedConnection" xml:space="preserve">
+    <value>Could not authorize while connecting to the SonarQube server. Check your credentials and try again.</value>
+  </data>
 </root>
