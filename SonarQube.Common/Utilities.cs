@@ -165,6 +165,12 @@ namespace SonarQube.Common
                 return true;
             }
 
+            if (response != null && response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                logger.LogError(Resources.ERROR_UnauthorizedConnection, response.ResponseUri);
+                return true;
+            }
+
             if (ex.Status == WebExceptionStatus.NameResolutionFailure)
             {
                 logger.LogError(Resources.ERROR_UrlNameResolutionFailed, hostUrl);
