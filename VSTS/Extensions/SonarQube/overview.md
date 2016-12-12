@@ -1,6 +1,6 @@
-**[SonarQube][sq]** is an open source, static, source code analysis solution that enables continuous tracking of bugs, code smells and vulnerabilities in more than 20 different languages such as C#, VB .Net, Java, C, C++, COBOL, JavaScript, ... 
+**[SonarQube][sq]** is an open source, static, source code analysis solution that enables continuous tracking of bugs, code smells and vulnerabilities for more than 20 different languages such as C#, VB .Net, Java, C, C++, COBOL, JavaScript, ... 
 
-SonarQube can be installed and run locally on a dedicated infrastructure, or consumed as a service through **[SonarQube.com][sqcom]**. This free-of-charge service is currently dedicated to open source projects.
+SonarQube can be [installed][getstarted] and run locally on a dedicated infrastructure, or consumed as a service through **[SonarQube.com][sqcom]**. This free-of-charge service is currently dedicated to open source projects.
 
 The analysis of the source code doesn't happen on the server side, but must be part of the build chain to make the analysis as accurate as possible. These analysis are performed using SonarQube Scanners.
 
@@ -9,7 +9,7 @@ This extension provides the following features:
 * A dedicated **SonarQube EndPoint** to define the SonarQube server to be used.
 * Two build tasks to analyze Visual Studio Solutions:
   * **SonarQube Scanner for MSBuild - Begin Analysis** task, to prepare the analysis before executing the build.
-  * **SonarQube Scanner for MSBuild - End Analysis** task, to complete the analysis after the build.
+  * **SonarQube Scanner for MSBuild - End Analysis** task, to complete the analysis after the tests.
 * A **SonarQube Scanner CLI** build task to analyze non-Visual Studio solutions such as PHP or JavaScript projects.
 
 ## Highlighted Features
