@@ -37,18 +37,18 @@ namespace SonarQube.Bootstrapper.Tests
             TempDir = Path.Combine(RootDir, ".sonarqube");
             // it will look in Directory.GetCurrentDir, which is RootDir.
             string analysisConfigFile = Path.Combine(TempDir, "conf", "SonarQubeAnalysisConfig.xml");
-            createAnalysisConfig(analysisConfigFile);
-            mockProcessors(true, true);
+            CreateAnalysisConfig(analysisConfigFile);
+            MockProcessors(true, true);
         }
 
-        private void createAnalysisConfig(string filePath)
+        private void CreateAnalysisConfig(string filePath)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(filePath));
             AnalysisConfig config = new AnalysisConfig();
             config.Save(filePath);
         }
 
-        private void mockProcessors(bool preProcessorOutcome, bool postProcessorOutcome)
+        private void MockProcessors(bool preProcessorOutcome, bool postProcessorOutcome)
         {
             MockPreProcessor = new Mock<ITeamBuildPreProcessor>();
             MockPostProcessor = new Mock<IMSBuildPostProcessor>();
@@ -70,7 +70,7 @@ namespace SonarQube.Bootstrapper.Tests
 
             using (InitializeNonTeamBuildEnvironment(RootDir))
             {
-                mockProcessors(false, true);
+                MockProcessors(false, true);
 
                 // Act
                 TestLogger logger = CheckExecutionFails(AnalysisPhase.PreProcessing, true,
@@ -156,7 +156,7 @@ namespace SonarQube.Bootstrapper.Tests
         {
             using (InitializeNonTeamBuildEnvironment(RootDir))
             {
-                mockProcessors(true, false);
+                MockProcessors(true, false);
                 // this is usually created by the PreProcessor
                 Directory.CreateDirectory(TempDir);
 
@@ -246,7 +246,7 @@ namespace SonarQube.Bootstrapper.Tests
         private TestLogger CheckExecutionFails(AnalysisPhase phase, bool debug, params string[] args)
         {
             TestLogger logger = new TestLogger();
-            IBootstrapperSettings settings = mockBootstrapSettings(phase, debug, args);
+            IBootstrapperSettings settings = MockBootstrapSettings(phase, debug, args);
             BootstrapperClass bootstrapper = new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
             int exitCode = bootstrapper.Execute();
 
@@ -259,7 +259,7 @@ namespace SonarQube.Bootstrapper.Tests
         private TestLogger CheckExecutionSucceeds(AnalysisPhase phase, bool debug, params string[] args)
         {
             TestLogger logger = new TestLogger();
-            IBootstrapperSettings settings = mockBootstrapSettings(phase, debug, args);
+            IBootstrapperSettings settings = MockBootstrapSettings(phase, debug, args);
             BootstrapperClass bootstrapper = new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
             int exitCode = bootstrapper.Execute();
 
@@ -269,7 +269,7 @@ namespace SonarQube.Bootstrapper.Tests
             return logger;
         }
 
-        private IBootstrapperSettings mockBootstrapSettings(AnalysisPhase phase, bool debug, string[] args)
+        private IBootstrapperSettings MockBootstrapSettings(AnalysisPhase phase, bool debug, string[] args)
         {
             Mock<IBootstrapperSettings> mockBootstrapSettings;
 

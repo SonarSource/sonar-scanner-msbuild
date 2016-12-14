@@ -25,14 +25,14 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
-        public void init()
+        public void Init()
         {
             CleanupMsbuildDirectories();
             WorkingDirectory = TestUtils.CreateTestSpecificFolder(this.TestContext, "sonarqube");
         }
 
         [TestCleanup]
-        public void tearDown()
+        public void TearDown()
         {
             CleanupMsbuildDirectories();
         }

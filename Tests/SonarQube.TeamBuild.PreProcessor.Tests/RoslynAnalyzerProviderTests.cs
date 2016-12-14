@@ -124,7 +124,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             IList<ActiveRule> activeRules = createActiveRules();
             IList<string> inactiveRules = createInactiveRules();
             string language = RoslynAnalyzerProvider.CSharpLanguage;
-            IDictionary<string, string> serverSettings = createServerSettings();
             MockAnalyzerInstaller mockInstaller = new MockAnalyzerInstaller();
             mockInstaller.AssemblyPathsToReturn = new HashSet<string>(new string[] { "c:\\assembly1.dll", "d:\\foo\\assembly2.dll" });
             TeamBuildSettings settings = CreateSettings(rootFolder);
@@ -132,7 +131,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, language);
+            AnalyzerSettings actualSettings = testSubject.SetupAnalyzer(settings, ServerSettings, activeRules, inactiveRules, language);
 
             // Assert
             CheckSettingsInvariants(actualSettings);
@@ -174,7 +173,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             ActiveRule ruleWithParameter = new ActiveRule("csharpsquid", "S1116");
             Dictionary<string, string> p = new Dictionary<string, string>();
             p.Add("key", "value");
-            ruleWithParameter.Parameters = p; 
+            ruleWithParameter.Parameters = p;
             rules.Add(ruleWithParameter);
             rules.Add(new ActiveRule("csharpsquid", "S1125"));
             rules.Add(new ActiveRule("roslyn.wintellect", "Wintellect003"));
@@ -182,28 +181,25 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return rules;
         }
 
-        private IDictionary<string, string> createServerSettings()
+        private static readonly IDictionary<string, string> ServerSettings = new Dictionary<string, string>
         {
-            IDictionary<string, string> dict = new Dictionary<string, string>();
             // for ruleset
-            dict.Add("wintellect.analyzerId", "Wintellect.Analyzers");
-            dict.Add("wintellect.ruleNamespace", "Wintellect.Analyzers");
+            {"wintellect.analyzerId", "Wintellect.Analyzers" },
+            {"wintellect.ruleNamespace", "Wintellect.Analyzers" },
 
             // to fetch assemblies
-            dict.Add("wintellect.pluginKey", "wintellect");
-            dict.Add("wintellect.pluginVersion", "1.13.0");
-            dict.Add("wintellect.staticResourceName", "SonarAnalyzer.zip");
+            {"wintellect.pluginKey", "wintellect"},
+            {"wintellect.pluginVersion", "1.13.0"},
+            {"wintellect.staticResourceName", "SonarAnalyzer.zip"},
 
-            dict.Add("sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp");
-            dict.Add("sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp");
-            dict.Add("sonaranalyzer-cs.pluginKey", "csharp");
-            dict.Add("sonaranalyzer-cs.staticResourceName", "SonarAnalyzer.zip");
-            dict.Add("sonaranalyzer-cs.nuget.packageId", "SonarAnalyzer.CSharp");
-            dict.Add("sonaranalyzer-cs.pluginVersion", "1.13.0");
-            dict.Add("sonaranalyzer-cs.nuget.packageVersion", "1.13.0");
-
-            return dict;
-        }
+            {"sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp"},
+            {"sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp"},
+            {"sonaranalyzer-cs.pluginKey", "csharp"},
+            {"sonaranalyzer-cs.staticResourceName", "SonarAnalyzer.zip"},
+            {"sonaranalyzer-cs.nuget.packageId", "SonarAnalyzer.CSharp"},
+            {"sonaranalyzer-cs.pluginVersion", "1.13.0"},
+            {"sonaranalyzer-cs.nuget.packageVersion", "1.13.0"}
+        };
 
         private string CreateTestFolders()
         {
@@ -379,7 +375,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockServer.Data.InstalledPlugins.Remove(RoslynAnalyzerProvider.CSharpPluginKey);
 
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
-            
+
             // Act
             IEnumerable<AnalyzerSettings> actualSettings = testSubject.SetupAnalyzers(mockServer, settings, "valid.project", null);
 
@@ -423,7 +419,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             MockSonarQubeServer mockServer = CreateValidServer("valid.project", null, "valid.profile");
             QualityProfile csProfile = mockServer.Data.FindProfile("valid.profile", RoslynAnalyzerProvider.CSharpLanguage);
             csProfile.SetExport(RoslynAnalyzerProvider.GetRoslynFormatName(RoslynAnalyzerProvider.CSharpLanguage), null);
-            
+
             RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
 
             // Act
@@ -767,7 +763,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AnalyzerSettings actualSettings = actualSettingsEnum.First();
             CheckSettingsInvariants(actualSettings);
 
-            CheckExpectedAssemblies(actualSettings  ); 
+            CheckExpectedAssemblies(actualSettings  );
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
@@ -777,7 +773,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region Private methods
 
-        
+
 
         private static string GetBase64EncodedString(string text)
         {
