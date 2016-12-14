@@ -104,7 +104,8 @@ namespace SonarQube.Common
         /// </remarks>
         private static bool ExtractAndValidateProperties(IEnumerable<ArgumentInstance> arguments, ILogger logger, out IEnumerable<Property> analysisProperties)
         {
-            bool success = true;
+            bool containsDuplicateProperty = false;
+            bool containsAnalysisProperty = false;
 
             List<Property> validProperties = new List<Property>();
 
@@ -117,7 +118,7 @@ namespace SonarQube.Common
                     if (Property.TryGetProperty(property.Id, validProperties, out existing))
                     {
                         logger.LogError(Resources.ERROR_CmdLine_DuplicateProperty, argument.Value, existing.Value);
-                        success = false;
+                        containsDuplicateProperty = true;
                     }
                     else
                     {
@@ -127,20 +128,26 @@ namespace SonarQube.Common
                 else
                 {
                     logger.LogError(Resources.ERROR_CmdLine_InvalidAnalysisProperty, argument.Value);
-                    success = false;
+                    containsAnalysisProperty = true;
                 }
             }
 
             // Check for named parameters that can't be set by dynamic properties
-            success = success & !ContainsNamedParameter(SonarProperties.ProjectKey, validProperties, logger, Resources.ERROR_CmdLine_MustUseProjectKey);
-            success = success & !ContainsNamedParameter(SonarProperties.ProjectName, validProperties, logger, Resources.ERROR_CmdLine_MustUseProjectName);
-            success = success & !ContainsNamedParameter(SonarProperties.ProjectVersion, validProperties, logger, Resources.ERROR_CmdLine_MustUseProjectVersion);
+            bool containsProjectKey = ContainsNamedParameter(SonarProperties.ProjectKey, validProperties, logger, Resources.ERROR_CmdLine_MustUseProjectKey);
+            bool containsProjectName = ContainsNamedParameter(SonarProperties.ProjectName, validProperties, logger, Resources.ERROR_CmdLine_MustUseProjectName);
+            bool containsProjectVersion = ContainsNamedParameter(SonarProperties.ProjectVersion, validProperties, logger, Resources.ERROR_CmdLine_MustUseProjectVersion);
 
-            // Check for others properties that can't be set            
-            success = success & !ContainsUnsettableParameter(SonarProperties.WorkingDirectory, validProperties, logger);
+            // Check for others properties that can't be set
+            bool containsUnsettableWorkingDirectory = ContainsUnsettableParameter(SonarProperties.WorkingDirectory, validProperties, logger);
 
             analysisProperties = validProperties;
-            return success;
+
+            return !containsDuplicateProperty &&
+                !containsAnalysisProperty &&
+                !containsProjectKey &&
+                !containsProjectName &&
+                !containsProjectVersion &&
+                !containsUnsettableWorkingDirectory;
         }
 
         private static bool ContainsNamedParameter(string propertyName, IEnumerable<Property> properties, ILogger logger, string errorMessage)
