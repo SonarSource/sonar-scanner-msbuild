@@ -1,0 +1,18 @@
+{
+  "externals": {
+    "archivePackages": [
+      {
+        "url": "https://github.com/SonarSource-VisualStudio/sonar-scanner-msbuild/releases/download/2.2/sonar-scanner-msbuild-2.2.0.24.zip",
+        "dest": "./sonar-scanner",
+        "include": "sonar-scanner-2.8/*"
+      }
+    ]
+  },
+  "common": [
+    {
+      "module": "../Common/common",
+      "type": "node",
+      "compile": true
+    }
+  ]
+}

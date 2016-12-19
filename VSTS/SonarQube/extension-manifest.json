@@ -1,0 +1,133 @@
+{
+  "manifestVersion": 1,
+  "id": "sonarqube",
+  "name": "SonarQube",
+  "version": "2.0.18",
+  "publisher": "amaurysonarsource",
+  "public": false,
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "description": "Use the SonarQube build tasks in your continuous integration builds to track bugs, code smells and vulnerabilities for 20 different languages such as C#, VB.Net, Java, C, C++, JavaScript...",
+  "categories": [
+    "Build and release"
+  ],
+  "icons": {
+    "default": "extension-icon.png"
+  },
+  "tags": [
+    "build",
+    "ci",
+    "continuous integration"
+  ],
+  "content": {
+    "details": {
+      "path": "README.md"
+    },
+    "license": {
+      "path": "LICENSE"
+    }
+  },
+  "screenshots": [
+    {
+      "path": "img/tasks.png"
+    }
+  ],
+  "links": {
+    "home": {
+      "uri": "http://www.sonarqube.org/"
+    },
+    "getstarted": {
+      "uri": "http://redirect.sonarsource.com/doc/install-configure-scanner-tfs-ts.html"
+    },
+    "support": {
+      "uri": "http://www.sonarqube.org/get-support/"
+    },
+    "repository": {
+      "uri": "https://github.com/SonarSource-VisualStudio/sonar-scanner-msbuild/tree/master/VSTS"
+    }
+  },
+  "files": [
+    {
+      "path": "Tasks"
+    },
+    {
+      "path": "img",
+      "addressable": true
+    }
+  ],
+  "scopes": [
+    "vso.build",
+    "vso.code_write",
+    "vso.test"
+  ],
+  "branding": {
+    "color": "rgb(67, 157, 210)",
+    "theme": "dark"
+  },
+  "contributions": [
+    {
+      "id": "9F57024B-31F9-4E58-9E39-A47CCC098F03",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/SonarQubeScannerCli"
+      }
+    },
+    {
+      "id": "EDC775DD-1A82-4ADD-A073-7B5813E87202",
+      "description": "Service Endpoint type for SonarQube Connections",
+      "type": "ms.vss-endpoint.service-endpoint-type",
+      "targets": [
+        "ms.vss-endpoint.endpoint-types"
+      ],
+      "properties": {
+        "name": "sonarqube",
+        "displayName": "SonarQube",
+        "url": {
+          "displayName": "Server Url",
+          "helpText": "Url for the SonarQube Server to connect to."
+        },
+        "authenticationSchemes": [
+          {
+            "type": "ms.vss-endpoint.endpoint-auth-scheme-basic",
+            "inputDescriptors": [
+              {
+                "id": "username",
+                "name": "Token",
+                "description": "Authentication Token generated through SonarQube (go to My Account > Security > Generate Tokens)",
+                "inputMode": "passwordbox",
+                "isConfidential": true,
+                "validation": {
+                  "isRequired": true,
+                  "dataType": "string"
+                }
+              },
+              {
+                "id": "password",
+                "name": "Password",
+                "description": "Password",
+                "inputMode": "passwordbox",
+                "isConfidential": true,
+                "validation": {
+                  "isRequired": false,
+                  "dataType": "string"
+                },
+                "values": {
+                  "inputId": "passwordInput",
+                  "defaultValue": "",
+                  "isDisabled": true
+                }
+              }
+            ]
+          }
+        ],
+        "helpMarkDown": "Is your project open source? Have a look at <a href=\"https://sonarqube.com\">sonarqube.com</a> to freely consume SonarQube as a service."
+      }
+    }
+  ]
+}
