@@ -80,16 +80,14 @@ var addPath = function (directory) {
     var separator;
     if (os.platform() == 'win32') {
         separator = ';';
-    }
-    else {
+    } else {
         separator = ':';
     }
 
     var existing = process.env['PATH'];
     if (existing) {
         process.env['PATH'] = directory + separator + existing;
-    }
-    else {
+    } else {
         process.env['PATH'] = directory;
     }
 }
