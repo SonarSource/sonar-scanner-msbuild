@@ -52,6 +52,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		SonarQube\SolutionBinding.sqconfig = SonarQube\SolutionBinding.sqconfig
 		SonarQube\sonar-msbuild-runnerCSharp.ruleset = SonarQube\sonar-msbuild-runnerCSharp.ruleset
+		SonarLint.xml = SonarLint.xml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Old.Bootstrapper", "SonarQube.Old.Bootstrapper\SonarQube.Old.Bootstrapper.csproj", "{35848C6E-2018-4831-94FA-40D7E45B5A09}"

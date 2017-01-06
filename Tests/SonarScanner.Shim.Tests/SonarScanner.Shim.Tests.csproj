@@ -25,6 +25,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>SonarScanner.Shim.Tests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,6 +34,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>SonarScanner.Shim.Tests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -76,8 +78,13 @@
       <Name>TestUtilities</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
+    <None Include="SonarScanner.Shim.Tests.ruleset" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="..\..\SonarLint.xml">
+      <Link>Properties\SonarLint.xml</Link>
+    </AdditionalFiles>
     <Content Include="License.txt" />
   </ItemGroup>
   <Choose>
