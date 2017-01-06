@@ -1,4 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="SonarQube" ToolsVersion="14.0">
   <Include Path="..\sonarqube\sonar-msbuild-runnercsharp.ruleset" Action="Default" />
+  <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
+    <Rule Id="S1451" Action="Warning" />
+  </Rules>
 </RuleSet>
