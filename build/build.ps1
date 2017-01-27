@@ -60,12 +60,12 @@ if ($env:IS_PULLREQUEST -eq "true") {
         #get version number
         [xml]$versionProps = Get-Content .\build\Version.props
         $version  = $versionProps.Project.PropertyGroup.MainVersion+".$buildversion"
-		write-host -f green "version: $version"
-		
-		$implZipPath    = Get-Item .\DeploymentArtifacts\CSharpPluginPayload\Release\SonarQube.MSBuild.Runner.Implementation.zip
-		$scannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\SonarQube.Scanner.MSBuild.zip
+        write-host -f green "version: $version"
+
+        $implZipPath    = Get-Item .\DeploymentArtifacts\CSharpPluginPayload\Release\SonarQube.MSBuild.Runner.Implementation.zip
+        $scannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\SonarQube.Scanner.MSBuild.zip
         
-		#DeployOnRepox $scannerZipPath "" $version
+        #DeployOnRepox $scannerZipPath "" $version
         write-host -f green  "replace zip filenames in pom.xml"
         (Get-Content .\pom.xml) -replace 'implZipPath', "$implZipPath" | Set-Content .\pom.xml
         (Get-Content .\pom.xml) -replace 'scannerZipPath', "$scannerZipPath" | Set-Content .\pom.xml

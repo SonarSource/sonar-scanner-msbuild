@@ -19,14 +19,16 @@
  */
 package com.sonar.it.scanner.msbuild;
 
-import static com.sonar.it.scanner.msbuild.TestSuite.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.junit.SingleStartExternalResource;
+import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.PluginLocation;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -35,25 +37,25 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.wsclient.issue.Issue;
 import org.sonar.wsclient.issue.IssueQuery;
-import org.sonar.wsclient.services.Measure;
-import org.sonar.wsclient.services.Resource;
-import org.sonar.wsclient.services.ResourceQuery;
+import org.sonarqube.ws.WsMeasures;
+import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.WsClient;
+import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
-import com.sonar.orchestrator.Orchestrator;
-import com.sonar.orchestrator.junit.SingleStartExternalResource;
-import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.locator.PluginLocation;
+import static com.sonar.it.scanner.msbuild.TestSuite.ORCHESTRATOR;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class VBNetTest {
   private static final String PROJECT_KEY = "my.project";
-  private static final String FILE_KEY = "my.project:my.project:60FFCB5D-A35A-43B2-8FE3-F37C8F3B742B:Module1.vb"; 
-  
+  private static final String FILE_KEY = "my.project:my.project:60FFCB5D-A35A-43B2-8FE3-F37C8F3B742B:Module1.vb";
+
   @BeforeClass
   public static void checkSkip() {
-    Assume.assumeTrue("Disable for old scanner (needs C# plugin installed to get the payload)", 
+    Assume.assumeTrue("Disable for old scanner (needs C# plugin installed to get the payload)",
       TestUtils.getScannerVersion() == null || !TestUtils.getScannerVersion().equals("2.1.0.0"));
   }
-  
+
   @ClassRule
   public static TemporaryFolder temp = TestSuite.temp;
 
@@ -61,7 +63,7 @@ public class VBNetTest {
   public static SingleStartExternalResource resource = new SingleStartExternalResource() {
     @Override
     protected void beforeAll() {
-      
+
       ORCHESTRATOR = Orchestrator.builderEnv()
         .addPlugin(PluginLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", TestSuite.getVBNetVersion()))
         .addPlugin("fxcop")
@@ -80,7 +82,7 @@ public class VBNetTest {
   public void cleanup() {
     ORCHESTRATOR.resetData();
   }
-  
+
   @Test
   public void testVBNetOnly() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileVBNet.xml"));
@@ -101,24 +103,35 @@ public class VBNetTest {
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    
+
     List<String> keys = issues.stream().map(i -> i.ruleKey()).collect(Collectors.toList());
-    assertThat(keys).containsAll(Arrays.asList("vbnet:S3385", 
-      "vbnet:S2358", 
-      "fxcop-vbnet:AvoidUnusedPrivateFields", 
+    assertThat(keys).containsAll(Arrays.asList("vbnet:S3385",
+      "vbnet:S2358",
+      "fxcop-vbnet:AvoidUnusedPrivateFields",
       "fxcop-vbnet:AvoidUncalledPrivateCode"));
-    
-    assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(23);
-    assertThat(getFileMeasure("ncloc").getIntValue()).isEqualTo(10);
-  }
-  
-  private Measure getFileMeasure(String metricKey) {
-    Resource resource = ORCHESTRATOR.getServer().getWsClient().find(ResourceQuery.createForMetrics(FILE_KEY, metricKey));
-    return resource != null ? resource.getMeasure(metricKey) : null;
+
+    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(23);
+    assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(10);
   }
 
-  private Measure getProjectMeasure(String metricKey) {
-    Resource resource = ORCHESTRATOR.getServer().getWsClient().find(ResourceQuery.createForMetrics(PROJECT_KEY, metricKey));
-    return resource != null ? resource.getMeasure(metricKey) : null;
+  @CheckForNull
+  static Integer getMeasureAsInteger(String componentKey, String metricKey) {
+    WsMeasures.Measure measure = getMeasure(componentKey, metricKey);
+    return (measure == null) ? null : Integer.parseInt(measure.getValue());
+  }
+
+  @CheckForNull
+  static WsMeasures.Measure getMeasure(@Nullable String componentKey, String metricKey) {
+    WsMeasures.ComponentWsResponse response = newWsClient().measures().component(new ComponentWsRequest()
+      .setComponentKey(componentKey)
+      .setMetricKeys(Arrays.asList(metricKey)));
+    List<WsMeasures.Measure> measures = response.getComponent().getMeasuresList();
+    return measures.size() == 1 ? measures.get(0) : null;
+  }
+
+  static WsClient newWsClient() {
+    return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
+      .url(ORCHESTRATOR.getServer().getUrl())
+      .build());
   }
 }
