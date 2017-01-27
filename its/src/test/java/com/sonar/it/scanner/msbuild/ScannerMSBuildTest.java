@@ -27,7 +27,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -35,11 +36,13 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.wsclient.issue.Issue;
 import org.sonar.wsclient.issue.IssueQuery;
-import org.sonar.wsclient.services.Measure;
-import org.sonar.wsclient.services.Resource;
-import org.sonar.wsclient.services.ResourceQuery;
+import org.sonarqube.ws.WsMeasures;
+import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.WsClient;
+import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
-import static com.sonar.it.scanner.msbuild.TestSuite.*;
+import static com.sonar.it.scanner.msbuild.TestSuite.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ScannerMSBuildTest {
@@ -78,15 +81,15 @@ public class ScannerMSBuildTest {
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).hasSize(4);
-    assertThat(getFileMeasure("ncloc").getIntValue()).isEqualTo(23);
-    assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(37);
-    assertThat(getFileMeasure("lines").getIntValue()).isEqualTo(58);
+    assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(23);
+    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(37);
+    assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(58);
   }
 
   @Test
   public void testNoProjectNameAndVersion() throws Exception {
     Assume.assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals("6.1"));
-    
+
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
@@ -103,9 +106,9 @@ public class ScannerMSBuildTest {
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).hasSize(4);
-    assertThat(getFileMeasure("ncloc").getIntValue()).isEqualTo(23);
-    assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(37);
-    assertThat(getFileMeasure("lines").getIntValue()).isEqualTo(58);
+    assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(23);
+    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(37);
+    assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(58);
   }
 
   @Test
@@ -141,8 +144,8 @@ public class ScannerMSBuildTest {
 
     // excluded project doesn't exist in SonarQube
 
-    assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(45);
-    assertThat(getProjectMeasure("ncloc", normalProjectKey).getIntValue()).isEqualTo(45);
+    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(45);
+    assertThat(getMeasureAsInteger(normalProjectKey, "ncloc")).isEqualTo(45);
   }
 
   @Test
@@ -185,7 +188,7 @@ public class ScannerMSBuildTest {
     // Properties/AssemblyInfo.cs 15
     // Ny Properties/AssemblyInfo.cs 13
     // Module1.vb 10
-    assertThat(getProjectMeasure("ncloc").getIntValue()).isEqualTo(68);
+    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(68);
   }
 
   @Test
@@ -309,17 +312,25 @@ public class ScannerMSBuildTest {
     assertThat(issues).isEmpty();
   }
 
-  private Measure getFileMeasure(String metricKey) {
-    return getProjectMeasure(metricKey, FILE_KEY);
+  @CheckForNull
+  static Integer getMeasureAsInteger(String componentKey, String metricKey) {
+    WsMeasures.Measure measure = getMeasure(componentKey, metricKey);
+    return (measure == null) ? null : Integer.parseInt(measure.getValue());
   }
 
-  private Measure getProjectMeasure(String metricKey, String projectKey) {
-    Resource resource = ORCHESTRATOR.getServer().getWsClient().find(ResourceQuery.createForMetrics(projectKey, metricKey));
-    return resource != null ? resource.getMeasure(metricKey) : null;
+  @CheckForNull
+  static WsMeasures.Measure getMeasure(@Nullable String componentKey, String metricKey) {
+    WsMeasures.ComponentWsResponse response = newWsClient().measures().component(new ComponentWsRequest()
+      .setComponentKey(componentKey)
+      .setMetricKeys(Arrays.asList(metricKey)));
+    List<WsMeasures.Measure> measures = response.getComponent().getMeasuresList();
+    return measures.size() == 1 ? measures.get(0) : null;
   }
 
-  private Measure getProjectMeasure(String metricKey) {
-    return getProjectMeasure(metricKey, PROJECT_KEY);
+  static WsClient newWsClient() {
+    return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
+      .url(ORCHESTRATOR.getServer().getUrl())
+      .build());
   }
 
 }
