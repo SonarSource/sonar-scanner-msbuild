@@ -64,6 +64,10 @@ namespace SonarScanner.Shim
             {
                 return false;
             }
+            catch (FormatException) // we expect invalid JSON
+            {
+                return false;
+            }
             return true;
         }
 
