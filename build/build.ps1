@@ -99,7 +99,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         .\MSBuild.SonarQube.Runner end /d:sonar.login=$env:SONAR_TOKEN
         testExitCode
        
-       deploy -version =$version
+       deploy -version $version
 		
     } else {
         write-host -f green "not on master"
