@@ -51,21 +51,32 @@ if ($env:IS_PULLREQUEST -eq "true") {
         & $env:MSBUILD_PATH  .\build\ChangeVersion.proj
         testExitCode
 
+        #get version number
+        [xml]$versionProps = Get-Content .\build\Version.props
+        $version  = $versionProps.Project.PropertyGroup.MainVersion+".$buildversion"
+        write-host -f green "version: $version"
+
+
+        #start analysis
+        .\MSBuild.SonarQube.Runner begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:$version `
+            /d:sonar.host.url=$env:SONAR_HOST_URL `
+            /d:sonar.login=$env:SONAR_TOKEN 
+        testExitCode
+
         #build
         & $env:NUGET_PATH restore SonarQube.Scanner.MSBuild.sln
         testExitCode
         & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH
         testExitCode
 
-        #get version number
-        [xml]$versionProps = Get-Content .\build\Version.props
-        $version  = $versionProps.Project.PropertyGroup.MainVersion+".$buildversion"
-        write-host -f green "version: $version"
-
+        #end analysis
+        .\MSBuild.SonarQube.Runner end /d:sonar.login=$env:SONAR_TOKEN
+        testExitCode
+       
+        #DeployOnRepox $scannerZipPath "" $version
         $implZipPath    = Get-Item .\DeploymentArtifacts\CSharpPluginPayload\Release\SonarQube.MSBuild.Runner.Implementation.zip
         $scannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\SonarQube.Scanner.MSBuild.zip
         
-        #DeployOnRepox $scannerZipPath "" $version
         write-host -f green  "replace zip filenames in pom.xml"
         (Get-Content .\pom.xml) -replace 'implZipPath', "$implZipPath" | Set-Content .\pom.xml
         (Get-Content .\pom.xml) -replace 'scannerZipPath', "$scannerZipPath" | Set-Content .\pom.xml
