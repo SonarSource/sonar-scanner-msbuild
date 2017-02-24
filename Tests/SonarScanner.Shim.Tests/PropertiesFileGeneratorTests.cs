@@ -173,7 +173,7 @@ namespace SonarScanner.Shim.Tests
 
             // Mock SARIF fixer simulates already valid sarif
             MockRoslynV1SarifFixer mockSarifFixer = new MockRoslynV1SarifFixer(testSarifPath);
-            string escapedMockReturnPath = mockSarifFixer.ReturnVal.Replace(@"\", @"\\");
+            string mockReturnPath = mockSarifFixer.ReturnVal;
 
             // Act
             ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger, mockSarifFixer);
@@ -183,7 +183,7 @@ namespace SonarScanner.Shim.Tests
 
             // Already valid SARIF -> no change in file -> unchanged property
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFileCsharpPropertyKey, escapedMockReturnPath);
+            provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFileCsharpPropertyKey, mockReturnPath);
         }
 
         [TestMethod]
@@ -329,6 +329,44 @@ namespace SonarScanner.Shim.Tests
             AssertFailedToCreatePropertiesFiles(result, logger);
         }
 
+        [TestMethod]
+        public void FileGen_SharedFiles()
+        {
+            // Shared files should be attached to the root project
+
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string project1Dir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "project1");
+            string project1Path = Path.Combine(project1Dir, "project1.proj");
+            string project1Info = CreateProjectInfoInSubDir(testDir, "projectName1", Guid.NewGuid(), ProjectType.Product, false, project1Path); // not excluded
+            var sharedFile = Path.Combine(testDir, "contentFile.txt");
+            CreateEmptyFile(testDir, "contentFile.txt");
+
+            // Reference shared file, but not under the project directory
+            string contentFileList1 = CreateFile(project1Dir, "contentList.txt", sharedFile);
+            AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
+
+            string project2Dir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "project2");
+            string project2Path = Path.Combine(project2Dir, "project2.proj");
+            string project2Info = CreateProjectInfoInSubDir(testDir, "projectName2", Guid.NewGuid(), ProjectType.Product, false, project2Path); // not excluded
+
+            // Reference shared file, but not under the project directory
+            string contentFileList2 = CreateFile(project2Dir, "contentList.txt", sharedFile);
+            AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
+
+            TestLogger logger = new TestLogger();
+            AnalysisConfig config = CreateValidConfig(testDir);
+
+            // Act
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+
+            // Assert
+            SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+            provider.AssertSettingExists("sonar.projectBaseDir", testDir);
+            provider.AssertSettingExists("sonar.sources", sharedFile);
+        }
+
         [TestMethod] //https://jira.codehaus.org/browse/SONARMSBRU-13: Analysis fails if a content file referenced in the MSBuild project does not exist
         public void FileGen_MissingFilesAreSkipped()
         {
@@ -427,7 +465,7 @@ namespace SonarScanner.Shim.Tests
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
             provider.AssertSettingExists("key1", "value1");
             provider.AssertSettingExists("key.2", "value two");
-            provider.AssertSettingExists("key.3", " ");
+            provider.AssertSettingExists("key.3", "");
 
             provider.AssertSettingDoesNotExist("server.key");
 

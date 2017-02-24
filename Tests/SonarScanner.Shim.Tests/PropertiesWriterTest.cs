@@ -253,7 +253,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
 
             propertyReader.AssertSettingExists("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting1", "setting1");
             propertyReader.AssertSettingExists("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting2", "setting 2 with spaces");
-            propertyReader.AssertSettingExists("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
+            propertyReader.AssertSettingExists("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting.3", @"c:\dir1\dir2\foo.txt");
         }
 
         [TestMethod]
@@ -287,7 +287,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
 
             propertyReader.AssertSettingExists("my.setting1", "setting1");
             propertyReader.AssertSettingExists("my.setting2", "setting 2 with spaces");
-            propertyReader.AssertSettingExists("my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
+            propertyReader.AssertSettingExists("my.setting.3", @"c:\dir1\dir2\foo.txt");
 
             propertyReader.AssertSettingExists("sonar.branch", "aBranch");
         }

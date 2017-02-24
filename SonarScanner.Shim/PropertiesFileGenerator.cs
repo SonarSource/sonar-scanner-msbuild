@@ -79,7 +79,7 @@ namespace SonarScanner.Shim
 
             IEnumerable<ProjectInfo> validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
 
-            if (validProjects.Any())
+            if (validProjects.Any() || result.SharedFiles.Any())
             {
                 // Handle global settings
                 AnalysisProperties properties = GetAnalysisPropertiesToWrite(config, logger);
