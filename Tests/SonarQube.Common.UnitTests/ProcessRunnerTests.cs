@@ -56,7 +56,7 @@ namespace SonarQube.Common.UnitTests
             string exeName = TestUtils.WriteBatchFileForTest(TestContext,
 @"@echo Hello world
 xxx yyy
-@echo Testing 1,2,3...
+@echo Testing 1,2,3...>&2
 ");
 
             TestLogger logger = new TestLogger();
@@ -71,8 +71,7 @@ xxx yyy
             Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
 
             logger.AssertMessageLogged("Hello world"); // Check output message are passed to the logger
-            logger.AssertMessageLogged("Testing 1,2,3...");
-            logger.AssertErrorLogged("'xxx' is not recognized as an internal or external command,"); // Check error messages are passed to the logger
+            logger.AssertErrorLogged("Testing 1,2,3..."); // Check error messages are passed to the logger
         }
 
         [TestMethod]
