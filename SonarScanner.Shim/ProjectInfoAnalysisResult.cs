@@ -28,6 +28,7 @@ namespace SonarScanner.Shim
         public ProjectInfoAnalysisResult()
         {
             this.Projects = new Dictionary<ProjectInfo, ProjectInfoValidity>();
+            this.SharedFiles = new List<string>();
         }
 
         #endregion
@@ -39,6 +40,8 @@ namespace SonarScanner.Shim
         public bool RanToCompletion { get; set; }
 
         public string FullPropertiesFilePath { get; set; }
+
+        public ICollection<string> SharedFiles { get; private set; }
 
         #endregion
 

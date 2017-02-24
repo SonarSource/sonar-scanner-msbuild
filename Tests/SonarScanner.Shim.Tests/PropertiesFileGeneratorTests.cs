@@ -16,6 +16,7 @@
  */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NFluent;
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,7 @@ namespace SonarScanner.Shim.Tests
     [TestClass]
     public class PropertiesFileGeneratorTests
     {
+        private const string TestSonarqubeOutputDir = @"e:\.sonarqube\out";
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -67,7 +69,7 @@ namespace SonarScanner.Shim.Tests
             Guid duplicateGuid = Guid.NewGuid();
             CreateProjectInfoInSubDir(testDir, "duplicate1", duplicateGuid, ProjectType.Product, false, "c:\\abc\\duplicateProject1.proj"); // not excluded
             CreateProjectInfoInSubDir(testDir, "duplicate2", duplicateGuid, ProjectType.Test, false, "S:\\duplicateProject2.proj"); // not excluded
-            CreateProjectInfoInSubDir(testDir, "excluded", duplicateGuid, ProjectType.Product, true, null); // excluded
+            CreateProjectInfoInSubDir(testDir, "excluded", duplicateGuid, ProjectType.Product, true, "c:\\abc\\excluded.proj"); // excluded
 
             TestLogger logger = new TestLogger();
             AnalysisConfig config = CreateValidConfig(testDir);
@@ -102,9 +104,9 @@ namespace SonarScanner.Shim.Tests
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
             Guid duplicateGuid = Guid.NewGuid();
-            CreateProjectInfoInSubDir(testDir, "excl1", duplicateGuid, ProjectType.Product, true, null); // excluded
-            CreateProjectInfoInSubDir(testDir, "excl2", duplicateGuid, ProjectType.Test, true, null); // excluded
-            CreateProjectInfoInSubDir(testDir, "notExcl", duplicateGuid, ProjectType.Product, false, null); // not excluded
+            CreateProjectInfoInSubDir(testDir, "excl1", duplicateGuid, ProjectType.Product, true, "c:\\abc\\excluded1.proj"); // excluded
+            CreateProjectInfoInSubDir(testDir, "excl2", duplicateGuid, ProjectType.Test, true, "c:\\abc\\excluded2.proj"); // excluded
+            CreateProjectInfoInSubDir(testDir, "notExcl", duplicateGuid, ProjectType.Product, false, "c:\\abc\\included.proj"); // not excluded
 
             TestLogger logger = new TestLogger();
             AnalysisConfig config = CreateValidConfig(testDir);
@@ -131,7 +133,7 @@ namespace SonarScanner.Shim.Tests
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
-            CreateProjectInfoInSubDir(testDir, "withoutFiles", Guid.NewGuid(), ProjectType.Product, false, null); // not excluded
+            CreateProjectInfoInSubDir(testDir, "withoutFiles", Guid.NewGuid(), ProjectType.Product, false, "c:\\abc\\withoutfile.proj"); // not excluded
             CreateProjectWithFiles("withFiles1", testDir);
             CreateProjectWithFiles("withFiles2", testDir);
 
@@ -483,6 +485,59 @@ namespace SonarScanner.Shim.Tests
             logger.AssertWarningsLogged(0); // not expecting a warning if the user has supplied the value we want
         }
 
+        [TestMethod]
+        public void FileGen_ComputeProjectBaseDir()
+        {
+            VerifyProjectBaseDir(
+                expectedValue: @"d:\work\mysources", // if there is a user value, use it
+                teamBuildValue: @"d:\work",
+                userValue: @"d:\work\mysources",
+                projectPaths: new[] { @"d:\work\proj1.csproj" });
+
+            VerifyProjectBaseDir(
+              expectedValue: @"d:\work",  // if no user value, use the team build value
+              teamBuildValue: @"d:\work",
+              userValue: null,
+              projectPaths: new[] { @"e:\work\proj1.csproj" });
+
+            VerifyProjectBaseDir(
+               expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+               teamBuildValue: null,
+               userValue: "",
+               projectPaths: new[] { @"e:\work\proj1.csproj" });
+
+            VerifyProjectBaseDir(
+              expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"e:\work\proj1.csproj", @"e:\work\proj2.csproj" });
+
+            VerifyProjectBaseDir(
+              expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"e:\work\A\proj1.csproj", @"e:\work\B\C\proj2.csproj" });
+
+
+            VerifyProjectBaseDir(
+              expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"e:\work\A\proj1.csproj", @"e:\work\B\proj2.csproj", @"e:\work\C\proj2.csproj" });
+
+            VerifyProjectBaseDir(
+              expectedValue: @"e:\work\A",  // if no team build value, use the common project paths root
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"e:\work\A\X\proj1.csproj", @"e:\work\A\proj2.csproj", @"e:\work\A\proj2.csproj" });
+
+            VerifyProjectBaseDir(
+              expectedValue: TestSonarqubeOutputDir,  // if no common root exists, use the .sonarqube/out dir
+              teamBuildValue: null,
+              userValue: "",
+              projectPaths: new[] { @"f:\work\A\proj1.csproj", @"e:\work\B\proj2.csproj" });
+        }
+
         #endregion
 
         #region Assertions
@@ -573,6 +628,23 @@ namespace SonarScanner.Shim.Tests
         #endregion
 
         #region Private methods
+
+        private void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths)
+        {
+            AnalysisConfig config = new AnalysisConfig();
+            PropertiesWriter writer = new PropertiesWriter(config);
+            config.SonarOutputDir = TestSonarqubeOutputDir;
+            
+            config.SourcesDirectory = teamBuildValue;
+            config.SetConfigValue(SonarProperties.ProjectBaseDir, userValue);
+
+            TestLogger logger = new TestLogger();
+
+            // Act
+            string result = PropertiesFileGenerator.ComputeProjectBaseDir(config, projectPaths.Select(p => new ProjectInfo { FullPath = p, ProjectLanguage = ProjectLanguages.CSharp }));
+
+            Check.That(result).Equals(expectedValue);
+        }
 
         /// <summary>
         /// Creates a project info under the specified analysis root directory

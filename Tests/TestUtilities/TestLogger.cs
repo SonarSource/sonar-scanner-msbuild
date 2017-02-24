@@ -16,6 +16,7 @@
  */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NFluent;
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;
@@ -84,14 +85,12 @@ namespace TestUtilities
 
         public void AssertMessageLogged(string expected)
         {
-            bool found = this.InfoMessages.Any(s => expected.Equals(s, System.StringComparison.CurrentCulture));
-            Assert.IsTrue(found, "Expected message was not found: '{0}'", expected);
+            Check.That(this.InfoMessages).Contains(expected);
         }
 
         public void AssertErrorLogged(string expected)
         {
-            bool found = this.Errors.Any(s => expected.Equals(s, System.StringComparison.CurrentCulture));
-            Assert.IsTrue(found, "Expected error was not found: '{0}'", expected);
+            Check.That(this.Errors).Contains(expected);
         }
 
         public void AssertMessageNotLogged(string message)

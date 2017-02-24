@@ -70,9 +70,12 @@ namespace SonarScanner.Shim
 
             TryFixSarifReports(logger, projects, fixer);
 
+            string projectBaseDir = ComputeProjectBaseDir(config, projects);
+
             PropertiesWriter writer = new PropertiesWriter(config);
 
-            ProjectInfoAnalysisResult result = ProcessProjectInfoFiles(projects, writer, logger);
+            ProjectInfoAnalysisResult result = ProcessProjectInfoFiles(projects, writer, logger, projectBaseDir);
+            writer.WriteSonarProjectInfo(projectBaseDir, result.SharedFiles);
 
             IEnumerable<ProjectInfo> validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
 
@@ -100,6 +103,70 @@ namespace SonarScanner.Shim
                 }
             }
             return result;
+        }
+
+        /// Appends the sonar.projectBaseDir value. This is calculated as follows:
+        /// 1. the user supplied value, or if none
+        /// 2. the sources directory if running from TFS Build or XAML Build, or
+        /// 3. the common root path of projects, or if there isn't any
+        /// 4. the .sonarqube/out directory
+        /// </summary>
+        public static string ComputeProjectBaseDir(AnalysisConfig config, IEnumerable<ProjectInfo> projects)
+        {
+            string projectBaseDir = config.GetConfigValue(SonarProperties.ProjectBaseDir, null);
+            if (!String.IsNullOrWhiteSpace(projectBaseDir))
+            {
+                return projectBaseDir;
+            }
+
+            projectBaseDir = config.SourcesDirectory;
+            if (!String.IsNullOrWhiteSpace(projectBaseDir))
+            {
+                return projectBaseDir;
+            }
+
+            projectBaseDir = GetCommonRootOfProjects(projects);
+            if (!String.IsNullOrWhiteSpace(projectBaseDir))
+            {
+                return projectBaseDir;
+            }
+
+            return config.SonarOutputDir;
+        }
+
+        #endregion
+
+        #region Private methods
+
+        /// <summary>
+
+        private static string GetCommonRootOfProjects(IEnumerable<ProjectInfo> projects)
+        {
+            IEnumerable<string> projectDirs = projects.Select(p => p.GetProjectDirectory());
+            IEnumerator<string>[] pathPartEnumerators = projectDirs.Select(s => s.Split(Path.DirectorySeparatorChar).AsEnumerable().GetEnumerator()).ToArray();
+
+            try
+            {
+                var commonParts = new List<string>();
+                if (pathPartEnumerators.Length > 0)
+                {
+                    while (pathPartEnumerators.All(e => e.MoveNext()) && pathPartEnumerators.All(e => e.Current == pathPartEnumerators.First().Current))
+                    {
+                        commonParts.Add(pathPartEnumerators.First().Current);
+                    }
+                }
+
+                if (!commonParts.Any())
+                {
+                    return null;
+                }
+
+                return string.Join(Path.DirectorySeparatorChar.ToString(), commonParts);
+            }
+            finally
+            {
+                Array.ForEach(pathPartEnumerators, e => e.Dispose());
+            }
         }
 
         /// <summary>
@@ -143,11 +210,7 @@ namespace SonarScanner.Shim
             }
         }
 
-        #endregion
-
-        #region Private methods
-
-        private static ProjectInfoAnalysisResult ProcessProjectInfoFiles(IEnumerable<ProjectInfo> projects, PropertiesWriter writer, ILogger logger)
+        private static ProjectInfoAnalysisResult ProcessProjectInfoFiles(IEnumerable<ProjectInfo> projects, PropertiesWriter writer, ILogger logger, string projectBaseDir)
         {
             ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult();
 
@@ -157,7 +220,7 @@ namespace SonarScanner.Shim
 
                 if (status == ProjectInfoValidity.Valid)
                 {
-                    IEnumerable<string> files = GetFilesToAnalyze(projectInfo, logger);
+                    IEnumerable<string> files = GetFilesToAnalyze(projectInfo, logger, projectBaseDir, result);
                     if (files == null || !files.Any())
                     {
                         status = ProjectInfoValidity.NoFilesToAnalyze;
@@ -212,12 +275,11 @@ namespace SonarScanner.Shim
         /// Returns all of the valid files that can be analyzed. Logs warnings/info about
         /// files that cannot be analyzed.
         /// </summary>
-        private static IEnumerable<string> GetFilesToAnalyze(ProjectInfo projectInfo, ILogger logger)
+        private static IEnumerable<string> GetFilesToAnalyze(ProjectInfo projectInfo, ILogger logger, string projectBaseDir, ProjectInfoAnalysisResult projectResult)
         {
             // We're only interested in files that exist and that are under the project root
             var result = new List<string>();
             var baseDir = projectInfo.GetProjectDirectory();
-
             foreach (string file in projectInfo.GetAllAnalysisFiles())
             {
                 if (File.Exists(file))
@@ -225,6 +287,10 @@ namespace SonarScanner.Shim
                     if (IsInFolder(file, baseDir))
                     {
                         result.Add(file);
+                    }
+                    else if (IsInFolder(file, projectBaseDir))
+                    {
+                        projectResult.SharedFiles.Add(file);
                     }
                     else
                     {
