@@ -132,6 +132,10 @@ namespace SonarScanner.Shim
             AppendKeyValue(sb, guid, SonarProperties.ProjectName, project.ProjectName);
             AppendKeyValue(sb, guid, SonarProperties.ProjectBaseDir, project.GetProjectDirectory());
 
+            Debug.Assert(!string.IsNullOrWhiteSpace(project.Encoding), "Expecting a project with non-empty encoding");
+
+            AppendKeyValue(sb, guid, SonarProperties.SourceEncoding, project.Encoding.ToLowerInvariant());
+
             if (fxCopReportFilePath != null)
             {
                 string property = null;
@@ -242,10 +246,6 @@ namespace SonarScanner.Shim
             AppendKeyValue(sb, SonarProperties.WorkingDirectory, Path.Combine(this.config.SonarOutputDir, ".sonar"));
             AppendKeyValue(sb, SonarProperties.ProjectBaseDir, ComputeProjectBaseDir());
 
-            sb.AppendLine();
-
-            sb.AppendLine("# FIXME: Encoding is hardcoded");
-            AppendKeyValue(sb, SonarProperties.SourceEncoding, "UTF-8");
             sb.AppendLine();
         }
 

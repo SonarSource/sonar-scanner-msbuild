@@ -18,10 +18,13 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using SonarQube.Common;
+using SonarQube.Common.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Text;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -33,12 +36,37 @@ namespace SonarQube.MSBuild.Tasks
     /// that are created.</remarks>
     public class WriteProjectInfoFile : Task
     {
+        #region Fields
+
+        private readonly IEncodingProvider _encodingProvider;
+
+        #endregion // Fields
+
+        #region Constructors
+
+        public WriteProjectInfoFile()
+            : this(new EncodingProvider())
+        {
+        }
+
+        public WriteProjectInfoFile(IEncodingProvider encodingProvider)
+        {
+            if (encodingProvider == null)
+            {
+                throw new ArgumentNullException(nameof(encodingProvider));
+            }
+
+            _encodingProvider = encodingProvider;
+        }
+
+        #endregion // Constructors
+
         #region Input properties
 
         // TODO: we can get this from this.BuildEngine.ProjectFileOfTaskNode; we don't need the caller to supply it. Same for the full path
         [Required]
         public string ProjectName { get; set; }
-        
+
         [Required]
         public string FullProjectPath { get; set; }
 
@@ -52,6 +80,8 @@ namespace SonarQube.MSBuild.Tasks
         public bool IsTest { get; set; }
 
         public bool IsExcluded { get; set; }
+
+        public string CodePage { get; set; }
 
         public ITaskItem[] AnalysisResults { get; set; }
 
@@ -78,6 +108,7 @@ namespace SonarQube.MSBuild.Tasks
             pi.ProjectName = this.ProjectName;
             pi.FullPath = this.FullProjectPath;
             pi.ProjectLanguage = this.ProjectLanguage;
+            pi.Encoding = ComputeEncoding(this.CodePage, this.ProjectLanguage)?.WebName;
 
             Guid projectId;
             if (Guid.TryParse(this.ProjectGuid, out projectId))
@@ -99,6 +130,50 @@ namespace SonarQube.MSBuild.Tasks
         #endregion
 
         #region Private methods
+
+        private Encoding ComputeEncoding(string codePage, string projectLanguage)
+        {
+            string cleanedCodePage = (codePage ?? string.Empty)
+                .Replace("\\", string.Empty)
+                .Replace("\"", string.Empty);
+
+            // Always try first to return the CodePage specified into the .xxproj
+            long codepageValue;
+            if (!string.IsNullOrWhiteSpace(cleanedCodePage) &&
+                long.TryParse(cleanedCodePage, NumberStyles.None, CultureInfo.InvariantCulture, out codepageValue) &&
+                codepageValue > 0)
+            {
+                try
+                {
+                    return _encodingProvider.GetEncoding((int)codepageValue);
+                }
+                catch (Exception)
+                {
+                    // encoding doesn't exist
+                }
+            }
+
+            // If project isn't .csproj nor .vbproj then return null
+            if (!ProjectLanguages.IsCSharpProject(projectLanguage) &&
+                !ProjectLanguages.IsVbProject(projectLanguage))
+            {
+                return null;
+            }
+
+            // Fallback to Roslyn like mechanism
+            try
+            {
+                return _encodingProvider.GetEncoding(0) ?? _encodingProvider.GetEncoding(1252);
+            }
+            catch (NotSupportedException)
+            {
+                return _encodingProvider.GetEncoding("Latin1");
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
 
         /// <summary>
         /// Attempts to convert the supplied task items into a list of <see cref="AnalysisResult"/> objects
@@ -128,7 +203,7 @@ namespace SonarQube.MSBuild.Tasks
         private AnalysisResult TryCreateResultFromItem(ITaskItem taskItem)
         {
             Debug.Assert(taskItem != null, "Supplied task item should not be null");
-            
+
             AnalysisResult result = null;
 
             string id = taskItem.GetMetadata(BuildTaskConstants.ResultMetadataIdProperty);

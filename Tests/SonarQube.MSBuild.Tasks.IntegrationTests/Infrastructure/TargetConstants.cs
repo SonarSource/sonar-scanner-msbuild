@@ -93,6 +93,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public const string BuildingInsideVS = "BuildingInsideVisualStudio";
 
+        public const string CodePage = "CodePage";
+
         // Roslyn
         public const string ResolvedCodeAnalysisRuleset = "ResolvedCodeAnalysisRuleSet";
         public const string TargetDir = "TargetDir"; // bin directory into which output will be dropped

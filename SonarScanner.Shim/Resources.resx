@@ -232,4 +232,10 @@ Possible causes:
   <data name="MSG_SarifFileIsValid" xml:space="preserve">
     <value>The supplied Code Analysis ErrorLog file is a valid json file and does not need to be fixed: {0}</value>
   </data>
+  <data name="WARN_PropertyIgnored" xml:space="preserve">
+    <value>Property "{0}" is defined, but will be ignored during analysis.</value>
+  </data>
+  <data name="WARN_NoEncoding" xml:space="preserve">
+    <value>Could not determine default project encoding, therefore {0} is being selected.</value>
+  </data>
 </root>
