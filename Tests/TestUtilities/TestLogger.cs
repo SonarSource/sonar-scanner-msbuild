@@ -15,6 +15,7 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using System;
@@ -84,14 +85,12 @@ namespace TestUtilities
 
         public void AssertMessageLogged(string expected)
         {
-            bool found = this.InfoMessages.Any(s => expected.Equals(s, System.StringComparison.CurrentCulture));
-            Assert.IsTrue(found, "Expected message was not found: '{0}'", expected);
+            this.InfoMessages.Should().Contain(expected);
         }
 
         public void AssertErrorLogged(string expected)
         {
-            bool found = this.Errors.Any(s => expected.Equals(s, System.StringComparison.CurrentCulture));
-            Assert.IsTrue(found, "Expected error was not found: '{0}'", expected);
+            this.Errors.Should().Contain(expected);
         }
 
         public void AssertMessageNotLogged(string message)

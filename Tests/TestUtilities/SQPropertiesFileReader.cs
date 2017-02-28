@@ -16,12 +16,9 @@
  */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text.RegularExpressions;
 
 namespace TestUtilities
 {
@@ -30,22 +27,12 @@ namespace TestUtilities
     /// </summary>
     public class SQPropertiesFileReader
     {
-        // NB: this expression only works for single-line values
-        // Regular expression pattern: we're looking for matches that:
-        // * start at the beginning of a line
-        // * start with a character or number
-        // * are in the form [key]=[value],
-        // * where [key] can  
-        //   - starts with an alpanumeric character.
-        //   - can be followed by any number of alphanumeric characters or .
-        //   - whitespace is not allowed
-        // * [value] can contain anything
-        public const string KeyValueSettingPattern = @"^(?<key>\w[\w\d\.-]*)=(?<value>[^\r\n]+)";
+
 
         /// <summary>
         /// Mapping of property names to values
         /// </summary>
-        private IDictionary<string, string> properties;
+        private JavaProperties properties;
 
         private readonly string propertyFilePath;
 
@@ -74,8 +61,8 @@ namespace TestUtilities
 
         public void AssertSettingExists(string key, string expectedValue)
         {
-            string actualValue;
-            bool found = this.properties.TryGetValue(key, out actualValue);
+            string actualValue = this.properties.GetProperty(key);
+            bool found = actualValue != null;
 
             Assert.IsTrue(found, "Expected setting was not found. Key: {0}", key);
             Assert.AreEqual(expectedValue, actualValue, "Property does not have the expected value. Key: {0}", key);
@@ -83,8 +70,8 @@ namespace TestUtilities
 
         public void AssertSettingDoesNotExist(string key)
         {
-            string actualValue;
-            bool found = this.properties.TryGetValue(key, out actualValue);
+            string actualValue = this.properties.GetProperty(key);
+            bool found = actualValue != null;
 
             Assert.IsFalse(found, "Not expecting setting to be found. Key: {0}, value: {1}", key, actualValue);
         }
@@ -97,17 +84,8 @@ namespace TestUtilities
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(fullPath), "fullPath should be specified");
 
-            this.properties = new Dictionary<string, string>(ConfigSetting.SettingKeyComparer);
-            string allText = File.ReadAllText(fullPath);
-
-            foreach (Match match in Regex.Matches(allText, KeyValueSettingPattern, RegexOptions.Multiline))
-            {
-                string key = match.Groups["key"].Value;
-                string value = match.Groups["value"].Value;
-
-                Debug.Assert(!string.IsNullOrWhiteSpace(key), "Regex error - matched property name name should not be null or empty");
-                this.properties[key] = value;
-            }
+            this.properties = new JavaProperties();
+            this.properties.Load(File.Open(fullPath, FileMode.Open));
         }
 
         #endregion

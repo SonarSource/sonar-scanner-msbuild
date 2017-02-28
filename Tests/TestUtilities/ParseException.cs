@@ -15,34 +15,24 @@
  * THE SOFTWARE.
  */
 
-using SonarQube.Common;
-using System.Collections.Generic;
-using System.Linq;
+using System;
+using System.Runtime.Serialization;
 
-namespace SonarScanner.Shim
+namespace TestUtilities
 {
-    public class ProjectInfoAnalysisResult
+    /// <summary>
+    /// An exception thrown by <see cref="JavaPropertyReader"/> when parsing
+    /// a properties stream.
+    /// </summary>
+    /// Copied from https://github.com/Kajabity/Kajabity-Tools
+    public class ParseException : System.Exception
     {
-        #region Public properties
-
-        public IDictionary<ProjectInfo, ProjectInfoValidity> Projects { get; } = new Dictionary<ProjectInfo, ProjectInfoValidity>();
-
-        public bool RanToCompletion { get; set; }
-
-        public string FullPropertiesFilePath { get; set; }
-
-        public ICollection<string> SharedFiles { get; } = new List<string>();
-
-        #endregion
-
-        #region Public methods
-
-        public IEnumerable<ProjectInfo> GetProjectsByStatus(ProjectInfoValidity status)
+        /// <summary>
+        /// Construct an exception with an error message.
+        /// </summary>
+        /// <param name="message">A descriptive message for the exception</param>
+        public ParseException(string message) : base(message)
         {
-            return this.Projects.Where(p => p.Value == status).Select(p => p.Key).ToArray();
         }
-
-        #endregion
-
     }
 }

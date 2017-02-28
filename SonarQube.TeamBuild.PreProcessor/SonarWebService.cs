@@ -185,7 +185,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             var properties = JArray.Parse(contents);
             var result = properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
 
-            // http://jira.sonarsource.com/browse/SONAR-5891
+            // http://jira.sonarsource.com/browse/SONAR-5891 or when C# plugin is not installed
             if (!result.ContainsKey("sonar.cs.msbuild.testProjectPattern"))
             {
                 result["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;

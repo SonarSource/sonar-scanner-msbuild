@@ -97,8 +97,6 @@ namespace SonarScanner.Shim
             Debug.Assert(this.projects.Select(p => p.ProjectGuid).Distinct().Count() == projects.Count(),
                 "Expecting the project guids to be unique");
 
-            WriteSonarProjectInfo();
-
             AppendKeyValue(sb, "sonar.modules", string.Join(",", this.projects.Select(p => p.GetProjectGuidAsString())));
             sb.AppendLine();
 
@@ -169,7 +167,7 @@ namespace SonarScanner.Shim
                 sb.AppendLine(guid + @".sonar.tests=\");
             }
 
-            IEnumerable<string> escapedFiles = files.Select(f => Escape(f));
+            IEnumerable<string> escapedFiles = files.Select(Escape);
             sb.AppendLine(string.Join(@",\" + Environment.NewLine, escapedFiles));
 
             sb.AppendLine();
@@ -199,6 +197,28 @@ namespace SonarScanner.Shim
             {
                 AppendKeyValue(this.sb, setting.Id, setting.Value);
             }
+            sb.AppendLine();
+        }
+
+        public void WriteSonarProjectInfo(string projectBaseDir, ICollection<string> sharedFiles)
+        {
+            AppendKeyValue(sb, SonarProperties.ProjectKey, this.config.SonarProjectKey);
+            AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectName, this.config.SonarProjectName);
+            AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectVersion, this.config.SonarProjectVersion);
+            AppendKeyValue(sb, SonarProperties.WorkingDirectory, Path.Combine(this.config.SonarOutputDir, ".sonar"));
+            AppendKeyValue(sb, SonarProperties.ProjectBaseDir, projectBaseDir);
+
+            if (sharedFiles.Any())
+            {
+                sb.AppendLine(@"sonar.sources=\");
+                var escapedFiles = sharedFiles.Select(Escape);
+                sb.AppendLine(string.Join(@",\" + Environment.NewLine, escapedFiles));
+            }
+
+            sb.AppendLine();
+
+            sb.AppendLine("# FIXME: Encoding is hardcoded");
+            AppendKeyValue(sb, SonarProperties.SourceEncoding, "UTF-8");
             sb.AppendLine();
         }
 
@@ -232,81 +252,6 @@ namespace SonarScanner.Shim
         private static bool IsAscii(char c)
         {
             return c <= sbyte.MaxValue;
-        }
-
-        private void WriteSonarProjectInfo()
-        {
-            AppendKeyValue(sb, SonarProperties.ProjectKey, this.config.SonarProjectKey);
-            AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectName, this.config.SonarProjectName);
-            AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectVersion, this.config.SonarProjectVersion);
-            AppendKeyValue(sb, SonarProperties.WorkingDirectory, Path.Combine(this.config.SonarOutputDir, ".sonar"));
-            AppendKeyValue(sb, SonarProperties.ProjectBaseDir, ComputeProjectBaseDir());
-
-            sb.AppendLine();
-
-            sb.AppendLine("# FIXME: Encoding is hardcoded");
-            AppendKeyValue(sb, SonarProperties.SourceEncoding, "UTF-8");
-            sb.AppendLine();
-        }
-
-        /// <summary>
-        /// Appends the sonar.projectBaseDir value. This is calculated as follows:
-        /// 1. the user supplied value, or if none
-        /// 2. the sources directory if running from TFS Build or XAML Build, or
-        /// 3. the common root path of projects, or if there isn't any
-        /// 4. the .sonarqube/out directory
-        /// </summary>
-        private string ComputeProjectBaseDir()
-        {
-            string projectBaseDir = this.config.GetConfigValue(SonarProperties.ProjectBaseDir, null);
-            if (!String.IsNullOrWhiteSpace(projectBaseDir))
-            {
-                return projectBaseDir;
-            }
-
-            projectBaseDir = config.SourcesDirectory;
-            if (!String.IsNullOrWhiteSpace(projectBaseDir))
-            {
-                return projectBaseDir;
-            }
-
-            projectBaseDir = GetCommonRootOfProjects();
-            if (!String.IsNullOrWhiteSpace(projectBaseDir))
-            {
-                return projectBaseDir;
-            }
-
-            return this.config.SonarOutputDir;
-        }
-
-
-        private string GetCommonRootOfProjects()
-        {
-            IEnumerable<string> projectDirs = this.projects.Select(p => p.GetProjectDirectory());
-            IEnumerator<string>[] pathPartEnumerators = projectDirs.Select(s => s.Split(Path.DirectorySeparatorChar).AsEnumerable().GetEnumerator()).ToArray();
-
-            try
-            {
-                var commonParts = new List<string>();
-                if (pathPartEnumerators.Length > 0)
-                {
-                    while (pathPartEnumerators.All(e => e.MoveNext()) && pathPartEnumerators.All(e => e.Current == pathPartEnumerators.First().Current))
-                    {
-                        commonParts.Add(pathPartEnumerators.First().Current);
-                    }
-                }
-
-                if (!commonParts.Any())
-                {
-                    return null;
-                }
-
-                return string.Join(Path.DirectorySeparatorChar.ToString(), commonParts);
-            }
-            finally
-            {
-                Array.ForEach(pathPartEnumerators, e => e.Dispose());
-            }
         }
 
         #endregion

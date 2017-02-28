@@ -29,7 +29,7 @@ namespace SonarScanner.Shim.Tests
     public class PropertiesWriterTest
     {
         public TestContext TestContext { get; set; }
-        private const string TestSonarqubeOutputDir = @"e:\.sonarqube\out";
+        
 
         #region Tests
 
@@ -118,15 +118,6 @@ DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources=
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
 {3}\\File.cs
 
-sonar.projectKey=my_project_key
-sonar.projectName=my_project_name
-sonar.projectVersion=1.0
-sonar.working.directory=C:\\my_folder\\.sonar
-sonar.projectBaseDir={5}
-
-# FIXME: Encoding is hardcoded
-sonar.sourceEncoding=UTF-8
-
 sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981FAFAF3A,DA0FCD82-9C5C-4666-9370-C7388281D49B
 
 ",
@@ -144,7 +135,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
         }
 
         [TestMethod]
-        public void PropertiesWriter_FxCopRerportForUnrecognisedLanguage()
+        public void PropertiesWriter_FxCopReportForUnrecognisedLanguage()
         {
             var productBaseDir = TestUtils.CreateTestSpecificFolder(TestContext);
             string productProject = CreateEmptyFile(productBaseDir, "MyProduct.proj");
@@ -180,15 +171,6 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
 9507E2E6-7342-4A04-9CB9-B0C47C937019.sonar.sources=\
 {0}\\File.txt
 
-sonar.projectKey=my_project_key
-sonar.projectName=my_project_name
-sonar.projectVersion=1.0
-sonar.working.directory=C:\\my_folder\\.sonar
-sonar.projectBaseDir={1}
-
-# FIXME: Encoding is hardcoded
-sonar.sourceEncoding=UTF-8
-
 sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
 
 ",
@@ -201,59 +183,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             Assert.AreEqual(expected, actual);
         }
 
-        [TestMethod]
-        public void PropertiesWriter_ComputeProjectBaseDir()
-        {
-            VerifyProjectBaseDir(
-                expectedValue: @"d:\work\mysources", // if there is a user value, use it
-                teamBuildValue: @"d:\work",
-                userValue: @"d:\work\mysources",
-                projectPaths: new[] { @"d:\work\proj1.csproj" });
-
-            VerifyProjectBaseDir(
-              expectedValue: @"d:\work",  // if no user value, use the team build value
-              teamBuildValue: @"d:\work",
-              userValue: null,
-              projectPaths: new[] { @"e:\work\proj1.csproj" });
-
-            VerifyProjectBaseDir(
-               expectedValue: @"e:\work",  // if no team build value, use the common project paths root
-               teamBuildValue: null,
-               userValue: "",
-               projectPaths: new[] { @"e:\work\proj1.csproj" });
-
-            VerifyProjectBaseDir(
-              expectedValue: @"e:\work",  // if no team build value, use the common project paths root
-              teamBuildValue: null,
-              userValue: "",
-              projectPaths: new[] { @"e:\work\proj1.csproj", @"e:\work\proj2.csproj" });
-
-            VerifyProjectBaseDir(
-              expectedValue: @"e:\work",  // if no team build value, use the common project paths root
-              teamBuildValue: null,
-              userValue: "",
-              projectPaths: new[] { @"e:\work\A\proj1.csproj", @"e:\work\B\C\proj2.csproj" });
-
-
-            VerifyProjectBaseDir(
-              expectedValue: @"e:\work",  // if no team build value, use the common project paths root
-              teamBuildValue: null,
-              userValue: "",
-              projectPaths: new[] { @"e:\work\A\proj1.csproj", @"e:\work\B\proj2.csproj", @"e:\work\C\proj2.csproj" });
-
-            VerifyProjectBaseDir(
-              expectedValue: @"e:\work\A",  // if no team build value, use the common project paths root
-              teamBuildValue: null,
-              userValue: "",
-              projectPaths: new[] { @"e:\work\A\X\proj1.csproj", @"e:\work\A\proj2.csproj", @"e:\work\A\proj2.csproj" });
-
-            VerifyProjectBaseDir(
-              expectedValue: TestSonarqubeOutputDir,  // if no common root exists, use the .sonarqube/out dir
-              teamBuildValue: null,
-              userValue: "",
-              projectPaths: new[] { @"f:\work\A\proj1.csproj", @"e:\work\B\proj2.csproj" });
-        }
-
+       
         [TestMethod]
         public void PropertiesWriter_InvalidOperations()
         {
@@ -322,7 +252,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
 
             propertyReader.AssertSettingExists("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting1", "setting1");
             propertyReader.AssertSettingExists("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting2", "setting 2 with spaces");
-            propertyReader.AssertSettingExists("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
+            propertyReader.AssertSettingExists("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting.3", @"c:\dir1\dir2\foo.txt");
         }
 
         [TestMethod]
@@ -356,7 +286,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
 
             propertyReader.AssertSettingExists("my.setting1", "setting1");
             propertyReader.AssertSettingExists("my.setting2", "setting 2 with spaces");
-            propertyReader.AssertSettingExists("my.setting.3", @"c:\\dir1\\dir2\\foo.txt");
+            propertyReader.AssertSettingExists("my.setting.3", @"c:\dir1\dir2\foo.txt");
 
             propertyReader.AssertSettingExists("sonar.branch", "aBranch");
         }
@@ -365,29 +295,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
 
         #region Private methods
 
-        private void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths)
-        {
-            AnalysisConfig config = new AnalysisConfig();
-            PropertiesWriter writer = new PropertiesWriter(config);
-            config.SonarOutputDir = TestSonarqubeOutputDir;
-
-            config.SourcesDirectory = teamBuildValue;
-            config.SetConfigValue(SonarProperties.ProjectBaseDir, userValue);
-
-            using (new AssertIgnoreScope())
-            {
-                foreach (string projectPath in projectPaths)
-                {
-                    var projectInfo = new ProjectInfo { FullPath = projectPath, ProjectLanguage = ProjectLanguages.CSharp };
-                    writer.WriteSettingsForProject(projectInfo, Enumerable.Empty<string>(), "", "");
-                }
-
-                var actual = writer.Flush();
-                var expected = "\r\nsonar.projectBaseDir=" + PropertiesWriter.Escape(expectedValue);
-
-                Assert.IsTrue(actual.Contains(expected));
-            }
-        }
+       
 
         private static ProjectInfo CreateProjectInfo(string name, string projectId, string fullFilePath, bool isTest, IEnumerable<string> files, string fileListFilePath, string fxCopReportPath, string coverageReportPath, string language)
         {
