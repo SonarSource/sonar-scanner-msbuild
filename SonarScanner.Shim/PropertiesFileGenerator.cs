@@ -105,6 +105,7 @@ namespace SonarScanner.Shim
             return result;
         }
 
+        /// <summary>
         /// Appends the sonar.projectBaseDir value. This is calculated as follows:
         /// 1. the user supplied value, or if none
         /// 2. the sources directory if running from TFS Build or XAML Build, or
@@ -114,19 +115,19 @@ namespace SonarScanner.Shim
         public static string ComputeProjectBaseDir(AnalysisConfig config, IEnumerable<ProjectInfo> projects)
         {
             string projectBaseDir = config.GetConfigValue(SonarProperties.ProjectBaseDir, null);
-            if (!String.IsNullOrWhiteSpace(projectBaseDir))
+            if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
                 return projectBaseDir;
             }
 
             projectBaseDir = config.SourcesDirectory;
-            if (!String.IsNullOrWhiteSpace(projectBaseDir))
+            if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
                 return projectBaseDir;
             }
 
             projectBaseDir = GetCommonRootOfProjects(projects);
-            if (!String.IsNullOrWhiteSpace(projectBaseDir))
+            if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
                 return projectBaseDir;
             }
@@ -138,35 +139,25 @@ namespace SonarScanner.Shim
 
         #region Private methods
 
-        /// <summary>
-
         private static string GetCommonRootOfProjects(IEnumerable<ProjectInfo> projects)
         {
-            IEnumerable<string> projectDirs = projects.Select(p => p.GetProjectDirectory());
-            IEnumerator<string>[] pathPartEnumerators = projectDirs.Select(s => s.Split(Path.DirectorySeparatorChar).AsEnumerable().GetEnumerator()).ToArray();
+            var projectDirectoryParts = projects
+                .Select(p => p.GetProjectDirectory())
+                .Select(p => p.Split(Path.DirectorySeparatorChar))
+                .ToList();
 
-            try
+            if (projectDirectoryParts.Count == 0)
             {
-                var commonParts = new List<string>();
-                if (pathPartEnumerators.Length > 0)
-                {
-                    while (pathPartEnumerators.All(e => e.MoveNext()) && pathPartEnumerators.All(e => e.Current == pathPartEnumerators.First().Current))
-                    {
-                        commonParts.Add(pathPartEnumerators.First().Current);
-                    }
-                }
-
-                if (!commonParts.Any())
-                {
-                    return null;
-                }
-
-                return string.Join(Path.DirectorySeparatorChar.ToString(), commonParts);
+                return string.Empty;
             }
-            finally
-            {
-                Array.ForEach(pathPartEnumerators, e => e.Dispose());
-            }
+
+            var commonParts = projectDirectoryParts
+                .OrderBy(p => p.Length)
+                .First()
+                .TakeWhile((element, index) => projectDirectoryParts.All(p => p[index] == element))
+                .ToArray();
+
+            return string.Join(Path.DirectorySeparatorChar.ToString(), commonParts);
         }
 
         /// <summary>

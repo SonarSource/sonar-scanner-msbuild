@@ -16,7 +16,6 @@
  */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NFluent;
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;

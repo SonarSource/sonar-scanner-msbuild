@@ -15,8 +15,8 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NFluent;
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;
@@ -681,7 +681,7 @@ namespace SonarScanner.Shim.Tests
             // Act
             string result = PropertiesFileGenerator.ComputeProjectBaseDir(config, projectPaths.Select(p => new ProjectInfo { FullPath = p, ProjectLanguage = ProjectLanguages.CSharp }));
 
-            Check.That(result).Equals(expectedValue);
+            result.Should().Be(expectedValue);
         }
 
         /// <summary>

@@ -167,7 +167,7 @@ namespace SonarScanner.Shim
                 sb.AppendLine(guid + @".sonar.tests=\");
             }
 
-            IEnumerable<string> escapedFiles = files.Select(f => Escape(f));
+            IEnumerable<string> escapedFiles = files.Select(Escape);
             sb.AppendLine(string.Join(@",\" + Environment.NewLine, escapedFiles));
 
             sb.AppendLine();
@@ -200,7 +200,7 @@ namespace SonarScanner.Shim
             sb.AppendLine();
         }
 
-        public void WriteSonarProjectInfo(string projectBaseDir, IEnumerable<string> sharedFiles)
+        public void WriteSonarProjectInfo(string projectBaseDir, ICollection<string> sharedFiles)
         {
             AppendKeyValue(sb, SonarProperties.ProjectKey, this.config.SonarProjectKey);
             AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectName, this.config.SonarProjectName);
@@ -211,7 +211,7 @@ namespace SonarScanner.Shim
             if (sharedFiles.Any())
             {
                 sb.AppendLine(@"sonar.sources=\");
-                IEnumerable<string> escapedFiles = sharedFiles.Select(f => Escape(f));
+                var escapedFiles = sharedFiles.Select(Escape);
                 sb.AppendLine(string.Join(@",\" + Environment.NewLine, escapedFiles));
             }
 

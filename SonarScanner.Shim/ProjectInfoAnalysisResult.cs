@@ -23,25 +23,15 @@ namespace SonarScanner.Shim
 {
     public class ProjectInfoAnalysisResult
     {
-        #region Constructor(s)
-        
-        public ProjectInfoAnalysisResult()
-        {
-            this.Projects = new Dictionary<ProjectInfo, ProjectInfoValidity>();
-            this.SharedFiles = new List<string>();
-        }
-
-        #endregion
-
         #region Public properties
 
-        public IDictionary<ProjectInfo, ProjectInfoValidity> Projects { get; private set; }
+        public IDictionary<ProjectInfo, ProjectInfoValidity> Projects { get; } = new Dictionary<ProjectInfo, ProjectInfoValidity>();
 
         public bool RanToCompletion { get; set; }
 
         public string FullPropertiesFilePath { get; set; }
 
-        public ICollection<string> SharedFiles { get; private set; }
+        public ICollection<string> SharedFiles { get; } = new List<string>();
 
         #endregion
 

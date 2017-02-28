@@ -15,8 +15,8 @@
  * THE SOFTWARE.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NFluent;
 using SonarQube.Common;
 using System;
 using System.Collections.Generic;
@@ -85,12 +85,12 @@ namespace TestUtilities
 
         public void AssertMessageLogged(string expected)
         {
-            Check.That(this.InfoMessages).Contains(expected);
+            this.InfoMessages.Should().Contain(expected);
         }
 
         public void AssertErrorLogged(string expected)
         {
-            Check.That(this.Errors).Contains(expected);
+            this.Errors.Should().Contain(expected);
         }
 
         public void AssertMessageNotLogged(string message)
