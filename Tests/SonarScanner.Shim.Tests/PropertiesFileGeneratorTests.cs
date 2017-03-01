@@ -353,7 +353,7 @@ namespace SonarScanner.Shim.Tests
 
             // Reference shared file, but not under the project directory
             string contentFileList2 = CreateFile(project2Dir, "contentList.txt", sharedFile);
-            AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
+            AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
 
             TestLogger logger = new TestLogger();
             AnalysisConfig config = CreateValidConfig(testDir);

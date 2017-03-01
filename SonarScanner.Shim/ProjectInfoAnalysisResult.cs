@@ -31,7 +31,7 @@ namespace SonarScanner.Shim
 
         public string FullPropertiesFilePath { get; set; }
 
-        public ICollection<string> SharedFiles { get; } = new List<string>();
+        public ICollection<string> SharedFiles { get; } = new HashSet<string>();
 
         #endregion
 
