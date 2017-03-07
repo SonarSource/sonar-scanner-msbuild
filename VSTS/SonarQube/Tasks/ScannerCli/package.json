@@ -1,0 +1,10 @@
+{
+  "name": "vsts-sonarqube-scanner-cli",
+  "version": "2.1.0",
+  "description": "The SonarQube Scanner CLI for VSTS/TFS",
+  "author": "SonarSource",
+  "license": "MIT",
+  "dependencies": {
+    "vsts-task-lib": "^1.1.0"
+  }
+}

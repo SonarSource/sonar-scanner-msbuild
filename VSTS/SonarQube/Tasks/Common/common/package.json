@@ -1,0 +1,10 @@
+{
+  "name": "vsts-sonarqube-common",
+  "version": "2.1.0",
+  "description": "The SonarQube common code",
+  "author": "SonarSource",
+  "license": "MIT",
+  "dependencies": {
+    "vsts-task-lib": "^1.1.0"
+  }
+}

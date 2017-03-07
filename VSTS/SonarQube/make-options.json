@@ -1,0 +1,20 @@
+{
+  "extensionResources": [
+    "extension-icon.png",
+    "extension-manifest.json",
+    "LICENSE",
+    "README.md",
+    "img"
+  ],
+  "tasks": [
+    "ScannerCli"
+  ],
+  "taskResources": [
+    "*.txt",
+    "icon.png",
+    "node_modules",
+    "package.json",
+    "task.json",
+    "Tests"
+  ]
+}
