@@ -1,0 +1,9 @@
+# top-most EditorConfig file
+root = true
+
+[*]
+indent_style = space
+end_of_line = crlf
+
+[*.ts]
+indent_size = 4
