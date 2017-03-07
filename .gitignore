@@ -164,3 +164,8 @@ $RECYCLE.BIN/
 # VSTS
 *.vsix
 build/
+_build/
+_package/
+_download/
+_dist/
+node_modules/

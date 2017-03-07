@@ -1,0 +1,41 @@
+{
+  "name": "vsts-sonarqube",
+  "version": "2.1.0",
+  "description": "The SonarQube extension for VSTS/TFS",
+  "author": "SonarSource",
+  "license": "MIT",
+  "scripts": {
+    "info": "npm-scripts-info",
+    "build": "node make.js build",
+    "?clean": "Remove all compiled files",
+    "clean": "node make.js clean",
+    "?package": "Create the extension package (.vsix)",
+    "package": "node make.js package",
+    "test": "node make.js test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SonarSource-VisualStudio/sonar-scanner-msbuild.git"
+  },
+  "keywords": [
+    "VSTS",
+    "build",
+    "tasks"
+  ],
+  "bugs": {
+    "url": "http://www.sonarqube.org/get-support/"
+  },
+  "homepage": "http://redirect.sonarsource.com/doc/install-configure-scanner-tfs-ts.html",
+  "devDependencies": {
+    "adm-zip": "^0.4.7",
+    "minimatch": "^3.0.3",
+    "minimist": "^1.2.0",
+    "npm-scripts-info": "^0.3.6",
+    "semver": "^5.3.0",
+    "shelljs": "^0.7.5",
+    "sync-request": "^3.0.1",
+    "tfx-cli": "^0.3.45",
+    "typescript": "^2.1.4",
+    "validator": "^6.2.0"
+  }
+}
