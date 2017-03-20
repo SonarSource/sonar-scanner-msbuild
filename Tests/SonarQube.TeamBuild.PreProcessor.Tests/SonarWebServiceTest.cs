@@ -39,6 +39,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         {
             downloader = new TestDownloader();
             ws = new SonarWebService(downloader, "http://myhost:222", new TestLogger());
+            downloader.Pages["http://myhost:222/api/server/version"] = "5.6";
         }
 
         [TestCleanup]
@@ -56,7 +57,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             bool result;
             string qualityProfile;
 
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] = 
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] =
                 "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AaBranch"] =
                 "{ profiles: [{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
@@ -85,18 +86,65 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             Assert.AreEqual("profileDefault", qualityProfile);
 
             // no cs in list of profiles
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=java+foo+bar"] = 
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=java+foo+bar"] =
                 "{ profiles: [{\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
             result = ws.TryGetQualityProfile("java foo bar", null, "cs", out qualityProfile);
             Assert.IsFalse(result);
             Assert.IsNull(qualityProfile);
 
             // empty
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=empty+foo+bar"] = 
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=empty+foo+bar"] =
                 "{ profiles: []}";
             result = ws.TryGetQualityProfile("empty foo bar", null, "cs", out qualityProfile);
             Assert.IsFalse(result);
             Assert.IsNull(qualityProfile);
+        }
+
+        [TestMethod]
+        public void GetSettingsSq63()
+        {
+            downloader.Pages["http://myhost:222/api/server/version"] = "6.3-SNAPSHOT";
+            downloader.Pages["http://myhost:222/api/settings/values?component=comp"] =
+                @"{ settings: [
+                  {
+                    key: ""sonar.core.id"",
+                    value: ""AVrrKaIfChAsLlov22f0"",
+                    inherited: true
+                  },
+                  {
+                    key: ""sonar.exclusions"",
+                    values: [
+                      ""myfile"",
+                      ""myfile2""
+                    ]
+                  },
+                  {
+                    key: ""sonar.junit.reportsPath"",
+                    value: ""testing.xml""
+                  },
+                  {
+                    key: ""sonar.issue.ignore.multicriteria"",
+                    fieldValues: [
+                        {
+                            resourceKey: ""prop1"",
+                            ruleKey: """"
+                        },
+                        {
+                            resourceKey: ""prop2"",
+                            ruleKey: """"
+                        }
+                    ]
+                  }
+                ]}";
+            var result = ws.GetProperties("comp");
+            Assert.AreEqual(7, result.Count);
+            Assert.AreEqual(SonarProperties.DefaultTestProjectPattern, result["sonar.cs.msbuild.testProjectPattern"]);
+            Assert.AreEqual("myfile,myfile2", result["sonar.exclusions"]);
+            Assert.AreEqual("testing.xml", result["sonar.junit.reportsPath"]);
+            Assert.AreEqual("prop1", result["sonar.issue.ignore.multicriteria.1.resourceKey"]);
+            Assert.AreEqual("", result["sonar.issue.ignore.multicriteria.1.ruleKey"]);
+            Assert.AreEqual("prop2", result["sonar.issue.ignore.multicriteria.2.resourceKey"]);
+            Assert.AreEqual("", result["sonar.issue.ignore.multicriteria.2.ruleKey"]);
         }
 
         [TestMethod]
@@ -305,10 +353,10 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         [TestMethod]
         public void GetInstalledPlugins()
         {
-            downloader.Pages["http://myhost:222/api/updatecenter/installed_plugins"] = "[{\"key\":\"visualstudio\",\"name\":\"...\",\"version\":\"1.2\"},{\"key\":\"csharp\",\"name\":\"C#\",\"version\":\"4.0\"}]";
+            downloader.Pages["http://myhost:222/api/languages/list"] = "{ languages: [{ key: \"cs\", name: \"C#\" }, { key: \"flex\", name: \"Flex\" } ]}";
             var expected = new List<string>();
-            expected.Add("visualstudio");
-            expected.Add("csharp");
+            expected.Add("cs");
+            expected.Add("flex");
             var actual = new List<string>(ws.GetInstalledPlugins());
 
             Assert.AreEqual(true, expected.SequenceEqual(actual));
