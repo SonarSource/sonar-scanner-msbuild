@@ -19,6 +19,7 @@ using Newtonsoft.Json.Linq;
 using SonarQube.Common;
 using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,9 +29,10 @@ namespace SonarQube.TeamBuild.PreProcessor
 {
     public sealed class SonarWebService : ISonarQubeServer, IDisposable
     {
-        private readonly string server;
+        private readonly string serverUrl;
         private readonly IDownloader downloader;
         private readonly ILogger logger;
+        private Version serverVersion;
 
         public SonarWebService(IDownloader downloader, string server, ILogger logger)
         {
@@ -48,7 +50,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             this.downloader = downloader;
-            this.server = server.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? server.Substring(0, server.Length - 1) : server;
+            this.serverUrl = server.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? server.Substring(0, server.Length - 1) : server;
             this.logger = logger;
         }
 
@@ -71,7 +73,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             var profiles = json["profiles"].Children<JObject>();
 
             var profile = profiles.SingleOrDefault(p => language.Equals(p["language"].ToString()));
-            if(profile == null)
+            if (profile == null)
             {
                 qualityProfileKey = null;
                 return false;
@@ -169,40 +171,41 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <param name="projectKey">The SonarQube project key to retrieve properties for.</param>
         /// <param name="projectBranch">The SonarQube project branch to retrieve properties for (optional).</param>
         /// <returns>A dictionary of key-value property pairs.</returns>
+        /// 
         public IDictionary<string, string> GetProperties(string projectKey, string projectBranch = null)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
             {
                 throw new ArgumentNullException("projectKey");
             }
-
             string projectId = GetProjectIdentifier(projectKey, projectBranch);
 
-            string ws = GetUrl("/api/properties?resource={0}", projectId);
-            this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
-            var contents = this.downloader.Download(ws);
-
-            var properties = JArray.Parse(contents);
-            var result = properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
-
-            // http://jira.sonarsource.com/browse/SONAR-5891 or when C# plugin is not installed
-            if (!result.ContainsKey("sonar.cs.msbuild.testProjectPattern"))
+            if (GetServerVersion().CompareTo(new Version(6, 3)) >= 0)
             {
-                result["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
+                return GetProperties63(projectId);
             }
-
-            return result;
+            else
+            {
+                return GetPropertiesOld(projectId);
+            }
         }
 
-        // TODO Should be replaced by calls to api/languages/list after min(SQ version) >= 5.1
+        public Version GetServerVersion()
+        {
+            if (serverVersion == null)
+            {
+                DownloadServerVersion();
+            }
+            return serverVersion;
+        }
+
         public IEnumerable<string> GetInstalledPlugins()
         {
-            var ws = GetUrl("/api/updatecenter/installed_plugins");
+            var ws = GetUrl("/api/languages/list");
             var contents = this.downloader.Download(ws);
 
-            var plugins = JArray.Parse(contents);
-
-            return plugins.Select(plugin => plugin["key"].ToString());
+            JArray langArray = JObject.Parse(contents).Value<JArray>("languages");
+            return langArray.Select(obj => obj["key"].ToString());
         }
 
         public bool TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
@@ -232,6 +235,106 @@ namespace SonarQube.TeamBuild.PreProcessor
         #endregion
 
         #region Private methods
+
+        private void DownloadServerVersion()
+        {
+            var ws = GetUrl("api/server/version");
+            var contents = this.downloader.Download(ws);
+            int separator = contents.IndexOf('-');
+
+            if (separator >= 0)
+            {
+                serverVersion = new Version(contents.Substring(0, separator));
+            }
+            else
+            {
+                serverVersion = new Version(contents);
+            }
+        }
+
+        private IDictionary<string, string> GetPropertiesOld(string projectId)
+        {
+            string ws = GetUrl("/api/properties?resource={0}", projectId);
+            this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
+            var contents = this.downloader.Download(ws);
+
+            var properties = JArray.Parse(contents);
+            var result = properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
+
+            // http://jira.sonarsource.com/browse/SONAR-5891 or when C# plugin is not installed
+            if (!result.ContainsKey("sonar.cs.msbuild.testProjectPattern"))
+            {
+                result["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
+            }
+
+            return result;
+        }
+
+        private IDictionary<string, string> GetProperties63(string projectId)
+        {
+            string ws = GetUrl("/api/settings/values?component={0}", projectId);
+            this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
+            var contents = this.downloader.Download(ws);
+
+            Dictionary<string, string> settings = new Dictionary<string, string>();
+            var settingsArray = JObject.Parse(contents).Value<JArray>("settings");
+            foreach (var t in settingsArray)
+            {
+                GetPropertyValue(settings, t);
+            }
+
+            // http://jira.sonarsource.com/browse/SONAR-5891 or when C# plugin is not installed
+            if (!settings.ContainsKey("sonar.cs.msbuild.testProjectPattern"))
+            {
+                settings["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
+            }
+
+            return settings;
+        }
+
+        private void GetPropertyValue(Dictionary<string, string> settings, JToken p)
+        {
+            if (p.Value<Boolean>("inherited"))
+            {
+                return;
+            }
+
+            string key = p["key"].ToString();
+            if (p["value"] != null)
+            {
+                string value = p["value"].ToString();
+                settings.Add(key, value);
+            }
+            else if (p["fieldValues"] != null)
+            {
+                MultivalueToProps(settings, key, (JArray)p["fieldValues"]);
+            }
+            else if (p["values"] != null)
+            {
+                JArray array = (JArray)p["values"];
+                string value = string.Join(",", array.Values<string>());
+                settings.Add(key, value);
+            }
+            else
+            {
+                throw new ArgumentException("Invalid property");
+            }
+        }
+
+        private void MultivalueToProps(Dictionary<string, string> props, string settingKey, JArray array)
+        {
+            int id = 1;
+            foreach (JObject obj in array.Children<JObject>())
+            {
+                foreach (JProperty prop in obj.Properties())
+                {
+                    string key = settingKey + "." + id + "." + prop.Name;
+                    string value = prop.Value.ToString();
+                    props.Add(key, value);
+                }
+                id++;
+            }
+        }
 
         private static string ParseRuleKey(string key)
         {
@@ -263,7 +366,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 queryString = '/' + queryString;
             }
-            return this.server + queryString;
+            return this.serverUrl + queryString;
         }
 
         #endregion
