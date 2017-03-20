@@ -228,11 +228,29 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fetching active rules for quality profile &apos;{0}&apos; from {1}....
+        /// </summary>
+        public static string MSG_FetchingActiveRules {
+            get {
+                return ResourceManager.GetString("MSG_FetchingActiveRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fetching analysis configuration settings....
         /// </summary>
         public static string MSG_FetchingAnalysisConfiguration {
             get {
                 return ResourceManager.GetString("MSG_FetchingAnalysisConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetching rules not active in quality profile &apos;{0}&apos; for language &apos;{1}&apos; from {2}....
+        /// </summary>
+        public static string MSG_FetchingInactiveRules {
+            get {
+                return ResourceManager.GetString("MSG_FetchingInactiveRules", resourceCulture);
             }
         }
         

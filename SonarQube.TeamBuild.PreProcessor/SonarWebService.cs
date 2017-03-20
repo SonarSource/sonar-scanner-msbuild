@@ -63,24 +63,28 @@ namespace SonarQube.TeamBuild.PreProcessor
             string contents;
             var ws = GetUrl("/api/qualityprofiles/search?projectKey={0}", projectId);
             this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
-            if (!this.downloader.TryDownloadIfExists(ws, out contents))
-            {
-                ws = GetUrl("/api/qualityprofiles/search?defaults=true");
-                this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
-                contents = this.downloader.Download(ws);
-            }
-            var json = JObject.Parse(contents);
-            var profiles = json["profiles"].Children<JObject>();
 
-            var profile = profiles.SingleOrDefault(p => language.Equals(p["language"].ToString()));
-            if (profile == null)
+            qualityProfileKey = DoLogExceptions(() =>
             {
-                qualityProfileKey = null;
-                return false;
-            }
+                if (!this.downloader.TryDownloadIfExists(ws, out contents))
+                {
+                    ws = GetUrl("/api/qualityprofiles/search?defaults=true");
+                    this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
+                    contents = this.downloader.Download(ws);
+                }
+                var json = JObject.Parse(contents);
+                var profiles = json["profiles"].Children<JObject>();
 
-            qualityProfileKey = profile["key"].ToString();
-            return true;
+                var profile = profiles.SingleOrDefault(p => language.Equals(p["language"].ToString()));
+                if (profile == null)
+                {
+                    return null;
+                }
+
+                return profile["key"].ToString();
+            }, ws);
+
+            return qualityProfileKey != null;
         }
 
         /// <summary>
@@ -94,20 +98,25 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             int fetched = 0;
             int page = 1;
-            int total;
+            int total = 0;
             var ruleList = new List<string>();
 
             do
             {
                 var ws = GetUrl("/api/rules/search?f=internalKey&ps=500&activation=false&qprofile={0}&p={1}&languages={2}", qprofile, page.ToString(), language);
-                var contents = this.downloader.Download(ws);
-                var json = JObject.Parse(contents);
-                total = Convert.ToInt32(json["total"]);
-                fetched += Convert.ToInt32(json["ps"]);
-                page++;
-                var rules = json["rules"].Children<JObject>();
+                this.logger.LogDebug(Resources.MSG_FetchingInactiveRules, qprofile, language, ws);
 
-                ruleList.AddRange(rules.Select(r => r["key"].ToString()));
+                ruleList.AddRange(DoLogExceptions(() =>
+                {
+                    var contents = this.downloader.Download(ws);
+                    var json = JObject.Parse(contents);
+                    total = Convert.ToInt32(json["total"]);
+                    fetched += Convert.ToInt32(json["ps"]);
+                    page++;
+                    var rules = json["rules"].Children<JObject>();
+
+                    return rules.Select(r => r["key"].ToString());
+                }, ws));
             } while (fetched < total);
 
             return ruleList;
@@ -123,41 +132,46 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             int fetched = 0;
             int page = 1;
-            int total;
+            int total = 0;
             var activeRuleList = new List<ActiveRule>();
 
             do
             {
                 var ws = GetUrl("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile={0}&p={1}", qprofile, page.ToString());
-                var contents = this.downloader.Download(ws);
-                var json = JObject.Parse(contents);
-                total = Convert.ToInt32(json["total"]);
-                fetched += Convert.ToInt32(json["ps"]);
-                page++;
-                var rules = json["rules"].Children<JObject>();
-                var actives = json["actives"];
+                this.logger.LogDebug(Resources.MSG_FetchingActiveRules, qprofile, ws);
 
-                activeRuleList.AddRange(rules.Select(r =>
+                activeRuleList.AddRange(DoLogExceptions(() =>
                 {
-                    ActiveRule activeRule = new ActiveRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()));
-                    if (r["internalKey"] != null)
-                    {
-                        activeRule.InternalKey = r["internalKey"].ToString();
-                    }
-                    if (r["templateKey"] != null)
-                    {
-                        activeRule.TemplateKey = r["templateKey"].ToString();
-                    }
+                    var contents = this.downloader.Download(ws);
+                    var json = JObject.Parse(contents);
+                    total = Convert.ToInt32(json["total"]);
+                    fetched += Convert.ToInt32(json["ps"]);
+                    page++;
+                    var rules = json["rules"].Children<JObject>();
+                    var actives = json["actives"];
 
-                    var active = actives[r["key"].ToString()];
-                    var listParams = active.Single()["params"].Children<JObject>();
-                    activeRule.Parameters = listParams.ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
-                    if (activeRule.Parameters.ContainsKey("CheckId"))
+                    return rules.Select(r =>
                     {
-                        activeRule.RuleKey = activeRule.Parameters["CheckId"];
-                    }
-                    return activeRule;
-                }));
+                        ActiveRule activeRule = new ActiveRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()));
+                        if (r["internalKey"] != null)
+                        {
+                            activeRule.InternalKey = r["internalKey"].ToString();
+                        }
+                        if (r["templateKey"] != null)
+                        {
+                            activeRule.TemplateKey = r["templateKey"].ToString();
+                        }
+
+                        var active = actives[r["key"].ToString()];
+                        var listParams = active.Single()["params"].Children<JObject>();
+                        activeRule.Parameters = listParams.ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
+                        if (activeRule.Parameters.ContainsKey("CheckId"))
+                        {
+                            activeRule.RuleKey = activeRule.Parameters["CheckId"];
+                        }
+                        return activeRule;
+                    });
+                }, ws));
             } while (fetched < total);
 
             return activeRuleList;
@@ -202,10 +216,13 @@ namespace SonarQube.TeamBuild.PreProcessor
         public IEnumerable<string> GetInstalledPlugins()
         {
             var ws = GetUrl("/api/languages/list");
-            var contents = this.downloader.Download(ws);
+            return DoLogExceptions(() =>
+            {
+                var contents = this.downloader.Download(ws);
 
-            JArray langArray = JObject.Parse(contents).Value<JArray>("languages");
-            return langArray.Select(obj => obj["key"].ToString());
+                JArray langArray = JObject.Parse(contents).Value<JArray>("languages");
+                return langArray.Select(obj => obj["key"].ToString());
+            }, ws);
         }
 
         public bool TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
@@ -225,42 +242,52 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             string url = GetUrl("/static/{0}/{1}", pluginKey, embeddedFileName);
 
-            string targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
+            return DoLogExceptions(() =>
+            {
+                string targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
 
-            logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, url, targetDirectory);
-            bool success = this.downloader.TryDownloadFileIfExists(url, targetFilePath);
-            return success;
+                logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, url, targetDirectory);
+                return this.downloader.TryDownloadFileIfExists(url, targetFilePath);
+            }, url);
         }
 
         #endregion
 
         #region Private methods
 
+        private T DoLogExceptions<T>(Func<T> op, string url)
+        {
+            try
+            {
+                return op();
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Failed to request and parse '{0}': {1}", url, e.Message);
+                throw;
+            }
+        }
         private void DownloadServerVersion()
         {
             var ws = GetUrl("api/server/version");
-            var contents = this.downloader.Download(ws);
-            int separator = contents.IndexOf('-');
-
-            if (separator >= 0)
+            serverVersion = DoLogExceptions(() =>
             {
-                serverVersion = new Version(contents.Substring(0, separator));
-            }
-            else
-            {
-                serverVersion = new Version(contents);
-            }
+                var contents = this.downloader.Download(ws);
+                int separator = contents.IndexOf('-');
+                return separator >= 0 ? new Version(contents.Substring(0, separator)) : new Version(contents);
+            }, ws);
         }
 
         private IDictionary<string, string> GetPropertiesOld(string projectId)
         {
             string ws = GetUrl("/api/properties?resource={0}", projectId);
             this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
-            var contents = this.downloader.Download(ws);
-
-            var properties = JArray.Parse(contents);
-            var result = properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
-
+            var result = DoLogExceptions(() =>
+            {
+                var contents = this.downloader.Download(ws);
+                var properties = JArray.Parse(contents);
+                return properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
+            }, ws);
             // http://jira.sonarsource.com/browse/SONAR-5891 or when C# plugin is not installed
             if (!result.ContainsKey("sonar.cs.msbuild.testProjectPattern"))
             {
@@ -274,9 +301,22 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             string ws = GetUrl("/api/settings/values?component={0}", projectId);
             this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
-            var contents = this.downloader.Download(ws);
+            string contents = "";
+            bool success = DoLogExceptions(() => this.downloader.TryDownloadIfExists(ws, out contents), ws);
 
-            Dictionary<string, string> settings = new Dictionary<string, string>();
+            if (!success)
+            {
+                ws = GetUrl("/api/settings/values");
+                this.logger.LogDebug("No settings for project {0}. Getting global settings: {1}", projectId, ws);
+                contents = DoLogExceptions(() => this.downloader.Download(ws), ws);
+            }
+
+            return DoLogExceptions(() => ParseSettingsResponse(contents), ws);
+        }
+
+        private Dictionary<string, string> ParseSettingsResponse(string contents)
+        {
+            var settings = new Dictionary<string, string>();
             var settingsArray = JObject.Parse(contents).Value<JArray>("settings");
             foreach (var t in settingsArray)
             {
@@ -288,17 +328,11 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 settings["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
             }
-
             return settings;
         }
 
         private void GetPropertyValue(Dictionary<string, string> settings, JToken p)
         {
-            if (p.Value<Boolean>("inherited"))
-            {
-                return;
-            }
-
             string key = p["key"].ToString();
             if (p["value"] != null)
             {
@@ -328,7 +362,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 foreach (JProperty prop in obj.Properties())
                 {
-                    string key = settingKey + "." + id + "." + prop.Name;
+                    string key = string.Concat(settingKey, ".", id, ".", prop.Name);
                     string value = prop.Value.ToString();
                     props.Add(key, value);
                 }
@@ -364,7 +398,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             var queryString = string.Format(System.Globalization.CultureInfo.InvariantCulture, format, args.Select(a => WebUtility.UrlEncode(a)).ToArray());
             if (!queryString.StartsWith("/", StringComparison.OrdinalIgnoreCase))
             {
-                queryString = '/' + queryString;
+                queryString = string.Concat('/', queryString);
             }
             return this.serverUrl + queryString;
         }

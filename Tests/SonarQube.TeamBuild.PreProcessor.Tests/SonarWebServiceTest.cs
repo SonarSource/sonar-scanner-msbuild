@@ -31,6 +31,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
     {
         private TestDownloader downloader;
         private SonarWebService ws;
+        private TestLogger logger;
 
         public TestContext TestContext { get; set; }
 
@@ -38,7 +39,8 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public void Init()
         {
             downloader = new TestDownloader();
-            ws = new SonarWebService(downloader, "http://myhost:222", new TestLogger());
+            logger = new TestLogger();
+            ws = new SonarWebService(downloader, "http://myhost:222", logger);
             downloader.Pages["http://myhost:222/api/server/version"] = "5.6";
         }
 
@@ -48,6 +50,21 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             if (ws != null)
             {
                 ws.Dispose();
+            }
+        }
+
+        [TestMethod]
+        public void LogWSOnError()
+        {
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] = "trash";
+            string qualityProfile;
+            try
+            {
+                var result = ws.TryGetQualityProfile("foo bar", null, "cs", out qualityProfile);
+                Assert.Fail("Exception expected");
+            } catch (Exception e)
+            {
+                logger.AssertErrorLogged("Failed to request and parse 'http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar': Error parsing boolean value. Path '', line 0, position 0.");
             }
         }
 
@@ -137,7 +154,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                   }
                 ]}";
             var result = ws.GetProperties("comp");
-            Assert.AreEqual(7, result.Count);
+            Assert.AreEqual(8, result.Count);
             Assert.AreEqual(SonarProperties.DefaultTestProjectPattern, result["sonar.cs.msbuild.testProjectPattern"]);
             Assert.AreEqual("myfile,myfile2", result["sonar.exclusions"]);
             Assert.AreEqual("testing.xml", result["sonar.junit.reportsPath"]);
