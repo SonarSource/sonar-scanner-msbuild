@@ -73,7 +73,6 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             this.logger.LogDebug(Resources.MSG_Downloading, url);
             string data = null;
-
             bool success = DoIgnoringMissingUrls(() => data = client.DownloadString(url));
             contents = data;
             return success;
@@ -82,14 +81,12 @@ namespace SonarQube.TeamBuild.PreProcessor
         public bool TryDownloadFileIfExists(string url, string targetFilePath)
         {
             this.logger.LogDebug(Resources.MSG_DownloadingFile, url, targetFilePath);
-
             return DoIgnoringMissingUrls(() => client.DownloadFile(url, targetFilePath));
         }
 
         public string Download(string url)
         {
             this.logger.LogDebug(Resources.MSG_Downloading, url);
-
             return client.DownloadString(url);
         }
 

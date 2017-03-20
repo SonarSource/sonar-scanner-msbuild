@@ -176,8 +176,14 @@ The full path to a settings file can also be supplied. If it is not supplied, th
   <data name="MSG_ExtractingFiles" xml:space="preserve">
     <value>Extracting files to {0}...</value>
   </data>
+  <data name="MSG_FetchingActiveRules" xml:space="preserve">
+    <value>Fetching active rules for quality profile '{0}' from {1}...</value>
+  </data>
   <data name="MSG_FetchingAnalysisConfiguration" xml:space="preserve">
     <value>Fetching analysis configuration settings...</value>
+  </data>
+  <data name="MSG_FetchingInactiveRules" xml:space="preserve">
+    <value>Fetching rules not active in quality profile '{0}' for language '{1}' from {2}...</value>
   </data>
   <data name="MSG_FetchingProjectProperties" xml:space="preserve">
     <value>Fetching properties for project '{0}' from {1}...</value>
