@@ -84,7 +84,7 @@ xxx yyy
             // However, it works reliably on the CI machines. Alternatives such as
             // pinging a non-existent address with a timeout were not reliable.
             string exeName = TestUtils.WriteBatchFileForTest(TestContext,
-@"TIMEOUT 1
+@"C:\Windows\System32\timeout.exe 1
 @echo Hello world
 ");
 
