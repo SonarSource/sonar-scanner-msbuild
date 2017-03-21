@@ -54,6 +54,7 @@ namespace SonarQube.Common
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 return new string[]
                 {
+                    Path.Combine(appData, "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
                     Path.Combine(appData, "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
                     Path.Combine(appData, "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore")
                 };

@@ -71,7 +71,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             CreateDummySourceTargetsFile(sourceTargetsContent1);
 
             InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
-            Assert.IsTrue(FileConstants.ImportBeforeDestinationDirectoryPaths.Count == 2, "Expecting two destination directories");
+            Assert.IsTrue(FileConstants.ImportBeforeDestinationDirectoryPaths.Count == 3, "Expecting three destination directories");
 
             string path = Path.Combine(FileConstants.ImportBeforeDestinationDirectoryPaths[0], FileConstants.ImportBeforeTargetsName);
             File.Delete(path);
