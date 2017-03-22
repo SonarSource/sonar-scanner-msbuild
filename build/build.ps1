@@ -56,6 +56,12 @@ function deploy(
     new-item -path . -name qa.properties -type "file"
 }
 
+function runTests() {
+    Write-Host "Start tests"
+    $x = ""; Get-ChildItem -path . -Recurse -Include *Tests.dll | where { $_.FullName -match "bin" } | foreach { $x += """$_"" " }; iex "& $env:VSTEST_PATH $x"
+    testExitCode
+}
+
 if ($env:IS_PULLREQUEST -eq "true") { 
     write-host -f green "in a pull request"
 
@@ -73,6 +79,8 @@ if ($env:IS_PULLREQUEST -eq "true") {
     testExitCode
     & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /t:rebuild /p:Configuration=Release
     testExitCode
+    #run tests
+    runTests
 
     .\MSBuild.SonarQube.Runner end /d:sonar.login=$env:SONAR_TOKEN
     testExitCode
@@ -95,6 +103,8 @@ if ($env:IS_PULLREQUEST -eq "true") {
         & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH
         testExitCode
 
+        runTests
+
         #end analysis
         .\MSBuild.SonarQube.Runner end /d:sonar.login=$env:SONAR_TOKEN
         testExitCode
@@ -103,6 +113,14 @@ if ($env:IS_PULLREQUEST -eq "true") {
 		
     } else {
         write-host -f green "not on master"
+
+        #build
+        & $env:NUGET_PATH restore SonarQube.Scanner.MSBuild.sln
+        testExitCode
+        & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH
+        testExitCode
+
+        runTests
     }
 
 }
