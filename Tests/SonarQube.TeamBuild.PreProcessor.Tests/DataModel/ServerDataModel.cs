@@ -34,7 +34,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             this.qualityProfiles = new List<QualityProfile>();
             this.ServerProperties = new Dictionary<string, string>();
-            this.InstalledPlugins = new List<string>();
+            this.Languages = new List<string>();
             this.embeddedFilesMap = new Dictionary<string, byte[]>();
         }
 
@@ -42,7 +42,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         public IDictionary<string, string> ServerProperties { get; set; }
 
-        public IList<string> InstalledPlugins { get; set; }
+        public IList<string> Languages { get; set; }
 
         #region Builder methods
 

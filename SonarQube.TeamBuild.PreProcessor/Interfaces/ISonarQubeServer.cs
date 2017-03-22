@@ -16,7 +16,6 @@
  */
 
 using System.Collections.Generic;
-using SonarQube.Common;
 using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarQube.TeamBuild.PreProcessor

@@ -246,17 +246,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         /// <summary>
         /// Used by tests that don't care about the content of the plugin, just it's existence
         /// </summary>
-        private MockSonarQubeServer CreateServerWithDummyPlugin(string pluginKey)
+        private MockSonarQubeServer CreateServerWithDummyPlugin(string languageKey)
         {
             MockSonarQubeServer mockServer = new MockSonarQubeServer();
-            mockServer.Data.InstalledPlugins.Add(pluginKey);
-            mockServer.Data.AddEmbeddedZipFile(pluginKey, "embeddedFile1.zip", "file1.dll", "file2.txt");
+            mockServer.Data.Languages.Add(languageKey);
+            mockServer.Data.AddEmbeddedZipFile(languageKey, "embeddedFile1.zip", "file1.dll", "file2.txt");
             return mockServer;
         }
         
         private void AddPlugin(MockSonarQubeServer mockServer, Plugin plugin, params string[] files)
         {
-            mockServer.Data.InstalledPlugins.Add(plugin.Key);
             mockServer.Data.AddEmbeddedZipFile(plugin.Key, plugin.StaticResourceName, files);
         }
 

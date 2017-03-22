@@ -74,9 +74,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             ServerDataModel data = mockServer.Data;
             data.ServerProperties.Add("server.key", "server value 1");
 
-            data.InstalledPlugins.Add("csharp");
-            data.InstalledPlugins.Add("vbnet");
-            data.InstalledPlugins.Add("another_plugin");
+            data.Languages.Add("cs");
+            data.Languages.Add("vbnet");
+            data.Languages.Add("another_plugin");
 
             data.AddQualityProfile("qp1", "cs")
                 .AddProject("key")
@@ -117,7 +117,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(logger, workingDir), Times.Once());
             mockServer.AssertMethodCalled("GetProperties", 1);
-            mockServer.AssertMethodCalled("GetInstalledPlugins", 1);
+            mockServer.AssertMethodCalled("GetAllLanguages", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
             mockServer.AssertMethodCalled("GetActiveRules", 2); // C# and VBNet
             mockServer.AssertMethodCalled("GetInactiveRules", 2); // C# and VBNet
@@ -144,7 +144,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             ServerDataModel data = mockServer.Data;
             data.ServerProperties.Add("server.key", "server value 1");
 
-            data.InstalledPlugins.Add("invalid_plugin");
+            data.Languages.Add("invalid_plugin");
 
             MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider();
             mockAnalyzerProvider.SettingsToReturn = new AnalyzerSettings();
@@ -173,7 +173,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(logger, workingDir), Times.Once());
             mockServer.AssertMethodCalled("GetProperties", 1);
-            mockServer.AssertMethodCalled("GetInstalledPlugins", 1);
+            mockServer.AssertMethodCalled("GetAllLanguages", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 0); // No valid plugin
             mockServer.AssertMethodCalled("GetActiveRules", 0); // No valid plugin
             mockServer.AssertMethodCalled("GetInactiveRules", 0); // No valid plugin
@@ -197,9 +197,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             ServerDataModel data = mockServer.Data;
             data.ServerProperties.Add("server.key", "server value 1");
 
-            data.InstalledPlugins.Add("csharp");
-            data.InstalledPlugins.Add("vbnet");
-            data.InstalledPlugins.Add("another_plugin");
+            data.Languages.Add("cs");
+            data.Languages.Add("vbnet");
+            data.Languages.Add("another_plugin");
 
             data.AddQualityProfile("qp1", "cs")
                 .AddProject("invalid")
@@ -238,7 +238,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(logger, workingDir), Times.Once());
             mockServer.AssertMethodCalled("GetProperties", 1);
-            mockServer.AssertMethodCalled("GetInstalledPlugins", 1);
+            mockServer.AssertMethodCalled("GetAllLanguages", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
             mockServer.AssertMethodCalled("GetActiveRules", 0); // no quality profile assigned to project
             mockServer.AssertMethodCalled("GetInactiveRules", 0);

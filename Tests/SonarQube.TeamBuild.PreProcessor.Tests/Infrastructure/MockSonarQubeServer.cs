@@ -79,7 +79,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         IEnumerable<string> ISonarQubeServer.GetAllLanguages()
         {
             this.LogMethodCalled();
-            return this.Data.InstalledPlugins;
+            return this.Data.Languages;
         }
 
         IDictionary<string, string> ISonarQubeServer.GetProperties(string projectKey, string projectBranch)
