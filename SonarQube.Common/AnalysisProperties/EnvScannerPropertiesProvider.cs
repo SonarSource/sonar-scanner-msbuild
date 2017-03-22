@@ -36,14 +36,7 @@ namespace SonarQube.Common
 
         public EnvScannerPropertiesProvider(string json)
         {
-            if (json == null)
-            {
-                properties = new List<Property>();
-            }
-            else
-            {
-                properties = parseVar(json);
-            }
+            properties = (json == null) ? new List<Property>() : ParseVar(json);
         }
 
         public IEnumerable<Property> GetAllProperties()
@@ -56,7 +49,7 @@ namespace SonarQube.Common
             return Property.TryGetProperty(key, properties, out property);
         }
 
-        private IEnumerable<Property> parseVar(String json)
+        private IEnumerable<Property> ParseVar(String json)
         {
             var props = JObject.Parse(json).Properties();
             return props.Select(p => new Property { Id = p.Name, Value = p.Value.ToString() });
