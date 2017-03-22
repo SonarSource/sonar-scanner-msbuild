@@ -16,12 +16,6 @@
  */
 
 using SonarQube.Common;
-using SonarQube.TeamBuild.PostProcessor;
-using SonarQube.TeamBuild.PostProcessor.Interfaces;
-using SonarQube.TeamBuild.PreProcessor;
-using SonarScanner.Shim;
-using System;
-using System.IO;
 
 namespace SonarQube.Bootstrapper
 {

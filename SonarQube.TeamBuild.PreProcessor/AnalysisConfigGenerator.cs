@@ -86,7 +86,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             config.LocalSettings = new AnalysisProperties();
-            foreach (var property in args.LocalProperties.GetAllProperties())
+            foreach (var property in args.CmdLineProperties.GetAllProperties())
             {
                 AddSetting(config.LocalSettings, property.Id, property.Value);
             }

@@ -55,6 +55,7 @@
     <Compile Include="AnalysisConfig\Rules.cs" />
     <Compile Include="AnalysisConfig\RuleSet.cs" />
     <Compile Include="AnalysisProperties\EmptyPropertyProvider.cs" />
+    <Compile Include="AnalysisProperties\EnvScannerPropertiesProvider.cs" />
     <Compile Include="AnalysisProperties\ListSettingsProvider.cs" />
     <Compile Include="CommandLine\ArgumentInstance.cs" />
     <Compile Include="CommandLine\ArgumentDescriptor.cs" />
@@ -83,7 +84,7 @@
     <Compile Include="AnalysisProperties\AnalysisProperties.cs" />
     <Compile Include="AnalysisProperties\CmdLineArgPropertyProvider.cs" />
     <Compile Include="AnalysisProperties\FilePropertyProvider.cs" />
-    <Compile Include="AnalysisProperties\IAnalysisPropertyProvider.cs" />
+    <Compile Include="Interfaces\IAnalysisPropertyProvider.cs" />
     <Compile Include="AnalysisProperties\Property.cs" />
     <Compile Include="SonarProperties.cs" />
     <Compile Include="Utilities.cs" />

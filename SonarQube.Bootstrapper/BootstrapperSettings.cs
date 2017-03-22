@@ -49,7 +49,6 @@ namespace SonarQube.Bootstrapper
 
         private readonly ILogger logger;
 
-        private readonly string sonarQubeUrl;
         private readonly AnalysisPhase analysisPhase;
         private readonly IEnumerable<string> childCmdLineArgs;
         private readonly LoggerVerbosity verbosity;
@@ -58,18 +57,13 @@ namespace SonarQube.Bootstrapper
 
         #region Constructor(s)
 
-        public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, string sonarQubeUrl, LoggerVerbosity verbosity, ILogger logger)
+        public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, LoggerVerbosity verbosity, ILogger logger)
         {
-            if (sonarQubeUrl == null)
-            {
-                throw new ArgumentNullException("sonarQubeUrl");
-            }
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
             }
 
-            this.sonarQubeUrl = sonarQubeUrl;
             this.analysisPhase = phase;
             this.childCmdLineArgs = childCmdLineArgs;
             this.verbosity = verbosity;
@@ -79,8 +73,6 @@ namespace SonarQube.Bootstrapper
         #endregion Constructor(s)
 
         #region IBootstrapperSettings
-
-        public string SonarQubeUrl { get { return this.sonarQubeUrl; } }
 
         public string TempDirectory
         {

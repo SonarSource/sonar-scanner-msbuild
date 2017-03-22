@@ -28,12 +28,10 @@ namespace SonarQube.Common
     public class FilePropertyProvider : IAnalysisPropertyProvider
     {
         private const string DescriptorId = "properties.file.argument";
-
+        public const string DefaultFileName = "SonarQube.Analysis.xml";
         public const string Prefix = "/s:";
 
         public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(DescriptorId, new string[] { Prefix }, false, Resources.CmdLine_ArgDescription_PropertiesFilePath, false);
-
-        public const string DefaultFileName = "SonarQube.Analysis.xml";
 
         private readonly AnalysisProperties propertiesFile;
         private readonly bool isDefaultPropertiesFile;

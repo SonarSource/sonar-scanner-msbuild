@@ -34,12 +34,10 @@ namespace SonarQube.Bootstrapper.Tests
         [TestMethod]
         public void BootSettings_InvalidArguments()
         {
-            string validUrl = "http://myserver";
             ILogger validLogger = new TestLogger();
             IList<string> validArgs = null;
 
-            AssertException.Expects<ArgumentNullException>(() => new BootstrapperSettings(AnalysisPhase.PostProcessing, validArgs, null, LoggerVerbosity.Debug, validLogger));
-            AssertException.Expects<ArgumentNullException>(() => new BootstrapperSettings(AnalysisPhase.PreProcessing, validArgs, validUrl, LoggerVerbosity.Debug, null));
+            AssertException.Expects<ArgumentNullException>(() => new BootstrapperSettings(AnalysisPhase.PreProcessing, validArgs, LoggerVerbosity.Debug, null));
         }
 
         [TestMethod]
@@ -55,22 +53,10 @@ namespace SonarQube.Bootstrapper.Tests
                 envScope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
 
                 // 1. Default value -> relative to download dir
-                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, "http://sq", LoggerVerbosity.Debug, logger);
-                AssertExpectedServerUrl("http://sq", settings);
-
+                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, logger);
             }
         }
 
         #endregion Tests
-
-        #region Checks
-
-        private static void AssertExpectedServerUrl(string expected, IBootstrapperSettings settings)
-        {
-            string actual = settings.SonarQubeUrl;
-            Assert.AreEqual(expected, actual, true /* ignore case */, "Unexpected server url");
-        }
-
-        #endregion Checks
     }
 }

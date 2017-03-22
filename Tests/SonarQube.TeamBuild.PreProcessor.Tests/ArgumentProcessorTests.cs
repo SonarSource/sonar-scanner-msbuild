@@ -56,35 +56,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         }
 
         [TestMethod]
-        public void PreArgProc_UrlIsRequired()
-        {
-            // 0. Setup
-            TestLogger logger;
-
-            // Create a valid settings file that contains a URL
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
-
-            AnalysisProperties properties = new AnalysisProperties();
-            properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://filehost" });
-            properties.Save(propertiesFilePath);
-
-            // 1. Url is not specified on the command line or in a properties file -> fail
-            logger = CheckProcessingFails("/key:k1", "/name:n1", "/version:1.0");
-
-            logger.AssertErrorLogged(SonarQube.TeamBuild.PreProcessor.Resources.ERROR_Args_UrlRequired);
-            logger.AssertErrorsLogged(1);
-
-            // 2. Url is specified in the file -> ok
-            ProcessedArgs processed = CheckProcessingSucceeds("/key:k1", "/name:n1", "/version:1.0", "/s:" + propertiesFilePath);
-            AssertExpectedPropertyValue(SonarProperties.HostUrl, "http://filehost", processed);
-
-            // 3. Url is specified on the command line too -> ok, and overrides the file setting
-            processed = CheckProcessingSucceeds("/key:k1", "/name:n1", "/version:1.0", "/s:" + propertiesFilePath, "/d:sonar.host.url=http://cmdlinehost");
-            AssertExpectedPropertyValue(SonarProperties.HostUrl, "http://cmdlinehost", processed);
-        }
-
-        [TestMethod]
         [WorkItem(102)] // http://jira.sonarsource.com/browse/SONARMSBRU-102
         public void PreArgProc_ProjectKeyValidity()
         {

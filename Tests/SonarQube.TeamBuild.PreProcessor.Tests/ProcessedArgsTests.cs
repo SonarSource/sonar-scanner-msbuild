@@ -25,10 +25,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     [TestClass]
     public class ProcessedArgsTests
     {
-        #region Tests
+        private ProcessedArgs args;
 
-        [TestMethod]
-        public void ProcArgs_GetSetting()
+        [TestInitialize]
+        public void TestInitialize()
         {
             // 0. Setup
             ListPropertiesProvider cmdLineProps = new ListPropertiesProvider();
@@ -38,37 +38,42 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             ListPropertiesProvider fileProps = new ListPropertiesProvider();
             fileProps.AddProperty("file.key.1", "file value 1");
             fileProps.AddProperty("shared.key.1", "shared file value");
+            fileProps.AddProperty("shared.key.2", "shared file value");
 
-            ProcessedArgs args = new ProcessedArgs("key", "branch", "ver", true, cmdLineProps, fileProps);
+            ListPropertiesProvider envProps = new ListPropertiesProvider();
+            envProps.AddProperty("env.key.1", "env value 1");
+            envProps.AddProperty("shared.key.1", "shared env value");
+            envProps.AddProperty("shared.key.2", "shared env value");
 
+            args = new ProcessedArgs("key", "branch", "ver", true, cmdLineProps, fileProps, envProps);
+        }
+
+        #region Tests
+
+        [TestMethod]
+        public void ProcArgs_GetSetting()
+        {
             // 1. Throws on missing value
             AssertException.Expects<InvalidOperationException>(() => args.GetSetting("missing.property"));
 
             // 2. Returns existing values
             Assert.AreEqual("cmd value 1", args.GetSetting("cmd.key.1"));
             Assert.AreEqual("file value 1", args.GetSetting("file.key.1"));
+            Assert.AreEqual("env value 1", args.GetSetting("env.key.1"));
 
             // 3. Precedence - command line properties should win
             Assert.AreEqual("shared cmd value", args.GetSetting("shared.key.1"));
 
-            // 4. Preprocessor only settings
+            // 4. Precedence - file wins over env
+            Assert.AreEqual("shared file value", args.GetSetting("shared.key.2"));
+
+            // 5. Preprocessor only settings
             Assert.AreEqual(true, args.InstallLoaderTargets);
         }
 
         [TestMethod]
         public void ProcArgs_TryGetSetting()
         {
-            // 0. Setup
-            ListPropertiesProvider cmdLineProps = new ListPropertiesProvider();
-            cmdLineProps.AddProperty("cmd.key.1", "cmd value 1");
-            cmdLineProps.AddProperty("shared.key.1", "shared cmd value");
-
-            ListPropertiesProvider fileProps = new ListPropertiesProvider();
-            fileProps.AddProperty("file.key.1", "file value 1");
-            fileProps.AddProperty("shared.key.1", "shared file value");
-
-            ProcessedArgs args = new ProcessedArgs("key", "branch", "ver", false, cmdLineProps, fileProps);
-
             // 1. Missing key -> null
             string result;
             Assert.IsFalse(args.TryGetSetting("missing.property", out result), "Expecting false when the specified key does not exist");
@@ -82,23 +87,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual("shared cmd value", args.GetSetting("shared.key.1"));
 
             // 4. Preprocessor only settings
-            Assert.AreEqual(false, args.InstallLoaderTargets);
+            Assert.AreEqual(true, args.InstallLoaderTargets);
         }
 
         [TestMethod]
         public void ProcArgs_GetSettingOrDefault()
         {
-            // 0. Setup
-            ListPropertiesProvider cmdLineProps = new ListPropertiesProvider();
-            cmdLineProps.AddProperty("cmd.key.1", "cmd value 1");
-            cmdLineProps.AddProperty("shared.key.1", "shared cmd value");
-
-            ListPropertiesProvider fileProps = new ListPropertiesProvider();
-            fileProps.AddProperty("file.key.1", "file value 1");
-            fileProps.AddProperty("shared.key.1", "shared file value");
-
-            ProcessedArgs args = new ProcessedArgs("key", "name", "ver", true, cmdLineProps, fileProps);
-
             // 1. Missing key -> default returned
             string result = args.GetSetting("missing.property", "default value");
             Assert.AreEqual("default value", result);
@@ -134,7 +128,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             fileProperties.AddProperty("XXX", "file line value XXX - upper case");
 
             // Act
-            ProcessedArgs args = new ProcessedArgs("key", "branch", "version", false, cmdLineProperties, fileProperties);
+            ProcessedArgs args = new ProcessedArgs("key", "branch", "version", false, cmdLineProperties, fileProperties, EmptyPropertyProvider.Instance);
 
             AssertExpectedValue("shared.key1", "cmd line value1 - should override server value", args);
             AssertExpectedValue("cmd.line.only", "cmd line value4 - only on command line", args);

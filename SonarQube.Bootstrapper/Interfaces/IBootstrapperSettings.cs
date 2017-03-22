@@ -33,8 +33,6 @@ namespace SonarQube.Bootstrapper
     /// </summary>
     public interface IBootstrapperSettings
     {
-        string SonarQubeUrl { get; }
-
         /// <summary>
         /// Temporary analysis directory, usually .sonarqube
         /// </summary>

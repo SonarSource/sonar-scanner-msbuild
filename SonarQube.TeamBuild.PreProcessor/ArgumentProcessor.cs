@@ -110,6 +110,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             IAnalysisPropertyProvider cmdLineProperties;
             parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out cmdLineProperties);
 
+            // Handler for scanner environment properties
+            IAnalysisPropertyProvider scannerEnvProperties;
+            parsedOk &= EnvScannerPropertiesProvider.TryCreateProvider(logger, out scannerEnvProperties);
+
             // Handler for property file
             IAnalysisPropertyProvider globalFileProperties;
             string asmPath = Path.GetDirectoryName(typeof(PreProcessor.ArgumentProcessor).Assembly.Location);
@@ -126,7 +130,8 @@ namespace SonarQube.TeamBuild.PreProcessor
                     GetArgumentValue(KeywordIds.ProjectVersion, arguments),
                     installLoaderTargets,
                     cmdLineProperties,
-                    globalFileProperties);
+                    globalFileProperties,
+                    scannerEnvProperties);
 
                 if (!AreParsedArgumentsValid(processed, logger))
                 {
