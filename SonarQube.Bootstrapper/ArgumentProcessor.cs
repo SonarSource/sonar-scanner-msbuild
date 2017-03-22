@@ -38,6 +38,7 @@ namespace SonarQube.Bootstrapper
 
         private const string BeginId = "begin.id";
         private const string EndId = "end.id";
+        public const string HelpId = "help.id";
 
         public const string BeginVerb = "begin";
         public const string EndVerb = "end";
@@ -66,6 +67,11 @@ namespace SonarQube.Bootstrapper
         #endregion Arguments definitions
 
         #region Public methods
+
+        public static bool IsHelp(string[] commandLineArgs)
+        {
+            return commandLineArgs.Contains("/h") || commandLineArgs.Contains("/");
+        }
 
         /// <summary>
         /// Attempts to process the supplied command line arguments and reports any errors using the logger.
