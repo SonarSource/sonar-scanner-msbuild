@@ -147,7 +147,8 @@ namespace SonarQube.TeamBuild.PreProcessor {
         ///When connecting to a SonarQube server earlier than version 6.1, the following command line arguments are also required:
         ///- SonarQube project name
         ///- SonarQube project version
-        ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild..
+        ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
+        ///Use &apos;/&apos; or &apos;/h&apos; to see the help message..
         /// </summary>
         public static string ERROR_InvalidCommandLineArgs {
             get {

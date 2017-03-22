@@ -29,6 +29,22 @@ namespace SonarQube.Bootstrapper
             var logger = new ConsoleLogger();
             Utilities.LogAssemblyVersion(logger, typeof(Program).Assembly, Resources.AssemblyDescription);
             IBootstrapperSettings settings;
+
+            if (ArgumentProcessor.IsHelp(args))
+            {
+                logger.LogInfo("");
+                logger.LogInfo("Usage: ");
+                logger.LogInfo("");
+                logger.LogInfo("  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/d:sonar.key=value] [/s:{full path to the analysis settings file}]", System.AppDomain.CurrentDomain.FriendlyName);
+                logger.LogInfo("");
+                logger.LogInfo("    When executing the begin phase, at least the project key must be defined.");
+                logger.LogInfo("    Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'.");
+                logger.LogInfo("    A settings file can be used to define properties. If no settings file path is given, the file SonarQube.Analysis.xml in the installation directory will be used.");
+                logger.LogInfo("    Only the token should be passed during the end phase, if it was used during the begin phase.");
+
+                return SuccessCode;
+            }
+
             if (!ArgumentProcessor.TryProcessArgs(args, logger, out settings))
             {
                 // The argument processor will have logged errors

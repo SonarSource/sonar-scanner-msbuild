@@ -43,6 +43,13 @@ namespace SonarQube.Bootstrapper.Tests
         #region Tests
 
         [TestMethod]
+        public void ArgProc_Help()
+        {
+            Assert.IsTrue(ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/h" }));
+            Assert.IsFalse(ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/hr" }));
+        }
+
+        [TestMethod]
         public void ArgProc_UnrecognizedArgumentsAreIgnored()
         {
             TestLogger logger = new TestLogger();
