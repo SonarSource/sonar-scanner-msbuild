@@ -156,7 +156,7 @@ namespace SonarQube.Bootstrapper
             return phase != AnalysisPhase.Unspecified;
         }
 
-        private static IBootstrapperSettings CreatePreProcessorSettings(IList<string> childArgs, IAnalysisPropertyProvider properties, IAnalysisPropertyProvider globalFileProperties, ILogger logger)
+        private static IBootstrapperSettings CreatePreProcessorSettings(ICollection<string> childArgs, IAnalysisPropertyProvider properties, IAnalysisPropertyProvider globalFileProperties, ILogger logger)
         {
             // If we're using the default properties file then we need to pass it
             // explicitly to the pre-processor (it's in a different folder and won't
@@ -172,12 +172,12 @@ namespace SonarQube.Bootstrapper
             return CreateSettings(AnalysisPhase.PreProcessing, childArgs, properties, logger);
         }
 
-        private static IBootstrapperSettings CreatePostProcessorSettings(IList<string> childArgs, IAnalysisPropertyProvider properties, ILogger logger)
+        private static IBootstrapperSettings CreatePostProcessorSettings(IEnumerable<string> childArgs, IAnalysisPropertyProvider properties, ILogger logger)
         {
             return CreateSettings(AnalysisPhase.PostProcessing, childArgs, properties, logger);
         }
 
-        private static IBootstrapperSettings CreateSettings(AnalysisPhase phase, IList<string> childArgs, IAnalysisPropertyProvider properties, ILogger logger)
+        private static IBootstrapperSettings CreateSettings(AnalysisPhase phase, IEnumerable<string> childArgs, IAnalysisPropertyProvider properties, ILogger logger)
         {
             return new BootstrapperSettings(
                 phase,

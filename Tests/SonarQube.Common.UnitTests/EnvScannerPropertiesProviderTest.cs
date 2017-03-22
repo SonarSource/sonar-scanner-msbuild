@@ -20,6 +20,12 @@ namespace SonarQube.Common.UnitTests
             Assert.AreEqual(1, provider.GetAllProperties().Count());
         }
 
+        [TestCleanup]
+        public void Cleanup()
+        {
+            Environment.SetEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", null);
+        }
+
         [TestMethod]
         public void ParseInvalidJson()
         {
