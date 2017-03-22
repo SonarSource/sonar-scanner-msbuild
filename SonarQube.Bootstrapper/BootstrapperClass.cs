@@ -79,9 +79,6 @@ namespace SonarQube.Bootstrapper
             }
 
             CopyDLLs();
-            string server = BootstrapSettings.SonarQubeUrl;
-            Debug.Assert(!string.IsNullOrWhiteSpace(server), "Not expecting the server URL to be null/empty");
-            Logger.LogDebug(Resources.MSG_ServerUrl, server);
 
             Utilities.LogAssemblyVersion(Logger, typeof(Program).Assembly, Resources.AssemblyDescription);
             Logger.IncludeTimestamp = true;

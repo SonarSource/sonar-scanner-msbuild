@@ -69,18 +69,16 @@ namespace SonarQube.Common
         public bool TryGetProperty(string key, out Property property)
         {
             property = null;
-            bool found = false;
 
             foreach (IAnalysisPropertyProvider current in this.providers)
             {
                 if (current.TryGetProperty(key, out property))
                 {
-                    found = true;
-                    break;
+                    return true;
                 }
             }
 
-            return found;
+            return false;
         }
 
         #endregion

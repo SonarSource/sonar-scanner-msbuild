@@ -61,6 +61,7 @@
     <Compile Include="CommandLineParserTests.cs" />
     <Compile Include="ConsoleLoggerTests.cs" />
     <Compile Include="AnalysisConfigTests.cs" />
+    <Compile Include="EnvScannerPropertiesProviderTest.cs" />
     <Compile Include="FilePropertyProviderTests.cs" />
     <Compile Include="Infrastructure\OutputCaptureScope.cs" />
     <Compile Include="ProcessRunnerTests.cs" />

@@ -158,12 +158,6 @@ namespace SonarQube.Bootstrapper
 
         private static IBootstrapperSettings CreatePreProcessorSettings(IList<string> childArgs, IAnalysisPropertyProvider properties, IAnalysisPropertyProvider globalFileProperties, ILogger logger)
         {
-            string hostUrl = TryGetHostUrl(properties, logger);
-            if (hostUrl == null)
-            {
-                return null; // URL is a required parameter in the pre-process phase
-            }
-
             // If we're using the default properties file then we need to pass it
             // explicitly to the pre-processor (it's in a different folder and won't
             // be able to find it otherwise).
@@ -175,38 +169,21 @@ namespace SonarQube.Bootstrapper
                 childArgs.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}", FilePropertyProvider.Prefix, fileProvider.PropertiesFile.FilePath));
             }
 
-            IBootstrapperSettings settings = new BootstrapperSettings(
-                AnalysisPhase.PreProcessing,
-                childArgs,
-                hostUrl,
-                VerbosityCalculator.ComputeVerbosity(properties, logger),
-                logger);
-
-            return settings;
-        }
-
-        private static string TryGetHostUrl(IAnalysisPropertyProvider properties, ILogger logger)
-        {
-            string url;
-            if (properties.TryGetValue(SonarProperties.HostUrl, out url))
-            {
-                return url;
-            }
-
-            logger.LogError(Resources.ERROR_Args_UrlRequired);
-            return null;
+            return CreateSettings(AnalysisPhase.PreProcessing, childArgs, properties, logger);
         }
 
         private static IBootstrapperSettings CreatePostProcessorSettings(IList<string> childArgs, IAnalysisPropertyProvider properties, ILogger logger)
         {
-            IBootstrapperSettings settings = new BootstrapperSettings(
-                AnalysisPhase.PostProcessing,
+            return CreateSettings(AnalysisPhase.PostProcessing, childArgs, properties, logger);
+        }
+
+        private static IBootstrapperSettings CreateSettings(AnalysisPhase phase, IList<string> childArgs, IAnalysisPropertyProvider properties, ILogger logger)
+        {
+            return new BootstrapperSettings(
+                phase,
                 childArgs,
-                string.Empty,
                 VerbosityCalculator.ComputeVerbosity(properties, logger),
                 logger);
-
-            return settings;
         }
 
         /// <summary>

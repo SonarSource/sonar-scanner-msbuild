@@ -290,7 +290,6 @@ namespace SonarQube.Bootstrapper.Tests
             mockBootstrapSettings.SetupGet(x => x.ChildCmdLineArgs).Returns(args.ToArray);
             mockBootstrapSettings.SetupGet(x => x.TempDirectory).Returns(TempDir);
             mockBootstrapSettings.SetupGet(x => x.Phase).Returns(phase);
-            mockBootstrapSettings.SetupGet(x => x.SonarQubeUrl).Returns("url");
             mockBootstrapSettings.SetupGet(x => x.ScannerBinaryDirPath).Returns(RootDir);
             mockBootstrapSettings.SetupGet(x => x.LoggingVerbosity).Returns(debug ? LoggerVerbosity.Debug : LoggerVerbosity.Info);
 

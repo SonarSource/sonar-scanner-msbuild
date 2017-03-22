@@ -179,6 +179,15 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to parse properties from the environment variable &apos;{0}&apos;.
+        /// </summary>
+        public static string ERROR_FailedParsePropertiesEnvVar {
+            get {
+                return ResourceManager.GetString("ERROR_FailedParsePropertiesEnvVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find a file on the SonarQube server. URL: {0}.
         /// </summary>
         public static string ERROR_FileNotFound {

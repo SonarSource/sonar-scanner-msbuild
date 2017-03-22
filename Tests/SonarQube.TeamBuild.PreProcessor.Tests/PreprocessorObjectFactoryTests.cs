@@ -16,6 +16,7 @@
  */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using System;
 using TestUtilities;
 
@@ -87,7 +88,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             ProcessedArgs validArgs = new ProcessedArgs("key", "name", "verions", false,
                 cmdLineArgs,
-                new Common.ListPropertiesProvider());
+                new Common.ListPropertiesProvider(),
+                EmptyPropertyProvider.Instance);
             return validArgs;
         }
 

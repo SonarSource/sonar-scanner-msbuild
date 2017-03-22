@@ -33,10 +33,11 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private readonly IAnalysisPropertyProvider cmdLineProperties;
         private readonly IAnalysisPropertyProvider globalFileProperties;
-
+        private readonly IAnalysisPropertyProvider scannerEnvProperties;
         private readonly IAnalysisPropertyProvider aggProperties;
 
-        public ProcessedArgs(string key, string name, string version, bool installLoaderTargets, IAnalysisPropertyProvider cmdLineProperties, IAnalysisPropertyProvider globalFileProperties)
+        public ProcessedArgs(string key, string name, string version, bool installLoaderTargets, IAnalysisPropertyProvider cmdLineProperties, 
+            IAnalysisPropertyProvider globalFileProperties, IAnalysisPropertyProvider scannerEnvProperties)
         {
             if (string.IsNullOrWhiteSpace(key))
             {
@@ -50,6 +51,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException("globalFileProperties");
             }
+            if (scannerEnvProperties == null)
+            {
+                throw new ArgumentNullException("scannerEnvProperties");
+            }
 
             this.projectKey = key;
             this.projectName = name;
@@ -57,9 +62,10 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             this.cmdLineProperties = cmdLineProperties;
             this.globalFileProperties = globalFileProperties;
+            this.scannerEnvProperties = scannerEnvProperties;
             this.InstallLoaderTargets = installLoaderTargets;
 
-            this.aggProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties);
+            this.aggProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, scannerEnvProperties);
         }
 
         public string ProjectKey { get { return this.projectKey; } }
@@ -78,7 +84,9 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// </summary>
         public IAnalysisPropertyProvider AggregateProperties { get { return this.aggProperties; } }
 
-        public IAnalysisPropertyProvider LocalProperties { get { return this.cmdLineProperties; } }
+        public IAnalysisPropertyProvider CmdLineProperties { get { return this.cmdLineProperties; } }
+
+        public IAnalysisPropertyProvider ScannerEnvProperties { get { return this.scannerEnvProperties; } }
 
         /// <summary>
         /// Returns the name of property settings file or null if there is not one

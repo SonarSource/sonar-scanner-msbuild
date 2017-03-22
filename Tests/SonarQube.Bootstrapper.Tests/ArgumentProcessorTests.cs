@@ -65,37 +65,6 @@ namespace SonarQube.Bootstrapper.Tests
         }
 
         [TestMethod]
-        public void ArgProc_UrlIsRequired()
-        {
-            // 0. Setup
-            TestLogger logger;
-
-            // Create a valid settings file that contains a URL
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
-
-            AnalysisProperties properties = new AnalysisProperties();
-            properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://filehost" });
-            properties.Save(propertiesFilePath);
-
-            // 1. Url is not specified on the command line or in a properties file -> fail
-            logger = CheckProcessingFails("/key:k1", "/name:n1", "/version:1.0");
-
-            logger.AssertErrorLogged(SonarQube.Bootstrapper.Resources.ERROR_Args_UrlRequired);
-            logger.AssertErrorsLogged(1);
-
-            // 2. Url is specified in the file -> ok
-            logger = new TestLogger();
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/key:k1", "/name:n1", "/version:1.0", "/s:" + propertiesFilePath);
-            AssertUrl(settings, "http://filehost");
-
-            // 3. Url is specified on the command line too -> ok, and overrides the file setting
-            logger = new TestLogger();
-            settings = CheckProcessingSucceeds(logger, "/key:k1", "/name:n1", "/version:1.0", "/s:" + propertiesFilePath, "/d:sonar.host.url=http://cmdlinehost");
-            AssertUrl(settings, "http://cmdlinehost");
-        }
-
-        [TestMethod]
         public void ArgProc_PropertyOverriding()
         {
             // Command line properties should take precedence
@@ -104,22 +73,22 @@ namespace SonarQube.Bootstrapper.Tests
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "settings");
             string fullPropertiesPath = Path.Combine(testDir, "settings.txt");
             AnalysisProperties properties = new AnalysisProperties();
-            properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://settingsFile" });
+            properties.Add(new Property() { Id = SonarProperties.Verbose, Value = "true" });
             properties.Save(fullPropertiesPath);
 
             TestLogger logger = new TestLogger();
 
             // 1. Settings file only
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath);
-            AssertUrl(settings, "http://settingsFile");
+            Assert.AreEqual(settings.LoggingVerbosity, LoggerVerbosity.Debug);
 
             //// 2. Both file and cmd line
-            settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath, "/d:sonar.host.url=http://cmdline");
-            AssertUrl(settings, "http://cmdline"); // cmd line wins
+            settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath, "/d:sonar.verbose=false");
+            Assert.AreEqual(settings.LoggingVerbosity, LoggerVerbosity.Info);
 
             //// 3. Cmd line only
-            settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=http://cmdline", "/d:other=property", "/d:a=b c");
-            AssertUrl(settings, "http://cmdline"); // cmd line wins
+            settings = CheckProcessingSucceeds(logger, "/d:sonar.verbose=false", "/d:other=property", "/d:a=b c");
+            Assert.AreEqual(settings.LoggingVerbosity, LoggerVerbosity.Info); // cmd line wins
         }
 
         [TestMethod]
@@ -226,13 +195,11 @@ namespace SonarQube.Bootstrapper.Tests
             logger.AssertWarningsLogged(1);
             AssertExpectedChildArguments(settings);
 
-            // 5. Incorrect case -> unrecognised -> treated as preprocessing -> fails (URL not supplied)
-            logger = CheckProcessingFails("END");
-            logger.AssertErrorsLogged();
-
-            // 6. Partial match -> unrecognised -> treated as preprocessing -> fails (URL not supplied)
-            logger = CheckProcessingFails("endX");
-            logger.AssertErrorsLogged();
+            // 5. Partial match -> unrecognised -> treated as preprocessing
+            logger = new TestLogger();
+            settings = CheckProcessingSucceeds(logger, "endx");
+            AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
+            logger.AssertWarningsLogged(1);
         }
 
         [TestMethod]
@@ -292,7 +259,6 @@ namespace SonarQube.Bootstrapper.Tests
             TestLogger logger = new TestLogger();
 
             IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath);
-            Assert.IsFalse(string.IsNullOrEmpty(settings.SonarQubeUrl));
             CollectionAssert.Contains(settings.ChildCmdLineArgs.ToList(), "/s: " + fullPropertiesPath);
             Assert.AreEqual(LoggerVerbosity.Debug, settings.LoggingVerbosity);
 
@@ -331,14 +297,8 @@ namespace SonarQube.Bootstrapper.Tests
 
         private static void AssertUrlAndChildCmdLineArgs(IBootstrapperSettings settings, string expectedUrl, params string[] expectedCmdLineArgs)
         {
-            Assert.AreEqual(expectedUrl, settings.SonarQubeUrl, "Unexpected SonarQube URL");
 
             CollectionAssert.AreEqual(expectedCmdLineArgs, settings.ChildCmdLineArgs.ToList(), "Unexpected child command line arguments");
-        }
-
-        private static void AssertUrl(IBootstrapperSettings settings, string expectedUrl)
-        {
-            Assert.AreEqual(expectedUrl, settings.SonarQubeUrl, "Unexpected SonarQube URL");
         }
 
         private static void AssertExpectedPhase(AnalysisPhase expected, IBootstrapperSettings settings)
