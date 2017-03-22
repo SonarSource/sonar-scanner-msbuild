@@ -76,7 +76,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return profile.InactiveRules;
         }
 
-        IEnumerable<string> ISonarQubeServer.GetInstalledPlugins()
+        IEnumerable<string> ISonarQubeServer.GetAllLanguages()
         {
             this.LogMethodCalled();
             return this.Data.InstalledPlugins;

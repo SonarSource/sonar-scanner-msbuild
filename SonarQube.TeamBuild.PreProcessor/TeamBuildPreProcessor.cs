@@ -176,11 +176,11 @@ namespace SonarQube.TeamBuild.PreProcessor
                 serverSettings = server.GetProperties(args.ProjectKey, projectBranch);
 
                 // Fetch installed plugins
-                IEnumerable<string> installedPlugins = server.GetInstalledPlugins();
+                IEnumerable<string> availableLanguages = server.GetAllLanguages();
 
                 foreach (PluginDefinition plugin in plugins)
                 {
-                    if (!installedPlugins.Contains(plugin.PluginKey))
+                    if (!availableLanguages.Contains(plugin.Language))
                     {
                         continue;
                     }

@@ -213,7 +213,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             return serverVersion;
         }
 
-        public IEnumerable<string> GetInstalledPlugins()
+        public IEnumerable<string> GetAllLanguages()
         {
             var ws = GetUrl("/api/languages/list");
             return DoLogExceptions(() =>

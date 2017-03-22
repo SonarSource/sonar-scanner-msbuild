@@ -374,7 +374,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             var expected = new List<string>();
             expected.Add("cs");
             expected.Add("flex");
-            var actual = new List<string>(ws.GetInstalledPlugins());
+            var actual = new List<string>(ws.GetAllLanguages());
 
             Assert.AreEqual(true, expected.SequenceEqual(actual));
         }

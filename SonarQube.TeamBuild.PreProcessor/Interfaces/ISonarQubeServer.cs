@@ -32,9 +32,9 @@ namespace SonarQube.TeamBuild.PreProcessor
         IList<ActiveRule> GetActiveRules(string qprofile);
 
         /// <summary>
-        /// Get all keys of all installed plugins
+        /// Get all keys of all available languages
         /// </summary>
-        IEnumerable<string> GetInstalledPlugins();
+        IEnumerable<string> GetAllLanguages();
 
         /// <summary>
         /// Get all the properties of a project
