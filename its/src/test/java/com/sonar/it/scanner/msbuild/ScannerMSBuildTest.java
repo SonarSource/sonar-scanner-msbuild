@@ -44,6 +44,7 @@ import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
 import static com.sonar.it.scanner.msbuild.TestSuite.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class ScannerMSBuildTest {
   private static final String PROJECT_KEY = "my.project";
@@ -84,6 +85,16 @@ public class ScannerMSBuildTest {
     assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(23);
     assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(37);
     assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(58);
+  }
+
+  @Test
+  public void testHelpMessage() throws IOException {
+    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("/"));
+
+    assertThat(result.getLogs()).contains("Usage:");
+    assertTrue(result.isSuccess());
   }
 
   @Test

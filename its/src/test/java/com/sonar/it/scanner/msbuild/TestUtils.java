@@ -70,8 +70,10 @@ public class TestUtils {
     String pluginVersion = TestSuite.getCSharpVersion();
     MavenLocation csharp = MavenLocation.create("org.sonarsource.dotnet", "sonar-csharp-plugin", pluginVersion);
     Path modifiedCs = t.resolve("modified-chsarp.jar");
-    locators.copyToFile(csharp, modifiedCs.toFile());
-
+    if (locators.copyToFile(csharp, modifiedCs.toFile()) == null) {
+      throw new IllegalStateException("Couldn't locate csharp plugin in the local maven repository: " + csharp);
+    }
+    
     String scannerPayloadVersion = getScannerPayloadVersion();
 
     Path scannerImpl;
@@ -182,7 +184,7 @@ public class TestUtils {
     URI uri = URI.create("jar:" + zipUri);
     try (FileSystem zipfs = FileSystems.newFileSystem(uri, env)) {
       Path pathInZipfile = zipfs.getPath(dest);
-      LOG.info("Replacing " + pathInZipfile + " in " + src);
+      LOG.info("Replacing the file " + pathInZipfile + " in the zip " + zipUri + " with " + src);
       Files.copy(src, pathInZipfile, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
       throw new IllegalStateException(e);
