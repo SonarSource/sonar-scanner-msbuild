@@ -69,7 +69,7 @@ namespace SonarQube.Common
         }
 
         /// <summary>
-        /// Returns a provider containing all of the analysis settings from the config.
+        /// Returns a provider containing the analysis settings coming from all providers (analysis config file, environment, settings file).
         /// Optionally includes settings downloaded from the SonarQube server.
         /// </summary>
         /// <remarks>This could include settings imported from a settings file</remarks>
@@ -97,6 +97,13 @@ namespace SonarQube.Common
                 providers.Add(fileProvider);
             }
 
+            // Add scanner environment settings
+            IAnalysisPropertyProvider envProvider;
+            if (EnvScannerPropertiesProvider.TryCreateProvider(null, out envProvider))
+            {
+                providers.Add(envProvider);
+            }
+
             // Add server settings
             if (includeServerSettings && config.ServerSettings != null)
             {
@@ -104,7 +111,7 @@ namespace SonarQube.Common
             }
 
             IAnalysisPropertyProvider provider;
-            switch(providers.Count)
+            switch (providers.Count)
             {
                 case 0:
                     provider = EmptyPropertyProvider.Instance;

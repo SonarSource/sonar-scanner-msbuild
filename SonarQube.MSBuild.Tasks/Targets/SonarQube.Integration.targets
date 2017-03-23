@@ -44,7 +44,7 @@
     type as follows:
 
     1) Projects whose full project file name matches the regular expression specified in
-        the analysis setting "sonar.cs.msbuild.testProjectPattern" will be treated as test
+        the analysis setting "sonar.msbuild.testProjectPattern" will be treated as test
         projects. This setting is set via the SonarQube portal (set "Test project pattern"
         in the per-project settings on the MSBuild tab for the C# plug-in).
 

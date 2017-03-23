@@ -37,7 +37,7 @@ namespace SonarQube.MSBuild.Tasks
         /// Id of the SonarQube test setting that specifies the RegEx to use when determining
         /// if a project is a test project or not
         /// </summary>
-        public const string TestRegExSettingId = "sonar.cs.msbuild.testProjectPattern";
+        public const string TestRegExSettingId = "sonar.msbuild.testProjectPattern";
 
         #region Input properties
 

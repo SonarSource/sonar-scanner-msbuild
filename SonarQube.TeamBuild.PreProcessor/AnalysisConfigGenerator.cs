@@ -28,19 +28,19 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// Combines the various configuration options into the AnalysisConfig file
         /// used by the build and post-processor. Saves the file and returns the config instance.
         /// </summary>
-        /// <param name="args">Processed command line arguments supplied the user</param>
+        /// <param name="localSettings">Processed local settings, including command line arguments supplied the user</param>
         /// <param name="buildSettings">Build environment settings</param>
         /// <param name="serverProperties">Analysis properties downloaded from the SonarQube server</param>
         /// <param name="analyzerSettings">Specifies the Roslyn analyzers to use</param>
-        public static AnalysisConfig GenerateFile(ProcessedArgs args,
+        public static AnalysisConfig GenerateFile(ProcessedArgs localSettings,
             TeamBuildSettings buildSettings,
             IDictionary<string, string> serverProperties,
             List<AnalyzerSettings> analyzersSettings,
             ILogger logger)
         {
-            if (args == null)
+            if (localSettings == null)
             {
-                throw new ArgumentNullException(nameof(args));
+                throw new ArgumentNullException(nameof(localSettings));
             }
             if (buildSettings == null)
             {
@@ -60,10 +60,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             AnalysisConfig config = new AnalysisConfig();
-            config.SonarProjectKey = args.ProjectKey;
-            config.SonarProjectName = args.ProjectName;
-            config.SonarProjectVersion = args.ProjectVersion;
-            config.SonarQubeHostUrl = args.GetSetting(SonarProperties.HostUrl);
+            config.SonarProjectKey = localSettings.ProjectKey;
+            config.SonarProjectName = localSettings.ProjectName;
+            config.SonarProjectVersion = localSettings.ProjectVersion;
+            config.SonarQubeHostUrl = localSettings.GetSetting(SonarProperties.HostUrl);
 
             config.SetBuildUri(buildSettings.BuildUri);
             config.SetTfsUri(buildSettings.TfsUri);
@@ -86,19 +86,19 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             config.LocalSettings = new AnalysisProperties();
-            foreach (var property in args.CmdLineProperties.GetAllProperties())
+            // From the local settings, we only write the ones coming from the cmd line
+            foreach (var property in localSettings.CmdLineProperties.GetAllProperties())
             {
                 AddSetting(config.LocalSettings, property.Id, property.Value);
             }
 
             // Set the pointer to the properties file
-            if (args.PropertiesFileName != null)
+            if (localSettings.PropertiesFileName != null)
             {
-                config.SetSettingsFilePath(args.PropertiesFileName);
+                config.SetSettingsFilePath(localSettings.PropertiesFileName);
             }
 
             config.AnalyzersSettings = analyzersSettings;
-
             config.Save(buildSettings.AnalysisConfigFilePath);
 
             return config;

@@ -117,7 +117,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         #region Private methods
 
         /// <summary>
-        /// Generated several files related to rulesets and roslyn analyzer assemblies.
+        /// Generates several files related to rulesets and roslyn analyzer assemblies.
         /// Even if a non-empty set of active rules is provided, depending on the server settings of repo keys, we might have no rules in the ruleset.
         /// In that case, this method returns null.
         /// </summary>
