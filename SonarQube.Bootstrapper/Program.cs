@@ -35,7 +35,7 @@ namespace SonarQube.Bootstrapper
                 logger.LogInfo("");
                 logger.LogInfo("Usage: ");
                 logger.LogInfo("");
-                logger.LogInfo("  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/d:sonar.key=value] [/s:{full path to the analysis settings file}]", System.AppDomain.CurrentDomain.FriendlyName);
+                logger.LogInfo("  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/d:sonar.key=value] [/s:settings_file]", System.AppDomain.CurrentDomain.FriendlyName);
                 logger.LogInfo("");
                 logger.LogInfo("    When executing the begin phase, at least the project key must be defined.");
                 logger.LogInfo("    Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'.");
