@@ -70,7 +70,7 @@ namespace SonarQube.Bootstrapper
 
         public static bool IsHelp(string[] commandLineArgs)
         {
-            return commandLineArgs.Contains("/h") || commandLineArgs.Contains("/");
+            return commandLineArgs.Contains("/h") || commandLineArgs.Contains("/?");
         }
 
         /// <summary>

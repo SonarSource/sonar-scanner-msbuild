@@ -91,7 +91,7 @@ public class ScannerMSBuildTest {
   public void testHelpMessage() throws IOException {
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
     BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
-      .addArgument("/"));
+      .addArgument("/?"));
 
     assertThat(result.getLogs()).contains("Usage:");
     assertTrue(result.isSuccess());

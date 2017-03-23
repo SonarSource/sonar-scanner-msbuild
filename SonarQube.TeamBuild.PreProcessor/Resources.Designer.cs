@@ -148,7 +148,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         ///- SonarQube project name
         ///- SonarQube project version
         ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
-        ///Use &apos;/&apos; or &apos;/h&apos; to see the help message..
+        ///Use &apos;/?&apos; or &apos;/h&apos; to see the help message..
         /// </summary>
         public static string ERROR_InvalidCommandLineArgs {
             get {
