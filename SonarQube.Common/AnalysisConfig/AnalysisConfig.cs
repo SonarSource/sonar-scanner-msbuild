@@ -74,7 +74,7 @@ namespace SonarQube.Common
 
         /// <summary>
         /// List of analysis settings supplied locally (either on the
-        /// command line or in a file)
+        /// command line, in a file or through the scanner environment variable)
         /// </summary>
         public AnalysisProperties LocalSettings { get; set; }
 

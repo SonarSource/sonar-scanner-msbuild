@@ -100,13 +100,13 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
         }
 
-        private bool DoExecute(ProcessedArgs args)
+        private bool DoExecute(ProcessedArgs localSettings)
         {
-            Debug.Assert(args != null, "Not expecting the process arguments to be null");
+            Debug.Assert(localSettings != null, "Not expecting the process arguments to be null");
 
-            this.logger.Verbosity = VerbosityCalculator.ComputeVerbosity(args.AggregateProperties, this.logger);
+            this.logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, this.logger);
 
-            InstallLoaderTargets(args);
+            InstallLoaderTargets(localSettings);
 
             TeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(this.logger);
 
@@ -126,17 +126,17 @@ namespace SonarQube.TeamBuild.PreProcessor
                 return false;
             }
 
-            ISonarQubeServer server = this.factory.CreateSonarQubeServer(args, this.logger);
+            ISonarQubeServer server = this.factory.CreateSonarQubeServer(localSettings, this.logger);
 
             IDictionary<string, string> serverSettings;
             List<AnalyzerSettings> analyzersSettings;
-            if (!FetchArgumentsAndRulesets(server, args, teamBuildSettings, out serverSettings, out analyzersSettings))
+            if (!FetchArgumentsAndRulesets(server, localSettings, teamBuildSettings, out serverSettings, out analyzersSettings))
             {
                 return false;
             }
             Debug.Assert(analyzersSettings != null, "Not expecting the analyzers settings to be null");
 
-            AnalysisConfigGenerator.GenerateFile(args, teamBuildSettings, serverSettings, analyzersSettings, this.logger);
+            AnalysisConfigGenerator.GenerateFile(localSettings, teamBuildSettings, serverSettings, analyzersSettings, this.logger);
 
             return true;
         }

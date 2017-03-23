@@ -48,17 +48,5 @@ namespace SonarQube.Common
         public const string WorkingDirectory = "sonar.working.directory";
         public const string Verbose = "sonar.verbose";
         public const string LogLevel = "sonar.log.level";
-
-        // Default property values
-
-        /// <summary>
-        /// Regex that determines if a project is a test project or not based on its path. 
-        /// This regular expression matches paths where the filename contains the 'test' token. 
-        /// Regex breakdown: 
-        /// [^\\]*  - everything except \
-        /// test    - that contains 'test'
-        /// [^\\]*$ - and it doesn't end in \
-        /// </summary>
-        public const string DefaultTestProjectPattern = @"[^\\]*test[^\\]*$";
     }
 }

@@ -29,6 +29,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 {
     public sealed class SonarWebService : ISonarQubeServer, IDisposable
     {
+        private const string oldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
         private readonly string serverUrl;
         private readonly IDownloader downloader;
         private readonly ILogger logger;
@@ -288,13 +289,8 @@ namespace SonarQube.TeamBuild.PreProcessor
                 var properties = JArray.Parse(contents);
                 return properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
             }, ws);
-            // http://jira.sonarsource.com/browse/SONAR-5891 or when C# plugin is not installed
-            if (!result.ContainsKey("sonar.cs.msbuild.testProjectPattern"))
-            {
-                result["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
-            }
 
-            return result;
+            return checkTestProjectPattern(result);
         }
 
         private IDictionary<string, string> GetProperties63(string projectId)
@@ -323,10 +319,22 @@ namespace SonarQube.TeamBuild.PreProcessor
                 GetPropertyValue(settings, t);
             }
 
-            // http://jira.sonarsource.com/browse/SONAR-5891 or when C# plugin is not installed
-            if (!settings.ContainsKey("sonar.cs.msbuild.testProjectPattern"))
+
+            return checkTestProjectPattern(settings);
+        }
+
+        private Dictionary<string, string> checkTestProjectPattern(Dictionary<string, string> settings)
+        {
+            // http://jira.sonarsource.com/browse/SONAR-5891 and https://jira.sonarsource.com/browse/SONARMSBRU-285
+            if (settings.ContainsKey("sonar.cs.msbuild.testProjectPattern"))
             {
-                settings["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
+                string value = settings["sonar.cs.msbuild.testProjectPattern"];
+                if (value != oldDefaultProjectTestPattern)
+                {
+                    logger.LogWarning("The property 'sonar.cs.msbuild.testProjectPattern' defined in SonarQube is deprecated. Set the property 'sonar.msbuild.testProjectPattern' in the scanner instead.");
+                }
+                settings["sonar.msbuild.testProjectPattern"] = value;
+                settings.Remove("sonar.cs.msbuild.testProjectPattern");
             }
             return settings;
         }

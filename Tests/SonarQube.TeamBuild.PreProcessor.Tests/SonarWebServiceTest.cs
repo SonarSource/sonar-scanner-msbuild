@@ -154,8 +154,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                   }
                 ]}";
             var result = ws.GetProperties("comp");
-            Assert.AreEqual(8, result.Count);
-            Assert.AreEqual(SonarProperties.DefaultTestProjectPattern, result["sonar.cs.msbuild.testProjectPattern"]);
+            Assert.AreEqual(7, result.Count);
             Assert.AreEqual("myfile,myfile2", result["sonar.exclusions"]);
             Assert.AreEqual("testing.xml", result["sonar.junit.reportsPath"]);
             Assert.AreEqual("prop1", result["sonar.issue.ignore.multicriteria.1.resourceKey"]);
@@ -345,14 +344,16 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             // Requesting properties for project:branch should return branch-specific data
 
             // Check that properties are correctly defaulted as well as branch-specific
-            downloader.Pages["http://myhost:222/api/properties?resource=foo+bar"] = "[{\"key\": \"sonar.property1\",\"value\": \"value1\"},{\"key\": \"sonar.property2\",\"value\": \"value2\"}]";
-            downloader.Pages["http://myhost:222/api/properties?resource=foo+bar%3AaBranch"] = "[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]";
+            downloader.Pages["http://myhost:222/api/properties?resource=foo+bar"] =
+                "[{\"key\": \"sonar.property1\",\"value\": \"value1\"},{\"key\": \"sonar.property2\",\"value\": \"value2\"},{\"key\": \"sonar.cs.msbuild.testProjectPattern\",\"value\": \"pattern\"}]";
+            downloader.Pages["http://myhost:222/api/properties?resource=foo+bar%3AaBranch"] = 
+                "[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]";
 
             // default
             var expected1 = new Dictionary<string, string>();
             expected1["sonar.property1"] = "value1";
             expected1["sonar.property2"] = "value2";
-            expected1["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
+            expected1["sonar.msbuild.testProjectPattern"] = "pattern";
             var actual1 = ws.GetProperties("foo bar");
 
             Assert.AreEqual(true, expected1.Count == actual1.Count && !expected1.Except(actual1).Any());
@@ -361,7 +362,6 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             var expected2 = new Dictionary<string, string>();
             expected2["sonar.property1"] = "anotherValue1";
             expected2["sonar.property2"] = "anotherValue2";
-            expected2["sonar.cs.msbuild.testProjectPattern"] = SonarProperties.DefaultTestProjectPattern;
             var actual2 = ws.GetProperties("foo bar", "aBranch");
 
             Assert.AreEqual(true, expected2.Count == actual2.Count && !expected2.Except(actual2).Any());

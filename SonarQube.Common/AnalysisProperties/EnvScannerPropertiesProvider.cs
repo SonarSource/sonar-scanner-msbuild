@@ -17,19 +17,18 @@ namespace SonarQube.Common
 
         public static bool TryCreateProvider(ILogger logger, out IAnalysisPropertyProvider provider)
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
-
             provider = null;
             try
             {
                 provider = new EnvScannerPropertiesProvider(Environment.GetEnvironmentVariable(ENV_VAR_KEY));
                 return true;
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
-                logger.LogError(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY);
+                if (logger != null)
+                {
+                    logger.LogError(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY);
+                }
             }
             return false;
         }

@@ -36,7 +36,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         private readonly IAnalysisPropertyProvider scannerEnvProperties;
         private readonly IAnalysisPropertyProvider aggProperties;
 
-        public ProcessedArgs(string key, string name, string version, bool installLoaderTargets, IAnalysisPropertyProvider cmdLineProperties, 
+        public ProcessedArgs(string key, string name, string version, bool installLoaderTargets, IAnalysisPropertyProvider cmdLineProperties,
             IAnalysisPropertyProvider globalFileProperties, IAnalysisPropertyProvider scannerEnvProperties)
         {
             if (string.IsNullOrWhiteSpace(key))

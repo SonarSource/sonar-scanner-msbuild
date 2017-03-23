@@ -127,7 +127,7 @@
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
     <Content Include="License.txt" />
-    <Content Include="SupportedBootstrapperVersions.xml">
+	<Content Include="SupportedBootstrapperVersions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

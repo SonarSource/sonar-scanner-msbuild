@@ -80,7 +80,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void IsTestFile_DefaultRegex()
         {
             string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            EnsureAnalysisConfig(testFolder, SonarProperties.DefaultTestProjectPattern);
+            EnsureAnalysisConfig(testFolder, @"[^\\]*test[^\\]*$");
 
             // filename contains 'test'
             CheckFilePathIsTest(testFolder, "c:\\foo\\mytest.proj");
