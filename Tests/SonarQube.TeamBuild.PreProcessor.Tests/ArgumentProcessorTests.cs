@@ -48,11 +48,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // 3. Only key and host URL are required 
             ProcessedArgs args = CheckProcessingSucceeds("/k:key", "/d:sonar.host.url=myurl");
             Assert.AreEqual(args.ProjectKey, "key");
+            Assert.AreEqual(args.SonarQubeUrl, "myurl");
 
             // 4. Argument is present but has no value
             logger = CheckProcessingFails("/key:");
             logger.AssertSingleErrorExists("/key:");
             logger.AssertErrorsLogged(1);
+        }
+
+        [TestMethod]
+        public void PreArgProc_DefaultHostUrl()
+        {
+            ProcessedArgs args = CheckProcessingSucceeds("/k:key");
+            Assert.AreEqual(args.SonarQubeUrl, "http://localhost:9000");
         }
 
         [TestMethod]

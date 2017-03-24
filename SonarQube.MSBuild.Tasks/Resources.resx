@@ -125,7 +125,7 @@
   </data>
   <data name="IsTest_InvalidRegularExpression" xml:space="preserve">
     <value>The configured regular expression for detecting test projects is invalid.
-Check the "{2}" setting in the SonarQube portal.
+Check the property "{2}".
 Expression: {0}
 Error: {1}</value>
   </data>

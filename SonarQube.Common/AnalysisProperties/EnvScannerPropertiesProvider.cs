@@ -25,10 +25,7 @@ namespace SonarQube.Common
             }
             catch (Exception e)
             {
-                if (logger != null)
-                {
-                    logger.LogError(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY);
-                }
+                logger?.LogError(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY);
             }
             return false;
         }
