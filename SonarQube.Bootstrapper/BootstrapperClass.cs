@@ -79,8 +79,6 @@ namespace SonarQube.Bootstrapper
             }
 
             CopyDLLs();
-
-            Utilities.LogAssemblyVersion(Logger, typeof(Program).Assembly, Resources.AssemblyDescription);
             Logger.IncludeTimestamp = true;
 
             ITeamBuildPreProcessor preProcessor = ProcessorFactory.CreatePreProcessor();
@@ -92,7 +90,6 @@ namespace SonarQube.Bootstrapper
 
         private int PostProcess()
         {
-            Utilities.LogAssemblyVersion(Logger, typeof(Program).Assembly, Resources.AssemblyDescription);
             Logger.IncludeTimestamp = true;
 
             if (!Directory.Exists(BootstrapSettings.TempDirectory))

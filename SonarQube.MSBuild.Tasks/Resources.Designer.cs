@@ -71,7 +71,7 @@ namespace SonarQube.MSBuild.Tasks {
         
         /// <summary>
         ///   Looks up a localized string similar to The configured regular expression for detecting test projects is invalid.
-        ///Check the &quot;{2}&quot; setting in the SonarQube portal.
+        ///Check the property &quot;{2}&quot;.
         ///Expression: {0}
         ///Error: {1}.
         /// </summary>
