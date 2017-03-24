@@ -232,8 +232,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             catch (WebException ex)
             {
-                string hostUrl = args.GetSetting(SonarProperties.HostUrl);
-                if (Utilities.HandleHostUrlWebException(ex, hostUrl, this.logger))
+                if (Utilities.HandleHostUrlWebException(ex, args.SonarQubeUrl, this.logger))
                 {
                     return false;
                 }

@@ -63,7 +63,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             config.SonarProjectKey = localSettings.ProjectKey;
             config.SonarProjectName = localSettings.ProjectName;
             config.SonarProjectVersion = localSettings.ProjectVersion;
-            config.SonarQubeHostUrl = localSettings.GetSetting(SonarProperties.HostUrl);
+            config.SonarQubeHostUrl = localSettings.SonarQubeUrl;
 
             config.SetBuildUri(buildSettings.BuildUri);
             config.SetTfsUri(buildSettings.TfsUri);
