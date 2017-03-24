@@ -164,3 +164,7 @@ $RECYCLE.BIN/
 # VSTS
 *.vsix
 build/
+
+# IntelliJ
+.idea
+*.iml
