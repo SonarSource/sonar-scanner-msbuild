@@ -89,6 +89,8 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testHelpMessage() throws IOException {
+    Assume.assumeTrue(TestUtils.getScannerVersion() == null);
+
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
     BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("/?"));
