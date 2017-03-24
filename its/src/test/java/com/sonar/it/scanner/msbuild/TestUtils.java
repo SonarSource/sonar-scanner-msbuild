@@ -44,9 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.CheckForNull;
-
 import org.apache.commons.io.FileUtils;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
@@ -55,7 +53,7 @@ import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestUtils {
-  public static final String MSBUILD_HOME = "msbuild.home";
+  public static final String MSBUILD_PATH = "msbuild.path";
   private final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
   public static Path prepareCSharpPlugin(TemporaryFolder temp) {
@@ -73,7 +71,7 @@ public class TestUtils {
     if (locators.copyToFile(csharp, modifiedCs.toFile()) == null) {
       throw new IllegalStateException("Couldn't locate csharp plugin in the local maven repository: " + csharp);
     }
-    
+
     String scannerPayloadVersion = getScannerPayloadVersion();
 
     Path scannerImpl;
@@ -164,13 +162,13 @@ public class TestUtils {
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
-    String msBuildHome = orch.getConfiguration().getString(MSBUILD_HOME, "C:\\Program Files (x86)\\MSBuild\\14.0");
-    Path msBuildPath = Paths.get(msBuildHome).toAbsolutePath();
+    String msBuildPathStr = orch.getConfiguration().getString(MSBUILD_PATH, "C:\\Program Files (x86)\\MSBuild\\14.0\\bin\\MSBuild.exe");
+    Path msBuildPath = Paths.get(msBuildPathStr).toAbsolutePath();
     if (!Files.exists(msBuildPath)) {
-      throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath.toString() + ". Please configure property '" + MSBUILD_HOME + "'");
+      throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath.toString() + ". Please configure property '" + MSBUILD_PATH + "'");
     }
 
-    int r = CommandExecutor.create().execute(Command.create(msBuildPath.resolve("bin/MSBuild.exe").toString())
+    int r = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
       .addArguments(arguments)
       .setDirectory(projectDir.toFile()), 60 * 1000);
     assertThat(r).isEqualTo(0);

@@ -7,7 +7,7 @@ set -x
 get_version() {
   if [ "DEV" == "$1" ]; then
     local assemblyInfoFile=../AssemblyInfo.Shared.cs
-    local version=`sed -bn "s|\[assembly: AssemblyVersion(\"\([0-9.]*\)\")\]|\1|p" $assemblyInfoFile | sed 's/\r//'`
+    local version=`sed -n "s|\[assembly: AssemblyVersion(\"\([0-9.]*\)\")\]|\1|p" $assemblyInfoFile | sed 's/\r//'`
   
     if [ -z $version ]; then
       echo "Failed to find assembly version in $assemblyInfoFile"
@@ -33,4 +33,4 @@ get_version $SCANNER_PAYLOAD_VERSION
 SCANNER_PAYLOAD_VERSION=$output
 
 # default versions of csharp and vbnet plugin are defined in the pom file
-mvn -B -e verify -Dsonar.runtimeVersion=$SQ_VERSION -DscannerForMSBuild.version=$SCANNER_VERSION -DscannerForMSBuildPayload.version=$SCANNER_PAYLOAD_VERSION -DfxcopVersion=LATEST_RELEASE
+mvn -B -e verify -Dsonar.runtimeVersion=$SQ_VERSION -DscannerForMSBuild.version=$SCANNER_VERSION -DscannerForMSBuildPayload.version=$SCANNER_PAYLOAD_VERSION -DfxcopVersion=LATEST_RELEASE -Dmsbuild.path=$MSBUILD_PATH
