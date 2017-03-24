@@ -22,6 +22,7 @@ package com.sonar.it.scanner.msbuild;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -64,6 +65,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testSample() throws Exception {
+    
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");

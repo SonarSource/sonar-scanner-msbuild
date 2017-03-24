@@ -159,12 +159,6 @@ namespace SonarQube.TeamBuild.PreProcessor
         private static bool AreParsedArgumentsValid(ProcessedArgs args, ILogger logger)
         {
             bool areValid = true;
-            string hostUrl;
-            if (!args.TryGetSetting(SonarProperties.HostUrl, out hostUrl) || string.IsNullOrWhiteSpace(hostUrl))
-            {
-                logger.LogError(Resources.ERROR_Args_UrlRequired);
-                areValid = false;
-            }
 
             string projectKey = args.ProjectKey;
             if (!IsValidProjectKey(projectKey))

@@ -27,6 +27,7 @@ namespace SonarQube.TeamBuild.PreProcessor
     /// </summary>
     public class ProcessedArgs
     {
+        private readonly string sonarQubeUrl;
         private readonly string projectKey;
         private readonly string projectName;
         private readonly string projectVersion;
@@ -66,6 +67,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             this.InstallLoaderTargets = installLoaderTargets;
 
             this.aggProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, scannerEnvProperties);
+            if (!aggProperties.TryGetValue(SonarProperties.HostUrl, out this.sonarQubeUrl))
+            {
+                this.sonarQubeUrl = "http://localhost:9000";
+            }
         }
 
         public string ProjectKey { get { return this.projectKey; } }
@@ -73,6 +78,8 @@ namespace SonarQube.TeamBuild.PreProcessor
         public string ProjectName { get { return this.projectName; } }
 
         public string ProjectVersion { get { return this.projectVersion; } }
+
+        public string SonarQubeUrl { get { return this.sonarQubeUrl; } }
 
         /// <summary>
         /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up

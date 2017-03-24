@@ -106,15 +106,6 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The SonarQube URL must be supplied. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000)..
-        /// </summary>
-        public static string ERROR_Args_UrlRequired {
-            get {
-                return ResourceManager.GetString("ERROR_Args_UrlRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarQube pre-processing cannot be performed - required settings are missing.
         /// </summary>
         public static string ERROR_CannotPerformProcessing {

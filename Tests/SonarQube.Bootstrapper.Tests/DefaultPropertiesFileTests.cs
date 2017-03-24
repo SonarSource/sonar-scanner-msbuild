@@ -38,10 +38,8 @@ namespace SonarQube.Bootstrapper.Tests
             // Act - will error if the file is badly-formed
             AnalysisProperties defaultProps = AnalysisProperties.Load(propertiesFile);
 
-            // Assert - check the default properties
-            AssertPropertyHasValue(SonarProperties.HostUrl, "http://localhost:9000", defaultProps);
 
-            Assert.AreEqual(1, defaultProps.Count, "Unexpected number of properties defined in the default properties file");
+            Assert.AreEqual(0, defaultProps.Count, "Unexpected number of properties defined in the default properties file");
         }
 
         #endregion
