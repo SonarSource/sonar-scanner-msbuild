@@ -7,7 +7,7 @@ set -x
 get_version() {
   if [ "DEV" == "$1" ]; then
     local assemblyInfoFile=../AssemblyInfo.Shared.cs
-    local version=`sed -bn "s|\[assembly: AssemblyVersion(\"\([0-9.]*\)\")\]|\1|p" $assemblyInfoFile`
+    local version=`sed -bn "s|\[assembly: AssemblyVersion(\"\([0-9.]*\)\")\]|\1|p" $assemblyInfoFile | sed 's/\r//'`
   
     if [ -z $version ]; then
       echo "Failed to find assembly version in $assemblyInfoFile"
