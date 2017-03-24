@@ -221,6 +221,40 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
+        [Description("Tests that the project info file is created using solution Guid if a project guid is not supplied")]
+        public void WriteProjectInfoFile_UseSolutionProjectGuid()
+        {
+            // Arrange
+            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            Guid projectGuid = Guid.NewGuid();
+
+            WriteProjectInfoFile task = new WriteProjectInfoFile();
+            task.FullProjectPath = "c:\\fullPath\\project.proj";
+            task.SolutionConfigurationContents = @"<SolutionConfiguration>
+                <ProjectConfiguration Project=""{FOO}"" AbsolutePath=""c:\fullPath\foo.proj"" BuildProjectInSolution=""True""> Debug | AnyCPU </ProjectConfiguration>
+                <ProjectConfiguration Project=""{"+ projectGuid + @"}"" AbsolutePath=""c:\fullPath\project.proj"" BuildProjectInSolution=""True""> Debug | AnyCPU </ProjectConfiguration>
+               </SolutionConfiguration >";
+            task.IsTest = true;
+            task.OutputFolder = testFolder;
+            task.ProjectName = "ProjectWithoutProjectGuid";
+            task.ProjectLanguage = "C#";
+
+            // Act
+            ProjectInfo reloadedProjectInfo = ExecuteAndCheckSucceeds(task, testFolder);
+
+            // Addition assertions
+            ProjectInfoAssertions.AssertExpectedValues(
+                "c:\\fullPath\\project.proj",
+                ProjectLanguages.CSharp,
+                ProjectType.Test,
+                projectGuid,
+                "ProjectWithoutProjectGuid",
+                false, // IsExcluded
+                reloadedProjectInfo);
+        }
+
+        [TestMethod]
         [Description("Tests that project info files are created for unrecognised languages")]
         public void WriteProjectInfoFile_UnrecognisedLanguages()
         {

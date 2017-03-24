@@ -22,6 +22,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -38,7 +41,7 @@ namespace SonarQube.MSBuild.Tasks
         // TODO: we can get this from this.BuildEngine.ProjectFileOfTaskNode; we don't need the caller to supply it. Same for the full path
         [Required]
         public string ProjectName { get; set; }
-        
+
         [Required]
         public string FullProjectPath { get; set; }
 
@@ -48,6 +51,8 @@ namespace SonarQube.MSBuild.Tasks
         public string ProjectLanguage { get; set; }
 
         public string ProjectGuid { get; set; }
+
+        public string SolutionConfigurationContents { get; set; }
 
         public bool IsTest { get; set; }
 
@@ -79,8 +84,23 @@ namespace SonarQube.MSBuild.Tasks
             pi.FullPath = this.FullProjectPath;
             pi.ProjectLanguage = this.ProjectLanguage;
 
+            string guid = null;
+            if (!string.IsNullOrEmpty(this.ProjectGuid))
+            {
+                guid = this.ProjectGuid;
+            }
+            else if (!string.IsNullOrEmpty(this.SolutionConfigurationContents))
+            {
+                // Try to get GUID from the Solution
+                guid = XDocument.Parse(this.SolutionConfigurationContents)
+                        .Descendants("ProjectConfiguration")
+                        .Where(element => element.Attribute("AbsolutePath")?.Value == this.FullProjectPath)
+                        .Select(element => element.Attribute("Project")?.Value)
+                        .FirstOrDefault();
+            }
+
             Guid projectId;
-            if (Guid.TryParse(this.ProjectGuid, out projectId))
+            if (guid != null && Guid.TryParse(guid, out projectId))
             {
                 pi.ProjectGuid = projectId;
                 pi.AnalysisResults = TryCreateAnalysisResults(this.AnalysisResults);
@@ -128,7 +148,7 @@ namespace SonarQube.MSBuild.Tasks
         private AnalysisResult TryCreateResultFromItem(ITaskItem taskItem)
         {
             Debug.Assert(taskItem != null, "Supplied task item should not be null");
-            
+
             AnalysisResult result = null;
 
             string id = taskItem.GetMetadata(BuildTaskConstants.ResultMetadataIdProperty);
@@ -243,7 +263,7 @@ namespace SonarQube.MSBuild.Tasks
         {
             bool success;
 
-            metadataValue  = taskItem.GetMetadata(BuildTaskConstants.SettingValueMetadataName);
+            metadataValue = taskItem.GetMetadata(BuildTaskConstants.SettingValueMetadataName);
             Debug.Assert(metadataValue != null, "Not expecting the metadata value to be null even if the setting is missing");
 
             if (metadataValue == string.Empty)

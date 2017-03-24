@@ -265,6 +265,7 @@
        FullProjectPath="$(MSBuildProjectFullPath)"
        ProjectLanguage="$(Language)"
        ProjectGuid="$(ProjectGuid)"
+       SolutionConfigurationContents="$(CurrentSolutionConfigurationContents)"
        IsTest="$(SonarQubeTestProject)"
        IsExcluded="$(SonarQubeExclude)"
        AnalysisResults="@(AnalysisResults)"
