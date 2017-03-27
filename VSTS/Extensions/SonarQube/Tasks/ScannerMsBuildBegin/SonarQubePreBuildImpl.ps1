@@ -144,6 +144,9 @@ function CreateCommandLineArgs
         [void]$sb.Append(" /s:" + (EscapeArg($configFile))) 
     }
 
+    
+    [void]$sb.Append(" /d:sonar.cs.vstest.reportsPaths=**/*.trx")
+
     return $sb.ToString();
 }
 
