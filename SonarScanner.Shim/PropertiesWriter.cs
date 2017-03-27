@@ -208,7 +208,13 @@ namespace SonarScanner.Shim
             AppendKeyValue(sb, SonarProperties.WorkingDirectory, Path.Combine(this.config.SonarOutputDir, ".sonar"));
             AppendKeyValue(sb, SonarProperties.ProjectBaseDir, projectBaseDir);
 
-            if (sharedFiles.Any())
+            this.projects.Select((p, index) =>
+            {
+                string moduleWorkdir = Path.Combine(this.config.SonarOutputDir, ".sonar", "mod" + index);
+                return new Tuple<ProjectInfo, string>(p, moduleWorkdir);
+            }).ToList().ForEach(t => AppendKeyValue(sb, t.Item1.GetProjectGuidAsString(), SonarProperties.WorkingDirectory, t.Item2));
+
+            if (sharedFiles.Count > 0)
             {
                 sb.AppendLine(@"sonar.sources=\");
                 var escapedFiles = sharedFiles.Select(Escape);
