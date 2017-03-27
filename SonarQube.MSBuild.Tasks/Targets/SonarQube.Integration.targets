@@ -183,7 +183,7 @@
     <ItemGroup Condition="('$(SQAnalysisFileItemTypes)' != '')">
       <SonarQubeAnalysisFileItems Include="$(SQAnalysisFileItemTypes)" />
       <SonarQubeAnalysisFiles Include="@(%(SonarQubeAnalysisFileItems.Identity))" />
-      <SonarQubeAnalysisFiles Remove="@(SonarQubeAnalysisFiles)" Condition=" %(SonarQubeAnalysisFiles.SonarQubeExclude) == 'true' OR %(SonarQubeAnalysisFiles.AutoGen) == 'true' " />
+      <SonarQubeAnalysisFiles Remove="@(SonarQubeAnalysisFiles)" Condition=" %(SonarQubeAnalysisFiles.SonarQubeExclude) == 'true' OR %(SonarQubeAnalysisFiles.AutoGen) == 'true' OR %(SonarQubeAnalysisFiles.FullPath) == '$(TargetFrameworkMonikerAssemblyAttributesPath)'" />
     </ItemGroup>
 
     <!-- Exclude items under the intermediate output folder e.g. XAML files that are auto-generated on build -->

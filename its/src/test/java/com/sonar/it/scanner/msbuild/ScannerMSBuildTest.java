@@ -22,7 +22,6 @@ package com.sonar.it.scanner.msbuild;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -65,7 +64,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testSample() throws Exception {
-    
+
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
@@ -325,6 +324,28 @@ public class ScannerMSBuildTest {
     assertThat(result.isSuccess()).isTrue();
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).isEmpty();
+  }
+
+  @Test
+  public void excludeAssemblyAttribute() throws Exception {
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
+
+    Path projectDir = TestUtils.projectDir(temp, "AssemblyAttribute");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectName("sample")
+      .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("end"));
+
+    assertThat(result.getLogs()).doesNotContain("File is not under the project directory and cannot currently be analysed by SonarQube");
+    assertThat(result.getLogs()).doesNotContain("AssemblyAttributes.cs");
   }
 
   @CheckForNull
