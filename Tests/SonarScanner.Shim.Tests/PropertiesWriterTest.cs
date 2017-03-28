@@ -29,7 +29,7 @@ namespace SonarScanner.Shim.Tests
     public class PropertiesWriterTest
     {
         public TestContext TestContext { get; set; }
-        
+
 
         #region Tests
 
@@ -183,7 +183,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
             Assert.AreEqual(expected, actual);
         }
 
-       
+
         [TestMethod]
         public void PropertiesWriter_InvalidOperations()
         {
@@ -256,6 +256,53 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
         }
 
         [TestMethod]
+        public void PropertiesWriter_WorkdirPerModuleExplicitlySet()
+        {
+            // Tests that .sonar.working.directory is explicityl set per module
+
+            // Arrange
+            string projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_AnalysisSettingsWritten");
+            string productProject = CreateEmptyFile(projectBaseDir, "MyProduct.csproj");
+
+            string productFile = CreateEmptyFile(projectBaseDir, "File.cs");
+            List<string> productFiles = new List<string>();
+            productFiles.Add(productFile);
+            string productFileListFilePath = Path.Combine(projectBaseDir, "productManagedFiles.txt");
+
+            string projectKey = "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5";
+            ProjectInfo product = CreateProjectInfo("AnalysisSettingsTest.proj", projectKey, productProject, false, productFiles, productFileListFilePath, null, null, "language");
+
+            List<ProjectInfo> projects = new List<ProjectInfo>();
+            projects.Add(product);
+
+            AnalysisConfig config = new AnalysisConfig()
+            {
+                SonarOutputDir = @"C:\my_folder"
+            };
+
+            // Act
+            PropertiesWriter writer = new PropertiesWriter(config);
+            writer.WriteSettingsForProject(product, new string[] { productFile }, null, null);
+            writer.WriteSonarProjectInfo("dummy basedir", new List<string>());
+            string s = writer.Flush();
+
+            var props = new JavaProperties();
+            props.Load(GenerateStreamFromString(s));
+            string key = projectKey + "." + SonarProperties.WorkingDirectory;
+            Assert.IsTrue(props.ContainsKey(key));
+        }
+
+        public static Stream GenerateStreamFromString(string s)
+        {
+            MemoryStream stream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(stream);
+            writer.Write(s);
+            writer.Flush();
+            stream.Position = 0;
+            return stream;
+        }
+
+        [TestMethod]
         public void PropertiesWriter_GlobalSettingsWritten()
         {
             // Tests that global settings in the ProjectInfo are written to the file
@@ -295,7 +342,7 @@ sonar.modules=9507E2E6-7342-4A04-9CB9-B0C47C937019
 
         #region Private methods
 
-       
+
 
         private static ProjectInfo CreateProjectInfo(string name, string projectId, string fullFilePath, bool isTest, IEnumerable<string> files, string fileListFilePath, string fxCopReportPath, string coverageReportPath, string language)
         {
