@@ -152,7 +152,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
             }
             if (!serverSettings.ContainsKey(propertyKey))
             {
-                throw new ArgumentException("key doesn't exist: " + propertyKey);
+                if (propertyKey.StartsWith(string.Format(SONARANALYZER_PARTIAL_REPO_KEY, "vbnet")))
+                {
+                    throw new ArgumentException("Property doesn't exist: " + propertyKey + " . Check if you are using SonarVB 3.0+.");
+                }
+                else
+                {
+                    throw new ArgumentException("key doesn't exist: " + propertyKey);
+
+                }
             }
             return serverSettings[propertyKey];
         }
