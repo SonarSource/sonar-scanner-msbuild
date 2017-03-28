@@ -75,7 +75,7 @@
     <Copy SourceFiles="@(TargetsToCopy)" DestinationFolder="$(WorkDestinationDir)\Targets" />
   </Target>
   <Target Name="ZipPayloadFiles">
-    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; [io.compression.zipfile]::CreateFromDirectory('$(WorkDestinationDir)', '$(DestinationDir)\SonarQube.Scanner.MSBuild.zip')&quot;" />
+    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; Add-Type -assembly system.text.encoding; Add-Type -TypeDefinition 'public class MyEncoder : System.Text.UTF8Encoding { public override byte[] GetBytes(string s) { return base.GetBytes(s.Replace((char) 92, (char) 47)); } }'; $enc = New-Object MyEncoder; [io.compression.zipfile]::CreateFromDirectory('$(WorkDestinationDir)', '$(DestinationDir)\SonarQube.Scanner.MSBuild.zip', [io.compression.compressionlevel]::fastest, $false, $enc)&quot;" />
   </Target>
   <Target Name="CleanExistingPayload" AfterTargets="Clean">
     <RemoveDir Directories="$(DestinationDir)" />
