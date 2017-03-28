@@ -211,8 +211,8 @@ namespace SonarScanner.Shim
             this.projects.Select((p, index) =>
             {
                 string moduleWorkdir = Path.Combine(this.config.SonarOutputDir, ".sonar", "mod" + index);
-                return new Tuple<ProjectInfo, string>(p, moduleWorkdir);
-            }).ToList().ForEach(t => AppendKeyValue(sb, t.Item1.GetProjectGuidAsString(), SonarProperties.WorkingDirectory, t.Item2));
+                return new { ProjectInfo = p, Workdir = moduleWorkdir };
+            }).ToList().ForEach(t => AppendKeyValue(sb, t.ProjectInfo.GetProjectGuidAsString(), SonarProperties.WorkingDirectory, t.Workdir));
 
             if (sharedFiles.Count > 0)
             {
