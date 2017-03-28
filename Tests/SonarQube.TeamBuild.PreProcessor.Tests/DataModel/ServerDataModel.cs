@@ -46,12 +46,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region Builder methods
 
-        public QualityProfile AddQualityProfile(string id, string language)
+        public QualityProfile AddQualityProfile(string id, string language, string organization)
         {
             QualityProfile profile = this.FindProfile(id);
             Assert.IsNull(profile, "A quality profile already exists. Id: {0}, language: {1}", id, language);
 
-            profile = new QualityProfile(id, language);
+            profile = new QualityProfile(id, language, organization);
             this.qualityProfiles.Add(profile);
             return profile;
         }

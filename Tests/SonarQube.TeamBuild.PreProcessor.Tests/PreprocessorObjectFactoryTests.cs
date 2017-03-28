@@ -86,7 +86,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Common.ListPropertiesProvider cmdLineArgs = new Common.ListPropertiesProvider();
             cmdLineArgs.AddProperty(Common.SonarProperties.HostUrl, "http://foo");
 
-            ProcessedArgs validArgs = new ProcessedArgs("key", "name", "verions", false,
+            ProcessedArgs validArgs = new ProcessedArgs("key", "name", "verions", "organization", false,
                 cmdLineArgs,
                 new Common.ListPropertiesProvider(),
                 EmptyPropertyProvider.Instance);

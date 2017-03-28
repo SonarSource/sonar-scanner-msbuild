@@ -187,7 +187,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
                     // Fetch project quality profile
                     string qualityProfile;
-                    if (!server.TryGetQualityProfile(args.ProjectKey, projectBranch, plugin.Language, out qualityProfile))
+                    if (!server.TryGetQualityProfile(args.ProjectKey, projectBranch, args.Organization, plugin.Language, out qualityProfile))
                     {
                         this.logger.LogDebug(Resources.RAP_NoQualityProfile, plugin.Language, args.ProjectKey);
                         continue;

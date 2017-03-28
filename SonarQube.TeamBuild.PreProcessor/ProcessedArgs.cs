@@ -31,13 +31,14 @@ namespace SonarQube.TeamBuild.PreProcessor
         private readonly string projectKey;
         private readonly string projectName;
         private readonly string projectVersion;
+        private readonly string organization;
 
         private readonly IAnalysisPropertyProvider cmdLineProperties;
         private readonly IAnalysisPropertyProvider globalFileProperties;
         private readonly IAnalysisPropertyProvider scannerEnvProperties;
         private readonly IAnalysisPropertyProvider aggProperties;
 
-        public ProcessedArgs(string key, string name, string version, bool installLoaderTargets, IAnalysisPropertyProvider cmdLineProperties,
+        public ProcessedArgs(string key, string name, string version, string organization, bool installLoaderTargets, IAnalysisPropertyProvider cmdLineProperties,
             IAnalysisPropertyProvider globalFileProperties, IAnalysisPropertyProvider scannerEnvProperties)
         {
             if (string.IsNullOrWhiteSpace(key))
@@ -60,6 +61,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             this.projectKey = key;
             this.projectName = name;
             this.projectVersion = version;
+            this.organization = organization;
 
             this.cmdLineProperties = cmdLineProperties;
             this.globalFileProperties = globalFileProperties;
@@ -78,6 +80,8 @@ namespace SonarQube.TeamBuild.PreProcessor
         public string ProjectName { get { return this.projectName; } }
 
         public string ProjectVersion { get { return this.projectVersion; } }
+
+        public string Organization { get { return this.organization; } }
 
         public string SonarQubeUrl { get { return this.sonarQubeUrl; } }
 

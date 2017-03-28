@@ -79,6 +79,15 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to /organization:[Organization to which the project belongs].
+        /// </summary>
+        public static string CmdLine_ArgDescription_Organization {
+            get {
+                return ResourceManager.GetString("CmdLine_ArgDescription_Organization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to /key:[SonarQube project key].
         /// </summary>
         public static string CmdLine_ArgDescription_ProjectKey {
