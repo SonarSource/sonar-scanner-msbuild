@@ -193,7 +193,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                         continue;
                     }
 
-                    // Fetch rules
+                    // Fetch rules (active and not active)
                     IList<ActiveRule> activeRules = server.GetActiveRules(qualityProfile);
 
                     if (!activeRules.Any())
@@ -204,6 +204,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
                     IList<string> inactiveRules = server.GetInactiveRules(qualityProfile, plugin.Language);
 
+                    // Generate fxcop rulesets
                     this.logger.LogInfo(Resources.MSG_GeneratingRulesets);
                     string fxCopPath = Path.Combine(settings.SonarConfigDirectory, string.Format(FxCopRulesetName, plugin.Language));
                     if (plugin.Language.Equals(VBNetLanguage))
@@ -220,8 +221,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                     Debug.Assert(analyzerProvider != null, "Factory should not return null");
 
                     // Will be null if the processing of settings and active rules resulted in an empty ruleset
-                    AnalyzerSettings analyzer = analyzerProvider.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules,
-                        plugin.Language);
+                    AnalyzerSettings analyzer = analyzerProvider.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, plugin.Language);
 
                     if (analyzer != null)
                     {
