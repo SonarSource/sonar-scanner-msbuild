@@ -205,6 +205,19 @@
     </PropertyGroup>
   </Target>
 
+  <Target Name="CleanProjectFolders" AfterTargets="Clean" Condition=" $(SonarQubeTempPath) != '' ">
+    <ItemGroup>
+      <ProjectSpecificOutFiles Include="$(SonarQubeOutputPath)\$(MSBuildProjectName)_*\*.*"/>
+      <ProjectSpecificOutDirs Include="@(ProjectSpecificOutFiles->'%(RootDir)%(Directory)'->Distinct())" />
+      <ProjectSpecificConfFiles Include="$(SonarQubeConfigPath)\$(MSBuildProjectName)_*\*.*"/>
+      <ProjectSpecificConfDirs Include="@(ProjectSpecificConfFiles->'%(RootDir)%(Directory)'->Distinct())" />
+    </ItemGroup>
+
+    <Delete Files="@(ProjectSpecificOutFiles)" />
+    <Delete Files="@(ProjectSpecificConfFiles)" />
+    <RemoveDir Directories="@(ProjectSpecificOutDirs)" />
+    <RemoveDir Directories="@(ProjectSpecificConfDirs)" />
+  </Target>
 
   <Target Name="CreateProjectSpecificDirs" BeforeTargets="OverrideRoslynCodeAnalysisProperties;WriteSonarQubeProjectData"  Condition=" $(SonarQubeTempPath) != '' ">
     <!-- **************************************************************************** -->
