@@ -49,6 +49,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             public const string ProjectKey = "projectKey.id";
             public const string ProjectName = "projectName.id";
             public const string ProjectVersion = "projectVersion.id";
+            public const string Organization = "organization.id";
             public const string InstallLoaderTargets = "installLoaderTargets.id";
         }
 
@@ -68,6 +69,9 @@ namespace SonarQube.TeamBuild.PreProcessor
 
             Descriptors.Add(new ArgumentDescriptor(
                 id: KeywordIds.ProjectVersion, prefixes: new string[] { "/version:", "/v:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion));
+
+            Descriptors.Add(new ArgumentDescriptor(
+                id: KeywordIds.Organization, prefixes: new string[] { "/organization:", "/o:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_Organization));
 
             Descriptors.Add(new ArgumentDescriptor(
               id: KeywordIds.InstallLoaderTargets, prefixes: new string[] { "/install:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets));
@@ -128,6 +132,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                     GetArgumentValue(KeywordIds.ProjectKey, arguments),
                     GetArgumentValue(KeywordIds.ProjectName, arguments),
                     GetArgumentValue(KeywordIds.ProjectVersion, arguments),
+                    GetArgumentValue(KeywordIds.Organization, arguments),
                     installLoaderTargets,
                     cmdLineProperties,
                     globalFileProperties,

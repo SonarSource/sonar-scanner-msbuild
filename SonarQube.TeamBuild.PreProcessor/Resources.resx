@@ -123,6 +123,9 @@
   <data name="CmdLine_ArgDescription_InstallTargets" xml:space="preserve">
     <value>/install:[true|false] - install standard MSBuild targets required for analysis (default true)</value>
   </data>
+  <data name="CmdLine_ArgDescription_Organization" xml:space="preserve">
+    <value>/organization:[Organization to which the project belongs]</value>
+  </data>
   <data name="CmdLine_ArgDescription_ProjectKey" xml:space="preserve">
     <value>/key:[SonarQube project key]</value>
   </data>

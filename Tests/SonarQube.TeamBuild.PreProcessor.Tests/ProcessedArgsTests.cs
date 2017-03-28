@@ -45,10 +45,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             envProps.AddProperty("shared.key.1", "shared env value");
             envProps.AddProperty("shared.key.2", "shared env value");
 
-            args = new ProcessedArgs("key", "branch", "ver", true, cmdLineProps, fileProps, envProps);
+            args = new ProcessedArgs("key", "branch", "ver", null, true, cmdLineProps, fileProps, envProps);
         }
 
         #region Tests
+
+        [TestMethod]
+        public void ProcArgs_Organization()
+        {
+            Assert.IsNull(args.Organization);
+            args = new ProcessedArgs("key", "branch", "ver", "organization", true, new ListPropertiesProvider(), new ListPropertiesProvider(), new ListPropertiesProvider());
+            Assert.AreEqual("organization", args.Organization);
+        }
 
         [TestMethod]
         public void ProcArgs_GetSetting()
@@ -128,7 +136,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             fileProperties.AddProperty("XXX", "file line value XXX - upper case");
 
             // Act
-            ProcessedArgs args = new ProcessedArgs("key", "branch", "version", false, cmdLineProperties, fileProperties, EmptyPropertyProvider.Instance);
+            ProcessedArgs args = new ProcessedArgs("key", "branch", "version", null, false, cmdLineProperties, fileProperties, EmptyPropertyProvider.Instance);
 
             AssertExpectedValue("shared.key1", "cmd line value1 - should override server value", args);
             AssertExpectedValue("cmd.line.only", "cmd line value4 - only on command line", args);

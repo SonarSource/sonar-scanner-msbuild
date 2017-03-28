@@ -42,7 +42,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             ListPropertiesProvider propertyProvider = new ListPropertiesProvider();
             propertyProvider.AddProperty(SonarProperties.HostUrl, "http://foo");
-            ProcessedArgs args = new ProcessedArgs("valid.key", "valid.name", "1.0", false, EmptyPropertyProvider.Instance, propertyProvider, EmptyPropertyProvider.Instance);
+            ProcessedArgs args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, EmptyPropertyProvider.Instance, propertyProvider, EmptyPropertyProvider.Instance);
 
             TeamBuildSettings tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
 
@@ -108,7 +108,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             FilePropertyProvider fileProvider = FilePropertyProvider.Load(settingsFilePath);
 
-            ProcessedArgs args = new ProcessedArgs("key", "name", "version", false, EmptyPropertyProvider.Instance, fileProvider, EmptyPropertyProvider.Instance);
+            ProcessedArgs args = new ProcessedArgs("key", "name", "version", "organization", false, EmptyPropertyProvider.Instance, fileProvider, EmptyPropertyProvider.Instance);
 
             TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
@@ -129,6 +129,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             Assert.AreEqual(settings.SourcesDirectory, actualConfig.SourcesDirectory);
             Assert.AreEqual(settings.SonarScannerWorkingDirectory, actualConfig.SonarScannerWorkingDirectory);
+            AssertExpectedLocalSetting(SonarProperties.Organization, "organization", actualConfig);
         }
 
         [TestMethod]
@@ -160,7 +161,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             fileSettings.Save(fileSettingsPath);
             FilePropertyProvider fileProvider = FilePropertyProvider.Load(fileSettingsPath);
 
-            ProcessedArgs args = new ProcessedArgs("key", "name", "1.0", false, cmdLineArgs, fileProvider, EmptyPropertyProvider.Instance);
+            ProcessedArgs args = new ProcessedArgs("key", "name", "1.0", null, false, cmdLineArgs, fileProvider, EmptyPropertyProvider.Instance);
 
             IDictionary<string, string> serverProperties = new Dictionary<string, string>();
             // Public server settings

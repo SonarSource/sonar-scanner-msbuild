@@ -25,15 +25,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     {
         private readonly string id;
         private readonly string language;
+        private readonly string organization;
         private readonly ISet<string> projectIds;
 
         private readonly IList<string> inactiveRules;
         private readonly IList<ActiveRule> activeRules;
 
-        public QualityProfile(string id, string language)
+        public QualityProfile(string id, string language, string organization)
         {
             this.id = id;
             this.language = language;
+            this.organization = organization;
             this.projectIds = new HashSet<string>();
             this.inactiveRules = new List<string>();
             this.activeRules = new List<ActiveRule>();
@@ -65,6 +67,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         public string Id { get { return this.id; } }
         public string Language { get { return this.language; } }
+        public string Organization { get { return this.organization; } }
         public IEnumerable<string> Projects { get { return this.projectIds; } }
         public IList<ActiveRule> ActiveRules { get { return this.activeRules; } }
         public IList<string> InactiveRules { get { return this.inactiveRules; } }

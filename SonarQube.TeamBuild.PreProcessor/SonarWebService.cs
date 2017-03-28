@@ -57,19 +57,20 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #region ISonarQubeServer interface
 
-        public bool TryGetQualityProfile(string projectKey, string projectBranch, string language, out string qualityProfileKey)
+        public bool TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language, out string qualityProfileKey)
         {
             string projectId = GetProjectIdentifier(projectKey, projectBranch);
 
             string contents;
-            var ws = GetUrl("/api/qualityprofiles/search?projectKey={0}", projectId);
+            var ws = addOrganization(GetUrl("/api/qualityprofiles/search?projectKey={0}", projectId), organization);
             this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
 
             qualityProfileKey = DoLogExceptions(() =>
             {
                 if (!this.downloader.TryDownloadIfExists(ws, out contents))
                 {
-                    ws = GetUrl("/api/qualityprofiles/search?defaults=true");
+                    ws = addOrganization(GetUrl("/api/qualityprofiles/search?defaults=true"), organization);
+
                     this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
                     contents = this.downloader.Download(ws);
                 }
@@ -256,6 +257,21 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #region Private methods
 
+        private string addOrganization(string encodedUrl, string organization)
+        {
+            if (string.IsNullOrEmpty(organization))
+            {
+                return encodedUrl;
+            }
+            Version version = GetServerVersion();
+            if (version.CompareTo(new Version(6, 3)) >= 0)
+            {
+                return EscapeQuery(encodedUrl + "&organization={0}", organization);
+            }
+
+            return encodedUrl;
+        }
+
         private T DoLogExceptions<T>(Func<T> op, string url)
         {
             try
@@ -403,12 +419,18 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private string GetUrl(string format, params string[] args)
         {
-            var queryString = string.Format(System.Globalization.CultureInfo.InvariantCulture, format, args.Select(a => WebUtility.UrlEncode(a)).ToArray());
+            var queryString = EscapeQuery(format, args);
             if (!queryString.StartsWith("/", StringComparison.OrdinalIgnoreCase))
             {
                 queryString = string.Concat('/', queryString);
             }
+
             return this.serverUrl + queryString;
+        }
+
+        private string EscapeQuery(string format, params string[] args)
+        {
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture, format, args.Select(a => WebUtility.UrlEncode(a)).ToArray());
         }
 
         #endregion

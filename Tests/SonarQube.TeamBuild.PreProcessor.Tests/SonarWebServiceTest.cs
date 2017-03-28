@@ -60,7 +60,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             string qualityProfile;
             try
             {
-                var result = ws.TryGetQualityProfile("foo bar", null, "cs", out qualityProfile);
+                var result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out qualityProfile);
                 Assert.Fail("Exception expected");
             } catch (Exception e)
             {
@@ -69,7 +69,71 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
-        public void TryGetQualityProfile()
+        public void TryGetQualityProfile64()
+        {
+            downloader.Pages["http://myhost:222/api/server/version"] = "6.4";
+            bool result;
+            string qualityProfile;
+
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] =
+                "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AaBranch"] =
+                "{ profiles: [{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AanotherBranch"] =
+                "{ profiles: [{\"key\":\"profile3k\",\"name\":\"profile3\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
+
+            // main
+            result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out qualityProfile);
+            Assert.IsTrue(result);
+            Assert.AreEqual("profile1k", qualityProfile);
+
+            // branch specific
+            result = ws.TryGetQualityProfile("foo bar", "aBranch", null, "cs", out qualityProfile);
+            Assert.IsTrue(result);
+            Assert.AreEqual("profile2k", qualityProfile);
+
+            result = ws.TryGetQualityProfile("foo bar", "anotherBranch", null, "cs", out qualityProfile);
+            Assert.IsTrue(result);
+            Assert.AreEqual("profile3k", qualityProfile);
+
+            // with organizations
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar&organization=my+org"] =
+               "{ profiles: [{\"key\":\"profileOrganization\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
+            result = ws.TryGetQualityProfile("foo bar", null, "my org", "cs", out qualityProfile);
+            Assert.IsTrue(result);
+            Assert.AreEqual("profileOrganization", qualityProfile);
+
+            // fallback to defaults
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?defaults=true"] =
+                "{ profiles: [{\"key\":\"profileDefault\",\"name\":\"profileDefault\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
+            result = ws.TryGetQualityProfile("non existing", null, null, "cs", out qualityProfile);
+            Assert.IsTrue(result);
+            Assert.AreEqual("profileDefault", qualityProfile);
+
+            // defaults with organizations
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?defaults=true&organization=my+org"] =
+                       "{ profiles: [{\"key\":\"profileOrganizationDefault\",\"name\":\"profileDefault\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
+            result = ws.TryGetQualityProfile("non existing", null, "my org", "cs", out qualityProfile);
+            Assert.IsTrue(result);
+            Assert.AreEqual("profileOrganizationDefault", qualityProfile);
+
+            // no cs in list of profiles
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=java+foo+bar"] =
+                "{ profiles: [{\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
+            result = ws.TryGetQualityProfile("java foo bar", null, null, "cs", out qualityProfile);
+            Assert.IsFalse(result);
+            Assert.IsNull(qualityProfile);
+
+            // empty
+            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=empty+foo+bar"] =
+                "{ profiles: []}";
+            result = ws.TryGetQualityProfile("empty foo bar", null, null, "cs", out qualityProfile);
+            Assert.IsFalse(result);
+            Assert.IsNull(qualityProfile);
+        }
+
+        [TestMethod]
+        public void TryGetQualityProfile56()
         {
             bool result;
             string qualityProfile;
@@ -82,37 +146,47 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                 "{ profiles: [{\"key\":\"profile3k\",\"name\":\"profile3\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
 
             // main
-            result = ws.TryGetQualityProfile("foo bar", null, "cs", out qualityProfile);
+            result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out qualityProfile);
             Assert.IsTrue(result);
             Assert.AreEqual("profile1k", qualityProfile);
 
             // branch specific
-            result = ws.TryGetQualityProfile("foo bar", "aBranch", "cs", out qualityProfile);
+            result = ws.TryGetQualityProfile("foo bar", "aBranch", null, "cs", out qualityProfile);
             Assert.IsTrue(result);
             Assert.AreEqual("profile2k", qualityProfile);
 
-            result = ws.TryGetQualityProfile("foo bar", "anotherBranch", "cs", out qualityProfile);
+            result = ws.TryGetQualityProfile("foo bar", "anotherBranch", null, "cs", out qualityProfile);
             Assert.IsTrue(result);
             Assert.AreEqual("profile3k", qualityProfile);
+
+            // with organizations
+            result = ws.TryGetQualityProfile("foo bar", null, "my org", "cs", out qualityProfile);
+            Assert.IsTrue(result);
+            Assert.AreEqual("profile1k", qualityProfile);
 
             // fallback to defaults
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?defaults=true"] =
                 "{ profiles: [{\"key\":\"profileDefault\",\"name\":\"profileDefault\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            result = ws.TryGetQualityProfile("non existing", null, "cs", out qualityProfile);
+            result = ws.TryGetQualityProfile("non existing", null, null, "cs", out qualityProfile);
+            Assert.IsTrue(result);
+            Assert.AreEqual("profileDefault", qualityProfile);
+
+            // defaults with organizations
+            result = ws.TryGetQualityProfile("non existing", null, "my org", "cs", out qualityProfile);
             Assert.IsTrue(result);
             Assert.AreEqual("profileDefault", qualityProfile);
 
             // no cs in list of profiles
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=java+foo+bar"] =
                 "{ profiles: [{\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            result = ws.TryGetQualityProfile("java foo bar", null, "cs", out qualityProfile);
+            result = ws.TryGetQualityProfile("java foo bar", null, null, "cs", out qualityProfile);
             Assert.IsFalse(result);
             Assert.IsNull(qualityProfile);
 
             // empty
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=empty+foo+bar"] =
                 "{ profiles: []}";
-            result = ws.TryGetQualityProfile("empty foo bar", null, "cs", out qualityProfile);
+            result = ws.TryGetQualityProfile("empty foo bar", null, null, "cs", out qualityProfile);
             Assert.IsFalse(result);
             Assert.IsNull(qualityProfile);
         }

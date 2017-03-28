@@ -92,6 +92,11 @@ namespace SonarQube.TeamBuild.PreProcessor
                 AddSetting(config.LocalSettings, property.Id, property.Value);
             }
 
+            if (!string.IsNullOrEmpty(localSettings.Organization))
+            {
+                AddSetting(config.LocalSettings, SonarProperties.Organization, localSettings.Organization);
+            }
+
             // Set the pointer to the properties file
             if (localSettings.PropertiesFileName != null)
             {

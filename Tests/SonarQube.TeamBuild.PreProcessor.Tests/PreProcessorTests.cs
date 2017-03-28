@@ -78,13 +78,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             data.Languages.Add("vbnet");
             data.Languages.Add("another_plugin");
 
-            data.AddQualityProfile("qp1", "cs")
+            data.AddQualityProfile("qp1", "cs", null)
                 .AddProject("key")
                 .AddRule(new ActiveRule("fxcop", "cs.rule1"))
                 .AddRule(new ActiveRule("fxcop", "cs.rule2"))
                 .AddRule(new ActiveRule("csharpsquid", "cs.rule3"));
 
-            data.AddQualityProfile("qp2", "vbnet")
+            data.AddQualityProfile("qp2", "vbnet", null)
                 .AddProject("key")
                 .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule1"))
                 .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule2"))
@@ -109,6 +109,83 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
                 // Act
                 bool success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
+                Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
+            }
+
+            // Assert
+            AssertDirectoriesCreated(settings);
+
+            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(logger, workingDir), Times.Once());
+            mockServer.AssertMethodCalled("GetProperties", 1);
+            mockServer.AssertMethodCalled("GetAllLanguages", 1);
+            mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
+            mockServer.AssertMethodCalled("GetActiveRules", 2); // C# and VBNet
+            mockServer.AssertMethodCalled("GetInactiveRules", 2); // C# and VBNet
+
+            AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, logger);
+
+            string fxCopFilePath = AssertFileExists(settings.SonarConfigDirectory, string.Format(TeamBuildPreProcessor.FxCopRulesetName, TeamBuildPreProcessor.CSharpLanguage));
+            PreProcessAsserts.AssertRuleSetContainsRules(fxCopFilePath, "cs.rule1", "cs.rule2");
+
+            fxCopFilePath = AssertFileExists(settings.SonarConfigDirectory, string.Format(TeamBuildPreProcessor.FxCopRulesetName, TeamBuildPreProcessor.VBNetLanguage));
+            PreProcessAsserts.AssertRuleSetContainsRules(fxCopFilePath, "vb.rule1", "vb.rule2");
+        }
+
+        [TestMethod]
+        public void PreProc_EndToEnd_SuccessCase_With_Organization()
+        {
+            // Checks end-to-end happy path for the pre-processor i.e.
+            // * arguments are parsed
+            // * targets are installed
+            // * server properties are fetched
+            // * rulesets are generated
+            // * config file is created
+
+            // Arrange
+            string workingDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            TestLogger logger = new TestLogger();
+
+            // Configure the server
+            MockSonarQubeServer mockServer = new MockSonarQubeServer();
+
+            ServerDataModel data = mockServer.Data;
+            data.ServerProperties.Add("server.key", "server value 1");
+
+            data.Languages.Add("cs");
+            data.Languages.Add("vbnet");
+            data.Languages.Add("another_plugin");
+
+            data.AddQualityProfile("qp1", "cs", "organization")
+                .AddProject("key")
+                .AddRule(new ActiveRule("fxcop", "cs.rule1"))
+                .AddRule(new ActiveRule("fxcop", "cs.rule2"))
+                .AddRule(new ActiveRule("csharpsquid", "cs.rule3"));
+
+            data.AddQualityProfile("qp2", "vbnet", "organization")
+                .AddProject("key")
+                .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule1"))
+                .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule2"))
+                .AddRule(new ActiveRule("vbnet", "vb.rule3"));
+
+            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider();
+            mockAnalyzerProvider.SettingsToReturn = new AnalyzerSettings();
+            mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
+
+            Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
+            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider, new RulesetGenerator());
+
+            TeamBuildSettings settings;
+            using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
+            using (new WorkingDirectoryScope(workingDir))
+            {
+                settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
+                Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
+                Assert.AreEqual(BuildEnvironment.NotTeamBuild, settings.BuildEnvironment, "Test setup error: build environment was not set correctly");
+
+                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+
+                // Act
+                bool success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization"));
                 Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
             }
 
@@ -201,12 +278,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             data.Languages.Add("vbnet");
             data.Languages.Add("another_plugin");
 
-            data.AddQualityProfile("qp1", "cs")
+            data.AddQualityProfile("qp1", "cs", null)
                 .AddProject("invalid")
                 .AddRule(new ActiveRule("fxcop", "cs.rule1"))
                 .AddRule(new ActiveRule("fxcop", "cs.rule2"));
 
-            data.AddQualityProfile("qp2", "vbnet")
+            data.AddQualityProfile("qp2", "vbnet", null)
                 .AddProject("invalid")
                 .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule1"))
                 .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule2"));
@@ -229,7 +306,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                bool success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
+                bool success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", null));
                 Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
             }
 
@@ -257,6 +334,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             return new string[] {
                 "/k:" + projectKey, "/n:" + projectName, "/v:" + projectVersion,
+                "/d:cmd.line1=cmdline.value.1",
+                "/d:sonar.host.url=http://host",
+                "/d:sonar.log.level=INFO|DEBUG"};
+        }
+
+        string[] CreateValidArgs(string projectKey, string projectName, string projectVersion, string organization)
+        {
+            return new string[] {
+                "/k:" + projectKey, "/n:" + projectName, "/v:" + projectVersion, "/o:" + organization,
                 "/d:cmd.line1=cmdline.value.1",
                 "/d:sonar.host.url=http://host",
                 "/d:sonar.log.level=INFO|DEBUG"};

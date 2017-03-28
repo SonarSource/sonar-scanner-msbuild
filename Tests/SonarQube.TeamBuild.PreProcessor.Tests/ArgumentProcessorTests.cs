@@ -368,6 +368,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertSingleErrorExists(SonarProperties.WorkingDirectory);
         }
 
+        [TestMethod]
+        public void PreArgProc_Organization()
+        {
+            ProcessedArgs args = CheckProcessingSucceeds( "/key:my.key", "/organization:my_org");
+            Assert.AreEqual(args.Organization, "my_org");
+
+            args = CheckProcessingSucceeds("/key:my.key", "/o:my_org");
+            Assert.AreEqual(args.Organization, "my_org");
+
+            args = CheckProcessingSucceeds("/key:my.key");
+            Assert.AreEqual(args.Organization, null);
+        }
+
         #endregion Tests
 
         #region Checks

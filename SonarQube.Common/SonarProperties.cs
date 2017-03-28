@@ -48,5 +48,7 @@ namespace SonarQube.Common
         public const string WorkingDirectory = "sonar.working.directory";
         public const string Verbose = "sonar.verbose";
         public const string LogLevel = "sonar.log.level";
+
+        public const string Organization = "sonar.organization";
     }
 }
