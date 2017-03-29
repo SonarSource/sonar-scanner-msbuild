@@ -225,7 +225,7 @@
 
     <!-- Calculate a project-specific directory names for conf and out -->
     <PropertyGroup>
-      <FolderDisambiguator Condition=" $(FolderDisambiguator)=='' ">_$(Platform)_$(Configuration)_$([System.DateTime]::Now.ToString("ffff"))</FolderDisambiguator>
+      <FolderDisambiguator Condition=" $(FolderDisambiguator)=='' ">_$([System.DateTime]::Now.ToString("ffff"))</FolderDisambiguator>
       <ProjectSpecificOutDir>$(SonarQubeOutputPath)\$(MSBuildProjectName)$(FolderDisambiguator)</ProjectSpecificOutDir>
       <ProjectSpecificConfDir>$(SonarQubeConfigPath)\$(MSBuildProjectName)$(FolderDisambiguator)</ProjectSpecificConfDir>
     </PropertyGroup>
