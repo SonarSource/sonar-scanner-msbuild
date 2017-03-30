@@ -37,6 +37,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
             this.serverSettings = serverSettings;
         }
 
+        /// <summary>
+        /// Generates a RuleSet that is serializable (XML).
+        /// The ruleset can be empty if there are no active rules belonging to the repo keys "vbnet", "csharpsquid" or "roslyn.*".
+        /// </summary>
+        /// <exception cref="AnalysisException">if mandatory properties that should be associated with the repo key are missing.</exception>
         public RuleSet Generate(IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules, string language)
         {
             if (activeRules == null || !activeRules.Any())
@@ -100,7 +105,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
         {
             int pos = keyWithRepo.IndexOf(':');
             repo = keyWithRepo.Substring(0, pos);
-            key = keyWithRepo.Substring(pos+1);
+            key = keyWithRepo.Substring(pos + 1);
         }
 
         private static Dictionary<string, List<ActiveRule>> ActiveRoslynRulesByPartialRepoKey(IEnumerable<ActiveRule> activeRules, string language)
@@ -126,7 +131,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
         private static void AddDict<T>(Dictionary<string, List<T>> dict, string key, T value)
         {
             List<T> list;
-            if(!dict.TryGetValue(key, out list))
+            if (!dict.TryGetValue(key, out list))
             {
                 list = new List<T>();
                 dict.Add(key, list);
@@ -154,11 +159,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
             {
                 if (propertyKey.StartsWith(string.Format(SONARANALYZER_PARTIAL_REPO_KEY, "vbnet")))
                 {
-                    throw new ArgumentException("Property doesn't exist: " + propertyKey + " . Check if you are using SonarVB 3.0+.");
+                    throw new AnalysisException("Property doesn't exist: " + propertyKey
+                        + ". Possible cause: this Scanner is not compatible with SonarVB 2.X. If necessary, upgrade SonarVB to 3.0+ in SonarQube.");
                 }
                 else
                 {
-                    throw new ArgumentException("key doesn't exist: " + propertyKey);
+                    throw new AnalysisException("Key doesn't exist: " + propertyKey +". This property should be set by the plugin in SonarQube.");
 
                 }
             }

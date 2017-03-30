@@ -56,17 +56,25 @@ namespace SonarQube.Bootstrapper
             AnalysisPhase phase = BootstrapSettings.Phase;
             LogProcessingStarted(phase);
 
-            if (phase == AnalysisPhase.PreProcessing)
+            try
             {
-                exitCode = PreProcess();
+                if (phase == AnalysisPhase.PreProcessing)
+                {
+                    exitCode = PreProcess();
+                }
+                else
+                {
+                    exitCode = PostProcess();
+                }
+
             }
-            else
+            catch (AnalysisException ex)
             {
-                exitCode = PostProcess();
+                Logger.LogError(ex.Message);
+                exitCode = ErrorCode;
             }
 
             LogProcessingCompleted(phase, exitCode);
-
             return exitCode;
         }
 
