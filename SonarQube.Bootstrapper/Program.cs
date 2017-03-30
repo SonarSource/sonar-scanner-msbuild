@@ -58,8 +58,6 @@ namespace SonarQube.Bootstrapper
                 return ErrorCode;
             }
 
-            logger.ResumeOutput();
-
             IProcessorFactory processorFactory = new DefaultProcessorFactory(logger);
             BootstrapperClass bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
             return bootstrapper.Execute();

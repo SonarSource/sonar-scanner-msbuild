@@ -37,17 +37,14 @@ namespace SonarQube.Common
 
         private class Message
         {
-            private readonly MessageType messageType;
-            private readonly string finalMessage;
-
             public Message(MessageType messageType, string finalMessage)
             {
-                this.messageType = messageType;
-                this.finalMessage = finalMessage;
+                this.MessageType = messageType;
+                this.FinalMessage = finalMessage;
             }
 
             public MessageType MessageType { get; }
-            public string FinalMessage { get; }
+            public string FinalMessage {  get; }
         }
 
         public const ConsoleColor DebugColor = ConsoleColor.DarkCyan;
