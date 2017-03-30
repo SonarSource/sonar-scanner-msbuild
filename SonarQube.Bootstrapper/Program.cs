@@ -16,6 +16,7 @@
  */
 
 using SonarQube.Common;
+using System;
 
 namespace SonarQube.Bootstrapper
 {
@@ -48,12 +49,15 @@ namespace SonarQube.Bootstrapper
             if (!ArgumentProcessor.TryProcessArgs(args, logger, out settings))
             {
                 // The argument processor will have logged errors
+                Environment.ExitCode = ErrorCode;
                 return ErrorCode;
             }
 
             IProcessorFactory processorFactory = new DefaultProcessorFactory(logger);
             BootstrapperClass bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
-            return bootstrapper.Execute();
+            int exitCode = bootstrapper.Execute();
+            Environment.ExitCode = exitCode;
+            return exitCode;
         }
     }
 }
