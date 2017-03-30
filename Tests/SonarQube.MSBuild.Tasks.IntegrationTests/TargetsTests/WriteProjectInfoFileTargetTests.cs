@@ -550,7 +550,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
 
             // Assert
-            Assert.AreEqual(Encoding.GetEncoding(0).WebName, projectInfo.Encoding);
+            Assert.AreEqual(null, projectInfo.Encoding);
         }
 
         [TestMethod]

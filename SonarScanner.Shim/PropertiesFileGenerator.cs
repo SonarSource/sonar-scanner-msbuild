@@ -75,17 +75,17 @@ namespace SonarScanner.Shim
             string projectBaseDir = ComputeProjectBaseDir(config, projects);
 
             PropertiesWriter writer = new PropertiesWriter(config);
+            AnalysisProperties properties = GetAnalysisProperties(config);
+            var globalSourceEncoding = GetSourceEncoding(properties, new EncodingProvider());
 
-            ProjectInfoAnalysisResult result = ProcessProjectInfoFiles(projects, writer, logger, projectBaseDir);
+            ProjectInfoAnalysisResult result = ProcessProjectInfoFiles(projects, writer, logger, projectBaseDir, globalSourceEncoding);
             writer.WriteSonarProjectInfo(projectBaseDir, result.SharedFiles);
 
             IEnumerable<ProjectInfo> validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
 
             if (validProjects.Any() || result.SharedFiles.Any())
             {
-                AnalysisProperties properties = GetAnalysisProperties(config);
-                EnsureAllProjectsHaveEncoding(validProjects, properties, new EncodingProvider(), logger);
-
+                
                 // Handle global settings
                 properties = GetAnalysisPropertiesToWrite(properties, logger);
                 writer.WriteGlobalSettings(properties);
@@ -205,31 +205,7 @@ namespace SonarScanner.Shim
                 }
             }
         }
-
-        internal /* for testing purpose */ static void EnsureAllProjectsHaveEncoding(IEnumerable<ProjectInfo> projects, AnalysisProperties properties, IEncodingProvider encodingProvider, ILogger logger)
-        {
-            foreach (var project in projects)
-            {
-                var sourceEncoding = GetSourceEncoding(properties, encodingProvider);
-
-                if (project.Encoding != null)
-                {
-                    if (sourceEncoding != null)
-                    {
-                        logger.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
-                    }
-                    continue;
-                }
-
-                if (sourceEncoding == null)
-                {
-                    sourceEncoding = Encoding.UTF8.WebName;
-                    logger.LogWarning(Resources.WARN_NoEncoding, sourceEncoding);
-                }
-                project.Encoding = sourceEncoding;
-            }
-        }
-
+       
         private static string GetSourceEncoding(AnalysisProperties properties, IEncodingProvider encodingProvider)
         {
             try
@@ -252,7 +228,7 @@ namespace SonarScanner.Shim
 
         #region Private methods
 
-        private static ProjectInfoAnalysisResult ProcessProjectInfoFiles(IEnumerable<ProjectInfo> projects, PropertiesWriter writer, ILogger logger, string projectBaseDir)
+        private static ProjectInfoAnalysisResult ProcessProjectInfoFiles(IEnumerable<ProjectInfo> projects, PropertiesWriter writer, ILogger logger, string projectBaseDir, string globalSourceEncoding)
         {
             ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult();
 
@@ -271,6 +247,7 @@ namespace SonarScanner.Shim
                     {
                         string fxCopReport = TryGetFxCopReport(projectInfo, logger);
                         string vsCoverageReport = TryGetCodeCoverageReport(projectInfo, logger);
+                        FixEncoding(logger, globalSourceEncoding, projectInfo);
                         writer.WriteSettingsForProject(projectInfo, files, fxCopReport, vsCoverageReport);
                     }
                 }
@@ -278,6 +255,31 @@ namespace SonarScanner.Shim
                 result.Projects.Add(projectInfo, status);
             }
             return result;
+        }
+
+        private static void FixEncoding(ILogger logger, string globalSourceEncoding, ProjectInfo projectInfo)
+        {
+            if (projectInfo.Encoding != null)
+            {
+                if (globalSourceEncoding != null)
+                {
+                    logger.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
+                }
+            }
+            else
+            {
+                if (globalSourceEncoding == null)
+                {
+                    if (ProjectLanguages.IsCSharpProject(projectInfo.ProjectLanguage) || ProjectLanguages.IsVbProject(projectInfo.ProjectLanguage))
+                    {
+                        projectInfo.Encoding = Encoding.UTF8.WebName;
+                    }
+                }
+                else
+                {
+                    projectInfo.Encoding = globalSourceEncoding;
+                }
+            }
         }
 
         private static ProjectInfoValidity ClassifyProject(ProjectInfo projectInfo, IEnumerable<ProjectInfo> projects, ILogger logger)
@@ -385,7 +387,6 @@ namespace SonarScanner.Shim
             AnalysisProperties properties = new AnalysisProperties();
 
             properties.AddRange(config.GetAnalysisSettings(false).GetAllProperties()
-                      // Strip out any sensitive properties
                       .Where(p => !p.ContainsSensitiveData()));
 
             return properties;
@@ -396,11 +397,6 @@ namespace SonarScanner.Shim
         /// </summary>
         private static AnalysisProperties GetAnalysisPropertiesToWrite(AnalysisProperties properties, ILogger logger)
         {
-            Property encodingProperty;
-            if (Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out encodingProperty))
-            {
-                properties.Remove(encodingProperty);
-            }
 
             // There are some properties we want to override regardless of what the user sets
             AddOrSetProperty(VSBootstrapperPropertyKey, "false", properties, logger);

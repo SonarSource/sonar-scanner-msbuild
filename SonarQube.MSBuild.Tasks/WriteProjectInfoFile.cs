@@ -40,7 +40,7 @@ namespace SonarQube.MSBuild.Tasks
     {
         #region Fields
 
-        private readonly IEncodingProvider _encodingProvider;
+        private readonly IEncodingProvider encodingProvider;
 
         #endregion // Fields
 
@@ -58,7 +58,7 @@ namespace SonarQube.MSBuild.Tasks
                 throw new ArgumentNullException(nameof(encodingProvider));
             }
 
-            _encodingProvider = encodingProvider;
+            this.encodingProvider = encodingProvider;
         }
 
         #endregion // Constructors
@@ -112,7 +112,7 @@ namespace SonarQube.MSBuild.Tasks
             pi.ProjectName = this.ProjectName;
             pi.FullPath = this.FullProjectPath;
             pi.ProjectLanguage = this.ProjectLanguage;
-            pi.Encoding = ComputeEncoding(this.CodePage, this.ProjectLanguage)?.WebName;
+            pi.Encoding = ComputeEncoding(this.CodePage)?.WebName;
 
             string guid = null;
             if (!string.IsNullOrEmpty(this.ProjectGuid))
@@ -149,13 +149,13 @@ namespace SonarQube.MSBuild.Tasks
 
         #region Private methods
 
-        private Encoding ComputeEncoding(string codePage, string projectLanguage)
+        private Encoding ComputeEncoding(string codePage)
         {
             string cleanedCodePage = (codePage ?? string.Empty)
                 .Replace("\\", string.Empty)
                 .Replace("\"", string.Empty);
 
-            // Always try first to return the CodePage specified into the .xxproj
+            // Try to return the CodePage specified into the .xxproj
             long codepageValue;
             if (!string.IsNullOrWhiteSpace(cleanedCodePage) &&
                 long.TryParse(cleanedCodePage, NumberStyles.None, CultureInfo.InvariantCulture, out codepageValue) &&
@@ -163,34 +163,14 @@ namespace SonarQube.MSBuild.Tasks
             {
                 try
                 {
-                    return _encodingProvider.GetEncoding((int)codepageValue);
+                    return encodingProvider.GetEncoding((int)codepageValue);
                 }
                 catch (Exception)
                 {
                     // encoding doesn't exist
                 }
             }
-
-            // If project isn't .csproj nor .vbproj then return null
-            if (!ProjectLanguages.IsCSharpProject(projectLanguage) &&
-                !ProjectLanguages.IsVbProject(projectLanguage))
-            {
-                return null;
-            }
-
-            // Fallback to Roslyn like mechanism
-            try
-            {
-                return _encodingProvider.GetEncoding(0) ?? _encodingProvider.GetEncoding(1252);
-            }
-            catch (NotSupportedException)
-            {
-                return _encodingProvider.GetEncoding("Latin1");
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            return null;
         }
 
         /// <summary>

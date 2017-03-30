@@ -314,256 +314,6 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void WriteProjectInfoFile_Execute_WhenCSharpWithNullCodePageAndDefaultSystemEncodingExists_ExpectsDefaultSystemEncoding()
-        {
-            // Arrange
-            var expectedEncoding = Encoding.GetEncoding(1141);
-            var encodingProvider = new TestEncodingProvider(
-                encoding =>
-                {
-                    if (encoding == 0) // default system encoding
-                    {
-                        return expectedEncoding;
-                    }
-                    else
-                    {
-                        Assert.Fail("should not have been called");
-                        throw new InvalidOperationException();
-                    }
-                },
-                x =>
-                {
-                    Assert.Fail("should not have been called");
-                    throw new InvalidOperationException();
-                });
-
-            // Act
-            var actual = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, null, "C#", "foo2");
-
-            // Assert
-            Assert.AreEqual(actual.Encoding, expectedEncoding.WebName, "unexpected encoding");
-        }
-
-        [TestMethod]
-        public void WriteProjectInfoFile_Execute_WhenCSharpVBNetWithInferiorToZeroCodePageAndDefaultSystemEncodingExists_ExpectsDefaultSystemEncoding()
-        {
-            // Arrange
-            var expectedEncoding = Encoding.GetEncoding(1141);
-            const decimal codePage = -1;
-            var encodingProvider = new TestEncodingProvider(
-                encoding =>
-                {
-                    if (encoding == 0) // default system encoding
-                    {
-                        return expectedEncoding;
-                    }
-                    else
-                    {
-                        Assert.Fail("should not have been called");
-                        throw new InvalidOperationException();
-                    }
-                },
-                x =>
-                {
-                    Assert.Fail("should not have been called");
-                    throw new InvalidOperationException();
-                });
-
-            // Act
-            var actualCSharp = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "C#", "foo31");
-            var actualVBNet = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "VB", "foo32");
-
-            // Assert
-            Assert.AreEqual(actualCSharp.Encoding, expectedEncoding.WebName, "unexpected encoding");
-            Assert.AreEqual(actualVBNet.Encoding, expectedEncoding.WebName, "unexpected encoding");
-        }
-
-        [TestMethod]
-        public void WriteProjectInfoFile_Execute_WhenCSharpVBNetWithBiggerThanLongCodePageAndDefaultSystemEncodingExists_ExpectsDefaultSystemEncoding()
-        {
-            // Arrange
-            var expectedEncoding = Encoding.GetEncoding(1141);
-            var encodingProvider = new TestEncodingProvider(
-                encoding =>
-                {
-                    if (encoding == 0) // default system encoding
-                    {
-                        return expectedEncoding;
-                    }
-                    else
-                    {
-                        Assert.Fail("should not have been called");
-                        throw new InvalidOperationException();
-                    }
-                },
-                x =>
-                {
-                    Assert.Fail("should not have been called");
-                    throw new InvalidOperationException();
-                });
-
-            var codePage = (decimal)long.MaxValue + 1;
-
-            // Act
-            var actualCSharp = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "C#", "foo41");
-            var actualVBNet = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "VB", "foo42");
-
-            // Assert
-            Assert.AreEqual(actualCSharp.Encoding, expectedEncoding.WebName, "unexpected encoding");
-            Assert.AreEqual(actualVBNet.Encoding, expectedEncoding.WebName, "unexpected encoding");
-        }
-
-        [TestMethod]
-        public void WriteProjectInfoFile_Execute_WhenCSharpVBNetWithNonExistingCodePageAndDefaultSystemEncodingExists_ExpectsDefaultSystemEncoding()
-        {
-            // Arrange
-            var expectedEncoding = Encoding.GetEncoding(1141);
-            const decimal codePage = 42;
-            var encodingProvider = new TestEncodingProvider(
-                encoding =>
-                {
-                    if (encoding == codePage)
-                    {
-                        throw new Exception("expected exception");
-                    }
-                    else if (encoding == 0) // default system encoding
-                    {
-                        return expectedEncoding;
-                    }
-                    else
-                    {
-                        Assert.Fail("should not have been called");
-                        throw new InvalidOperationException();
-                    }
-                },
-                x =>
-                {
-                    Assert.Fail("should not have been called");
-                    throw new InvalidOperationException();
-                });
-
-            // Act
-            var actualCSharp = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "C#", "foo51");
-            var actualVBNet = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "VB", "foo52");
-
-            // Assert
-            Assert.AreEqual(actualCSharp.Encoding, expectedEncoding.WebName, "unexpected encoding");
-            Assert.AreEqual(actualVBNet.Encoding, expectedEncoding.WebName, "unexpected encoding");
-        }
-
-        [TestMethod]
-        public void WriteProjectInfoFile_Execute_WhenCSharpVBNetWithNullCodePageAndDefaultSystemEncodingReturnsNull_ExpectsEncoding1252()
-        {
-            // Arrange
-            var expectedEncoding = Encoding.GetEncoding(1252);
-            var encodingProvider = new TestEncodingProvider(
-                encoding =>
-                {
-                    if (encoding == 0) // default system encoding
-                    {
-                        return null;
-                    }
-                    else if (encoding == expectedEncoding.CodePage)
-                    {
-                        return expectedEncoding;
-                    }
-                    else
-                    {
-                        Assert.Fail("should not have been called");
-                        throw new InvalidOperationException();
-                    }
-                },
-                x =>
-                {
-                    Assert.Fail("should not have been called");
-                    throw new InvalidOperationException();
-                });
-
-            // Act
-            var actualCSharp = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, null, "C#", "foo61");
-            var actualVBNet = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, null, "VB", "foo62");
-
-            // Assert
-            Assert.AreEqual(actualCSharp.Encoding, expectedEncoding.WebName, "unexpected encoding");
-            Assert.AreEqual(actualVBNet.Encoding, expectedEncoding.WebName, "unexpected encoding");
-        }
-
-        [TestMethod]
-        public void WriteProjectInfoFile_Execute_WhenCSharpVBNetWithNullCodePageDefaultSEReturnsNullEncoding1252ThrowsNSEx_ExpectsLatin1()
-        {
-            // Arrange
-            var expectedEncoding = Encoding.GetEncoding("Latin1");
-            decimal? codePage = null;
-            var encodingProvider = new TestEncodingProvider(
-                encoding =>
-                {
-                    if (encoding == 0) // default system encoding
-                    {
-                        return null;
-                    }
-                    else if (encoding == 1252) // windows encoding
-                    {
-                        throw new NotSupportedException("expected exception");
-                    }
-                    else
-                    {
-                        Assert.Fail("should not have been called");
-                        throw new InvalidOperationException();
-                    }
-                },
-                x =>
-                {
-                    return expectedEncoding;
-                });
-
-            // Act
-            var actualCSharp = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "C#", "foo71");
-            var actualVBNet = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "VB", "foo72");
-
-            // Assert
-            Assert.AreEqual(actualCSharp.Encoding, expectedEncoding.WebName, "unexpected encoding");
-            Assert.AreEqual(actualVBNet.Encoding, expectedEncoding.WebName, "unexpected encoding");
-        }
-
-
-        [TestMethod]
-        public void WriteProjectInfoFile_Execute_WhenCSharpVBNetWithNullCodePageDefaultSystemEncodingReturnsNullAndEncoding1252ThrowsException_ExpectsNull()
-        {
-            // Arrange
-            decimal? codePage = null;
-            var encodingProvider = new TestEncodingProvider(
-                encoding =>
-                {
-                    if (encoding == 0) // default system encoding
-                    {
-                        return null;
-                    }
-                    else if (encoding == 1252) // windows encoding
-                    {
-                        throw new Exception("expected exception");
-                    }
-                    else
-                    {
-                        Assert.Fail("should not have been called");
-                        throw new InvalidOperationException();
-                    }
-                },
-                x =>
-                {
-                    Assert.Fail("should not have been called");
-                    throw new InvalidOperationException();
-                });
-
-            // Act
-            var actualCSharp = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "C#", "foo81");
-            var actualVBNet = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "VB", "foo82");
-
-            // Assert
-            Assert.AreEqual(actualCSharp.Encoding, null, "unexpected encoding");
-            Assert.AreEqual(actualVBNet.Encoding, null, "unexpected encoding");
-        }
-
-        [TestMethod]
         public void WriteProjectInfoFile_Execute_WhenNotCSharpWithNullCodePage_ExpectsNull()
         {
             // Arrange
@@ -584,7 +334,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             var actual = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "whatever", "foo9");
 
             // Assert
-            Assert.AreEqual(actual.Encoding, null, "unexpected encoding");
+            Assert.AreEqual(null, actual.Encoding, "unexpected encoding");
         }
 
         [TestMethod]
@@ -608,7 +358,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             var actual = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "whatever", "foo10");
 
             // Assert
-            Assert.AreEqual(actual.Encoding, null, "unexpected encoding");
+            Assert.AreEqual(null, actual.Encoding, "unexpected encoding");
         }
 
         [TestMethod]
@@ -633,39 +383,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             var actual = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "whatever", "foo11");
 
             // Assert
-            Assert.AreEqual(actual.Encoding, null, "unexpected encoding");
+            Assert.AreEqual(null, actual.Encoding, "unexpected encoding");
         }
-
-        [TestMethod]
-        public void WriteProjectInfoFile_Execute_WhenNotCSharpVBNetWithNonExistingCodePage_ExpectsNull()
-        {
-            // Arrange
-            const int codePage = 42;
-            var encodingProvider = new TestEncodingProvider(
-                x =>
-                {
-                    if (x == codePage)
-                    {
-                        throw new Exception("expected exception");
-                    }
-                    else
-                    {
-                        Assert.Fail("should not have been called");
-                        throw new InvalidOperationException();
-                    }
-                },
-                x =>
-                {
-                    Assert.Fail("should not have been called");
-                    throw new InvalidOperationException();
-                });
-
-            // Act
-            var actual = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "whatever", "foo12");
-
-            // Assert
-            Assert.AreEqual(actual.Encoding, null, "unexpected encoding");
-        }
+        
 
 
         private ProjectInfo WriteProjectInfoFile_ExecuteAndReturn(IEncodingProvider encodingProvider, decimal? codePage, string projectLanguage, string folderName)

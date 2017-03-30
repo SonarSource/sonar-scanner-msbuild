@@ -35,65 +35,37 @@ namespace SonarQube.Common
         /// <summary>
         /// The project file name
         /// </summary>
-        public string ProjectName
-        {
-            get;
-            set;
-        }
+        public string ProjectName { get; set; }
 
         /// <summary>
         /// The project language
         /// </summary>
-        public string ProjectLanguage
-        {
-            get;
-            set;
-        }
+        public string ProjectLanguage { get; set; }
 
         /// <summary>
         /// The kind of the project
         /// </summary>
-        public ProjectType ProjectType
-        {
-            get;
-            set;
-        }
+        public ProjectType ProjectType { get; set; }
 
         /// <summary>
         /// Unique identifier for the project
         /// </summary>
-        public Guid ProjectGuid
-        {
-            get;
-            set;
-        }
+        public Guid ProjectGuid { get; set; }
 
         /// <summary>
         /// The full name and path of the project file
         /// </summary>
-        public string FullPath
-        {
-            get;
-            set;
-        }
+        public string FullPath { get; set; }
 
         /// <summary>
         /// Flag indicating whether the project should be excluded from processing
         /// </summary>
-        public bool IsExcluded
-        {
-            get;
-            set;
-        }
+        public bool IsExcluded { get; set; }
 
         /// <summary>
         /// Encoding used for source files if no BOM is present
         /// </summary>
-        public string Encoding
-        {
-            get;
-            set;
-        }
+        public string Encoding { get; set; }
 
         /// <summary>
         /// List of analysis results for the project
