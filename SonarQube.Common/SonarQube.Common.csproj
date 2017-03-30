@@ -54,6 +54,7 @@
     <Compile Include="AnalysisConfig\Rule.cs" />
     <Compile Include="AnalysisConfig\Rules.cs" />
     <Compile Include="AnalysisConfig\RuleSet.cs" />
+    <Compile Include="AnalysisException.cs" />
     <Compile Include="AnalysisProperties\EmptyPropertyProvider.cs" />
     <Compile Include="AnalysisProperties\EnvScannerPropertiesProvider.cs" />
     <Compile Include="AnalysisProperties\ListSettingsProvider.cs" />

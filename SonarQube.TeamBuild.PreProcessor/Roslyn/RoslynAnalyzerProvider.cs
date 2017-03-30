@@ -155,7 +155,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             {
                 rulesetFilePath = GetRulesetFilePath(this.sqSettings, language);
                 this.logger.LogDebug(Resources.RAP_UnpackingRuleset, rulesetFilePath);
-
                 ruleSet.Save(rulesetFilePath);
             }
             return rulesetFilePath;
