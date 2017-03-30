@@ -31,7 +31,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <param name="localSettings">Processed local settings, including command line arguments supplied the user</param>
         /// <param name="buildSettings">Build environment settings</param>
         /// <param name="serverProperties">Analysis properties downloaded from the SonarQube server</param>
-        /// <param name="analyzerSettings">Specifies the Roslyn analyzers to use</param>
+        /// <param name="analyzerSettings">Specifies the Roslyn analyzers to use. Can be empty</param>
         public static AnalysisConfig GenerateFile(ProcessedArgs localSettings,
             TeamBuildSettings buildSettings,
             IDictionary<string, string> serverProperties,

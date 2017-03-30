@@ -229,7 +229,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>No analyzer assemblies were specified for rule repository {0} in language {1}</value>
   </data>
   <data name="RAP_NoPluginInstalled" xml:space="preserve">
-    <value>No plugins found with rulesets for Roslyn analyzer</value>
+    <value>No plugins found for language {0} with rulesets for Roslyn analyzer</value>
   </data>
   <data name="RAP_NoProfileForProject" xml:space="preserve">
     <value>Could not obtain a {0} profile for project '{1}'</value>

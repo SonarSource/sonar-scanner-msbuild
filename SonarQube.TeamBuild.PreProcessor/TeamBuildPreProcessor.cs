@@ -139,6 +139,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             Debug.Assert(analyzersSettings != null, "Not expecting the analyzers settings to be null");
 
+            // analyzerSettings can be empty
             AnalysisConfigGenerator.GenerateFile(localSettings, teamBuildSettings, serverSettings, analyzersSettings, this.logger);
 
             return true;
@@ -223,7 +224,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                     IAnalyzerProvider analyzerProvider = this.factory.CreateRoslynAnalyzerProvider(this.logger);
                     Debug.Assert(analyzerProvider != null, "Factory should not return null");
 
-                    // Will be null if the processing of settings and active rules resulted in an empty ruleset
+                    // Will be null if the processing of server settings and active rules resulted in an empty ruleset
                     AnalyzerSettings analyzer = analyzerProvider.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, plugin.Language);
 
                     if (analyzer != null)

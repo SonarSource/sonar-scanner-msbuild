@@ -382,7 +382,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No plugins found with rulesets for Roslyn analyzer.
+        ///   Looks up a localized string similar to No plugins found for language {0} with rulesets for Roslyn analyzer.
         /// </summary>
         public static string RAP_NoPluginInstalled {
             get {

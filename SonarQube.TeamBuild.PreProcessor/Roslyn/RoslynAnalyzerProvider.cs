@@ -97,7 +97,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             AnalyzerSettings analyzer = ConfigureAnalyzer(language, activeRules, inactiveRules);
             if (analyzer == null)
             {
-                logger.LogDebug(Resources.RAP_NoPluginInstalled);
+                logger.LogInfo(Resources.RAP_NoPluginInstalled, language);
             }
 
             return analyzer;
@@ -118,7 +118,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         /// <summary>
         /// Generates several files related to rulesets and roslyn analyzer assemblies.
-        /// Even if a non-empty set of active rules is provided, depending on the server settings of repo keys, we might have no rules in the ruleset.
+        /// Active rules should never be empty, but depending on the server settings of repo keys, we might have no rules in the ruleset.
         /// In that case, this method returns null.
         /// </summary>
         private AnalyzerSettings ConfigureAnalyzer(string language, IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules)
@@ -128,6 +128,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             string rulesetFilePath = this.WriteRuleset(ruleSet, language);
             if (rulesetFilePath == null)
             {
+                // no ruleset, nothing was written in disk
                 return null;
             }
 
