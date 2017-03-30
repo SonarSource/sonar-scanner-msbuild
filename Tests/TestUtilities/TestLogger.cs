@@ -207,6 +207,15 @@ namespace TestUtilities
             WriteLine("DEBUG: " + message, args);
         }
 
+        public void SuspendOutput()
+        {
+            // no-op
+        }
+
+        public void ResumeOutput()
+        {
+            // no-op
+        }
 
         #endregion
 

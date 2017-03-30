@@ -66,5 +66,18 @@ namespace SonarQube.Common
         /// Gets or sets whether log entries are prefixed with timestamps
         /// </summary>
         bool IncludeTimestamp { get; set; }
+
+        /// <summary>
+        /// Suspends writing output to the console. Any messages will be recorded but
+        /// not output unless and until <see cref="ResumeOutput"/> is called.
+        /// </summary>
+        void SuspendOutput();
+
+        /// <summary>
+        /// Writes out any messages that were recorded as a result of
+        /// <see cref="SuspendOutput"/> having been called.
+        /// Any subsequent messages will be output immediately.
+        /// </summary>
+        void ResumeOutput();
     }
 }

@@ -16,6 +16,7 @@
  */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace SonarQube.Common.UnitTests
 {
@@ -23,7 +24,7 @@ namespace SonarQube.Common.UnitTests
     public class ConsoleLoggerTests
     {
         #region Tests
-       
+
         [TestMethod]
         [Description("Regression test: checks the logger does not fail on null message")]
         public void CLogger_NoExceptionOnNullMessage()
@@ -246,7 +247,7 @@ namespace SonarQube.Common.UnitTests
                 output.AssertExpectedLastMessage("info2");
                 logger.LogDebug("debug1");
                 output.AssertExpectedLastMessage("info2"); // the debug message should not have been logged
-          
+
                 logger.Verbosity = LoggerVerbosity.Debug;
                 logger.LogDebug("debug");
                 output.AssertExpectedLastMessage("debug");
@@ -261,7 +262,49 @@ namespace SonarQube.Common.UnitTests
             }
         }
 
+        [TestMethod]
+        public void CLogger_SuspendAndResume()
+        {
+            OutputRecorder recorder = new OutputRecorder();
 
+            ConsoleLogger logger = ConsoleLogger.CreateLoggerForTesting(false, recorder);
+
+            // 1. Suspend output - should be able to call this multiple times
+            logger.SuspendOutput();
+            logger.SuspendOutput();
+            logger.SuspendOutput();
+            recorder.AssertNoOutput();
+
+            // 2. Resume output when no messages written -> no output, no error
+            logger.ResumeOutput();
+            recorder.AssertNoOutput();
+
+            // 3. Suspend and log some output
+            logger.SuspendOutput();
+            logger.LogDebug("debug 1 {0}", "xxx");
+            logger.LogWarning("warning 1 {0}", "xxx");
+            logger.LogError("error 1 {0}", "xxx");
+            logger.LogInfo("info 1 {0}", "xxx");
+
+            recorder.AssertNoOutput();
+
+            // 4. Resume -> check expected output and ordering
+            logger.ResumeOutput();
+
+            recorder.AssertExpectedOutputText(
+                "debug 1 xxx",
+                "WARNING: warning 1 xxx",
+                "error 1 xxx",
+                "info 1 xxx");
+
+            // 5. Log more -> output should be immediate
+            logger.LogInfo("info 2");
+            recorder.AssertExpectedLastOutput("info 2", Console.ForegroundColor, false);
+
+            logger.LogError("error 2");
+            recorder.AssertExpectedLastOutput("error 2", ConsoleLogger.ErrorColor, true);
+        }
+        
         #endregion
     }
 }

@@ -51,7 +51,9 @@ namespace SonarQube.Bootstrapper
         public int Execute()
         {
             int exitCode;
+
             Logger.Verbosity = BootstrapSettings.LoggingVerbosity;
+            Logger.ResumeOutput();
 
             AnalysisPhase phase = BootstrapSettings.Phase;
             LogProcessingStarted(phase);

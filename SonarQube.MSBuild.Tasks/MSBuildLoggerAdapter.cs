@@ -69,6 +69,16 @@ namespace SonarQube.MSBuild.Tasks
             this.msBuildLogger.LogWarning(message, args);
         }
 
+        void ILogger.SuspendOutput()
+        {
+            // no-op
+        }
+
+        void ILogger.ResumeOutput()
+        {
+            // no-op
+        }
+
         #endregion
 
         #region Private methods
@@ -85,6 +95,7 @@ namespace SonarQube.MSBuild.Tasks
                 this.msBuildLogger.LogMessage(Microsoft.Build.Framework.MessageImportance.Low, message, args);
             }
         }
+
 
         #endregion Private methods
     }

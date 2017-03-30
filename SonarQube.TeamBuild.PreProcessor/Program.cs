@@ -29,7 +29,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private static int Main(string[] args)
         {
-            ILogger logger = new ConsoleLogger();
+            ILogger logger = new ConsoleLogger(includeTimestamp: false);
             Utilities.LogAssemblyVersion(logger, typeof(Program).Assembly, Resources.AssemblyDescription);
             logger.IncludeTimestamp = true;
 

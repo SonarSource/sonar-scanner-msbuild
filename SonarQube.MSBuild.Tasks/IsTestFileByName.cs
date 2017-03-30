@@ -107,5 +107,6 @@ namespace SonarQube.MSBuild.Tasks
         }
         
         #endregion Private methods
+
     }
 }

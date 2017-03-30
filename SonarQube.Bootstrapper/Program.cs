@@ -27,9 +27,15 @@ namespace SonarQube.Bootstrapper
 
         public static int Main(string[] args)
         {
-            var logger = new ConsoleLogger();
+            var logger = new ConsoleLogger(includeTimestamp: false);
             Utilities.LogAssemblyVersion(logger, typeof(Program).Assembly, Resources.AssemblyDescription);
+            return Execute(args, logger);
+        }
+
+        public static int Execute(string[] args, ILogger logger)
+        {
             IBootstrapperSettings settings;
+            logger.SuspendOutput();
 
             if (ArgumentProcessor.IsHelp(args))
             {
@@ -48,6 +54,7 @@ namespace SonarQube.Bootstrapper
 
             if (!ArgumentProcessor.TryProcessArgs(args, logger, out settings))
             {
+                logger.ResumeOutput();
                 // The argument processor will have logged errors
                 Environment.ExitCode = ErrorCode;
                 return ErrorCode;
