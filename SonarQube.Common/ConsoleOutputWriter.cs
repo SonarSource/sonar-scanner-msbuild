@@ -21,9 +21,12 @@ namespace SonarQube.Common
 {
     public class ConsoleWriter : IOutputWriter
     {
+
+        private static readonly object ConsoleWriterLock = new object();
+
         void IOutputWriter.WriteLine(string message, ConsoleColor textColor, bool isError)
         {
-            lock (Console.Out)
+            lock (ConsoleWriterLock)
             {
                 using (new ConsoleColorScope(textColor))
                 {
