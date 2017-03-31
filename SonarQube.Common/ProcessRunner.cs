@@ -166,7 +166,14 @@ namespace SonarQube.Common
         {
             if (e.Data != null)
             {
-                this.outputLogger.LogError(e.Data);
+                if (e.Data.StartsWith("WARN"))
+                {
+                    this.outputLogger.LogWarning(e.Data);
+                }
+                else
+                {
+                    this.outputLogger.LogError(e.Data);
+                }
             }
         }
 

@@ -23,15 +23,18 @@ namespace SonarQube.Common
     {
         void IOutputWriter.WriteLine(string message, ConsoleColor textColor, bool isError)
         {
-            using (new ConsoleColorScope(textColor))
+            lock (Console.Out)
             {
-                if (isError)
+                using (new ConsoleColorScope(textColor))
                 {
-                    Console.Error.WriteLine(message);
-                }
-                else
-                {
-                    Console.WriteLine(message);
+                    if (isError)
+                    {
+                        Console.Error.WriteLine(message);
+                    }
+                    else
+                    {
+                        Console.WriteLine(message);
+                    }
                 }
             }
         }
