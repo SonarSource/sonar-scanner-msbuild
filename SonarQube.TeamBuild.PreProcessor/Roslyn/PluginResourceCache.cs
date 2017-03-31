@@ -86,7 +86,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
     /// </summary>
     public class PluginResourceCache
     {
-        private readonly string basedir;
         private readonly SubdirIndex index;
 
         public PluginResourceCache(string basedir)
@@ -100,7 +99,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 throw new DirectoryNotFoundException("no such directory: " + basedir);
             }
 
-            this.basedir = basedir;
             this.index = new SubdirIndex(basedir);
         }
 
