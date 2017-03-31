@@ -28,7 +28,7 @@ namespace SonarQube.TeamBuild.Integration
 {
     public class CoverageReportConverter : ICoverageReportConverter
     {
-        private const int ConversionTimeoutInMs = 30000;
+        private const int ConversionTimeoutInMs = 60000;
 
         /// <summary>
         /// Registry containing information about installed VS versions
