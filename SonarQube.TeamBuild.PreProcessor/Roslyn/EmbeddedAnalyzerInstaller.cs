@@ -22,7 +22,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Text;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
@@ -179,42 +178,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 this.logger.LogWarning(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName);
             }
             return success;
-        }
-
-        /// <summary>
-        /// Returns a version-specific directory in which the plugin resources
-        /// will be cached
-        /// </summary>
-        private static string GetPluginSpecificDir(string baseDir, Plugin plugin)
-        {
-            // Format is: [base]\[plugin_version]
-            string pluginVersionFolder = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                "{0}_{1}",
-                plugin.Key, plugin.Version);
-
-            pluginVersionFolder = StripInvalidDirectoryChars(pluginVersionFolder);
-
-            string fullDir = Path.Combine(baseDir, pluginVersionFolder);
-            return fullDir;
-        }
-
-        private static string StripInvalidDirectoryChars(string folderName)
-        {
-            return StripInvalidChars(folderName, Path.GetInvalidPathChars());
-        }
-
-        private static string StripInvalidChars(string text, char[] invalidChars)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            foreach (char c in text)
-            {
-                if (!invalidChars.Contains(c))
-                {
-                    sb.Append(c);
-                }
-            }
-            return sb.ToString();
         }
 
         private static bool IsZipFile(string fileName)
