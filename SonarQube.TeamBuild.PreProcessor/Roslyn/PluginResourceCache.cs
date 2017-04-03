@@ -40,7 +40,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         {
             waitHandle.WaitOne();
             string path;
-            var mapping = Read();
+            var mapping = ReadMapping();
             if (!mapping.TryGetValue(key, out path))
             {
                 path = FindAndCreateNextAvailablePath(mapping.Count);
@@ -51,7 +51,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return path;
         }
 
-        private IDictionary<string, string> Read()
+        private IDictionary<string, string> ReadMapping()
         {
             if (File.Exists(indexPath))
             {
@@ -63,16 +63,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         private string FindAndCreateNextAvailablePath(int start)
         {
             int count = start;
-            while (true)
+            while (Directory.Exists(Path.Combine(basedir, count.ToString())))
             {
                 count++;
-                string subdir = Path.Combine(basedir, count.ToString());
-                if (!Directory.Exists(subdir))
-                {
-                    Directory.CreateDirectory(subdir);
-                    return subdir;
-                }
             }
+            var subdir = Path.Combine(basedir, count.ToString());
+            Directory.CreateDirectory(subdir);
+            return subdir;
         }
     }
 
