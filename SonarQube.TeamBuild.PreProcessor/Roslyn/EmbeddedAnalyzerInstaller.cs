@@ -45,22 +45,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
     public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
     {
         private readonly ISonarQubeServer server;
-        private readonly string localCacheDirectory;
         private readonly ILogger logger;
-
-        /// <summary>
-        /// Returns a unique directory for the specific resource
-        /// </summary>
-        public static string GetResourceSpecificDir(string baseDir, Plugin plugin)
-        {
-            // Format is: [base]\[plugin.version]\[resource name]
-
-            string pluginDir = GetPluginSpecificDir(baseDir, plugin);
-            string resourceFolder = StripInvalidDirectoryChars(plugin.StaticResourceName);
-
-            string fullDir = Path.Combine(pluginDir, resourceFolder);
-            return fullDir;
-        }
+        private readonly PluginResourceCache cache;
 
         public EmbeddedAnalyzerInstaller(ISonarQubeServer server, ILogger logger)
             : this(server, GetLocalCacheDirectory(), logger)
@@ -83,8 +69,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             }
 
             this.server = server;
-            this.localCacheDirectory = localCacheDirectory;
             this.logger = logger;
+
+            this.logger.LogDebug(RoslynResources.EAI_LocalAnalyzerCache, localCacheDirectory);
+            Directory.CreateDirectory(localCacheDirectory); // ensure the cache dir exists
+
+            this.cache = new PluginResourceCache(localCacheDirectory);
         }
 
         #region IAnalyzerInstaller methods
@@ -103,9 +93,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             }
 
             this.logger.LogInfo(RoslynResources.EAI_InstallingAnalyzers);
-
-            this.logger.LogDebug(RoslynResources.EAI_LocalAnalyzerCache, this.localCacheDirectory);
-            Directory.CreateDirectory(this.localCacheDirectory); // ensure the cache dir exists
 
             HashSet<string> allFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (Plugin plugin in plugins)
@@ -130,7 +117,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         /// </summary>
         private static string GetLocalCacheDirectory()
         {
-            string localCache = Path.Combine(Path.GetTempPath(), ".sonarqube", ".static");
+            string localCache = Path.Combine(Path.GetTempPath(), ".sonarqube", "resources");
             return localCache;
         }
 
@@ -138,7 +125,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         {
             this.logger.LogDebug(RoslynResources.EAI_ProcessingPlugin, plugin.Key, plugin.Version);
 
-            string cacheDir = GetResourceSpecificDir(this.localCacheDirectory, plugin);
+            string cacheDir = cache.GetResourceSpecificDir(plugin);
 
             IEnumerable<string> allFiles = FetchFilesFromCache(cacheDir);
 
@@ -161,12 +148,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         private static IEnumerable<string> FetchFilesFromCache(string pluginCacheDir)
         {
-            string[] allFiles = null;
             if (Directory.Exists(pluginCacheDir))
             {
-                allFiles = Directory.GetFiles(pluginCacheDir, "*.*", SearchOption.AllDirectories);
+                return Directory.GetFiles(pluginCacheDir, "*.*", SearchOption.AllDirectories)
+                    .Where(name => !name.EndsWith(".zip"));
             }
-            return allFiles ?? Enumerable.Empty<string>();
+            return Enumerable.Empty<string>();
         }
 
         private bool FetchResourceFromServer(Plugin plugin, string targetDir)

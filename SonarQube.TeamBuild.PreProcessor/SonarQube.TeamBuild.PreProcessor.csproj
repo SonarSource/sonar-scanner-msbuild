@@ -65,6 +65,7 @@
     <Compile Include="Interfaces\ISonarQubeServer.cs" />
     <Compile Include="Interfaces\ITeamBuildPreProcessor.cs" />
     <Compile Include="Roslyn\ActiveRule.cs" />
+    <Compile Include="Roslyn\PluginResourceCache.cs" />
     <Compile Include="Roslyn\Model\Plugin.cs" />
     <Compile Include="Roslyn\RoslynAnalyzerProvider.cs" />
     <Compile Include="Roslyn\RoslynRuleSetGenerator.cs" />
@@ -127,7 +128,7 @@
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
     <Content Include="License.txt" />
-	<Content Include="SupportedBootstrapperVersions.xml">
+    <Content Include="SupportedBootstrapperVersions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
