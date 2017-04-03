@@ -15,28 +15,43 @@
  * THE SOFTWARE.
  */
 
-using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Newtonsoft.Json;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
     class SubdirIndex
     {
+        private readonly EventWaitHandle waitHandle = new EventWaitHandle(true, EventResetMode.AutoReset, "90CD3CFF-A12C-4013-A44A-199B8C26818B");
+
         private readonly string basedir;
         private readonly string indexPath;
-        private readonly IDictionary<string, string> mapping;
 
         public SubdirIndex(string basedir)
         {
             this.basedir = basedir;
-            this.indexPath = Path.Combine(basedir, "index.json");
-            this.mapping = Read();
+            indexPath = Path.Combine(basedir, "index.json");
         }
 
-        public IDictionary<string, string> Read()
+        public string GetOrCreatePath(string key)
+        {
+            waitHandle.WaitOne();
+            string path;
+            var mapping = Read();
+            if (!mapping.TryGetValue(key, out path))
+            {
+                path = FindAndCreateNextAvailablePath(mapping.Count);
+                mapping.Add(key, path);
+                File.WriteAllText(indexPath, JsonConvert.SerializeObject(mapping));
+            }
+            waitHandle.Set();
+            return path;
+        }
+
+        private IDictionary<string, string> Read()
         {
             if (File.Exists(indexPath))
             {
@@ -45,24 +60,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return new Dictionary<string, string>();
         }
 
-        public string GetOrCreatePath(string key)
+        private string FindAndCreateNextAvailablePath(int start)
         {
-            lock (mapping)
-            {
-                string path;
-                if (!mapping.TryGetValue(key, out path))
-                {
-                    path = FindAndCreateNextAvailablePath();
-                    mapping.Add(key, path);
-                    File.WriteAllText(indexPath, JsonConvert.SerializeObject(mapping));
-                }
-                return path;
-            }
-        }
-
-        private string FindAndCreateNextAvailablePath()
-        {
-            int count = mapping.Count;
+            int count = start;
             while (true)
             {
                 count++;
@@ -107,7 +107,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         private string CreateKey(Plugin plugin)
         {
-            return String.Join("/", plugin.Key, plugin.Version, plugin.StaticResourceName);
+            return string.Join("/", plugin.Key, plugin.Version, plugin.StaticResourceName);
         }
     }
 }
