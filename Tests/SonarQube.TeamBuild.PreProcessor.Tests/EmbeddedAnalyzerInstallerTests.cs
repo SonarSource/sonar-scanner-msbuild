@@ -45,7 +45,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             MockSonarQubeServer mockServer = new MockSonarQubeServer();
             AddPlugin(mockServer, requestedPlugin, "file1.dll", "file2.txt");
 
-            IList<string> expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 1, requestedPlugin, "file1.dll", "file2.txt");
+            IList<string> expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 0, requestedPlugin, "file1.dll", "file2.txt");
 
             EmbeddedAnalyzerInstaller testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
 
@@ -77,9 +77,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AddPlugin(mockServer, request4, "p2.resource1.dll");
 
             List<string> expectedPaths = new List<string>();
-            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 2, request2, "p1.resource1.file1.dll", "p1.resource1.file2.dll"));
-            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 3, request3, "p1.resource2.file1.dll"));
-            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 4, request4, "p2.resource1.dll"));
+            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 1, request2, "p1.resource1.file1.dll", "p1.resource1.file2.dll"));
+            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 2, request3, "p1.resource2.file1.dll"));
+            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 3, request4, "p2.resource1.dll"));
 
             EmbeddedAnalyzerInstaller testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
 
@@ -156,8 +156,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AddPlugin(mockServer, requestA, "aaa", "bbb");
             AddPlugin(mockServer, requestB, "ccc");
 
-            IList<string> expectedPlugin111Paths = CalculateExpectedCachedFilePaths(localCacheDir, 1, requestA, "aaa", "bbb");
-            IList<string> expectedPlugin222Paths = CalculateExpectedCachedFilePaths(localCacheDir, 2, requestB, "ccc");
+            IList<string> expectedPlugin111Paths = CalculateExpectedCachedFilePaths(localCacheDir, 0, requestA, "aaa", "bbb");
+            IList<string> expectedPlugin222Paths = CalculateExpectedCachedFilePaths(localCacheDir, 1, requestB, "ccc");
             List<string> allExpectedPaths = new List<string>(expectedPlugin111Paths);
             allExpectedPaths.AddRange(expectedPlugin222Paths);
 
@@ -199,7 +199,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
             AssertExpectedFilesExist(allExpectedPaths);
-            AssertExpectedFilesInCache(5, localCacheDir); // files for both plugins should exist
+            AssertExpectedFilesInCache(6, localCacheDir); // files for both plugins should exist
         }
 
         #endregion
