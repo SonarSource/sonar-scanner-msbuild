@@ -23,7 +23,7 @@ using Newtonsoft.Json;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
-    public class SubdirIndex
+    public class SubdirIndex : IDisposable
     {
         // global locking, to ensure synchronized access to index file by multiple processes
         private readonly EventWaitHandle waitHandle = new EventWaitHandle(true, EventResetMode.AutoReset, "90CD3CFF-A12C-4013-A44A-199B8C26818B");
@@ -77,6 +77,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             var subdir = Path.Combine(basedir, count.ToString());
             Directory.CreateDirectory(subdir);
             return subdir;
+        }
+
+        public void Dispose()
+        {
+            waitHandle.Dispose();
         }
     }
 
