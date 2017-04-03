@@ -45,11 +45,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return new Dictionary<string, string>();
         }
 
-        private void Flush()
-        {
-            File.WriteAllText(indexPath, JsonConvert.SerializeObject(mapping));
-        }
-
         public string GetOrCreatePath(string key)
         {
             lock (mapping)
@@ -59,7 +54,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 {
                     path = FindAndCreateNextAvailablePath();
                     mapping.Add(key, path);
-                    Flush();
+                    File.WriteAllText(indexPath, JsonConvert.SerializeObject(mapping));
                 }
                 return path;
             }
