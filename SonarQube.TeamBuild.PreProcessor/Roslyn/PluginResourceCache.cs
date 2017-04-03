@@ -26,7 +26,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
     public class SubdirIndex : IDisposable
     {
         // global locking, to ensure synchronized access to index file by multiple processes
-        private readonly EventWaitHandle waitHandle = new EventWaitHandle(true, EventResetMode.AutoReset, "90CD3CFF-A12C-4013-A44A-199B8C26818B");
+        private static readonly EventWaitHandle waitHandle = new EventWaitHandle(true, EventResetMode.AutoReset, "90CD3CFF-A12C-4013-A44A-199B8C26818B");
 
         private readonly string basedir;
         private readonly string indexPath;
