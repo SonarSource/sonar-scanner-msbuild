@@ -27,11 +27,20 @@ function FetchAnnotatedNewIssues
     $json = DeserializeReport $sonarReportFilePath
     CreateComponentKeyToPathMap $json
 
+    #Assign the default value for file delimiter to 4
+    $fileDelimiterCount = 4
+    # get the project key from the components array of the json
+    $projectKeyComponent = ($json.components | where { $_.path -eq $null});
+    if($projectKeyComponent.Count -gt 0)
+    {
+        $delimiterCount = ($projectKeyComponent.Values[0].ToCharArray() | Where-Object {$_ -eq ':'} | Measure-Object).Count   
+        $fileDelimiterCount += $delimiterCount
+    }
     # '@' makes sure the result set is returned as an array
     $newIssues = @($json.issues | Where { $_.isNew -eq $true })
     Write-Host "SonarQube found $($json.issues.Count) issues out of which $($newIssues.Count) are new"
     
-    $newFileLevelIssues = @($newIssues | Where {(IsFileLevelIssue $_)})
+    $newFileLevelIssues = @($newIssues | Where {(IsFileLevelIssue $_ $fileDelimiterCount)})
     $difference = $newIssues.Count - $newFileLevelIssues.Count
     if ($difference -gt 0)
     {
@@ -228,15 +237,16 @@ function AnnotateIssuesWithRelativePath
 }
 
 #
-# File level issues have a 4-part component. Assembly level issues have a 3-part component.
+# File level issues have a 4 or 5-part component. Assembly level issues have a 3 or 4-part component. This is dependent on if the project key has branch name in it or not.
 #
 function IsFileLevelIssue
 {
-    param ([ValidateNotNullOrEmpty()]$issue)    
+    param ([ValidateNotNullOrEmpty()]$issue,
+           [int]$fileDelimiterCount)    
         
     $tokens = $issue.component.Split(":")
 
-    return ($tokens.Count -eq 4) 
+    return ($tokens.Count -eq $fileDelimiterCount) 
 }
 
 #endregion
