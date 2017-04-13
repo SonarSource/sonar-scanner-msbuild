@@ -1,3 +1,9 @@
+### License
+
+Copyright 2016-2017 SonarSource.
+
+Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
+
 ## Build status
 [![Build status](https://ci.appveyor.com/api/projects/status/ik8mfx97hnvkhjfm/branch/master?svg=true)](https://ci.appveyor.com/project/SonarSource/sonar-scanner-msbuild/branch/master)
 
