@@ -15,7 +15,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SonarQubeExclude>True</SonarQubeExclude>
-    <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.0.0.702</ScannerCliVersion>
+    <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.0.1.733</ScannerCliVersion>
     <ScannerCliArtifact>sonar-scanner-cli-$(ScannerCliVersion).zip</ScannerCliArtifact>
     <ScannerCliDirectory>sonar-scanner-$(ScannerCliVersion)</ScannerCliDirectory>
     <MavenCentralUrl>http://central.maven.org/maven2/org/sonarsource/scanner/cli/sonar-scanner-cli/$(ScannerCliVersion)/$(ScannerCliArtifact)</MavenCentralUrl>
