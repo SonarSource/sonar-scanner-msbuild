@@ -23,8 +23,6 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.locator.Locators;
-import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import java.io.File;
@@ -56,68 +54,6 @@ public class TestUtils {
   public static final String MSBUILD_PATH = "msbuild.path";
   private final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
-  public static Path prepareCSharpPlugin(TemporaryFolder temp) {
-    Path t;
-    try {
-      t = temp.newFolder("CSharpPlugin").toPath();
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-    Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
-    Locators locators = new Locators(configuration);
-    String pluginVersion = getCSharpVersion();
-    MavenLocation csharp = MavenLocation.create("org.sonarsource.dotnet", "sonar-csharp-plugin", pluginVersion);
-    Path modifiedCs = t.resolve("modified-chsarp.jar");
-    if (locators.copyToFile(csharp, modifiedCs.toFile()) == null) {
-      throw new IllegalStateException("Couldn't locate csharp plugin in the local maven repository: " + csharp);
-    }
-
-    String scannerPayloadVersion = getScannerPayloadVersion();
-
-    Path scannerImpl;
-    if (scannerPayloadVersion != null) {
-      LOG.info("Updating C# plugin ({}) with Scanner For MSBuild implementation ({})", pluginVersion, scannerPayloadVersion);
-      MavenLocation scannerImplLocation = MavenLocation.builder()
-        .setGroupId("org.sonarsource.scanner.msbuild")
-        .setArtifactId("sonar-scanner-msbuild")
-        .setVersion(scannerPayloadVersion)
-        .setClassifier("impl")
-        .withPackaging("zip")
-        .build();
-      scannerImpl = t.resolve("sonar-scanner-msbuild-impl.zip");
-      if (locators.copyToFile(scannerImplLocation, scannerImpl.toFile()) == null) {
-        throw new IllegalStateException("Unable to find sonar-scanner-msbuild " + scannerPayloadVersion + " in local Maven repository");
-      }
-    } else {
-      // Run locally
-      LOG.info("Updating C# plugin ({}) with local build of Scanner For MSBuild implementation", pluginVersion);
-      scannerImpl = Paths.get("../DeploymentArtifacts/CSharpPluginPayload/Release/SonarQube.MSBuild.Runner.Implementation.zip");
-    }
-
-    replaceInZip(modifiedCs.toUri(), scannerImpl, "/static/SonarQube.MSBuild.Runner.Implementation.zip");
-    return modifiedCs;
-  }
-
-  public static String getVBNetVersion() {
-    Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
-    String version = configuration.getString("vbnetPlugin.version");
-    if (version != null) {
-      return version;
-    }
-
-    throw new IllegalStateException("Unspecified version of VB.NET plugin. Define 'vbnetPlugin.version'");
-  }
-
-  public static String getCSharpVersion() {
-    Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
-    String version = configuration.getString("csharpPlugin.version");
-    if (version != null) {
-      return version;
-    }
-
-    throw new IllegalStateException("Unspecified version of C# plugin. Define 'csharpPlugin.version'");
-  }
-
   @CheckForNull
   public static String getScannerVersion() {
     Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
@@ -138,16 +74,6 @@ public class TestUtils {
       return ScannerForMSBuild.create(projectDir.toFile())
         .setScannerLocation(FileLocation.of(scannerZip.toFile()));
     }
-  }
-
-  /**
-   * Try to get version of the Scanner for MSBuild to embed in the C# plugin (use as payload).
-   * If no version is found, null is returned.
-   */
-  @CheckForNull
-  public static String getScannerPayloadVersion() {
-    Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
-    return configuration.getString("scannerForMSBuildPayload.version");
   }
 
   public static Path getCustomRoslynPlugin() {

@@ -33,4 +33,4 @@ get_version $SCANNER_PAYLOAD_VERSION
 SCANNER_PAYLOAD_VERSION=$output
 
 # default versions of csharp and vbnet plugin are defined in the pom file
-mvn -B -e verify -Dsonar.runtimeVersion=$SQ_VERSION -DscannerForMSBuild.version=$SCANNER_VERSION -DscannerForMSBuildPayload.version=$SCANNER_PAYLOAD_VERSION -DfxcopVersion=LATEST_RELEASE -Dmsbuild.path=$MSBUILD_PATH
+mvn -B -e verify -Dsonar.runtimeVersion=$SQ_VERSION -DscannerForMSBuild.version=$SCANNER_VERSION -DscannerForMSBuildPayload.version=$SCANNER_PAYLOAD_VERSION -Dmsbuild.path=$MSBUILD_PATH
