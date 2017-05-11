@@ -54,7 +54,7 @@ namespace SonarScanner.Shim
 
         private const string CmdLineArgPrefix = "-D";
 
-        private const string SonarScannerVersion = "3.0.1.733";
+        private const string SonarScannerVersion = "3.0.2.768";
 
         #region ISonarScanner interface
 
