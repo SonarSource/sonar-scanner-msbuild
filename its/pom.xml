@@ -17,11 +17,6 @@
 
   <inceptionYear>2016</inceptionYear>
 
-  <properties>
-    <vbnetPlugin.version>3.0.1.293</vbnetPlugin.version>
-    <csharpPlugin.version>5.5.0.479</csharpPlugin.version>
-  </properties>
-  
   <dependencies>
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
@@ -32,7 +27,7 @@
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-ws</artifactId>
-      <version>6.3-build16607</version>
+      <version>6.3.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -41,40 +36,13 @@
       <version>1.7.2</version>
     </dependency>
 
-    <!-- Force Maven to download these artifacts -->
-    <dependency>
-      <groupId>org.sonarsource.dotnet</groupId>
-      <artifactId>sonar-csharp-plugin</artifactId>
-      <version>${csharpPlugin.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sonarsource.vbnet</groupId>
-      <artifactId>sonar-vbnet-plugin</artifactId>
-      <version>${vbnetPlugin.version}</version>
-    </dependency>
-
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <version>3.4.1</version>
     </dependency>
   </dependencies>
-  
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <systemProperties>
-            <vbnetPlugin.version>${vbnetPlugin.version}</vbnetPlugin.version>
-            <csharpPlugin.version>${csharpPlugin.version}</csharpPlugin.version>
-          </systemProperties>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-  
+
   <profiles>
     <profile>
       <id>download-scanner-artifacts</id>
@@ -98,55 +66,6 @@
                 </goals>
                 <configuration>
                   <artifact>org.sonarsource.scanner.msbuild:sonar-scanner-msbuild:${scannerForMSBuild.version}:zip</artifact>
-                </configuration>
-              </execution>
-              <execution>
-                <id>download-scanner-impl</id>
-                <phase>initialize</phase>
-                <goals>
-                  <goal>get</goal>
-                </goals>
-                <configuration>
-                  <artifact>org.sonarsource.scanner.msbuild:sonar-scanner-msbuild:${scannerForMSBuild.version}:zip:impl</artifact>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-        <profile>
-      <id>download-scanner-payload-artifacts</id>
-      <activation>
-        <property>
-          <name>scannerForMSBuildPayload.version</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <version>2.10</version>
-            <executions>
-              <execution>
-                <id>download-scanner-payload</id>
-                <phase>initialize</phase>
-                <goals>
-                  <goal>get</goal>
-                </goals>
-                <configuration>
-                  <artifact>org.sonarsource.scanner.msbuild:sonar-scanner-msbuild:${scannerForMSBuildPayload.version}:zip</artifact>
-                </configuration>
-              </execution>
-              <execution>
-                <id>download-scanner-payload-impl</id>
-                <phase>initialize</phase>
-                <goals>
-                  <goal>get</goal>
-                </goals>
-                <configuration>
-                  <artifact>org.sonarsource.scanner.msbuild:sonar-scanner-msbuild:${scannerForMSBuildPayload.version}:zip:impl</artifact>
                 </configuration>
               </execution>
             </executions>

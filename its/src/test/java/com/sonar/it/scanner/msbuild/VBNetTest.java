@@ -21,7 +21,6 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.locator.PluginLocation;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -60,7 +59,8 @@ public class VBNetTest {
 
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    .addPlugin(PluginLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", TestUtils.getVBNetVersion()))
+    .setOrchestratorProperty("vbnetVersion", "LATEST_RELEASE")
+    .addPlugin("vbnet")
     .addPlugin("fxcop")
     .activateLicense("vbnet")
     .build();

@@ -1,15 +1,6 @@
 # Definition of QA pipeline at SonarSource
 
-SCANNER_PAYLOAD_VERSION:
-  - DEV
-
-SCANNER_VERSION:
-  - 2.1.0.0
-  - DEV
-
 SQ_VERSION:
   - DEV
   - LTS
-    
-    
     

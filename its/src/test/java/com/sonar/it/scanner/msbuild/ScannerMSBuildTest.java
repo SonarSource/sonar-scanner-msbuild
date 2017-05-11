@@ -23,7 +23,6 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.locator.PluginLocation;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -69,14 +68,16 @@ public class ScannerMSBuildTest {
     @Override
     protected void beforeAll() {
 
-      Path modifiedCs = TestUtils.prepareCSharpPlugin(temp);
       Path customRoslyn = TestUtils.getCustomRoslynPlugin();
       ORCHESTRATOR = Orchestrator.builderEnv()
-        .addPlugin(FileLocation.of(modifiedCs.toFile()))
+        .setOrchestratorProperty("csharpVersion", "LATEST_RELEASE")
+        .addPlugin("csharp")
         .addPlugin(FileLocation.of(customRoslyn.toFile()))
-        .addPlugin(PluginLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", TestUtils.getVBNetVersion()))
-        .addPlugin("fxcop")
+        .setOrchestratorProperty("vbnetVersion", "LATEST_RELEASE")
+        .addPlugin("vbnet")
         .activateLicense("vbnet")
+        .setOrchestratorProperty("fxcopVersion", "LATEST_RELEASE")
+        .addPlugin("fxcop")
         .build();
       ORCHESTRATOR.start();
     }
@@ -307,6 +308,17 @@ public class ScannerMSBuildTest {
 
     assertThat(result.getLogs()).contains("Downloading from http://localhost");
     assertThat(result.getLogs()).contains("sonar.verbose=true was specified - setting the log verbosity to 'Debug'");
+  }
+
+  @Test
+  public void testHelp() throws IOException {
+
+    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("/?"));
+
+    assertThat(result.getLogs()).contains("Usage:");
+    assertThat(result.getLogs()).contains("SonarQube.Scanner.MSBuild.exe");
   }
 
   @Test
