@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using SonarQube.Common;
 using System;
 
@@ -52,6 +52,7 @@ namespace SonarQube.Bootstrapper
                 logger.LogInfo("    A settings file can be used to define properties. If no settings file path is given, the file SonarQube.Analysis.xml in the installation directory will be used.");
                 logger.LogInfo("    Only the token should be passed during the end phase, if it was used during the begin phase.");
 
+                logger.ResumeOutput();
                 return SuccessCode;
             }
 
