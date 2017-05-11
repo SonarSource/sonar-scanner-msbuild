@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<profile>
+  <name>ProfileForTestCpp</name>
+  <language>cpp</language>
+  <rules>
+    <rule>
+      <repositoryKey>cpp</repositoryKey>
+      <key>S106</key>
+      <priority>MAJOR</priority>
+      <parameters/>
+    </rule>
+  </rules>
+</profile>

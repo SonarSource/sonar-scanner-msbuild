@@ -65,7 +65,7 @@ public class TestUtils {
     }
     Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
     Locators locators = new Locators(configuration);
-    String pluginVersion = TestSuite.getCSharpVersion();
+    String pluginVersion = getCSharpVersion();
     MavenLocation csharp = MavenLocation.create("org.sonarsource.dotnet", "sonar-csharp-plugin", pluginVersion);
     Path modifiedCs = t.resolve("modified-chsarp.jar");
     if (locators.copyToFile(csharp, modifiedCs.toFile()) == null) {
@@ -96,6 +96,26 @@ public class TestUtils {
 
     replaceInZip(modifiedCs.toUri(), scannerImpl, "/static/SonarQube.MSBuild.Runner.Implementation.zip");
     return modifiedCs;
+  }
+
+  public static String getVBNetVersion() {
+    Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
+    String version = configuration.getString("vbnetPlugin.version");
+    if (version != null) {
+      return version;
+    }
+
+    throw new IllegalStateException("Unspecified version of VB.NET plugin. Define 'vbnetPlugin.version'");
+  }
+
+  public static String getCSharpVersion() {
+    Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
+    String version = configuration.getString("csharpPlugin.version");
+    if (version != null) {
+      return version;
+    }
+
+    throw new IllegalStateException("Unspecified version of C# plugin. Define 'csharpPlugin.version'");
   }
 
   @CheckForNull
@@ -161,17 +181,34 @@ public class TestUtils {
     return tmpProjectDir;
   }
 
+  public static void runMSBuildWithBuildWrapper(Orchestrator orch, Path projectDir, File buildWrapperPath, File outDir, String... arguments) {
+    Path msBuildPath = getMsBuildPath(orch);
+
+    int r = CommandExecutor.create().execute(Command.create(buildWrapperPath.toString())
+      .addArgument("--out-dir")
+      .addArgument(outDir.toString())
+      .addArgument(msBuildPath.toString())
+      .addArguments(arguments)
+      .setDirectory(projectDir.toFile()), 60 * 1000);
+    assertThat(r).isEqualTo(0);
+  }
+
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
-    String msBuildPathStr = orch.getConfiguration().getString(MSBUILD_PATH, "C:\\Program Files (x86)\\MSBuild\\14.0\\bin\\MSBuild.exe");
-    Path msBuildPath = Paths.get(msBuildPathStr).toAbsolutePath();
-    if (!Files.exists(msBuildPath)) {
-      throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath.toString() + ". Please configure property '" + MSBUILD_PATH + "'");
-    }
+    Path msBuildPath = getMsBuildPath(orch);
 
     int r = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
       .addArguments(arguments)
       .setDirectory(projectDir.toFile()), 60 * 1000);
     assertThat(r).isEqualTo(0);
+  }
+
+  private static Path getMsBuildPath(Orchestrator orch) {
+    String msBuildPathStr = orch.getConfiguration().getString(MSBUILD_PATH, "C:\\Program Files (x86)\\MSBuild\\14.0\\bin\\MSBuild.exe");
+    Path msBuildPath = Paths.get(msBuildPathStr).toAbsolutePath();
+    if (!Files.exists(msBuildPath)) {
+      throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath.toString() + ". Please configure property '" + MSBUILD_PATH + "'");
+    }
+    return msBuildPath;
   }
 
   private static void replaceInZip(URI zipUri, Path src, String dest) {
