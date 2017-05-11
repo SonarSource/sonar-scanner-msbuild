@@ -19,9 +19,11 @@
  */
 package com.sonar.it.scanner.msbuild;
 
+import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.PluginLocation;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -42,20 +44,48 @@ import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
-import static com.sonar.it.scanner.msbuild.TestSuite.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * csharpPlugin.version: csharp plugin to modify (installing scanner payload) and use. If not specified, uses 5.1. 
+ * vbnetPlugin.version: vbnet plugin to use. It not specified, it fails
+ * scannerForMSBuild.version: scanner to use. If not specified, uses the one built in ../
+ * scannerForMSBuildPayload.version: scanner to embed in the csharp plugin. If not specified, uses the one built in ../
+ * sonar.runtimeVersion: SQ to use
+ */
 public class ScannerMSBuildTest {
   private static final String PROJECT_KEY = "my.project";
   private static final String MODULE_KEY = "my.project:my.project:1049030E-AC7A-49D0-BEDC-F414C5C7DDD8";
   private static final String FILE_KEY = MODULE_KEY + ":Foo.cs";
 
-  @ClassRule
-  public static TemporaryFolder temp = TestSuite.temp;
+  public static Orchestrator ORCHESTRATOR;
 
   @ClassRule
-  public static SingleStartExternalResource resource = TestSuite.resource;
+  public static TemporaryFolder temp = new TemporaryFolder();
+
+  @ClassRule
+  public static SingleStartExternalResource resource = new SingleStartExternalResource() {
+    @Override
+    protected void beforeAll() {
+
+      Path modifiedCs = TestUtils.prepareCSharpPlugin(temp);
+      Path customRoslyn = TestUtils.getCustomRoslynPlugin();
+      ORCHESTRATOR = Orchestrator.builderEnv()
+        .addPlugin(FileLocation.of(modifiedCs.toFile()))
+        .addPlugin(FileLocation.of(customRoslyn.toFile()))
+        .addPlugin(PluginLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", TestUtils.getVBNetVersion()))
+        .addPlugin("fxcop")
+        .activateLicense("vbnet")
+        .build();
+      ORCHESTRATOR.start();
+    }
+
+    @Override
+    protected void afterAll() {
+      ORCHESTRATOR.stop();
+    }
+  };
 
   @Before
   public void setUp() {
@@ -346,6 +376,28 @@ public class ScannerMSBuildTest {
 
     assertThat(result.getLogs()).doesNotContain("File is not under the project directory and cannot currently be analysed by SonarQube");
     assertThat(result.getLogs()).doesNotContain("AssemblyAttributes.cs");
+  }
+
+  @Test
+  public void testCustomRoslynAnalyzer() throws Exception {
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
+    ORCHESTRATOR.getServer().provisionProject("foo", "Foo");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile("foo", "cs", "ProfileForTestCustomRoslyn");
+
+    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("begin")
+      .setProjectKey("foo")
+      .setProjectName("Foo")
+      .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("end"));
+
+    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    assertThat(issues).hasSize(4 + 37 + 1);
   }
 
   @CheckForNull

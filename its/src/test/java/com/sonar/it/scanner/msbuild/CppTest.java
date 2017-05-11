@@ -20,14 +20,18 @@
 package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.locator.PluginLocation;
+import com.sonar.orchestrator.util.ZipUtils;
+import java.io.File;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+import org.apache.commons.io.FileUtils;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -45,12 +49,12 @@ import org.sonarqube.ws.client.measure.ComponentWsRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Only vbnet, without C# plugin
+ * Only cpp, without C# plugin
  *
  */
-public class VBNetTest {
-  private static final String PROJECT_KEY = "my.project";
-  private static final String FILE_KEY = "my.project:my.project:60FFCB5D-A35A-43B2-8FE3-F37C8F3B742B:Module1.vb";
+public class CppTest {
+  private static final String PROJECT_KEY = "cpp";
+  private static final String FILE_KEY = "cpp:cpp:A8B8B694-4489-4D82-B9A0-7B63BF0B8FCE:ConsoleApp.cpp";
 
   @BeforeClass
   public static void checkSkip() {
@@ -60,9 +64,9 @@ public class VBNetTest {
 
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    .addPlugin(PluginLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", TestUtils.getVBNetVersion()))
-    .addPlugin("fxcop")
-    .activateLicense("vbnet")
+    .setOrchestratorProperty("cppVersion", "LATEST_RELEASE")
+    .addPlugin("cpp")
+    .activateLicense("cpp")
     .build();
 
   @ClassRule
@@ -74,34 +78,39 @@ public class VBNetTest {
   }
 
   @Test
-  public void testVBNetOnly() throws Exception {
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ConsoleMultiLanguage/TestQualityProfileVBNet.xml"));
-    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "multilang");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "vbnet", "ProfileForTestVBNet");
+  public void testCppOnly() throws Exception {
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/CppSolution/TestQualityProfileCpp.xml"));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "Cpp");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cpp", "ProfileForTestCpp");
 
-    Path projectDir = TestUtils.projectDir(temp, "ConsoleMultiLanguage");
+    Path projectDir = TestUtils.projectDir(temp, "CppSolution");
+    File wrapperOutDir = new File(projectDir.toFile(), "out");
+
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
-      .setProjectName("multilang")
+      .setProjectName("Cpp")
       .setProjectVersion("1.0")
-      .setDebugLogs(true));
+      .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString()));
+    File buildWrapper = temp.newFile();
+    File buildWrapperDir = temp.newFolder();
+    FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapper);
+    ZipUtils.unzip(buildWrapper, buildWrapperDir);
 
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+    TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
+      wrapperOutDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("end"));
+    assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
 
     List<String> keys = issues.stream().map(i -> i.ruleKey()).collect(Collectors.toList());
-    assertThat(keys).containsAll(Arrays.asList("vbnet:S3385",
-      "vbnet:S2358",
-      "fxcop-vbnet:AvoidUnusedPrivateFields",
-      "fxcop-vbnet:AvoidUncalledPrivateCode"));
+    assertThat(keys).containsAll(Arrays.asList("cpp:S106"));
 
-    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(23);
-    assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(10);
+    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(15);
+    assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(8);
   }
 
   @CheckForNull
