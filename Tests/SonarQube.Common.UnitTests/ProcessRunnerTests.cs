@@ -82,12 +82,12 @@ xxx yyy
         {
             // Arrange
 
-            // Calling TIMEOUT can fail on some older OSes (e.g. Windows 7) with the error
+            // Calling TIMEOUT can fail on some OSes (e.g. Windows 7) with the error
             // "Input redirection is not supported, exiting the process immediately."
-            // However, it works reliably on the CI machines. Alternatives such as
+            // Alternatives such as
             // pinging a non-existent address with a timeout were not reliable.
             string exeName = TestUtils.WriteBatchFileForTest(TestContext,
-@"C:\Windows\System32\timeout.exe 1
+@"waitfor /t 2 somethingThatNeverHappen
 @echo Hello world
 ");
 
