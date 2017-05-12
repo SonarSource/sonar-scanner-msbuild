@@ -61,8 +61,9 @@ public class VBNetTest {
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setOrchestratorProperty("vbnetVersion", "LATEST_RELEASE")
     .addPlugin("vbnet")
-    .addPlugin("fxcop")
     .activateLicense("vbnet")
+    .setOrchestratorProperty("fxcopVersion", "LATEST_RELEASE")
+    .addPlugin("fxcop")
     .build();
 
   @ClassRule
