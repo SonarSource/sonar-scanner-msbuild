@@ -15,10 +15,10 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SonarQubeExclude>True</SonarQubeExclude>
-    <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.0.2.768</ScannerCliVersion>
+    <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.0.3.778</ScannerCliVersion>
     <ScannerCliArtifact>sonar-scanner-cli-$(ScannerCliVersion).zip</ScannerCliArtifact>
     <ScannerCliDirectory>sonar-scanner-$(ScannerCliVersion)</ScannerCliDirectory>
-    <MavenCentralUrl>http://central.maven.org/maven2/org/sonarsource/scanner/cli/sonar-scanner-cli/$(ScannerCliVersion)/$(ScannerCliArtifact)</MavenCentralUrl>
+    <MavenCentralUrl>https://repox.sonarsource.com/sonarsource-public-releases/org/sonarsource/scanner/cli/sonar-scanner-cli/$(ScannerCliVersion)/$(ScannerCliArtifact)</MavenCentralUrl>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
