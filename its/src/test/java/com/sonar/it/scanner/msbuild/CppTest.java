@@ -36,7 +36,6 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.wsclient.issue.Issue;
@@ -79,7 +78,6 @@ public class CppTest {
   }
 
   @Test
-  @Ignore("C++ compiler is not available on cix")
   public void testCppOnly() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/CppSolution/TestQualityProfileCpp.xml"));
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "Cpp");
