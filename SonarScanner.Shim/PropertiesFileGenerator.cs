@@ -364,8 +364,8 @@ namespace SonarScanner.Shim
             string fxCopReport = project.TryGetAnalysisFileLocation(AnalysisType.FxCop);
             if (fxCopReport != null && !File.Exists(fxCopReport))
             {
-                fxCopReport = null;
                 logger.LogWarning(Resources.WARN_FxCopReportNotFound, fxCopReport);
+                fxCopReport = null;
             }
 
             return fxCopReport;
@@ -376,8 +376,8 @@ namespace SonarScanner.Shim
             string vsCoverageReport = project.TryGetAnalysisFileLocation(AnalysisType.VisualStudioCodeCoverage);
             if (vsCoverageReport != null && !File.Exists(vsCoverageReport))
             {
-                vsCoverageReport = null;
                 logger.LogWarning(Resources.WARN_CodeCoverageReportNotFound, vsCoverageReport);
+                vsCoverageReport = null;
             }
             return vsCoverageReport;
         }

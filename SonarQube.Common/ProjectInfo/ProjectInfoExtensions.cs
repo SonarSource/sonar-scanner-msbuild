@@ -153,13 +153,13 @@ namespace SonarQube.Common
 
         /// <summary>
         /// Attempts to return the file location for the specified type of analysis result.
-        /// Returns null if there is not a result for the specified type, or if the
-        /// file does not exist.
+        /// Returns null if there is not a result for the specified type.
+        /// Note that the file might not exist, callers much check before attempting to read.
         /// </summary>
         public static string TryGetAnalysisFileLocation(this ProjectInfo projectInfo, AnalysisType analysisType)
         {
             AnalysisResult result;
-            if (projectInfo.TryGetAnalyzerResult(analysisType, out result) && File.Exists(result.Location))
+            if (projectInfo.TryGetAnalyzerResult(analysisType, out result))
             {
                 return result.Location;
             }
@@ -179,7 +179,7 @@ namespace SonarQube.Common
         {
             List<String> files = new List<string>();
             var compiledFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisType.FilesToAnalyze);
-            if (compiledFilesPath != null)
+            if (compiledFilesPath != null && File.Exists(compiledFilesPath))
             {
                 files.AddRange(File.ReadAllLines(compiledFilesPath));
             }
