@@ -111,12 +111,49 @@ public class TestUtils {
     Path msBuildPath = getMsBuildPath(orch);
 
     int r = CommandExecutor.create().execute(Command.create(buildWrapperPath.toString())
+      .setEnvironmentVariable("CommandPromptType", "Native")
+      .setEnvironmentVariable("DevEnvDir", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\Common7\\IDE\\")
+      .setEnvironmentVariable("ExtensionSdkDir", "C:\\Program Files (x86)\\Microsoft SDKs\\Windows Kits\\10\\ExtensionSDKs")
+      .setEnvironmentVariable("Framework40Version", "v4.0")
+      .setEnvironmentVariable("FrameworkDir", "C:\\\\Windows\\\\Microsoft.NET\\Framework\\")
+      .setEnvironmentVariable("FrameworkDIR32", "C:\\Windows\\Microsoft.NET\\Framework\\")
+      .setEnvironmentVariable("FrameworkVersion", "v4.0.30319")
+      .setEnvironmentVariable("FrameworkVersion32", "v4.0.30319")
+      .setEnvironmentVariable("INCLUDE",
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\VC\\Tools\\MSVC\\14.10.25017\\ATLMFC\\include;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\VC\\Tools\\MSVC\\14.10.25017\\include;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.15063.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.15063.0\\shared;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.15063.0\\um;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.15063.0\\winrt;")
+      .setEnvironmentVariable("LIB",
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\VC\\Tools\\MSVC\\14.10.25017\\ATLMFC\\lib\\x86;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\VC\\Tools\\MSVC\\14.10.25017\\lib\\x86;C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\lib\\um\\x86;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.15063.0\\ucrt\\x86;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.15063.0\\um\\x86;")
+      .setEnvironmentVariable("LIBPATH",
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\VC\\Tools\\MSVC\\14.10.25017\\ATLMFC\\lib\\x86;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\VC\\Tools\\MSVC\\14.10.25017\\lib\\x86;C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\10.0.15063.0\\;C:\\Program Files (x86)\\Windows Kits\\10\\References\\10.0.15063.0\\;C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319;")
+      .setEnvironmentVariable("NETFXSDKDir", "C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\")
+      .setEnvironmentVariable("VCIDEInstallDir", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\Common7\\IDE\\VC\\")
+      .setEnvironmentVariable("VCINSTALLDIR", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\VC\\")
+      .setEnvironmentVariable("VCToolsInstallDir", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\VC\\Tools\\MSVC\\14.10.25017\\")
+      .setEnvironmentVariable("VCToolsRedistDir", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\VC\\Redist\\MSVC\\14.10.25017\\")
+      .setEnvironmentVariable("VisualStudioVersion", "15.0")
+      .setEnvironmentVariable("VS150COMNTOOLS", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\Common7\\Tools\\")
+      .setEnvironmentVariable("VSCMD_ARG_app_plat", "Desktop")
+      .setEnvironmentVariable("VSCMD_ARG_HOST_ARCH", "x86")
+      .setEnvironmentVariable("VSCMD_ARG_TGT_ARCH", "x86")
+      .setEnvironmentVariable("VSCMD_VER", "15.0.26430.6")
+      .setEnvironmentVariable("VSINSTALLDIR", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\")
+      .setEnvironmentVariable("VSSDK150INSTALL", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\VSSDK")
+      .setEnvironmentVariable("WindowsLibPath",
+        "C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\10.0.15063.0\\;C:\\Program Files (x86)\\Windows Kits\\10\\References\\10.0.15063.0\\")
+      .setEnvironmentVariable("WindowsSdkBinPath", "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\")
+      .setEnvironmentVariable("WindowsSdkDir", "C:\\Program Files (x86)\\Windows Kits\\10\\")
+      .setEnvironmentVariable("WindowsSDKLibVersion", "10.0.15063.0\\")
+      .setEnvironmentVariable("WindowsSdkVerBinPath", "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.15063.0\\")
+      .setEnvironmentVariable("WindowsSDKVersion", "10.0.15063.0\\")
+      .setEnvironmentVariable("WindowsSDK_ExecutablePath_x64", "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\x64\\")
+      .setEnvironmentVariable("WindowsSDK_ExecutablePath_x86", "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\")
       .addArgument("--out-dir")
       .addArgument(outDir.toString())
       .addArgument(msBuildPath.toString())
       .addArguments(arguments)
       .setDirectory(projectDir.toFile()), 60 * 1000);
     assertThat(r).isEqualTo(0);
+
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
