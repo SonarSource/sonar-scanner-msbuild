@@ -154,7 +154,7 @@ namespace SonarQube.Common
         /// <summary>
         /// Attempts to return the file location for the specified type of analysis result.
         /// Returns null if there is not a result for the specified type.
-        /// Note that the file might not exist, callers much check before attempting to read.
+        /// Note that callers must check if the file exists before attempting to read.
         /// </summary>
         public static string TryGetAnalysisFileLocation(this ProjectInfo projectInfo, AnalysisType analysisType)
         {
