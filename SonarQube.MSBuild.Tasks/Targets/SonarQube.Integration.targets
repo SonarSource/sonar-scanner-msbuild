@@ -140,11 +140,6 @@
   <Target Name="SonarQubeCategoriseProject"
           Condition=" $(SonarQubeTempPath) != '' ">
 
-    <!-- SONARMSBRU-235: Exclude SQL Server projects which imported Microsoft.Data.Tools.Schema.SqlTasks.targets -->
-    <PropertyGroup>
-      <SonarQubeExclude Condition=" $(SqlTargetName) != '' ">true</SonarQubeExclude>
-    </PropertyGroup>
-
     <!-- Fakes detection -->
     <PropertyGroup>
       <IsFakesProject Condition="$(AssemblyName.EndsWith('.fakes', System.StringComparison.OrdinalIgnoreCase))">true</IsFakesProject>

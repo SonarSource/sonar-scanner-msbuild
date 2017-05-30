@@ -222,8 +222,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         #region SQL Server projects tests
 
         [TestMethod]
-        [TestCategory("ProjectInfo")] // SONARMSBRU-235: SQL Server projects should be excluded from analysis
-        public void WriteProjectInfo_SqlServerProjectsAreExcluded()
+        [TestCategory("ProjectInfo")]
+        public void WriteProjectInfo_SqlServerProjectsAreNotExcluded()
         {
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
@@ -238,7 +238,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             ProjectInfo projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
 
             // Assert
-            AssertProjectIsExcluded(projectInfo);
+            AssertProjectIsNotExcluded(projectInfo);
         }
 
         #endregion
