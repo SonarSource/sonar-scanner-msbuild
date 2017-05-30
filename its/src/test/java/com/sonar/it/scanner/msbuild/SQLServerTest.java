@@ -22,6 +22,11 @@ package com.sonar.it.scanner.msbuild;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.URLLocation;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -66,7 +71,9 @@ public class SQLServerTest {
         .addPlugin("csharp")
         .addPlugin(FileLocation.of(customRoslyn.toFile()))
         .setOrchestratorProperty("fxcopVersion", "LATEST_RELEASE")
-        .addPlugin("fxcop")
+        // TODO uncomment when sonar-fxcop 1.1 is released and available in update center
+        //.addPlugin("fxcop")
+        .addPlugin(getFxCopPluginUrl())
         .build();
       ORCHESTRATOR.start();
     }
@@ -77,13 +84,21 @@ public class SQLServerTest {
     }
   };
 
+  private static Location getFxCopPluginUrl() {
+    try {
+      return URLLocation.create(new URL("https://github.com/SonarQubeCommunity/sonar-fxcop/releases/download/1.1-rc1/sonar-fxcop-plugin-1.1-rc1.jar"));
+    } catch (MalformedURLException e) {
+      throw new IllegalStateException();
+    }
+  }
+
   @Before
   public void setUp() {
     ORCHESTRATOR.resetData();
   }
 
   @Test
-  public void testSample() throws Exception {
+  public void should_find_issues_in_cs_files() throws Exception {
     Path projectDir = TestUtils.projectDir(temp, "SQLServerSolution");
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("begin")
@@ -101,6 +116,34 @@ public class SQLServerTest {
     assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(19);
     assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(25);
     assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(23);
+  }
+
+  @Test
+  public void should_not_crash_when_fxcop_is_active() throws IOException {
+    String response = ORCHESTRATOR.getServer().adminWsClient().post("api/rules/create",
+            "name", "customfxcop",
+            "severity", "MAJOR",
+            "custom_key", "customfxcop",
+            "markdown_description", "custom rule",
+            "template_key", "fxcop:CustomRuleTemplate",
+            "params", "CheckId=CA2201");
+
+    System.out.println("RESPONSE: " + response);
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileFxCop.xml"));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTestFxCop");
+
+    Path projectDir = TestUtils.projectDir(temp, "SQLServerSolution");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+            .addArgument("begin")
+            .setProjectKey(PROJECT_KEY)
+            .setProjectName("sample")
+            .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+            .addArgument("end"));
   }
 
   @CheckForNull
