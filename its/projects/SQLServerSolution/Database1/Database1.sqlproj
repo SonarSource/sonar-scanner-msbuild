@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="util\SqlStoredProcedure1.cs" />
+    <Compile Include="util\ClassFile1.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
