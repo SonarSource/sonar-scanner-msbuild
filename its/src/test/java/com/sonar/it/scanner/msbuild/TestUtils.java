@@ -20,11 +20,13 @@
 package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
+import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -114,12 +116,20 @@ public class TestUtils {
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
+    BuildResult r = runMSBuildQuietly(orch, projectDir, arguments);
+    assertThat(r.isSuccess()).isTrue();
+  }
+
+  public static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
-    int r = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
+    BuildResult result = new BuildResult();
+    StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
+    int status = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
       .addArguments(arguments)
-      .setDirectory(projectDir.toFile()), 60 * 1000);
-    assertThat(r).isEqualTo(0);
+      .setDirectory(projectDir.toFile()), writer, 60 * 1000);
+    result.addStatus(status);
+    return result;
   }
 
   private static Path getMsBuildPath(Orchestrator orch) {

@@ -412,6 +412,21 @@ public class ScannerMSBuildTest {
     assertThat(issues).hasSize(4 + 37 + 1);
   }
 
+  @Test
+  public void failOnMSBuild12() throws Exception {
+
+    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectName("sample")
+      .setProjectVersion("1.0"));
+
+    BuildResult r = TestUtils.runMSBuildQuietly(ORCHESTRATOR, projectDir, "/t:Rebuild", "/toolsversion:12.0");
+    assertThat(r.isSuccess()).isFalse();
+    assertThat(r.getLogs()).contains("SonarQube analysis is only supported with MSBuild 14 or MSBuild 15");
+  }
+
   @CheckForNull
   static Integer getMeasureAsInteger(String componentKey, String metricKey) {
     WsMeasures.Measure measure = getMeasure(componentKey, metricKey);
