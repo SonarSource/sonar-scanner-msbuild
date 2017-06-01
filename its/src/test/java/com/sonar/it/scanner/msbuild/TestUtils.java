@@ -20,26 +20,22 @@
 package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
+import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
@@ -120,12 +116,20 @@ public class TestUtils {
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
+    BuildResult r = runMSBuildQuietly(orch, projectDir, arguments);
+    assertThat(r.isSuccess()).isTrue();
+  }
+
+  public static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
-    int r = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
+    BuildResult result = new BuildResult();
+    StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
+    int status = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
       .addArguments(arguments)
-      .setDirectory(projectDir.toFile()), 60 * 1000);
-    assertThat(r).isEqualTo(0);
+      .setDirectory(projectDir.toFile()), writer, 60 * 1000);
+    result.addStatus(status);
+    return result;
   }
 
   private static Path getMsBuildPath(Orchestrator orch) {
@@ -135,21 +139,6 @@ public class TestUtils {
       throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath.toString() + ". Please configure property '" + MSBUILD_PATH + "'");
     }
     return msBuildPath;
-  }
-
-  private static void replaceInZip(URI zipUri, Path src, String dest) {
-    Map<String, String> env = new HashMap<>();
-    env.put("create", "true");
-    // locate file system by using the syntax
-    // defined in java.net.JarURLConnection
-    URI uri = URI.create("jar:" + zipUri);
-    try (FileSystem zipfs = FileSystems.newFileSystem(uri, env)) {
-      Path pathInZipfile = zipfs.getPath(dest);
-      LOG.info("Replacing the file " + pathInZipfile + " in the zip " + zipUri + " with " + src);
-      Files.copy(src, pathInZipfile, StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
   }
 
   protected static String parseVersion() {

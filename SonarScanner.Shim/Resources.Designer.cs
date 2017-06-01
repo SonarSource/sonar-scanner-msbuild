@@ -91,7 +91,7 @@ namespace SonarScanner.Shim {
         ///   Looks up a localized string similar to The SonarQube MSBuild integration failed: SonarQube was unable to collect the required information about your projects.
         ///Possible causes:
         ///  1. The project has not been built - the project must be built in between the begin and end steps
-        ///  2. An unsupported version of MSBuild has been used to build the project. Currently MSBuild 12.0 upwards are supported
+        ///  2. An unsupported version of MSBuild has been used to build the project. Currently MSBuild 14.0 upwards are supported
         ///  3. The begin, build or end steps have not all been launched from the same folder.
         /// </summary>
         public static string ERR_NoProjectInfoFilesFound {

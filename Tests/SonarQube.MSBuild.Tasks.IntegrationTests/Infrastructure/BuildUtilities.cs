@@ -33,7 +33,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
     internal static class BuildUtilities
     {
         // TODO: work out some way to automatically set the tools version depending on the version of VS being used
-        //public const string MSBuildToolsVersionForTestProjects = "12.0"; // use this line for VS2013
         //public const string MSBuildToolsVersionForTestProjects = "14.0"; // use this line for VS2015
         public const string MSBuildToolsVersionForTestProjects = "15.0"; // use this line for VS2017
 

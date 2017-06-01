@@ -122,6 +122,12 @@
     <Message Importance="high" Text="Skipping dumping compile outputs because SonarQubeTempPath has not been specified" />
   </Target>
 
+  <Target Name="FailIfLowerThanMSBuild14"
+          Condition=" $(SonarQubeTempPath) != '' AND $(MSBuildToolsVersion) != '14.0' AND $(MSBuildToolsVersion) != '15.0'"
+          BeforeTargets="Build">
+    <Error Text="SonarQube analysis is only supported with MSBuild 14 or MSBuild 15" />
+  </Target>
+
   <!-- **************************************************************************** -->
   <!-- Categorise as a product or test project -->
   <!-- **************************************************************************** -->

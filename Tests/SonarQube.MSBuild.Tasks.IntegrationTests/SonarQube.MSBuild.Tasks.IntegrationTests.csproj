@@ -131,9 +131,6 @@
     <Content Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.12.0.config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="App.14.0.config">
       <SubType>Designer</SubType>
     </None>

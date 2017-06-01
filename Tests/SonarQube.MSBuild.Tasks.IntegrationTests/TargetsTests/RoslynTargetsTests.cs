@@ -437,26 +437,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
             logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
 
-            // Note: use VS2013 to run this test using MSBuild 12.0.
-            // Use VS2015 to run this test using MSBuild 14.0.
-            if (result.ProjectStateAfterBuild.ToolsVersion.CompareTo("14.0") < 0)
-            {
-                logger.AssertTargetNotExecuted(TargetConstants.ResolveCodeAnalysisRuleSet); // sanity-check: should only be in MSBuild 14.0+
-                Assert.Inconclusive("This test requires MSBuild 14.0 to be installed. Version used: {0}", result.ProjectStateAfterBuild.ToolsVersion);
-            }
-            else
-            {
-                // MSBuild 14.0+ checks
-                logger.AssertExpectedTargetOrdering(
-                    TargetConstants.ResolveCodeAnalysisRuleSet,
-                    TargetConstants.CategoriseProjectTarget,
-                    TargetConstants.OverrideRoslynAnalysisTarget,
-                    TargetConstants.SetRoslynAnalysisPropertiesTarget,
-                    TargetConstants.CoreCompile,
-                    TargetConstants.DefaultBuildTarget,
-                    TargetConstants.SetRoslynResultsTarget,
-                    TargetConstants.WriteProjectDataTarget);
-            }
+            logger.AssertExpectedTargetOrdering(
+                TargetConstants.ResolveCodeAnalysisRuleSet,
+                TargetConstants.CategoriseProjectTarget,
+                TargetConstants.OverrideRoslynAnalysisTarget,
+                TargetConstants.SetRoslynAnalysisPropertiesTarget,
+                TargetConstants.CoreCompile,
+                TargetConstants.DefaultBuildTarget,
+                TargetConstants.SetRoslynResultsTarget,
+                TargetConstants.WriteProjectDataTarget);
         }
 
         #endregion
