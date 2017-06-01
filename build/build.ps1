@@ -8,10 +8,10 @@ function testExitCode(){
 }
 
 #download MSBuild
-$url = "https://github.com/SonarSource-VisualStudio/sonar-msbuild-runner/releases/download/2.0/MSBuild.SonarQube.Runner-2.0.zip"
-$output = ".\MSBuild.SonarQube.Runner.zip"    
+$url = "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/2.3.2.573/sonar-scanner-msbuild-2.3.2.573.zip"
+$output = ".\sonar-scanner-msbuild.zip"    
 Invoke-WebRequest -Uri $url -OutFile $output
-unzip -o .\MSBuild.SonarQube.Runner.zip
+unzip -o .\sonar-scanner-msbuild.zip
 testExitCode
 
 #generate build version from the build number
@@ -34,11 +34,9 @@ function deploy(
 )
 {
     #DeployOnRepox $scannerZipPath "" $version
-    $implZipPath    = Get-Item .\DeploymentArtifacts\CSharpPluginPayload\Release\SonarQube.MSBuild.Runner.Implementation.zip
     $scannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\SonarQube.Scanner.MSBuild.zip
     
     write-host -f green  "replace zip filenames in pom.xml"
-    (Get-Content .\pom.xml) -replace 'implZipPath', "$implZipPath" | Set-Content .\pom.xml
     (Get-Content .\pom.xml) -replace 'scannerZipPath', "$scannerZipPath" | Set-Content .\pom.xml
         
     write-host -f green  "set version $version in pom.xml"
@@ -65,7 +63,7 @@ function runTests() {
 if ($env:IS_PULLREQUEST -eq "true") { 
     write-host -f green "in a pull request"
 
-    .\MSBuild.SonarQube.Runner begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:latest `
+    .\SonarQube.Scanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:latest `
         /d:sonar.host.url=$env:SONAR_HOST_URL `
         /d:sonar.login=$env:SONAR_TOKEN `
         /d:sonar.github.pullRequest=$env:PULL_REQUEST `
@@ -82,7 +80,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
     #run tests
     runTests
 
-    .\MSBuild.SonarQube.Runner end /d:sonar.login=$env:SONAR_TOKEN
+    .\SonarQube.Scanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
     testExitCode
 
     deploy -version $version
@@ -92,7 +90,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         write-host -f green "Building master branch"
 
         #start analysis
-        .\MSBuild.SonarQube.Runner begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:master `
+        .\SonarQube.Scanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:master `
             /d:sonar.host.url=$env:SONAR_HOST_URL `
             /d:sonar.login=$env:SONAR_TOKEN 
         testExitCode
@@ -106,7 +104,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         runTests
 
         #end analysis
-        .\MSBuild.SonarQube.Runner end /d:sonar.login=$env:SONAR_TOKEN
+        .\SonarQube.Scanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
         testExitCode
        
        deploy -version $version
