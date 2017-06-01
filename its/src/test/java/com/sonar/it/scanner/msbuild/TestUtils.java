@@ -27,19 +27,13 @@ import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
@@ -135,21 +129,6 @@ public class TestUtils {
       throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath.toString() + ". Please configure property '" + MSBUILD_PATH + "'");
     }
     return msBuildPath;
-  }
-
-  private static void replaceInZip(URI zipUri, Path src, String dest) {
-    Map<String, String> env = new HashMap<>();
-    env.put("create", "true");
-    // locate file system by using the syntax
-    // defined in java.net.JarURLConnection
-    URI uri = URI.create("jar:" + zipUri);
-    try (FileSystem zipfs = FileSystems.newFileSystem(uri, env)) {
-      Path pathInZipfile = zipfs.getPath(dest);
-      LOG.info("Replacing the file " + pathInZipfile + " in the zip " + zipUri + " with " + src);
-      Files.copy(src, pathInZipfile, StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
   }
 
   protected static String parseVersion() {
