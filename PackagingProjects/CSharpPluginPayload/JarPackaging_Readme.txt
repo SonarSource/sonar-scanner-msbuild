@@ -1,1 +1,0 @@
-﻿To enable jar re-packaging place a copy of the C# plugin in the same directory as this text file. 
