@@ -206,7 +206,7 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="CleanProjectFolders" AfterTargets="Clean" Condition=" $(SonarQubeTempPath) != '' ">
+  <Target Name="CleanProjectFolders" AfterTargets="Clean" BeforeTargets="CreateProjectSpecificDirs" Condition=" $(SonarQubeTempPath) != '' ">
     <ItemGroup>
       <ProjectSpecificOutFiles Include="$(SonarQubeOutputPath)\$(MSBuildProjectName)_*\*.*"/>
       <ProjectSpecificOutDirs Include="@(ProjectSpecificOutFiles->'%(RootDir)%(Directory)'->Distinct())" />
