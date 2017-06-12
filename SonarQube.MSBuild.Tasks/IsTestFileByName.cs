@@ -29,7 +29,7 @@ using System.Text.RegularExpressions;
 namespace SonarQube.MSBuild.Tasks
 {
     /// <summary>
-    /// MSBuild task that determines whether a file is should be treated as a
+    /// MSBuild task that determines whether a file should be treated as a
     /// test file for analysis purposes based on its path and file name
     /// </summary>
     /// <remarks>The task applies a regular expression to the file name being tested to determine whether
