@@ -32,6 +32,7 @@ namespace SonarQube.TeamBuild.Integration
     public class CoverageReportConverter : ICoverageReportConverter
     {
         private const int ConversionTimeoutInMs = 60000;
+        private readonly IVisualStudioSetupConfigurationFactory setupConfigurationFactory;
 
         /// <summary>
         /// Registry containing information about installed VS versions
@@ -44,6 +45,19 @@ namespace SonarQube.TeamBuild.Integration
         private const string TeamToolPathandExeName = @"Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe";
 
         private string conversionToolPath;
+
+        #region Public methods
+
+        public CoverageReportConverter()
+            : this(new VisualStudioSetupConfigurationFactory())
+        { }
+
+        public CoverageReportConverter(IVisualStudioSetupConfigurationFactory setupConfigurationFactory)
+        {
+            this.setupConfigurationFactory = setupConfigurationFactory;
+        }
+
+        #endregion Public methods
 
         #region IReportConverter interface
 
