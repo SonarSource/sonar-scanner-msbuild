@@ -80,6 +80,7 @@
     <Compile Include="CoverageReportDownloader.cs" />
     <Compile Include="CoverageReportProcessorBase.cs" />
     <Compile Include="Interfaces\ITeamBuildSettings.cs" />
+    <Compile Include="Interfaces\IVisualStudioSetupConfigurationFactory.cs" />
     <Compile Include="TfsLegacyCoverageReportProcessor.cs" />
     <Compile Include="CoverageReportUrlProvider.cs" />
     <Compile Include="Interfaces\ICoverageReportProcessor.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="TeamBuildAnalysisSettings.cs" />
     <Compile Include="TeamBuildSettings.cs" />
     <Compile Include="TrxFileReader.cs" />
+    <Compile Include="VisualStudioSetupConfigurationFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj">
