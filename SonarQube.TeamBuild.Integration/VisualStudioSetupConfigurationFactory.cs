@@ -16,10 +16,10 @@ namespace SonarQube.TeamBuild.Integration
 
         public ISetupConfiguration GetSetupConfigurationQuery()
         {
-            ISetupConfiguration setupConfiguration=null;
+            ISetupConfiguration setupConfiguration = null;
             try
             {
-                setupConfiguration= new SetupConfiguration();
+                setupConfiguration = new SetupConfiguration();
             }
             catch (COMException ex) when (ex.HResult == REGDB_E_CLASSNOTREG)
             {
