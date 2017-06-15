@@ -157,9 +157,15 @@ namespace SonarQube.TeamBuild.Integration
                     logger.LogDebug(Resources.CONV_DIAG_MultipleVsVersionsInstalled, string.Join(", ", instances.Select(i => i.GetInstallationVersion())));
                 }
 
-                toolPath = instances.OrderByDescending(i => i.GetInstallationVersion())
-                                    .Select(i => i.GetInstallationPath())
-                                    .FirstOrDefault();
+                //Get the installation path for the latest visual studio found
+                var visualStudioPath = instances.OrderByDescending(i => i.GetInstallationVersion())
+                                                .Select(i => i.GetInstallationPath())
+                                                .FirstOrDefault();
+
+                if (visualStudioPath != null)
+                {
+                    toolPath = Path.Combine(visualStudioPath, TeamToolPathandExeName);
+                }
             }
             else
             {
