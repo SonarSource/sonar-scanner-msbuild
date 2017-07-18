@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using Microsoft.Win32;
 using SonarQube.Common;
 using System;
@@ -26,12 +26,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.VisualStudio.Setup.Configuration;
 
 namespace SonarQube.TeamBuild.Integration
 {
     public class CoverageReportConverter : ICoverageReportConverter
     {
         private const int ConversionTimeoutInMs = 60000;
+        private readonly IVisualStudioSetupConfigurationFactory setupConfigurationFactory;
 
         /// <summary>
         /// Registry containing information about installed VS versions
@@ -43,7 +45,25 @@ namespace SonarQube.TeamBuild.Integration
         /// </summary>
         private const string TeamToolPathandExeName = @"Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe";
 
+        /// <summary>
+        /// Code coverage package name for Visual Studio setup configuration
+        /// </summary>
+        private const string CodeCoverageInstallationPackage = "Microsoft.VisualStudio.TestTools.CodeCoverage";
+
         private string conversionToolPath;
+
+        #region Public methods
+
+        public CoverageReportConverter()
+            : this(new VisualStudioSetupConfigurationFactory())
+        { }
+
+        public CoverageReportConverter(IVisualStudioSetupConfigurationFactory setupConfigurationFactory)
+        {
+            this.setupConfigurationFactory = setupConfigurationFactory;
+        }
+
+        #endregion Public methods
 
         #region IReportConverter interface
 
@@ -94,11 +114,76 @@ namespace SonarQube.TeamBuild.Integration
 
         #region Private methods
 
-        private static string GetExeToolPath(ILogger logger)
+        private string GetExeToolPath(ILogger logger)
+        {
+            logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageTool);
+            return GetExeToolPathFromSetupConfiguration(logger) ??
+                   GetExeToolPathFromRegistry(logger);
+        }
+
+        #region Code Coverage Tool path from setup configuration
+
+        private string GetExeToolPathFromSetupConfiguration(ILogger logger)
         {
             string toolPath = null;
 
-            logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageTool);
+            logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageToolSetupConfiguration);
+            ISetupConfiguration configurationQuery = setupConfigurationFactory.GetSetupConfigurationQuery();
+            if (configurationQuery != null)
+            {
+                IEnumSetupInstances instanceEnumerator = configurationQuery.EnumInstances();
+
+                int fetched;
+                ISetupInstance[] tempInstance = new ISetupInstance[1];
+
+                List<ISetupInstance2> instances = new List<ISetupInstance2>();
+                //Enumerate the configuration instances
+                do
+                {
+                    instanceEnumerator.Next(1, tempInstance, out fetched);
+                    if (fetched > 0)
+                    {
+                        ISetupInstance2 instance = (ISetupInstance2)tempInstance[0];
+                        if (instance.GetPackages().Any(p => p.GetId() == CodeCoverageInstallationPackage))
+                        {
+                            //Store instances that have code coverage package installed
+                            instances.Add((ISetupInstance2)tempInstance[0]);
+                        }
+                    }
+                } while (fetched > 0);
+
+                if (instances.Count > 1)
+                {
+                    logger.LogDebug(Resources.CONV_DIAG_MultipleVsVersionsInstalled, string.Join(", ", instances.Select(i => i.GetInstallationVersion())));
+                }
+
+                //Get the installation path for the latest visual studio found
+                var visualStudioPath = instances.OrderByDescending(i => i.GetInstallationVersion())
+                                                .Select(i => i.GetInstallationPath())
+                                                .FirstOrDefault();
+
+                if (visualStudioPath != null)
+                {
+                    toolPath = Path.Combine(visualStudioPath, TeamToolPathandExeName);
+                }
+            }
+            else
+            {
+                logger.LogDebug(Resources.CONV_DIAG_SetupConfigurationNotSupported);
+            }
+
+            return toolPath;
+        }
+
+        #endregion Code Coverage Tool path from setup configuration
+
+        #region Code Coverage Tool path from registry
+
+        private static string GetExeToolPathFromRegistry(ILogger logger)
+        {
+            string toolPath = null;
+
+            logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageToolRegistry);
             using (RegistryKey key = Registry.LocalMachine.OpenSubKey(VisualStudioRegistryPath, false))
             {
                 // i.e. no VS installed
@@ -191,6 +276,8 @@ namespace SonarQube.TeamBuild.Integration
             }
             return result;
         }
+
+        #endregion Code Coverage Tool path from registry
 
         // was internal
         public static bool ConvertBinaryToXml(string converterExeFilePath, string inputBinaryFilePath, string outputXmlFilePath, ILogger logger)

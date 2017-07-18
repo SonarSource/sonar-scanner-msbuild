@@ -79,11 +79,38 @@ namespace SonarQube.TeamBuild.Integration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Attempting to locate the CodeCoverage.exe tool using registry....
+        /// </summary>
+        internal static string CONV_DIAG_LocatingCodeCoverageToolRegistry {
+            get {
+                return ResourceManager.GetString("CONV_DIAG_LocatingCodeCoverageToolRegistry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attempting to locate the CodeCoverage.exe tool using setup configuration....
+        /// </summary>
+        internal static string CONV_DIAG_LocatingCodeCoverageToolSetupConfiguration {
+            get {
+                return ResourceManager.GetString("CONV_DIAG_LocatingCodeCoverageToolSetupConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Multiple versions of VS are installed: {0}.
         /// </summary>
         internal static string CONV_DIAG_MultipleVsVersionsInstalled {
             get {
                 return ResourceManager.GetString("CONV_DIAG_MultipleVsVersionsInstalled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Visual Studio setup configuration was not found..
+        /// </summary>
+        internal static string CONV_DIAG_SetupConfigurationNotSupported {
+            get {
+                return ResourceManager.GetString("CONV_DIAG_SetupConfigurationNotSupported", resourceCulture);
             }
         }
         
