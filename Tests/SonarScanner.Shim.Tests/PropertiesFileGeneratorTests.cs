@@ -17,15 +17,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using TestUtilities;
 
 namespace SonarScanner.Shim.Tests
@@ -393,6 +392,85 @@ namespace SonarScanner.Shim.Tests
             provider.AssertSettingExists("sonar.sources", sharedFile);
         }
 
+        // SONARMSBRU-335
+        [TestMethod]
+        public void FileGen_SharedFiles_CaseInsensitive()
+        {
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string project1Dir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "project1");
+            string project1Path = Path.Combine(project1Dir, "project1.proj");
+            string project1Info = CreateProjectInfoInSubDir(testDir, "projectName1", Guid.NewGuid(), ProjectType.Product, false, project1Path, "UTF-8"); // not excluded
+            var sharedFile = Path.Combine(testDir, "contentFile.txt");
+            var sharedFileDifferentCase = Path.Combine(testDir, "ContentFile.TXT");
+            CreateEmptyFile(testDir, "contentFile.txt");
+
+            // Reference shared file, but not under the project directory
+            string contentFileList1 = CreateFile(project1Dir, "contentList.txt", sharedFile);
+            AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
+
+            string project2Dir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "project2");
+            string project2Path = Path.Combine(project2Dir, "project2.proj");
+            string project2Info = CreateProjectInfoInSubDir(testDir, "projectName2", Guid.NewGuid(), ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
+
+            // Reference shared file, but not under the project directory
+            string contentFileList2 = CreateFile(project2Dir, "contentList.txt", sharedFileDifferentCase);
+            AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
+
+            TestLogger logger = new TestLogger();
+            AnalysisConfig config = CreateValidConfig(testDir);
+
+            // Act
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+
+            // Assert
+            SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+            provider.AssertSettingExists("sonar.projectBaseDir", testDir);
+            provider.AssertSettingExists("sonar.sources", sharedFile);
+        }
+
+        // SONARMSBRU-336
+        [TestMethod]
+        public void FileGen_SharedFiles_BelongToAnotherProject()
+        {
+            // Shared files that belong to another project should NOT be attached to the root project
+
+            // Arrange
+            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+
+            string project1Dir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "project1");
+            string project1Path = Path.Combine(project1Dir, "project1.proj");
+            Guid project1Guid = Guid.NewGuid();
+            string project1Info = CreateProjectInfoInSubDir(testDir, "projectName1", project1Guid, ProjectType.Product, false, project1Path, "UTF-8"); // not excluded
+            var fileInProject1 = Path.Combine(project1Dir, "contentFile.txt");
+            CreateEmptyFile(project1Dir, "contentFile.txt");
+
+            // Reference shared file, but not under the project directory
+            string contentFileList1 = CreateFile(project1Dir, "contentList.txt", fileInProject1);
+            AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
+
+            string project2Dir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "project2");
+            string project2Path = Path.Combine(project2Dir, "project2.proj");
+            string project2Info = CreateProjectInfoInSubDir(testDir, "projectName2", Guid.NewGuid(), ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
+
+            // Reference shared file, but not under the project directory
+            string contentFileList2 = CreateFile(project2Dir, "contentList.txt", fileInProject1);
+            AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
+
+            TestLogger logger = new TestLogger();
+            AnalysisConfig config = CreateValidConfig(testDir);
+
+            // Act
+            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+
+            // Assert
+            SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+            provider.AssertSettingExists("sonar.projectBaseDir", testDir);
+            provider.AssertSettingDoesNotExist("sonar.sources");
+            provider.AssertSettingExists(project1Guid.ToString().ToUpper() + ".sonar.sources", fileInProject1);
+        }
+
         [TestMethod] //https://jira.codehaus.org/browse/SONARMSBRU-13: Analysis fails if a content file referenced in the MSBuild project does not exist
         public void FileGen_MissingFilesAreSkipped()
         {
@@ -473,7 +551,7 @@ namespace SonarScanner.Shim.Tests
             config.LocalSettings.Add(new Property() { Id = "key.3", Value = " " });
 
             // Sensitive data should not be written
-            config.LocalSettings.Add(new Property() { Id = SonarProperties.DbPassword, Value ="secret db pwd" });
+            config.LocalSettings.Add(new Property() { Id = SonarProperties.DbPassword, Value = "secret db pwd" });
             config.LocalSettings.Add(new Property() { Id = SonarProperties.SonarPassword, Value = "secret pwd" });
 
             // Server properties should not be added
@@ -699,14 +777,14 @@ namespace SonarScanner.Shim.Tests
             AnalysisConfig config = new AnalysisConfig();
             PropertiesWriter writer = new PropertiesWriter(config);
             config.SonarOutputDir = TestSonarqubeOutputDir;
-            
+
             config.SourcesDirectory = teamBuildValue;
             config.SetConfigValue(SonarProperties.ProjectBaseDir, userValue);
 
             TestLogger logger = new TestLogger();
 
             // Act
-            string result = PropertiesFileGenerator.ComputeProjectBaseDir(config, projectPaths.Select(p => new ProjectInfo { FullPath = p, ProjectLanguage = ProjectLanguages.CSharp }));
+            string result = PropertiesFileGenerator.ComputeRootProjectBaseDir(config, projectPaths.Select(p => new ProjectInfo { FullPath = p, ProjectLanguage = ProjectLanguages.CSharp }));
 
             result.Should().Be(expectedValue);
         }

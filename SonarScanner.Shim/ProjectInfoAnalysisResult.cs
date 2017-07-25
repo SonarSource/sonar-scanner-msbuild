@@ -17,10 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using SonarQube.Common;
 
 namespace SonarScanner.Shim
 {
@@ -34,7 +35,7 @@ namespace SonarScanner.Shim
 
         public string FullPropertiesFilePath { get; set; }
 
-        public ICollection<string> SharedFiles { get; } = new HashSet<string>();
+        public HashSet<string> SharedFiles { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         #endregion
 

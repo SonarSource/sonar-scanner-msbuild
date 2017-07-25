@@ -17,15 +17,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
-using SonarQube.Common.Interfaces;
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using SonarQube.Common;
+using SonarQube.Common.Interfaces;
 
 namespace SonarScanner.Shim
 {
@@ -75,20 +74,20 @@ namespace SonarScanner.Shim
 
             TryFixSarifReports(logger, projects, fixer);
 
-            string projectBaseDir = ComputeProjectBaseDir(config, projects);
+            string rootProjectBaseDir = ComputeRootProjectBaseDir(config, projects);
 
             PropertiesWriter writer = new PropertiesWriter(config);
             AnalysisProperties properties = GetAnalysisProperties(config);
             var globalSourceEncoding = GetSourceEncoding(properties, new EncodingProvider());
 
-            ProjectInfoAnalysisResult result = ProcessProjectInfoFiles(projects, writer, logger, projectBaseDir, globalSourceEncoding);
-            writer.WriteSonarProjectInfo(projectBaseDir, result.SharedFiles);
+            ProjectInfoAnalysisResult result = ProcessProjectInfoFiles(projects, writer, logger, rootProjectBaseDir, globalSourceEncoding);
+            writer.WriteSonarProjectInfo(rootProjectBaseDir, result.SharedFiles);
 
             IEnumerable<ProjectInfo> validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
 
             if (validProjects.Any() || result.SharedFiles.Any())
             {
-                
+
                 // Handle global settings
                 properties = GetAnalysisPropertiesToWrite(properties, logger);
                 writer.WriteGlobalSettings(properties);
@@ -120,7 +119,7 @@ namespace SonarScanner.Shim
         /// 3. the common root path of projects, or if there isn't any
         /// 4. the .sonarqube/out directory
         /// </summary>
-        public static string ComputeProjectBaseDir(AnalysisConfig config, IEnumerable<ProjectInfo> projects)
+        public static string ComputeRootProjectBaseDir(AnalysisConfig config, IEnumerable<ProjectInfo> projects)
         {
             string projectBaseDir = config.GetConfigValue(SonarProperties.ProjectBaseDir, null);
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
@@ -208,7 +207,7 @@ namespace SonarScanner.Shim
                 }
             }
         }
-       
+
         private static string GetSourceEncoding(AnalysisProperties properties, IEncodingProvider encodingProvider)
         {
             try
@@ -231,7 +230,7 @@ namespace SonarScanner.Shim
 
         #region Private methods
 
-        private static ProjectInfoAnalysisResult ProcessProjectInfoFiles(IEnumerable<ProjectInfo> projects, PropertiesWriter writer, ILogger logger, string projectBaseDir, string globalSourceEncoding)
+        private static ProjectInfoAnalysisResult ProcessProjectInfoFiles(IEnumerable<ProjectInfo> projects, PropertiesWriter writer, ILogger logger, string rootProjectBaseDir, string globalSourceEncoding)
         {
             ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult();
 
@@ -241,7 +240,7 @@ namespace SonarScanner.Shim
 
                 if (status == ProjectInfoValidity.Valid)
                 {
-                    IEnumerable<string> files = GetFilesToAnalyze(projectInfo, logger, projectBaseDir, result);
+                    IEnumerable<string> files = GetFilesToAnalyze(projectInfo, logger, rootProjectBaseDir, result);
                     if (files == null || !files.Any())
                     {
                         status = ProjectInfoValidity.NoFilesToAnalyze;
@@ -257,7 +256,14 @@ namespace SonarScanner.Shim
 
                 result.Projects.Add(projectInfo, status);
             }
+            result.SharedFiles.RemoveWhere(s => IsPartOfAProject(projects, s));
+
             return result;
+        }
+
+        private static bool IsPartOfAProject(IEnumerable<ProjectInfo> projects, string file)
+        {
+            return projects.Any(projectInfo => IsInFolder(file, projectInfo.GetProjectDirectory()));
         }
 
         private static void FixEncoding(ILogger logger, string globalSourceEncoding, ProjectInfo projectInfo)
@@ -322,7 +328,7 @@ namespace SonarScanner.Shim
         /// Returns all of the valid files that can be analyzed. Logs warnings/info about
         /// files that cannot be analyzed.
         /// </summary>
-        private static IEnumerable<string> GetFilesToAnalyze(ProjectInfo projectInfo, ILogger logger, string projectBaseDir, ProjectInfoAnalysisResult projectResult)
+        private static IEnumerable<string> GetFilesToAnalyze(ProjectInfo projectInfo, ILogger logger, string rootProjectBaseDir, ProjectInfoAnalysisResult projectResult)
         {
             // We're only interested in files that exist and that are under the project root
             var result = new List<string>();
@@ -335,7 +341,7 @@ namespace SonarScanner.Shim
                     {
                         result.Add(file);
                     }
-                    else if (IsInFolder(file, projectBaseDir))
+                    else if (IsInFolder(file, rootProjectBaseDir))
                     {
                         projectResult.SharedFiles.Add(file);
                     }
