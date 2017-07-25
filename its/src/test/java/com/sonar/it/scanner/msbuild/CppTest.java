@@ -55,8 +55,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Ignore("Do not pass on cix")
 public class CppTest {
-  private static final String PROJECT_KEY = "cpp";
-  private static final String FILE_KEY = "cpp:cpp:A8B8B694-4489-4D82-B9A0-7B63BF0B8FCE:ConsoleApp.cpp";
 
   @BeforeClass
   public static void checkSkip() {
@@ -81,16 +79,19 @@ public class CppTest {
 
   @Test
   public void testCppOnly() throws Exception {
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/CppSolution/TestQualityProfileCpp.xml"));
-    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "Cpp");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cpp", "ProfileForTestCpp");
+    String projectKey = "cpp";
+    String fileKey = "cpp:cpp:A8B8B694-4489-4D82-B9A0-7B63BF0B8FCE:ConsoleApp.cpp";
+
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("src/test/resources/TestQualityProfileCpp.xml"));
+    ORCHESTRATOR.getServer().provisionProject(projectKey, "Cpp");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", "ProfileForTestCpp");
 
     Path projectDir = TestUtils.projectDir(temp, "CppSolution");
     File wrapperOutDir = new File(projectDir.toFile(), "out");
 
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("begin")
-      .setProjectKey(PROJECT_KEY)
+      .setProjectKey(projectKey)
       .setProjectName("Cpp")
       .setProjectVersion("1.0")
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString()));
@@ -111,8 +112,47 @@ public class CppTest {
     List<String> keys = issues.stream().map(i -> i.ruleKey()).collect(Collectors.toList());
     assertThat(keys).containsAll(Arrays.asList("cpp:S106"));
 
-    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(15);
-    assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(8);
+    assertThat(getMeasureAsInteger(projectKey, "ncloc")).isEqualTo(15);
+    assertThat(getMeasureAsInteger(fileKey, "ncloc")).isEqualTo(8);
+  }
+
+  @Test
+  public void testCppWithSharedFiles() throws Exception {
+    String projectKey = "cpp-shared";
+    String fileKey = "cpp-shared:cpp-shared:90BD7FAF-0B72-4D37-9610-D7C92B217BB0:Project1.cpp";
+
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("src/test/resources/TestQualityProfileCpp.xml"));
+    ORCHESTRATOR.getServer().provisionProject(projectKey, "Cpp");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(projectKey, "cpp", "ProfileForTestCpp");
+
+    Path projectDir = TestUtils.projectDir(temp, "CppSharedFiles");
+    File wrapperOutDir = new File(projectDir.toFile(), "out");
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("begin")
+      .setProjectKey(projectKey)
+      .setProjectName("Cpp")
+      .setProjectVersion("1.0")
+      .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString()));
+    File buildWrapper = temp.newFile();
+    File buildWrapperDir = temp.newFolder();
+    FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapper);
+    ZipUtils.unzip(buildWrapper, buildWrapperDir);
+
+    TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
+      wrapperOutDir, "/t:Rebuild");
+
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("end"));
+    assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
+
+    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+
+    List<String> keys = issues.stream().map(i -> i.ruleKey()).collect(Collectors.toList());
+    assertThat(keys).containsAll(Arrays.asList("cpp:S106"));
+
+    assertThat(getMeasureAsInteger(projectKey, "ncloc")).isEqualTo(22);
+    assertThat(getMeasureAsInteger(fileKey, "ncloc")).isEqualTo(8);
   }
 
   @CheckForNull
