@@ -398,10 +398,13 @@ namespace SonarScanner.Shim.Tests
         {
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            // Create 2 uuids and order them so that test is reproducible
+            Guid[] uuids = new Guid[] { Guid.NewGuid(), Guid.NewGuid() };
+            Array.Sort(uuids);
 
             string project1Dir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "project1");
             string project1Path = Path.Combine(project1Dir, "project1.proj");
-            string project1Info = CreateProjectInfoInSubDir(testDir, "projectName1", Guid.NewGuid(), ProjectType.Product, false, project1Path, "UTF-8"); // not excluded
+            string project1Info = CreateProjectInfoInSubDir(testDir, "projectName1", uuids[0], ProjectType.Product, false, project1Path, "UTF-8"); // not excluded
             var sharedFile = Path.Combine(testDir, "contentFile.txt");
             var sharedFileDifferentCase = Path.Combine(testDir, "ContentFile.TXT");
             CreateEmptyFile(testDir, "contentFile.txt");
@@ -412,7 +415,7 @@ namespace SonarScanner.Shim.Tests
 
             string project2Dir = TestUtils.EnsureTestSpecificFolder(this.TestContext, "project2");
             string project2Path = Path.Combine(project2Dir, "project2.proj");
-            string project2Info = CreateProjectInfoInSubDir(testDir, "projectName2", Guid.NewGuid(), ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
+            string project2Info = CreateProjectInfoInSubDir(testDir, "projectName2", uuids[1], ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
 
             // Reference shared file, but not under the project directory
             string contentFileList2 = CreateFile(project2Dir, "contentList.txt", sharedFileDifferentCase);
@@ -427,6 +430,7 @@ namespace SonarScanner.Shim.Tests
             // Assert
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
             provider.AssertSettingExists("sonar.projectBaseDir", testDir);
+            // First one wins
             provider.AssertSettingExists("sonar.sources", sharedFile);
         }
 
@@ -856,7 +860,7 @@ namespace SonarScanner.Shim.Tests
             string projectName, Guid projectGuid, ProjectType projectType, bool isExcluded, string fullProjectPath, string encoding,
             AnalysisProperties additionalProperties = null)
         {
-            string newDir = Path.Combine(parentDir, Guid.NewGuid().ToString());
+            string newDir = Path.Combine(parentDir, projectName);
             Directory.CreateDirectory(newDir); // ensure the directory exists
 
             ProjectInfo project = new ProjectInfo()
