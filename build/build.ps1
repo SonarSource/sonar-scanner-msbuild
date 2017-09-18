@@ -8,7 +8,7 @@ function testExitCode(){
 }
 
 #download MSBuild
-$url = "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/2.3.2.573/sonar-scanner-msbuild-2.3.2.573.zip"
+$url = "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/3.0.2.656/sonar-scanner-msbuild-3.0.2.656.zip"
 $output = ".\sonar-scanner-msbuild.zip"    
 Invoke-WebRequest -Uri $url -OutFile $output
 unzip -o .\sonar-scanner-msbuild.zip
