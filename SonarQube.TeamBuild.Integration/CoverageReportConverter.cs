@@ -46,9 +46,12 @@ namespace SonarQube.TeamBuild.Integration
         private const string TeamToolPathandExeName = @"Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe";
 
         /// <summary>
-        /// Code coverage package name for Visual Studio setup configuration
+        /// Code coverage package names for Visual Studio setup configuration
         /// </summary>
-        private const string CodeCoverageInstallationPackage = "Microsoft.VisualStudio.TestTools.CodeCoverage";
+        private static readonly string[] CodeCoverageInstallationPackageNames = new string[] {
+            "Microsoft.VisualStudio.TestTools.CodeCoverage",
+            "Microsoft.VisualStudio.TestTools.CodeCoverage.Msi"
+        };
 
         private string conversionToolPath;
 
@@ -143,7 +146,7 @@ namespace SonarQube.TeamBuild.Integration
                     if (fetched > 0)
                     {
                         ISetupInstance2 instance = (ISetupInstance2)tempInstance[0];
-                        if (instance.GetPackages().Any(p => p.GetId() == CodeCoverageInstallationPackage))
+                        if (instance.GetPackages().Any(p => CodeCoverageInstallationPackageNames.Contains(p.GetId())))
                         {
                             //Store instances that have code coverage package installed
                             instances.Add((ISetupInstance2)tempInstance[0]);

@@ -171,6 +171,25 @@ echo success > """ + outputFilePath + @"""");
             logger.AssertDebugLogged("Code coverage command line tool: x:\\foo\\Team Tools\\Dynamic Code Coverage Tools\\CodeCoverage.exe");
         }
 
+        [TestMethod]
+        public void Initialize_CanGetGetExeToolPathFromSetupConfigurationForBuildAgent()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+
+            IVisualStudioSetupConfigurationFactory factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage.Msi");
+
+            CoverageReportConverter reporter = new CoverageReportConverter(factory);
+
+            // Act
+            bool result = reporter.Initialize(logger);
+
+            // Assert
+            Assert.IsTrue(result);
+
+            logger.AssertDebugLogged("Code coverage command line tool: x:\\foo\\Team Tools\\Dynamic Code Coverage Tools\\CodeCoverage.exe");
+        }
+
         private static IVisualStudioSetupConfigurationFactory CreateVisualStudioSetupConfigurationFactory(string packageId)
         {
             int calls = 0;
