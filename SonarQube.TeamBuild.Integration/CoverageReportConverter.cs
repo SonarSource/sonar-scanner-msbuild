@@ -85,7 +85,6 @@ namespace SonarQube.TeamBuild.Integration
             }
             else
             {
-                Debug.Assert(File.Exists(this.conversionToolPath), "Expecting the code coverage exe to exist. Full name: " + this.conversionToolPath);
                 logger.LogDebug(Resources.CONV_DIAG_CommandLineToolInfo, this.conversionToolPath);
                 success = true;
             }

@@ -86,6 +86,11 @@ namespace TestUtilities
             Assert.AreEqual(expectedCount, this.InfoMessages.Count, "Unexpected number of messages logged");
         }
 
+        public void AssertDebugLogged(string expected)
+        {
+            this.DebugMessages.Should().Contain(expected);
+        }
+
         public void AssertMessageLogged(string expected)
         {
             this.InfoMessages.Should().Contain(expected);

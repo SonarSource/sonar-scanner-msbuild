@@ -17,8 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using System;
 using System.IO;
 using TestUtilities;
 
@@ -147,6 +150,85 @@ echo success > """ + outputFilePath + @"""");
             Assert.IsTrue(success, "Expecting the process to succeed");
 
             logger.AssertMessageLogged("Converter called with 3 args");
+        }
+
+        [TestMethod]
+        public void Initialize_CanGetGetExeToolPathFromSetupConfiguration()
+        {
+            // Arrange
+            TestLogger logger = new TestLogger();
+
+            IVisualStudioSetupConfigurationFactory factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage");
+
+            CoverageReportConverter reporter = new CoverageReportConverter(factory);
+
+            // Act
+            bool result = reporter.Initialize(logger);
+
+            // Assert
+            Assert.IsTrue(result);
+
+            logger.AssertDebugLogged("Code coverage command line tool: x:\\foo\\Team Tools\\Dynamic Code Coverage Tools\\CodeCoverage.exe");
+        }
+
+        private static IVisualStudioSetupConfigurationFactory CreateVisualStudioSetupConfigurationFactory(string packageId)
+        {
+            int calls = 0;
+            int fetched = 1;
+            int noFetch = 0;
+
+            // We need to do this kind of trickery because Moq cannot setup a callback for a method with an out paramater.
+            Func<ISetupInstance[], bool> setupInstance = (ISetupInstance[] instances) =>
+            {
+                if (calls > 0)
+                {
+                    return false;
+                }
+
+                var package = Mock.Of<ISetupPackageReference>();
+                Mock.Get(package)
+                    .Setup(x => x.GetId())
+                    .Returns(packageId);
+
+                var instanceMock = new Mock<ISetupInstance2>();
+                instanceMock
+                    .Setup(_ => _.GetPackages())
+                    .Returns(new ISetupPackageReference[] { package });
+                instanceMock
+                    .Setup(_ => _.GetInstallationVersion())
+                    .Returns("42");
+                instanceMock
+                    .Setup(_ => _.GetInstallationPath())
+                    .Returns("x:\\foo");
+
+                instances[0] = instanceMock.Object;
+                calls++;
+
+                return true;
+            };
+
+            Func<ISetupInstance[], bool> isSecondCall = (ISetupInstance[] instances) =>
+            {
+                return (calls > 0);
+            };
+
+            IEnumSetupInstances enumInstances = Mock.Of<IEnumSetupInstances>();
+            Mock.Get(enumInstances)
+                .Setup(_ => _.Next(It.IsAny<int>(), It.Is<ISetupInstance[]>(x => isSecondCall(x)), out noFetch));
+            Mock.Get(enumInstances)
+                .Setup(_ => _.Next(It.IsAny<int>(), It.Is<ISetupInstance[]>(x => setupInstance(x)), out fetched));
+
+            ISetupConfiguration configuration = Mock.Of<ISetupConfiguration>();
+            Mock.Get(configuration)
+                .Setup(_ => _.EnumInstances())
+                .Returns(enumInstances);
+
+            IVisualStudioSetupConfigurationFactory factory = Mock.Of<IVisualStudioSetupConfigurationFactory>();
+            Mock.Get(factory)
+                .Setup(_ => _.GetSetupConfigurationQuery())
+                .Returns(configuration);
+
+            return factory;
         }
 
         #endregion
