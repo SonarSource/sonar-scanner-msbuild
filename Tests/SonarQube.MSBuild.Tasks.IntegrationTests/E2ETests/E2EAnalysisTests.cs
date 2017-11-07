@@ -17,16 +17,16 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
@@ -172,7 +172,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             string projectDir = CreateAndBuildSonarProject(descriptor, rootOutputFolder, preImportProperties);
 
             AssertFileExists(projectDir, ExpectedAnalysisFilesListFileName);
-            
+
             CheckProjectOutputFolder(descriptor, projectDir);
         }
 
@@ -281,7 +281,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
-           
+
             // Create a new project
             ProjectDescriptor descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
             string projectFolder = descriptor.FullDirectoryPath;
@@ -450,11 +450,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
                 TargetConstants.CalculateFilesToAnalyzeTarget,
                 TargetConstants.WriteProjectDataTarget);
 
-            // Not expecting the FxCop targets to execute as they should not be imported
-            logger.AssertTargetNotExecuted(TargetConstants.OverrideFxCopSettingsTarget);
-            logger.AssertTargetNotExecuted(TargetConstants.FxCopTarget);
-            logger.AssertTargetNotExecuted(TargetConstants.SetFxCopResultsTarget);
-
             // Check the content of the project info xml
             ProjectInfo projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
 
@@ -476,7 +471,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         {
             // Checks that projects that don't include the standard managed targets are still
             // processed correctly e.g. can be excluded, marked as test projects etc
-            
+
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
@@ -554,7 +549,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             descriptor.AddCompileInputFile(filePath, true);
             return filePath;
         }
-        
+
         private static void AddEmptyContentFile(ProjectDescriptor descriptor, string projectFolder)
         {
             string filePath = CreateEmptyFile(projectFolder, "txt");
@@ -583,7 +578,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             preImportProperties.SonarQubeTempPath = outputPath; // FIXME
             preImportProperties.SonarQubeConfigPath = configPath;
             preImportProperties.SonarQubeOutputPath = outputPath;
-            
+
             // Ensure the project is isolated from environment variables
             // that could be picked up when running on a TeamBuild build agent
             preImportProperties.TeamBuildLegacyBuildDirectory = "";
@@ -688,7 +683,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
                 // Check that any files that should not be analysed are not included
                 if (expected.FilesNotToAnalyse != null && expected.FilesNotToAnalyse.Any())
                 {
-                    foreach(string unanalysedFile in expected.FilesNotToAnalyse)
+                    foreach (string unanalysedFile in expected.FilesNotToAnalyse)
                     {
                         string filePathToCheck = unanalysedFile;
                         if (!Path.IsPathRooted(filePathToCheck))
@@ -732,7 +727,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             TestUtilities.ProjectInfoAssertions.AssertExpectedValues(expected, actualProjectInfo);
         }
 
-        private static ProjectInfo CreateExpectedProjectInfo (ProjectDescriptor expected, string projectOutputFolder)
+        private static ProjectInfo CreateExpectedProjectInfo(ProjectDescriptor expected, string projectOutputFolder)
         {
             ProjectInfo expectedProjectInfo = expected.CreateProjectInfo();
 

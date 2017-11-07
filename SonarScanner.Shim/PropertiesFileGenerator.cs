@@ -247,10 +247,9 @@ namespace SonarScanner.Shim
                     }
                     else
                     {
-                        string fxCopReport = TryGetFxCopReport(projectInfo, logger);
                         string vsCoverageReport = TryGetCodeCoverageReport(projectInfo, logger);
                         FixEncoding(logger, globalSourceEncoding, projectInfo);
-                        writer.WriteSettingsForProject(projectInfo, files, fxCopReport, vsCoverageReport);
+                        writer.WriteSettingsForProject(projectInfo, files, vsCoverageReport);
                     }
                 }
 
@@ -363,18 +362,6 @@ namespace SonarScanner.Shim
         {
             string normalizedPath = Path.GetDirectoryName(Path.GetFullPath(filePath));
             return normalizedPath.StartsWith(folder, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static string TryGetFxCopReport(ProjectInfo project, ILogger logger)
-        {
-            string fxCopReport = project.TryGetAnalysisFileLocation(AnalysisType.FxCop);
-            if (fxCopReport != null && !File.Exists(fxCopReport))
-            {
-                logger.LogWarning(Resources.WARN_FxCopReportNotFound, fxCopReport);
-                fxCopReport = null;
-            }
-
-            return fxCopReport;
         }
 
         private static string TryGetCodeCoverageReport(ProjectInfo project, ILogger logger)

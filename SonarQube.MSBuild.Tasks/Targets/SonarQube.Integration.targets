@@ -302,139 +302,13 @@
         as input to the "ResolveCodeAnalysisRuleSet" target, which sets the property
         "ResolvedCodeAnalysisRuleset".
 
-        To avoid complications, we override the property "CodeAnalysisRuleset" with the path to our FxCop ruleset.
         We override the property "ResolveCodeAnalysisRuleSet" with the path to our Roslyn ruleset.
   -->
-
-  <!-- **************************************************************************** -->
-  <!-- Code analysis - FxCop -->
-  <!-- **************************************************************************** -->
-  <!-- We want to control whether or FxCop analysis is run or not, and we want to control
-       the ruleset that is used.
-
-       There may/may not be individual FxCop settings in each project, and the TeamBuild
-       definition may also specify whether FxCop is to be run or not (the options being
-       "As configured", "Always", and "Never".
-
-       We need to make sure the FxCop targets get loaded if we want to run FxCop, and then
-       we need to override any other settings that may exist.
-
-       We ensure the FxCop targets are loaded by setting the $(RunCodeAnalysisOnce).
-       We then override any FxCop property settings by executing a target to programmatically
-       update the property values. These values set in this way will take precedence over
-       any values passed on the MSBuild command line or in <PropertyGroups>.
-       -->
-
-  <!-- The FxCop targets are conditionally imported so we need to make sure the required condition is true early enough. -->
-  <!-- SONARMSBRU-193 On C++ projects setting RunCodeAnalysisOnce has unwanted side-effects -->
-  <!-- Note: $(Language) is already available here. For order evaluation details, see: msbuild /preprocess:out.txt project.proj -->
-  <PropertyGroup Condition=" $(SonarQubeTempPath) != '' AND ( $(Language) == 'C#' OR $(Language) == 'VB' ) ">
-    <RunCodeAnalysisOnce>true</RunCodeAnalysisOnce>
-  </PropertyGroup>
 
   <PropertyGroup>
     <SQLanguage Condition="$(Language) == 'C#'">cs</SQLanguage>
     <SQLanguage Condition="$(Language) == 'VB'">vbnet</SQLanguage>
   </PropertyGroup>
-
-  <!-- Check whether or not FxCop should be executed, even if FxCop isn't installed and all targets depending on RunCodeAnalysis are skipped -->
-  <Target Name="DetectFxCopRuleset" Condition=" $(SonarQubeTempPath) != '' "
-        BeforeTargets="CoreCompile">
-    <PropertyGroup>
-      <!-- Compute the ruleset filename -->
-      <SonarQubeRulesetFileName Condition=" $(SonarQubeRulesetFileName) == ''">SonarQubeFxCop-$(SQLanguage).ruleset</SonarQubeRulesetFileName>
-
-      <!-- Check if the ruleset exists -->
-      <SonarQubeRulesetFullName>$(SonarQubeConfigPath)\$(SonarQubeRulesetFileName)</SonarQubeRulesetFullName>
-      <SonarQubeRulesetExists>$([System.IO.File]::Exists($(SonarQubeRulesetFullName)))</SonarQubeRulesetExists>
-    </PropertyGroup>
-  </Target>
-
-  <!-- We want to override any properties that have been set declaratively in the project -->
-  <Target Name="OverrideCodeAnalysisProperties" Condition=" $(SonarQubeTempPath) != '' "
-          DependsOnTargets="SonarQubeCategoriseProject;DetectFxCopRuleset"
-          BeforeTargets="RunCodeAnalysis">
-
-    <PropertyGroup>
-      <!-- Run FxCop only if the ruleset exists (else it means no FxCop rule is enabled) -->
-      <SonarQubeRunMSCodeAnalysis>$(SonarQubeRulesetExists)</SonarQubeRunMSCodeAnalysis>
-
-      <!-- Don't run FxCop if the project is excluded -->
-      <SonarQubeRunMSCodeAnalysis Condition=" $(SonarQubeExclude) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
-
-      <!-- Don't run FxCop if the project is a test one -->
-      <SonarQubeRunMSCodeAnalysis Condition=" $(SonarQubeTestProject) == 'true' ">false</SonarQubeRunMSCodeAnalysis>
-    </PropertyGroup>
-
-    <Message Condition="$(SonarQubeRulesetExists) != 'true' "
-             Importance="normal"
-             Text="Skipping FxCop analysis: the SonarQube ruleset does not exist. Ruleset: $(SonarQubeRulesetFullName)" />
-
-    <Message Condition="$(SonarQubeExclude) == 'true' "
-             Importance="normal"
-             Text="Skipping FxCop analysis: the project is excluded" />
-
-    <Message Condition="$(SonarQubeTestProject) == 'true' "
-             Importance="normal"
-             Text="Skipping FxCop analysis: the project is a test project" />
-
-    <Message Condition="$(SonarQubeRunMSCodeAnalysis) == 'true' "
-             Importance="normal"
-             Text="Running FxCop analysis using the SonarQube ruleset. Ruleset: $(SonarQubeRulesetFullName)" />
-
-    <PropertyGroup>
-      <!-- By the time this target is evaluated, the FxCop targets have evaluated the
-           $(RunCodeAnalysis) and $(RunCodeAnalysisOnce) properties and used them to
-           set $(RunCodeAnalysisOnThisProject). If we want to stop code analysis from
-           running at this point, we need to set $(RunCodeAnalysisOnThisProject). -->
-      <RunCodeAnalysisOnThisProject>$(SonarQubeRunMSCodeAnalysis)</RunCodeAnalysisOnThisProject>
-
-      <CodeAnalysisRuleSet>$(SonarQubeRulesetFullName)</CodeAnalysisRuleSet>
-      <CodeAnalysisForceOutput>true</CodeAnalysisForceOutput>
-      <CodeAnalysisGenerateSuccessFile>true</CodeAnalysisGenerateSuccessFile>
-      <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
-      <CodeAnalysisRuleSetOverrides></CodeAnalysisRuleSetOverrides>
-
-      <!-- Make sure no warnings are treated as errors -->
-      <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-      <WarningsAsErrors></WarningsAsErrors>
-    </PropertyGroup>
-  </Target>
-
-  <!-- If FxCop is being run then record the FxCop output file as an analysis result -->
-  <Target Name="SetFxCopAnalysisResult"
-          Condition=" $(SonarQubeRunMSCodeAnalysis) == 'true' "
-          AfterTargets="RunCodeAnalysis" BeforeTargets="WriteSonarQubeProjectData">
-
-    <!-- TODO: remove this duplicated logic -->
-    <ItemGroup>
-      <!-- Work out if there were any managed files to be analyzed.
-           Exclude any that have the metadata 'SonarQubeExclude' set, or that are auto-generated -->
-      <SonarQubeManagedFiles Include="@(Compile)" Condition=" %(Compile.SonarQubeExclude) != 'true' AND %(Compile.AutoGen) != 'true' " />
-    </ItemGroup>
-
-    <PropertyGroup>
-      <!-- Work out which types of input files exist-->
-      <ManagedFilesExist Condition=" @(SonarQubeManagedFiles) != '' ">true</ManagedFilesExist>
-    </PropertyGroup>
-
-    <ItemGroup Condition=" $(ManagedFilesExist) == 'true' ">
-      <AnalysisResults Include="$(CodeAnalysisLogFile)">
-        <Id>FxCop</Id>
-      </AnalysisResults>
-    </ItemGroup>
-  </Target>
-
-  <!-- If FxCop is not installed, then none of the targets depending on RunCodeAnalysis being executed before or after it will have been executed -->
-  <Target Name="FailIfFxCopNotInstalled"
-          Condition=" $(SonarQubeRulesetExists) == 'true' AND $(SonarQubeRunMSCodeAnalysis) == '' "
-          AfterTargets="WriteSonarQubeProjectData">
-    <Error Text="FxCop must be installed when some of its rules are enabled in the SonarQube quality profile. FxCop is included as part of Visual Studio." />
-  </Target>
-
-  <!-- **************************************************************************** -->
-  <!-- End of FxCop section-->
-  <!-- **************************************************************************** -->
 
   <!-- **************************************************************************** -->
   <!-- Roslyn analysis section -->
@@ -539,33 +413,4 @@
   <!-- End of Roslyn analysis section-->
   <!-- **************************************************************************** -->
 
-  <!-- **************************************************************************** -->
-  <!-- StyleCop -->
-  <!-- **************************************************************************** -->
-  <!-- Set the analysis properties required by the StyleCop plugin. The actual execution of
-       StyleCop is handled by the plugin. -->
-  <Target Name="SetStyleCopAnalysisSettings"
-        Condition=" $(SonarQubeTempPath) != '' AND $(Language) == 'C#'"
-        BeforeTargets="WriteSonarQubeProjectData">
-
-    <!-- Work out if the item has already been set -->
-    <PropertyGroup>
-      <SonarStyleProjectFilePathSpecified Condition=" %(SonarQubeSetting.Identity) == 'sonar.stylecop.projectFilePath'  ">true</SonarStyleProjectFilePathSpecified>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <SonarQubeSetting Include="sonar.stylecop.projectFilePath" Condition=" $(SonarStyleProjectFilePathSpecified) != 'true' ">
-        <Value>$(MSBuildProjectFullPath)</Value>
-      </SonarQubeSetting>
-    </ItemGroup>
-
-    <Message Importance="normal" Condition="$(SonarStyleProjectFilePathSpecified) == 'true' "
-             Text="Analysis setting 'sonar.stylecop.projectFilePath' was already specified." />
-
-    <Message Importance="normal" Condition="$(SonarStyleProjectFilePathSpecified) != 'true' "
-         Text="Setting 'sonar.stylecop.projectFilePath' to '$(MSBuildProjectFullPath)'" />
-  </Target>
-  <!-- **************************************************************************** -->
-  <!-- End of StyleCop section-->
-  <!-- **************************************************************************** -->
 </Project>

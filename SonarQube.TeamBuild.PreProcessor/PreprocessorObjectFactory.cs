@@ -17,10 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
-using SonarQube.TeamBuild.PreProcessor.Interfaces;
+
 using System;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -81,11 +80,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             return new Roslyn.RoslynAnalyzerProvider(new Roslyn.EmbeddedAnalyzerInstaller(this.server, logger), logger);
-        }
-
-        public IRulesetGenerator CreateRulesetGenerator()
-        {
-            return new RulesetGenerator();
         }
 
         #endregion

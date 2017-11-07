@@ -17,8 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,6 +25,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using SonarQube.Common;
 
 namespace SonarScanner.Shim
 {
@@ -106,7 +106,7 @@ namespace SonarScanner.Shim
             return sb.ToString();
         }
 
-        public void WriteSettingsForProject(ProjectInfo project, IEnumerable<string> files, string fxCopReportFilePath, string codeCoverageFilePath)
+        public void WriteSettingsForProject(ProjectInfo project, IEnumerable<string> files, string codeCoverageFilePath)
         {
             if (this.FinishedWriting)
             {
@@ -136,28 +136,6 @@ namespace SonarScanner.Shim
             if (!string.IsNullOrWhiteSpace(project.Encoding))
             {
                 AppendKeyValue(sb, guid, SonarProperties.SourceEncoding, project.Encoding.ToLowerInvariant());
-            }
-
-            if (fxCopReportFilePath != null)
-            {
-                string property = null;
-                if (ProjectLanguages.IsCSharpProject(project.ProjectLanguage))
-                {
-                    property = "sonar.cs.fxcop.reportPath";
-                }
-                else if (ProjectLanguages.IsVbProject(project.ProjectLanguage))
-                {
-                    property = "sonar.vbnet.fxcop.reportPath";
-                }
-
-                if (property != null)
-                {
-                    AppendKeyValue(sb, guid, property, fxCopReportFilePath);
-                }
-                else
-                {
-                    Debug.Fail("FxCopReportFilePath is set but the language is unrecognised. Language: " + project.ProjectLanguage);
-                }
             }
 
             if (codeCoverageFilePath != null)
@@ -254,7 +232,7 @@ namespace SonarScanner.Shim
 
         private static void AppendKeyValueIfNotEmpty(StringBuilder sb, string key, string value)
         {
-            if(!string.IsNullOrEmpty(value))
+            if (!string.IsNullOrEmpty(value))
             {
                 AppendKeyValue(sb, key, value);
             }

@@ -83,7 +83,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RoslynAnalyzerProviderTests.cs" />
     <Compile Include="RoslynRuleSetGeneratorTests.cs" />
-    <Compile Include="RulesetGeneratorTests.cs" />
     <Compile Include="RulesetWriterTest.cs" />
     <Compile Include="DataModel\QualityProfile.cs" />
     <Compile Include="SonarWebServiceTest.cs" />

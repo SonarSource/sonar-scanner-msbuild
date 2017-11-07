@@ -17,17 +17,16 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.PreProcessor.Interfaces;
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -50,7 +49,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             MockSonarQubeServer mockServer = new MockSonarQubeServer();
 
             TeamBuildPreProcessor preprocessor = new TeamBuildPreProcessor(
-                new MockObjectFactory(mockServer, new Mock<ITargetsInstaller>().Object, new MockRoslynAnalyzerProvider(), new Mock<IRulesetGenerator>().Object),
+                new MockObjectFactory(mockServer, new Mock<ITargetsInstaller>().Object, new MockRoslynAnalyzerProvider()),
                 new TestLogger());
 
             // Act and assert
@@ -83,14 +82,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             data.AddQualityProfile("qp1", "cs", null)
                 .AddProject("key")
-                .AddRule(new ActiveRule("fxcop", "cs.rule1"))
-                .AddRule(new ActiveRule("fxcop", "cs.rule2"))
                 .AddRule(new ActiveRule("csharpsquid", "cs.rule3"));
 
             data.AddQualityProfile("qp2", "vbnet", null)
                 .AddProject("key")
-                .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule1"))
-                .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule2"))
                 .AddRule(new ActiveRule("vbnet", "vb.rule3"));
 
             MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider();
@@ -98,7 +93,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
 
             Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
-            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider, new RulesetGenerator());
+            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
             TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
@@ -126,12 +121,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockServer.AssertMethodCalled("GetInactiveRules", 2); // C# and VBNet
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, logger);
-
-            string fxCopFilePath = AssertFileExists(settings.SonarConfigDirectory, string.Format(TeamBuildPreProcessor.FxCopRulesetName, TeamBuildPreProcessor.CSharpLanguage));
-            PreProcessAsserts.AssertRuleSetContainsRules(fxCopFilePath, "cs.rule1", "cs.rule2");
-
-            fxCopFilePath = AssertFileExists(settings.SonarConfigDirectory, string.Format(TeamBuildPreProcessor.FxCopRulesetName, TeamBuildPreProcessor.VBNetLanguage));
-            PreProcessAsserts.AssertRuleSetContainsRules(fxCopFilePath, "vb.rule1", "vb.rule2");
         }
 
         [TestMethod]
@@ -160,14 +149,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             data.AddQualityProfile("qp1", "cs", "organization")
                 .AddProject("key")
-                .AddRule(new ActiveRule("fxcop", "cs.rule1"))
-                .AddRule(new ActiveRule("fxcop", "cs.rule2"))
                 .AddRule(new ActiveRule("csharpsquid", "cs.rule3"));
 
             data.AddQualityProfile("qp2", "vbnet", "organization")
                 .AddProject("key")
-                .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule1"))
-                .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule2"))
                 .AddRule(new ActiveRule("vbnet", "vb.rule3"));
 
             MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider();
@@ -175,7 +160,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
 
             Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
-            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider, new RulesetGenerator());
+            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
             TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
@@ -203,12 +188,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockServer.AssertMethodCalled("GetInactiveRules", 2); // C# and VBNet
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, logger);
-
-            string fxCopFilePath = AssertFileExists(settings.SonarConfigDirectory, string.Format(TeamBuildPreProcessor.FxCopRulesetName, TeamBuildPreProcessor.CSharpLanguage));
-            PreProcessAsserts.AssertRuleSetContainsRules(fxCopFilePath, "cs.rule1", "cs.rule2");
-
-            fxCopFilePath = AssertFileExists(settings.SonarConfigDirectory, string.Format(TeamBuildPreProcessor.FxCopRulesetName, TeamBuildPreProcessor.VBNetLanguage));
-            PreProcessAsserts.AssertRuleSetContainsRules(fxCopFilePath, "vb.rule1", "vb.rule2");
         }
 
         [TestMethod]
@@ -231,7 +210,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
 
             Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
-            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider, new RulesetGenerator());
+            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
             TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
@@ -296,7 +275,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
 
             Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
-            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider, new RulesetGenerator());
+            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
             TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
@@ -350,7 +329,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 "/d:sonar.host.url=http://host",
                 "/d:sonar.log.level=INFO|DEBUG"};
         }
-        
+
         #endregion
 
         #region Checks

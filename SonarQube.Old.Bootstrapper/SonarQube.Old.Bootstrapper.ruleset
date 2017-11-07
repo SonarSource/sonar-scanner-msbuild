@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="Rules for SonarQube.Old.Bootstrapper" Description="Code analysis rules for SonarQube.Old.Bootstrapper.csproj." ToolsVersion="14.0">
+<RuleSet Name="Rules for SonarQube.Old.Bootstrapper" Description="Code analysis rules for SonarQube.Old.Bootstrapper.csproj." ToolsVersion="15.0">
+  <Include Path="..\sonarqube\sonar-scanner-msbuildcsharp.ruleset" Action="Default" />
   <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
     <Rule Id="CA1001" Action="Warning" />
     <Rule Id="CA1009" Action="Warning" />

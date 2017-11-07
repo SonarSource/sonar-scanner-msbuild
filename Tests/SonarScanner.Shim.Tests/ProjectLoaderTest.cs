@@ -17,13 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using TestUtilities;
 
 namespace SonarScanner.Shim.Tests
@@ -55,7 +55,7 @@ namespace SonarScanner.Shim.Tests
             validTestProject.AddCompileInputFile("TestFile1.cs", true);
             validTestProject.AddCompileInputFile("TestFile1.cs", true);
             validTestProject.AddContentFile("contentFile1.js", true);
-            CreateFilesFromDescriptor(validTestProject, "testCompileListFile", "testFxCopReport", "testVisualStudioCodeCoverageReport");
+            CreateFilesFromDescriptor(validTestProject, "testCompileListFile", "testVisualStudioCodeCoverageReport");
 
             TestUtils.EnsureTestSpecificFolder(this.TestContext, "EmptyDir2");
 
@@ -69,7 +69,7 @@ namespace SonarScanner.Shim.Tests
             };
             validNonTestProject.AddContentFile("ASourceFile.vb", true);
             validNonTestProject.AddContentFile("AnotherSourceFile.vb", true);
-            CreateFilesFromDescriptor(validNonTestProject, "list.txt", "fxcop.xml", "visualstudio-codecoverage.xml");
+            CreateFilesFromDescriptor(validNonTestProject, "list.txt", "visualstudio-codecoverage.xml");
 
             ProjectDescriptor validNonTestNoReportsProject = new ProjectDescriptor()
             {
@@ -80,7 +80,7 @@ namespace SonarScanner.Shim.Tests
                 IsTestProject = false
             };
             validNonTestNoReportsProject.AddContentFile("SomeFile.cs", true);
-            CreateFilesFromDescriptor(validNonTestNoReportsProject, "SomeList.txt", null, null);
+            CreateFilesFromDescriptor(validNonTestNoReportsProject, "SomeList.txt", null);
 
             // Act
             IEnumerable<ProjectInfo> projects = SonarScanner.Shim.ProjectLoader.LoadFrom(testSourcePath);
@@ -114,7 +114,7 @@ namespace SonarScanner.Shim.Tests
             };
             validNonTestProject.AddCompileInputFile("ASourceFile.vb", true);
             validNonTestProject.AddCompileInputFile("AnotherSourceFile.vb", true);
-            CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt", null, null);
+            CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt", null);
 
             // 1. Run against the root dir -> not expecting the project to be found
             IEnumerable<ProjectInfo> projects = SonarScanner.Shim.ProjectLoader.LoadFrom(rootTestDir);
@@ -133,7 +133,7 @@ namespace SonarScanner.Shim.Tests
         /// Creates a folder containing a ProjectInfo.xml and compiled file list as
         /// specified in the supplied descriptor
         /// </summary>
-        private static void CreateFilesFromDescriptor(ProjectDescriptor descriptor, string compileFiles, string fxcopReportFileName, string visualStudioCodeCoverageReportFileName)
+        private static void CreateFilesFromDescriptor(ProjectDescriptor descriptor, string compileFiles, string visualStudioCodeCoverageReportFileName)
         {
             if (!Directory.Exists(descriptor.FullDirectoryPath))
             {
@@ -150,18 +150,6 @@ namespace SonarScanner.Shim.Tests
 
                 // Add the compile list as an analysis result
                 projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisType.FilesToAnalyze.ToString(), Location = fullAnalysisFileListPath });
-            }
-
-            // Create the FxCop report file
-            if (fxcopReportFileName != null)
-            {
-                string fullFxCopName = Path.Combine(descriptor.FullDirectoryPath, fxcopReportFileName);
-                File.Create(fullFxCopName);
-
-                // Add the FxCop report as an analysis result
-                var analysisResult = new AnalysisResult() { Id = AnalysisType.FxCop.ToString(), Location = fullFxCopName };
-                descriptor.AnalysisResults.Add(analysisResult);
-                projectInfo.AnalysisResults.Add(analysisResult);
             }
 
             // Create the Visual Studio Code Coverage report file

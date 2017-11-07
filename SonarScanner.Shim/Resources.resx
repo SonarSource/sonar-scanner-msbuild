@@ -193,9 +193,6 @@ Possible causes:
   <data name="WARN_FileDoesNotExist" xml:space="preserve">
     <value>File referenced in the project does not exist: {0}</value>
   </data>
-  <data name="WARN_FxCopReportNotFound" xml:space="preserve">
-    <value>FxCop analysis report does not exist at the specified location. Path: {0}</value>
-  </data>
   <data name="WARN_InvalidProjectGuid" xml:space="preserve">
     <value>The project has an invalid GUID "{0}". The project will not be analyzed by SonarQube. Project file: {1}</value>
   </data>
