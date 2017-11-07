@@ -15,17 +15,5 @@
       <priority>MAJOR</priority>
       <parameters/>
     </rule>
-    <rule>
-      <repositoryKey>fxcop-vbnet</repositoryKey>
-      <key>AvoidUnusedPrivateFields</key>
-      <priority>MAJOR</priority>
-      <parameters/>
-    </rule>
-    <rule>
-      <repositoryKey>fxcop-vbnet</repositoryKey>
-      <key>AvoidUncalledPrivateCode</key>
-      <priority>MAJOR</priority>
-      <parameters/>
-    </rule>
   </rules>
 </profile>
