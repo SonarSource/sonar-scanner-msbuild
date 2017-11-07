@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 namespace SonarQube.Common
 {
     /* If we move to a plug-in model (i.e. so handlers for new types of analyzers
@@ -35,11 +35,6 @@ namespace SonarQube.Common
         /// </summary>
         /// <remarks>The files could be of any type and any language</remarks>
         FilesToAnalyze,
-
-        /// <summary>
-        /// An FxCop results file
-        /// </summary>
-        FxCop,
 
         /// <summary>
         /// An XML code coverage report produced by the Visual Studio code coverage tool

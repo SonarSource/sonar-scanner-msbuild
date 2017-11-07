@@ -63,7 +63,6 @@
     <Compile Include="Interfaces\IAnalyzerProvider.cs" />
     <Compile Include="Interfaces\IDownloader.cs" />
     <Compile Include="Interfaces\IPreprocessorObjectFactory.cs" />
-    <Compile Include="Interfaces\IRulesetGenerator.cs" />
     <Compile Include="Interfaces\ITargetsInstaller.cs" />
     <Compile Include="Interfaces\ISonarQubeServer.cs" />
     <Compile Include="Interfaces\ITeamBuildPreProcessor.cs" />
@@ -88,7 +87,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Roslyn\RoslynSonarLint.cs" />
-    <Compile Include="RulesetGenerator.cs" />
     <Compile Include="RulesetWriter.cs" />
     <Compile Include="SonarWebService.cs" />
     <Compile Include="TargetsInstaller.cs" />

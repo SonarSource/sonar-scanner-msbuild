@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.4
+VisualStudioVersion = 15.0.27004.2006
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.MSBuild.Tasks", "SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
 EndProject
@@ -43,7 +43,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildAgentPayload", "Packag
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{78700959-9C9B-4566-B245-48BBE5D403F6}"
 	ProjectSection(SolutionItems) = preProject
-		SonarQube\SolutionBinding.sqconfig = SonarQube\SolutionBinding.sqconfig
 		SonarQube\sonar-msbuild-runnerCSharp.ruleset = SonarQube\sonar-msbuild-runnerCSharp.ruleset
 		SonarLint.xml = SonarLint.xml
 	EndProjectSection
@@ -51,6 +50,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Old.Bootstrapper", "SonarQube.Old.Bootstrapper\SonarQube.Old.Bootstrapper.csproj", "{35848C6E-2018-4831-94FA-40D7E45B5A09}"
 	ProjectSection(ProjectDependencies) = postProject
 		{60AACBB4-1661-4EEB-A029-91289C1D3F7E} = {60AACBB4-1661-4EEB-A029-91289C1D3F7E}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{037F0E40-ADFD-4F1F-83D5-3E75E0B3B650}"
+	ProjectSection(SolutionItems) = preProject
+		SonarQube\SolutionBinding.sqconfig = SonarQube\SolutionBinding.sqconfig
+		SonarQube\sonar-scanner-msbuildCSharp.ruleset = SonarQube\sonar-scanner-msbuildCSharp.ruleset
 	EndProjectSection
 EndProject
 Global
@@ -262,5 +267,8 @@ Global
 		{3410EA30-5F7A-4E0F-B5F6-8E83077A20DB} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{ECEADD3A-5992-420F-950D-510BBDDC06E1} = {37FB4C72-0F3D-4BF2-9F78-2780A76746A2}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {593A3FAE-D78E-4CFF-B4E3-0ADD719C76D9}
 	EndGlobalSection
 EndGlobal

@@ -17,16 +17,16 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -37,8 +37,6 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public const string VBNetLanguage = "vbnet";
         public const string VBNetPluginKey = "vbnet";
-
-        public const string FxCopRulesetName = "SonarQubeFxCop-{0}.ruleset";
 
         private readonly static List<PluginDefinition> plugins;
         private readonly static PluginDefinition csharp = new PluginDefinition(CSharpLanguage, CSharpPluginKey);
@@ -65,9 +63,11 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         static TeamBuildPreProcessor()
         {
-            plugins = new List<PluginDefinition>();
-            plugins.Add(csharp);
-            plugins.Add(vbnet);
+            plugins = new List<PluginDefinition>
+            {
+                csharp,
+                vbnet
+            };
         }
 
         #endregion Constructor(s)
@@ -211,18 +211,6 @@ namespace SonarQube.TeamBuild.PreProcessor
 
                     IList<string> inactiveRules = server.GetInactiveRules(qualityProfile, plugin.Language);
 
-                    // Generate fxcop rulesets
-                    this.logger.LogInfo(Resources.MSG_GeneratingRulesets);
-                    string fxCopPath = Path.Combine(settings.SonarConfigDirectory, string.Format(FxCopRulesetName, plugin.Language));
-                    if (plugin.Language.Equals(VBNetLanguage))
-                    {
-                        GenerateFxCopRuleset("fxcop-vbnet", activeRules, fxCopPath);
-                    }
-                    else
-                    {
-                        GenerateFxCopRuleset("fxcop", activeRules, fxCopPath);
-                    }
-
                     // Generate Roslyn analyzers settings and rulesets
                     IAnalyzerProvider analyzerProvider = this.factory.CreateRoslynAnalyzerProvider(this.logger);
                     Debug.Assert(analyzerProvider != null, "Factory should not return null");
@@ -252,12 +240,6 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             return true;
-        }
-
-        private void GenerateFxCopRuleset(string repository, IList<ActiveRule> activeRules, string path)
-        {
-            this.logger.LogDebug(Resources.MSG_GeneratingRuleset, path);
-            this.factory.CreateRulesetGenerator().Generate(repository, activeRules, path);
         }
 
         #endregion Private methods

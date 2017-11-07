@@ -17,10 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using SonarQube.TeamBuild.PreProcessor.Interfaces;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
@@ -29,19 +28,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         private readonly ISonarQubeServer server;
         private readonly IAnalyzerProvider analyzerProvider;
         private readonly ITargetsInstaller targetsInstaller;
-        private readonly IRulesetGenerator rulesetGenerator;
 
         public MockObjectFactory(ISonarQubeServer server)
         {
             this.server = server;
         }
 
-        public MockObjectFactory(ISonarQubeServer server, ITargetsInstaller targetsInstaller, IAnalyzerProvider analyzerProvider, IRulesetGenerator rulesetGenerator)
+        public MockObjectFactory(ISonarQubeServer server, ITargetsInstaller targetsInstaller, IAnalyzerProvider analyzerProvider)
         {
             this.server = server;
             this.targetsInstaller = targetsInstaller;
             this.analyzerProvider = analyzerProvider;
-            this.rulesetGenerator = rulesetGenerator;
         }
 
         #region PreprocessorObjectFactory methods
@@ -63,11 +60,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public ITargetsInstaller CreateTargetInstaller()
         {
             return this.targetsInstaller;
-        }
-
-        public IRulesetGenerator CreateRulesetGenerator()
-        {
-            return this.rulesetGenerator;
         }
 
         #endregion

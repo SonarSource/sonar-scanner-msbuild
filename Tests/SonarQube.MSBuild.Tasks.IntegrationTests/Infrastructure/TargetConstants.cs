@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 namespace SonarQube.MSBuild.Tasks.IntegrationTests
 {
     internal static class TargetConstants
@@ -33,17 +33,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string CalculateFilesToAnalyzeTarget = "CalculateSonarQubeFilesToAnalyze";
         public const string CreateProjectSpecificDirs = "CreateProjectSpecificDirs";
         public const string WriteProjectDataTarget = "WriteSonarQubeProjectData";
-        public const string DetectFxCopRulesetTarget = "DetectFxCopRuleset";
-        public const string OverrideFxCopSettingsTarget = "OverrideCodeAnalysisProperties";
-        public const string SetFxCopResultsTarget = "SetFxCopAnalysisResult";
-        public const string FailIfFxCopNotInstalledTarget = "FailIfFxCopNotInstalled";
 
         public const string DefaultBuildTarget = "Build";
         public const string CoreCompile = "CoreCompile";
-
-        // FxCop
-        public const string FxCopTarget = "RunCodeAnalysis";
-        public const string FxCopTask = "CodeAnalysis";
 
         // Roslyn
         public const string OverrideRoslynAnalysisTarget = "OverrideRoslynCodeAnalysisProperties";
@@ -52,10 +44,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public const string SetRoslynResultsTarget = "SetRoslynAnalysisResults";
         public const string ResolveCodeAnalysisRuleSet = "ResolveCodeAnalysisRuleSet";
-
-        // StyleCop
-        public const string SetStyleCopSettingsTarget = "SetStyleCopAnalysisSettings";
-        public const string StyleCopProjectPathItemName = "sonar.stylecop.projectFilePath";
 
         public const string MsTestProjectTypeGuid = "3AC096D0-A1C2-E12C-1390-A8335801FDAB";
     }
@@ -73,7 +61,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public const string SonarQubeTestProject = "SonarQubeTestProject";
         public const string SonarQubeExcludeMetadata = "SonarQubeExclude";
-        public const string SonarQubeRulesetFormat = "SonarQubeFxCop-{0}.ruleset";
 
         public const string MergedRulesetFullName = "MergedRulesetFullName";
 

@@ -19,7 +19,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -270,15 +270,6 @@ namespace SonarQube.TeamBuild.PreProcessor {
         public static string MSG_FetchingQualityProfile {
             get {
                 return ResourceManager.GetString("MSG_FetchingQualityProfile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generating the FxCop ruleset: {0}.
-        /// </summary>
-        public static string MSG_GeneratingRuleset {
-            get {
-                return ResourceManager.GetString("MSG_GeneratingRuleset", resourceCulture);
             }
         }
         
