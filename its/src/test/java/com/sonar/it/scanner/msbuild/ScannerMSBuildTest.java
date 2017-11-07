@@ -21,7 +21,6 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -58,35 +57,18 @@ public class ScannerMSBuildTest {
   private static final String MODULE_KEY = "my.project:my.project:1049030E-AC7A-49D0-BEDC-F414C5C7DDD8";
   private static final String FILE_KEY = MODULE_KEY + ":Foo.cs";
 
-  public static Orchestrator ORCHESTRATOR;
+  @ClassRule
+  public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
+    .setOrchestratorProperty("csharpVersion", "LATEST_RELEASE")
+    .addPlugin("csharp")
+    .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
+    .setOrchestratorProperty("vbnetVersion", "LATEST_RELEASE")
+    .addPlugin("vbnet")
+    .activateLicense("vbnet")
+    .build();
 
   @ClassRule
   public static TemporaryFolder temp = new TemporaryFolder();
-
-  @ClassRule
-  public static SingleStartExternalResource resource = new SingleStartExternalResource() {
-    @Override
-    protected void beforeAll() {
-
-      Path customRoslyn = TestUtils.getCustomRoslynPlugin();
-      ORCHESTRATOR = Orchestrator.builderEnv()
-        .setOrchestratorProperty("csharpVersion", "LATEST_RELEASE")
-        .addPlugin("csharp")
-        .addPlugin(FileLocation.of(customRoslyn.toFile()))
-        .setOrchestratorProperty("vbnetVersion", "LATEST_RELEASE")
-        .addPlugin("vbnet")
-        .activateLicense("vbnet")
-        .setOrchestratorProperty("fxcopVersion", "LATEST_RELEASE")
-        .addPlugin("fxcop")
-        .build();
-      ORCHESTRATOR.start();
-    }
-
-    @Override
-    protected void afterAll() {
-      ORCHESTRATOR.stop();
-    }
-  };
 
   @Before
   public void setUp() {
@@ -215,17 +197,12 @@ public class ScannerMSBuildTest {
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    // 2 CS, 2 cs-fxcop, 2 vbnet-fxcop, 2 vbnet
-    assertThat(issues).hasSize(8);
+    // 2 CS, 2 vbnet
+    assertThat(issues).hasSize(4);
 
-    // fxcop not working for vbnet because fxcop plugin is not installed
     List<String> keys = issues.stream().map(i -> i.ruleKey()).collect(Collectors.toList());
     assertThat(keys).containsAll(Arrays.asList("vbnet:S3385",
       "vbnet:S2358",
-      "fxcop:DoNotRaiseReservedExceptionTypes",
-      "fxcop:DoNotPassLiteralsAsLocalizedParameters",
-      "fxcop-vbnet:AvoidUnusedPrivateFields",
-      "fxcop-vbnet:AvoidUncalledPrivateCode",
       "csharpsquid:S2228",
       "csharpsquid:S1134"));
 
@@ -258,38 +235,6 @@ public class ScannerMSBuildTest {
     assertThat(issues).hasSize(1);
     assertThat(issues.get(0).message()).isEqualTo("Method has 3 parameters, which is greater than the 2 authorized.");
     assertThat(issues.get(0).ruleKey()).isEqualTo("csharpsquid:S107");
-  }
-
-  @Test
-  public void testFxCopCustom() throws Exception {
-    String response = ORCHESTRATOR.getServer().adminWsClient().post("api/rules/create",
-      "name", "customfxcop",
-      "severity", "MAJOR",
-      "custom_key", "customfxcop",
-      "markdown_description", "custom rule",
-      "template_key", "fxcop:CustomRuleTemplate",
-      "params", "CheckId=CA2201");
-
-    System.out.println("RESPONSE: " + response);
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileFxCop.xml"));
-    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTestFxCop");
-
-    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
-      .addArgument("begin")
-      .setProjectKey(PROJECT_KEY)
-      .setProjectName("sample")
-      .setProjectVersion("1.0"));
-
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
-
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
-      .addArgument("end"));
-
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    assertThat(issues).hasSize(1);
-    assertThat(issues.get(0).ruleKey()).isEqualTo("fxcop:customfxcop");
   }
 
   @Test
