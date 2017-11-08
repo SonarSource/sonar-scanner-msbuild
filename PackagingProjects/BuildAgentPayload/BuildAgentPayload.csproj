@@ -91,6 +91,9 @@
       <Name>SonarScanner.Shim</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
   <UsingTask TaskName="DownloadFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
     <ParameterGroup>
       <Url ParameterType="System.String" Required="true" />
@@ -98,13 +101,11 @@
       <OutputFolder ParameterType="System.String" Required="false" />
     </ParameterGroup>
     <Task>
-      <Using Namespace="System.Web"/>
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[
+      <Using Namespace="System.Web" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
         using (var client = new System.Net.WebClient())
             { client.DownloadFile(Url, (OutputFolder != null ? OutputFolder + "/" : "") + (File ?? System.IO.Path.GetFileName(new Uri(Url).LocalPath))); }
-        ]]>
-      </Code>
+        ]]></Code>
     </Task>
   </UsingTask>
   <Target Name="CreatePayload" AfterTargets="Build">
@@ -120,7 +121,7 @@
   </Target>
   <Target Name="DownloadScannerCli" Condition="!Exists('$(OutputPath)\$(ScannerCliArtifact)')">
     <Message Text="Downloading: $(MavenCentralUrl)" />
-    <DownloadFile Url="$(MavenCentralUrl)" OutputFolder="$(OutputPath)"/>
+    <DownloadFile Url="$(MavenCentralUrl)" OutputFolder="$(OutputPath)" />
   </Target>
   <Target Name="UnzipScannerCli">
     <RemoveDir Directories="$(OutputPath)$(ScannerCliDirectory)" />

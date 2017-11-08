@@ -52,7 +52,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Old.Bootstrapper"
 		{60AACBB4-1661-4EEB-A029-91289C1D3F7E} = {60AACBB4-1661-4EEB-A029-91289C1D3F7E}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{037F0E40-ADFD-4F1F-83D5-3E75E0B3B650}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{B6AA1FBF-BA98-4686-8C37-D1FD13DBB2E6}"
 	ProjectSection(SolutionItems) = preProject
 		SonarQube\SolutionBinding.sqconfig = SonarQube\SolutionBinding.sqconfig
 		SonarQube\sonar-scanner-msbuildCSharp.ruleset = SonarQube\sonar-scanner-msbuildCSharp.ruleset
@@ -269,6 +269,6 @@ Global
 		{ECEADD3A-5992-420F-950D-510BBDDC06E1} = {37FB4C72-0F3D-4BF2-9F78-2780A76746A2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {593A3FAE-D78E-4CFF-B4E3-0ADD719C76D9}
+		SolutionGuid = {F1322FF5-8DA8-4714-ABD1-B289A655E630}
 	EndGlobalSection
 EndGlobal
