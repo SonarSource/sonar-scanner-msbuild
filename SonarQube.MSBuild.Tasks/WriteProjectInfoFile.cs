@@ -17,19 +17,19 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-using SonarQube.Common;
-using SonarQube.Common.Interfaces;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Xml.Linq;
 using System.Text;
+using System.Xml.Linq;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
+using SonarQube.Common;
+using SonarQube.Common.Interfaces;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -262,7 +262,6 @@ namespace SonarQube.MSBuild.Tasks
             Debug.Assert(taskItem != null, "Supplied task item should not be null");
 
             Property setting = null;
-
 
             if (TryGetSettingId(taskItem, out string settingId))
             {
