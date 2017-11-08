@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.MavenLocation;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -61,7 +62,9 @@ public class VBNetTest {
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setOrchestratorProperty("vbnetVersion", "LATEST_RELEASE")
     .addPlugin("vbnet")
-    .activateLicense("vbnet")
+    // Should be the same version than in pom.xml
+    .addPlugin(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", ScannerMSBuildTest.LICENSE_PLUGIN_VERSION))
+    .activateLicense()
     .setOrchestratorProperty("fxcopVersion", "LATEST_RELEASE")
     .addPlugin("fxcop")
     .build();

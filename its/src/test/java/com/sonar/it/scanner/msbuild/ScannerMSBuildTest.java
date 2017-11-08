@@ -22,6 +22,7 @@ package com.sonar.it.scanner.msbuild;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -53,6 +54,8 @@ import static org.junit.Assert.assertTrue;
  * sonar.runtimeVersion: SQ to use
  */
 public class ScannerMSBuildTest {
+  // Should be the same version than in pom.xml
+  static final String LICENSE_PLUGIN_VERSION = "3.1.0.1132";
   private static final String PROJECT_KEY = "my.project";
   private static final String MODULE_KEY = "my.project:my.project:1049030E-AC7A-49D0-BEDC-F414C5C7DDD8";
   private static final String FILE_KEY = MODULE_KEY + ":Foo.cs";
@@ -64,7 +67,8 @@ public class ScannerMSBuildTest {
     .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
     .setOrchestratorProperty("vbnetVersion", "LATEST_RELEASE")
     .addPlugin("vbnet")
-    .activateLicense("vbnet")
+    .addPlugin(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", LICENSE_PLUGIN_VERSION))
+    .activateLicense()
     .build();
 
   @ClassRule
