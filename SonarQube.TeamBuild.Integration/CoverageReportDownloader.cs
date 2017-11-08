@@ -17,14 +17,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.TeamFoundation.Client;
-using Microsoft.VisualStudio.Services.Common;
-using SonarQube.Common;
+
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using Microsoft.TeamFoundation.Client;
+using Microsoft.VisualStudio.Services.Common;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.Integration
 {
@@ -95,7 +95,7 @@ namespace SonarQube.TeamBuild.Integration
 
                 // We need VSS credentials that encapsulate all types of credentials (NetworkCredentials for TFS, OAuth for VSO)
                 TfsConnection connection = collection as TfsConnection;
-                vssCreds = connection.ClientCredentials.ConvertToVssCredentials(tfsCollectionUri);
+                vssCreds = TfsClientCredentialsConverter.ConvertToVssCredentials(connection.ClientCredentials, tfsCollectionUri);
             }
 
             Debug.Assert(vssCreds != null, "Not expecting ConvertToVssCredentials ");
