@@ -19,10 +19,24 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
       <artifactId>sonar-orchestrator</artifactId>
-      <version>3.14.0.887</version>
+      <version>3.15.1.1274</version>
       <scope>test</scope>
+    </dependency>
+    <!-- This is just to force Maven to download it in local repository -->
+    <dependency>
+      <groupId>com.sonarsource.license</groupId>
+      <artifactId>sonar-dev-license-plugin</artifactId>
+      <!-- Should be the same version than in Orchestrator builder in your test suite -->
+      <version>3.1.0.1132</version>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
