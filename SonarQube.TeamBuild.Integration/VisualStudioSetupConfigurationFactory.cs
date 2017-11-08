@@ -26,8 +26,7 @@ namespace SonarQube.TeamBuild.Integration
                 //Attempt to access the native library
                 try
                 {
-                    ISetupConfiguration query;
-                    return GetSetupConfiguration(out query, IntPtr.Zero) < 0 ? null : query;
+                    return GetSetupConfiguration(out ISetupConfiguration query, IntPtr.Zero) < 0 ? null : query;
                 }
                 catch (DllNotFoundException)
                 {

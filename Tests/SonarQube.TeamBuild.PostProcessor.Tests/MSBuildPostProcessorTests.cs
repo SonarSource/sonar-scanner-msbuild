@@ -66,8 +66,10 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             PostProcTestContext context = new PostProcTestContext(this.TestContext);
-            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult();
-            context.Scanner.ValueToReturn.RanToCompletion = false;
+            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
+            {
+                RanToCompletion = false
+            };
 
             // Act
             bool success = Execute(context);
@@ -91,8 +93,10 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             PostProcTestContext context = new PostProcTestContext(this.TestContext);
-            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult();
-            context.Scanner.ValueToReturn.RanToCompletion = true;
+            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
+            {
+                RanToCompletion = true
+            };
 
             // Act
             bool success = Execute(context);
@@ -120,8 +124,10 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             PostProcTestContext context = new PostProcTestContext(this.TestContext);
-            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult();
-            context.Scanner.ValueToReturn.RanToCompletion = true;
+            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
+            {
+                RanToCompletion = true
+            };
             context.Scanner.ErrorToLog = "Errors";
 
             // Act
@@ -152,8 +158,10 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             // Arrange
             PostProcTestContext context = new PostProcTestContext(this.TestContext);
             context.CodeCoverage.InitialiseValueToReturn = false;
-            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult();
-            context.Scanner.ValueToReturn.RanToCompletion = true;
+            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
+            {
+                RanToCompletion = true
+            };
 
             // Act
             bool success = Execute(context);
@@ -204,8 +212,10 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             PostProcTestContext context = new PostProcTestContext(this.TestContext);
-            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult();
-            context.Scanner.ValueToReturn.RanToCompletion = true;
+            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
+            {
+                RanToCompletion = true
+            };
 
             string[] suppliedArgs = new string[]
             {

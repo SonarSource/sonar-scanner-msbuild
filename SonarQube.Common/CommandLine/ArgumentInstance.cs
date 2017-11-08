@@ -36,11 +36,7 @@ namespace SonarQube.Common
 
         public ArgumentInstance(ArgumentDescriptor descriptor, string value)
         {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException("descriptor");
-            }
-            this.descriptor = descriptor;
+            this.descriptor = descriptor ?? throw new ArgumentNullException("descriptor");
             this.value = value;
         }
 
@@ -72,8 +68,7 @@ namespace SonarQube.Common
 
         public static bool TryGetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments, out string value)
         {
-            ArgumentInstance instance;
-            if (TryGetArgument(id, arguments, out instance))
+            if (TryGetArgument(id, arguments, out ArgumentInstance instance))
             {
                 value = instance.value;
             }

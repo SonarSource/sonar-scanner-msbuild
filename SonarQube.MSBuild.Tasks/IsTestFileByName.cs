@@ -98,9 +98,8 @@ namespace SonarQube.MSBuild.Tasks
         {
             Debug.Assert(config != null, "Not expecting the supplied config to be null");
 
-            string regEx;
-            config.GetAnalysisSettings(true).TryGetValue(TestRegExSettingId, out regEx);
-            
+            config.GetAnalysisSettings(true).TryGetValue(TestRegExSettingId, out string regEx);
+
             if (!string.IsNullOrWhiteSpace(regEx))
             {
                 this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);

@@ -54,8 +54,7 @@ namespace SonarQube.Common
 
             string result = defaultValue;
 
-            ConfigSetting setting;
-            if (config.TryGetConfigSetting(settingId, out setting))
+            if (config.TryGetConfigSetting(settingId, out ConfigSetting setting))
             {
                 result = setting.Value;
             }
@@ -101,8 +100,7 @@ namespace SonarQube.Common
             }
 
             // Add scanner environment settings
-            IAnalysisPropertyProvider envProvider;
-            if (EnvScannerPropertiesProvider.TryCreateProvider(null, out envProvider))
+            if (EnvScannerPropertiesProvider.TryCreateProvider(null, out IAnalysisPropertyProvider envProvider))
             {
                 providers.Add(envProvider);
             }
@@ -150,8 +148,7 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("config");
             }
 
-            ConfigSetting setting;
-            if (config.TryGetConfigSetting(SettingsFileKey, out setting))
+            if (config.TryGetConfigSetting(SettingsFileKey, out ConfigSetting setting))
             {
                 return setting.Value;
             }
@@ -194,8 +191,7 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("settingId");
             }
 
-            ConfigSetting setting;
-            if (config.TryGetConfigSetting(settingId, out setting))
+            if (config.TryGetConfigSetting(settingId, out ConfigSetting setting))
             {
                 setting.Value = value;
             }

@@ -51,8 +51,7 @@ namespace SonarQube.Bootstrapper.Tests
 
         private static void AssertPropertyHasValue(string key, string expectedValue, AnalysisProperties properties)
         {
-            Property match;
-            bool found = Property.TryGetProperty(key, properties, out match);
+            bool found = Property.TryGetProperty(key, properties, out Property match);
 
             Assert.IsTrue(found, "Expected property was not found. Key: {0}", key);
             Assert.AreEqual(expectedValue, match.Value, "Property does not have the expected value. Key: {0}", key);

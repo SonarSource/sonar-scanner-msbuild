@@ -56,12 +56,7 @@ namespace SonarQube.MSBuild.Tasks
 
         public WriteProjectInfoFile(IEncodingProvider encodingProvider)
         {
-            if (encodingProvider == null)
-            {
-                throw new ArgumentNullException(nameof(encodingProvider));
-            }
-
-            this.encodingProvider = encodingProvider;
+            this.encodingProvider = encodingProvider ?? throw new ArgumentNullException(nameof(encodingProvider));
         }
 
         #endregion // Constructors
@@ -108,14 +103,16 @@ namespace SonarQube.MSBuild.Tasks
 
         public override bool Execute()
         {
-            ProjectInfo pi = new ProjectInfo();
-            pi.ProjectType = this.IsTest ? ProjectType.Test : ProjectType.Product;
-            pi.IsExcluded = this.IsExcluded;
+            ProjectInfo pi = new ProjectInfo
+            {
+                ProjectType = this.IsTest ? ProjectType.Test : ProjectType.Product,
+                IsExcluded = this.IsExcluded,
 
-            pi.ProjectName = this.ProjectName;
-            pi.FullPath = this.FullProjectPath;
-            pi.ProjectLanguage = this.ProjectLanguage;
-            pi.Encoding = ComputeEncoding(this.CodePage)?.WebName;
+                ProjectName = this.ProjectName,
+                FullPath = this.FullProjectPath,
+                ProjectLanguage = this.ProjectLanguage,
+                Encoding = ComputeEncoding(this.CodePage)?.WebName
+            };
 
             string guid = null;
             if (!string.IsNullOrEmpty(this.ProjectGuid))
@@ -131,8 +128,7 @@ namespace SonarQube.MSBuild.Tasks
                         .Select(element => element.Attribute("Project")?.Value)
                         .FirstOrDefault();
             }
-            Guid projectId;
-            if (guid != null && Guid.TryParse(guid, out projectId))
+            if (guid != null && Guid.TryParse(guid, out Guid projectId))
             {
                 pi.ProjectGuid = projectId;
                 pi.AnalysisResults = TryCreateAnalysisResults(this.AnalysisResults);
@@ -159,9 +155,8 @@ namespace SonarQube.MSBuild.Tasks
                 .Replace("\"", string.Empty);
 
             // Try to return the CodePage specified into the .xxproj
-            long codepageValue;
             if (!string.IsNullOrWhiteSpace(cleanedCodePage) &&
-                long.TryParse(cleanedCodePage, NumberStyles.None, CultureInfo.InvariantCulture, out codepageValue) &&
+                long.TryParse(cleanedCodePage, NumberStyles.None, CultureInfo.InvariantCulture, out long codepageValue) &&
                 codepageValue > 0)
             {
                 try
@@ -268,15 +263,13 @@ namespace SonarQube.MSBuild.Tasks
 
             Property setting = null;
 
-            string settingId;
 
-            if (TryGetSettingId(taskItem, out settingId))
+            if (TryGetSettingId(taskItem, out string settingId))
             {
                 // No validation for the value: can be anything, but the
                 // "Value" metadata item must exist
-                string settingValue;
 
-                if (TryGetSettingValue(taskItem, out settingValue))
+                if (TryGetSettingValue(taskItem, out string settingValue))
                 {
                     setting = new Property()
                     {

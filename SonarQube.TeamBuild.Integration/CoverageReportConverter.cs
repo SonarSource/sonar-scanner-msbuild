@@ -269,8 +269,7 @@ namespace SonarQube.TeamBuild.Integration
         /// </summary>
         private static double TryGetVersionAsDouble(string versionKey)
         {
-            double result;
-            if (!double.TryParse(versionKey, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out result))
+            if (!double.TryParse(versionKey, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out double result))
             {
                 result = double.NaN;
             }
@@ -288,10 +287,12 @@ namespace SonarQube.TeamBuild.Integration
             Debug.Assert(File.Exists(inputBinaryFilePath), "Expecting the input file to exist: " + inputBinaryFilePath);
             Debug.Assert(Path.IsPathRooted(outputXmlFilePath), "Expecting the output file name to be a full absolute path");
 
-            List<string> args = new List<string>();
-            args.Add("analyze");
-            args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, @"/output:{0}", outputXmlFilePath));
-            args.Add(inputBinaryFilePath);
+            List<string> args = new List<string>
+            {
+                "analyze",
+                string.Format(System.Globalization.CultureInfo.InvariantCulture, @"/output:{0}", outputXmlFilePath),
+                inputBinaryFilePath
+            };
 
             ProcessRunnerArguments scannerArgs = new ProcessRunnerArguments(converterExeFilePath, false, logger)
             {

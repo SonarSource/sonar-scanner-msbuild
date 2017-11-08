@@ -50,14 +50,16 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
             Guid projectGuid = Guid.NewGuid();
 
-            WriteProjectInfoFile task = new WriteProjectInfoFile();
-            task.FullProjectPath = "c:\\fullPath\\project.proj";
-            task.ProjectLanguage = "cs";
-            task.IsTest = true;
-            task.IsExcluded = false;
-            task.OutputFolder = testFolder;
-            task.ProjectGuid = projectGuid.ToString("B");
-            task.ProjectName = "MyProject";
+            WriteProjectInfoFile task = new WriteProjectInfoFile
+            {
+                FullProjectPath = "c:\\fullPath\\project.proj",
+                ProjectLanguage = "cs",
+                IsTest = true,
+                IsExcluded = false,
+                OutputFolder = testFolder,
+                ProjectGuid = projectGuid.ToString("B"),
+                ProjectName = "MyProject"
+            };
             task.ProjectLanguage = ProjectLanguages.CSharp;
             // No analysis results are supplied
 
@@ -84,27 +86,31 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
             Guid projectGuid = Guid.NewGuid();
 
-            WriteProjectInfoFile task = new WriteProjectInfoFile();
-            task.BuildEngine = new DummyBuildEngine();
-            task.FullProjectPath = "x:\\a.csproj";
-            task.IsTest = false;
-            task.OutputFolder = testFolder;
-            task.ProjectGuid = projectGuid.ToString("B");
-            task.ProjectName = "MyProject";
-            task.ProjectLanguage = "C#";
+            WriteProjectInfoFile task = new WriteProjectInfoFile
+            {
+                BuildEngine = new DummyBuildEngine(),
+                FullProjectPath = "x:\\a.csproj",
+                IsTest = false,
+                OutputFolder = testFolder,
+                ProjectGuid = projectGuid.ToString("B"),
+                ProjectName = "MyProject",
+                ProjectLanguage = "C#"
+            };
 
-            List<ITaskItem> resultInputs = new List<ITaskItem>();
+            List<ITaskItem> resultInputs = new List<ITaskItem>
+            {
 
-            // Add invalid task items
-            // Note: the TaskItem class won't allow the item spec or metadata values to be null,
-            // so we aren't testing those
-            resultInputs.Add(CreateMetadataItem("itemSpec1", "abc", "def")); // Id field is missing
-            resultInputs.Add(CreateAnalysisResultTaskItem("\r", "should be ignored - whitespace")); // whitespace id
-            resultInputs.Add(CreateAnalysisResultTaskItem("should be ignored - whitespace", " ")); // whitespace location
+                // Add invalid task items
+                // Note: the TaskItem class won't allow the item spec or metadata values to be null,
+                // so we aren't testing those
+                CreateMetadataItem("itemSpec1", "abc", "def"), // Id field is missing
+                CreateAnalysisResultTaskItem("\r", "should be ignored - whitespace"), // whitespace id
+                CreateAnalysisResultTaskItem("should be ignored - whitespace", " "), // whitespace location
 
-            // Add valid task items
-            resultInputs.Add(CreateAnalysisResultTaskItem("id1", "location1"));
-            resultInputs.Add(CreateAnalysisResultTaskItem("id2", "location2", "md1", "md1 value", "md2", "md2 value")); // valid but with extra metadata
+                // Add valid task items
+                CreateAnalysisResultTaskItem("id1", "location1"),
+                CreateAnalysisResultTaskItem("id2", "location2", "md1", "md1 value", "md2", "md2 value") // valid but with extra metadata
+            };
 
             task.AnalysisResults = resultInputs.ToArray();
 
@@ -146,26 +152,28 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             //    <Value>C:\zzz\reportlocation.xxx</Value>
             // </SonarQubeSetting>
 
-            List<ITaskItem> settingsInputs = new List<ITaskItem>();
+            List<ITaskItem> settingsInputs = new List<ITaskItem>
+            {
 
-            // Add invalid task items
-            // Note: the TaskItem class won't allow the item spec or metadata values to be null,
-            // so we aren't testing those
-            settingsInputs.Add(CreateMetadataItem("invalid.missing.value.metadata", "NotValueMetadata", "missing value 1")); // value field is missing
-            settingsInputs.Add(CreateAnalysisSettingTaskItem(" ", "should be ignored - key is whitespace only")); // whitespace key
-            settingsInputs.Add(CreateAnalysisSettingTaskItem("invalid spaces in key", "spaces.in.key")); // spaces in key
-            settingsInputs.Add(CreateAnalysisSettingTaskItem(" invalid.key.has.leading.whitespace", "leading whitespace in key"));
-            settingsInputs.Add(CreateAnalysisSettingTaskItem("invalid.key.has.trailing.whitespace ", "trailing whitespace in key"));
-            settingsInputs.Add(CreateAnalysisSettingTaskItem(".invalid.non.alpha.first.character", "non alpha first character"));
+                // Add invalid task items
+                // Note: the TaskItem class won't allow the item spec or metadata values to be null,
+                // so we aren't testing those
+                CreateMetadataItem("invalid.missing.value.metadata", "NotValueMetadata", "missing value 1"), // value field is missing
+                CreateAnalysisSettingTaskItem(" ", "should be ignored - key is whitespace only"), // whitespace key
+                CreateAnalysisSettingTaskItem("invalid spaces in key", "spaces.in.key"), // spaces in key
+                CreateAnalysisSettingTaskItem(" invalid.key.has.leading.whitespace", "leading whitespace in key"),
+                CreateAnalysisSettingTaskItem("invalid.key.has.trailing.whitespace ", "trailing whitespace in key"),
+                CreateAnalysisSettingTaskItem(".invalid.non.alpha.first.character", "non alpha first character"),
 
-            // Add valid task items
-            settingsInputs.Add(CreateAnalysisSettingTaskItem("valid.setting.1", @"c:\dir1\dir2\file.txt"));
-            settingsInputs.Add(CreateAnalysisSettingTaskItem("valid.value.is.whitespace.only", " "));
-            settingsInputs.Add(CreateMetadataItem("valid.metadata.name.is.case.insensitive", BuildTaskConstants.SettingValueMetadataName.ToUpperInvariant(), "uppercase metadata name")); // metadata name is in the wrong case
-            settingsInputs.Add(CreateAnalysisSettingTaskItem("valid.value.has.whitespace", "valid setting with whitespace"));
-            settingsInputs.Add(CreateAnalysisSettingTaskItem("X", "single character key"));
-            settingsInputs.Add(CreateAnalysisSettingTaskItem("Y...", "single character followed by periods"));
-            settingsInputs.Add(CreateAnalysisSettingTaskItem("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.sonar.projectName", "guid followed by key"));
+                // Add valid task items
+                CreateAnalysisSettingTaskItem("valid.setting.1", @"c:\dir1\dir2\file.txt"),
+                CreateAnalysisSettingTaskItem("valid.value.is.whitespace.only", " "),
+                CreateMetadataItem("valid.metadata.name.is.case.insensitive", BuildTaskConstants.SettingValueMetadataName.ToUpperInvariant(), "uppercase metadata name"), // metadata name is in the wrong case
+                CreateAnalysisSettingTaskItem("valid.value.has.whitespace", "valid setting with whitespace"),
+                CreateAnalysisSettingTaskItem("X", "single character key"),
+                CreateAnalysisSettingTaskItem("Y...", "single character followed by periods"),
+                CreateAnalysisSettingTaskItem("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.sonar.projectName", "guid followed by key")
+            };
 
             task.AnalysisSettings = settingsInputs.ToArray();
 
@@ -200,12 +208,14 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // Arrange
             string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
-            WriteProjectInfoFile task = new WriteProjectInfoFile();
-            task.FullProjectPath = "c:\\fullPath\\project.proj";
-            task.IsTest = true;
-            task.OutputFolder = testFolder;
-            task.ProjectName = "ProjectWithoutProjectGuid";
-            task.ProjectLanguage = "C#";
+            WriteProjectInfoFile task = new WriteProjectInfoFile
+            {
+                FullProjectPath = "c:\\fullPath\\project.proj",
+                IsTest = true,
+                OutputFolder = testFolder,
+                ProjectName = "ProjectWithoutProjectGuid",
+                ProjectLanguage = "C#"
+            };
             // No analysis results are supplied
 
             // Act
@@ -234,16 +244,18 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
             Guid projectGuid = Guid.NewGuid();
 
-            WriteProjectInfoFile task = new WriteProjectInfoFile();
-            task.FullProjectPath = "c:\\fullPath\\project.proj";
-            task.SolutionConfigurationContents = @"<SolutionConfiguration>
+            WriteProjectInfoFile task = new WriteProjectInfoFile
+            {
+                FullProjectPath = "c:\\fullPath\\project.proj",
+                SolutionConfigurationContents = @"<SolutionConfiguration>
                 <ProjectConfiguration Project=""{FOO}"" AbsolutePath=""c:\fullPath\foo.proj"" BuildProjectInSolution=""True""> Debug | AnyCPU </ProjectConfiguration>
-                <ProjectConfiguration Project=""{"+ projectGuid + @"}"" AbsolutePath=""c:\fullPath\project.proj"" BuildProjectInSolution=""True""> Debug | AnyCPU </ProjectConfiguration>
-               </SolutionConfiguration >";
-            task.IsTest = true;
-            task.OutputFolder = testFolder;
-            task.ProjectName = "ProjectWithoutProjectGuid";
-            task.ProjectLanguage = "C#";
+                <ProjectConfiguration Project=""{" + projectGuid + @"}"" AbsolutePath=""c:\fullPath\project.proj"" BuildProjectInSolution=""True""> Debug | AnyCPU </ProjectConfiguration>
+               </SolutionConfiguration >",
+                IsTest = true,
+                OutputFolder = testFolder,
+                ProjectName = "ProjectWithoutProjectGuid",
+                ProjectLanguage = "C#"
+            };
 
             // Act
             ProjectInfo reloadedProjectInfo = ExecuteAndCheckSucceeds(task, testFolder);
@@ -264,15 +276,17 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_UnrecognisedLanguages()
         {
             // Arrange
-            WriteProjectInfoFile task = new WriteProjectInfoFile();
-            task.FullProjectPath = "c:\\fullPath\\project.proj";
-            task.IsTest = true;
-            task.ProjectName = "UnrecognisedLanguageProject";
-            task.ProjectGuid = Guid.NewGuid().ToString("B");
+            WriteProjectInfoFile task = new WriteProjectInfoFile
+            {
+                FullProjectPath = "c:\\fullPath\\project.proj",
+                IsTest = true,
+                ProjectName = "UnrecognisedLanguageProject",
+                ProjectGuid = Guid.NewGuid().ToString("B"),
 
-            // 1. Null language
-            task.ProjectLanguage = null;
-            task.OutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "null.language");
+                // 1. Null language
+                ProjectLanguage = null,
+                OutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "null.language")
+            };
 
             ProjectInfo actual = ExecuteAndCheckSucceeds(task, task.OutputFolder);
             Assert.IsNull(actual.ProjectLanguage, "Expecting the language to be null");
@@ -394,14 +408,16 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         private ProjectInfo WriteProjectInfoFile_ExecuteAndReturn(IEncodingProvider encodingProvider, decimal? codePage, string projectLanguage, string folderName)
         {
             // Arrange
-            WriteProjectInfoFile task = new WriteProjectInfoFile(encodingProvider);
-            task.FullProjectPath = "c:\\fullPath\\project.proj";
-            task.IsTest = true;
-            task.ProjectName = "Foo";
-            task.ProjectGuid = Guid.NewGuid().ToString("B");
-            task.ProjectLanguage = projectLanguage;
-            task.CodePage = codePage.ToString();
-            task.OutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, folderName);
+            WriteProjectInfoFile task = new WriteProjectInfoFile(encodingProvider)
+            {
+                FullProjectPath = "c:\\fullPath\\project.proj",
+                IsTest = true,
+                ProjectName = "Foo",
+                ProjectGuid = Guid.NewGuid().ToString("B"),
+                ProjectLanguage = projectLanguage,
+                CodePage = codePage.ToString(),
+                OutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, folderName)
+            };
 
             // Act
             return ExecuteAndCheckSucceeds(task, task.OutputFolder);
@@ -428,8 +444,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         private static ITaskItem CreateMetadataItem(string itemSpec, params string[] idAndValuePairs)
         {
             ITaskItem item = new TaskItem(itemSpec);
-            int remainder;
-            Math.DivRem(idAndValuePairs.Length, 2, out remainder);
+            Math.DivRem(idAndValuePairs.Length, 2, out int remainder);
             Assert.AreEqual(0, remainder, "Test setup error: the supplied list should contain id-location pairs");
 
             for (int index = 0; index < idAndValuePairs.Length; index += 2)

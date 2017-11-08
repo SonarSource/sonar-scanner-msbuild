@@ -112,13 +112,14 @@ namespace SonarQube.Common
 
             XmlSerializer serializer = new XmlSerializer(typeof(T));
 
-            XmlWriterSettings settings = new XmlWriterSettings();
-
-            settings.CloseOutput = true;
-            settings.ConformanceLevel = ConformanceLevel.Document;
-            settings.Indent = true;
-            settings.NamespaceHandling = NamespaceHandling.OmitDuplicates;
-            settings.OmitXmlDeclaration = false;
+            XmlWriterSettings settings = new XmlWriterSettings
+            {
+                CloseOutput = true,
+                ConformanceLevel = ConformanceLevel.Document,
+                Indent = true,
+                NamespaceHandling = NamespaceHandling.OmitDuplicates,
+                OmitXmlDeclaration = false
+            };
 
             using (XmlWriter xmlWriter = XmlWriter.Create(writer, settings))
             {

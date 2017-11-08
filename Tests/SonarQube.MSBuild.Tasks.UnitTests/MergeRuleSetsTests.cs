@@ -216,12 +216,14 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             string targetRulesetFilePath,
             params string[] rulesetsToInclude)
         {
-            MergeRuleSets task = new MergeRuleSets();
-            task.BuildEngine = buildEngine;
-            task.ProjectDirectoryPath = projectDir;
-            task.PrimaryRulesetFilePath = primaryRuleset;
-            task.MergedRuleSetFilePath = targetRulesetFilePath;
-            task.IncludedRulesetFilePaths = rulesetsToInclude;
+            MergeRuleSets task = new MergeRuleSets
+            {
+                BuildEngine = buildEngine,
+                ProjectDirectoryPath = projectDir,
+                PrimaryRulesetFilePath = primaryRuleset,
+                MergedRuleSetFilePath = targetRulesetFilePath,
+                IncludedRulesetFilePaths = rulesetsToInclude
+            };
 
             return task;
         }

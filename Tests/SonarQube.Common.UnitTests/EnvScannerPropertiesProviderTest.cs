@@ -49,10 +49,9 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void ParseInvalidJson()
         {
-            IAnalysisPropertyProvider provider;
             TestLogger logger = new TestLogger();
             Environment.SetEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "trash");
-            bool result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out provider);
+            bool result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out IAnalysisPropertyProvider provider);
             Assert.IsFalse(result);
             logger.AssertErrorLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
         }

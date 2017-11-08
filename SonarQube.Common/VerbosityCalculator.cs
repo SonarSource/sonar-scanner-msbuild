@@ -64,11 +64,9 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("logger");
             }
 
-            string sonarVerboseValue;
-            properties.TryGetValue(SonarProperties.Verbose, out sonarVerboseValue);
+            properties.TryGetValue(SonarProperties.Verbose, out string sonarVerboseValue);
 
-            string sonarLogLevelValue;
-            properties.TryGetValue(SonarProperties.LogLevel, out sonarLogLevelValue);
+            properties.TryGetValue(SonarProperties.LogLevel, out string sonarLogLevelValue);
 
             return ComputeVerbosity(sonarVerboseValue, sonarLogLevelValue, logger);
         }

@@ -58,34 +58,43 @@ namespace SonarQube.Common.UnitTests
             // 0. Setup
             string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
-            AnalysisConfig originalConfig = new AnalysisConfig();
-            originalConfig.SonarConfigDir = @"c:\config";
-            originalConfig.SonarOutputDir = @"c:\output";
-            originalConfig.SonarProjectKey = @"key.1.2";
-            originalConfig.SonarProjectName = @"My project";
-            originalConfig.SonarProjectVersion = @"1.0";
+            AnalysisConfig originalConfig = new AnalysisConfig
+            {
+                SonarConfigDir = @"c:\config",
+                SonarOutputDir = @"c:\output",
+                SonarProjectKey = @"key.1.2",
+                SonarProjectName = @"My project",
+                SonarProjectVersion = @"1.0",
 
 
-            originalConfig.LocalSettings = new AnalysisProperties();
+                LocalSettings = new AnalysisProperties()
+            };
             originalConfig.LocalSettings.Add(new Property() { Id = "local.key", Value = "local.value" });
 
-            originalConfig.ServerSettings = new AnalysisProperties();
-            originalConfig.ServerSettings.Add(new Property() { Id = "server.key", Value = "server.value" });
+            originalConfig.ServerSettings = new AnalysisProperties
+            {
+                new Property() { Id = "server.key", Value = "server.value" }
+            };
 
-            AnalyzerSettings settings = new AnalyzerSettings();
+            AnalyzerSettings settings = new AnalyzerSettings
+            {
+                RuleSetFilePath = "ruleset path",
 
-            settings.RuleSetFilePath = "ruleset path";
-
-            settings.AdditionalFilePaths = new List<string>();
+                AdditionalFilePaths = new List<string>()
+            };
             settings.AdditionalFilePaths.Add("additional path1");
             settings.AdditionalFilePaths.Add("additional path2");
 
-            settings.AnalyzerAssemblyPaths = new List<string>();
-            settings.AnalyzerAssemblyPaths.Add("analyzer path1");
-            settings.AnalyzerAssemblyPaths.Add("analyzer path2");
+            settings.AnalyzerAssemblyPaths = new List<string>
+            {
+                "analyzer path1",
+                "analyzer path2"
+            };
 
-            originalConfig.AnalyzersSettings = new List<AnalyzerSettings>();
-            originalConfig.AnalyzersSettings.Add(settings);
+            originalConfig.AnalyzersSettings = new List<AnalyzerSettings>
+            {
+                settings
+            };
 
             string fileName = Path.Combine(testFolder, "config1.xml");
 
@@ -192,28 +201,38 @@ namespace SonarQube.Common.UnitTests
             AnalysisConfig actual = AnalysisConfig.Load(fullPath);
 
             // Assert
-            AnalysisConfig expected = new AnalysisConfig();
-            expected.SonarConfigDir = "c:\\config";
-            expected.SonarOutputDir = "c:\\output";
-            expected.SonarProjectKey = "key.1.2";
-            expected.SonarProjectVersion = "1.0";
-            expected.SonarProjectName = "My project";
-            expected.ServerSettings = new AnalysisProperties();
+            AnalysisConfig expected = new AnalysisConfig
+            {
+                SonarConfigDir = "c:\\config",
+                SonarOutputDir = "c:\\output",
+                SonarProjectKey = "key.1.2",
+                SonarProjectVersion = "1.0",
+                SonarProjectName = "My project",
+                ServerSettings = new AnalysisProperties()
+            };
             expected.ServerSettings.Add(new Property() { Id = "server.key", Value = "server.value" });
-            expected.LocalSettings = new AnalysisProperties();
-            expected.LocalSettings.Add(new Property() { Id = "local.key", Value = "local.value" });
+            expected.LocalSettings = new AnalysisProperties
+            {
+                new Property() { Id = "local.key", Value = "local.value" }
+            };
 
             AnalyzerSettings settings = new AnalyzerSettings();
 
-            settings = new AnalyzerSettings();
-            settings.RuleSetFilePath = "d:\\ruleset path.ruleset";
-            settings.AdditionalFilePaths = new List<string>();
+            settings = new AnalyzerSettings
+            {
+                RuleSetFilePath = "d:\\ruleset path.ruleset",
+                AdditionalFilePaths = new List<string>()
+            };
             settings.AdditionalFilePaths.Add("c:\\additional1.txt");
-            settings.AnalyzerAssemblyPaths = new List<string>();
-            settings.AnalyzerAssemblyPaths.Add("c:\\analyzer1.dll");
+            settings.AnalyzerAssemblyPaths = new List<string>
+            {
+                "c:\\analyzer1.dll"
+            };
 
-            expected.AnalyzersSettings = new List<AnalyzerSettings>();
-            expected.AnalyzersSettings.Add(settings);
+            expected.AnalyzersSettings = new List<AnalyzerSettings>
+            {
+                settings
+            };
 
             AssertExpectedValues(expected, actual);
         }

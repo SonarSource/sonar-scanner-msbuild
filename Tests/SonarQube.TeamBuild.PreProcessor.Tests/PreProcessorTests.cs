@@ -88,9 +88,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 .AddProject("key")
                 .AddRule(new ActiveRule("vbnet", "vb.rule3"));
 
-            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider();
-            mockAnalyzerProvider.SettingsToReturn = new AnalyzerSettings();
-            mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
+            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider
+            {
+                SettingsToReturn = new AnalyzerSettings
+                {
+                    RuleSetFilePath = "c:\\xxx.ruleset"
+                }
+            };
 
             Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
             MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
@@ -155,9 +159,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 .AddProject("key")
                 .AddRule(new ActiveRule("vbnet", "vb.rule3"));
 
-            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider();
-            mockAnalyzerProvider.SettingsToReturn = new AnalyzerSettings();
-            mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
+            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider
+            {
+                SettingsToReturn = new AnalyzerSettings
+                {
+                    RuleSetFilePath = "c:\\xxx.ruleset"
+                }
+            };
 
             Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
             MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
@@ -205,9 +213,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             data.Languages.Add("invalid_plugin");
 
-            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider();
-            mockAnalyzerProvider.SettingsToReturn = new AnalyzerSettings();
-            mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
+            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider
+            {
+                SettingsToReturn = new AnalyzerSettings
+                {
+                    RuleSetFilePath = "c:\\xxx.ruleset"
+                }
+            };
 
             Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
             MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
@@ -270,9 +282,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule1"))
                 .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule2"));
 
-            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider();
-            mockAnalyzerProvider.SettingsToReturn = new AnalyzerSettings();
-            mockAnalyzerProvider.SettingsToReturn.RuleSetFilePath = "c:\\xxx.ruleset";
+            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider
+            {
+                SettingsToReturn = new AnalyzerSettings
+                {
+                    RuleSetFilePath = "c:\\xxx.ruleset"
+                }
+            };
 
             Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
             MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
@@ -378,8 +394,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static void AssertExpectedLocalSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
-            Property actualProperty;
-            bool found = Property.TryGetProperty(key, actualConfig.LocalSettings, out actualProperty);
+            bool found = Property.TryGetProperty(key, actualConfig.LocalSettings, out Property actualProperty);
 
             Assert.IsTrue(found, "Failed to find the expected local setting: {0}", key);
             Assert.AreEqual(expectedValue, actualProperty.Value, "Unexpected property value. Key: {0}", key);
@@ -387,8 +402,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
-            Property actualProperty;
-            bool found = Property.TryGetProperty(key, actualConfig.ServerSettings, out actualProperty);
+            bool found = Property.TryGetProperty(key, actualConfig.ServerSettings, out Property actualProperty);
 
             Assert.IsTrue(found, "Failed to find the expected server setting: {0}", key);
             Assert.AreEqual(expectedValue, actualProperty.Value, "Unexpected property value. Key: {0}", key);

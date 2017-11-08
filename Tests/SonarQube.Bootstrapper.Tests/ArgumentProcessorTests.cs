@@ -82,8 +82,10 @@ namespace SonarQube.Bootstrapper.Tests
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "settings");
             string fullPropertiesPath = Path.Combine(testDir, "settings.txt");
-            AnalysisProperties properties = new AnalysisProperties();
-            properties.Add(new Property() { Id = SonarProperties.Verbose, Value = "true" });
+            AnalysisProperties properties = new AnalysisProperties
+            {
+                new Property() { Id = SonarProperties.Verbose, Value = "true" }
+            };
             properties.Save(fullPropertiesPath);
 
             TestLogger logger = new TestLogger();
@@ -261,9 +263,11 @@ namespace SonarQube.Bootstrapper.Tests
             // Arrange
             string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "settings");
             string fullPropertiesPath = Path.Combine(testDir, "settings.txt");
-            AnalysisProperties properties = new AnalysisProperties();
-            properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://settingsFile" });
-            properties.Add(new Property() { Id = SonarProperties.LogLevel, Value = "INFO|DEBUG" });
+            AnalysisProperties properties = new AnalysisProperties
+            {
+                new Property() { Id = SonarProperties.HostUrl, Value = "http://settingsFile" },
+                new Property() { Id = SonarProperties.LogLevel, Value = "INFO|DEBUG" }
+            };
             properties.Save(fullPropertiesPath);
 
             TestLogger logger = new TestLogger();
@@ -282,8 +286,7 @@ namespace SonarQube.Bootstrapper.Tests
 
         private static IBootstrapperSettings CheckProcessingSucceeds(TestLogger logger, params string[] cmdLineArgs)
         {
-            IBootstrapperSettings settings;
-            bool success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, logger, out settings);
+            bool success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, logger, out IBootstrapperSettings settings);
 
             Assert.IsTrue(success, "Expecting processing to succeed");
             Assert.IsNotNull(settings, "Settings should not be null if processing succeeds");
@@ -295,8 +298,7 @@ namespace SonarQube.Bootstrapper.Tests
         private static TestLogger CheckProcessingFails(params string[] cmdLineArgs)
         {
             TestLogger logger = new TestLogger();
-            IBootstrapperSettings settings;
-            bool success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, logger, out settings);
+            bool success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, logger, out IBootstrapperSettings settings);
 
             Assert.IsFalse(success, "Expecting processing to fail");
             Assert.IsNull(settings, "Settings should be null if processing fails");

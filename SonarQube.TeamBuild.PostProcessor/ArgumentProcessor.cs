@@ -41,9 +41,10 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             // Initialise the set of valid descriptors.
             // To add a new argument, just add it to the list.
-            Descriptors = new List<ArgumentDescriptor>();
-
-            Descriptors.Add(CmdLineArgPropertyProvider.Descriptor);
+            Descriptors = new List<ArgumentDescriptor>
+            {
+                CmdLineArgPropertyProvider.Descriptor
+            };
 
             Debug.Assert(Descriptors.All(d => d.Prefixes != null && d.Prefixes.Any()), "All descriptors must provide at least one prefix");
             Debug.Assert(Descriptors.Select(d => d.Id).Distinct().Count() == Descriptors.Count, "All descriptors must have a unique id");
@@ -70,11 +71,10 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
 
             provider = null;
-            IEnumerable<ArgumentInstance> arguments;
 
             // This call will fail if there are duplicate or missing arguments
             CommandLineParser parser = new CommandLineParser(Descriptors, false /* don't allow unrecognized arguments*/);
-            bool parsedOk = parser.ParseArguments(commandLineArgs, logger, out arguments);
+            bool parsedOk = parser.ParseArguments(commandLineArgs, logger, out IEnumerable<ArgumentInstance> arguments);
 
             if (parsedOk)
             {

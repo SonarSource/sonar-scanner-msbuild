@@ -86,8 +86,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void ProcArgs_TryGetSetting()
         {
             // 1. Missing key -> null
-            string result;
-            Assert.IsFalse(args.TryGetSetting("missing.property", out result), "Expecting false when the specified key does not exist");
+            Assert.IsFalse(args.TryGetSetting("missing.property", out string result), "Expecting false when the specified key does not exist");
             Assert.IsNull(result, "Expecting the value to be null when the specified key does not exist");
 
             // 2. Returns existing values
@@ -155,8 +154,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static void AssertExpectedValue(string key, string expectedValue, ProcessedArgs args)
         {
-            string actualValue;
-            bool found = args.TryGetSetting(key, out actualValue);
+            bool found = args.TryGetSetting(key, out string actualValue);
 
             Assert.IsTrue(found, "Expected setting was not found. Key: {0}", key);
             Assert.AreEqual(expectedValue, actualValue, "Setting does not have the expected value. Key: {0}", key);

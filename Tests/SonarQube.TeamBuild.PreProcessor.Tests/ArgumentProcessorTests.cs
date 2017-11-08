@@ -198,9 +198,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             string propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
 
             // 1. File exists -> args ok
-            AnalysisProperties properties = new AnalysisProperties();
-            properties.Add(new Property() { Id = "key1", Value = "value1" });
-            properties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "url" }); // required property
+            AnalysisProperties properties = new AnalysisProperties
+            {
+                new Property() { Id = "key1", Value = "value1" },
+                new Property() { Id = SonarProperties.HostUrl, Value = "url" } // required property
+            };
             properties.Save(propertiesFilePath);
 
             ProcessedArgs result = CheckProcessingSucceeds("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
@@ -443,8 +445,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual(value, actualValue, "Dynamic setting does not have the expected value");
 
             // Check the public list of properties
-            Property match;
-            bool found = Property.TryGetProperty(key, actual.GetAllProperties(), out match);
+            bool found = Property.TryGetProperty(key, actual.GetAllProperties(), out Property match);
             Assert.IsTrue(found, "Failed to find the expected property. Key: {0}", key);
             Assert.IsNotNull(match, "Returned property should not be null. Key: {0}", key);
             Assert.AreEqual(value, match.Value, "Property does not have the expected value");

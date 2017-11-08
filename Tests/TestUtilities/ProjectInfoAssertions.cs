@@ -122,16 +122,14 @@ namespace TestUtilities
         public static void AssertAnalysisResultDoesNotExists(ProjectInfo projectInfo, string resultId)
         {
             Assert.IsNotNull(projectInfo.AnalysisResults, "AnalysisResults should not be null");
-            AnalysisResult result;
-            bool found = SonarQube.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out result);
+            bool found = SonarQube.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
             Assert.IsFalse(found, "Not expecting to find an analysis result for id. Id: {0}", resultId);
         }
 
         public static AnalysisResult AssertAnalysisResultExists(ProjectInfo projectInfo, string resultId)
         {
             Assert.IsNotNull(projectInfo.AnalysisResults, "AnalysisResults should not be null");
-            AnalysisResult result;
-            bool found = SonarQube.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out result);
+            bool found = SonarQube.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
             Assert.IsTrue(found, "Failed to find an analysis result with the expected id. Id: {0}", resultId);
             Assert.IsNotNull(result, "Returned analysis result should not be null. Id: {0}", resultId);
             return result;

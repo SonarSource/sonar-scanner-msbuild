@@ -39,11 +39,7 @@ namespace SonarQube.TeamBuild.Integration
 
         protected CoverageReportProcessorBase(ICoverageReportConverter converter)
         {
-            if (converter == null)
-            {
-                throw new ArgumentNullException("converter");
-            }
-            this.converter = converter;
+            this.converter = converter ?? throw new ArgumentNullException("converter");
         }
 
         #region ICoverageReportProcessor interface
@@ -51,22 +47,9 @@ namespace SonarQube.TeamBuild.Integration
 
         public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger)
         {
-            if (config == null)
-            {
-                throw new ArgumentNullException("config");
-            }
-            if (settings == null)
-            {
-                throw new ArgumentNullException("settings");
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
-
-            this.config = config;
-            this.settings = settings;
-            this.logger = logger;
+            this.config = config ?? throw new ArgumentNullException("config");
+            this.settings = settings ?? throw new ArgumentNullException("settings");
+            this.logger = logger ?? throw new ArgumentNullException("logger");
 
             this.succesfullyInitialised =  this.converter.Initialize(logger);
             return succesfullyInitialised;
@@ -84,8 +67,7 @@ namespace SonarQube.TeamBuild.Integration
             // Fetch all of the report URLs
             this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
 
-            string binaryFilePath;
-            bool success = this.TryGetBinaryReportFile(this.config, this.settings, this.logger, out binaryFilePath);
+            bool success = this.TryGetBinaryReportFile(this.config, this.settings, this.logger, out string binaryFilePath);
 
             if (success && binaryFilePath != null)
             {

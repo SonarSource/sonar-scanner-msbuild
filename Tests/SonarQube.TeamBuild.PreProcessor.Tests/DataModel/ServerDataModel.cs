@@ -88,8 +88,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         public byte[] FindEmbeddedFile(string pluginKey, string embeddedFileName)
         {
-            byte[] content;
-            this.embeddedFilesMap.TryGetValue(GetEmbeddedFileKey(pluginKey, embeddedFileName), out content);
+            this.embeddedFilesMap.TryGetValue(GetEmbeddedFileKey(pluginKey, embeddedFileName), out byte[] content);
             return content;
         }
 

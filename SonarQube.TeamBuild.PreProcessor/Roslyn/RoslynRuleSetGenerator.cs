@@ -33,11 +33,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
 
         public RoslynRuleSetGenerator(IDictionary<string, string> serverSettings)
         {
-            if (serverSettings == null)
-            {
-                throw new ArgumentNullException(nameof(serverSettings));
-            }
-            this.serverSettings = serverSettings;
+            this.serverSettings = serverSettings ?? throw new ArgumentNullException(nameof(serverSettings));
         }
 
         /// <summary>
@@ -63,11 +59,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
             Dictionary<string, List<ActiveRule>> activeRulesByPartialRepoKey = ActiveRoslynRulesByPartialRepoKey(activeRules, language);
             Dictionary<string, List<string>> inactiveRulesByRepoKey = GetInactiveRulesByRepoKey(inactiveRules);
 
-            RuleSet ruleSet = new RuleSet();
-
-            ruleSet.Name = "Rules for SonarQube";
-            ruleSet.Description = "This rule set was automatically generated from SonarQube";
-            ruleSet.ToolsVersion = "14.0";
+            RuleSet ruleSet = new RuleSet
+            {
+                Name = "Rules for SonarQube",
+                Description = "This rule set was automatically generated from SonarQube",
+                ToolsVersion = "14.0"
+            };
 
             foreach (KeyValuePair<string, List<ActiveRule>> entry in activeRulesByPartialRepoKey)
             {
@@ -80,8 +77,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
                 rules.RuleList = entry.Value.Select(r => new Rule(r.RuleKey, "Warning")).ToList();
 
                 // add other
-                List<string> otherRules;
-                if (inactiveRulesByRepoKey.TryGetValue(repoKey, out otherRules))
+                if (inactiveRulesByRepoKey.TryGetValue(repoKey, out List<string> otherRules))
                 {
                     rules.RuleList.AddRange(otherRules.Select(r => new Rule(r, "None")).ToList());
                 }
@@ -96,9 +92,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
             Dictionary<string, List<string>> dict = new Dictionary<string, List<string>>();
             foreach (string r in inactiveRules)
             {
-                string key;
-                string repo;
-                ParseRuleKey(r, out repo, out key);
+                ParseRuleKey(r, out string repo, out string key);
                 AddDict(dict, repo, key);
             }
             return dict;
@@ -133,8 +127,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
 
         private static void AddDict<T>(Dictionary<string, List<T>> dict, string key, T value)
         {
-            List<T> list;
-            if (!dict.TryGetValue(key, out list))
+            if (!dict.TryGetValue(key, out List<T> list))
             {
                 list = new List<T>();
                 dict.Add(key, list);

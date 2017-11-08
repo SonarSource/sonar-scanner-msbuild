@@ -119,8 +119,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         private static IAnalysisPropertyProvider CheckProcessingSucceeds(TestLogger logger, string[] input)
         {
-            IAnalysisPropertyProvider provider;
-            bool success = ArgumentProcessor.TryProcessArgs(input, logger, out provider);
+            bool success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
 
             Assert.IsTrue(success, "Expecting processing to have succeeded");
             Assert.IsNotNull(provider, "Returned provider should not be null");
@@ -133,8 +132,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             TestLogger logger = new TestLogger();
 
-            IAnalysisPropertyProvider provider;
-            bool success = ArgumentProcessor.TryProcessArgs(input, logger, out provider);
+            bool success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
 
             Assert.IsFalse(success, "Not expecting processing to have succeeded");
             Assert.IsNull(provider, "Provider should be null if processing fails");

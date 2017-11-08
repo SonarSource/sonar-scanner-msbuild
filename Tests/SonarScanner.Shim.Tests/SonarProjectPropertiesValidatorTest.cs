@@ -65,10 +65,12 @@ namespace SonarScanner.Shim.Tests
             File.Create(Path.Combine(Path.GetDirectoryName(p1.FullPath), "sonar-project.properties"));
             File.Create(Path.Combine(Path.GetDirectoryName(p3.FullPath), "sonar-project.properties"));
 
-            var projects = new Dictionary<ProjectInfo, ProjectInfoValidity>();
-            projects[p1] = ProjectInfoValidity.Valid;
-            projects[p2] = ProjectInfoValidity.Valid;
-            projects[p3] = ProjectInfoValidity.Valid;
+            var projects = new Dictionary<ProjectInfo, ProjectInfoValidity>
+            {
+                [p1] = ProjectInfoValidity.Valid,
+                [p2] = ProjectInfoValidity.Valid,
+                [p3] = ProjectInfoValidity.Valid
+            };
 
             bool called = false;
             SonarProjectPropertiesValidator.Validate(
@@ -100,12 +102,14 @@ namespace SonarScanner.Shim.Tests
             File.Create(Path.Combine(Path.GetDirectoryName(p4.FullPath), "sonar-project.properties"));
             File.Create(Path.Combine(Path.GetDirectoryName(p5.FullPath), "sonar-project.properties"));
 
-            var projects = new Dictionary<ProjectInfo, ProjectInfoValidity>();
-            projects[p1] = ProjectInfoValidity.Valid;
-            projects[p2] = ProjectInfoValidity.DuplicateGuid;
-            projects[p3] = ProjectInfoValidity.ExcludeFlagSet;
-            projects[p4] = ProjectInfoValidity.InvalidGuid;
-            projects[p5] = ProjectInfoValidity.NoFilesToAnalyze;
+            var projects = new Dictionary<ProjectInfo, ProjectInfoValidity>
+            {
+                [p1] = ProjectInfoValidity.Valid,
+                [p2] = ProjectInfoValidity.DuplicateGuid,
+                [p3] = ProjectInfoValidity.ExcludeFlagSet,
+                [p4] = ProjectInfoValidity.InvalidGuid,
+                [p5] = ProjectInfoValidity.NoFilesToAnalyze
+            };
 
             bool called = false;
             SonarProjectPropertiesValidator.Validate(
@@ -126,8 +130,10 @@ namespace SonarScanner.Shim.Tests
         {
             var projectFolder = Path.Combine(folder, projectName);
             Directory.CreateDirectory(projectFolder);
-            ProjectInfo project = new ProjectInfo();
-            project.FullPath = Path.Combine(projectFolder, projectName + ".csproj");
+            ProjectInfo project = new ProjectInfo
+            {
+                FullPath = Path.Combine(projectFolder, projectName + ".csproj")
+            };
             return project;
         }
 

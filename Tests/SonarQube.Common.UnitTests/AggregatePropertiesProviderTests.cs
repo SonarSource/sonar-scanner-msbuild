@@ -44,8 +44,7 @@ namespace SonarQube.Common.UnitTests
             AggregatePropertiesProvider provider = new AggregatePropertiesProvider(new IAnalysisPropertyProvider[] { });
 
             Assert.AreEqual(0, provider.GetAllProperties().Count());
-            Property actualProperty;
-            bool success = provider.TryGetProperty("any key", out actualProperty);
+            bool success = provider.TryGetProperty("any key", out Property actualProperty);
 
             Assert.IsFalse(success, "Not expecting a property to be returned");
             Assert.IsNull(actualProperty, "Returned property should be null");

@@ -41,32 +41,11 @@ namespace SonarQube.TeamBuild.PostProcessor
         public MSBuildPostProcessor(ICoverageReportProcessor codeCoverageProcessor, ISonarScanner scanner, ISummaryReportBuilder reportBuilder, ILogger logger,
             ITargetsUninstaller targetUninstaller)
         {
-            if (codeCoverageProcessor == null)
-            {
-                throw new ArgumentNullException(nameof(codeCoverageProcessor));
-            }
-            if (scanner == null)
-            {
-                throw new ArgumentNullException(nameof(scanner));
-            }
-            if (reportBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(reportBuilder));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            if (targetUninstaller == null)
-            {
-                throw new ArgumentNullException(nameof(targetUninstaller));
-            }
-
-            this.logger = logger;
-            this.codeCoverageProcessor = codeCoverageProcessor;
-            this.sonarScanner = scanner;
-            this.reportBuilder = reportBuilder;
-            this.targetUninstaller = targetUninstaller;
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.codeCoverageProcessor = codeCoverageProcessor ?? throw new ArgumentNullException(nameof(codeCoverageProcessor));
+            this.sonarScanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
+            this.reportBuilder = reportBuilder ?? throw new ArgumentNullException(nameof(reportBuilder));
+            this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
         }
 
         public bool Execute(string[] args, AnalysisConfig config, ITeamBuildSettings settings)
@@ -88,8 +67,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             logger.SuspendOutput();
 
-            IAnalysisPropertyProvider provider;
-            if (!ArgumentProcessor.TryProcessArgs(args, logger, out provider))
+            if (!ArgumentProcessor.TryProcessArgs(args, logger, out IAnalysisPropertyProvider provider))
             {
                 logger.ResumeOutput();
                 // logging already done

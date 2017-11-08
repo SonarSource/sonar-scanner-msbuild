@@ -96,14 +96,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             string language = RoslynAnalyzerProvider.CSharpLanguage;
 
             // missing properties to get plugin related properties
-            IDictionary<string, string> serverSettings = new Dictionary<string, string>();
-            serverSettings.Add("wintellect.analyzerId", "Wintellect.Analyzers");
-            serverSettings.Add("wintellect.ruleNamespace", "Wintellect.Analyzers");
-            serverSettings.Add("sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp");
-            serverSettings.Add("sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp");
+            IDictionary<string, string> serverSettings = new Dictionary<string, string>
+            {
+                { "wintellect.analyzerId", "Wintellect.Analyzers" },
+                { "wintellect.ruleNamespace", "Wintellect.Analyzers" },
+                { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
+                { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" }
+            };
 
-            MockAnalyzerInstaller mockInstaller = new MockAnalyzerInstaller();
-            mockInstaller.AssemblyPathsToReturn = new HashSet<string>(new string[] { "c:\\assembly1.dll", "d:\\foo\\assembly2.dll" });
+            MockAnalyzerInstaller mockInstaller = new MockAnalyzerInstaller
+            {
+                AssemblyPathsToReturn = new HashSet<string>(new string[] { "c:\\assembly1.dll", "d:\\foo\\assembly2.dll" })
+            };
             TeamBuildSettings settings = CreateSettings(rootFolder);
 
             RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
@@ -137,8 +141,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             IList<ActiveRule> activeRules = createActiveRules();
             IList<string> inactiveRules = createInactiveRules();
             string language = RoslynAnalyzerProvider.CSharpLanguage;
-            MockAnalyzerInstaller mockInstaller = new MockAnalyzerInstaller();
-            mockInstaller.AssemblyPathsToReturn = new HashSet<string>(new string[] { "c:\\assembly1.dll", "d:\\foo\\assembly2.dll" });
+            MockAnalyzerInstaller mockInstaller = new MockAnalyzerInstaller
+            {
+                AssemblyPathsToReturn = new HashSet<string>(new string[] { "c:\\assembly1.dll", "d:\\foo\\assembly2.dll" })
+            };
             TeamBuildSettings settings = CreateSettings(rootFolder);
 
             RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
@@ -154,9 +160,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             CheckRuleset(actualSettings, rootFolder, language);
             CheckExpectedAdditionalFiles(rootFolder, language, settings.SonarOutputDirectory, actualSettings);
             CheckExpectedAssemblies(actualSettings, "c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
-            List<string> plugins = new List<string>();
-            plugins.Add("wintellect");
-            plugins.Add("csharp");
+            List<string> plugins = new List<string>
+            {
+                "wintellect",
+                "csharp"
+            };
             mockInstaller.AssertExpectedPluginsRequested(plugins);
         }
 
@@ -166,8 +174,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private List<string> createInactiveRules()
         {
-            List<string> list = new List<string>();
-            list.Add("csharpsquid:S1000");
+            List<string> list = new List<string>
+            {
+                "csharpsquid:S1000"
+            };
             return list;
         }
 
@@ -184,8 +194,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             */
             List<ActiveRule> rules = new List<ActiveRule>();
             ActiveRule ruleWithParameter = new ActiveRule("csharpsquid", "S1116");
-            Dictionary<string, string> p = new Dictionary<string, string>();
-            p.Add("key", "value");
+            Dictionary<string, string> p = new Dictionary<string, string>
+            {
+                { "key", "value" }
+            };
             ruleWithParameter.Parameters = p;
             rules.Add(ruleWithParameter);
             rules.Add(new ActiveRule("csharpsquid", "S1125"));

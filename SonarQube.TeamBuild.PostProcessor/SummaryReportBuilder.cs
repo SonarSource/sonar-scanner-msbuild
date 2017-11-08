@@ -63,27 +63,10 @@ namespace SonarQube.TeamBuild.PostProcessor
         /// </summary>
         public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
-            if (settings == null)
-            {
-                throw new ArgumentNullException("settings");
-            }
-            if (config == null)
-            {
-                throw new ArgumentNullException("config");
-            }
-            if (result == null)
-            {
-                throw new ArgumentNullException("result");
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
-
-            this.settings = settings;
-            this.config = config;
-            this.result = result;
-            this.logger = logger;
+            this.settings = settings ?? throw new ArgumentNullException("settings");
+            this.config = config ?? throw new ArgumentNullException("config");
+            this.result = result ?? throw new ArgumentNullException("result");
+            this.logger = logger ?? throw new ArgumentNullException("logger");
 
             this.GenerateReports();
         }
@@ -125,10 +108,11 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
 
 
-            SummaryReportData summaryData = new SummaryReportData();
-
-            summaryData.SkippedProjects = GetProjectsByStatus(result, ProjectInfoValidity.NoFilesToAnalyze).Count();
-            summaryData.InvalidProjects = GetProjectsByStatus(result, ProjectInfoValidity.InvalidGuid).Count();
+            SummaryReportData summaryData = new SummaryReportData
+            {
+                SkippedProjects = GetProjectsByStatus(result, ProjectInfoValidity.NoFilesToAnalyze).Count(),
+                InvalidProjects = GetProjectsByStatus(result, ProjectInfoValidity.InvalidGuid).Count()
+            };
             summaryData.InvalidProjects += GetProjectsByStatus(result, ProjectInfoValidity.DuplicateGuid).Count();
 
             summaryData.ExcludedProjects = GetProjectsByStatus(result, ProjectInfoValidity.ExcludeFlagSet).Count();
@@ -178,8 +162,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             IAnalysisPropertyProvider localSettings = config.GetAnalysisSettings(includeServerSettings: false);
             Debug.Assert(localSettings != null);
 
-            string branch;
-            localSettings.TryGetValue(SonarProperties.ProjectBranch, out branch);
+            localSettings.TryGetValue(SonarProperties.ProjectBranch, out string branch);
 
             return branch;
         }

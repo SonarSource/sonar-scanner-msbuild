@@ -65,11 +65,9 @@ namespace SonarQube.Common
 
             // If the path to a properties file was specified on the command line, use that.
             // Otherwise, look for a default properties file in the default directory.
-            string propertiesFilePath;
-            bool settingsFileArgExists = ArgumentInstance.TryGetArgumentValue(DescriptorId, commandLineArguments, out propertiesFilePath);
+            bool settingsFileArgExists = ArgumentInstance.TryGetArgumentValue(DescriptorId, commandLineArguments, out string propertiesFilePath);
 
-            AnalysisProperties locatedPropertiesFile;
-            if (ResolveFilePath(propertiesFilePath, defaultPropertiesFileDirectory, logger, out locatedPropertiesFile))
+            if (ResolveFilePath(propertiesFilePath, defaultPropertiesFileDirectory, logger, out AnalysisProperties locatedPropertiesFile))
             {
                 if (locatedPropertiesFile == null)
                 {
@@ -126,11 +124,7 @@ namespace SonarQube.Common
 
         private FilePropertyProvider(AnalysisProperties properties, bool isDefaultPropertiesFile)
         {
-            if (properties == null)
-            {
-                throw new ArgumentNullException("properties");
-            }
-            this.propertiesFile = properties;
+            this.propertiesFile = properties ?? throw new ArgumentNullException("properties");
             this.isDefaultPropertiesFile = isDefaultPropertiesFile;
         }
 

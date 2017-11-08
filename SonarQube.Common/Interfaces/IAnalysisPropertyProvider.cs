@@ -47,8 +47,7 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("name");
             }
 
-            Property property;
-            if (provider.TryGetProperty(name, out property))
+            if (provider.TryGetProperty(name, out Property property))
             {
                 value = property.Value;
                 return true;

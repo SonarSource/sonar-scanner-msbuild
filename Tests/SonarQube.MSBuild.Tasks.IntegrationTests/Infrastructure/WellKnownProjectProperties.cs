@@ -155,8 +155,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         private string GetValueOrNull(string key)
         {
-            string value;
-            this.TryGetValue(key, out value);
+            this.TryGetValue(key, out string value);
             return value;
         }
 

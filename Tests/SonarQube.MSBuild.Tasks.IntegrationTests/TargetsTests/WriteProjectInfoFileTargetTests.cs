@@ -17,15 +17,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.Build.Construction;
-using Microsoft.Build.Execution;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+
 using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Build.Construction;
+using Microsoft.Build.Execution;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
@@ -837,10 +837,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// <returns></returns>
         private static WellKnownProjectProperties CreateDefaultAnalysisProperties(string configPath, string outputPath)
         {
-            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
-            preImportProperties.SonarQubeTempPath = configPath;
-            preImportProperties.SonarQubeOutputPath = outputPath;
-            preImportProperties.SonarQubeConfigPath = configPath;
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties
+            {
+                SonarQubeTempPath = configPath,
+                SonarQubeOutputPath = outputPath,
+                SonarQubeConfigPath = configPath
+            };
             return preImportProperties;
         }
 
@@ -855,8 +857,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             AnalysisConfig config = new AnalysisConfig();
             if (regExExpression != null)
             {
-                config.LocalSettings = new AnalysisProperties();
-                config.LocalSettings.Add(new Property() { Id = IsTestFileByName.TestRegExSettingId, Value = regExExpression });
+                config.LocalSettings = new AnalysisProperties
+                {
+                    new Property { Id = IsTestFileByName.TestRegExSettingId, Value = regExExpression }
+                };
             }
 
             string fullPath = Path.Combine(parentDir, FileConstants.ConfigFileName);
@@ -871,8 +875,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             ProjectItemElement item = projectRoot.AddItem(itemTypeName, include);
 
-            int remainder;
-            Math.DivRem(idAndValuePairs.Length, 2, out remainder);
+            Math.DivRem(idAndValuePairs.Length, 2, out int remainder);
             Assert.AreEqual(0, remainder, "Test setup error: the supplied list should contain id-location pairs");
 
             for (int index = 0; index < idAndValuePairs.Length; index += 2)
@@ -909,8 +912,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         private void AssertResultFileDoesNotExist(ProjectInfo projectInfo, AnalysisType resultType)
         {
-            AnalysisResult result;
-            bool found = projectInfo.TryGetAnalyzerResult(resultType, out result);
+            bool found = projectInfo.TryGetAnalyzerResult(resultType, out AnalysisResult result);
 
             if (found)
             {
@@ -922,8 +924,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         private void AssertResultFileExists(ProjectInfo projectInfo, AnalysisType resultType, params string[] expected)
         {
-            AnalysisResult result;
-            bool found = projectInfo.TryGetAnalyzerResult(resultType, out result);
+            bool found = projectInfo.TryGetAnalyzerResult(resultType, out AnalysisResult result);
 
             Assert.IsTrue(found, "Analysis result not found: {0}", resultType);
             Assert.IsTrue(File.Exists(result.Location), "Analysis result file not found");
@@ -946,8 +947,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         private void AssertSettingExists(ProjectInfo projectInfo, string expectedId, string expectedValue)
         {
-            Property actualSetting;
-            bool found = projectInfo.TryGetAnalysisSetting(expectedId, out actualSetting);
+            bool found = projectInfo.TryGetAnalysisSetting(expectedId, out Property actualSetting);
             Assert.IsTrue(found, "Expecting the analysis setting to be found. Id: {0}", expectedId);
 
             // Check the implementation of TryGetAnalysisSetting

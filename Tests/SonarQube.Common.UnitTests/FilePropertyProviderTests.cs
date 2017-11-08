@@ -101,9 +101,10 @@ namespace SonarQube.Common.UnitTests
             string defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "Default");
             CreateFile(defaultPropertiesDir, FilePropertyProvider.DefaultFileName, "invalid file - will error if this file is loaded");
 
-            IList<ArgumentInstance> args = new List<ArgumentInstance>();
-
-            args.Add(new ArgumentInstance(FilePropertyProvider.Descriptor, validPropertiesFile));
+            IList<ArgumentInstance> args = new List<ArgumentInstance>
+            {
+                new ArgumentInstance(FilePropertyProvider.Descriptor, validPropertiesFile)
+            };
 
             TestLogger logger = new TestLogger();
 
@@ -124,8 +125,10 @@ namespace SonarQube.Common.UnitTests
             TestLogger logger = new TestLogger();
             string defaultPropertiesDir = this.TestContext.DeploymentDirectory;
 
-            IList<ArgumentInstance> args = new List<ArgumentInstance>();
-            args.Add(new ArgumentInstance(FilePropertyProvider.Descriptor, "missingFile.txt"));
+            IList<ArgumentInstance> args = new List<ArgumentInstance>
+            {
+                new ArgumentInstance(FilePropertyProvider.Descriptor, "missingFile.txt")
+            };
 
             // Act
             CheckProcessingFails(args, defaultPropertiesDir, logger);
@@ -163,8 +166,10 @@ namespace SonarQube.Common.UnitTests
             string defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
             string invalidFile = CreateFile(defaultPropertiesDir, "invalidPropertiesFile.txt", "not a valid XML properties file");
 
-            IList<ArgumentInstance> args = new List<ArgumentInstance>();
-            args.Add(new ArgumentInstance(FilePropertyProvider.Descriptor, invalidFile));
+            IList<ArgumentInstance> args = new List<ArgumentInstance>
+            {
+                new ArgumentInstance(FilePropertyProvider.Descriptor, invalidFile)
+            };
 
             // Act
             CheckProcessingFails(args, defaultPropertiesDir, logger);
@@ -192,9 +197,10 @@ namespace SonarQube.Common.UnitTests
         {
             string fullPath = Path.Combine(path, fileName);
 
-            AnalysisProperties properties = new AnalysisProperties();
-
-            properties.Add(new Property() { Id = property, Value = value });
+            AnalysisProperties properties = new AnalysisProperties
+            {
+                new Property() { Id = property, Value = value }
+            };
 
             properties.Save(fullPath);
             return fullPath;
@@ -211,9 +217,8 @@ namespace SonarQube.Common.UnitTests
 
         private static IAnalysisPropertyProvider CheckProcessingSucceeds(IEnumerable<ArgumentInstance> cmdLineArgs, string defaultPropertiesDirectory, TestLogger logger)
         {
-            IAnalysisPropertyProvider provider;
-            bool isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out provider);
-            
+            bool isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out IAnalysisPropertyProvider provider);
+
             Assert.IsTrue(isValid, "Expecting the provider to be initialized successfully");
             Assert.IsNotNull(provider, "Not expecting a null provider if the function returned true");
             logger.AssertErrorsLogged(0);
@@ -223,8 +228,7 @@ namespace SonarQube.Common.UnitTests
 
         private static void CheckProcessingFails(IEnumerable<ArgumentInstance> cmdLineArgs, string defaultPropertiesDirectory, TestLogger logger)
         {
-            IAnalysisPropertyProvider provider;
-            bool isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out provider);
+            bool isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out IAnalysisPropertyProvider provider);
 
             Assert.IsFalse(isValid, "Not expecting the provider to be initialized successfully");
             Assert.IsNull(provider, "Not expecting a provider instance if the function returned true");

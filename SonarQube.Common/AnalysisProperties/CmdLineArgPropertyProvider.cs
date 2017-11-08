@@ -55,8 +55,7 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("logger");
             }
 
-            IEnumerable<Property> validProperties;
-            if (ExtractAndValidateProperties(commandLineArguments, logger, out validProperties))
+            if (ExtractAndValidateProperties(commandLineArguments, logger, out IEnumerable<Property> validProperties))
             {
                 if (validProperties.Any())
                 {
@@ -95,11 +94,7 @@ namespace SonarQube.Common
 
         private CmdLineArgPropertyProvider(IEnumerable<Property> properties)
         {
-            if (properties == null)
-            {
-                throw new ArgumentNullException("properties");
-            }
-            this.properties = properties;
+            this.properties = properties ?? throw new ArgumentNullException("properties");
         }
 
         #endregion
@@ -124,11 +119,9 @@ namespace SonarQube.Common
 
             foreach (ArgumentInstance argument in arguments.Where(a => a.Descriptor.Id == DynamicPropertyArgumentId))
             {
-                Property property;
-                if (Property.TryParse(argument.Value, out property))
+                if (Property.TryParse(argument.Value, out Property property))
                 {
-                    Property existing;
-                    if (Property.TryGetProperty(property.Id, validProperties, out existing))
+                    if (Property.TryGetProperty(property.Id, validProperties, out Property existing))
                     {
                         logger.LogError(Resources.ERROR_CmdLine_DuplicateProperty, argument.Value, existing.Value);
                         containsDuplicateProperty = true;
@@ -165,8 +158,7 @@ namespace SonarQube.Common
 
         private static bool ContainsNamedParameter(string propertyName, IEnumerable<Property> properties, ILogger logger, string errorMessage)
         {
-            Property existing;
-            if (Property.TryGetProperty(propertyName, properties, out existing))
+            if (Property.TryGetProperty(propertyName, properties, out Property existing))
             {
                 logger.LogError(errorMessage);
                 return true;
@@ -176,8 +168,7 @@ namespace SonarQube.Common
 
         private static bool ContainsUnsettableParameter(string propertyName, IEnumerable<Property> properties, ILogger logger)
         {
-            Property existing;
-            if (Property.TryGetProperty(propertyName, properties, out existing))
+            if (Property.TryGetProperty(propertyName, properties, out Property existing))
             {
                 logger.LogError(Resources.ERROR_CmdLine_CannotSetPropertyOnCommandLine, propertyName);
                 return true;

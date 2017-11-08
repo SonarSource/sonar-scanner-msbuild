@@ -62,15 +62,10 @@ namespace SonarQube.Bootstrapper
 
         public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, LoggerVerbosity verbosity, ILogger logger)
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
-
             this.analysisPhase = phase;
             this.childCmdLineArgs = childCmdLineArgs;
             this.verbosity = verbosity;
-            this.logger = logger;
+            this.logger = logger ?? throw new ArgumentNullException("logger");
         }
 
         #endregion Constructor(s)

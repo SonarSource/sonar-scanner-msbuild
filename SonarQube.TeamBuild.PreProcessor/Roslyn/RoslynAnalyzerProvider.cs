@@ -17,15 +17,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
@@ -54,33 +54,20 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         public RoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller, ILogger logger)
         {
-            if (analyzerInstaller == null)
-            {
-                throw new ArgumentNullException(nameof(analyzerInstaller));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            this.analyzerInstaller = analyzerInstaller;
-            this.logger = logger;
+            this.analyzerInstaller = analyzerInstaller ?? throw new ArgumentNullException(nameof(analyzerInstaller));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public AnalyzerSettings SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings,
             IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules, string language)
         {
-            if (settings == null)
-            {
-                throw new ArgumentNullException(nameof(settings));
-            }
+            this.sqSettings = settings ?? throw new ArgumentNullException(nameof(settings));
+            this.sqServerSettings = serverSettings ?? throw new ArgumentNullException(nameof(serverSettings));
             if (language == null)
             {
                 throw new ArgumentNullException(nameof(language));
             }
-            if (serverSettings == null)
-            {
-                throw new ArgumentNullException(nameof(serverSettings));
-            }
+
             if (inactiveRules == null)
             {
                 throw new ArgumentNullException(nameof(inactiveRules));
@@ -94,8 +81,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 return null;
             }
 
-            this.sqSettings = settings;
-            this.sqServerSettings = serverSettings;
 
             AnalyzerSettings analyzer = ConfigureAnalyzer(language, activeRules, inactiveRules);
             if (analyzer == null)
@@ -224,12 +209,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
             foreach (string repoKey in repoKeys)
             {
-                string pluginkey;
-                string pluginVersion;
-                string staticResourceName;
-                if (!sqServerSettings.TryGetValue(PluginKeyPropertyKey(repoKey), out pluginkey)
-                    || !sqServerSettings.TryGetValue(PluginVersionPropertyKey(repoKey), out pluginVersion)
-                    || !sqServerSettings.TryGetValue(StaticResourceNamePropertyKey(repoKey), out staticResourceName))
+                if (!sqServerSettings.TryGetValue(PluginKeyPropertyKey(repoKey), out string pluginkey)
+                    || !sqServerSettings.TryGetValue(PluginVersionPropertyKey(repoKey), out string pluginVersion)
+                    || !sqServerSettings.TryGetValue(StaticResourceNamePropertyKey(repoKey), out string staticResourceName))
                 {
                     this.logger.LogInfo(Resources.RAP_NoAssembliesForRepo, repoKey, language);
                     continue;

@@ -37,7 +37,6 @@ namespace SonarQube.Bootstrapper
 
         public static int Execute(string[] args, ILogger logger)
         {
-            IBootstrapperSettings settings;
             logger.SuspendOutput();
 
             if (ArgumentProcessor.IsHelp(args))
@@ -56,7 +55,7 @@ namespace SonarQube.Bootstrapper
                 return SuccessCode;
             }
 
-            if (!ArgumentProcessor.TryProcessArgs(args, logger, out settings))
+            if (!ArgumentProcessor.TryProcessArgs(args, logger, out IBootstrapperSettings settings))
             {
                 logger.ResumeOutput();
                 // The argument processor will have logged errors

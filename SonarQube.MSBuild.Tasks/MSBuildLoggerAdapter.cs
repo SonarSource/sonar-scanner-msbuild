@@ -33,11 +33,7 @@ namespace SonarQube.MSBuild.Tasks
 
         public MSBuildLoggerAdapter(TaskLoggingHelper msBuildLogger)
         {
-            if (msBuildLogger == null)
-            {
-                throw new ArgumentNullException("msBuildLogger");
-            }
-            this.msBuildLogger = msBuildLogger;
+            this.msBuildLogger = msBuildLogger ?? throw new ArgumentNullException("msBuildLogger");
         }
 
         #region SonarQube.Common.ILogger methods
