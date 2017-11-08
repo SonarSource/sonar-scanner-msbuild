@@ -158,8 +158,7 @@ namespace SonarQube.Common
         /// </summary>
         public static string TryGetAnalysisFileLocation(this ProjectInfo projectInfo, AnalysisType analysisType)
         {
-            AnalysisResult result;
-            if (projectInfo.TryGetAnalyzerResult(analysisType, out result))
+            if (projectInfo.TryGetAnalyzerResult(analysisType, out AnalysisResult result))
             {
                 return result.Location;
             }

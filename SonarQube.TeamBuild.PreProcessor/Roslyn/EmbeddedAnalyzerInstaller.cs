@@ -57,21 +57,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         public EmbeddedAnalyzerInstaller(ISonarQubeServer server, string localCacheDirectory, ILogger logger)
         {
-            if (server == null)
-            {
-                throw new ArgumentNullException("server");
-            }
             if (string.IsNullOrWhiteSpace(localCacheDirectory))
             {
                 throw new ArgumentNullException("localCacheDirectory");
             }
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
 
-            this.server = server;
-            this.logger = logger;
+            this.server = server ?? throw new ArgumentNullException("server");
+            this.logger = logger ?? throw new ArgumentNullException("logger");
 
             this.logger.LogDebug(RoslynResources.EAI_LocalAnalyzerCache, localCacheDirectory);
             Directory.CreateDirectory(localCacheDirectory); // ensure the cache dir exists

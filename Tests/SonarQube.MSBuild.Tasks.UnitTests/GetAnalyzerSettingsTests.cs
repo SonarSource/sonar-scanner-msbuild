@@ -39,8 +39,10 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void GetAnalyzerSettings_MissingConfigDir_NoError()
         {
             // Arrange
-            GetAnalyzerSettings testSubject = new GetAnalyzerSettings();
-            testSubject.AnalysisConfigDir = "c:\\missing";
+            GetAnalyzerSettings testSubject = new GetAnalyzerSettings
+            {
+                AnalysisConfigDir = "c:\\missing"
+            };
 
             // Act
             ExecuteAndCheckSuccess(testSubject);
@@ -53,8 +55,10 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void GetAnalyzerSettings_MissingConfigFile_NoError()
         {
             // Arrange
-            GetAnalyzerSettings testSubject = new GetAnalyzerSettings();
-            testSubject.AnalysisConfigDir = this.TestContext.DeploymentDirectory;
+            GetAnalyzerSettings testSubject = new GetAnalyzerSettings
+            {
+                AnalysisConfigDir = this.TestContext.DeploymentDirectory
+            };
 
             // Act
             ExecuteAndCheckSuccess(testSubject);
@@ -94,28 +98,36 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             string[] expectedAdditionalFiles = new string[] { "c:\\add1.txt", "d:\\add2.txt" };
 
             // SONARMSBRU-216: non-assembly files should be filtered out
-            List<string> filesInConfig = new List<string>(expectedAnalyzers);
-            filesInConfig.Add("c:\\not_an_assembly.exe");
-            filesInConfig.Add("c:\\not_an_assembly.zip");
-            filesInConfig.Add("c:\\not_an_assembly.txt");
-            filesInConfig.Add("c:\\not_an_assembly.dll.foo");
-            filesInConfig.Add("c:\\not_an_assembly.winmd");
+            List<string> filesInConfig = new List<string>(expectedAnalyzers)
+            {
+                "c:\\not_an_assembly.exe",
+                "c:\\not_an_assembly.zip",
+                "c:\\not_an_assembly.txt",
+                "c:\\not_an_assembly.dll.foo",
+                "c:\\not_an_assembly.winmd"
+            };
 
-            AnalysisConfig config = new AnalysisConfig();
-            config.AnalyzersSettings = new List<AnalyzerSettings>();
-            
-            AnalyzerSettings settings = new AnalyzerSettings();
-            settings.Language = "my lang";
-            settings.RuleSetFilePath = "f:\\yyy.ruleset";
-            settings.AnalyzerAssemblyPaths = filesInConfig;
-            settings.AdditionalFilePaths = expectedAdditionalFiles.ToList();
+            AnalysisConfig config = new AnalysisConfig
+            {
+                AnalyzersSettings = new List<AnalyzerSettings>()
+            };
+
+            AnalyzerSettings settings = new AnalyzerSettings
+            {
+                Language = "my lang",
+                RuleSetFilePath = "f:\\yyy.ruleset",
+                AnalyzerAssemblyPaths = filesInConfig,
+                AdditionalFilePaths = expectedAdditionalFiles.ToList()
+            };
             config.AnalyzersSettings.Add(settings);
 
-            AnalyzerSettings anotherSettings = new AnalyzerSettings();
-            anotherSettings.Language = "cobol";
-            anotherSettings.RuleSetFilePath = "f:\\xxx.ruleset";
-            anotherSettings.AnalyzerAssemblyPaths = filesInConfig;
-            anotherSettings.AdditionalFilePaths = expectedAdditionalFiles.ToList();
+            AnalyzerSettings anotherSettings = new AnalyzerSettings
+            {
+                Language = "cobol",
+                RuleSetFilePath = "f:\\xxx.ruleset",
+                AnalyzerAssemblyPaths = filesInConfig,
+                AdditionalFilePaths = expectedAdditionalFiles.ToList()
+            };
             config.AnalyzersSettings.Add(anotherSettings);
 
             string fullPath = Path.Combine(testDir, FileConstants.ConfigFileName);

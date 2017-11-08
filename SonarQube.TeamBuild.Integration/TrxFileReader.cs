@@ -153,8 +153,7 @@ namespace SonarQube.TeamBuild.Integration
 
             string coverageFilePath = null;
 
-            IEnumerable<string> attachmentUris;
-            if (TryExtractCoverageFilePaths(trxFilePath, logger, out attachmentUris))
+            if (TryExtractCoverageFilePaths(trxFilePath, logger, out IEnumerable<string> attachmentUris))
             {
                 switch (attachmentUris.Count())
                 {

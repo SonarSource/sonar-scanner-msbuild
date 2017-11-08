@@ -117,10 +117,12 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             EnsureAnalysisConfig(testFolder, invalidRegEx);
 
             DummyBuildEngine dummyEngine = new DummyBuildEngine();
-            IsTestFileByName task = new IsTestFileByName();
-            task.BuildEngine = dummyEngine;
-            task.FullFilePath = "Path";
-            task.AnalysisConfigDir = testFolder;
+            IsTestFileByName task = new IsTestFileByName
+            {
+                BuildEngine = dummyEngine,
+                FullFilePath = "Path",
+                AnalysisConfigDir = testFolder
+            };
 
             bool result = task.Execute();
 
@@ -138,10 +140,12 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             string configFile = EnsureAnalysisConfig(testFolder, ".XX.");
 
             DummyBuildEngine dummyEngine = new DummyBuildEngine();
-            IsTestFileByName task = new IsTestFileByName();
-            task.BuildEngine = dummyEngine;
-            task.FullFilePath = "XXX.proj";
-            task.AnalysisConfigDir = testFolder;
+            IsTestFileByName task = new IsTestFileByName
+            {
+                BuildEngine = dummyEngine,
+                FullFilePath = "XXX.proj",
+                AnalysisConfigDir = testFolder
+            };
 
             bool result = true;
             TaskUtilitiesTests.PerformOpOnLockedFile(configFile, () => result = task.Execute(), shouldTimeoutReadingConfig: true);
@@ -199,8 +203,10 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             AnalysisConfig config = new AnalysisConfig();
             if (regExExpression != null)
             {
-                config.LocalSettings = new AnalysisProperties();
-                config.LocalSettings.Add(new Property() { Id = IsTestFileByName.TestRegExSettingId, Value = regExExpression });
+                config.LocalSettings = new AnalysisProperties
+                {
+                    new Property() { Id = IsTestFileByName.TestRegExSettingId, Value = regExExpression }
+                };
             }
 
             string fullPath = Path.Combine(parentDir, FileConstants.ConfigFileName);
@@ -231,10 +237,12 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         private static bool ExecuteAndCheckSuccess(string analysisDir, string fullFileName)
         {
             DummyBuildEngine dummyEngine = new DummyBuildEngine();
-            IsTestFileByName task = new IsTestFileByName();
-            task.BuildEngine = dummyEngine;
-            task.FullFilePath = fullFileName;
-            task.AnalysisConfigDir = analysisDir;
+            IsTestFileByName task = new IsTestFileByName
+            {
+                BuildEngine = dummyEngine,
+                FullFilePath = fullFileName,
+                AnalysisConfigDir = analysisDir
+            };
 
             bool taskSucess = task.Execute();
             Assert.IsTrue(taskSucess, "Expecting the task to succeed");

@@ -31,13 +31,15 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         [TestMethod]
         public void RulesetWriterShouldFailToTwiceSeveralTimesIdenticalCheckId()
         {
-            List<string> ids = new List<string>();
-            ids.Add("CA1000");
-            ids.Add("CA1000");
-            ids.Add("CA1001");
-            ids.Add("CA1002");
-            ids.Add("CA1002");
-            ids.Add("CA1002");
+            List<string> ids = new List<string>
+            {
+                "CA1000",
+                "CA1000",
+                "CA1001",
+                "CA1002",
+                "CA1002",
+                "CA1002"
+            };
 
             try
             {
@@ -57,9 +59,11 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         [TestMethod]
         public void RulesetWriterToString()
         {
-            List<string> ids = new List<string>();
-            ids.Add("CA1000");
-            ids.Add("MyCustomCheckId");
+            List<string> ids = new List<string>
+            {
+                "CA1000",
+                "MyCustomCheckId"
+            };
 
             string actual = RulesetWriter.ToString(ids);
 

@@ -45,9 +45,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             waitHandle.WaitOne();
             try
             {
-                string path;
                 var mapping = ReadMapping();
-                if (!mapping.TryGetValue(key, out path))
+                if (!mapping.TryGetValue(key, out string path))
                 {
                     path = FindAndCreateNextAvailablePath(mapping.Count);
                     mapping.Add(key, path);

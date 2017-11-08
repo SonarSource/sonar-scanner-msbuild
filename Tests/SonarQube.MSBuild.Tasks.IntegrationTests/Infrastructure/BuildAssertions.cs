@@ -53,8 +53,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             DumpTargetResult(result, target);
 
-            TargetResult targetResult;
-            if (!result.ResultsByTarget.TryGetValue(target, out targetResult))
+            if (!result.ResultsByTarget.TryGetValue(target, out TargetResult targetResult))
             {
                 Assert.Inconclusive(@"Could not find result for target ""{0}""", target);
             }
@@ -205,8 +204,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
             BuildUtilities.LogMessage("Overall build result: {0}", result.OverallResult.ToString());
 
-            TargetResult targetResult;
-            if (!result.ResultsByTarget.TryGetValue(target, out targetResult))
+            if (!result.ResultsByTarget.TryGetValue(target, out TargetResult targetResult))
             {
                 BuildUtilities.LogMessage(@"Could not find result for target ""{0}""", target);
             }

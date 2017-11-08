@@ -63,8 +63,10 @@ namespace SonarQube.TeamBuild.PostProcessorTests
             string hostUrl = "http://mySonarQube:9000";
             ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult { RanToCompletion = false };
             AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
-            config.LocalSettings = new AnalysisProperties();
-            config.LocalSettings.Add(new Property() { Id = SonarProperties.ProjectBranch, Value = "master" });
+            config.LocalSettings = new AnalysisProperties
+            {
+                new Property() { Id = SonarProperties.ProjectBranch, Value = "master" }
+            };
             AddProjectInfoToResult(result, ProjectInfoValidity.Valid, type: ProjectType.Product, count: 4);
 
             // Act
@@ -139,9 +141,8 @@ namespace SonarQube.TeamBuild.PostProcessorTests
             AnalysisConfig config)
         {
             string expectedUrl;
-            string branch;
 
-            config.GetAnalysisSettings(false).TryGetValue("sonar.branch", out branch);
+            config.GetAnalysisSettings(false).TryGetValue("sonar.branch", out string branch);
 
             if (String.IsNullOrEmpty(branch))
             {

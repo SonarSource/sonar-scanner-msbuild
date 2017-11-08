@@ -99,7 +99,7 @@ public class ScannerMSBuildTest {
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    assertThat(issues).hasSize(4);
+    assertThat(issues).hasSize(2);
     assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(23);
     assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(37);
     assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(58);
@@ -136,7 +136,7 @@ public class ScannerMSBuildTest {
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    assertThat(issues).hasSize(4);
+    assertThat(issues).hasSize(2);
     assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(23);
     assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(37);
     assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(58);
@@ -165,10 +165,10 @@ public class ScannerMSBuildTest {
 
     // all issues and nloc are in the normal project
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    assertThat(issues).hasSize(4);
+    assertThat(issues).hasSize(2);
 
     issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create().componentRoots(normalProjectKey)).list();
-    assertThat(issues).hasSize(4);
+    assertThat(issues).hasSize(2);
 
     issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create().componentRoots(testProjectKey)).list();
     assertThat(issues).hasSize(0);
@@ -255,7 +255,7 @@ public class ScannerMSBuildTest {
       .setProjectVersion("1.0")
       .addArgument("/d:sonar.verbose=true"));
 
-    assertThat(result.getLogs()).contains("Downloading from http://localhost");
+    assertThat(result.getLogs()).contains("Downloading from http://");
     assertThat(result.getLogs()).contains("sonar.verbose=true was specified - setting the log verbosity to 'Debug'");
   }
 
@@ -358,7 +358,7 @@ public class ScannerMSBuildTest {
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    assertThat(issues).hasSize(4 + 37 + 1);
+    assertThat(issues).hasSize(2 + 37 + 1);
   }
 
   @CheckForNull

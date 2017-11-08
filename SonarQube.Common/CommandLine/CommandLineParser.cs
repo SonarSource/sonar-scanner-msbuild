@@ -91,17 +91,14 @@ namespace SonarQube.Common
 
             foreach (string arg in commandLineArgs)
             {
-                string prefix;
-                ArgumentDescriptor descriptor;
 
-                if (TryGetMatchingDescriptor(arg, out descriptor, out prefix))
+                if (TryGetMatchingDescriptor(arg, out ArgumentDescriptor descriptor, out string prefix))
                 {
                     string newId = descriptor.Id;
 
                     if (!descriptor.AllowMultiple && IdExists(newId, recognized))
                     {
-                        string existingValue;
-                        ArgumentInstance.TryGetArgumentValue(newId, recognized, out existingValue);
+                        ArgumentInstance.TryGetArgumentValue(newId, recognized, out string existingValue);
                         logger.LogError(Resources.ERROR_CmdLine_DuplicateArg, arg, existingValue);
                         parsedOk = false;
                     }
@@ -181,8 +178,7 @@ namespace SonarQube.Common
 
         private static bool IdExists(string id, IEnumerable<ArgumentInstance> arguments)
         {
-            ArgumentInstance existing;
-            bool exists = ArgumentInstance.TryGetArgument(id, arguments, out existing);
+            bool exists = ArgumentInstance.TryGetArgument(id, arguments, out ArgumentInstance existing);
             return exists;
         }
 
@@ -194,8 +190,7 @@ namespace SonarQube.Common
             bool allExist = true;
             foreach (ArgumentDescriptor desc in this.descriptors.Where(d => d.Required))
             {
-                ArgumentInstance argument;
-                ArgumentInstance.TryGetArgument(desc.Id, arguments, out argument);
+                ArgumentInstance.TryGetArgument(desc.Id, arguments, out ArgumentInstance argument);
 
                 bool exists = argument != null && !string.IsNullOrWhiteSpace(argument.Value);
                 if (!exists)

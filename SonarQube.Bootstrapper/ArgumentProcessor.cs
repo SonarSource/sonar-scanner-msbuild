@@ -52,16 +52,17 @@ namespace SonarQube.Bootstrapper
         {
             // Initialise the set of valid descriptors.
             // To add a new argument, just add it to the list.
-            Descriptors = new List<ArgumentDescriptor>();
+            Descriptors = new List<ArgumentDescriptor>
+            {
+                new ArgumentDescriptor(
+                id: BeginId, prefixes: new string[] { BeginVerb }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_Begin, isVerb: true),
 
-            Descriptors.Add(new ArgumentDescriptor(
-                id: BeginId, prefixes: new string[] { BeginVerb }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_Begin, isVerb: true));
+                new ArgumentDescriptor(
+                id: EndId, prefixes: new string[] { EndVerb }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_End, isVerb: true),
 
-            Descriptors.Add(new ArgumentDescriptor(
-                id: EndId, prefixes: new string[] { EndVerb }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_End, isVerb: true));
-
-            Descriptors.Add(FilePropertyProvider.Descriptor);
-            Descriptors.Add(CmdLineArgPropertyProvider.Descriptor);
+                FilePropertyProvider.Descriptor,
+                CmdLineArgPropertyProvider.Descriptor
+            };
 
             Debug.Assert(Descriptors.All(d => d.Prefixes != null && d.Prefixes.Any()), "All descriptors must provide at least one prefix");
             Debug.Assert(Descriptors.Select(d => d.Id).Distinct().Count() == Descriptors.Count, "All descriptors must have a unique id");
@@ -93,23 +94,19 @@ namespace SonarQube.Bootstrapper
 
             settings = null;
 
-            IEnumerable<ArgumentInstance> arguments;
 
             // This call will fail if there are duplicate or missing arguments
             CommandLineParser parser = new CommandLineParser(Descriptors, true /* allow unrecognized arguments*/);
-            bool parsedOk = parser.ParseArguments(commandLineArgs, logger, out arguments);
+            bool parsedOk = parser.ParseArguments(commandLineArgs, logger, out IEnumerable<ArgumentInstance> arguments);
 
             // Handler for command line analysis properties
-            IAnalysisPropertyProvider cmdLineProperties;
-            parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out cmdLineProperties);
+            parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out IAnalysisPropertyProvider cmdLineProperties);
 
             // Handler for property file
-            IAnalysisPropertyProvider globalFileProperties;
             string asmPath = Path.GetDirectoryName(typeof(Bootstrapper.ArgumentProcessor).Assembly.Location);
-            parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out globalFileProperties);
+            parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out IAnalysisPropertyProvider globalFileProperties);
 
-            AnalysisPhase phase;
-            parsedOk &= TryGetPhase(commandLineArgs.Length, arguments, logger, out phase);
+            parsedOk &= TryGetPhase(commandLineArgs.Length, arguments, logger, out AnalysisPhase phase);
 
             Debug.Assert(!parsedOk || cmdLineProperties != null);
             Debug.Assert(!parsedOk || globalFileProperties != null);
@@ -142,8 +139,7 @@ namespace SonarQube.Bootstrapper
         private static bool TryGetPhase(int originalArgCount, IEnumerable<ArgumentInstance> arguments, ILogger logger, out AnalysisPhase phase)
         {
             // The command line parser will already have checked for duplicates
-            ArgumentInstance argumentInstance;
-            bool hasBeginVerb = ArgumentInstance.TryGetArgument(BeginId, arguments, out argumentInstance);
+            bool hasBeginVerb = ArgumentInstance.TryGetArgument(BeginId, arguments, out ArgumentInstance argumentInstance);
             bool hasEndVerb = ArgumentInstance.TryGetArgument(EndId, arguments, out argumentInstance);
 
             if (hasBeginVerb && hasEndVerb) // both

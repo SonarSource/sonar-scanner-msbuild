@@ -149,10 +149,12 @@ namespace SonarScanner.Shim.Tests
             string[] userArgs = new string[] { "-Dxxx=yyy", "-Dsonar.password=cmdline.password" };
 
             // Create a config file containing sensitive arguments
-            AnalysisProperties fileSettings = new AnalysisProperties();
-            fileSettings.Add(new Property() { Id = SonarProperties.DbPassword, Value = "file db pwd" });
-            fileSettings.Add(new Property() { Id = SonarProperties.SonarPassword, Value = "file.password - should not be returned" });
-            fileSettings.Add(new Property() { Id = "file.not.sensitive.key", Value = "not sensitive value" });
+            AnalysisProperties fileSettings = new AnalysisProperties
+            {
+                new Property() { Id = SonarProperties.DbPassword, Value = "file db pwd" },
+                new Property() { Id = SonarProperties.SonarPassword, Value = "file.password - should not be returned" },
+                new Property() { Id = "file.not.sensitive.key", Value = "not sensitive value" }
+            };
             string settingsFilePath = Path.Combine(testDir, "fileSettings.txt");
             fileSettings.Save(settingsFilePath);
 

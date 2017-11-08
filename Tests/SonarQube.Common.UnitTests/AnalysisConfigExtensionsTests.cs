@@ -59,9 +59,10 @@ namespace SonarQube.Common.UnitTests
             // Check that local settings are always retrieved by GetAnalysisSettings
 
             // 0. Setup
-            AnalysisConfig config = new AnalysisConfig();
-
-            config.LocalSettings = new AnalysisProperties();
+            AnalysisConfig config = new AnalysisConfig
+            {
+                LocalSettings = new AnalysisProperties()
+            };
             config.LocalSettings.Add(new Property() { Id = "local.1", Value = "local.value.1" });
             config.LocalSettings.Add(new Property() { Id = "local.2", Value = "local.value.2" });
 
@@ -85,9 +86,10 @@ namespace SonarQube.Common.UnitTests
             // if includeServerSettings is true
 
             // 0. Setup
-            AnalysisConfig config = new AnalysisConfig();
-
-            config.ServerSettings = new AnalysisProperties();
+            AnalysisConfig config = new AnalysisConfig
+            {
+                ServerSettings = new AnalysisProperties()
+            };
             config.ServerSettings.Add(new Property() { Id = "server.1", Value = "server.value.1" });
             config.ServerSettings.Add(new Property() { Id = "server.2", Value = "server.value.2" });
 
@@ -117,9 +119,11 @@ namespace SonarQube.Common.UnitTests
             AnalysisConfig config = new AnalysisConfig();
 
             // File settings
-            AnalysisProperties fileSettings = new AnalysisProperties();
-            fileSettings.Add(new Property() { Id = "file.1", Value = "file.value.1" });
-            fileSettings.Add(new Property() { Id = "file.2", Value = "file.value.2" });
+            AnalysisProperties fileSettings = new AnalysisProperties
+            {
+                new Property() { Id = "file.1", Value = "file.value.1" },
+                new Property() { Id = "file.2", Value = "file.value.2" }
+            };
             string settingsFilePath = Path.Combine(testDir, "settings.txt");
             fileSettings.Save(settingsFilePath);
 
@@ -148,26 +152,32 @@ namespace SonarQube.Common.UnitTests
             AnalysisConfig config = new AnalysisConfig();
 
             // File settings
-            AnalysisProperties fileSettings = new AnalysisProperties();
-            fileSettings.Add(new Property() { Id = "file.1", Value = "file.value.1" });
-            fileSettings.Add(new Property() { Id = "shared.property", Value = "shared value from file - should never be returned" });
-            fileSettings.Add(new Property() { Id = "shared.property2", Value = "shared value 2 from file" });
+            AnalysisProperties fileSettings = new AnalysisProperties
+            {
+                new Property() { Id = "file.1", Value = "file.value.1" },
+                new Property() { Id = "shared.property", Value = "shared value from file - should never be returned" },
+                new Property() { Id = "shared.property2", Value = "shared value 2 from file" }
+            };
             string settingsFilePath = Path.Combine(testDir, "settings.txt");
             fileSettings.Save(settingsFilePath);
             config.SetSettingsFilePath(settingsFilePath);
 
             // Local settings
-            config.LocalSettings = new AnalysisProperties();
-            config.LocalSettings.Add(new Property() { Id = "local.1", Value = "local.value.1" });
-            config.LocalSettings.Add(new Property() { Id = "local.2", Value = "local.value.2" });
-            config.LocalSettings.Add(new Property() { Id = "shared.property", Value = "shared value from local" });
+            config.LocalSettings = new AnalysisProperties
+            {
+                new Property() { Id = "local.1", Value = "local.value.1" },
+                new Property() { Id = "local.2", Value = "local.value.2" },
+                new Property() { Id = "shared.property", Value = "shared value from local" }
+            };
 
             // Server settings
-            config.ServerSettings = new AnalysisProperties();
-            config.ServerSettings.Add(new Property() { Id = "server.1", Value = "server.value.1" });
-            config.ServerSettings.Add(new Property() { Id = "server.2", Value = "server.value.2" });
-            config.ServerSettings.Add(new Property() { Id = "shared.property", Value = "shared value from server - should never be returned" });
-            config.ServerSettings.Add(new Property() { Id = "shared.property2", Value = "shared value 2 from server - should never be returned" });
+            config.ServerSettings = new AnalysisProperties
+            {
+                new Property() { Id = "server.1", Value = "server.value.1" },
+                new Property() { Id = "server.2", Value = "server.value.2" },
+                new Property() { Id = "shared.property", Value = "shared value from server - should never be returned" },
+                new Property() { Id = "shared.property2", Value = "shared value 2 from server - should never be returned" }
+            };
 
 
             // 1. Precedence - local should win over file

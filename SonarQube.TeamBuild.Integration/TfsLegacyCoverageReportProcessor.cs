@@ -43,17 +43,8 @@ namespace SonarQube.TeamBuild.Integration
         public TfsLegacyCoverageReportProcessor(ICoverageUrlProvider urlProvider, ICoverageReportDownloader downloader, ICoverageReportConverter converter) // was internal
             : base(converter)
         {
-            if (urlProvider == null)
-            {
-                throw new ArgumentNullException("urlProvider");
-            }
-            if (downloader == null)
-            {
-                throw new ArgumentNullException("downloader");
-            }
-
-            this.urlProvider = urlProvider;
-            this.downloader = downloader;
+            this.urlProvider = urlProvider ?? throw new ArgumentNullException("urlProvider");
+            this.downloader = downloader ?? throw new ArgumentNullException("downloader");
         }
 
         #region Virtual methods

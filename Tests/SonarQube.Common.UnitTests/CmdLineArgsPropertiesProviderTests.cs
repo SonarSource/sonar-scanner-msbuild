@@ -192,8 +192,7 @@ namespace SonarQube.Common.UnitTests
         {
             TestLogger logger = new TestLogger();
 
-            IAnalysisPropertyProvider provider;
-            bool success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out provider);
+            bool success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out IAnalysisPropertyProvider provider);
             Assert.IsFalse(success, "Not expecting the provider to be created");
             Assert.IsNull(provider, "Expecting the provider to be null is processing fails");
             logger.AssertErrorsLogged();
@@ -203,8 +202,7 @@ namespace SonarQube.Common.UnitTests
 
         private static IAnalysisPropertyProvider CheckProcessingSucceeds(IEnumerable<ArgumentInstance> args, TestLogger logger)
         {
-            IAnalysisPropertyProvider provider;
-            bool success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out provider);
+            bool success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out IAnalysisPropertyProvider provider);
 
             Assert.IsTrue(success, "Expected processing to succeed");
             Assert.IsNotNull(provider, "Not expecting a null provider when processing succeeds");

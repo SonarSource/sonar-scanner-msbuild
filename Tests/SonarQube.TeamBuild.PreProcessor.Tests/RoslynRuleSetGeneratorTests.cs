@@ -77,17 +77,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         [TestMethod]
         public void RoslynRuleSet_CSharp()
         {
-            IDictionary<string, string> dict = new Dictionary<string, string>();
-            dict.Add("sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp");
-            dict.Add("sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp");
-            dict.Add("sonaranalyzer-cs.pluginKey", "csharp");
-            dict.Add("sonaranalyzer-cs.staticResourceName", "SonarAnalyzer.zip");
-            dict.Add("sonaranalyzer-cs.nuget.packageId", "SonarAnalyzer.CSharp");
-            dict.Add("sonaranalyzer-cs.pluginVersion", "1.13.0");
-            dict.Add("sonaranalyzer-cs.nuget.packageVersion", "1.13.0");
+            IDictionary<string, string> dict = new Dictionary<string, string>
+            {
+                { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
+                { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
+                { "sonaranalyzer-cs.pluginKey", "csharp" },
+                { "sonaranalyzer-cs.staticResourceName", "SonarAnalyzer.zip" },
+                { "sonaranalyzer-cs.nuget.packageId", "SonarAnalyzer.CSharp" },
+                { "sonaranalyzer-cs.pluginVersion", "1.13.0" },
+                { "sonaranalyzer-cs.nuget.packageVersion", "1.13.0" },
 
-            dict.Add("custom.analyzerId", "SonarAnalyzer.Custom");
-            dict.Add("custom.ruleNamespace", "SonarAnalyzer.Custom");
+                { "custom.analyzerId", "SonarAnalyzer.Custom" },
+                { "custom.ruleNamespace", "SonarAnalyzer.Custom" }
+            };
 
             RoslynRuleSetGenerator generator = new RoslynRuleSetGenerator(dict);
             List<ActiveRule> activeRules = new List<ActiveRule>();

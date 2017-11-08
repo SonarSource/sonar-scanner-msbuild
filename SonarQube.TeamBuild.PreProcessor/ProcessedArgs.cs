@@ -48,27 +48,15 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException("key");
             }
-            if (cmdLineProperties == null)
-            {
-                throw new ArgumentNullException("cmdLineProperties");
-            }
-            if (globalFileProperties == null)
-            {
-                throw new ArgumentNullException("globalFileProperties");
-            }
-            if (scannerEnvProperties == null)
-            {
-                throw new ArgumentNullException("scannerEnvProperties");
-            }
 
             this.projectKey = key;
             this.projectName = name;
             this.projectVersion = version;
             this.organization = organization;
 
-            this.cmdLineProperties = cmdLineProperties;
-            this.globalFileProperties = globalFileProperties;
-            this.scannerEnvProperties = scannerEnvProperties;
+            this.cmdLineProperties = cmdLineProperties ?? throw new ArgumentNullException("cmdLineProperties");
+            this.globalFileProperties = globalFileProperties ?? throw new ArgumentNullException("globalFileProperties");
+            this.scannerEnvProperties = scannerEnvProperties ?? throw new ArgumentNullException("scannerEnvProperties");
             this.InstallLoaderTargets = installLoaderTargets;
 
             this.aggProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, scannerEnvProperties);
@@ -126,8 +114,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// </summary>
         public string GetSetting(string key)
         {
-            string value;
-            if (!this.aggProperties.TryGetValue(key, out value))
+            if (!this.aggProperties.TryGetValue(key, out string value))
             {
                 string message = string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.ERROR_MissingSetting, key);
                 throw new InvalidOperationException(message);
@@ -141,8 +128,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// </summary>
         public string GetSetting(string key, string defaultValue)
         {
-            string value;
-            if (!this.aggProperties.TryGetValue(key, out value))
+            if (!this.aggProperties.TryGetValue(key, out string value))
             {
                 value = defaultValue;
             }

@@ -53,13 +53,9 @@ namespace SonarQube.Common
             {
                 throw new ArgumentNullException("exeName");
             }
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
 
             this.exeName = exeName;
-            this.logger = logger;
+            this.logger = logger ?? throw new ArgumentNullException("logger");
             this.IsBatchScript = isBatchScript;
 
             this.TimeoutInMilliseconds = Timeout.Infinite;

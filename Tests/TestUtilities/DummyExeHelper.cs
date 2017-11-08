@@ -145,10 +145,12 @@ namespace TestUtilities
         {
             CSharpCodeProvider provider = new CSharpCodeProvider();
 
-            CompilerParameters options = new CompilerParameters();
-            options.OutputAssembly = outputFilePath;
-            options.GenerateExecutable = true;
-            options.GenerateInMemory = false;
+            CompilerParameters options = new CompilerParameters
+            {
+                OutputAssembly = outputFilePath,
+                GenerateExecutable = true,
+                GenerateInMemory = false
+            };
 
 
             CompilerResults result = provider.CompileAssemblyFromSource(options, code);

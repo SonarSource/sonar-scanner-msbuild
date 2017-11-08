@@ -286,8 +286,7 @@ namespace SonarQube.Common.UnitTests
 
         private static IEnumerable<ArgumentInstance> CheckProcessingSucceeds(CommandLineParser parser, TestLogger logger, params string[] args)
         {
-            IEnumerable<ArgumentInstance> instances;
-            bool success = parser.ParseArguments(args, logger, out instances);
+            bool success = parser.ParseArguments(args, logger, out IEnumerable<ArgumentInstance> instances);
             Assert.IsTrue(success, "Expecting parsing to succeed");
             Assert.IsNotNull(instances, "Instances should not be null if parsing succeeds");
             logger.AssertErrorsLogged(0);
@@ -297,8 +296,7 @@ namespace SonarQube.Common.UnitTests
         private static TestLogger CheckProcessingFails(CommandLineParser parser, params string[] args)
         {
             TestLogger logger = new TestLogger();
-            IEnumerable<ArgumentInstance> instances;
-            bool success = parser.ParseArguments(args, logger, out instances);
+            bool success = parser.ParseArguments(args, logger, out IEnumerable<ArgumentInstance> instances);
 
             Assert.IsFalse(success, "Expecting parsing to fail");
             Assert.IsNotNull(instances, "Instances should not be null even if parsing fails");
@@ -316,8 +314,7 @@ namespace SonarQube.Common.UnitTests
 
         private static void AssertExpectedValue(string id, string expectedValue, IEnumerable<ArgumentInstance> actual)
         {
-            ArgumentInstance actualInstance;
-            bool found = ArgumentInstance.TryGetArgument(id, actual, out actualInstance);
+            bool found = ArgumentInstance.TryGetArgument(id, actual, out ArgumentInstance actualInstance);
             Assert.IsTrue(found, "Expected argument was not found. Id: {0}", id);
             Assert.IsNotNull(actual);
 

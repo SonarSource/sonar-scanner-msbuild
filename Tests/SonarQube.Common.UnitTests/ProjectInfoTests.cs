@@ -59,13 +59,15 @@ namespace SonarQube.Common.UnitTests
 
             Guid projectGuid = Guid.NewGuid();
 
-            ProjectInfo originalProjectInfo = new ProjectInfo();
-            originalProjectInfo.FullPath = "c:\\fullPath\\project.proj";
-            originalProjectInfo.ProjectLanguage = "a language";
-            originalProjectInfo.ProjectType = ProjectType.Product;
-            originalProjectInfo.ProjectGuid = projectGuid;
-            originalProjectInfo.ProjectName = "MyProject";
-            originalProjectInfo.Encoding = "MyEncoding";
+            ProjectInfo originalProjectInfo = new ProjectInfo
+            {
+                FullPath = "c:\\fullPath\\project.proj",
+                ProjectLanguage = "a language",
+                ProjectType = ProjectType.Product,
+                ProjectGuid = projectGuid,
+                ProjectName = "MyProject",
+                Encoding = "MyEncoding"
+            };
 
             string fileName = Path.Combine(testFolder, "ProjectInfo1.xml");
 
@@ -81,8 +83,10 @@ namespace SonarQube.Common.UnitTests
 
             Guid projectGuid = Guid.NewGuid();
 
-            ProjectInfo originalProjectInfo = new ProjectInfo();
-            originalProjectInfo.ProjectGuid = projectGuid;
+            ProjectInfo originalProjectInfo = new ProjectInfo
+            {
+                ProjectGuid = projectGuid
+            };
 
             // 1. Null list
             SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults1.xml"));

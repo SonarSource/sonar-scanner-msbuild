@@ -49,18 +49,26 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             TeamBuildSettings tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
 
-            Dictionary<string, string> serverSettings = new Dictionary<string, string>();
-            serverSettings.Add("server.key.1", "server.value.1");
+            Dictionary<string, string> serverSettings = new Dictionary<string, string>
+            {
+                { "server.key.1", "server.value.1" }
+            };
 
-            AnalyzerSettings analyzerSettings = new AnalyzerSettings();
-            analyzerSettings.RuleSetFilePath = "c:\\xxx.ruleset";
-            analyzerSettings.AdditionalFilePaths = new List<string>();
+            AnalyzerSettings analyzerSettings = new AnalyzerSettings
+            {
+                RuleSetFilePath = "c:\\xxx.ruleset",
+                AdditionalFilePaths = new List<string>()
+            };
             analyzerSettings.AdditionalFilePaths.Add("f:\\additionalPath1.txt");
-            analyzerSettings.AnalyzerAssemblyPaths = new List<string>();
-            analyzerSettings.AnalyzerAssemblyPaths.Add("f:\\temp\\analyzer1.dll");
+            analyzerSettings.AnalyzerAssemblyPaths = new List<string>
+            {
+                "f:\\temp\\analyzer1.dll"
+            };
 
-            List<AnalyzerSettings> analyzersSettings = new List<AnalyzerSettings>();
-            analyzersSettings.Add(analyzerSettings);
+            List<AnalyzerSettings> analyzersSettings = new List<AnalyzerSettings>
+            {
+                analyzerSettings
+            };
             Directory.CreateDirectory(tbSettings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
@@ -103,9 +111,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             TestLogger logger = new TestLogger();
 
             // The set of file properties to supply
-            AnalysisProperties fileProperties = new AnalysisProperties();
-            fileProperties.Add(new Property() { Id = SonarProperties.HostUrl, Value = "http://myserver" });
-            fileProperties.Add(new Property() { Id = "file.only", Value = "file value" });
+            AnalysisProperties fileProperties = new AnalysisProperties
+            {
+                new Property() { Id = SonarProperties.HostUrl, Value = "http://myserver" },
+                new Property() { Id = "file.only", Value = "file value" }
+            };
             string settingsFilePath = Path.Combine(analysisDir, "settings.txt");
             fileProperties.Save(settingsFilePath);
 
@@ -156,24 +166,28 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             cmdLineArgs.AddProperty(SonarProperties.DbPassword, "secret db password");
 
             // Create a settings file with public and sensitive data
-            AnalysisProperties fileSettings = new AnalysisProperties();
-            fileSettings.Add(new Property() { Id = "file.public.key", Value = "file public value" });
-            fileSettings.Add(new Property() { Id = SonarProperties.DbUserName, Value = "secret db user" });
-            fileSettings.Add(new Property() { Id = SonarProperties.DbPassword, Value = "secret db password" });
+            AnalysisProperties fileSettings = new AnalysisProperties
+            {
+                new Property() { Id = "file.public.key", Value = "file public value" },
+                new Property() { Id = SonarProperties.DbUserName, Value = "secret db user" },
+                new Property() { Id = SonarProperties.DbPassword, Value = "secret db password" }
+            };
             string fileSettingsPath = Path.Combine(analysisDir, "fileSettings.txt");
             fileSettings.Save(fileSettingsPath);
             FilePropertyProvider fileProvider = FilePropertyProvider.Load(fileSettingsPath);
 
             ProcessedArgs args = new ProcessedArgs("key", "name", "1.0", null, false, cmdLineArgs, fileProvider, EmptyPropertyProvider.Instance);
 
-            IDictionary<string, string> serverProperties = new Dictionary<string, string>();
-            // Public server settings
-            serverProperties.Add("server.key.1", "server value 1");
-            // Sensitive server settings
-            serverProperties.Add(SonarProperties.SonarUserName, "secret user");
-            serverProperties.Add(SonarProperties.SonarPassword, "secret pwd");
-            serverProperties.Add("sonar.vbnet.license.secured", "secret license");
-            serverProperties.Add("sonar.cpp.License.Secured", "secret license 2");
+            IDictionary<string, string> serverProperties = new Dictionary<string, string>
+            {
+                // Public server settings
+                { "server.key.1", "server value 1" },
+                // Sensitive server settings
+                { SonarProperties.SonarUserName, "secret user" },
+                { SonarProperties.SonarPassword, "secret pwd" },
+                { "sonar.vbnet.license.secured", "secret license" },
+                { "sonar.cpp.License.Secured", "secret license 2" }
+            };
 
             TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
@@ -219,15 +233,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static void AssertSettingDoesNotExist(string key, AnalysisConfig actualConfig)
         {
-            Property setting;
-            bool found = actualConfig.GetAnalysisSettings(true).TryGetProperty(key, out setting);
+            bool found = actualConfig.GetAnalysisSettings(true).TryGetProperty(key, out Property setting);
             Assert.IsFalse(found, "The setting should not exist. Key: {0}", key);
         }
 
         private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
-            Property property;
-            bool found = Property.TryGetProperty(key, actualConfig.ServerSettings, out property);
+            bool found = Property.TryGetProperty(key, actualConfig.ServerSettings, out Property property);
 
             Assert.IsTrue(found, "Expected server property was not found. Key: {0}", key);
             Assert.AreEqual(expectedValue, property.Value, "Unexpected server value. Key: {0}", key);
@@ -235,8 +247,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static void AssertExpectedLocalSetting(string key, string expectedValue, AnalysisConfig acutalConfig)
         {
-            Property property;
-            bool found = Property.TryGetProperty(key, acutalConfig.LocalSettings, out property);
+            bool found = Property.TryGetProperty(key, acutalConfig.LocalSettings, out Property property);
 
             Assert.IsTrue(found, "Expected local property was not found. Key: {0}", key);
             Assert.AreEqual(expectedValue, property.Value, "Unexpected local value. Key: {0}", key);

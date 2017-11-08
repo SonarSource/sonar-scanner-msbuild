@@ -60,12 +60,12 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public void LogWSOnError()
         {
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] = "trash";
-            string qualityProfile;
             try
             {
-                var result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out qualityProfile);
+                var result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
                 Assert.Fail("Exception expected");
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 logger.AssertErrorLogged("Failed to request and parse 'http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar': Error parsing boolean value. Path '', line 0, position 0.");
             }
@@ -76,7 +76,6 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         {
             downloader.Pages["http://myhost:222/api/server/version"] = "6.4";
             bool result;
-            string qualityProfile;
 
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] =
                 "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
@@ -86,7 +85,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                 "{ profiles: [{\"key\":\"profile3k\",\"name\":\"profile3\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
 
             // main
-            result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out qualityProfile);
+            result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
             Assert.IsTrue(result);
             Assert.AreEqual("profile1k", qualityProfile);
 
@@ -139,7 +138,6 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public void TryGetQualityProfile56()
         {
             bool result;
-            string qualityProfile;
 
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] =
                 "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
@@ -149,7 +147,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                 "{ profiles: [{\"key\":\"profile3k\",\"name\":\"profile3\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
 
             // main
-            result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out qualityProfile);
+            result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
             Assert.IsTrue(result);
             Assert.AreEqual("profile1k", qualityProfile);
 
@@ -427,18 +425,22 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                 "[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]";
 
             // default
-            var expected1 = new Dictionary<string, string>();
-            expected1["sonar.property1"] = "value1";
-            expected1["sonar.property2"] = "value2";
-            expected1["sonar.msbuild.testProjectPattern"] = "pattern";
+            var expected1 = new Dictionary<string, string>
+            {
+                ["sonar.property1"] = "value1",
+                ["sonar.property2"] = "value2",
+                ["sonar.msbuild.testProjectPattern"] = "pattern"
+            };
             var actual1 = ws.GetProperties("foo bar");
 
             Assert.AreEqual(true, expected1.Count == actual1.Count && !expected1.Except(actual1).Any());
 
             // branch specific
-            var expected2 = new Dictionary<string, string>();
-            expected2["sonar.property1"] = "anotherValue1";
-            expected2["sonar.property2"] = "anotherValue2";
+            var expected2 = new Dictionary<string, string>
+            {
+                ["sonar.property1"] = "anotherValue1",
+                ["sonar.property2"] = "anotherValue2"
+            };
             var actual2 = ws.GetProperties("foo bar", "aBranch");
 
             Assert.AreEqual(true, expected2.Count == actual2.Count && !expected2.Except(actual2).Any());
@@ -448,9 +450,11 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public void GetInstalledPlugins()
         {
             downloader.Pages["http://myhost:222/api/languages/list"] = "{ languages: [{ key: \"cs\", name: \"C#\" }, { key: \"flex\", name: \"Flex\" } ]}";
-            var expected = new List<string>();
-            expected.Add("cs");
-            expected.Add("flex");
+            var expected = new List<string>
+            {
+                "cs",
+                "flex"
+            };
             var actual = new List<string>(ws.GetAllLanguages());
 
             Assert.AreEqual(true, expected.SequenceEqual(actual));

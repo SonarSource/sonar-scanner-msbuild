@@ -573,16 +573,17 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         /// <returns></returns>
         private static WellKnownProjectProperties CreateDefaultAnalysisProperties(string configPath, string outputPath)
         {
-            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties();
+            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties
+            {
+                SonarQubeTempPath = outputPath, // FIXME
+                SonarQubeConfigPath = configPath,
+                SonarQubeOutputPath = outputPath,
 
-            preImportProperties.SonarQubeTempPath = outputPath; // FIXME
-            preImportProperties.SonarQubeConfigPath = configPath;
-            preImportProperties.SonarQubeOutputPath = outputPath;
-
-            // Ensure the project is isolated from environment variables
-            // that could be picked up when running on a TeamBuild build agent
-            preImportProperties.TeamBuildLegacyBuildDirectory = "";
-            preImportProperties.TeamBuild2105BuildDirectory = "";
+                // Ensure the project is isolated from environment variables
+                // that could be picked up when running on a TeamBuild build agent
+                TeamBuildLegacyBuildDirectory = "",
+                TeamBuild2105BuildDirectory = ""
+            };
             return preImportProperties;
         }
 
@@ -652,8 +653,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             CheckAnalysisFileList(expected, projectOutputFolder);
 
             // Check there are no other files
-            List<string> allowedFiles = new List<string>(expectedProjectInfo.AnalysisResults.Select(ar => ar.Location));
-            allowedFiles.Add(Path.Combine(projectOutputFolder, FileConstants.ProjectInfoFileName));
+            List<string> allowedFiles = new List<string>(expectedProjectInfo.AnalysisResults.Select(ar => ar.Location))
+            {
+                Path.Combine(projectOutputFolder, FileConstants.ProjectInfoFileName)
+            };
             AssertNoAdditionalFilesInFolder(projectOutputFolder, allowedFiles.ToArray());
         }
 

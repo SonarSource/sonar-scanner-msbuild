@@ -209,10 +209,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 throw new ArgumentNullException("logger");
             }
 
-            BuildParameters parameters = new BuildParameters();
-            parameters.Loggers = new ILogger[] { logger ?? new BuildLogger() };
-            parameters.UseSynchronousLogging = true;
-            parameters.ShutdownInProcNodeOnBuildFinish = true; // required, other we can get an "Attempted to access an unloaded AppDomain" exception when the test finishes.
+            BuildParameters parameters = new BuildParameters
+            {
+                Loggers = new ILogger[] { logger ?? new BuildLogger() },
+                UseSynchronousLogging = true,
+                ShutdownInProcNodeOnBuildFinish = true // required, other we can get an "Attempted to access an unloaded AppDomain" exception when the test finishes.
+            };
 
             BuildRequestData requestData = new BuildRequestData(projectInstance, targets);
 

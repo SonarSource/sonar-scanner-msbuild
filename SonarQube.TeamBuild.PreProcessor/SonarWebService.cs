@@ -17,16 +17,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Newtonsoft.Json.Linq;
-using SonarQube.Common;
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
+
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using Newtonsoft.Json.Linq;
+using SonarQube.Common;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -40,22 +39,14 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public SonarWebService(IDownloader downloader, string server, ILogger logger)
         {
-            if (downloader == null)
-            {
-                throw new ArgumentNullException("downloader");
-            }
             if (string.IsNullOrWhiteSpace(server))
             {
                 throw new ArgumentNullException("server");
             }
-            if (logger == null)
-            {
-                throw new ArgumentNullException("logger");
-            }
 
-            this.downloader = downloader;
+            this.downloader = downloader ?? throw new ArgumentNullException("downloader");
             this.serverUrl = server.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? server.Substring(0, server.Length - 1) : server;
-            this.logger = logger;
+            this.logger = logger ?? throw new ArgumentNullException("logger");
         }
 
         #region ISonarQubeServer interface
@@ -64,15 +55,14 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             string projectId = GetProjectIdentifier(projectKey, projectBranch);
 
-            string contents;
-            var ws = addOrganization(GetUrl("/api/qualityprofiles/search?projectKey={0}", projectId), organization);
+            var ws = AddOrganization(GetUrl("/api/qualityprofiles/search?projectKey={0}", projectId), organization);
             this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
 
             qualityProfileKey = DoLogExceptions(() =>
             {
-                if (!this.downloader.TryDownloadIfExists(ws, out contents))
+                if (!this.downloader.TryDownloadIfExists(ws, out string contents))
                 {
-                    ws = addOrganization(GetUrl("/api/qualityprofiles/search?defaults=true"), organization);
+                    ws = AddOrganization(GetUrl("/api/qualityprofiles/search?defaults=true"), organization);
 
                     this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
                     contents = this.downloader.Download(ws);
@@ -190,7 +180,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <param name="projectKey">The SonarQube project key to retrieve properties for.</param>
         /// <param name="projectBranch">The SonarQube project branch to retrieve properties for (optional).</param>
         /// <returns>A dictionary of key-value property pairs.</returns>
-        /// 
+        ///
         public IDictionary<string, string> GetProperties(string projectKey, string projectBranch = null)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
@@ -260,7 +250,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         #region Private methods
 
-        private string addOrganization(string encodedUrl, string organization)
+        private string AddOrganization(string encodedUrl, string organization)
         {
             if (string.IsNullOrEmpty(organization))
             {
@@ -309,7 +299,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                 return properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
             }, ws);
 
-            return checkTestProjectPattern(result);
+            return CheckTestProjectPattern(result);
         }
 
         private IDictionary<string, string> GetProperties63(string projectId)
@@ -339,10 +329,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
 
-            return checkTestProjectPattern(settings);
+            return CheckTestProjectPattern(settings);
         }
 
-        private Dictionary<string, string> checkTestProjectPattern(Dictionary<string, string> settings)
+        private Dictionary<string, string> CheckTestProjectPattern(Dictionary<string, string> settings)
         {
             // http://jira.sonarsource.com/browse/SONAR-5891 and https://jira.sonarsource.com/browse/SONARMSBRU-285
             if (settings.ContainsKey("sonar.cs.msbuild.testProjectPattern"))

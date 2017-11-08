@@ -103,12 +103,16 @@ namespace SonarQube.Common.UnitTests
             {
                 this.disposed = true;
 
-                StreamWriter standardError = new StreamWriter(Console.OpenStandardError());
-                standardError.AutoFlush = true;
+                StreamWriter standardError = new StreamWriter(Console.OpenStandardError())
+                {
+                    AutoFlush = true
+                };
                 Console.SetError(standardError);
 
-                StreamWriter standardOut = new StreamWriter(Console.OpenStandardOutput());
-                standardOut.AutoFlush = true;
+                StreamWriter standardOut = new StreamWriter(Console.OpenStandardOutput())
+                {
+                    AutoFlush = true
+                };
                 Console.SetOut(standardOut);
 
                 this.outputWriter.Dispose();

@@ -183,8 +183,7 @@ namespace SonarScanner.Shim
 
         private static void TryFixSarifReport(ILogger logger, ProjectInfo project, IRoslynV1SarifFixer fixer, string language, string reportFilePropertyKey)
         {
-            Property reportPathProperty;
-            bool tryResult = project.TryGetAnalysisSetting(reportFilePropertyKey, out reportPathProperty);
+            bool tryResult = project.TryGetAnalysisSetting(reportFilePropertyKey, out Property reportPathProperty);
             if (tryResult)
             {
                 string reportPath = reportPathProperty.Value;
@@ -199,9 +198,11 @@ namespace SonarScanner.Shim
                     if (fixedPath != null)
                     {
                         // otherwise, set the property value (results in no change if the file was already valid)
-                        Property newReportPathProperty = new Property();
-                        newReportPathProperty.Id = reportFilePropertyKey;
-                        newReportPathProperty.Value = fixedPath;
+                        Property newReportPathProperty = new Property
+                        {
+                            Id = reportFilePropertyKey,
+                            Value = fixedPath
+                        };
                         project.AnalysisSettings.Add(newReportPathProperty);
                     }
                 }
@@ -212,8 +213,7 @@ namespace SonarScanner.Shim
         {
             try
             {
-                Property encodingProperty;
-                if (Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out encodingProperty))
+                if (Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out Property encodingProperty))
                 {
                     return encodingProvider.GetEncoding(encodingProperty.Value).WebName;
                 }
@@ -402,8 +402,7 @@ namespace SonarScanner.Shim
 
         private static void AddOrSetProperty(string key, string value, AnalysisProperties properties, ILogger logger)
         {
-            Property property;
-            Property.TryGetProperty(key, properties, out property);
+            Property.TryGetProperty(key, properties, out Property property);
             if (property == null)
             {
                 logger.LogDebug(Resources.MSG_SettingAnalysisProperty, key, value);

@@ -167,8 +167,10 @@ namespace SonarScanner.Shim.Tests
             TestLogger logger = new TestLogger();
             AnalysisConfig config = CreateValidConfig(testDir);
 
-            config.LocalSettings = new AnalysisProperties();
-            config.LocalSettings.Add(new Property { Id = SonarProperties.SourceEncoding, Value = "test-encoding-here" });
+            config.LocalSettings = new AnalysisProperties
+            {
+                new Property { Id = SonarProperties.SourceEncoding, Value = "test-encoding-here" }
+            };
 
             // Act
             ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
@@ -188,8 +190,10 @@ namespace SonarScanner.Shim.Tests
             string testSarifPath = Path.Combine(testDir, "testSarif.json");
 
             // Create SARIF report path property and add it to the project info
-            AnalysisProperties projectSettings = new AnalysisProperties();
-            projectSettings.Add(new Property() { Id = PropertiesFileGenerator.ReportFileCsharpPropertyKey, Value = testSarifPath });
+            AnalysisProperties projectSettings = new AnalysisProperties
+            {
+                new Property() { Id = PropertiesFileGenerator.ReportFileCsharpPropertyKey, Value = testSarifPath }
+            };
             Guid projectGuid = Guid.NewGuid();
             CreateProjectWithFiles("withFiles1", testDir, projectGuid, true, projectSettings);
 
@@ -221,8 +225,10 @@ namespace SonarScanner.Shim.Tests
             string testSarifPath = Path.Combine(testDir, "testSarif.json");
 
             // Create SARIF report path property and add it to the project info
-            AnalysisProperties projectSettings = new AnalysisProperties();
-            projectSettings.Add(new Property() { Id = PropertiesFileGenerator.ReportFileCsharpPropertyKey, Value = testSarifPath });
+            AnalysisProperties projectSettings = new AnalysisProperties
+            {
+                new Property() { Id = PropertiesFileGenerator.ReportFileCsharpPropertyKey, Value = testSarifPath }
+            };
             Guid projectGuid = Guid.NewGuid();
             CreateProjectWithFiles("withFiles1", testDir, projectGuid, true, projectSettings);
 
@@ -260,8 +266,10 @@ namespace SonarScanner.Shim.Tests
             string testSarifPath = Path.Combine(testDir, "testSarif.json");
 
             // Create SARIF report path property and add it to the project info
-            AnalysisProperties projectSettings = new AnalysisProperties();
-            projectSettings.Add(new Property() { Id = PropertiesFileGenerator.ReportFileVbnetPropertyKey, Value = testSarifPath });
+            AnalysisProperties projectSettings = new AnalysisProperties
+            {
+                new Property() { Id = PropertiesFileGenerator.ReportFileVbnetPropertyKey, Value = testSarifPath }
+            };
             Guid projectGuid = Guid.NewGuid();
             CreateProjectWithFiles("withFiles1", testDir, projectGuid, true, projectSettings);
 
@@ -299,8 +307,10 @@ namespace SonarScanner.Shim.Tests
             string escapedSarifPath = testSarifPath.Replace(@"\", @"\\");
 
             // Create SARIF report path property and add it to the project info
-            AnalysisProperties projectSettings = new AnalysisProperties();
-            projectSettings.Add(new Property() { Id = PropertiesFileGenerator.ReportFileCsharpPropertyKey, Value = testSarifPath });
+            AnalysisProperties projectSettings = new AnalysisProperties
+            {
+                new Property() { Id = PropertiesFileGenerator.ReportFileCsharpPropertyKey, Value = testSarifPath }
+            };
             Guid projectGuid = Guid.NewGuid();
             CreateProjectWithFiles("withFiles1", testDir, projectGuid, true, projectSettings);
 
@@ -549,18 +559,22 @@ namespace SonarScanner.Shim.Tests
             AnalysisConfig config = CreateValidConfig(analysisRootDir);
 
             // Add additional properties
-            config.LocalSettings = new AnalysisProperties();
-            config.LocalSettings.Add(new Property() { Id = "key1", Value = "value1" });
-            config.LocalSettings.Add(new Property() { Id = "key.2", Value = "value two" });
-            config.LocalSettings.Add(new Property() { Id = "key.3", Value = " " });
+            config.LocalSettings = new AnalysisProperties
+            {
+                new Property() { Id = "key1", Value = "value1" },
+                new Property() { Id = "key.2", Value = "value two" },
+                new Property() { Id = "key.3", Value = " " },
 
-            // Sensitive data should not be written
-            config.LocalSettings.Add(new Property() { Id = SonarProperties.DbPassword, Value = "secret db pwd" });
-            config.LocalSettings.Add(new Property() { Id = SonarProperties.SonarPassword, Value = "secret pwd" });
+                // Sensitive data should not be written
+                new Property() { Id = SonarProperties.DbPassword, Value = "secret db pwd" },
+                new Property() { Id = SonarProperties.SonarPassword, Value = "secret pwd" }
+            };
 
             // Server properties should not be added
-            config.ServerSettings = new AnalysisProperties();
-            config.ServerSettings.Add(new Property() { Id = "server.key", Value = "should not be added" });
+            config.ServerSettings = new AnalysisProperties
+            {
+                new Property() { Id = "server.key", Value = "should not be added" }
+            };
 
             // Act
             ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);

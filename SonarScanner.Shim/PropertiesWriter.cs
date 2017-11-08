@@ -73,12 +73,7 @@ namespace SonarScanner.Shim
 
         public PropertiesWriter(AnalysisConfig config)
         {
-            if (config == null)
-            {
-                throw new ArgumentNullException("config");
-            }
-
-            this.config = config;
+            this.config = config ?? throw new ArgumentNullException("config");
             this.sb = new StringBuilder();
             this.projects = new List<ProjectInfo>();
         }

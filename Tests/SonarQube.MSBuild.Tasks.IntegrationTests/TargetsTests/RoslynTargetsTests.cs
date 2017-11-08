@@ -58,21 +58,27 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             AnalysisConfig config = new AnalysisConfig();
 
-            AnalyzerSettings analyzerSettings = new AnalyzerSettings();
-            analyzerSettings.Language = "cs";
-            analyzerSettings.RuleSetFilePath = "d:\\my.ruleset";
-            analyzerSettings.AnalyzerAssemblyPaths = expectedAssemblies.ToList();
-            analyzerSettings.AdditionalFilePaths = analyzerAdditionalFiles.ToList();
-            config.AnalyzersSettings = new List<AnalyzerSettings>();
-            config.AnalyzersSettings.Add(analyzerSettings);
+            AnalyzerSettings analyzerSettings = new AnalyzerSettings
+            {
+                Language = "cs",
+                RuleSetFilePath = "d:\\my.ruleset",
+                AnalyzerAssemblyPaths = expectedAssemblies.ToList(),
+                AdditionalFilePaths = analyzerAdditionalFiles.ToList()
+            };
+            config.AnalyzersSettings = new List<AnalyzerSettings>
+            {
+                analyzerSettings
+            };
 
             string configFilePath = Path.Combine(confDir, FileConstants.ConfigFileName);
             config.Save(configFilePath);
 
             // Create the project
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.SonarQubeConfigPath = confDir;
-            properties.ResolvedCodeAnalysisRuleset = "c:\\should.be.overridden.ruleset";
+            WellKnownProjectProperties properties = new WellKnownProjectProperties
+            {
+                SonarQubeConfigPath = confDir,
+                ResolvedCodeAnalysisRuleset = "c:\\should.be.overridden.ruleset"
+            };
 
             ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
 
@@ -126,21 +132,27 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             AnalysisConfig config = new AnalysisConfig();
 
-            AnalyzerSettings analyzerSettings = new AnalyzerSettings();
-            analyzerSettings.Language = "cs";
-            analyzerSettings.RuleSetFilePath = "d:\\my.ruleset";
-            analyzerSettings.AnalyzerAssemblyPaths = expectedAssemblies.ToList();
-            analyzerSettings.AdditionalFilePaths = analyzerAdditionalFiles.ToList();
-            config.AnalyzersSettings = new List<AnalyzerSettings>();
-            config.AnalyzersSettings.Add(analyzerSettings);
+            AnalyzerSettings analyzerSettings = new AnalyzerSettings
+            {
+                Language = "cs",
+                RuleSetFilePath = "d:\\my.ruleset",
+                AnalyzerAssemblyPaths = expectedAssemblies.ToList(),
+                AdditionalFilePaths = analyzerAdditionalFiles.ToList()
+            };
+            config.AnalyzersSettings = new List<AnalyzerSettings>
+            {
+                analyzerSettings
+            };
 
             string configFilePath = Path.Combine(confDir, FileConstants.ConfigFileName);
             config.Save(configFilePath);
 
             // Create the project
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.SonarQubeConfigPath = confDir;
-            properties.ResolvedCodeAnalysisRuleset = "c:\\should.be.overridden.ruleset";
+            WellKnownProjectProperties properties = new WellKnownProjectProperties
+            {
+                SonarQubeConfigPath = confDir,
+                ResolvedCodeAnalysisRuleset = "c:\\should.be.overridden.ruleset"
+            };
 
             ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
 
@@ -195,9 +207,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             config.Save(configFilePath);
 
             // Create the project
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.SonarQubeConfigPath = confDir;
-            properties.ResolvedCodeAnalysisRuleset = "c:\\should.be.overridden.ruleset";
+            WellKnownProjectProperties properties = new WellKnownProjectProperties
+            {
+                SonarQubeConfigPath = confDir,
+                ResolvedCodeAnalysisRuleset = "c:\\should.be.overridden.ruleset"
+            };
 
             ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
 
@@ -234,11 +248,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             BuildLogger logger = new BuildLogger();
 
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.ErrorLog = "pre-existing.log";
-            properties.ResolvedCodeAnalysisRuleset = "pre-existing.ruleset";
-            properties.WarningsAsErrors = "CS101";
-            properties.TreatWarningsAsErrors = "true";
+            WellKnownProjectProperties properties = new WellKnownProjectProperties
+            {
+                ErrorLog = "pre-existing.log",
+                ResolvedCodeAnalysisRuleset = "pre-existing.ruleset",
+                WarningsAsErrors = "CS101",
+                TreatWarningsAsErrors = "true"
+            };
 
             ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
             projectRoot.AddProperty(TargetProperties.SonarQubeTempPath, string.Empty); // needs to overwritten once the valid project has been created
@@ -266,8 +282,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Arrange
             BuildLogger logger = new BuildLogger();
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties[TargetProperties.ErrorLog] = "already.set.txt";
+            WellKnownProjectProperties properties = new WellKnownProjectProperties
+            {
+                [TargetProperties.ErrorLog] = "already.set.txt"
+            };
 
             ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
 
@@ -288,8 +306,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Arrange
             BuildLogger logger = new BuildLogger();
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.ProjectTypeGuids = TargetConstants.MsTestProjectTypeGuid; // mark the project as a test project
+            WellKnownProjectProperties properties = new WellKnownProjectProperties
+            {
+                ProjectTypeGuids = TargetConstants.MsTestProjectTypeGuid // mark the project as a test project
+            };
 
             ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
 
@@ -310,9 +330,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Arrange
             BuildLogger logger = new BuildLogger();
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.SonarQubeExclude = "TRUE"; // mark the project as excluded
-            properties.ResolvedCodeAnalysisRuleset = "Dummy value";
+            WellKnownProjectProperties properties = new WellKnownProjectProperties
+            {
+                SonarQubeExclude = "TRUE", // mark the project as excluded
+                ResolvedCodeAnalysisRuleset = "Dummy value"
+            };
 
             ProjectRootElement projectRoot = CreateValidProjectSetup(properties);
 
@@ -338,8 +360,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
 
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.SonarQubeTempPath = "";
+            WellKnownProjectProperties properties = new WellKnownProjectProperties
+            {
+                SonarQubeTempPath = ""
+            };
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
 
@@ -359,8 +383,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
 
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.SonarQubeTempPath = rootInputFolder;
+            WellKnownProjectProperties properties = new WellKnownProjectProperties
+            {
+                SonarQubeTempPath = rootInputFolder
+            };
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
 
@@ -383,8 +409,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             string resultsFile = TestUtils.CreateTextFile(rootInputFolder, "error.report.txt", "dummy report content");
 
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.SonarQubeTempPath = rootInputFolder;
+            WellKnownProjectProperties properties = new WellKnownProjectProperties
+            {
+                SonarQubeTempPath = rootInputFolder
+            };
             properties[TargetProperties.ErrorLog] = resultsFile;
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
@@ -415,10 +443,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             string rootInputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Inputs");
             string rootOutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "Outputs");
 
-            WellKnownProjectProperties properties = new WellKnownProjectProperties();
-            properties.SonarQubeTempPath = rootInputFolder;
-            properties.SonarQubeOutputPath = rootInputFolder;
-            properties.SonarQubeConfigPath = rootOutputFolder;
+            WellKnownProjectProperties properties = new WellKnownProjectProperties
+            {
+                SonarQubeTempPath = rootInputFolder,
+                SonarQubeOutputPath = rootInputFolder,
+                SonarQubeConfigPath = rootOutputFolder
+            };
 
             ProjectRootElement projectRoot = BuildUtilities.CreateValidProjectRoot(this.TestContext, rootInputFolder, properties);
 

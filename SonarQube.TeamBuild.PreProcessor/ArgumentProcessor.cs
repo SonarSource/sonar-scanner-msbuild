@@ -62,25 +62,26 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             // Initialise the set of valid descriptors.
             // To add a new argument, just add it to the list.
-            Descriptors = new List<ArgumentDescriptor>();
+            Descriptors = new List<ArgumentDescriptor>
+            {
+                new ArgumentDescriptor(
+                id: KeywordIds.ProjectKey, prefixes: new string[] { "/key:", "/k:" }, required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectKey),
 
-            Descriptors.Add(new ArgumentDescriptor(
-                id: KeywordIds.ProjectKey, prefixes: new string[] { "/key:", "/k:" }, required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectKey));
+                new ArgumentDescriptor(
+                id: KeywordIds.ProjectName, prefixes: new string[] { "/name:", "/n:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectName),
 
-            Descriptors.Add(new ArgumentDescriptor(
-                id: KeywordIds.ProjectName, prefixes: new string[] { "/name:", "/n:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectName));
+                new ArgumentDescriptor(
+                id: KeywordIds.ProjectVersion, prefixes: new string[] { "/version:", "/v:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion),
 
-            Descriptors.Add(new ArgumentDescriptor(
-                id: KeywordIds.ProjectVersion, prefixes: new string[] { "/version:", "/v:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion));
+                new ArgumentDescriptor(
+                id: KeywordIds.Organization, prefixes: new string[] { "/organization:", "/o:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_Organization),
 
-            Descriptors.Add(new ArgumentDescriptor(
-                id: KeywordIds.Organization, prefixes: new string[] { "/organization:", "/o:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_Organization));
+                new ArgumentDescriptor(
+              id: KeywordIds.InstallLoaderTargets, prefixes: new string[] { "/install:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets),
 
-            Descriptors.Add(new ArgumentDescriptor(
-              id: KeywordIds.InstallLoaderTargets, prefixes: new string[] { "/install:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets));
-
-            Descriptors.Add(FilePropertyProvider.Descriptor);
-            Descriptors.Add(CmdLineArgPropertyProvider.Descriptor);
+                FilePropertyProvider.Descriptor,
+                CmdLineArgPropertyProvider.Descriptor
+            };
 
             Debug.Assert(Descriptors.All(d => d.Prefixes != null && d.Prefixes.Any()), "All descriptors must provide at least one prefix");
             Debug.Assert(Descriptors.Select(d => d.Id).Distinct().Count() == Descriptors.Count, "All descriptors must have a unique id");
@@ -103,28 +104,23 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             ProcessedArgs processed = null;
-            IEnumerable<ArgumentInstance> arguments;
 
             // This call will fail if there are duplicate, missing, or unrecognized arguments
             CommandLineParser parser = new CommandLineParser(Descriptors, false /* don't allow unrecognized */);
-            bool parsedOk = parser.ParseArguments(commandLineArgs, logger, out arguments);
+            bool parsedOk = parser.ParseArguments(commandLineArgs, logger, out IEnumerable<ArgumentInstance> arguments);
 
             // Handle the /install: command line only argument
-            bool installLoaderTargets;
-            parsedOk &= TryGetInstallTargetsEnabled(arguments, logger, out installLoaderTargets);
+            parsedOk &= TryGetInstallTargetsEnabled(arguments, logger, out bool installLoaderTargets);
 
             // Handler for command line analysis properties
-            IAnalysisPropertyProvider cmdLineProperties;
-            parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out cmdLineProperties);
+            parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out IAnalysisPropertyProvider cmdLineProperties);
 
             // Handler for scanner environment properties
-            IAnalysisPropertyProvider scannerEnvProperties;
-            parsedOk &= EnvScannerPropertiesProvider.TryCreateProvider(logger, out scannerEnvProperties);
+            parsedOk &= EnvScannerPropertiesProvider.TryCreateProvider(logger, out IAnalysisPropertyProvider scannerEnvProperties);
 
             // Handler for property file
-            IAnalysisPropertyProvider globalFileProperties;
             string asmPath = Path.GetDirectoryName(typeof(PreProcessor.ArgumentProcessor).Assembly.Location);
-            parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out globalFileProperties);
+            parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out IAnalysisPropertyProvider globalFileProperties);
 
             if (parsedOk)
             {
@@ -180,8 +176,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private static bool TryGetInstallTargetsEnabled(IEnumerable<ArgumentInstance> arguments, ILogger logger, out bool installTargetsEnabled)
         {
-            ArgumentInstance argumentInstance;
-            bool hasInstallTargetsVerb = ArgumentInstance.TryGetArgument(KeywordIds.InstallLoaderTargets, arguments, out argumentInstance);
+            bool hasInstallTargetsVerb = ArgumentInstance.TryGetArgument(KeywordIds.InstallLoaderTargets, arguments, out ArgumentInstance argumentInstance);
 
             if (hasInstallTargetsVerb)
             {

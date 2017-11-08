@@ -40,12 +40,7 @@ namespace SonarQube.Common
 
         public AggregatePropertiesProvider(params IAnalysisPropertyProvider[] providers)
         {
-            if (providers == null)
-            {
-                throw new ArgumentNullException("providers");
-            }
-
-            this.providers = providers;
+            this.providers = providers ?? throw new ArgumentNullException("providers");
         }
 
         #endregion
@@ -59,8 +54,7 @@ namespace SonarQube.Common
             IList<Property> allProperties = new List<Property>();
             foreach (string key in allKeys)
             {
-                Property property;
-                bool match = this.TryGetProperty(key, out property);
+                bool match = this.TryGetProperty(key, out Property property);
 
                 Debug.Assert(match, "Expecting to find value for all keys. Key: " + key);
                 allProperties.Add(property);

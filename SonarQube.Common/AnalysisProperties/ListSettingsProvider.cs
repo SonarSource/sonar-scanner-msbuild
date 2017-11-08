@@ -54,8 +54,7 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("key");
             }
 
-            Property existing;
-            if (this.TryGetProperty(key, out existing))
+            if (this.TryGetProperty(key, out Property existing))
             {
                 throw new ArgumentOutOfRangeException("key");
             }

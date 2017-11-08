@@ -305,8 +305,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             string value = Environment.GetEnvironmentVariable(envVar);
 
-            bool result;
-            if (value != null && bool.TryParse(value, out result))
+            if (value != null && bool.TryParse(value, out bool result))
             {
                 return result;
             }
@@ -317,11 +316,10 @@ namespace SonarQube.TeamBuild.Integration
         {
             string value = Environment.GetEnvironmentVariable(envVar);
 
-            int result;
             if (value != null &&
                 int.TryParse(value,
                     System.Globalization.NumberStyles.Integer, // don't allow hex, real etc
-                    System.Globalization.CultureInfo.InvariantCulture, out result))
+                    System.Globalization.CultureInfo.InvariantCulture, out int result))
             {
                 return result;
             }

@@ -59,10 +59,12 @@ namespace SonarScanner.Shim.Tests
             string otherDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_OtherDir");
             string missingFileOutsideProjectDir = Path.Combine(otherDir, "missing.cs");
 
-            List<string> productFiles = new List<string>();
-            productFiles.Add(productFile);
-            productFiles.Add(productChineseFile);
-            productFiles.Add(missingFileOutsideProjectDir);
+            List<string> productFiles = new List<string>
+            {
+                productFile,
+                productChineseFile,
+                missingFileOutsideProjectDir
+            };
             ProjectInfo productCS = CreateProjectInfo("你好", "DB2E5521-3172-47B9-BA50-864F12E6DFFF", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.CSharp, "UTF-8");
             ProjectInfo productVB = CreateProjectInfo("vbProject", "B51622CF-82F4-48C9-9F38-FB981FAFAF3A", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.VisualBasic, "UTF-8");
 
@@ -71,8 +73,10 @@ namespace SonarScanner.Shim.Tests
             string testFile = CreateEmptyFile(testBaseDir, "File.cs");
             string testFileListFilePath = Path.Combine(testBaseDir, "testManagedFiles.txt");
 
-            List<string> testFiles = new List<string>();
-            testFiles.Add(testFile);
+            List<string> testFiles = new List<string>
+            {
+                testFile
+            };
             ProjectInfo test = CreateProjectInfo("my_test_project", "DA0FCD82-9C5C-4666-9370-C7388281D49B", testProject, true, testFiles, testFileListFilePath, null, ProjectLanguages.VisualBasic, "UTF-8");
 
             AnalysisConfig config = new AnalysisConfig()
@@ -174,14 +178,18 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             string productProject = CreateEmptyFile(projectBaseDir, "MyProduct.csproj");
 
             string productFile = CreateEmptyFile(projectBaseDir, "File.cs");
-            List<string> productFiles = new List<string>();
-            productFiles.Add(productFile);
+            List<string> productFiles = new List<string>
+            {
+                productFile
+            };
             string productFileListFilePath = Path.Combine(projectBaseDir, "productManagedFiles.txt");
 
             ProjectInfo product = CreateProjectInfo("AnalysisSettingsTest.proj", "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5", productProject, false, productFiles, productFileListFilePath, null, "language", "UTF-8");
 
-            List<ProjectInfo> projects = new List<ProjectInfo>();
-            projects.Add(product);
+            List<ProjectInfo> projects = new List<ProjectInfo>
+            {
+                product
+            };
 
             AnalysisConfig config = new AnalysisConfig()
             {
@@ -189,10 +197,12 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             };
 
             // These are the settings we are going to check. The other analysis values are not checked.
-            product.AnalysisSettings = new AnalysisProperties();
-            product.AnalysisSettings.Add(new Property() { Id = "my.setting1", Value = "setting1" });
-            product.AnalysisSettings.Add(new Property() { Id = "my.setting2", Value = "setting 2 with spaces" });
-            product.AnalysisSettings.Add(new Property() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" }); // path that will be escaped
+            product.AnalysisSettings = new AnalysisProperties
+            {
+                new Property() { Id = "my.setting1", Value = "setting1" },
+                new Property() { Id = "my.setting2", Value = "setting 2 with spaces" },
+                new Property() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" } // path that will be escaped
+            };
 
             // Act
             PropertiesWriter writer = new PropertiesWriter(config);
@@ -217,15 +227,19 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             string productProject = CreateEmptyFile(projectBaseDir, "MyProduct.csproj");
 
             string productFile = CreateEmptyFile(projectBaseDir, "File.cs");
-            List<string> productFiles = new List<string>();
-            productFiles.Add(productFile);
+            List<string> productFiles = new List<string>
+            {
+                productFile
+            };
             string productFileListFilePath = Path.Combine(projectBaseDir, "productManagedFiles.txt");
 
             string projectKey = "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5";
             ProjectInfo product = CreateProjectInfo("AnalysisSettingsTest.proj", projectKey, productProject, false, productFiles, productFileListFilePath, null, "language", "UTF-8");
 
-            List<ProjectInfo> projects = new List<ProjectInfo>();
-            projects.Add(product);
+            List<ProjectInfo> projects = new List<ProjectInfo>
+            {
+                product
+            };
 
             AnalysisConfig config = new AnalysisConfig()
             {
@@ -267,13 +281,15 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
                 SonarOutputDir = @"C:\my_folder"
             };
 
-            AnalysisProperties globalSettings = new AnalysisProperties();
-            globalSettings.Add(new Property() { Id = "my.setting1", Value = "setting1" });
-            globalSettings.Add(new Property() { Id = "my.setting2", Value = "setting 2 with spaces" });
-            globalSettings.Add(new Property() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" }); // path that will be escaped
+            AnalysisProperties globalSettings = new AnalysisProperties
+            {
+                new Property() { Id = "my.setting1", Value = "setting1" },
+                new Property() { Id = "my.setting2", Value = "setting 2 with spaces" },
+                new Property() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" }, // path that will be escaped
 
-            // Specific test for sonar.branch property
-            globalSettings.Add(new Property() { Id = "sonar.branch", Value = "aBranch" }); // path that will be escaped
+                // Specific test for sonar.branch property
+                new Property() { Id = "sonar.branch", Value = "aBranch" } // path that will be escaped
+            };
 
             // Act
             PropertiesWriter writer = new PropertiesWriter(config);
