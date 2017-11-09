@@ -23,13 +23,37 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.MavenLocation;
+import com.sonar.orchestrator.util.NetworkUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.proxy.ProxyServlet;
+import org.eclipse.jetty.security.ConstraintMapping;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.SecurityHandler;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.util.security.Constraint;
+import org.eclipse.jetty.util.security.Credential;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -59,6 +83,12 @@ public class ScannerMSBuildTest {
   private static final String PROJECT_KEY = "my.project";
   private static final String MODULE_KEY = "my.project:my.project:1049030E-AC7A-49D0-BEDC-F414C5C7DDD8";
   private static final String FILE_KEY = MODULE_KEY + ":Foo.cs";
+  private static final String PROXY_USER = "scott";
+  private static final String PROXY_PASSWORD = "tiger";
+  private static Server server;
+  private static int httpProxyPort;
+
+  private static ConcurrentLinkedDeque<String> seenByProxy = new ConcurrentLinkedDeque<>();
 
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
@@ -77,6 +107,14 @@ public class ScannerMSBuildTest {
   @Before
   public void setUp() {
     ORCHESTRATOR.resetData();
+    seenByProxy.clear();
+  }
+
+  @After
+  public void stopProxy() throws Exception {
+    if (server != null && server.isStarted()) {
+      server.stop();
+    }
   }
 
   @Test
@@ -103,6 +141,44 @@ public class ScannerMSBuildTest {
     assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(23);
     assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(37);
     assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(58);
+  }
+
+  @Test
+  public void testSampleWithProxyAuth() throws Exception {
+    startProxy(true);
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTest");
+
+    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectName("sample")
+      .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    BuildResult result = ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(projectDir)
+      .addArgument("end")
+      .setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort));
+
+    assertThat(result.getLastStatus()).isNotEqualTo(0);
+    assertThat(result.getLogs()).contains("407");
+    assertThat(seenByProxy).isEmpty();
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("end")
+      .setEnvironmentVariable("SONAR_SCANNER_OPTS",
+        "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort + " -Dhttp.proxyUser=" + PROXY_USER + " -Dhttp.proxyPassword=" + PROXY_PASSWORD));
+
+    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    assertThat(issues).hasSize(2);
+    assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(23);
+    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(37);
+    assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(58);
+
+    assertThat(seenByProxy).isNotEmpty();
   }
 
   @Test
@@ -380,6 +456,89 @@ public class ScannerMSBuildTest {
     return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
       .url(ORCHESTRATOR.getServer().getUrl())
       .build());
+  }
+
+  private static void startProxy(boolean needProxyAuth) throws Exception {
+    httpProxyPort = NetworkUtils.getNextAvailablePort(NetworkUtils.getLocalhost());
+
+    // Setup Threadpool
+    QueuedThreadPool threadPool = new QueuedThreadPool();
+    threadPool.setMaxThreads(500);
+
+    server = new Server(threadPool);
+
+    // HTTP Configuration
+    HttpConfiguration httpConfig = new HttpConfiguration();
+    httpConfig.setSecureScheme("https");
+    httpConfig.setSendServerVersion(true);
+    httpConfig.setSendDateHeader(false);
+
+    // Handler Structure
+    HandlerCollection handlers = new HandlerCollection();
+    handlers.setHandlers(new Handler[] {proxyHandler(needProxyAuth), new DefaultHandler()});
+    server.setHandler(handlers);
+
+    ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
+    http.setPort(httpProxyPort);
+    server.addConnector(http);
+
+    server.start();
+  }
+
+  private static ServletContextHandler proxyHandler(boolean needProxyAuth) {
+    ServletContextHandler contextHandler = new ServletContextHandler();
+    if (needProxyAuth) {
+      contextHandler.setSecurityHandler(basicAuth(PROXY_USER, PROXY_PASSWORD, "Private!"));
+    }
+    contextHandler.setServletHandler(newServletHandler());
+    return contextHandler;
+  }
+
+  private static final SecurityHandler basicAuth(String username, String password, String realm) {
+
+    HashLoginService l = new HashLoginService();
+    l.putUser(username, Credential.getCredential(password), new String[] {"user"});
+    l.setName(realm);
+
+    Constraint constraint = new Constraint();
+    constraint.setName(Constraint.__BASIC_AUTH);
+    constraint.setRoles(new String[] {"user"});
+    constraint.setAuthenticate(true);
+
+    ConstraintMapping cm = new ConstraintMapping();
+    cm.setConstraint(constraint);
+    cm.setPathSpec("/*");
+
+    ConstraintSecurityHandler csh = new ConstraintSecurityHandler();
+    csh.setAuthenticator(new ProxyAuthenticator());
+    csh.setRealmName("myrealm");
+    csh.addConstraintMapping(cm);
+    csh.setLoginService(l);
+
+    return csh;
+
+  }
+
+  private static ServletHandler newServletHandler() {
+    ServletHandler handler = new ServletHandler();
+    handler.addServletWithMapping(MyProxyServlet.class, "/*");
+    return handler;
+  }
+
+  public static class MyProxyServlet extends ProxyServlet {
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+      seenByProxy.add(request.getRequestURI());
+      super.service(request, response);
+    }
+
+    @Override
+    protected void sendProxyRequest(HttpServletRequest clientRequest, HttpServletResponse proxyResponse, Request proxyRequest) {
+      super.sendProxyRequest(clientRequest, proxyResponse, proxyRequest);
+
+    }
+
   }
 
 }
