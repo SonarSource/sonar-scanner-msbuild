@@ -17,15 +17,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.Build.Construction;
-using Microsoft.Build.Execution;
-using Microsoft.Build.Framework;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Build.Construction;
+using Microsoft.Build.Execution;
+using Microsoft.Build.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests
@@ -33,8 +33,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
     internal static class BuildUtilities
     {
         // TODO: work out some way to automatically set the tools version depending on the version of VS being used
-        //public const string MSBuildToolsVersionForTestProjects = "14.0"; // use this line for VS2015
-        public const string MSBuildToolsVersionForTestProjects = "15.0"; // use this line for VS2017
+        public const string MSBuildToolsVersionForTestProjects = "14.0"; // use this line for VS2015
+        //public const string MSBuildToolsVersionForTestProjects = "15.0"; // use this line for VS2017
 
         private const string StandardImportBeforePropertyName = "ImportByWildcardBeforeMicrosoftCommonTargets";
         private const string StandardImportAfterPropertyName = "ImportByWildcardAfterMicrosoftCommonTargets";
@@ -109,7 +109,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             ProjectRootElement root = ProjectRootElement.Create();
 
-            foreach(string importTarget in importsBeforeTargets)
+            foreach (string importTarget in importsBeforeTargets)
             {
                 Assert.IsTrue(File.Exists(importTarget), "Test error: the specified target file does not exist. Path: {0}", importTarget);
                 root.AddImport(importTarget);
@@ -117,7 +117,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
             if (preImportProperties != null)
             {
-                foreach(KeyValuePair<string, string> kvp in preImportProperties)
+                foreach (KeyValuePair<string, string> kvp in preImportProperties)
                 {
                     root.AddProperty(kvp.Key, kvp.Value);
                 }
