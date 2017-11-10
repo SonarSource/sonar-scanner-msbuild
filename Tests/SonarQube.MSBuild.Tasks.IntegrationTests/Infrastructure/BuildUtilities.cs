@@ -109,6 +109,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             ProjectRootElement root = ProjectRootElement.Create();
 
+            root.ToolsVersion = MSBuildToolsVersionForTestProjects;
+
             foreach (string importTarget in importsBeforeTargets)
             {
                 Assert.IsTrue(File.Exists(importTarget), "Test error: the specified target file does not exist. Path: {0}", importTarget);
@@ -186,6 +188,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             if (logger == null)
             {
                 throw new ArgumentNullException("logger");
+            }
+
+            if (projectRoot.ToolsVersion != MSBuildToolsVersionForTestProjects)
+            {
+                projectRoot.ToolsVersion = MSBuildToolsVersionForTestProjects;
             }
 
             ProjectInstance projectInstance = new ProjectInstance(projectRoot);
