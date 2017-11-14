@@ -54,78 +54,11 @@ namespace SonarScanner.Shim.Tests
             AnalysisConfig config = new AnalysisConfig() { SonarOutputDir = testDir };
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
             // Assert
             AssertFailedToCreatePropertiesFiles(result, logger);
             AssertExpectedProjectCount(0, result);
-        }
-
-        [TestMethod]
-        public void FileGen_DuplicateProjectIds()
-        {
-            // ProjectInfo files with duplicate ids should be ignored
-
-            // Arrange - three files, all with the same Guid, one of which is excluded
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-
-            Guid duplicateGuid = Guid.NewGuid();
-            CreateProjectInfoInSubDir(testDir, "duplicate1", duplicateGuid, ProjectType.Product, false, "c:\\abc\\duplicateProject1.proj", "UTF-8"); // not excluded
-            CreateProjectInfoInSubDir(testDir, "duplicate2", duplicateGuid, ProjectType.Test, false, "S:\\duplicateProject2.proj", "UTF-8"); // not excluded
-            CreateProjectInfoInSubDir(testDir, "excluded", duplicateGuid, ProjectType.Product, true, "c:\\abc\\excluded.proj", "UTF-8"); // excluded
-
-            TestLogger logger = new TestLogger();
-            AnalysisConfig config = CreateValidConfig(testDir);
-
-            // Act
-            ProjectInfoAnalysisResult result = null;
-            using (new AssertIgnoreScope()) // expecting the properties writer to assert
-            {
-                result = PropertiesFileGenerator.GenerateFile(config, logger);
-            }
-
-            // Assert
-            AssertExpectedStatus("duplicate1", ProjectInfoValidity.DuplicateGuid, result);
-            AssertExpectedStatus("duplicate2", ProjectInfoValidity.DuplicateGuid, result);
-            AssertExpectedStatus("excluded", ProjectInfoValidity.ExcludeFlagSet, result); // Expecting excluded rather than duplicate
-            AssertExpectedProjectCount(3, result);
-
-            // No valid project info files -> file not generated
-            AssertFailedToCreatePropertiesFiles(result, logger);
-            logger.AssertWarningsLogged(2); // should be a warning for each project with a duplicate id
-
-            logger.AssertSingleWarningExists(duplicateGuid.ToString(), "c:\\abc\\duplicateProject1.proj");
-            logger.AssertSingleWarningExists(duplicateGuid.ToString(), "S:\\duplicateProject2.proj");
-        }
-
-        [TestMethod]
-        public void FileGen_ExcludedProjectsAreNotDuplicates()
-        {
-            // Excluded ProjectInfo files should be ignored when calculating duplicates
-
-            // Arrange - two sub-directories, neither containing a ProjectInfo.xml
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-
-            Guid duplicateGuid = Guid.NewGuid();
-            CreateProjectInfoInSubDir(testDir, "excl1", duplicateGuid, ProjectType.Product, true, "c:\\abc\\excluded1.proj", "UTF-8"); // excluded
-            CreateProjectInfoInSubDir(testDir, "excl2", duplicateGuid, ProjectType.Test, true, "c:\\abc\\excluded2.proj", "UTF-8"); // excluded
-            CreateProjectInfoInSubDir(testDir, "notExcl", duplicateGuid, ProjectType.Product, false, "c:\\abc\\included.proj", "UTF-8"); // not excluded
-
-            TestLogger logger = new TestLogger();
-            AnalysisConfig config = CreateValidConfig(testDir);
-
-            // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
-
-            // Assert
-            AssertExpectedStatus("excl1", ProjectInfoValidity.ExcludeFlagSet, result);
-            AssertExpectedStatus("excl2", ProjectInfoValidity.ExcludeFlagSet, result);
-            AssertExpectedStatus("notExcl", ProjectInfoValidity.NoFilesToAnalyze, result); // not "duplicate" since the duplicate guids are excluded
-            AssertExpectedProjectCount(3, result);
-
-            // One valid project info file -> file
-            AssertFailedToCreatePropertiesFiles(result, logger);
-            logger.AssertWarningsLogged(0); // expects no warning
         }
 
         [TestMethod]
@@ -144,7 +77,7 @@ namespace SonarScanner.Shim.Tests
             AnalysisConfig config = CreateValidConfig(testDir);
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
             // Assert
             AssertExpectedStatus("withoutFiles", ProjectInfoValidity.NoFilesToAnalyze, result);
@@ -173,7 +106,7 @@ namespace SonarScanner.Shim.Tests
             };
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
             // Assert
             var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
@@ -205,7 +138,7 @@ namespace SonarScanner.Shim.Tests
             string mockReturnPath = mockSarifFixer.ReturnVal;
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger, mockSarifFixer);
+            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer).GenerateFile();
 
             // Assert
             Assert.AreEqual(1, mockSarifFixer.CallCount);
@@ -244,7 +177,7 @@ namespace SonarScanner.Shim.Tests
             string escapedMockReturnPath = mockSarifFixer.ReturnVal.Replace(@"\", @"\\");
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger, mockSarifFixer);
+            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer).GenerateFile();
 
             // Assert
             Assert.AreEqual(1, mockSarifFixer.CallCount);
@@ -285,7 +218,7 @@ namespace SonarScanner.Shim.Tests
             string escapedMockReturnPath = mockSarifFixer.ReturnVal.Replace(@"\", @"\\");
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger, mockSarifFixer);
+            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer).GenerateFile();
 
             // Assert
             Assert.AreEqual(1, mockSarifFixer.CallCount);
@@ -321,7 +254,7 @@ namespace SonarScanner.Shim.Tests
             MockRoslynV1SarifFixer mockSarifFixer = new MockRoslynV1SarifFixer(null);
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger, mockSarifFixer);
+            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer).GenerateFile();
 
             // Assert
             Assert.AreEqual(1, mockSarifFixer.CallCount);
@@ -354,7 +287,7 @@ namespace SonarScanner.Shim.Tests
             AnalysisConfig config = CreateValidConfig(testDir);
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
             // Assert
             AssertExpectedStatus("projectName", ProjectInfoValidity.NoFilesToAnalyze, result);
@@ -394,7 +327,7 @@ namespace SonarScanner.Shim.Tests
             AnalysisConfig config = CreateValidConfig(testDir);
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
             // Assert
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
@@ -435,7 +368,7 @@ namespace SonarScanner.Shim.Tests
             AnalysisConfig config = CreateValidConfig(testDir);
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
             // Assert
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
@@ -476,7 +409,7 @@ namespace SonarScanner.Shim.Tests
             AnalysisConfig config = CreateValidConfig(testDir);
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
             // Assert
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
@@ -532,7 +465,7 @@ namespace SonarScanner.Shim.Tests
             };
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
             string actual = File.ReadAllText(result.FullPropertiesFilePath);
 
@@ -577,7 +510,7 @@ namespace SonarScanner.Shim.Tests
             };
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
             // Assert
             AssertExpectedProjectCount(1, result);
@@ -607,7 +540,7 @@ namespace SonarScanner.Shim.Tests
 
             // Assert
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingExists(PropertiesFileGenerator.VSBootstrapperPropertyKey, "false");
+            provider.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
             logger.AssertWarningsLogged(0);
         }
 
@@ -618,15 +551,15 @@ namespace SonarScanner.Shim.Tests
             TestLogger logger = new TestLogger();
 
             // Try to explicitly enable the setting
-            Property bootstrapperProperty = new Property() { Id = PropertiesFileGenerator.VSBootstrapperPropertyKey, Value = "true" };
+            Property bootstrapperProperty = new Property() { Id = AnalysisConfigExtensions.VSBootstrapperPropertyKey, Value = "true" };
 
             // Act
             ProjectInfoAnalysisResult result = ExecuteAndCheckSucceeds("disableBootstrapperDiff", logger, bootstrapperProperty);
 
             // Assert
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingExists(PropertiesFileGenerator.VSBootstrapperPropertyKey, "false");
-            logger.AssertSingleWarningExists(PropertiesFileGenerator.VSBootstrapperPropertyKey);
+            provider.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
+            logger.AssertSingleWarningExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey);
         }
 
         [TestMethod]
@@ -634,15 +567,15 @@ namespace SonarScanner.Shim.Tests
         {
             // Arrange
             TestLogger logger = new TestLogger();
-            Property bootstrapperProperty = new Property() { Id = PropertiesFileGenerator.VSBootstrapperPropertyKey, Value = "false" };
+            Property bootstrapperProperty = new Property() { Id = AnalysisConfigExtensions.VSBootstrapperPropertyKey, Value = "false" };
 
             // Act
             ProjectInfoAnalysisResult result = ExecuteAndCheckSucceeds("disableBootstrapperSame", logger, bootstrapperProperty);
 
             // Assert
             SQPropertiesFileReader provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-            provider.AssertSettingExists(PropertiesFileGenerator.VSBootstrapperPropertyKey, "false");
-            logger.AssertSingleDebugMessageExists(PropertiesFileGenerator.VSBootstrapperPropertyKey);
+            provider.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
+            logger.AssertSingleDebugMessageExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey);
             logger.AssertWarningsLogged(0); // not expecting a warning if the user has supplied the value we want
         }
 
@@ -659,44 +592,44 @@ namespace SonarScanner.Shim.Tests
               expectedValue: @"d:\work",  // if no user value, use the team build value
               teamBuildValue: @"d:\work",
               userValue: null,
-              projectPaths: new[] { @"e:\work\proj1.csproj" });
+              projectPaths: new[] { @"e:\work" });
 
             VerifyProjectBaseDir(
                expectedValue: @"e:\work",  // if no team build value, use the common project paths root
                teamBuildValue: null,
                userValue: "",
-               projectPaths: new[] { @"e:\work\proj1.csproj" });
+               projectPaths: new[] { @"e:\work" });
 
             VerifyProjectBaseDir(
               expectedValue: @"e:\work",  // if no team build value, use the common project paths root
               teamBuildValue: null,
               userValue: "",
-              projectPaths: new[] { @"e:\work\proj1.csproj", @"e:\work\proj2.csproj" });
+              projectPaths: new[] { @"e:\work", @"e:\work" });
 
             VerifyProjectBaseDir(
               expectedValue: @"e:\work",  // if no team build value, use the common project paths root
               teamBuildValue: null,
               userValue: "",
-              projectPaths: new[] { @"e:\work\A\proj1.csproj", @"e:\work\B\C\proj2.csproj" });
+              projectPaths: new[] { @"e:\work\A", @"e:\work\B\C" });
 
 
             VerifyProjectBaseDir(
               expectedValue: @"e:\work",  // if no team build value, use the common project paths root
               teamBuildValue: null,
               userValue: "",
-              projectPaths: new[] { @"e:\work\A\proj1.csproj", @"e:\work\B\proj2.csproj", @"e:\work\C\proj2.csproj" });
+              projectPaths: new[] { @"e:\work\A", @"e:\work\B", @"e:\work\C" });
 
             VerifyProjectBaseDir(
               expectedValue: @"e:\work\A",  // if no team build value, use the common project paths root
               teamBuildValue: null,
               userValue: "",
-              projectPaths: new[] { @"e:\work\A\X\proj1.csproj", @"e:\work\A\proj2.csproj", @"e:\work\A\proj2.csproj" });
+              projectPaths: new[] { @"e:\work\A\X", @"e:\work\A", @"e:\work\A" });
 
             VerifyProjectBaseDir(
               expectedValue: TestSonarqubeOutputDir,  // if no common root exists, use the .sonarqube/out dir
               teamBuildValue: null,
               userValue: "",
-              projectPaths: new[] { @"f:\work\A\proj1.csproj", @"e:\work\B\proj2.csproj" });
+              projectPaths: new[] { @"f:\work\A", @"e:\work\B" });
         }
 
         #endregion
@@ -721,7 +654,7 @@ namespace SonarScanner.Shim.Tests
             }
 
             // Act
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
             // Assert
             AssertExpectedProjectCount(1, result);
@@ -802,7 +735,7 @@ namespace SonarScanner.Shim.Tests
             TestLogger logger = new TestLogger();
 
             // Act
-            string result = PropertiesFileGenerator.ComputeRootProjectBaseDir(config, projectPaths.Select(p => new ProjectInfo { FullPath = p, ProjectLanguage = ProjectLanguages.CSharp }));
+            string result = new PropertiesFileGenerator(config, logger).ComputeRootProjectBaseDir(projectPaths);
 
             result.Should().Be(expectedValue);
         }

@@ -107,18 +107,18 @@ namespace SonarQube.TeamBuild.PostProcessor
                 throw new ArgumentNullException("result");
             }
 
+            var validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
 
-            SummaryReportData summaryData = new SummaryReportData
+            var summaryData = new SummaryReportData
             {
-                SkippedProjects = GetProjectsByStatus(result, ProjectInfoValidity.NoFilesToAnalyze).Count(),
-                InvalidProjects = GetProjectsByStatus(result, ProjectInfoValidity.InvalidGuid).Count()
+                SkippedProjects = result.GetProjectsByStatus(ProjectInfoValidity.NoFilesToAnalyze).Count,
+                InvalidProjects = result.GetProjectsByStatus(ProjectInfoValidity.InvalidGuid).Count,
+                ExcludedProjects = result.GetProjectsByStatus(ProjectInfoValidity.ExcludeFlagSet).Count,
+                ProductProjects = validProjects.Count(p => p.ProjectType == ProjectType.Product),
+                TestProjects = validProjects.Count(p => p.ProjectType == ProjectType.Test),
             };
-            summaryData.InvalidProjects += GetProjectsByStatus(result, ProjectInfoValidity.DuplicateGuid).Count();
 
-            summaryData.ExcludedProjects = GetProjectsByStatus(result, ProjectInfoValidity.ExcludeFlagSet).Count();
-            IEnumerable<ProjectInfo> validProjects = GetProjectsByStatus(result, ProjectInfoValidity.Valid);
-            summaryData.ProductProjects = validProjects.Count(p => p.ProjectType == ProjectType.Product);
-            summaryData.TestProjects = validProjects.Count(p => p.ProjectType == ProjectType.Test);
+            summaryData.InvalidProjects += result.GetProjectsByStatus(ProjectInfoValidity.DuplicateGuid).Count;
 
             summaryData.Succeeded = result.RanToCompletion;
 
@@ -165,11 +165,6 @@ namespace SonarQube.TeamBuild.PostProcessor
             localSettings.TryGetValue(SonarProperties.ProjectBranch, out string branch);
 
             return branch;
-        }
-
-        private static IEnumerable<ProjectInfo> GetProjectsByStatus(ProjectInfoAnalysisResult result, ProjectInfoValidity status)
-        {
-            return result.Projects.Where(p => p.Value == status).Select(p => p.Key);
         }
 
         private void CreateSummaryMdFile(SummaryReportData summaryData)

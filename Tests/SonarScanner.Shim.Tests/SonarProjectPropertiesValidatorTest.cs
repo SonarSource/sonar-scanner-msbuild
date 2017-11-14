@@ -42,7 +42,7 @@ namespace SonarScanner.Shim.Tests
 
             bool called = false;
             SonarProjectPropertiesValidator.Validate(
-                folder, new Dictionary<ProjectInfo, ProjectInfoValidity>(),
+                folder, new List<ProjectData>(),
                 onValid: () => Assert.Fail("expected validation to fail"),
                 onInvalid: (paths) =>
                 {
@@ -58,18 +58,18 @@ namespace SonarScanner.Shim.Tests
         {
             var folder = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            var p1 = MockProject(folder, "Project1");
-            var p2 = MockProject(folder, "Project2");
-            var p3 = MockProject(folder, "Project3");
+            var p1 = new ProjectData(MockProject(folder, "Project1")) { Status = ProjectInfoValidity.Valid };
+            var p2 = new ProjectData(MockProject(folder, "Project2")) { Status = ProjectInfoValidity.Valid };
+            var p3 = new ProjectData(MockProject(folder, "Project3")) { Status = ProjectInfoValidity.Valid };
 
-            File.Create(Path.Combine(Path.GetDirectoryName(p1.FullPath), "sonar-project.properties"));
-            File.Create(Path.Combine(Path.GetDirectoryName(p3.FullPath), "sonar-project.properties"));
+            File.Create(Path.Combine(Path.GetDirectoryName(p1.Project.FullPath), "sonar-project.properties"));
+            File.Create(Path.Combine(Path.GetDirectoryName(p3.Project.FullPath), "sonar-project.properties"));
 
-            var projects = new Dictionary<ProjectInfo, ProjectInfoValidity>
+            var projects = new List<ProjectData>
             {
-                [p1] = ProjectInfoValidity.Valid,
-                [p2] = ProjectInfoValidity.Valid,
-                [p3] = ProjectInfoValidity.Valid
+                p1,
+                p2,
+                p3,
             };
 
             bool called = false;
@@ -80,8 +80,8 @@ namespace SonarScanner.Shim.Tests
                 {
                     called = true;
                     Assert.AreEqual(2, paths.Count);
-                    Assert.AreEqual(Path.GetDirectoryName(p1.FullPath), paths[0]);
-                    Assert.AreEqual(Path.GetDirectoryName(p3.FullPath), paths[1]);
+                    Assert.AreEqual(Path.GetDirectoryName(p1.Project.FullPath), paths[0]);
+                    Assert.AreEqual(Path.GetDirectoryName(p3.Project.FullPath), paths[1]);
                 });
             Assert.IsTrue(called, "Callback not called");
         }
@@ -91,24 +91,24 @@ namespace SonarScanner.Shim.Tests
         {
             var folder = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            var p1 = MockProject(folder, "Project1");
-            var p2 = MockProject(folder, "Project2");
-            var p3 = MockProject(folder, "Project3");
-            var p4 = MockProject(folder, "Project4");
-            var p5 = MockProject(folder, "Project5");
+            var p1 = new ProjectData(MockProject(folder, "Project1")) { Status = ProjectInfoValidity.Valid  };
+            var p2 = new ProjectData(MockProject(folder, "Project2")) { Status = ProjectInfoValidity.DuplicateGuid };
+            var p3 = new ProjectData(MockProject(folder, "Project3")) { Status = ProjectInfoValidity.ExcludeFlagSet };
+            var p4 = new ProjectData(MockProject(folder, "Project4")) { Status = ProjectInfoValidity.InvalidGuid };
+            var p5 = new ProjectData(MockProject(folder, "Project5")) { Status = ProjectInfoValidity.NoFilesToAnalyze };
 
-            File.Create(Path.Combine(Path.GetDirectoryName(p2.FullPath), "sonar-project.properties"));
-            File.Create(Path.Combine(Path.GetDirectoryName(p3.FullPath), "sonar-project.properties"));
-            File.Create(Path.Combine(Path.GetDirectoryName(p4.FullPath), "sonar-project.properties"));
-            File.Create(Path.Combine(Path.GetDirectoryName(p5.FullPath), "sonar-project.properties"));
+            File.Create(Path.Combine(Path.GetDirectoryName(p2.Project.FullPath), "sonar-project.properties"));
+            File.Create(Path.Combine(Path.GetDirectoryName(p3.Project.FullPath), "sonar-project.properties"));
+            File.Create(Path.Combine(Path.GetDirectoryName(p4.Project.FullPath), "sonar-project.properties"));
+            File.Create(Path.Combine(Path.GetDirectoryName(p5.Project.FullPath), "sonar-project.properties"));
 
-            var projects = new Dictionary<ProjectInfo, ProjectInfoValidity>
+            var projects = new List<ProjectData>
             {
-                [p1] = ProjectInfoValidity.Valid,
-                [p2] = ProjectInfoValidity.DuplicateGuid,
-                [p3] = ProjectInfoValidity.ExcludeFlagSet,
-                [p4] = ProjectInfoValidity.InvalidGuid,
-                [p5] = ProjectInfoValidity.NoFilesToAnalyze
+                p1,
+                p2,
+                p3,
+                p4,
+                p5,
             };
 
             bool called = false;

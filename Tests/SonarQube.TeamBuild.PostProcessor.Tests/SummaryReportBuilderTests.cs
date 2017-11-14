@@ -184,8 +184,7 @@ namespace SonarQube.TeamBuild.PostProcessorTests
         {
             for (int i = 0; i < count; i++)
             {
-                ProjectInfo pi = new ProjectInfo() { ProjectType = type };
-                result.Projects[pi] = validity;
+                result.Projects.Add(new ProjectData(new ProjectInfo { ProjectType = type }) { Status = validity });
             }
         }
 

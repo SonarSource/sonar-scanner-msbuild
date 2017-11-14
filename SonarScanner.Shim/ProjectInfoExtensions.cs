@@ -18,30 +18,33 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using System;
 using SonarQube.Common;
 
 namespace SonarScanner.Shim
 {
-    public static class ProjectLoader
+    public static class ProjectInfoExtensions
     {
-        public static IList<ProjectInfo> LoadFrom(string dumpFolderPath)
+        public static ProjectInfoValidity Classify(this ProjectInfo projectInfo, ILogger logger)
         {
-            return Directory.GetDirectories(dumpFolderPath)
-                .Select(TryGetProjectInfo)
-                .Where(p => p != null)
-                .ToList();
+            if (projectInfo.IsExcluded)
+            {
+                logger.LogInfo(Resources.MSG_ProjectIsExcluded, projectInfo.FullPath);
+                return ProjectInfoValidity.ExcludeFlagSet;
+            }
+
+            if (HasInvalidGuid(projectInfo))
+            {
+                logger.LogWarning(Resources.WARN_InvalidProjectGuid, projectInfo.ProjectGuid, projectInfo.FullPath);
+                return ProjectInfoValidity.InvalidGuid;
+            }
+
+            return ProjectInfoValidity.Valid;
         }
 
-        private static ProjectInfo TryGetProjectInfo(string projectFolderPath)
+        private static bool HasInvalidGuid(ProjectInfo project)
         {
-            string projectInfoPath = Path.Combine(projectFolderPath, FileConstants.ProjectInfoFileName);
-
-            return File.Exists(projectInfoPath)
-                ? ProjectInfo.Load(projectInfoPath)
-                : null;
+            return project.ProjectGuid == Guid.Empty;
         }
     }
 }

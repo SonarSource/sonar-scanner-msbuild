@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using SonarQube.Common;
@@ -27,26 +26,15 @@ namespace SonarScanner.Shim
 {
     public class ProjectInfoAnalysisResult
     {
-        #region Public properties
-
-        public IDictionary<ProjectInfo, ProjectInfoValidity> Projects { get; } = new Dictionary<ProjectInfo, ProjectInfoValidity>();
+        public List<ProjectData> Projects { get; } = new List<ProjectData>();
 
         public bool RanToCompletion { get; set; }
 
         public string FullPropertiesFilePath { get; set; }
 
-        public HashSet<string> SharedFiles { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        #endregion
-
-        #region Public methods
-
-        public IEnumerable<ProjectInfo> GetProjectsByStatus(ProjectInfoValidity status)
+        public ICollection<ProjectInfo> GetProjectsByStatus(ProjectInfoValidity status)
         {
-            return this.Projects.Where(p => p.Value == status).Select(p => p.Key).ToArray();
+            return Projects.Where(p => p.Status == status).Select(p => p.Project).ToList();
         }
-
-        #endregion
-
     }
 }

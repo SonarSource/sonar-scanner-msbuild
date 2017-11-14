@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
 using TestUtilities;
 
 namespace SonarScanner.Shim.Tests
@@ -53,6 +53,7 @@ namespace SonarScanner.Shim.Tests
             string productFile = CreateEmptyFile(productBaseDir, "File.cs");
             string productChineseFile = CreateEmptyFile(productBaseDir, "你好.cs");
 
+            string productFxCopFilePath = CreateEmptyFile(productBaseDir, "productFxCopReport.txt");
             string productCoverageFilePath = CreateEmptyFile(productBaseDir, "productCoverageReport.txt");
             string productFileListFilePath = Path.Combine(productBaseDir, "productManagedFiles.txt");
 
@@ -65,8 +66,13 @@ namespace SonarScanner.Shim.Tests
                 productChineseFile,
                 missingFileOutsideProjectDir
             };
-            ProjectInfo productCS = CreateProjectInfo("你好", "DB2E5521-3172-47B9-BA50-864F12E6DFFF", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.CSharp, "UTF-8");
-            ProjectInfo productVB = CreateProjectInfo("vbProject", "B51622CF-82F4-48C9-9F38-FB981FAFAF3A", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.VisualBasic, "UTF-8");
+            var productCS = new ProjectData(CreateProjectInfo("你好", "DB2E5521-3172-47B9-BA50-864F12E6DFFF", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.CSharp, "UTF-8"));
+            productCS.ProjectFiles.Add(productFile);
+            productCS.ProjectFiles.Add(productChineseFile);
+            productCS.ProjectFiles.Add(missingFileOutsideProjectDir);
+
+            var productVB = new ProjectData(CreateProjectInfo("vbProject", "B51622CF-82F4-48C9-9F38-FB981FAFAF3A", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.VisualBasic, "UTF-8"));
+            productVB.ProjectFiles.Add(productFile);
 
             string testBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_TestBaseDir");
             string testProject = CreateEmptyFile(testBaseDir, "MyTest.csproj");
@@ -77,7 +83,8 @@ namespace SonarScanner.Shim.Tests
             {
                 testFile
             };
-            ProjectInfo test = CreateProjectInfo("my_test_project", "DA0FCD82-9C5C-4666-9370-C7388281D49B", testProject, true, testFiles, testFileListFilePath, null, ProjectLanguages.VisualBasic, "UTF-8");
+            var test = new ProjectData(CreateProjectInfo("my_test_project", "DA0FCD82-9C5C-4666-9370-C7388281D49B", testProject, true, testFiles, testFileListFilePath, null, ProjectLanguages.VisualBasic, "UTF-8"));
+            test.ProjectFiles.Add(testFile);
 
             AnalysisConfig config = new AnalysisConfig()
             {
@@ -92,9 +99,9 @@ namespace SonarScanner.Shim.Tests
             using (new AssertIgnoreScope()) // expecting the property writer to complain about the missing file
             {
                 PropertiesWriter writer = new PropertiesWriter(config);
-                writer.WriteSettingsForProject(productCS, new string[] { productFile, productChineseFile, missingFileOutsideProjectDir }, productCoverageFilePath);
-                writer.WriteSettingsForProject(productVB, new string[] { productFile }, null);
-                writer.WriteSettingsForProject(test, new string[] { testFile }, null);
+                writer.WriteSettingsForProject(productCS, productCoverageFilePath);
+                writer.WriteSettingsForProject(productVB, null);
+                writer.WriteSettingsForProject(test, null);
 
                 actual = writer.Flush();
             }
@@ -165,7 +172,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             writer.Flush();
             using (new AssertIgnoreScope())
             {
-                AssertException.Expects<InvalidOperationException>(() => writer.WriteSettingsForProject(new ProjectInfo(), new string[] { "file" }, "code coverage report"));
+                AssertException.Expects<InvalidOperationException>(() => writer.WriteSettingsForProject(new ProjectData(new ProjectInfo()), "code coverage report"));
             }
         }
 
@@ -184,12 +191,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             };
             string productFileListFilePath = Path.Combine(projectBaseDir, "productManagedFiles.txt");
 
-            ProjectInfo product = CreateProjectInfo("AnalysisSettingsTest.proj", "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5", productProject, false, productFiles, productFileListFilePath, null, "language", "UTF-8");
-
-            List<ProjectInfo> projects = new List<ProjectInfo>
-            {
-                product
-            };
+            var product = new ProjectData(CreateProjectInfo("AnalysisSettingsTest.proj", "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5", productProject, false, productFiles, productFileListFilePath, null, "language", "UTF-8"));
 
             AnalysisConfig config = new AnalysisConfig()
             {
@@ -197,16 +199,16 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             };
 
             // These are the settings we are going to check. The other analysis values are not checked.
-            product.AnalysisSettings = new AnalysisProperties
+            product.Project.AnalysisSettings = new AnalysisProperties
             {
                 new Property() { Id = "my.setting1", Value = "setting1" },
                 new Property() { Id = "my.setting2", Value = "setting 2 with spaces" },
                 new Property() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" } // path that will be escaped
             };
-
+            product.ProjectFiles.Add(productFile);
             // Act
             PropertiesWriter writer = new PropertiesWriter(config);
-            writer.WriteSettingsForProject(product, new string[] { productFile }, null);
+            writer.WriteSettingsForProject(product, null);
             string fullActualPath = SaveToResultFile(projectBaseDir, "Actual.txt", writer.Flush());
 
             // Assert
@@ -234,12 +236,8 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             string productFileListFilePath = Path.Combine(projectBaseDir, "productManagedFiles.txt");
 
             string projectKey = "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5";
-            ProjectInfo product = CreateProjectInfo("AnalysisSettingsTest.proj", projectKey, productProject, false, productFiles, productFileListFilePath, null, "language", "UTF-8");
-
-            List<ProjectInfo> projects = new List<ProjectInfo>
-            {
-                product
-            };
+            var product = new ProjectData(CreateProjectInfo("AnalysisSettingsTest.proj", projectKey, productProject, false, productFiles, productFileListFilePath, null, "language", "UTF-8"));
+            product.ProjectFiles.Add(productFile);
 
             AnalysisConfig config = new AnalysisConfig()
             {
@@ -248,8 +246,8 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
 
             // Act
             PropertiesWriter writer = new PropertiesWriter(config);
-            writer.WriteSettingsForProject(product, new string[] { productFile }, null);
-            writer.WriteSonarProjectInfo("dummy basedir", new List<string>());
+            writer.WriteSettingsForProject(product, null);
+            writer.WriteSonarProjectInfo("dummy basedir");
             string s = writer.Flush();
 
             var props = new JavaProperties();
