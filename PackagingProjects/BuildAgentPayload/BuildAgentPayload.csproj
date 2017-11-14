@@ -11,13 +11,14 @@
     <ProjectGuid>{ECEADD3A-5992-420F-950D-510BBDDC06E1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SonarQubeExclude>True</SonarQubeExclude>
     <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.0.3.778</ScannerCliVersion>
     <ScannerCliArtifact>sonar-scanner-cli-$(ScannerCliVersion).zip</ScannerCliArtifact>
     <ScannerCliDirectory>sonar-scanner-$(ScannerCliVersion)</ScannerCliDirectory>
     <MavenCentralUrl>https://repox.sonarsource.com/sonarsource-public-releases/org/sonarsource/scanner/cli/sonar-scanner-cli/$(ScannerCliVersion)/$(ScannerCliArtifact)</MavenCentralUrl>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -52,9 +53,9 @@
     <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\SonarScanner.Shim.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\Newtonsoft.Json.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\TeamBuild.SonarQube.Integration.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\SonarQube.Integration.Tasks.dll" />
-    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.targets" />
-    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.ImportBefore.targets" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\SonarQube.Integration.Tasks.dll" />
+    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\Targets\SonarQube.Integration.targets" />
+    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\Targets\SonarQube.Integration.ImportBefore.targets" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration) == 'Debug'">
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Scanner.MSBuild.pdb" />

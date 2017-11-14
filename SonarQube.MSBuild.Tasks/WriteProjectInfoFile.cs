@@ -50,7 +50,7 @@ namespace SonarQube.MSBuild.Tasks
         #region Constructors
 
         public WriteProjectInfoFile()
-            : this(new EncodingProvider())
+            : this(new Common.EncodingProvider())
         {
         }
 
