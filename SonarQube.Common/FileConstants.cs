@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarQube Scanner for MSBuild
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -47,6 +47,11 @@ namespace SonarQube.Common
         /// </summary>
         public const string IntegrationTargetsName = "SonarQube.Integration.targets";
 
+        private static bool IsRunningOnWindows()
+        {
+            return Environment.OSVersion.Platform == PlatformID.Win32NT;
+        }
+
         /// <summary>
         /// Path to the user specific ImportBefore folders
         /// </summary>
@@ -54,14 +59,35 @@ namespace SonarQube.Common
         {
             get
             {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                return new string[]
-                {
-                    Path.Combine(appData, "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
-                    Path.Combine(appData, "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-                    Path.Combine(appData, "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore")
-                };
+                return IsRunningOnWindows() ? GetWindowsFolders() : GetNonWindowsFolders();
             }
         }
+
+        private static IReadOnlyList<string> GetWindowsFolders()
+        {
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            return new string[]
+            {
+                Path.Combine(appData, "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine(appData, "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore")
+            };
+        }
+
+        private static IReadOnlyList<string> GetNonWindowsFolders()
+        {
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+            return new string[]
+            {
+                // for msbuild
+                Path.Combine(appData, "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine(appData, "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+
+                // for "dotnet build" and "dotnet msbuild"
+                Path.Combine(userProfile, "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
+            };
+        }
+
     }
 }
