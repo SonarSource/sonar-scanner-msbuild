@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.Integration.Interfaces;
@@ -111,20 +111,17 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             var summaryData = new SummaryReportData
             {
-                SkippedProjects = result.GetProjectsByStatus(ProjectInfoValidity.NoFilesToAnalyze).Count,
-                InvalidProjects = result.GetProjectsByStatus(ProjectInfoValidity.InvalidGuid).Count,
-                ExcludedProjects = result.GetProjectsByStatus(ProjectInfoValidity.ExcludeFlagSet).Count,
+                SkippedProjects = result.Projects.Count(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze),
+                InvalidProjects = result.Projects.Count(p => p.Status == ProjectInfoValidity.InvalidGuid),
+                ExcludedProjects = result.Projects.Count(p => p.Status == ProjectInfoValidity.ExcludeFlagSet),
                 ProductProjects = validProjects.Count(p => p.ProjectType == ProjectType.Product),
                 TestProjects = validProjects.Count(p => p.ProjectType == ProjectType.Test),
+                Succeeded = result.RanToCompletion,
+                DashboardUrl = GetSonarDashboadUrl(config),
+                ProjectDescription = string.Format(System.Globalization.CultureInfo.CurrentCulture,
+                    Resources.Report_SonarQubeProjectDescription, config.SonarProjectName,
+                    config.SonarProjectKey, config.SonarProjectVersion)
             };
-
-            summaryData.InvalidProjects += result.GetProjectsByStatus(ProjectInfoValidity.DuplicateGuid).Count;
-
-            summaryData.Succeeded = result.RanToCompletion;
-
-            summaryData.DashboardUrl = GetSonarDashboadUrl(config);
-            summaryData.ProjectDescription = string.Format(System.Globalization.CultureInfo.CurrentCulture,
-                Resources.Report_SonarQubeProjectDescription, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
             return summaryData;
 
         }

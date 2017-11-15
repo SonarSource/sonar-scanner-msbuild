@@ -266,9 +266,11 @@ namespace SonarScanner.Shim
                     if (fixedPath != null)
                     {
                         // otherwise, set the property value (results in no change if the file was already valid)
-                        Property newReportPathProperty = new Property();
-                        newReportPathProperty.Id = reportFilePropertyKey;
-                        newReportPathProperty.Value = fixedPath;
+                        var newReportPathProperty = new Property
+                        {
+                            Id = reportFilePropertyKey,
+                            Value = fixedPath,
+                        };
                         project.AnalysisSettings.Add(newReportPathProperty);
                     }
                 }
@@ -279,8 +281,7 @@ namespace SonarScanner.Shim
         {
             try
             {
-                Property encodingProperty;
-                if (Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out encodingProperty))
+                if (Property.TryGetProperty(SonarProperties.SourceEncoding, properties, out var encodingProperty))
                 {
                     return encodingProvider.GetEncoding(encodingProperty.Value).WebName;
                 }

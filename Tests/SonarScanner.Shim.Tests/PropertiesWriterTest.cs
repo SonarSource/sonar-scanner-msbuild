@@ -39,10 +39,10 @@ namespace SonarScanner.Shim.Tests
         [TestMethod]
         public void PropertiesWriterEscape()
         {
-            Assert.AreEqual("foo", SonarScanner.Shim.PropertiesWriter.Escape("foo"));
-            Assert.AreEqual(@"C:\\File.cs", SonarScanner.Shim.PropertiesWriter.Escape(@"C:\File.cs"));
-            Assert.AreEqual(@"\u4F60\u597D", SonarScanner.Shim.PropertiesWriter.Escape("你好"));
-            Assert.AreEqual(@"\u000A", SonarScanner.Shim.PropertiesWriter.Escape("\n"));
+            Assert.AreEqual("foo", PropertiesWriter.Escape("foo"));
+            Assert.AreEqual(@"C:\\File.cs", PropertiesWriter.Escape(@"C:\File.cs"));
+            Assert.AreEqual(@"\u4F60\u597D", PropertiesWriter.Escape("你好"));
+            Assert.AreEqual(@"\u000A", PropertiesWriter.Escape("\n"));
         }
 
         [TestMethod]
@@ -53,7 +53,6 @@ namespace SonarScanner.Shim.Tests
             string productFile = CreateEmptyFile(productBaseDir, "File.cs");
             string productChineseFile = CreateEmptyFile(productBaseDir, "你好.cs");
 
-            string productFxCopFilePath = CreateEmptyFile(productBaseDir, "productFxCopReport.txt");
             string productCoverageFilePath = CreateEmptyFile(productBaseDir, "productCoverageReport.txt");
             string productFileListFilePath = Path.Combine(productBaseDir, "productManagedFiles.txt");
 
