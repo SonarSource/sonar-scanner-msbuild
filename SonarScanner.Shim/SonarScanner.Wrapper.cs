@@ -121,7 +121,7 @@ namespace SonarScanner.Shim
         private static string FindScannerExe()
         {
             var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
-            string fileExtension = IsRunningOnWindows() ? ".bat" : "";
+            string fileExtension = PlatformHelper.IsWindows() ? ".bat" : "";
             return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
         }
 
@@ -142,7 +142,7 @@ namespace SonarScanner.Shim
             Debug.Assert(!String.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
             Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
 
-            ProcessRunnerArguments scannerArgs = new ProcessRunnerArguments(exeFileName, IsRunningOnWindows(), logger)
+            ProcessRunnerArguments scannerArgs = new ProcessRunnerArguments(exeFileName, PlatformHelper.IsWindows(), logger)
             {
                 CmdLineArgs = allCmdLineArgs,
                 WorkingDirectory = config.SonarScannerWorkingDirectory,

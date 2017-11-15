@@ -47,11 +47,6 @@ namespace SonarQube.Common
         /// </summary>
         public const string IntegrationTargetsName = "SonarQube.Integration.targets";
 
-        private static bool IsRunningOnWindows()
-        {
-            return Environment.OSVersion.Platform == PlatformID.Win32NT;
-        }
-
         /// <summary>
         /// Path to the user specific ImportBefore folders
         /// </summary>
@@ -59,11 +54,11 @@ namespace SonarQube.Common
         {
             get
             {
-                return IsRunningOnWindows() ? GetWindowsFolders() : GetNonWindowsFolders();
+                return PlatformHelper.IsWindows() ? GetWindowsImportBeforePaths() : GetNonWindowsImportBeforePaths();
             }
         }
 
-        private static IReadOnlyList<string> GetWindowsFolders()
+        public static IReadOnlyList<string> GetWindowsImportBeforePaths()
         {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             return new string[]
@@ -73,7 +68,7 @@ namespace SonarQube.Common
             };
         }
 
-        private static IReadOnlyList<string> GetNonWindowsFolders()
+        public static IReadOnlyList<string> GetNonWindowsImportBeforePaths()
         {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);

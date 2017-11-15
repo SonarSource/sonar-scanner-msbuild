@@ -66,6 +66,7 @@
     <Compile Include="Interfaces\IOutputWriter.cs" />
     <Compile Include="EncodingProviderWrapper.cs" />
     <Compile Include="Interfaces\IEncodingProvider.cs" />
+    <Compile Include="PlatformHelper.cs" />
     <Compile Include="VerbosityCalculator.cs" />
     <Compile Include="ProcessRunner.cs" />
     <Compile Include="ProcessRunnerArguments.cs" />
