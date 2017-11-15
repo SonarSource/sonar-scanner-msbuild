@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarQube Scanner for MSBuild
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com

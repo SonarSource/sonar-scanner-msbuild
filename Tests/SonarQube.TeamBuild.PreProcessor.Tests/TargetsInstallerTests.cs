@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarQube Scanner for MSBuild
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -74,7 +74,8 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             CreateDummySourceTargetsFile(sourceTargetsContent1);
 
             InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
-            Assert.IsTrue(FileConstants.ImportBeforeDestinationDirectoryPaths.Count == 3, "Expecting three destination directories");
+            // TODO: this test would fail on non-Windows OSes
+            Assert.IsTrue(FileConstants.ImportBeforeDestinationDirectoryPaths.Count == 2, "Expecting two destination directories");
 
             string path = Path.Combine(FileConstants.ImportBeforeDestinationDirectoryPaths[0], FileConstants.ImportBeforeTargetsName);
             File.Delete(path);
