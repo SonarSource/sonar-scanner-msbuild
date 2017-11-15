@@ -89,8 +89,8 @@
 
   <!-- Set defaults if explicit values have not been provided -->
   <PropertyGroup Condition=" $(SonarQubeTempPath) != '' ">
-    <SonarQubeConfigPath Condition=" $(SonarQubeConfigPath) == '' ">$(SonarQubeTempPath)\conf\</SonarQubeConfigPath>
-    <SonarQubeOutputPath Condition=" $(SonarQubeOutputPath) == '' ">$(SonarQubeTempPath)\out\</SonarQubeOutputPath>
+    <SonarQubeConfigPath Condition=" $(SonarQubeConfigPath) == '' ">$(SonarQubeTempPath)\conf</SonarQubeConfigPath>
+    <SonarQubeOutputPath Condition=" $(SonarQubeOutputPath) == '' ">$(SonarQubeTempPath)\out</SonarQubeOutputPath>
 
     <!-- Specify the ItemGroups to be analyzed -->
     <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">Compile;Content;EmbeddedResource;None;ClCompile;ClInclude;Page;TypeScriptCompile</SQAnalysisFileItemTypes>

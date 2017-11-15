@@ -186,8 +186,8 @@ namespace SonarScanner.Shim
                 property = "sonar.vbnet.analyzer.projectOutPaths";
             }
 
-            AppendKeyValue(sb, project.Guid, property, @"\");
-            sb.AppendLine(string.Join(@",\" + Environment.NewLine, project.AnalyzerOutPaths));
+            sb.AppendLine($"{project.Guid}.{property}=\\");
+            sb.AppendLine(string.Join(@",\" + Environment.NewLine, project.AnalyzerOutPaths.Select(Escape)));
         }
 
         public void WriteRoslynOutputPaths(ProjectData project)
@@ -207,8 +207,8 @@ namespace SonarScanner.Shim
                 property = "sonar.vbnet.roslyn.reportFilePaths";
             }
 
-            AppendKeyValue(sb, project.Guid, property, @"\");
-            sb.AppendLine(string.Join(@",\" + Environment.NewLine, project.RoslynReportFilePaths));
+            sb.AppendLine($"{project.Guid}.{property}=\\");
+            sb.AppendLine(string.Join(@",\" + Environment.NewLine, project.RoslynReportFilePaths.Select(Escape)));
         }
 
         /// <summary>
