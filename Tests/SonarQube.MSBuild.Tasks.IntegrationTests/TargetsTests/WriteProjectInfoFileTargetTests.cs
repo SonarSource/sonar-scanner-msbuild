@@ -35,6 +35,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
     {
         public TestContext TestContext { get; set; }
 
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            HackForVs2017Update3.Enable();
+        }
+
         #region Test project recognition tests
 
         [TestMethod]

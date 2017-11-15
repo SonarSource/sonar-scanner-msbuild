@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -31,6 +31,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
     {
         public TestContext TestContext { get; set; }
 
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            HackForVs2017Update3.Enable();
+        }
+
         #region Tests
 
         [TestMethod]
@@ -43,7 +49,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Act
             ProjectInstance projectInstance = new ProjectInstance(projectRoot.FullPath);
-            
+
             // Assert
             BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarQubeOutputPath);
             BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarQubeConfigPath);
@@ -68,7 +74,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Assert
             BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarQubeOutputPath);
-            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarQubeConfigPath);            
+            BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarQubeConfigPath);
         }
 
         [TestMethod]
