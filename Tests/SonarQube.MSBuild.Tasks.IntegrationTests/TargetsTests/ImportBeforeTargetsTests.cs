@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -43,6 +43,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         [TestInitialize]
         public void TestInitialize()
         {
+            HackForVs2017Update3.Enable();
             TestUtils.EnsureImportBeforeTargetsExists(this.TestContext);
         }
 
@@ -184,7 +185,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             logger.AssertTargetExecuted(TargetConstants.ImportBeforeInfoTarget);
             logger.AssertExpectedErrorCount(0);
         }
-        
+
         #endregion
 
         #region Private methods
