@@ -17,13 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using SonarQube.Common;
 
 namespace SonarScanner.Shim
 {
@@ -117,7 +117,16 @@ namespace SonarScanner.Shim
         private static string FindScannerExe()
         {
             var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
-            return Path.Combine(binFolder, "sonar-scanner-" + SonarScannerVersion + @"\bin\sonar-scanner.bat");
+            var scannerScript = IsWindowsOperatingSystem()
+                ? @"sonar-scanner.bat"
+                : @"sonar-scanner.sh";
+            return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", scannerScript);
+        }
+
+        private static bool IsWindowsOperatingSystem()
+        {
+            return Environment.OSVersion.Platform != PlatformID.MacOSX &&
+                Environment.OSVersion.Platform != PlatformID.Unix;
         }
 
         public /* for test purposes */ static bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName)
