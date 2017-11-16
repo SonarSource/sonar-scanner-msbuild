@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using System;
@@ -92,15 +92,13 @@ namespace SonarScanner.Shim.Tests
             var folder = TestUtils.CreateTestSpecificFolder(TestContext);
 
             var p1 = new ProjectData(MockProject(folder, "Project1")) { Status = ProjectInfoValidity.Valid  };
-            var p2 = new ProjectData(MockProject(folder, "Project2")) { Status = ProjectInfoValidity.DuplicateGuid };
-            var p3 = new ProjectData(MockProject(folder, "Project3")) { Status = ProjectInfoValidity.ExcludeFlagSet };
-            var p4 = new ProjectData(MockProject(folder, "Project4")) { Status = ProjectInfoValidity.InvalidGuid };
-            var p5 = new ProjectData(MockProject(folder, "Project5")) { Status = ProjectInfoValidity.NoFilesToAnalyze };
+            var p2 = new ProjectData(MockProject(folder, "Project3")) { Status = ProjectInfoValidity.ExcludeFlagSet };
+            var p3 = new ProjectData(MockProject(folder, "Project4")) { Status = ProjectInfoValidity.InvalidGuid };
+            var p4 = new ProjectData(MockProject(folder, "Project5")) { Status = ProjectInfoValidity.NoFilesToAnalyze };
 
             File.Create(Path.Combine(Path.GetDirectoryName(p2.Project.FullPath), "sonar-project.properties"));
             File.Create(Path.Combine(Path.GetDirectoryName(p3.Project.FullPath), "sonar-project.properties"));
             File.Create(Path.Combine(Path.GetDirectoryName(p4.Project.FullPath), "sonar-project.properties"));
-            File.Create(Path.Combine(Path.GetDirectoryName(p5.Project.FullPath), "sonar-project.properties"));
 
             var projects = new List<ProjectData>
             {
@@ -108,7 +106,6 @@ namespace SonarScanner.Shim.Tests
                 p2,
                 p3,
                 p4,
-                p5,
             };
 
             bool called = false;
