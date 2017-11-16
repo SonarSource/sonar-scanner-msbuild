@@ -199,7 +199,7 @@ namespace SonarScanner.Shim
 
         private void FixSarifAndEncoding(IList<ProjectInfo> projects, AnalysisProperties analysisProperties)
         {
-            var globalSourceEncoding = GetSourceEncoding(analysisProperties, new EncodingProvider());
+            var globalSourceEncoding = GetSourceEncoding(analysisProperties, new SonarQube.Common.EncodingProvider());
 
             foreach (var project in projects)
             {
