@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.TeamBuild.PostProcessor;
@@ -91,7 +91,6 @@ namespace SonarQube.TeamBuild.PostProcessorTests
             ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult() { RanToCompletion = true };
             AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "", SonarQubeHostUrl = hostUrl };
 
-            AddProjectInfoToResult(result, ProjectInfoValidity.DuplicateGuid, count: 3);
             AddProjectInfoToResult(result, ProjectInfoValidity.ExcludeFlagSet, type: ProjectType.Product, count: 4);
             AddProjectInfoToResult(result, ProjectInfoValidity.ExcludeFlagSet, type: ProjectType.Test, count: 1);
             AddProjectInfoToResult(result, ProjectInfoValidity.InvalidGuid, type: ProjectType.Product, count: 7);
@@ -108,7 +107,7 @@ namespace SonarQube.TeamBuild.PostProcessorTests
             VerifySummaryProjectCounts(
                 summaryReportData,
                 expectedExcludedProjects: 5, // ExcludeFlagSet
-                expectedInvalidProjects: 18, // InvalidGuid + DuplicateGuid
+                expectedInvalidProjects: 15, // InvalidGuid, DuplicateGuid is not possible anymore
                 expectedSkippedProjects: 11, // No files to analyse
                 expectedProductProjects: 13,
                 expectedTestProjects: 17);
@@ -147,16 +146,16 @@ namespace SonarQube.TeamBuild.PostProcessorTests
             if (String.IsNullOrEmpty(branch))
             {
                 expectedUrl = String.Format(
-                    SummaryReportBuilder.DashboardUrlFormat, 
-                    expectedHostUrl, 
+                    SummaryReportBuilder.DashboardUrlFormat,
+                    expectedHostUrl,
                     config.SonarProjectKey);
             }
             else
             {
                 expectedUrl = String.Format(
-                    SummaryReportBuilder.DashboardUrlFormatWithBranch, 
-                    expectedHostUrl, 
-                    config.SonarProjectKey, 
+                    SummaryReportBuilder.DashboardUrlFormatWithBranch,
+                    expectedHostUrl,
+                    config.SonarProjectKey,
                     branch);
             }
 
@@ -184,8 +183,7 @@ namespace SonarQube.TeamBuild.PostProcessorTests
         {
             for (int i = 0; i < count; i++)
             {
-                ProjectInfo pi = new ProjectInfo() { ProjectType = type };
-                result.Projects[pi] = validity;
+                result.Projects.Add(new ProjectData(new ProjectInfo { ProjectType = type }) { Status = validity });
             }
         }
 

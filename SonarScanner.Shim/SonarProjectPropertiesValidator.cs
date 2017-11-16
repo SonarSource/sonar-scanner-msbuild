@@ -35,29 +35,34 @@ namespace SonarScanner.Shim
         /// <param name="projects">MSBuild projects to check, only valid ones will be verified</param>
         /// <param name="onValid">Called when validation succeeded</param>
         /// <param name="onInvalid">Called when validation fails, with the list of folders containing a sonar-project.properties file</param>
-        public static void Validate(string sonarScannerCwd, IDictionary<ProjectInfo, ProjectInfoValidity> projects, Action onValid, Action<IList<string>> onInvalid)
+        public static void Validate(string sonarScannerCwd, ICollection<ProjectData> projects, Action onValid, Action<IList<string>> onInvalid)
         {
             var folders = new List<string>
             {
                 sonarScannerCwd
             };
-            folders.AddRange(projects.Where(p => p.Value == ProjectInfoValidity.Valid).Select(p => Path.GetDirectoryName(p.Key.FullPath)));
 
-            var invalidFolders = folders.Where(f => !Validate(f)).ToList();
+            folders.AddRange(projects
+                .Where(p => p.Status == ProjectInfoValidity.Valid)
+                .Select(p => p.Project.GetProjectDirectory()));
 
-            if (!invalidFolders.Any())
-            {
-                onValid();
-            }
-            else
+            var invalidFolders = folders
+                .Where(SonarProjectPropertiesExists)
+                .ToList();
+
+            if (invalidFolders.Any())
             {
                 onInvalid(invalidFolders);
             }
+            else
+            {
+                onValid();
+            }
         }
 
-        private static bool Validate(string folder)
+        private static bool SonarProjectPropertiesExists(string folder)
         {
-            return !File.Exists(Path.Combine(folder, "sonar-project.properties"));
+            return File.Exists(Path.Combine(folder, "sonar-project.properties"));
         }
     }
 }

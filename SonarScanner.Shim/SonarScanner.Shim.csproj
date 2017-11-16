@@ -54,10 +54,14 @@
     <Compile Include="..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
+    <Compile Include="AnalysisConfigExtensions.cs" />
     <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="IRoslynV1SarifFixer.cs" />
     <Compile Include="ISonarScanner.cs" />
+    <Compile Include="PathHelper.cs" />
+    <Compile Include="ProjectData.cs" />
     <Compile Include="ProjectInfoAnalysisResult.cs" />
+    <Compile Include="ProjectInfoExtensions.cs" />
     <Compile Include="PropertiesFileGenerator.cs" />
     <Compile Include="PropertiesWriter.cs" />
     <Compile Include="ProjectLoader.cs" />

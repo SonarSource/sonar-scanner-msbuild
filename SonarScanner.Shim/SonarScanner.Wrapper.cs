@@ -73,7 +73,7 @@ namespace SonarScanner.Shim
                 throw new ArgumentNullException("logger");
             }
 
-            ProjectInfoAnalysisResult result = PropertiesFileGenerator.GenerateFile(config, logger);
+            ProjectInfoAnalysisResult result = new PropertiesFileGenerator(config, logger).GenerateFile();
             Debug.Assert(result != null, "Not expecting the file generator to return null");
             result.RanToCompletion = false;
 
@@ -82,7 +82,9 @@ namespace SonarScanner.Shim
                 result.Projects,
                 onValid: () =>
                 {
-                    InternalExecute(config, userCmdLineArguments, logger, result);
+                    ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
+
+                    result.RanToCompletion = InternalExecute(config, userCmdLineArguments, logger, result.FullPropertiesFilePath);
                 },
                 onInvalid: (invalidFolders) =>
                 {
@@ -97,21 +99,18 @@ namespace SonarScanner.Shim
 
         #region Private methods
 
-        private static void InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, ProjectInfoAnalysisResult result)
+        private static bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string fullPropertiesFilePath)
         {
-            ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
-
-            if (result.FullPropertiesFilePath == null)
+            if (fullPropertiesFilePath == null)
             {
                 // We expect a detailed error message to have been logged explaining
                 // why the properties file generation could not be performed
                 logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
+                return false;
             }
-            else
-            {
-                string exeFileName = FindScannerExe();
-                result.RanToCompletion = ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, result.FullPropertiesFilePath);
-            }
+
+            string exeFileName = FindScannerExe();
+            return ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, fullPropertiesFilePath);
         }
 
         private static string FindScannerExe()

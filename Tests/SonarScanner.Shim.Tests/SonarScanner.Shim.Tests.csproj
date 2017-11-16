@@ -67,6 +67,7 @@
     </Compile>
     <Compile Include="MockRoslynV1SarifFixer.cs" />
     <Compile Include="PropertiesFileGeneratorTests.cs" />
+    <Compile Include="PropertiesFileGeneratorTests_MultiTarget.cs" />
     <Compile Include="PropertiesWriterTest.cs" />
     <Compile Include="ProjectLoaderTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

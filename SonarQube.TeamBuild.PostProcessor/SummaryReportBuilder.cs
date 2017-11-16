@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.Integration.Interfaces;
@@ -107,24 +107,21 @@ namespace SonarQube.TeamBuild.PostProcessor
                 throw new ArgumentNullException("result");
             }
 
+            var validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
 
-            SummaryReportData summaryData = new SummaryReportData
+            var summaryData = new SummaryReportData
             {
-                SkippedProjects = GetProjectsByStatus(result, ProjectInfoValidity.NoFilesToAnalyze).Count(),
-                InvalidProjects = GetProjectsByStatus(result, ProjectInfoValidity.InvalidGuid).Count()
+                SkippedProjects = result.Projects.Count(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze),
+                InvalidProjects = result.Projects.Count(p => p.Status == ProjectInfoValidity.InvalidGuid),
+                ExcludedProjects = result.Projects.Count(p => p.Status == ProjectInfoValidity.ExcludeFlagSet),
+                ProductProjects = validProjects.Count(p => p.ProjectType == ProjectType.Product),
+                TestProjects = validProjects.Count(p => p.ProjectType == ProjectType.Test),
+                Succeeded = result.RanToCompletion,
+                DashboardUrl = GetSonarDashboadUrl(config),
+                ProjectDescription = string.Format(System.Globalization.CultureInfo.CurrentCulture,
+                    Resources.Report_SonarQubeProjectDescription, config.SonarProjectName,
+                    config.SonarProjectKey, config.SonarProjectVersion)
             };
-            summaryData.InvalidProjects += GetProjectsByStatus(result, ProjectInfoValidity.DuplicateGuid).Count();
-
-            summaryData.ExcludedProjects = GetProjectsByStatus(result, ProjectInfoValidity.ExcludeFlagSet).Count();
-            IEnumerable<ProjectInfo> validProjects = GetProjectsByStatus(result, ProjectInfoValidity.Valid);
-            summaryData.ProductProjects = validProjects.Count(p => p.ProjectType == ProjectType.Product);
-            summaryData.TestProjects = validProjects.Count(p => p.ProjectType == ProjectType.Test);
-
-            summaryData.Succeeded = result.RanToCompletion;
-
-            summaryData.DashboardUrl = GetSonarDashboadUrl(config);
-            summaryData.ProjectDescription = string.Format(System.Globalization.CultureInfo.CurrentCulture,
-                Resources.Report_SonarQubeProjectDescription, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
             return summaryData;
 
         }
@@ -165,11 +162,6 @@ namespace SonarQube.TeamBuild.PostProcessor
             localSettings.TryGetValue(SonarProperties.ProjectBranch, out string branch);
 
             return branch;
-        }
-
-        private static IEnumerable<ProjectInfo> GetProjectsByStatus(ProjectInfoAnalysisResult result, ProjectInfoValidity status)
-        {
-            return result.Projects.Where(p => p.Value == status).Select(p => p.Key);
         }
 
         private void CreateSummaryMdFile(SummaryReportData summaryData)
