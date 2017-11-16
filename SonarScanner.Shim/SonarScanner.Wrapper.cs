@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarQube Scanner for MSBuild
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -116,7 +116,8 @@ namespace SonarScanner.Shim
         private static string FindScannerExe()
         {
             var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
-            return Path.Combine(binFolder, "sonar-scanner-" + SonarScannerVersion + @"\bin\sonar-scanner.bat");
+            string fileExtension = PlatformHelper.IsWindows() ? ".bat" : "";
+            return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
         }
 
         public /* for test purposes */ static bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName)
@@ -136,7 +137,7 @@ namespace SonarScanner.Shim
             Debug.Assert(!String.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
             Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
 
-            ProcessRunnerArguments scannerArgs = new ProcessRunnerArguments(exeFileName, true, logger)
+            ProcessRunnerArguments scannerArgs = new ProcessRunnerArguments(exeFileName, PlatformHelper.IsWindows(), logger)
             {
                 CmdLineArgs = allCmdLineArgs,
                 WorkingDirectory = config.SonarScannerWorkingDirectory,

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarQube Scanner for MSBuild
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace SonarQube.Common
 {
@@ -54,14 +55,30 @@ namespace SonarQube.Common
         {
             get
             {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                return new string[]
-                {
-                    Path.Combine(appData, "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
-                    Path.Combine(appData, "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-                    Path.Combine(appData, "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore")
-                };
+                return PlatformHelper.IsWindows() ? GetWindowsImportBeforePaths() : GetNonWindowsImportBeforePaths();
             }
+        }
+
+        private static IList<string> GetMSBuildImportBeforePaths()
+        {
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            return new List<string>
+            {
+                Path.Combine(appData, "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine(appData, "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore")
+            };
+        }
+
+        public static IReadOnlyList<string> GetWindowsImportBeforePaths() => GetMSBuildImportBeforePaths().ToArray();
+
+        public static IReadOnlyList<string> GetNonWindowsImportBeforePaths()
+        {
+            var importPaths = GetMSBuildImportBeforePaths();
+            var userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+            // "dotnet build" and "dotnet msbuild" on non-Windows use a different path for import before
+            importPaths.Add(Path.Combine(userProfilePath, "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"));
+            return importPaths.ToArray();
         }
     }
 }
