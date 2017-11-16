@@ -20,15 +20,17 @@
  
 using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Text;
-using TestUtilities;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TestUtilities;
 using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 {
+    // TODO: The tests should be made platform-aware.
+    // They currently assume the running platform is Windows.
+    // Some of them (like InstallTargetsFile_Overwrite) would fail if run on other OSes.
     [TestClass]
     public class TargetsInstallerTests
     {
@@ -74,7 +76,6 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             CreateDummySourceTargetsFile(sourceTargetsContent1);
 
             InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
-            // TODO: this test would fail on non-Windows OSes
             Assert.IsTrue(FileConstants.ImportBeforeDestinationDirectoryPaths.Count == 2, "Expecting two destination directories");
 
             string path = Path.Combine(FileConstants.ImportBeforeDestinationDirectoryPaths[0], FileConstants.ImportBeforeTargetsName);

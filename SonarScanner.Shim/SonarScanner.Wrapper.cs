@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarQube Scanner for MSBuild
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -98,11 +98,6 @@ namespace SonarScanner.Shim
         #endregion ISonarScanner interface
 
         #region Private methods
-
-        private static bool IsRunningOnWindows()
-        {
-            return Environment.OSVersion.Platform == PlatformID.Win32NT;
-        }
 
         private static bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string fullPropertiesFilePath)
         {
