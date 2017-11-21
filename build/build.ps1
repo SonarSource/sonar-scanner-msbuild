@@ -29,10 +29,14 @@ testExitCode
 $version  = $versionProps.Project.PropertyGroup.MainVersion+".$buildversion"
 write-host -f green "version: $version"    
 
-function deploy(
-    [string] $version
-)
-{
+function restore() {
+    # see https://github.com/Microsoft/vsts-tasks/issues/3762
+    # it seems for mixed .net standard and .net framework, we need both dotnet restore and nuget restore...
+    & dotnet restore
+    & $env:NUGET_PATH restore
+}
+
+function deploy([string] $version) {
     #DeployOnRepox $scannerZipPath "" $version
     $scannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\SonarQube.Scanner.MSBuild.zip
     
@@ -73,7 +77,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         /d:sonar.scanAllFiles=true
     testExitCode
 
-    & $env:NUGET_PATH restore SonarQube.Scanner.MSBuild.sln
+    restore
     testExitCode
     & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /t:rebuild /p:Configuration=Release
     testExitCode
@@ -96,7 +100,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         testExitCode
 
         #build
-        & $env:NUGET_PATH restore SonarQube.Scanner.MSBuild.sln
+        restore
         testExitCode
         & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH
         testExitCode
@@ -113,7 +117,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         write-host -f green "not on master"
 
         #build
-        & $env:NUGET_PATH restore SonarQube.Scanner.MSBuild.sln
+        restore
         testExitCode
         & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH
         testExitCode
