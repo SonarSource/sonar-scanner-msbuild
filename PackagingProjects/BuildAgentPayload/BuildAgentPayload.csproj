@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- 
-  This project packages the assemblies and targets files that form the "sonarqube.msbuild.runner" that needs to be copied to the XAML build agents 
+  <!--
+  This project packages the assemblies and targets files that form the "sonarqube.msbuild.runner" that needs to be copied to the XAML build agents
   -->
   <!-- These PropertyGroups seem to be needed otherwise VS does not recognize Release as a configuration option for this project
   and it will default to Debug even if the solution is set to build in Release -->
@@ -11,7 +11,7 @@
     <ProjectGuid>{ECEADD3A-5992-420F-950D-510BBDDC06E1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SonarQubeExclude>True</SonarQubeExclude>
     <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.0.3.778</ScannerCliVersion>
@@ -53,9 +53,9 @@
     <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\SonarScanner.Shim.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\Newtonsoft.Json.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\TeamBuild.SonarQube.Integration.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\SonarQube.Integration.Tasks.dll" />
-    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\Targets\SonarQube.Integration.targets" />
-    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\Targets\SonarQube.Integration.ImportBefore.targets" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\SonarQube.Integration.Tasks.dll" />
+    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.targets" />
+    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\Targets\SonarQube.Integration.ImportBefore.targets" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration) == 'Debug'">
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\SonarQube.Scanner.MSBuild.pdb" />
