@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <CodeAnalysisRuleSet>SonarQube.MSBuild.Tasks.ruleset</CodeAnalysisRuleSet>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyName>SonarQube.Integration.Tasks</AssemblyName>
