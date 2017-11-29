@@ -56,8 +56,7 @@ namespace SonarScanner.Shim.Tests
             // Arrange
             var solutionDir = TestUtils.CreateTestSpecificFolder(TestContext, "Solution1");
 
-            List<string> files;
-            var projectRoot = CreateProject(solutionDir, out files);
+            var projectRoot = CreateProject(solutionDir, out List<string> files);
 
             var outDir = Path.Combine(solutionDir, ".sonarqube", "out");
             Directory.CreateDirectory(outDir);
@@ -113,8 +112,7 @@ namespace SonarScanner.Shim.Tests
             // Arrange
             var solutionDir = TestUtils.CreateTestSpecificFolder(TestContext, "Solution1");
 
-            List<string> files;
-            var projectRoot = CreateProject(solutionDir, out files);
+            var projectRoot = CreateProject(solutionDir, out List<string> files);
 
             var outDir = Path.Combine(solutionDir, ".sonarqube", "out");
             Directory.CreateDirectory(outDir);
@@ -170,8 +168,7 @@ namespace SonarScanner.Shim.Tests
             // Arrange
             var solutionDir = TestUtils.CreateTestSpecificFolder(TestContext, "Solution1");
 
-            List<string> files;
-            var projectRoot = CreateProject(solutionDir, out files);
+            var projectRoot = CreateProject(solutionDir, out List<string> files);
 
             var outDir = Path.Combine(solutionDir, ".sonarqube", "out");
             Directory.CreateDirectory(outDir);
@@ -227,8 +224,7 @@ namespace SonarScanner.Shim.Tests
             // Arrange
             var solutionDir = TestUtils.CreateTestSpecificFolder(TestContext, "Solution1");
 
-            List<string> files;
-            var projectRoot = CreateProject(solutionDir, out files);
+            var projectRoot = CreateProject(solutionDir, out List<string> files);
 
             var outDir = Path.Combine(solutionDir, ".sonarqube", "out");
             Directory.CreateDirectory(outDir);
@@ -305,7 +301,7 @@ namespace SonarScanner.Shim.Tests
 
         private static void AssertFileIsReferenced(string fullFilePath, string content, int times = 1)
         {
-            string formattedPath = PropertiesWriter.Escape(fullFilePath);
+            var formattedPath = PropertiesWriter.Escape(fullFilePath);
 
             var index = content.IndexOf(formattedPath);
             if (times == 0)
@@ -316,7 +312,7 @@ namespace SonarScanner.Shim.Tests
             {
                 Assert.AreNotEqual(-1, index, $"File should be referenced: {formattedPath}");
 
-                for (int i = 0; i < times - 1; i++)
+                for (var i = 0; i < times - 1; i++)
                 {
                     index = content.IndexOf(formattedPath, index + 1);
                     Assert.AreNotEqual(-1, index, $"File should be referenced exactly {times} times: {formattedPath}");
@@ -356,7 +352,7 @@ namespace SonarScanner.Shim.Tests
 
         private static string CreateFile(string parentDir, string fileName, string content = "")
         {
-            string fullPath = Path.Combine(parentDir, fileName);
+            var fullPath = Path.Combine(parentDir, fileName);
             File.WriteAllText(fullPath, content);
             return fullPath;
         }

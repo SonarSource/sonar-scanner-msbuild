@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System.Diagnostics;
+using System.IO;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarScanner.Shim;
-using System.Diagnostics;
-using System.IO;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
@@ -33,14 +33,14 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private static int Main(string[] args)
         {
-            ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
+            var logger = new ConsoleLogger(includeTimestamp: false);
             Utilities.LogAssemblyVersion(logger, typeof(Program).Assembly, Resources.AssemblyDescription);
             logger.IncludeTimestamp = true;
 
-            TeamBuildSettings settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+            var settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
             Debug.Assert(settings != null, "Settings should not be null");
 
-            AnalysisConfig config = GetAnalysisConfig(settings, logger);
+            var config = GetAnalysisConfig(settings, logger);
 
             bool succeeded;
             if (config == null)
@@ -49,7 +49,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
             else
             {
-                MSBuildPostProcessor postProcessor = new MSBuildPostProcessor(
+                var postProcessor = new MSBuildPostProcessor(
                     new CoverageReportProcessor(),
                     new SonarScannerWrapper(),
                     new SummaryReportBuilder(),
@@ -73,7 +73,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             if (teamBuildSettings != null)
             {
-                string configFilePath = teamBuildSettings.AnalysisConfigFilePath;
+                var configFilePath = teamBuildSettings.AnalysisConfigFilePath;
                 Debug.Assert(!string.IsNullOrWhiteSpace(configFilePath), "Expecting the analysis config file path to be set");
 
                 if (File.Exists(configFilePath))
@@ -87,6 +87,5 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
             return config;
         }
-
     }
 }

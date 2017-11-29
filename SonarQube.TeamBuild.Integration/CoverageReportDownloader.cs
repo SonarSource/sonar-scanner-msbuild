@@ -49,7 +49,7 @@ namespace SonarQube.TeamBuild.Integration
                 throw new ArgumentNullException("logger");
             }
 
-            string downloadDir = Path.GetDirectoryName(newFullFileName);
+            var downloadDir = Path.GetDirectoryName(newFullFileName);
             Utilities.EnsureDirectoryExists(downloadDir, logger);
 
             InternalDownloadReport(tfsUri, reportUrl, newFullFileName, logger);
@@ -59,16 +59,16 @@ namespace SonarQube.TeamBuild.Integration
 
         private void InternalDownloadReport(string tfsUri, string reportUrl, string reportDestinationPath, ILogger logger)
         {
-            VssHttpMessageHandler vssHttpMessageHandler = GetHttpHandler(tfsUri, logger);
+            var vssHttpMessageHandler = GetHttpHandler(tfsUri, logger);
 
             logger.LogInfo(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, reportDestinationPath);
 
-            using (HttpClient httpClient = new HttpClient(vssHttpMessageHandler))
-            using (HttpResponseMessage response = httpClient.GetAsync(reportUrl).Result)
+            using (var httpClient = new HttpClient(vssHttpMessageHandler))
+            using (var response = httpClient.GetAsync(reportUrl).Result)
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    using (FileStream fileStream = new FileStream(reportDestinationPath, FileMode.Create, FileAccess.Write))
+                    using (var fileStream = new FileStream(reportDestinationPath, FileMode.Create, FileAccess.Write))
                     {
                         response.Content.CopyToAsync(fileStream).Wait();
                     }
@@ -83,9 +83,9 @@ namespace SonarQube.TeamBuild.Integration
         private VssHttpMessageHandler GetHttpHandler(string tfsUri, ILogger logger)
         {
             VssCredentials vssCreds;
-            Uri tfsCollectionUri = new Uri(tfsUri);
+            var tfsCollectionUri = new Uri(tfsUri);
 
-            using (TfsTeamProjectCollection collection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(tfsCollectionUri))
+            using (var collection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(tfsCollectionUri))
             {
                 // Build agents run non-attended and most often non-interactive so make sure not to create a credential prompt
                 collection.ClientCredentials.AllowInteractive = false;
@@ -94,12 +94,12 @@ namespace SonarQube.TeamBuild.Integration
                 logger.LogInfo(Resources.DOWN_DIAG_ConnectedToTFS, tfsUri);
 
                 // We need VSS credentials that encapsulate all types of credentials (NetworkCredentials for TFS, OAuth for VSO)
-                TfsConnection connection = collection as TfsConnection;
+                var connection = collection as TfsConnection;
                 vssCreds = TfsClientCredentialsConverter.ConvertToVssCredentials(connection.ClientCredentials, tfsCollectionUri);
             }
 
             Debug.Assert(vssCreds != null, "Not expecting ConvertToVssCredentials ");
-            VssHttpMessageHandler vssHttpMessageHandler = new VssHttpMessageHandler(vssCreds, new VssHttpRequestSettings());
+            var vssHttpMessageHandler = new VssHttpMessageHandler(vssCreds, new VssHttpRequestSettings());
 
             return vssHttpMessageHandler;
         }

@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System.Collections.Generic;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests
@@ -31,134 +31,134 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public string SonarQubeExclude
         {
-            get { return this.GetValueOrNull(TargetProperties.SonarQubeExcludeMetadata); }
-            set { this[TargetProperties.SonarQubeExcludeMetadata] = value; }
+            get => GetValueOrNull(TargetProperties.SonarQubeExcludeMetadata);
+            set => this[TargetProperties.SonarQubeExcludeMetadata] = value;
         }
 
         public string SonarQubeTargetsPath
         {
-            get { return this.GetValueOrNull(TargetProperties.SonarQubeTargetsPath); }
-            set { this[TargetProperties.SonarQubeTargetsPath] = value; }
+            get => GetValueOrNull(TargetProperties.SonarQubeTargetsPath);
+            set => this[TargetProperties.SonarQubeTargetsPath] = value;
         }
 
         public string SonarQubeOutputPath
         {
-            get { return this.GetValueOrNull(TargetProperties.SonarQubeOutputPath); }
-            set { this[TargetProperties.SonarQubeOutputPath] = value; }
+            get => GetValueOrNull(TargetProperties.SonarQubeOutputPath);
+            set => this[TargetProperties.SonarQubeOutputPath] = value;
         }
 
         public string SonarQubeConfigPath
         {
-            get { return this.GetValueOrNull(TargetProperties.SonarQubeConfigPath); }
-            set { this[TargetProperties.SonarQubeConfigPath] = value; }
+            get => GetValueOrNull(TargetProperties.SonarQubeConfigPath);
+            set => this[TargetProperties.SonarQubeConfigPath] = value;
         }
 
         public string SonarQubeTempPath
         {
-            get { return this.GetValueOrNull(TargetProperties.SonarQubeTempPath); }
-            set { this[TargetProperties.SonarQubeTempPath] = value; }
+            get => GetValueOrNull(TargetProperties.SonarQubeTempPath);
+            set => this[TargetProperties.SonarQubeTempPath] = value;
         }
 
         public string RunCodeAnalysis
         {
-            get { return this.GetValueOrNull(TargetProperties.RunCodeAnalysis); }
-            set { this[TargetProperties.RunCodeAnalysis] = value; }
+            get => GetValueOrNull(TargetProperties.RunCodeAnalysis);
+            set => this[TargetProperties.RunCodeAnalysis] = value;
         }
 
         public string CodeAnalysisLogFile
         {
-            get { return this.GetValueOrNull(TargetProperties.CodeAnalysisLogFile); }
-            set { this[TargetProperties.CodeAnalysisLogFile] = value; }
+            get => GetValueOrNull(TargetProperties.CodeAnalysisLogFile);
+            set => this[TargetProperties.CodeAnalysisLogFile] = value;
         }
 
         public string CodeAnalysisRuleset
         {
-            get { return this.GetValueOrNull(TargetProperties.CodeAnalysisRuleset); }
-            set { this[TargetProperties.CodeAnalysisRuleset] = value; }
+            get => GetValueOrNull(TargetProperties.CodeAnalysisRuleset);
+            set => this[TargetProperties.CodeAnalysisRuleset] = value;
         }
 
         public string ResolvedCodeAnalysisRuleset
         {
-            get { return this.GetValueOrNull(TargetProperties.ResolvedCodeAnalysisRuleset); }
-            set { this[TargetProperties.ResolvedCodeAnalysisRuleset] = value; }
+            get => GetValueOrNull(TargetProperties.ResolvedCodeAnalysisRuleset);
+            set => this[TargetProperties.ResolvedCodeAnalysisRuleset] = value;
         }
 
         public string ErrorLog
         {
-            get { return this.GetValueOrNull(TargetProperties.ErrorLog); }
-            set { this[TargetProperties.ErrorLog] = value; }
+            get => GetValueOrNull(TargetProperties.ErrorLog);
+            set => this[TargetProperties.ErrorLog] = value;
         }
 
         public string WarningsAsErrors
         {
-            get { return this.GetValueOrNull(TargetProperties.WarningsAsErrors); }
-            set { this[TargetProperties.WarningsAsErrors] = value; }
+            get => GetValueOrNull(TargetProperties.WarningsAsErrors);
+            set => this[TargetProperties.WarningsAsErrors] = value;
         }
 
         public string TreatWarningsAsErrors
         {
-            get { return this.GetValueOrNull(TargetProperties.TreatWarningsAsErrors); }
-            set { this[TargetProperties.TreatWarningsAsErrors] = value; }
+            get => GetValueOrNull(TargetProperties.TreatWarningsAsErrors);
+            set => this[TargetProperties.TreatWarningsAsErrors] = value;
         }
 
         public string WarningLevel
         {
-            get { return this.GetValueOrNull(TargetProperties.WarningLevel); }
-            set { this[TargetProperties.WarningLevel] = value; }
+            get => GetValueOrNull(TargetProperties.WarningLevel);
+            set => this[TargetProperties.WarningLevel] = value;
         }
 
         public string AssemblyName
         {
-            get { return this.GetValueOrNull(TargetProperties.AssemblyName); }
-            set { this[TargetProperties.AssemblyName] = value; }
+            get => GetValueOrNull(TargetProperties.AssemblyName);
+            set => this[TargetProperties.AssemblyName] = value;
         }
 
         public string TeamBuildLegacyBuildDirectory
         {
-            get { return this.GetValueOrNull(TargetProperties.BuildDirectory_Legacy); }
-            set { this[TargetProperties.BuildDirectory_Legacy] = value; }
+            get => GetValueOrNull(TargetProperties.BuildDirectory_Legacy);
+            set => this[TargetProperties.BuildDirectory_Legacy] = value;
         }
 
         public string TeamBuild2105BuildDirectory
         {
-            get { return this.GetValueOrNull(TargetProperties.BuildDirectory_TFS2015); }
-            set { this[TargetProperties.BuildDirectory_TFS2015] = value; }
+            get => GetValueOrNull(TargetProperties.BuildDirectory_TFS2015);
+            set => this[TargetProperties.BuildDirectory_TFS2015] = value;
         }
 
         public string BuildingInsideVS
         {
-            get { return this.GetValueOrNull(TargetProperties.BuildingInsideVS); }
-            set { this[TargetProperties.BuildingInsideVS] = value; }
+            get => GetValueOrNull(TargetProperties.BuildingInsideVS);
+            set => this[TargetProperties.BuildingInsideVS] = value;
         }
 
         public string MSBuildExtensionsPath
         {
-            get { return this.GetValueOrNull(TargetProperties.MSBuildExtensionsPath); }
-            set { this[TargetProperties.MSBuildExtensionsPath] = value; }
+            get => GetValueOrNull(TargetProperties.MSBuildExtensionsPath);
+            set => this[TargetProperties.MSBuildExtensionsPath] = value;
         }
 
         public string SonarTestProject
         {
-            get { return this.GetValueOrNull(TargetProperties.SonarQubeTestProject); }
-            set { this[TargetProperties.SonarQubeTestProject] = value; }
+            get => GetValueOrNull(TargetProperties.SonarQubeTestProject);
+            set => this[TargetProperties.SonarQubeTestProject] = value;
         }
 
         public string ProjectTypeGuids
         {
-            get { return this.GetValueOrNull(TargetProperties.ProjectTypeGuids); }
-            set { this[TargetProperties.ProjectTypeGuids] = value; }
+            get => GetValueOrNull(TargetProperties.ProjectTypeGuids);
+            set => this[TargetProperties.ProjectTypeGuids] = value;
         }
 
-        #endregion
+        #endregion Public properties
 
         #region Private methods
 
         private string GetValueOrNull(string key)
         {
-            this.TryGetValue(key, out string value);
+            TryGetValue(key, out string value);
             return value;
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

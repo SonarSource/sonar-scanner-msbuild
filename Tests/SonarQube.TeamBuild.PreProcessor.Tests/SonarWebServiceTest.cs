@@ -17,14 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.UnitTests
@@ -65,7 +63,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                 var result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
                 Assert.Fail("Exception expected");
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 logger.AssertErrorLogged("Failed to request and parse 'http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar': Error parsing boolean value. Path '', line 0, position 0.");
             }
@@ -242,7 +240,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public void GetActiveRules_UseParamAsKey()
         {
             downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
-                @"{ total: 1, p: 1, ps: 1, 
+                @"{ total: 1, p: 1, ps: 1,
             rules: [{
                 key: ""vbnet:S2368"",
                 repo: ""vbnet"",
@@ -271,7 +269,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             }
             }";
 
-            IList<ActiveRule> actual = ws.GetActiveRules("qp");
+            var actual = ws.GetActiveRules("qp");
             Assert.AreEqual(1, actual.Count());
 
             Assert.AreEqual("vbnet", actual[0].RepoKey);
@@ -285,7 +283,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public void GetActiveRules()
         {
             downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
-            @" { total: 3, p: 1, ps: 2, 
+            @" { total: 3, p: 1, ps: 2,
             rules: [{
                 key: ""vbnet:S2368"",
                 repo: ""vbnet"",
@@ -338,7 +336,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             }";
 
             downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=2"] =
-            @" { total: 3, p: 2, ps: 2, 
+            @" { total: 3, p: 2, ps: 2,
             rules: [{
                 key: ""vbnet:S2346"",
                 repo: ""vbnet"",
@@ -361,7 +359,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             }
             }";
 
-            IList<ActiveRule> actual = ws.GetActiveRules("qp");
+            var actual = ws.GetActiveRules("qp");
             Assert.AreEqual(3, actual.Count());
 
             Assert.AreEqual("vbnet", actual[0].RepoKey);
@@ -407,7 +405,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                 }
             ]}";
 
-            IList<string> rules = ws.GetInactiveRules("my#qp", "cs");
+            var rules = ws.GetInactiveRules("my#qp", "cs");
             string[] expected = { "csharpsquid:S2757", "csharpsquid:S1117", "csharpsquid:S1764" };
             CollectionAssert.AreEqual(rules.ToArray(), expected);
         }
@@ -421,7 +419,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             // Check that properties are correctly defaulted as well as branch-specific
             downloader.Pages["http://myhost:222/api/properties?resource=foo+bar"] =
                 "[{\"key\": \"sonar.property1\",\"value\": \"value1\"},{\"key\": \"sonar.property2\",\"value\": \"value2\"},{\"key\": \"sonar.cs.msbuild.testProjectPattern\",\"value\": \"pattern\"}]";
-            downloader.Pages["http://myhost:222/api/properties?resource=foo+bar%3AaBranch"] = 
+            downloader.Pages["http://myhost:222/api/properties?resource=foo+bar%3AaBranch"] =
                 "[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]";
 
             // default
@@ -464,15 +462,15 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public void TryDownloadEmbeddedFile_RequestedFileExists()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
             downloader.Pages["http://myhost:222/static/csharp/dummy.txt"] = "dummy file content";
 
             // Act
-            bool success = ws.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir);
+            var success = ws.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir);
 
             // Assert
             Assert.IsTrue(success, "Expected success");
-            string expectedFilePath = Path.Combine(testDir, "dummy.txt");
+            var expectedFilePath = Path.Combine(testDir, "dummy.txt");
             Assert.IsTrue(File.Exists(expectedFilePath), "Failed to download the expected file");
         }
 
@@ -480,17 +478,16 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public void TryDownloadEmbeddedFile_RequestedFileDoesNotExist()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
             // Act
-            bool success = ws.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir);
+            var success = ws.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir);
 
             // Assert
             Assert.IsFalse(success, "Expected failure");
-            string expectedFilePath = Path.Combine(testDir, "dummy.txt");
+            var expectedFilePath = Path.Combine(testDir, "dummy.txt");
             Assert.IsFalse(File.Exists(expectedFilePath), "File should not be created");
         }
-
 
         private class TestDownloader : IDownloader
         {

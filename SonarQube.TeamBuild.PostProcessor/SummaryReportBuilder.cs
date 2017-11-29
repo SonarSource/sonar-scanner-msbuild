@@ -18,15 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.Integration.Interfaces;
 using SonarScanner.Shim;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
@@ -68,16 +67,16 @@ namespace SonarQube.TeamBuild.PostProcessor
             this.result = result ?? throw new ArgumentNullException("result");
             this.logger = logger ?? throw new ArgumentNullException("logger");
 
-            this.GenerateReports();
+            GenerateReports();
         }
 
-        #endregion
+        #endregion IReportBuilder interface methods
 
         private void GenerateReports()
         {
-            SummaryReportData summaryData = CreateSummaryData(this.config, this.result);
+            var summaryData = CreateSummaryData(config, result);
 
-            if (this.settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
+            if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
                 && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
             {
                 UpdateLegacyTeamBuildSummary(summaryData);
@@ -88,9 +87,9 @@ namespace SonarQube.TeamBuild.PostProcessor
             // Write the dashboard link to the output. The sonar-scanner will have written it out earlier,
             // but writing it again here puts it very close to the end of the output - easier to find,
             // especially when running from the command line.
-            if (this.result.RanToCompletion)
+            if (result.RanToCompletion)
             {
-                this.logger.LogInfo(Resources.Report_LinkToDashboard, summaryData.DashboardUrl);
+                logger.LogInfo(Resources.Report_LinkToDashboard, summaryData.DashboardUrl);
             }
         }
 
@@ -123,13 +122,12 @@ namespace SonarQube.TeamBuild.PostProcessor
                     config.SonarProjectKey, config.SonarProjectVersion)
             };
             return summaryData;
-
         }
 
         private static string GetSonarDashboadUrl(AnalysisConfig config)
         {
-            string hostUrl = config.SonarQubeHostUrl.TrimEnd('/');
-            string branch = FindBranch(config);
+            var hostUrl = config.SonarQubeHostUrl.TrimEnd('/');
+            var branch = FindBranch(config);
 
             string sonarUrl;
 
@@ -156,7 +154,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private static string FindBranch(AnalysisConfig config)
         {
-            IAnalysisPropertyProvider localSettings = config.GetAnalysisSettings(includeServerSettings: false);
+            var localSettings = config.GetAnalysisSettings(includeServerSettings: false);
             Debug.Assert(localSettings != null);
 
             localSettings.TryGetValue(SonarProperties.ProjectBranch, out string branch);
@@ -166,12 +164,12 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private void CreateSummaryMdFile(SummaryReportData summaryData)
         {
-            this.logger.LogInfo(Resources.Report_CreatingSummaryMarkdown);
+            logger.LogInfo(Resources.Report_CreatingSummaryMarkdown);
 
-            Debug.Assert(!string.IsNullOrEmpty(this.config.SonarOutputDir), "Could not find the output directory");
-            string summaryMdPath = Path.Combine(this.config.SonarOutputDir, SummaryMdFilename);
+            Debug.Assert(!string.IsNullOrEmpty(config.SonarOutputDir), "Could not find the output directory");
+            var summaryMdPath = Path.Combine(config.SonarOutputDir, SummaryMdFilename);
 
-            using (StreamWriter sw = new StreamWriter(summaryMdPath, append: false))
+            using (var sw = new StreamWriter(summaryMdPath, append: false))
             {
                 if (summaryData.Succeeded)
                 {
@@ -189,9 +187,9 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private void UpdateLegacyTeamBuildSummary(SummaryReportData summaryData)
         {
-            this.logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
+            logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
 
-            using (BuildSummaryLogger summaryLogger = new BuildSummaryLogger(this.config.GetTfsUri(), this.config.GetBuildUri()))
+            using (var summaryLogger = new BuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
             {
                 // Add a link to SonarQube dashboard if analysis succeeded
                 if (summaryData.Succeeded)

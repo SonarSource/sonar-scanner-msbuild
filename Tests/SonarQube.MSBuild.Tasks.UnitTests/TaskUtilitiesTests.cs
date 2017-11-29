@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+
 using System.Diagnostics;
 using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.UnitTests
@@ -38,10 +38,10 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void TaskUtils_LoadConfig_RetryIfConfigLocked_ValueReturned()
         {
             // Arrange
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string configFile = CreateAnalysisConfig(testFolder);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var configFile = CreateAnalysisConfig(testFolder);
 
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             AnalysisConfig result = null;
             PerformOpOnLockedFile(configFile, () => result = TaskUtilities.TryGetConfig(testFolder, logger), shouldTimeoutReadingConfig: false);
@@ -59,10 +59,10 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         {
             // Arrange
             // We'll lock the file and sleep for long enough for the task to timeout
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string configFile = CreateAnalysisConfig(testFolder);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var configFile = CreateAnalysisConfig(testFolder);
 
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             AnalysisConfig result = null;
 
@@ -82,7 +82,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             ILogger logger = new TestLogger();
 
             // 1. Null -> no error
-            AnalysisConfig actual = TaskUtilities.TryGetConfig(null, logger);
+            var actual = TaskUtilities.TryGetConfig(null, logger);
             Assert.IsNull(actual);
 
             // 2. Empty -> no error
@@ -94,7 +94,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             Assert.IsNull(actual);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Public test helpers
 
@@ -121,9 +121,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 Assert.IsTrue(lockPeriodInMilliseconds < TaskUtilities.MaxConfigRetryPeriodInMilliseconds, "Test setup error: the test is sleeping for too long");
             }
 
-            Stopwatch testDuration = Stopwatch.StartNew();
+            var testDuration = Stopwatch.StartNew();
 
-            using (FileStream lockingStream = File.OpenWrite(configFile))
+            using (var lockingStream = File.OpenWrite(configFile))
             {
                 System.Threading.Tasks.Task.Factory.StartNew(() =>
                 {
@@ -137,12 +137,12 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
             // Sanity check for our test code
             testDuration.Stop();
-            int expectedMinimumLockPeriod = System.Math.Min(TaskUtilities.MaxConfigRetryPeriodInMilliseconds, lockPeriodInMilliseconds);
+            var expectedMinimumLockPeriod = System.Math.Min(TaskUtilities.MaxConfigRetryPeriodInMilliseconds, lockPeriodInMilliseconds);
             Assert.IsTrue(testDuration.ElapsedMilliseconds >= expectedMinimumLockPeriod, "Test error: expecting the test to have taken at least {0} milliseconds to run. Actual: {1}",
                 expectedMinimumLockPeriod, testDuration.ElapsedMilliseconds);
         }
 
-        #endregion
+        #endregion Public test helpers
 
         #region Private methods
 
@@ -154,9 +154,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         /// </summary>
         private static string CreateAnalysisConfig(string parentDir)
         {
-            string fullPath = Path.Combine(parentDir, FileConstants.ConfigFileName);
+            var fullPath = Path.Combine(parentDir, FileConstants.ConfigFileName);
 
-            AnalysisConfig config = new AnalysisConfig();
+            var config = new AnalysisConfig();
             config.Save(fullPath);
             return fullPath;
         }
@@ -168,6 +168,6 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             logger.AssertSingleDebugMessageExists(TaskUtilities.MaxConfigRetryPeriodInMilliseconds.ToString(), TaskUtilities.DelayBetweenRetriesInMilliseconds.ToString());
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

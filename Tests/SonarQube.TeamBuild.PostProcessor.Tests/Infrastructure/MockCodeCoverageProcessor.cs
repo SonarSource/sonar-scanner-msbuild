@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.TeamBuild.Integration;
-using SonarQube.Common;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.TeamBuild.PostProcessor.Tests
@@ -35,51 +35,49 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         public bool ProcessValueToReturn { get; set; }
         public bool InitialiseValueToReturn { get; set; }
 
-        #endregion
+        #endregion Test helpers
 
         #region ICoverageReportProcessor interface
 
         public bool Initialise(AnalysisConfig context, ITeamBuildSettings settings, ILogger logger)
         {
-            Assert.IsFalse(this.initalisedCalled, "Expecting Initialise to be called only once");
-            this.initalisedCalled = true;
+            Assert.IsFalse(initalisedCalled, "Expecting Initialise to be called only once");
+            initalisedCalled = true;
             return InitialiseValueToReturn;
         }
 
         public bool ProcessCoverageReports()
         {
-            Assert.IsFalse(this.processCoverageMethodCalled, "Expecting ProcessCoverageReports to be called only once");
-            Assert.IsTrue(this.initalisedCalled, "Expecting Initialise to be called first");
-            this.processCoverageMethodCalled = true;
+            Assert.IsFalse(processCoverageMethodCalled, "Expecting ProcessCoverageReports to be called only once");
+            Assert.IsTrue(initalisedCalled, "Expecting Initialise to be called first");
+            processCoverageMethodCalled = true;
             return ProcessValueToReturn;
         }
 
-        #endregion
+        #endregion ICoverageReportProcessor interface
 
         #region Checks
 
         public void AssertExecuteCalled()
         {
-            Assert.IsTrue(this.processCoverageMethodCalled, "Expecting the sonar-scanner to have been called");
+            Assert.IsTrue(processCoverageMethodCalled, "Expecting the sonar-scanner to have been called");
         }
 
         public void AssertExecuteNotCalled()
         {
-            Assert.IsFalse(this.processCoverageMethodCalled, "Not expecting the sonar-scanner to have been called");
+            Assert.IsFalse(processCoverageMethodCalled, "Not expecting the sonar-scanner to have been called");
         }
 
         public void AssertInitializedCalled()
         {
-            Assert.IsTrue(this.initalisedCalled, "Expecting the sonar-scanner to have been called");
+            Assert.IsTrue(initalisedCalled, "Expecting the sonar-scanner to have been called");
         }
 
         public void AssertInitialisedNotCalled()
         {
-            Assert.IsFalse(this.initalisedCalled, "Not expecting the sonar-scanner to have been called");
+            Assert.IsFalse(initalisedCalled, "Not expecting the sonar-scanner to have been called");
         }
 
-
-        #endregion
-
+        #endregion Checks
     }
 }

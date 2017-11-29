@@ -17,16 +17,16 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System.Collections.Generic;
+using SonarQube.Common;
 
 namespace SonarScanner.Shim
 {
     /// <summary>
     /// Encapsulate the interaction with the sonar-scanner
     /// </summary>
-    /// <remarks>Accepts the ProjectInfo.xml files as input, generates a sonar-scanner.properties 
+    /// <remarks>Accepts the ProjectInfo.xml files as input, generates a sonar-scanner.properties
     /// file from them, then executes the Java sonar-scanner</remarks>
     public interface ISonarScanner
     {

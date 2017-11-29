@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarQube Scanner for MSBuild
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -61,7 +61,7 @@ namespace SonarQube.Common
 
         private static IList<string> GetMSBuildImportBeforePaths()
         {
-            string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             return new List<string>
             {
                 Path.Combine(appData, "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),

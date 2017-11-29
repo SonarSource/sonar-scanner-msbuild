@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using TestUtilities;
@@ -35,29 +35,27 @@ namespace SonarQube.Bootstrapper.Tests
         public void DefaultProperties_AreValid()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string propertiesFile = TestUtils.EnsureDefaultPropertiesFileExists(testDir, this.TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var propertiesFile = TestUtils.EnsureDefaultPropertiesFileExists(testDir, TestContext);
 
             // Act - will error if the file is badly-formed
-            AnalysisProperties defaultProps = AnalysisProperties.Load(propertiesFile);
-
+            var defaultProps = AnalysisProperties.Load(propertiesFile);
 
             Assert.AreEqual(0, defaultProps.Count, "Unexpected number of properties defined in the default properties file");
         }
 
-        #endregion
+        #endregion Tests
 
         #region Checks
 
         private static void AssertPropertyHasValue(string key, string expectedValue, AnalysisProperties properties)
         {
-            bool found = Property.TryGetProperty(key, properties, out Property match);
+            var found = Property.TryGetProperty(key, properties, out Property match);
 
             Assert.IsTrue(found, "Expected property was not found. Key: {0}", key);
             Assert.AreEqual(expectedValue, match.Value, "Property does not have the expected value. Key: {0}", key);
         }
 
-        #endregion
-
+        #endregion Checks
     }
 }

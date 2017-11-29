@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -48,8 +48,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertSingleErrorExists("/key:"); // we expect error with info about the missing required parameter, which should include the primary alias
             logger.AssertErrorsLogged(1);
 
-            // 3. Only key and host URL are required 
-            ProcessedArgs args = CheckProcessingSucceeds("/k:key", "/d:sonar.host.url=myurl");
+            // 3. Only key and host URL are required
+            var args = CheckProcessingSucceeds("/k:key", "/d:sonar.host.url=myurl");
             Assert.AreEqual(args.ProjectKey, "key");
             Assert.AreEqual(args.SonarQubeUrl, "myurl");
 
@@ -62,7 +62,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         [TestMethod]
         public void PreArgProc_DefaultHostUrl()
         {
-            ProcessedArgs args = CheckProcessingSucceeds("/k:key");
+            var args = CheckProcessingSucceeds("/k:key");
             Assert.AreEqual(args.SonarQubeUrl, "http://localhost:9000");
         }
 
@@ -87,7 +87,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             CheckProjectKeyIsInvalid("0"); // single numeric is not ok
             CheckProjectKeyIsInvalid("0123456789"); // all numeric is not ok
-
 
             // 2. Valid
             CheckProjectKeyIsValid("0123456789.abcdefghijklmnopqrstuvwxyz:-._ABCDEFGHIJKLMNOPQRSTUVWXYZ"); // all valid characters
@@ -146,7 +145,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             ProcessedArgs actual;
 
-            string validUrlArg = "/d:sonar.host.url=foo";
+            var validUrlArg = "/d:sonar.host.url=foo";
 
             // Valid
             // No install argument passed -> install targets
@@ -170,7 +169,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedInstallTargets(false, actual);
 
             // Invalid value (only true and false are supported)
-            TestLogger logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/install:1");
+            var logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/install:1");
             logger.AssertErrorsLogged(1);
             logger.AssertSingleErrorExists("/install"); // we expect the error to include the first value and the duplicate argument
 
@@ -194,25 +193,25 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void PreArgProc_PropertiesFileSpecifiedOnCommandLine()
         {
             // 0. Setup
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
 
             // 1. File exists -> args ok
-            AnalysisProperties properties = new AnalysisProperties
+            var properties = new AnalysisProperties
             {
                 new Property() { Id = "key1", Value = "value1" },
                 new Property() { Id = SonarProperties.HostUrl, Value = "url" } // required property
             };
             properties.Save(propertiesFilePath);
 
-            ProcessedArgs result = CheckProcessingSucceeds("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
+            var result = CheckProcessingSucceeds("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
             AssertExpectedValues("key", "name", "version", result);
             AssertExpectedPropertyValue("key1", "value1", result);
 
             // 2. File does not exist -> args not ok
             File.Delete(propertiesFilePath);
 
-            TestLogger logger = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
+            var logger = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
             logger.AssertErrorsLogged(1);
         }
 
@@ -222,7 +221,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // 0. Setup
             ProcessedArgs actual;
 
-            string validUrlArg = "/d:sonar.host.url=foo"; // this doesn't have an alias but does need to be supplied
+            var validUrlArg = "/d:sonar.host.url=foo"; // this doesn't have an alias but does need to be supplied
 
             // Valid
             // Full names, no path
@@ -242,7 +241,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedValues("my.key", "my name", "2:0", actual);
 
             // Full names, wrong case -> ignored
-            TestLogger logger = CheckProcessingFails("/KEY:my.key", "/nAme:my name", "/versIOn:1.0", validUrlArg);
+            var logger = CheckProcessingFails("/KEY:my.key", "/nAme:my name", "/versIOn:1.0", validUrlArg);
             logger.AssertSingleErrorExists("/KEY:my.key");
             logger.AssertSingleErrorExists("/nAme:my name");
             logger.AssertSingleErrorExists("/versIOn:1.0");
@@ -284,7 +283,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // 0. Setup - none
 
             // 1. Args ok
-            ProcessedArgs result = CheckProcessingSucceeds(
+            var result = CheckProcessingSucceeds(
                 // Non-dynamic values
                 "/key:my.key", "/name:my name", "/version:1.2",
                 // Dynamic values
@@ -365,7 +364,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 "/d:sonar.projectVersion=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectVersion, "/v");
 
-            // 2. Other values that can't be set          
+            // 2. Other values that can't be set
 
             logger = CheckProcessingFails(
                 "/key:my.key", "/name:my name", "/version:1.2",
@@ -376,7 +375,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         [TestMethod]
         public void PreArgProc_Organization()
         {
-            ProcessedArgs args = CheckProcessingSucceeds( "/key:my.key", "/organization:my_org");
+            var args = CheckProcessingSucceeds( "/key:my.key", "/organization:my_org");
             Assert.AreEqual(args.Organization, "my_org");
 
             args = CheckProcessingSucceeds("/key:my.key", "/o:my_org");
@@ -392,9 +391,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static TestLogger CheckProcessingFails(params string[] commandLineArgs)
         {
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
-            ProcessedArgs result = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
+            var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
 
             Assert.IsNull(result, "Not expecting the arguments to be processed succesfully");
             logger.AssertErrorsLogged();
@@ -405,7 +404,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             TestLogger logger;
 
-            string[] commandLineArgs = new string[] { "/k:" + projectKey, "/n:valid_name", "/v:1.0", "/d:" + SonarProperties.HostUrl + "=http://validUrl" };
+            var commandLineArgs = new string[] { "/k:" + projectKey, "/n:valid_name", "/v:1.0", "/d:" + SonarProperties.HostUrl + "=http://validUrl" };
 
             logger = CheckProcessingFails(commandLineArgs);
             logger.AssertErrorsLogged(1);
@@ -414,14 +413,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static void CheckProjectKeyIsValid(string projectKey)
         {
-            ProcessedArgs result = CheckProcessingSucceeds("/key:" + projectKey, "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid");
+            var result = CheckProcessingSucceeds("/key:" + projectKey, "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid");
             Assert.AreEqual(projectKey, result.ProjectKey, "Unexpected project key");
         }
 
         private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs)
         {
-            TestLogger logger = new TestLogger();
-            ProcessedArgs result = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
+            var logger = new TestLogger();
+            var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
 
             Assert.IsNotNull(result, "Expecting the arguments to be processed succesfully");
 
@@ -440,12 +439,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         private static void AssertExpectedPropertyValue(string key, string value, ProcessedArgs actual)
         {
             // Test the GetSetting method
-            string actualValue = actual.GetSetting(key);
+            var actualValue = actual.GetSetting(key);
             Assert.IsNotNull(actualValue, "Expected dynamic settings does not exist. Key: {0}", key);
             Assert.AreEqual(value, actualValue, "Dynamic setting does not have the expected value");
 
             // Check the public list of properties
-            bool found = Property.TryGetProperty(key, actual.GetAllProperties(), out Property match);
+            var found = Property.TryGetProperty(key, actual.GetAllProperties(), out Property match);
             Assert.IsTrue(found, "Failed to find the expected property. Key: {0}", key);
             Assert.IsNotNull(match, "Returned property should not be null. Key: {0}", key);
             Assert.AreEqual(value, match.Value, "Property does not have the expected value");

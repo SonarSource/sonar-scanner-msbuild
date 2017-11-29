@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 namespace SonarQube.Common
 {
     /// <summary>
@@ -55,9 +55,9 @@ namespace SonarQube.Common
         /// Log a message with the Info verbosity
         /// </summary>
         void LogInfo(string message, params object[] args);
-        
+
         void LogWarning(string message, params object[] args);
-        
+
         void LogError(string message, params object[] args);
 
         /// <summary>

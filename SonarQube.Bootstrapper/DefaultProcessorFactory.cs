@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using SonarQube.Common;
 using SonarQube.TeamBuild.PostProcessor;
 using SonarQube.TeamBuild.PostProcessor.Interfaces;
@@ -34,6 +34,7 @@ namespace SonarQube.Bootstrapper
         {
             this.logger = logger;
         }
+
         public IMSBuildPostProcessor CreatePostProcessor()
         {
             return new MSBuildPostProcessor(

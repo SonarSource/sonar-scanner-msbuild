@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 namespace SonarQube.Common
 {
     /// <summary>
@@ -39,6 +39,7 @@ namespace SonarQube.Common
 
         // SonarQube project settings
         public const string ProjectKey = "sonar.projectKey";
+
         public const string ProjectBranch = "sonar.branch";
 
         public const string ProjectName = "sonar.projectName";

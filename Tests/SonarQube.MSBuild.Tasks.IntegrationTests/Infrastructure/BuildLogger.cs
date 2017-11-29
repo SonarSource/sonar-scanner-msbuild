@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.Build.Framework;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Build.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests
 {
@@ -39,14 +39,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         private List<BuildErrorEventArgs> errors;
         private List<BuildWarningEventArgs> warnings;
 
-
         #region Public properties
 
-        public IReadOnlyList<BuildWarningEventArgs> Warnings { get { return this.warnings.AsReadOnly(); } }
+        public IReadOnlyList<BuildWarningEventArgs> Warnings { get { return warnings.AsReadOnly(); } }
 
-        public IReadOnlyList<BuildErrorEventArgs> Errors { get { return this.errors.AsReadOnly(); } }
+        public IReadOnlyList<BuildErrorEventArgs> Errors { get { return errors.AsReadOnly(); } }
 
-        #endregion
+        #endregion Public properties
 
         #region ILogger interface
 
@@ -63,22 +62,21 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         void ILogger.Initialize(IEventSource eventSource)
         {
             this.eventSource = eventSource;
-            this.executedTargets = new List<TargetStartedEventArgs>();
-            this.executedTasks = new List<TaskStartedEventArgs>();
+            executedTargets = new List<TargetStartedEventArgs>();
+            executedTasks = new List<TaskStartedEventArgs>();
 
-            this.warnings = new List<BuildWarningEventArgs>();
-            this.errors = new List<BuildErrorEventArgs>();
-            
-            this.RegisterEvents(this.eventSource);
+            warnings = new List<BuildWarningEventArgs>();
+            errors = new List<BuildErrorEventArgs>();
+
+            RegisterEvents(this.eventSource);
         }
-
 
         void ILogger.Shutdown()
         {
-            this.UnregisterEvents(this.eventSource);
+            UnregisterEvents(eventSource);
         }
 
-        #endregion
+        #endregion ILogger interface
 
         #region Private methods
 
@@ -100,24 +98,24 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             source.WarningRaised -= source_WarningRaised;
         }
 
-        void source_TargetStarted(object sender, TargetStartedEventArgs e)
+        private void source_TargetStarted(object sender, TargetStartedEventArgs e)
         {
-            this.executedTargets.Add(e);
+            executedTargets.Add(e);
         }
 
-        void source_TaskStarted(object sender, TaskStartedEventArgs e)
+        private void source_TaskStarted(object sender, TaskStartedEventArgs e)
         {
-            this.executedTasks.Add(e);
+            executedTasks.Add(e);
         }
 
-        void source_ErrorRaised(object sender, BuildErrorEventArgs e)
+        private void source_ErrorRaised(object sender, BuildErrorEventArgs e)
         {
-            this.errors.Add(e);
+            errors.Add(e);
         }
 
-        void source_WarningRaised(object sender, BuildWarningEventArgs e)
+        private void source_WarningRaised(object sender, BuildWarningEventArgs e)
         {
-            this.warnings.Add(e);
+            warnings.Add(e);
         }
 
         private static void source_AnyEventRaised(object sender, BuildEventArgs e)
@@ -130,33 +128,33 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             Console.WriteLine(message, args);
         }
 
-        #endregion
+        #endregion Private methods
 
         #region Assertions
 
         public TargetStartedEventArgs AssertTargetExecuted(string targetName)
         {
-            TargetStartedEventArgs found = this.executedTargets.FirstOrDefault(t => t.TargetName.Equals(targetName, StringComparison.InvariantCulture));
+            var found = executedTargets.FirstOrDefault(t => t.TargetName.Equals(targetName, StringComparison.InvariantCulture));
             Assert.IsNotNull(found, "Specified target was not executed: {0}", targetName);
             return found;
         }
 
         public void AssertTargetNotExecuted(string targetName)
         {
-            TargetStartedEventArgs found = this.executedTargets.FirstOrDefault(t => t.TargetName.Equals(targetName, StringComparison.InvariantCulture));
+            var found = executedTargets.FirstOrDefault(t => t.TargetName.Equals(targetName, StringComparison.InvariantCulture));
             Assert.IsNull(found, "Not expecting the target to have been executed: {0}", targetName);
         }
 
         public TaskStartedEventArgs AssertTaskExecuted(string taskName)
         {
-            TaskStartedEventArgs found = this.executedTasks.FirstOrDefault(t => t.TaskName.Equals(taskName, StringComparison.InvariantCulture));
+            var found = executedTasks.FirstOrDefault(t => t.TaskName.Equals(taskName, StringComparison.InvariantCulture));
             Assert.IsNotNull(found, "Specified task was not executed: {0}", taskName);
             return found;
         }
 
         public void AssertTaskNotExecuted(string taskName)
         {
-            TaskStartedEventArgs found = this.executedTasks.FirstOrDefault(t => t.TaskName.Equals(taskName, StringComparison.InvariantCulture));
+            var found = executedTasks.FirstOrDefault(t => t.TaskName.Equals(taskName, StringComparison.InvariantCulture));
             Assert.IsNull(found, "Not expecting the task to have been executed: {0}", taskName);
         }
 
@@ -165,12 +163,12 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public void AssertExpectedTargetOrdering(params string[] expected)
         {
-            foreach (string target in expected)
+            foreach (var target in expected)
             {
-                this.AssertTargetExecuted(target);
+                AssertTargetExecuted(target);
             }
 
-            string[] actual = this.executedTargets.Select(t => t.TargetName).Where(t => expected.Contains(t, StringComparer.Ordinal)).ToArray();
+            var actual = executedTargets.Select(t => t.TargetName).Where(t => expected.Contains(t, StringComparer.Ordinal)).ToArray();
 
             Console.WriteLine("Expected target order: {0}", string.Join(", ", expected));
             Console.WriteLine("Actual target order: {0}", string.Join(", ", actual));
@@ -186,14 +184,14 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public void AssertExpectedErrorCount(int expected)
         {
-            Assert.AreEqual(expected, this.errors.Count, "Unexpected number of errors raised");
+            Assert.AreEqual(expected, errors.Count, "Unexpected number of errors raised");
         }
 
         public void AssertExpectedWarningCount(int expected)
         {
-            Assert.AreEqual(expected, this.warnings.Count, "Unexpected number of warnings raised");
+            Assert.AreEqual(expected, warnings.Count, "Unexpected number of warnings raised");
         }
 
-        #endregion
+        #endregion Assertions
     }
 }

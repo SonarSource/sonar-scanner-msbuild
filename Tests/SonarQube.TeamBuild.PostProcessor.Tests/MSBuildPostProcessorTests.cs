@@ -17,14 +17,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarScanner.Shim;
 using TestUtilities;
-using System.Linq;
-using Moq;
 
 namespace SonarQube.TeamBuild.PostProcessor.Tests
 {
@@ -39,12 +39,12 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         public void PostProc_ExecutionFailsIfCodeCoverageFails()
         {
             // Arrange
-            PostProcTestContext context = new PostProcTestContext(this.TestContext);
+            var context = new PostProcTestContext(TestContext);
             context.CodeCoverage.InitialiseValueToReturn = true;
             context.CodeCoverage.ProcessValueToReturn = false;
 
             // Act
-            bool success = Execute(context);
+            var success = Execute(context);
 
             // Assert
             Assert.IsFalse(success, "Not expecting post-processor to have succeeded");
@@ -65,14 +65,14 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         public void PostProc_ExecutionFailsIfSonarScannerFails()
         {
             // Arrange
-            PostProcTestContext context = new PostProcTestContext(this.TestContext);
+            var context = new PostProcTestContext(TestContext);
             context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
             {
                 RanToCompletion = false
             };
 
             // Act
-            bool success = Execute(context);
+            var success = Execute(context);
 
             // Assert
             Assert.IsFalse(success, "Not expecting post-processor to have succeeded");
@@ -92,14 +92,14 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         public void PostProc_ExecutionSucceeds()
         {
             // Arrange
-            PostProcTestContext context = new PostProcTestContext(this.TestContext);
+            var context = new PostProcTestContext(TestContext);
             context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
             {
                 RanToCompletion = true
             };
 
             // Act
-            bool success = Execute(context);
+            var success = Execute(context);
 
             // Assert
             Assert.IsTrue(success, "Expecting post-processor to have succeeded");
@@ -123,7 +123,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         public void PostProc_ExecutionSucceedsWithErrorLogs()
         {
             // Arrange
-            PostProcTestContext context = new PostProcTestContext(this.TestContext);
+            var context = new PostProcTestContext(TestContext);
             context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
             {
                 RanToCompletion = true
@@ -131,7 +131,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             context.Scanner.ErrorToLog = "Errors";
 
             // Act
-            bool success = Execute(context);
+            var success = Execute(context);
 
             // Assert
             Assert.IsTrue(success, "Expecting post-processor to have succeeded");
@@ -156,7 +156,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         public void PostProc_ExecutionSucceedsIfCoverageNotInitialised()
         {
             // Arrange
-            PostProcTestContext context = new PostProcTestContext(this.TestContext);
+            var context = new PostProcTestContext(TestContext);
             context.CodeCoverage.InitialiseValueToReturn = false;
             context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
             {
@@ -164,7 +164,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             };
 
             // Act
-            bool success = Execute(context);
+            var success = Execute(context);
 
             // Assert
             Assert.IsTrue(success, "Expecting post-processor to have succeeded");
@@ -187,10 +187,10 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         public void PostProc_FailsOnInvalidArgs()
         {
             // Arrange
-            PostProcTestContext context = new PostProcTestContext(this.TestContext);
+            var context = new PostProcTestContext(TestContext);
 
             // Act
-            bool success = Execute(context, "/d:sonar.foo=bar");
+            var success = Execute(context, "/d:sonar.foo=bar");
 
             // Assert
             Assert.IsFalse(success, "Expecting post-processor to have failed");
@@ -211,13 +211,13 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         public void PostProc_ValidArgsPassedThrough()
         {
             // Arrange
-            PostProcTestContext context = new PostProcTestContext(this.TestContext);
+            var context = new PostProcTestContext(TestContext);
             context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
             {
                 RanToCompletion = true
             };
 
-            string[] suppliedArgs = new string[]
+            var suppliedArgs = new string[]
             {
                 "/d:sonar.jdbc.password=dbpwd",
                 "/d:sonar.jdbc.username=dbuser",
@@ -225,7 +225,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
                 "/d:sonar.login=login"
             };
 
-            string[] expectedArgs = new string[]
+            var expectedArgs = new string[]
             {
                 "-Dsonar.jdbc.password=dbpwd",
                 "-Dsonar.jdbc.username=dbuser",
@@ -235,7 +235,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             };
 
             // Act
-            bool success = Execute(context, suppliedArgs);
+            var success = Execute(context, suppliedArgs);
 
             // Assert
             Assert.IsTrue(success, "Expecting post-processor to have succeeded");
@@ -254,7 +254,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
         }
 
-        #endregion
+        #endregion Tests
 
         /// <summary>
         /// Helper class that creates all of the necessary mocks
@@ -272,17 +272,17 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             public PostProcTestContext(TestContext testContext)
             {
-                this.Config = new AnalysisConfig();
-                this.settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(testContext.DeploymentDirectory);
+                Config = new AnalysisConfig();
+                settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(testContext.DeploymentDirectory);
 
-                this.logger = new TestLogger();
-                this.codeCoverage = new MockCodeCoverageProcessor();
-                this.scanner = new MockSonarScanner();
-                this.reportBuilder = new MockSummaryReportBuilder();
-                this.TargetsUninstaller = new Mock<ITargetsUninstaller>();
+                logger = new TestLogger();
+                codeCoverage = new MockCodeCoverageProcessor();
+                scanner = new MockSonarScanner();
+                reportBuilder = new MockSummaryReportBuilder();
+                TargetsUninstaller = new Mock<ITargetsUninstaller>();
                 var callCount = 0;
-                this.TargetsUninstaller
-                    .Setup(m => m.UninstallTargets(this.Logger))
+                TargetsUninstaller
+                    .Setup(m => m.UninstallTargets(Logger))
                     .Callback(() =>
                     {
                         // Verify that the method was called maximum once
@@ -290,27 +290,27 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
                         callCount++;
                     });
 
-                this.codeCoverage.InitialiseValueToReturn = true;
-                this.codeCoverage.ProcessValueToReturn = true;
+                codeCoverage.InitialiseValueToReturn = true;
+                codeCoverage.ProcessValueToReturn = true;
             }
 
             public AnalysisConfig Config { get; set; }
-            public TeamBuildSettings Settings { get { return this.settings; } }
-            public MockCodeCoverageProcessor CodeCoverage {  get { return this.codeCoverage; } }
-            public MockSonarScanner Scanner { get { return this.scanner; } }
-            public MockSummaryReportBuilder ReportBuilder { get { return this.reportBuilder; } }
-            public TestLogger Logger { get { return this.logger; } }
+            public TeamBuildSettings Settings { get { return settings; } }
+            public MockCodeCoverageProcessor CodeCoverage {  get { return codeCoverage; } }
+            public MockSonarScanner Scanner { get { return scanner; } }
+            public MockSummaryReportBuilder ReportBuilder { get { return reportBuilder; } }
+            public TestLogger Logger { get { return logger; } }
         }
 
         #region Private methods
 
         private static bool Execute(PostProcTestContext context, params string[] args)
         {
-            MSBuildPostProcessor proc = new MSBuildPostProcessor(context.CodeCoverage, context.Scanner, context.ReportBuilder, context.Logger, context.TargetsUninstaller.Object);
-            bool success = proc.Execute(args, context.Config, context.Settings);
+            var proc = new MSBuildPostProcessor(context.CodeCoverage, context.Scanner, context.ReportBuilder, context.Logger, context.TargetsUninstaller.Object);
+            var success = proc.Execute(args, context.Config, context.Settings);
             return success;
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

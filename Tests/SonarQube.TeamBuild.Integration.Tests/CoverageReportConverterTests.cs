@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.IO;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
-using System.IO;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.Integration.Tests
@@ -39,15 +39,15 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void Conv_OutputIsCaptured()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            string outputFilePath = Path.Combine(testDir, "output.txt");
+            var outputFilePath = Path.Combine(testDir, "output.txt");
 
-            string inputFilePath = Path.Combine(testDir, "input.txt");
+            var inputFilePath = Path.Combine(testDir, "input.txt");
             File.WriteAllText(inputFilePath, "dummy input file");
 
-            string converterFilePath = Path.Combine(testDir, "converter.bat");
+            var converterFilePath = Path.Combine(testDir, "converter.bat");
             File.WriteAllText(converterFilePath,
 @"
 echo Normal output...
@@ -56,13 +56,13 @@ echo Create a new file using the output parameter
 echo foo > """ + outputFilePath + @"""");
 
             // Act
-            bool success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+            var success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
 
             // Assert
             Assert.IsTrue(success, "Expecting the process to succeed");
 
             Assert.IsTrue(File.Exists(outputFilePath), "Expecting the output file to exist");
-            this.TestContext.AddResultFile(outputFilePath);
+            TestContext.AddResultFile(outputFilePath);
 
             logger.AssertMessageLogged("Normal output...");
             logger.AssertErrorLogged("Error output...");
@@ -73,19 +73,19 @@ echo foo > """ + outputFilePath + @"""");
         public void Conv_FailsIfFileNotFound()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            string outputFilePath = Path.Combine(testDir, "output.txt");
+            var outputFilePath = Path.Combine(testDir, "output.txt");
 
-            string inputFilePath = Path.Combine(testDir, "input.txt");
+            var inputFilePath = Path.Combine(testDir, "input.txt");
             File.WriteAllText(inputFilePath, "dummy input file");
 
-            string converterFilePath = Path.Combine(testDir, "converter.bat");
+            var converterFilePath = Path.Combine(testDir, "converter.bat");
             File.WriteAllText(converterFilePath, @"REM Do nothing - don't create a file");
 
             // Act
-            bool success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+            var success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
 
             // Assert
             Assert.IsFalse(success, "Expecting the process to fail");
@@ -100,19 +100,19 @@ echo foo > """ + outputFilePath + @"""");
         public void Conv_FailsIfFileConverterReturnsAnErrorCode()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            string outputFilePath = Path.Combine(testDir, "output.txt");
+            var outputFilePath = Path.Combine(testDir, "output.txt");
 
-            string inputFilePath = Path.Combine(testDir, "input.txt");
+            var inputFilePath = Path.Combine(testDir, "input.txt");
             File.WriteAllText(inputFilePath, "dummy input file");
 
-            string converterFilePath = Path.Combine(testDir, "converter.bat");
+            var converterFilePath = Path.Combine(testDir, "converter.bat");
             File.WriteAllText(converterFilePath, @"exit -1");
 
             // Act
-            bool success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+            var success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
 
             // Assert
             Assert.IsFalse(success, "Expecting the process to fail");
@@ -126,15 +126,15 @@ echo foo > """ + outputFilePath + @"""");
         public void Conv_HasThreeArguments()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            string outputFilePath = Path.Combine(testDir, "output.txt");
+            var outputFilePath = Path.Combine(testDir, "output.txt");
 
-            string inputFilePath = Path.Combine(testDir, "input.txt");
+            var inputFilePath = Path.Combine(testDir, "input.txt");
             File.WriteAllText(inputFilePath, "dummy input file");
 
-            string converterFilePath = Path.Combine(testDir, "converter.bat");
+            var converterFilePath = Path.Combine(testDir, "converter.bat");
             File.WriteAllText(converterFilePath,
 @"
 set argC=0
@@ -144,7 +144,7 @@ echo Converter called with %argC% args
 echo success > """ + outputFilePath + @"""");
 
             // Act
-            bool success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+            var success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
 
             // Assert
             Assert.IsTrue(success, "Expecting the process to succeed");
@@ -156,14 +156,14 @@ echo success > """ + outputFilePath + @"""");
         public void Initialize_CanGetGetExeToolPathFromSetupConfiguration()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
-            IVisualStudioSetupConfigurationFactory factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage");
+            var factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage");
 
-            CoverageReportConverter reporter = new CoverageReportConverter(factory);
+            var reporter = new CoverageReportConverter(factory);
 
             // Act
-            bool result = reporter.Initialize(logger);
+            var result = reporter.Initialize(logger);
 
             // Assert
             Assert.IsTrue(result);
@@ -175,14 +175,14 @@ echo success > """ + outputFilePath + @"""");
         public void Initialize_CanGetGetExeToolPathFromSetupConfigurationForBuildAgent()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
-            IVisualStudioSetupConfigurationFactory factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage.Msi");
+            var factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage.Msi");
 
-            CoverageReportConverter reporter = new CoverageReportConverter(factory);
+            var reporter = new CoverageReportConverter(factory);
 
             // Act
-            bool result = reporter.Initialize(logger);
+            var result = reporter.Initialize(logger);
 
             // Assert
             Assert.IsTrue(result);
@@ -192,9 +192,9 @@ echo success > """ + outputFilePath + @"""");
 
         private static IVisualStudioSetupConfigurationFactory CreateVisualStudioSetupConfigurationFactory(string packageId)
         {
-            int calls = 0;
-            int fetched = 1;
-            int noFetch = 0;
+            var calls = 0;
+            var fetched = 1;
+            var noFetch = 0;
 
             // We need to do this kind of trickery because Moq cannot setup a callback for a method with an out paramater.
             Func<ISetupInstance[], bool> setupInstance = (ISetupInstance[] instances) =>
@@ -231,18 +231,18 @@ echo success > """ + outputFilePath + @"""");
                 return (calls > 0);
             };
 
-            IEnumSetupInstances enumInstances = Mock.Of<IEnumSetupInstances>();
+            var enumInstances = Mock.Of<IEnumSetupInstances>();
             Mock.Get(enumInstances)
                 .Setup(_ => _.Next(It.IsAny<int>(), It.Is<ISetupInstance[]>(x => isSecondCall(x)), out noFetch));
             Mock.Get(enumInstances)
                 .Setup(_ => _.Next(It.IsAny<int>(), It.Is<ISetupInstance[]>(x => setupInstance(x)), out fetched));
 
-            ISetupConfiguration configuration = Mock.Of<ISetupConfiguration>();
+            var configuration = Mock.Of<ISetupConfiguration>();
             Mock.Get(configuration)
                 .Setup(_ => _.EnumInstances())
                 .Returns(enumInstances);
 
-            IVisualStudioSetupConfigurationFactory factory = Mock.Of<IVisualStudioSetupConfigurationFactory>();
+            var factory = Mock.Of<IVisualStudioSetupConfigurationFactory>();
             Mock.Get(factory)
                 .Setup(_ => _.GetSetupConfigurationQuery())
                 .Returns(configuration);
@@ -250,6 +250,6 @@ echo success > """ + outputFilePath + @"""");
             return factory;
         }
 
-        #endregion
+        #endregion Tests
     }
 }

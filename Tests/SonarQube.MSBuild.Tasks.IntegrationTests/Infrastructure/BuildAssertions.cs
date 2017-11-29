@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.Build.Execution;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Build.Execution;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests
 {
@@ -62,7 +62,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public static void AssertExpectedPropertyValue(ProjectInstance projectInstance, string propertyName, string expectedValue)
         {
-            ProjectPropertyInstance propertyInstance = projectInstance.GetProperty(propertyName);
+            var propertyInstance = projectInstance.GetProperty(propertyName);
             if (expectedValue == null &&
                 propertyInstance == null)
             {
@@ -75,9 +75,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         public static void AssertPropertyDoesNotExist(ProjectInstance projectInstance, string propertyName)
         {
-            ProjectPropertyInstance propertyInstance = projectInstance.GetProperty(propertyName);
+            var propertyInstance = projectInstance.GetProperty(propertyName);
 
-            string value = propertyInstance == null ? null : propertyInstance.EvaluatedValue;
+            var value = propertyInstance?.EvaluatedValue;
 
             Assert.IsNull(propertyInstance, "Not expecting the property to exist. Property: {0}, Value: {1}", propertyName, value);
         }
@@ -97,16 +97,15 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
             Assert.IsNotNull(actualResult.ProjectStateAfterBuild, "Test error: ProjectStateAfterBuild should not be null");
 
-            IEnumerable<ProjectItemInstance> matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(BuildTaskConstants.SettingItemName, settingName);
+            var matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(BuildTaskConstants.SettingItemName, settingName);
 
             Assert.AreNotEqual(0, matches.Count(), "Expected SonarQubeSetting with include value of '{0}' does not exist", settingName);
             Assert.AreEqual(1, matches.Count(), "Only expecting one SonarQubeSetting with include value of '{0}' to exist", settingName);
 
-            ProjectItemInstance item = matches.Single();
-            string value = item.GetMetadataValue(BuildTaskConstants.SettingValueMetadataName);
+            var item = matches.Single();
+            var value = item.GetMetadataValue(BuildTaskConstants.SettingValueMetadataName);
 
             Assert.AreEqual(expectedValue, value, "SonarQubeSetting with include value '{0}' does not have the expected value", settingName);
-
         }
 
         /// <summary>
@@ -116,7 +115,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             Assert.IsNotNull(actualResult.ProjectStateAfterBuild, "Test error: ProjectStateAfterBuild should not be null");
 
-            IEnumerable<ProjectItemInstance> matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(BuildTaskConstants.SettingItemName, settingName);
+            var matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(BuildTaskConstants.SettingItemName, settingName);
 
             Assert.AreEqual(0, matches.Count(), "Not expected SonarQubeSetting with include value of '{0}' to exist. Actual occurences: {1}", settingName, matches.Count());
         }
@@ -135,7 +134,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
             Assert.IsNotNull(actualResult.ProjectStateAfterBuild, "Test error: ProjectStateAfterBuild should not be null");
 
-            IEnumerable<ProjectItemInstance> matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(itemType, expectedValue);
+            var matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(itemType, expectedValue);
 
             Assert.AreEqual(1, matches.Count(), "Expecting one item of type '{0}' with value '{1}' to exist", itemType, expectedValue);
         }
@@ -154,7 +153,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
             Assert.IsNotNull(actualResult.ProjectStateAfterBuild, "Test error: ProjectStateAfterBuild should not be null");
 
-            IEnumerable<ProjectItemInstance> matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(itemType, itemValue);
+            var matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(itemType, itemValue);
 
             Assert.AreEqual(0, matches.Where(i => itemValue.Equals(i.EvaluatedInclude)),
                 "Not expecting any '{0}' items with value '{1}' to exist", itemType, itemValue);
@@ -170,7 +169,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             IEnumerable<ProjectItemInstance> matches = actualResult.ProjectStateAfterBuild.GetItems(itemType);
 
             BuildUtilities.LogMessage("<{0}> item values:", itemType);
-            foreach(ProjectItemInstance item in matches)
+            foreach(var item in matches)
             {
                 BuildUtilities.LogMessage("\t{0}", item.EvaluatedInclude);
             }
@@ -188,7 +187,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             AssertExpectedPropertyValue(actualResult.ProjectStateAfterBuild, TargetProperties.WarningLevel, "4");
         }
 
-        #endregion
+        #endregion Assertions
 
         #region Private methods
 
@@ -216,6 +215,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             }
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

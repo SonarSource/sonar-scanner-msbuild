@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarQube Scanner for MSBuild
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -45,7 +45,7 @@ namespace SonarQube.MSBuild.Tasks
 
         private readonly IEncodingProvider encodingProvider;
 
-        #endregion // Fields
+        #endregion Fields
 
         #region Constructors
 
@@ -59,7 +59,7 @@ namespace SonarQube.MSBuild.Tasks
             this.encodingProvider = encodingProvider ?? throw new ArgumentNullException(nameof(encodingProvider));
         }
 
-        #endregion // Constructors
+        #endregion Constructors
 
         #region Input properties
 
@@ -97,60 +97,60 @@ namespace SonarQube.MSBuild.Tasks
         [Required]
         public string OutputFolder { get; set; }
 
-        #endregion
+        #endregion Input properties
 
         #region Overrides
 
         public override bool Execute()
         {
-            ProjectInfo pi = new ProjectInfo
+            var pi = new ProjectInfo
             {
-                ProjectType = this.IsTest ? ProjectType.Test : ProjectType.Product,
-                IsExcluded = this.IsExcluded,
+                ProjectType = IsTest ? ProjectType.Test : ProjectType.Product,
+                IsExcluded = IsExcluded,
 
-                ProjectName = this.ProjectName,
-                FullPath = this.FullProjectPath,
-                ProjectLanguage = this.ProjectLanguage,
-                Encoding = ComputeEncoding(this.CodePage)?.WebName
+                ProjectName = ProjectName,
+                FullPath = FullProjectPath,
+                ProjectLanguage = ProjectLanguage,
+                Encoding = ComputeEncoding(CodePage)?.WebName
             };
 
             string guid = null;
-            if (!string.IsNullOrEmpty(this.ProjectGuid))
+            if (!string.IsNullOrEmpty(ProjectGuid))
             {
-                guid = this.ProjectGuid;
+                guid = ProjectGuid;
             }
-            else if (!string.IsNullOrEmpty(this.SolutionConfigurationContents))
+            else if (!string.IsNullOrEmpty(SolutionConfigurationContents))
             {
                 // Try to get GUID from the Solution
-                guid = XDocument.Parse(this.SolutionConfigurationContents)
+                guid = XDocument.Parse(SolutionConfigurationContents)
                         .Descendants("ProjectConfiguration")
-                        .Where(element => element.Attribute("AbsolutePath")?.Value == this.FullProjectPath)
+                        .Where(element => element.Attribute("AbsolutePath")?.Value == FullProjectPath)
                         .Select(element => element.Attribute("Project")?.Value)
                         .FirstOrDefault();
             }
             if (guid != null && Guid.TryParse(guid, out Guid projectId))
             {
                 pi.ProjectGuid = projectId;
-                pi.AnalysisResults = TryCreateAnalysisResults(this.AnalysisResults);
-                pi.AnalysisSettings = TryCreateAnalysisSettings(this.AnalysisSettings);
+                pi.AnalysisResults = TryCreateAnalysisResults(AnalysisResults);
+                pi.AnalysisSettings = TryCreateAnalysisSettings(AnalysisSettings);
 
-                string outputFileName = Path.Combine(this.OutputFolder, FileConstants.ProjectInfoFileName);
+                var outputFileName = Path.Combine(OutputFolder, FileConstants.ProjectInfoFileName);
                 pi.Save(outputFileName);
             }
             else
             {
-                this.Log.LogWarning(Resources.WPIF_MissingOrInvalidProjectGuid, this.FullProjectPath);
+                Log.LogWarning(Resources.WPIF_MissingOrInvalidProjectGuid, FullProjectPath);
             }
             return true;
         }
 
-        #endregion
+        #endregion Overrides
 
         #region Private methods
 
         private Encoding ComputeEncoding(string codePage)
         {
-            string cleanedCodePage = (codePage ?? string.Empty)
+            var cleanedCodePage = (codePage ?? string.Empty)
                 .Replace("\\", string.Empty)
                 .Replace("\"", string.Empty);
 
@@ -176,13 +176,13 @@ namespace SonarQube.MSBuild.Tasks
         /// </summary>
         private List<AnalysisResult> TryCreateAnalysisResults(ITaskItem[] resultItems)
         {
-            List<AnalysisResult> results = new List<AnalysisResult>();
+            var results = new List<AnalysisResult>();
 
             if (resultItems != null)
             {
-                foreach (ITaskItem resultItem in resultItems)
+                foreach (var resultItem in resultItems)
                 {
-                    AnalysisResult result = TryCreateResultFromItem(resultItem);
+                    var result = TryCreateResultFromItem(resultItem);
                     if (result != null)
                     {
                         results.Add(result);
@@ -202,24 +202,24 @@ namespace SonarQube.MSBuild.Tasks
 
             AnalysisResult result = null;
 
-            string id = taskItem.GetMetadata(BuildTaskConstants.ResultMetadataIdProperty);
+            var id = taskItem.GetMetadata(BuildTaskConstants.ResultMetadataIdProperty);
 
             if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(taskItem.ItemSpec))
             {
-                string path = taskItem.ItemSpec;
+                var path = taskItem.ItemSpec;
                 if (!Path.IsPathRooted(path))
                 {
-                    this.Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvingRelativePath, id, path);
-                    string projectDir = Path.GetDirectoryName(this.FullProjectPath);
-                    string absPath = Path.Combine(projectDir, path);
+                    Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvingRelativePath, id, path);
+                    var projectDir = Path.GetDirectoryName(FullProjectPath);
+                    var absPath = Path.Combine(projectDir, path);
                     if (File.Exists(absPath))
                     {
-                        this.Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvedPath, absPath);
+                        Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvedPath, absPath);
                         path = absPath;
                     }
                     else
                     {
-                        this.Log.LogMessage(MessageImportance.Low, Resources.WPIF_FailedToResolvePath, taskItem.ItemSpec);
+                        Log.LogMessage(MessageImportance.Low, Resources.WPIF_FailedToResolvePath, taskItem.ItemSpec);
                     }
                 }
 
@@ -237,13 +237,13 @@ namespace SonarQube.MSBuild.Tasks
         /// </summary>
         private AnalysisProperties TryCreateAnalysisSettings(ITaskItem[] resultItems)
         {
-            AnalysisProperties settings = new AnalysisProperties();
+            var settings = new AnalysisProperties();
 
             if (resultItems != null)
             {
-                foreach (ITaskItem resultItem in resultItems)
+                foreach (var resultItem in resultItems)
                 {
-                    Property result = TryCreateSettingFromItem(resultItem);
+                    var result = TryCreateSettingFromItem(resultItem);
                     if (result != null)
                     {
                         settings.Add(result);
@@ -261,23 +261,19 @@ namespace SonarQube.MSBuild.Tasks
         {
             Debug.Assert(taskItem != null, "Supplied task item should not be null");
 
-            Property setting = null;
-
-            if (TryGetSettingId(taskItem, out string settingId))
+            // No validation for the value: can be anything, but the
+            // "Value" metadata item must exist
+            if (TryGetSettingId(taskItem, out string settingId) &&
+                TryGetSettingValue(taskItem, out string settingValue))
             {
-                // No validation for the value: can be anything, but the
-                // "Value" metadata item must exist
-
-                if (TryGetSettingValue(taskItem, out string settingValue))
+                return new Property()
                 {
-                    setting = new Property()
-                    {
-                        Id = settingId,
-                        Value = settingValue
-                    };
-                }
+                    Id = settingId,
+                    Value = settingValue
+                };
             }
-            return setting;
+
+            return null;
         }
 
         /// <summary>
@@ -288,16 +284,16 @@ namespace SonarQube.MSBuild.Tasks
         {
             settingId = null;
 
-            string possibleKey = taskItem.ItemSpec;
+            var possibleKey = taskItem.ItemSpec;
 
-            bool isValid = Property.IsValidKey(possibleKey);
+            var isValid = Property.IsValidKey(possibleKey);
             if (isValid)
             {
                 settingId = possibleKey;
             }
             else
             {
-                this.Log.LogWarning(Resources.WPIF_WARN_InvalidSettingKey, possibleKey);
+                Log.LogWarning(Resources.WPIF_WARN_InvalidSettingKey, possibleKey);
             }
             return isValid;
         }
@@ -316,7 +312,7 @@ namespace SonarQube.MSBuild.Tasks
 
             if (metadataValue == string.Empty)
             {
-                this.Log.LogWarning(Resources.WPIF_WARN_MissingValueMetadata, taskItem.ItemSpec);
+                Log.LogWarning(Resources.WPIF_WARN_MissingValueMetadata, taskItem.ItemSpec);
                 success = false;
             }
             else
@@ -326,6 +322,6 @@ namespace SonarQube.MSBuild.Tasks
             return success;
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

@@ -17,10 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System;
+using System.Globalization;
 using Microsoft.TeamFoundation.Build.Client;
 using Microsoft.TeamFoundation.Client;
-using System;
 
 namespace SonarQube.TeamBuild.Integration
 {
@@ -41,7 +42,7 @@ namespace SonarQube.TeamBuild.Integration
         /// </summary>
         private const string SectionName = "SonarTeamBuildSummary";
 
-        bool disposed;
+        private bool disposed;
 
         private readonly string tfsUri;
         private readonly string buildUri;
@@ -76,50 +77,50 @@ namespace SonarQube.TeamBuild.Integration
                 throw new ArgumentNullException("message");
             }
 
-            string finalMessage = message;
+            var finalMessage = message;
             if (args != null && args.Length > 0)
             {
-                finalMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args);
+                finalMessage = string.Format(CultureInfo.CurrentCulture, message, args);
             }
 
-            this.EnsureConnected();
-            this.build.Information.AddCustomSummaryInformation(finalMessage, SectionName, Resources.SonarQubeSummarySectionHeader, SectionPriority).Save();
+            EnsureConnected();
+            build.Information.AddCustomSummaryInformation(finalMessage, SectionName, Resources.SonarQubeSummarySectionHeader,
+                SectionPriority).Save();
         }
 
-        #endregion
+        #endregion Public methods
 
         #region IDisposable interface
 
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed && disposing && this.teamProjectCollection != null)
+            if (!disposed && disposing && teamProjectCollection != null)
             {
-                this.build.Save();
+                build.Save();
 
-                this.teamProjectCollection.Dispose();
-                this.teamProjectCollection = null;
-                this.build = null;
+                teamProjectCollection.Dispose();
+                teamProjectCollection = null;
+                build = null;
             }
 
-            this.disposed = true;
+            disposed = true;
         }
 
-        #endregion
+        #endregion IDisposable interface
 
         private void EnsureConnected()
         {
-            if (this.teamProjectCollection == null)
+            if (teamProjectCollection == null)
             {
-                this.teamProjectCollection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(this.tfsUri));
-                this.build = teamProjectCollection.GetService<IBuildServer>().GetBuild(new Uri(this.buildUri));
+                teamProjectCollection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(tfsUri));
+                build = teamProjectCollection.GetService<IBuildServer>().GetBuild(new Uri(buildUri));
             }
-
         }
     }
 }

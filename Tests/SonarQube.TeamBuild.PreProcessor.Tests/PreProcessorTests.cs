@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -36,9 +35,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     {
         public TestContext TestContext { get; set; }
 
-        #region Setup
 
-        #endregion
 
         #region Tests
 
@@ -46,9 +43,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void PreProc_InvalidArgs()
         {
             // Arrange
-            MockSonarQubeServer mockServer = new MockSonarQubeServer();
+            var mockServer = new MockSonarQubeServer();
 
-            TeamBuildPreProcessor preprocessor = new TeamBuildPreProcessor(
+            var preprocessor = new TeamBuildPreProcessor(
                 new MockObjectFactory(mockServer, new Mock<ITargetsInstaller>().Object, new MockRoslynAnalyzerProvider()),
                 new TestLogger());
 
@@ -67,13 +64,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // * config file is created
 
             // Arrange
-            string workingDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            TestLogger logger = new TestLogger();
+            var workingDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var logger = new TestLogger();
 
             // Configure the server
-            MockSonarQubeServer mockServer = new MockSonarQubeServer();
+            var mockServer = new MockSonarQubeServer();
 
-            ServerDataModel data = mockServer.Data;
+            var data = mockServer.Data;
             data.ServerProperties.Add("server.key", "server value 1");
 
             data.Languages.Add("cs");
@@ -88,7 +85,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 .AddProject("key")
                 .AddRule(new ActiveRule("vbnet", "vb.rule3"));
 
-            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider
+            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
             {
                 SettingsToReturn = new AnalyzerSettings
                 {
@@ -96,8 +93,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 }
             };
 
-            Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
-            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
+            var mockTargetsInstaller = new Mock<ITargetsInstaller>();
+            var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
             TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
@@ -107,10 +104,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 Assert.AreEqual(BuildEnvironment.NotTeamBuild, settings.BuildEnvironment, "Test setup error: build environment was not set correctly");
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                bool success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
+                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
                 Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
             }
 
@@ -138,13 +135,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // * config file is created
 
             // Arrange
-            string workingDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            TestLogger logger = new TestLogger();
+            var workingDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var logger = new TestLogger();
 
             // Configure the server
-            MockSonarQubeServer mockServer = new MockSonarQubeServer();
+            var mockServer = new MockSonarQubeServer();
 
-            ServerDataModel data = mockServer.Data;
+            var data = mockServer.Data;
             data.ServerProperties.Add("server.key", "server value 1");
 
             data.Languages.Add("cs");
@@ -159,7 +156,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 .AddProject("key")
                 .AddRule(new ActiveRule("vbnet", "vb.rule3"));
 
-            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider
+            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
             {
                 SettingsToReturn = new AnalyzerSettings
                 {
@@ -167,8 +164,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 }
             };
 
-            Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
-            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
+            var mockTargetsInstaller = new Mock<ITargetsInstaller>();
+            var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
             TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
@@ -178,10 +175,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 Assert.AreEqual(BuildEnvironment.NotTeamBuild, settings.BuildEnvironment, "Test setup error: build environment was not set correctly");
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                bool success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization"));
+                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization"));
                 Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
             }
 
@@ -202,18 +199,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void PreProc_NoPlugin()
         {
             // Arrange
-            string workingDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            TestLogger logger = new TestLogger();
+            var workingDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var logger = new TestLogger();
 
             // Configure the server
-            MockSonarQubeServer mockServer = new MockSonarQubeServer();
+            var mockServer = new MockSonarQubeServer();
 
-            ServerDataModel data = mockServer.Data;
+            var data = mockServer.Data;
             data.ServerProperties.Add("server.key", "server value 1");
 
             data.Languages.Add("invalid_plugin");
 
-            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider
+            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
             {
                 SettingsToReturn = new AnalyzerSettings
                 {
@@ -221,8 +218,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 }
             };
 
-            Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
-            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
+            var mockTargetsInstaller = new Mock<ITargetsInstaller>();
+            var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
             TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
@@ -232,10 +229,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 Assert.AreEqual(BuildEnvironment.NotTeamBuild, settings.BuildEnvironment, "Test setup error: build environment was not set correctly");
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                bool success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
+                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
                 Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
             }
 
@@ -259,13 +256,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void PreProc_NoProject()
         {
             // Arrange
-            string workingDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            TestLogger logger = new TestLogger();
+            var workingDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var logger = new TestLogger();
 
             // Configure the server
-            MockSonarQubeServer mockServer = new MockSonarQubeServer();
+            var mockServer = new MockSonarQubeServer();
 
-            ServerDataModel data = mockServer.Data;
+            var data = mockServer.Data;
             data.ServerProperties.Add("server.key", "server value 1");
 
             data.Languages.Add("cs");
@@ -282,7 +279,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule1"))
                 .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule2"));
 
-            MockRoslynAnalyzerProvider mockAnalyzerProvider = new MockRoslynAnalyzerProvider
+            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
             {
                 SettingsToReturn = new AnalyzerSettings
                 {
@@ -290,8 +287,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 }
             };
 
-            Mock<ITargetsInstaller> mockTargetsInstaller = new Mock<ITargetsInstaller>();
-            MockObjectFactory mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
+            var mockTargetsInstaller = new Mock<ITargetsInstaller>();
+            var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
 
             TeamBuildSettings settings;
             using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
@@ -301,10 +298,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
                 Assert.AreEqual(BuildEnvironment.NotTeamBuild, settings.BuildEnvironment, "Test setup error: build environment was not set correctly");
 
-                TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                bool success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", null));
+                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", null));
                 Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
             }
 
@@ -328,7 +325,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         #region Setup
 
-        string[] CreateValidArgs(string projectKey, string projectName, string projectVersion)
+        private string[] CreateValidArgs(string projectKey, string projectName, string projectVersion)
         {
             return new string[] {
                 "/k:" + projectKey, "/n:" + projectName, "/v:" + projectVersion,
@@ -337,7 +334,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 "/d:sonar.log.level=INFO|DEBUG"};
         }
 
-        string[] CreateValidArgs(string projectKey, string projectName, string projectVersion, string organization)
+        private string[] CreateValidArgs(string projectKey, string projectName, string projectVersion, string organization)
         {
             return new string[] {
                 "/k:" + projectKey, "/n:" + projectName, "/v:" + projectVersion, "/o:" + organization,
@@ -346,7 +343,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 "/d:sonar.log.level=INFO|DEBUG"};
         }
 
-        #endregion
+        #endregion Setup
 
         #region Checks
 
@@ -365,7 +362,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertVerbosity(LoggerVerbosity.Debug);
 
             AssertConfigFileExists(filePath);
-            AnalysisConfig actualConfig = AnalysisConfig.Load(filePath);
+            var actualConfig = AnalysisConfig.Load(filePath);
 
             Assert.AreEqual("key", actualConfig.SonarProjectKey, "Unexpected project key");
             Assert.AreEqual("name", actualConfig.SonarProjectName, "Unexpected project name");
@@ -382,19 +379,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         private void AssertConfigFileExists(string filePath)
         {
             Assert.IsTrue(File.Exists(filePath), "Expecting the analysis config file to exist. Path: {0}", filePath);
-            this.TestContext.AddResultFile(filePath);
+            TestContext.AddResultFile(filePath);
         }
 
         private void AssertDirectoryContains(string dirPath, params string[] fileNames)
         {
             Directory.Exists(dirPath);
-            IEnumerable<string> actualFileNames = Directory.GetFiles(dirPath).Select(f => Path.GetFileName(f));
+            var actualFileNames = Directory.GetFiles(dirPath).Select(f => Path.GetFileName(f));
             CollectionAssert.AreEqual(fileNames, actualFileNames.ToArray());
         }
 
         private static void AssertExpectedLocalSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
-            bool found = Property.TryGetProperty(key, actualConfig.LocalSettings, out Property actualProperty);
+            var found = Property.TryGetProperty(key, actualConfig.LocalSettings, out Property actualProperty);
 
             Assert.IsTrue(found, "Failed to find the expected local setting: {0}", key);
             Assert.AreEqual(expectedValue, actualProperty.Value, "Unexpected property value. Key: {0}", key);
@@ -402,7 +399,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
-            bool found = Property.TryGetProperty(key, actualConfig.ServerSettings, out Property actualProperty);
+            var found = Property.TryGetProperty(key, actualConfig.ServerSettings, out Property actualProperty);
 
             Assert.IsTrue(found, "Failed to find the expected server setting: {0}", key);
             Assert.AreEqual(expectedValue, actualProperty.Value, "Unexpected property value. Key: {0}", key);
@@ -415,11 +412,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static string AssertFileExists(string directory, string fileName)
         {
-            string fullPath = Path.Combine(directory, fileName);
+            var fullPath = Path.Combine(directory, fileName);
             Assert.IsTrue(File.Exists(fullPath), "Expected file does not exist");
             return fullPath;
         }
 
-        #endregion
+        #endregion Checks
     }
 }

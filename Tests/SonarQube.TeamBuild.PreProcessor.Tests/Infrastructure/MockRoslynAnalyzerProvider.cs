@@ -17,28 +17,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.PreProcessor.Roslyn;
 using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
-using System.Collections.Generic;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
     internal class MockRoslynAnalyzerProvider : IAnalyzerProvider
     {
-
         #region Test helpers
 
         public AnalyzerSettings SettingsToReturn { get; set; }
 
-        #endregion
+        #endregion Test helpers
 
         #region IAnalyzerProvider methods
 
-        AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings, 
+        AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings,
             IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules, string pluginKey)
         {
             Assert.IsNotNull(settings);
@@ -48,6 +46,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return SettingsToReturn;
         }
 
-        #endregion
+        #endregion IAnalyzerProvider methods
     }
 }

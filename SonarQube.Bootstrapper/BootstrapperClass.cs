@@ -17,15 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.Integration.Interfaces;
-using SonarQube.TeamBuild.PostProcessor.Interfaces;
-using SonarQube.TeamBuild.PreProcessor;
+
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.Bootstrapper
 {
@@ -34,18 +32,18 @@ namespace SonarQube.Bootstrapper
         public const int ErrorCode = 1;
         public const int SuccessCode = 0;
 
-        private readonly IProcessorFactory ProcessorFactory;
-        private readonly IBootstrapperSettings BootstrapSettings;
-        private readonly ILogger Logger;
+        private readonly IProcessorFactory processorFactory;
+        private readonly IBootstrapperSettings bootstrapSettings;
+        private readonly ILogger logger;
 
         public BootstrapperClass(IProcessorFactory processorFactory, IBootstrapperSettings bootstrapSettings, ILogger logger)
         {
-            this.ProcessorFactory = processorFactory;
-            this.BootstrapSettings = bootstrapSettings;
-            this.Logger = logger;
+            this.processorFactory = processorFactory;
+            this.bootstrapSettings = bootstrapSettings;
+            this.logger = logger;
 
-            Debug.Assert(BootstrapSettings != null, "Bootstrapper settings should not be null");
-            Debug.Assert(BootstrapSettings.Phase != AnalysisPhase.Unspecified, "Expecting the processing phase to be specified");
+            Debug.Assert(this.bootstrapSettings != null, "Bootstrapper settings should not be null");
+            Debug.Assert(this.bootstrapSettings.Phase != AnalysisPhase.Unspecified, "Expecting the processing phase to be specified");
         }
 
         /// <summary>
@@ -55,10 +53,10 @@ namespace SonarQube.Bootstrapper
         {
             int exitCode;
 
-            Logger.Verbosity = BootstrapSettings.LoggingVerbosity;
-            Logger.ResumeOutput();
+            logger.Verbosity = bootstrapSettings.LoggingVerbosity;
+            logger.ResumeOutput();
 
-            AnalysisPhase phase = BootstrapSettings.Phase;
+            var phase = bootstrapSettings.Phase;
             LogProcessingStarted(phase);
 
             try
@@ -71,11 +69,10 @@ namespace SonarQube.Bootstrapper
                 {
                     exitCode = PostProcess();
                 }
-
             }
             catch (AnalysisException ex)
             {
-                Logger.LogError(ex.Message);
+                logger.LogError(ex.Message);
                 exitCode = ErrorCode;
             }
 
@@ -85,35 +82,35 @@ namespace SonarQube.Bootstrapper
 
         private int PreProcess()
         {
-            Logger.LogInfo(Resources.MSG_PreparingDirectories);
-            if (!Utilities.TryEnsureEmptyDirectories(Logger, BootstrapSettings.TempDirectory))
+            logger.LogInfo(Resources.MSG_PreparingDirectories);
+            if (!Utilities.TryEnsureEmptyDirectories(logger, bootstrapSettings.TempDirectory))
             {
                 return ErrorCode;
             }
 
             CopyDLLs();
-            Logger.IncludeTimestamp = true;
+            logger.IncludeTimestamp = true;
 
-            ITeamBuildPreProcessor preProcessor = ProcessorFactory.CreatePreProcessor();
-            Directory.SetCurrentDirectory(BootstrapSettings.TempDirectory);
-            bool success = preProcessor.Execute(BootstrapSettings.ChildCmdLineArgs.ToArray());
+            var preProcessor = processorFactory.CreatePreProcessor();
+            Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
+            var success = preProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray());
 
             return success ? SuccessCode : ErrorCode;
         }
 
         private int PostProcess()
         {
-            Logger.IncludeTimestamp = true;
+            logger.IncludeTimestamp = true;
 
-            if (!Directory.Exists(BootstrapSettings.TempDirectory))
+            if (!Directory.Exists(bootstrapSettings.TempDirectory))
             {
-                Logger.LogError(Resources.ERROR_TempDirDoesNotExist);
+                logger.LogError(Resources.ERROR_TempDirDoesNotExist);
                 return ErrorCode;
             }
 
-            Directory.SetCurrentDirectory(BootstrapSettings.TempDirectory);
-            ITeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(Logger);
-            AnalysisConfig config = GetAnalysisConfig(teamBuildSettings.AnalysisConfigFilePath);
+            Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
+            ITeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+            var config = GetAnalysisConfig(teamBuildSettings.AnalysisConfigFilePath);
 
             bool succeeded;
             if (config == null)
@@ -122,8 +119,8 @@ namespace SonarQube.Bootstrapper
             }
             else
             {
-                IMSBuildPostProcessor postProcessor = ProcessorFactory.CreatePostProcessor();
-                succeeded = postProcessor.Execute(BootstrapSettings.ChildCmdLineArgs.ToArray(), config, teamBuildSettings);
+                var postProcessor = processorFactory.CreatePostProcessor();
+                succeeded = postProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray(), config, teamBuildSettings);
             }
 
             return succeeded ? SuccessCode : ErrorCode;
@@ -134,13 +131,13 @@ namespace SonarQube.Bootstrapper
         /// </summary>
         private void CopyDLLs()
         {
-            string binDirPath = Path.Combine(BootstrapSettings.TempDirectory, "bin");
+            var binDirPath = Path.Combine(bootstrapSettings.TempDirectory, "bin");
             Directory.CreateDirectory(binDirPath);
             string[] dllsToCopy = { "SonarQube.Common.dll", "SonarQube.Integration.Tasks.dll" };
 
-            foreach (string dll in dllsToCopy)
+            foreach (var dll in dllsToCopy)
             {
-                string dllPath = Path.Combine(BootstrapSettings.ScannerBinaryDirPath, dll);
+                var dllPath = Path.Combine(bootstrapSettings.ScannerBinaryDirPath, dll);
                 File.Copy(dllPath, Path.Combine(binDirPath, dll));
             }
         }
@@ -164,7 +161,7 @@ namespace SonarQube.Bootstrapper
                 }
                 else
                 {
-                    Logger.LogError(Resources.ERROR_ConfigFileNotFound, configFilePath);
+                    logger.LogError(Resources.ERROR_ConfigFileNotFound, configFilePath);
                 }
             }
             return config;
@@ -172,20 +169,20 @@ namespace SonarQube.Bootstrapper
 
         private void LogProcessingStarted(AnalysisPhase phase)
         {
-            string phaseLabel = phase == AnalysisPhase.PreProcessing ? Resources.PhaseLabel_PreProcessing : Resources.PhaseLabel_PostProcessing;
-            Logger.LogInfo(Resources.MSG_ProcessingStarted, phaseLabel);
+            var phaseLabel = phase == AnalysisPhase.PreProcessing ? Resources.PhaseLabel_PreProcessing : Resources.PhaseLabel_PostProcessing;
+            logger.LogInfo(Resources.MSG_ProcessingStarted, phaseLabel);
         }
 
         private void LogProcessingCompleted(AnalysisPhase phase, int exitCode)
         {
-            string phaseLabel = phase == AnalysisPhase.PreProcessing ? Resources.PhaseLabel_PreProcessing : Resources.PhaseLabel_PostProcessing;
+            var phaseLabel = phase == AnalysisPhase.PreProcessing ? Resources.PhaseLabel_PreProcessing : Resources.PhaseLabel_PostProcessing;
             if (exitCode == ProcessRunner.ErrorCode)
             {
-                Logger.LogError(Resources.ERROR_ProcessingFailed, phaseLabel, exitCode);
+                logger.LogError(Resources.ERROR_ProcessingFailed, phaseLabel, exitCode);
             }
             else
             {
-                Logger.LogInfo(Resources.MSG_ProcessingSucceeded, phaseLabel);
+                logger.LogInfo(Resources.MSG_ProcessingSucceeded, phaseLabel);
             }
         }
     }

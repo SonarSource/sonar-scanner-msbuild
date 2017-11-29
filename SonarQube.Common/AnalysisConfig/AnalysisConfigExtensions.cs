@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,7 +30,6 @@ namespace SonarQube.Common
     /// </summary>
     public static class ConfigSettingsExtensions
     {
-
         /// <summary>
         /// The key for the setting that holds the path to a settings file
         /// </summary>
@@ -52,7 +51,7 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("settingId");
             }
 
-            string result = defaultValue;
+            var result = defaultValue;
 
             if (config.TryGetConfigSetting(settingId, out ConfigSetting setting))
             {
@@ -82,7 +81,7 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("config");
             }
 
-            List<IAnalysisPropertyProvider> providers = new List<IAnalysisPropertyProvider>();
+            var providers = new List<IAnalysisPropertyProvider>();
 
             // Note: the order in which the providers are added determines the precedence
             // Add local settings
@@ -92,10 +91,10 @@ namespace SonarQube.Common
             }
 
             // Add file settings
-            string settingsFilePath = config.GetSettingsFilePath();
+            var settingsFilePath = config.GetSettingsFilePath();
             if (settingsFilePath != null)
             {
-                ListPropertiesProvider fileProvider = new ListPropertiesProvider(AnalysisProperties.Load(settingsFilePath));
+                var fileProvider = new ListPropertiesProvider(AnalysisProperties.Load(settingsFilePath));
                 providers.Add(fileProvider);
             }
 
@@ -117,9 +116,11 @@ namespace SonarQube.Common
                 case 0:
                     provider = EmptyPropertyProvider.Instance;
                     break;
+
                 case 1:
                     provider = providers[0];
                     break;
+
                 default:
                     provider = new AggregatePropertiesProvider(providers.ToArray());
                     break;
@@ -155,7 +156,7 @@ namespace SonarQube.Common
             return null;
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Private methods
 
@@ -211,6 +212,6 @@ namespace SonarQube.Common
             config.AdditionalConfig.Add(setting);
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System.Reflection;
 
-// General Information about an assembly is controlled through the following 
+// General Information about an assembly is controlled through the following
 
 [assembly: AssemblyTitle("SonarQube.TeamBuild.PostProcessor.Tests")]
 [assembly: AssemblyProduct("SonarQube.TeamBuild.PostProcessor.Tests")]

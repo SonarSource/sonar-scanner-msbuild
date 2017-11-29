@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -42,8 +42,8 @@ namespace SonarQube.Common
         {
             public Message(MessageType messageType, string finalMessage)
             {
-                this.MessageType = messageType;
-                this.FinalMessage = finalMessage;
+                MessageType = messageType;
+                FinalMessage = finalMessage;
             }
 
             public MessageType MessageType { get; }
@@ -81,9 +81,9 @@ namespace SonarQube.Common
 
         private ConsoleLogger(bool includeTimestamp, IOutputWriter writer)
         {
-            this.IncludeTimestamp = includeTimestamp;
-            this.Verbosity = DefaultVerbosity;
-            this.outputWriter = writer;
+            IncludeTimestamp = includeTimestamp;
+            Verbosity = DefaultVerbosity;
+            outputWriter = writer;
         }
 
         /// <summary>
@@ -93,18 +93,18 @@ namespace SonarQube.Common
 
         public void SuspendOutput()
         {
-            if (!this.isOutputSuspended)
+            if (!isOutputSuspended)
             {
-                this.isOutputSuspended = true;
-                this.suspendedMessages = new List<Message>();
+                isOutputSuspended = true;
+                suspendedMessages = new List<Message>();
             }
         }
 
         public void ResumeOutput()
         {
-            if (this.isOutputSuspended)
+            if (isOutputSuspended)
             {
-                this.FlushOutput();
+                FlushOutput();
             }
         }
 
@@ -114,27 +114,27 @@ namespace SonarQube.Common
 
         public void LogWarning(string message, params object[] args)
         {
-            string finalMessage = this.GetFormattedMessage(Resources.Logger_WarningPrefix + message, args);
+            var finalMessage = GetFormattedMessage(Resources.Logger_WarningPrefix + message, args);
 
-            this.Write(MessageType.Warning, finalMessage);
+            Write(MessageType.Warning, finalMessage);
         }
 
         public void LogError(string message, params object[] args)
         {
-            this.Write(MessageType.Error, message, args);
+            Write(MessageType.Error, message, args);
         }
 
         public void LogDebug(string message, params object[] args)
         {
-            if (this.Verbosity == LoggerVerbosity.Debug)
+            if (Verbosity == LoggerVerbosity.Debug)
             {
-                this.Write(MessageType.Debug, message, args);
+                Write(MessageType.Debug, message, args);
             }
         }
 
         public void LogInfo(string message, params object[] args)
         {
-            this.Write(MessageType.Info, message, args);
+            Write(MessageType.Info, message, args);
         }
 
         public LoggerVerbosity Verbosity
@@ -148,32 +148,33 @@ namespace SonarQube.Common
 
         private string GetFormattedMessage(string message, params object[] args)
         {
-            string finalMessage = message;
+            var finalMessage = message;
             if (args != null && args.Length > 0)
             {
                 finalMessage = string.Format(CultureInfo.CurrentCulture, finalMessage ?? string.Empty, args);
             }
 
-            if (this.IncludeTimestamp)
+            if (IncludeTimestamp)
             {
-                finalMessage = string.Format(CultureInfo.CurrentCulture, "{0}  {1}", System.DateTime.Now.ToString("HH:mm:ss.FFF", CultureInfo.InvariantCulture), finalMessage);
+                finalMessage = string.Format(CultureInfo.CurrentCulture, "{0}  {1}", System.DateTime.Now.ToString("HH:mm:ss.FFF",
+                    CultureInfo.InvariantCulture), finalMessage);
             }
             return finalMessage;
         }
 
         private void FlushOutput()
         {
-            Debug.Assert(this.isOutputSuspended, "Not expecting FlushOutput to be called unless output is currently suspended");
-            Debug.Assert(this.suspendedMessages != null);
+            Debug.Assert(isOutputSuspended, "Not expecting FlushOutput to be called unless output is currently suspended");
+            Debug.Assert(suspendedMessages != null);
 
-            this.isOutputSuspended = false;
+            isOutputSuspended = false;
 
-            foreach(Message message in this.suspendedMessages)
+            foreach(var message in suspendedMessages)
             {
-                this.Write(message.MessageType, message.FinalMessage);
+                Write(message.MessageType, message.FinalMessage);
             }
 
-            this.suspendedMessages = null;
+            suspendedMessages = null;
         }
 
         /// <summary>
@@ -182,24 +183,23 @@ namespace SonarQube.Common
         /// </summary>
         private void Write(MessageType messageType, string message, params object[] args)
         {
-            string finalMessage = this.GetFormattedMessage(message, args);
+            var finalMessage = GetFormattedMessage(message, args);
 
-            if (this.isOutputSuspended)
+            if (isOutputSuspended)
             {
-                this.suspendedMessages.Add(new Message(messageType, finalMessage));
+                suspendedMessages.Add(new Message(messageType, finalMessage));
             }
             else
             {
-                ConsoleColor textColor = GetConsoleColor(messageType);
+                var textColor = GetConsoleColor(messageType);
 
-                Debug.Assert(this.outputWriter != null, "OutputWriter should not be null");
-                this.outputWriter.WriteLine(finalMessage, textColor, messageType == MessageType.Error);
+                Debug.Assert(outputWriter != null, "OutputWriter should not be null");
+                outputWriter.WriteLine(finalMessage, textColor, messageType == MessageType.Error);
             }
         }
 
         private ConsoleColor GetConsoleColor(MessageType messageType)
         {
-
             switch (messageType)
             {
                 case MessageType.Debug:

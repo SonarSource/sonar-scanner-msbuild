@@ -17,14 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Interfaces;
+
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.TeamBuild.Integration
 {
@@ -40,7 +39,8 @@ namespace SonarQube.TeamBuild.Integration
         {
         }
 
-        public TfsLegacyCoverageReportProcessor(ICoverageUrlProvider urlProvider, ICoverageReportDownloader downloader, ICoverageReportConverter converter) // was internal
+        public TfsLegacyCoverageReportProcessor(ICoverageUrlProvider urlProvider, ICoverageReportDownloader downloader,
+            ICoverageReportConverter converter) // was internal
             : base(converter)
         {
             this.urlProvider = urlProvider ?? throw new ArgumentNullException("urlProvider");
@@ -49,12 +49,13 @@ namespace SonarQube.TeamBuild.Integration
 
         #region Virtual methods
 
-        protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath)
+        protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger,
+            out string binaryFilePath)
         {
-            IEnumerable<string> urls = this.urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri(), logger);
+            var urls = urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri(), logger);
             Debug.Assert(urls != null, "Not expecting the returned list of urls to be null");
 
-            bool continueProcessing = true;
+            var continueProcessing = true;
             binaryFilePath = null;
 
             switch (urls.Count())
@@ -64,10 +65,10 @@ namespace SonarQube.TeamBuild.Integration
                     break;
 
                 case 1:
-                    string url = urls.First();
+                    var url = urls.First();
 
-                    string targetFileName = Path.Combine(config.SonarOutputDir, DownloadFileName);
-                    bool result = this.downloader.DownloadReport(config.GetTfsUri(), url, targetFileName, logger);
+                    var targetFileName = Path.Combine(config.SonarOutputDir, DownloadFileName);
+                    var result = downloader.DownloadReport(config.GetTfsUri(), url, targetFileName, logger);
 
                     if (result)
                     {
@@ -89,6 +90,6 @@ namespace SonarQube.TeamBuild.Integration
             return continueProcessing;
         }
 
-        #endregion
+        #endregion Virtual methods
     }
 }

@@ -17,13 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using SonarQube.Common;
 
 namespace SonarQube.Bootstrapper
 {
@@ -94,16 +94,15 @@ namespace SonarQube.Bootstrapper
 
             settings = null;
 
-
             // This call will fail if there are duplicate or missing arguments
-            CommandLineParser parser = new CommandLineParser(Descriptors, true /* allow unrecognized arguments*/);
-            bool parsedOk = parser.ParseArguments(commandLineArgs, logger, out IEnumerable<ArgumentInstance> arguments);
+            var parser = new CommandLineParser(Descriptors, true /* allow unrecognized arguments*/);
+            var parsedOk = parser.ParseArguments(commandLineArgs, logger, out IEnumerable<ArgumentInstance> arguments);
 
             // Handler for command line analysis properties
             parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out IAnalysisPropertyProvider cmdLineProperties);
 
             // Handler for property file
-            string asmPath = Path.GetDirectoryName(typeof(Bootstrapper.ArgumentProcessor).Assembly.Location);
+            var asmPath = Path.GetDirectoryName(typeof(Bootstrapper.ArgumentProcessor).Assembly.Location);
             parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out IAnalysisPropertyProvider globalFileProperties);
 
             parsedOk &= TryGetPhase(commandLineArgs.Length, arguments, logger, out AnalysisPhase phase);
@@ -117,7 +116,7 @@ namespace SonarQube.Bootstrapper
                 Debug.Assert(globalFileProperties != null);
                 IAnalysisPropertyProvider properties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties);
 
-                IList<string> baseChildArgs = RemoveBootstrapperArgs(commandLineArgs);
+                var baseChildArgs = RemoveBootstrapperArgs(commandLineArgs);
 
                 if (phase == AnalysisPhase.PreProcessing)
                 {
@@ -139,8 +138,8 @@ namespace SonarQube.Bootstrapper
         private static bool TryGetPhase(int originalArgCount, IEnumerable<ArgumentInstance> arguments, ILogger logger, out AnalysisPhase phase)
         {
             // The command line parser will already have checked for duplicates
-            bool hasBeginVerb = ArgumentInstance.TryGetArgument(BeginId, arguments, out ArgumentInstance argumentInstance);
-            bool hasEndVerb = ArgumentInstance.TryGetArgument(EndId, arguments, out argumentInstance);
+            var hasBeginVerb = ArgumentInstance.TryGetArgument(BeginId, arguments, out ArgumentInstance argumentInstance);
+            var hasEndVerb = ArgumentInstance.TryGetArgument(EndId, arguments, out argumentInstance);
 
             if (hasBeginVerb && hasEndVerb) // both
             {
@@ -166,8 +165,7 @@ namespace SonarQube.Bootstrapper
             // If we're using the default properties file then we need to pass it
             // explicitly to the pre-processor (it's in a different folder and won't
             // be able to find it otherwise).
-            FilePropertyProvider fileProvider = globalFileProperties as FilePropertyProvider;
-            if (fileProvider != null && fileProvider.IsDefaultSettingsFile)
+            if (globalFileProperties is FilePropertyProvider fileProvider && fileProvider.IsDefaultSettingsFile)
             {
                 Debug.Assert(fileProvider.PropertiesFile != null);
                 Debug.Assert(!string.IsNullOrEmpty(fileProvider.PropertiesFile.FilePath), "Expecting the properties file path to be set");

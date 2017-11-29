@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,20 +56,20 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
                 throw new ArgumentNullException(nameof(language));
             }
 
-            Dictionary<string, List<ActiveRule>> activeRulesByPartialRepoKey = ActiveRoslynRulesByPartialRepoKey(activeRules, language);
-            Dictionary<string, List<string>> inactiveRulesByRepoKey = GetInactiveRulesByRepoKey(inactiveRules);
+            var activeRulesByPartialRepoKey = ActiveRoslynRulesByPartialRepoKey(activeRules, language);
+            var inactiveRulesByRepoKey = GetInactiveRulesByRepoKey(inactiveRules);
 
-            RuleSet ruleSet = new RuleSet
+            var ruleSet = new RuleSet
             {
                 Name = "Rules for SonarQube",
                 Description = "This rule set was automatically generated from SonarQube",
                 ToolsVersion = "14.0"
             };
 
-            foreach (KeyValuePair<string, List<ActiveRule>> entry in activeRulesByPartialRepoKey)
+            foreach (var entry in activeRulesByPartialRepoKey)
             {
-                Rules rules = new Rules();
-                string repoKey = entry.Value.First().RepoKey;
+                var rules = new Rules();
+                var repoKey = entry.Value.First().RepoKey;
                 rules.AnalyzerId = MandatoryPropertyValue(AnalyzerIdPropertyKey(entry.Key));
                 rules.RuleNamespace = MandatoryPropertyValue(RuleNamespacePropertyKey(entry.Key));
 
@@ -89,8 +89,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
 
         private static Dictionary<string, List<string>> GetInactiveRulesByRepoKey(IEnumerable<string> inactiveRules)
         {
-            Dictionary<string, List<string>> dict = new Dictionary<string, List<string>>();
-            foreach (string r in inactiveRules)
+            var dict = new Dictionary<string, List<string>>();
+            foreach (var r in inactiveRules)
             {
                 ParseRuleKey(r, out string repo, out string key);
                 AddDict(dict, repo, key);
@@ -100,20 +100,21 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
 
         private static void ParseRuleKey(string keyWithRepo, out string repo, out string key)
         {
-            int pos = keyWithRepo.IndexOf(':');
+            var pos = keyWithRepo.IndexOf(':');
             repo = keyWithRepo.Substring(0, pos);
             key = keyWithRepo.Substring(pos + 1);
         }
 
-        private static Dictionary<string, List<ActiveRule>> ActiveRoslynRulesByPartialRepoKey(IEnumerable<ActiveRule> activeRules, string language)
+        private static Dictionary<string, List<ActiveRule>> ActiveRoslynRulesByPartialRepoKey(IEnumerable<ActiveRule> activeRules,
+            string language)
         {
-            Dictionary<string, List<ActiveRule>> rulesByPartialRepoKey = new Dictionary<string, List<ActiveRule>>();
+            var rulesByPartialRepoKey = new Dictionary<string, List<ActiveRule>>();
 
-            foreach (ActiveRule activeRule in activeRules)
+            foreach (var activeRule in activeRules)
             {
                 if (activeRule.RepoKey.StartsWith(ROSLYN_REPOSITORY_PREFIX))
                 {
-                    String pluginKey = activeRule.RepoKey.Substring(ROSLYN_REPOSITORY_PREFIX.Length);
+                    var pluginKey = activeRule.RepoKey.Substring(ROSLYN_REPOSITORY_PREFIX.Length);
                     AddDict(rulesByPartialRepoKey, pluginKey, activeRule);
                 }
                 else if ("csharpsquid".Equals(activeRule.RepoKey) || "vbnet".Equals(activeRule.RepoKey))
@@ -145,7 +146,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
             return partialRepoKey + ".ruleNamespace";
         }
 
-        private string MandatoryPropertyValue(String propertyKey)
+        private string MandatoryPropertyValue(string propertyKey)
         {
             if (propertyKey == null)
             {
@@ -161,7 +162,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
                 else
                 {
                     throw new AnalysisException("Key doesn't exist: " + propertyKey +". This property should be set by the plugin in SonarQube.");
-
                 }
             }
             return serverSettings[propertyKey];

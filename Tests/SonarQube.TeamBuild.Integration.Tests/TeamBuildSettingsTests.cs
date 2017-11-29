@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using System.IO;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.Integration.Tests
@@ -37,7 +37,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             bool result;
 
             // 1. Env var not set
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
                 result = TeamBuildSettings.IsInTeamBuild;
@@ -45,7 +45,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             }
 
             // 2. Env var set to a non-boolean -> false
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
                 result = TeamBuildSettings.IsInTeamBuild;
@@ -53,7 +53,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             }
 
             // 3. Env var set to false -> false
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "false");
                 result = TeamBuildSettings.IsInTeamBuild;
@@ -61,7 +61,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             }
 
             // 4. Env var set to true -> true
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
                 result = TeamBuildSettings.IsInTeamBuild;
@@ -76,7 +76,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             bool result;
 
             // 1. Env var not set
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, null);
                 result = TeamBuildSettings.SkipLegacyCodeCoverageProcessing;
@@ -84,7 +84,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             }
 
             // 2. Env var set to a non-boolean -> false
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "wibble");
                 result = TeamBuildSettings.SkipLegacyCodeCoverageProcessing;
@@ -92,7 +92,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             }
 
             // 3. Env var set to false -> false
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "false");
                 result = TeamBuildSettings.SkipLegacyCodeCoverageProcessing;
@@ -100,7 +100,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             }
 
             // 4. Env var set to true -> true
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "TRUE");
                 result = TeamBuildSettings.SkipLegacyCodeCoverageProcessing;
@@ -137,7 +137,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             TeamBuildSettings settings;
 
             // 1. No environment vars set
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
 
@@ -156,7 +156,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             }
 
             // 2. Some Team build settings provided, but not marked as in team build
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, "build uri");
@@ -182,10 +182,10 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void TBSettings_LegacyTeamBuild()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
             TeamBuildSettings settings;
 
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, "http://legacybuilduri");
@@ -217,10 +217,10 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void TBSettings_NonLegacyTeamBuild()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
             TeamBuildSettings settings;
 
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "http://builduri");
@@ -289,10 +289,10 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
         private static void CheckExpectedTimeoutReturned(string envValue, int expected)
         {
-            using (EnvironmentVariableScope scope = new EnvironmentVariableScope())
+            using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, envValue);
-                int result = TeamBuildSettings.LegacyCodeCoverageProcessingTimeout;
+                var result = TeamBuildSettings.LegacyCodeCoverageProcessingTimeout;
                 Assert.AreEqual(expected, result, "Unexpected timeout value returned. Environment value: {0}", envValue);
             }
         }

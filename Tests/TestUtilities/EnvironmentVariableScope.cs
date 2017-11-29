@@ -17,11 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TestUtilities
 {
@@ -36,7 +35,7 @@ namespace TestUtilities
         public void SetVariable(string name, string value)
         {
             // Store the original value, or null if there isn't one
-            if (!this.originalValues.ContainsKey(name))
+            if (!originalValues.ContainsKey(name))
             {
                 originalValues.Add(name, Environment.GetEnvironmentVariable(name));
             }
@@ -50,7 +49,7 @@ namespace TestUtilities
 
         private static void AssertEnvironmentVariableDoesNotExist(string name)
         {
-            IDictionary vars = Environment.GetEnvironmentVariables();
+            var vars = Environment.GetEnvironmentVariables();
             Assert.IsFalse(vars.Contains(name), "Test setup error: environment variable already exists. Name: {0}", name);
         }
 
@@ -60,31 +59,31 @@ namespace TestUtilities
 
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         private void Dispose(bool disposing)
         {
-            if (this.disposed)
+            if (disposed)
             {
                 return;
             }
-            this.disposed = true;
+            disposed = true;
 
             if (disposing)
             {
-                if (this.originalValues != null)
+                if (originalValues != null)
                 {
-                    foreach(KeyValuePair<string, string> kvp in this.originalValues)
+                    foreach(var kvp in originalValues)
                     {
                         Environment.SetEnvironmentVariable(kvp.Key, kvp.Value);
                     }
-                    this.originalValues = null;
+                    originalValues = null;
                 }
             }
         }
 
-        #endregion
+        #endregion IDispose implementation
     }
 }

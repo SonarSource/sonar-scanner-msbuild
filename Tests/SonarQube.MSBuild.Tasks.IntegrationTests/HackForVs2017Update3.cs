@@ -35,9 +35,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public static void Enable()
         {
             var registryKey = $@"SOFTWARE{(Environment.Is64BitProcess ? @"\Wow6432Node" : string.Empty)}\Microsoft\VisualStudio\SxS\VS7";
-            using (RegistryKey subKey = Registry.LocalMachine.OpenSubKey(registryKey))
+            using (var subKey = Registry.LocalMachine.OpenSubKey(registryKey))
             {
-                string visualStudioPath = subKey?.GetValue("15.0") as string;
+                var visualStudioPath = subKey?.GetValue("15.0") as string;
                 if (!string.IsNullOrEmpty(visualStudioPath))
                 {
                     Environment.SetEnvironmentVariable("VSINSTALLDIR", visualStudioPath);

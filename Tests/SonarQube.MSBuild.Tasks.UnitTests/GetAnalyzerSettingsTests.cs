@@ -17,13 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.Build.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Build.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.UnitTests
@@ -39,7 +39,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void GetAnalyzerSettings_MissingConfigDir_NoError()
         {
             // Arrange
-            GetAnalyzerSettings testSubject = new GetAnalyzerSettings
+            var testSubject = new GetAnalyzerSettings
             {
                 AnalysisConfigDir = "c:\\missing"
             };
@@ -55,9 +55,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void GetAnalyzerSettings_MissingConfigFile_NoError()
         {
             // Arrange
-            GetAnalyzerSettings testSubject = new GetAnalyzerSettings
+            var testSubject = new GetAnalyzerSettings
             {
-                AnalysisConfigDir = this.TestContext.DeploymentDirectory
+                AnalysisConfigDir = TestContext.DeploymentDirectory
             };
 
             // Act
@@ -71,11 +71,11 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void GetAnalyzerSettings_ConfigExistsButNoAnalyzerSettings_NoError()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            GetAnalyzerSettings testSubject = new GetAnalyzerSettings();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testSubject = new GetAnalyzerSettings();
 
-            AnalysisConfig config = new AnalysisConfig();
-            string fullPath = Path.Combine(testDir, FileConstants.ConfigFileName);
+            var config = new AnalysisConfig();
+            var fullPath = Path.Combine(testDir, FileConstants.ConfigFileName);
             config.Save(fullPath);
 
             testSubject.AnalysisConfigDir = testDir;
@@ -91,14 +91,14 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void GetAnalyzerSettings_ConfigExists_DataReturned()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            GetAnalyzerSettings testSubject = new GetAnalyzerSettings();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testSubject = new GetAnalyzerSettings();
 
-            string[] expectedAnalyzers = new string[] { "c:\\analyzer1.DLL", "c:\\analyzer2.dll" };
-            string[] expectedAdditionalFiles = new string[] { "c:\\add1.txt", "d:\\add2.txt" };
+            var expectedAnalyzers = new string[] { "c:\\analyzer1.DLL", "c:\\analyzer2.dll" };
+            var expectedAdditionalFiles = new string[] { "c:\\add1.txt", "d:\\add2.txt" };
 
             // SONARMSBRU-216: non-assembly files should be filtered out
-            List<string> filesInConfig = new List<string>(expectedAnalyzers)
+            var filesInConfig = new List<string>(expectedAnalyzers)
             {
                 "c:\\not_an_assembly.exe",
                 "c:\\not_an_assembly.zip",
@@ -107,12 +107,12 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 "c:\\not_an_assembly.winmd"
             };
 
-            AnalysisConfig config = new AnalysisConfig
+            var config = new AnalysisConfig
             {
                 AnalyzersSettings = new List<AnalyzerSettings>()
             };
 
-            AnalyzerSettings settings = new AnalyzerSettings
+            var settings = new AnalyzerSettings
             {
                 Language = "my lang",
                 RuleSetFilePath = "f:\\yyy.ruleset",
@@ -121,7 +121,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             };
             config.AnalyzersSettings.Add(settings);
 
-            AnalyzerSettings anotherSettings = new AnalyzerSettings
+            var anotherSettings = new AnalyzerSettings
             {
                 Language = "cobol",
                 RuleSetFilePath = "f:\\xxx.ruleset",
@@ -130,7 +130,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             };
             config.AnalyzersSettings.Add(anotherSettings);
 
-            string fullPath = Path.Combine(testDir, FileConstants.ConfigFileName);
+            var fullPath = Path.Combine(testDir, FileConstants.ConfigFileName);
             config.Save(fullPath);
 
             testSubject.AnalysisConfigDir = testDir;
@@ -145,16 +145,16 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             CollectionAssert.AreEquivalent(expectedAdditionalFiles, testSubject.AdditionalFiles);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Checks methods
 
         private static void ExecuteAndCheckSuccess(Task task)
         {
-            DummyBuildEngine dummyEngine = new DummyBuildEngine();
+            var dummyEngine = new DummyBuildEngine();
             task.BuildEngine = dummyEngine;
 
-            bool taskSucess = task.Execute();
+            var taskSucess = task.Execute();
             Assert.IsTrue(taskSucess, "Expecting the task to succeed");
             dummyEngine.AssertNoErrors();
             dummyEngine.AssertNoWarnings();
@@ -167,6 +167,6 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             Assert.IsNull(executedTask.AnalyzerFilePaths);
         }
 
-        #endregion
+        #endregion Checks methods
     }
 }

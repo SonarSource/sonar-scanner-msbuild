@@ -17,11 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.Common.UnitTests
@@ -41,10 +40,10 @@ namespace SonarQube.Common.UnitTests
             AssertException.Expects<ArgumentNullException>(() => new AggregatePropertiesProvider(null));
 
             // 2. Empty list of providers -> valid but returns nothing
-            AggregatePropertiesProvider provider = new AggregatePropertiesProvider(new IAnalysisPropertyProvider[] { });
+            var provider = new AggregatePropertiesProvider(new IAnalysisPropertyProvider[] { });
 
             Assert.AreEqual(0, provider.GetAllProperties().Count());
-            bool success = provider.TryGetProperty("any key", out Property actualProperty);
+            var success = provider.TryGetProperty("any key", out Property actualProperty);
 
             Assert.IsFalse(success, "Not expecting a property to be returned");
             Assert.IsNull(actualProperty, "Returned property should be null");
@@ -57,23 +56,22 @@ namespace SonarQube.Common.UnitTests
             // Checks the aggregation works as expected
 
             // 0. Setup
-            ListPropertiesProvider provider1 = new ListPropertiesProvider();
+            var provider1 = new ListPropertiesProvider();
             provider1.AddProperty("shared.key.A", "value A from one");
             provider1.AddProperty("shared.key.B", "value B from one");
             provider1.AddProperty("p1.unique.key.1", "p1 unique value 1");
 
-            ListPropertiesProvider provider2 = new ListPropertiesProvider();
+            var provider2 = new ListPropertiesProvider();
             provider2.AddProperty("shared.key.A", "value A from two");
             provider2.AddProperty("shared.key.B", "value B from two");
             provider2.AddProperty("p2.unique.key.1", "p2 unique value 1");
 
-            ListPropertiesProvider provider3 = new ListPropertiesProvider();
+            var provider3 = new ListPropertiesProvider();
             provider3.AddProperty("shared.key.A", "value A from three"); // this provider only has one of the shared values
             provider3.AddProperty("p3.unique.key.1", "p3 unique value 1");
 
-
             // 1. Ordering
-            AggregatePropertiesProvider aggProvider = new AggregatePropertiesProvider(provider1, provider2, provider3);
+            var aggProvider = new AggregatePropertiesProvider(provider1, provider2, provider3);
 
             aggProvider.AssertExpectedPropertyCount(5);
 
@@ -97,7 +95,6 @@ namespace SonarQube.Common.UnitTests
             aggProvider.AssertExpectedPropertyValue("p3.unique.key.1", "p3 unique value 1");
         }
 
-        #endregion
-
+        #endregion Tests
     }
 }

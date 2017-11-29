@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarQube Scanner for MSBuild
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -17,13 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using SonarQube.Common;
 
 namespace SonarScanner.Shim
 {
@@ -73,7 +73,7 @@ namespace SonarScanner.Shim
                 throw new ArgumentNullException("logger");
             }
 
-            ProjectInfoAnalysisResult result = new PropertiesFileGenerator(config, logger).GenerateFile();
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
             Debug.Assert(result != null, "Not expecting the file generator to return null");
             result.RanToCompletion = false;
 
@@ -109,14 +109,14 @@ namespace SonarScanner.Shim
                 return false;
             }
 
-            string exeFileName = FindScannerExe();
+            var exeFileName = FindScannerExe();
             return ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, fullPropertiesFilePath);
         }
 
         private static string FindScannerExe()
         {
             var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
-            string fileExtension = PlatformHelper.IsWindows() ? ".bat" : "";
+            var fileExtension = PlatformHelper.IsWindows() ? ".bat" : "";
             return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
         }
 
@@ -127,28 +127,28 @@ namespace SonarScanner.Shim
 
             IgnoreSonarScannerHome(logger);
 
-            IEnumerable<string> allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments, config);
+            var allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments, config);
 
-            IDictionary<string, string> envVarsDictionary = GetAdditionalEnvVariables(logger);
+            var envVarsDictionary = GetAdditionalEnvVariables(logger);
             Debug.Assert(envVarsDictionary != null);
 
             logger.LogInfo(Resources.MSG_SonarScannerCalling);
 
-            Debug.Assert(!String.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
+            Debug.Assert(!string.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
             Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
 
-            ProcessRunnerArguments scannerArgs = new ProcessRunnerArguments(exeFileName, PlatformHelper.IsWindows(), logger)
+            var scannerArgs = new ProcessRunnerArguments(exeFileName, PlatformHelper.IsWindows(), logger)
             {
                 CmdLineArgs = allCmdLineArgs,
                 WorkingDirectory = config.SonarScannerWorkingDirectory,
                 EnvironmentVariables = envVarsDictionary
             };
 
-            ProcessRunner runner = new ProcessRunner();
+            var runner = new ProcessRunner();
 
             // SONARMSBRU-202 Note that the Sonar Scanner may write warnings to stderr so
             // we should only rely on the exit code when deciding if it ran successfully
-            bool success = runner.Execute(scannerArgs);
+            var success = runner.Execute(scannerArgs);
 
             if (success)
             {
@@ -163,11 +163,11 @@ namespace SonarScanner.Shim
 
         private static void IgnoreSonarScannerHome(ILogger logger)
         {
-            if (!String.IsNullOrWhiteSpace(
+            if (!string.IsNullOrWhiteSpace(
                 Environment.GetEnvironmentVariable(SonarScannerHomeVariableName)))
             {
                 logger.LogInfo(Resources.MSG_SonarScannerHomeIsSet);
-                Environment.SetEnvironmentVariable(SonarScannerHomeVariableName, String.Empty);
+                Environment.SetEnvironmentVariable(SonarScannerHomeVariableName, string.Empty);
             }
         }
 
@@ -181,7 +181,7 @@ namespace SonarScanner.Shim
 
             // Always set a value for SONAR_SCANNER_OPTS just in case it is set at process-level
             // which wouldn't be inherited by the child sonar-scanner process.
-            string sonarScannerOptsValue = GetSonarScannerOptsValue(logger);
+            var sonarScannerOptsValue = GetSonarScannerOptsValue(logger);
             envVarsDictionary.Add(SonarScannerOptsVariableName, sonarScannerOptsValue);
 
             return envVarsDictionary;
@@ -193,9 +193,9 @@ namespace SonarScanner.Shim
         /// </summary>
         private static string GetSonarScannerOptsValue(ILogger logger)
         {
-            string existingValue = Environment.GetEnvironmentVariable(SonarScannerOptsVariableName);
+            var existingValue = Environment.GetEnvironmentVariable(SonarScannerOptsVariableName);
 
-            if (!String.IsNullOrWhiteSpace(existingValue))
+            if (!string.IsNullOrWhiteSpace(existingValue))
             {
                 logger.LogInfo(Resources.MSG_SonarScannerOptsAlreadySet, SonarScannerOptsVariableName, existingValue);
                 return existingValue;
@@ -214,7 +214,7 @@ namespace SonarScanner.Shim
         {
             // We don't know what all of the valid command line arguments are so we'll
             // just pass them on for the sonar-scanner to validate.
-            List<string> args = new List<string>(userCmdLineArguments);
+            var args = new List<string>(userCmdLineArguments);
 
             // Add any sensitive arguments supplied in the config should be passed on the command line
             args.AddRange(GetSensitiveFileSettings(config, userCmdLineArguments));
@@ -230,7 +230,7 @@ namespace SonarScanner.Shim
 
         private static IEnumerable<string> GetSensitiveFileSettings(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
         {
-            IEnumerable<Property> allPropertiesFromConfig = config.GetAnalysisSettings(false).GetAllProperties();
+            var allPropertiesFromConfig = config.GetAnalysisSettings(false).GetAllProperties();
 
             return allPropertiesFromConfig.Where(p => p.ContainsSensitiveData() && !UserSettingExists(p, userCmdLineArguments))
                 .Select(p => p.AsSonarScannerArg());

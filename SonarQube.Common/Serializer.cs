@@ -17,9 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -50,11 +51,22 @@ namespace SonarQube.Common
 
             // Serialize to memory first to reduce the opportunity for intermittent
             // locking issues when writing the file
-            using (MemoryStream stream = new MemoryStream())
-            using (StreamWriter writer = new StreamWriter(stream))
+            MemoryStream stream = null;
+            try
             {
-                Write(model, writer);
-                File.WriteAllBytes(fileName, stream.ToArray());
+                stream = new MemoryStream();
+                using (var writer = new StreamWriter(stream))
+                {
+                    Write(model, writer);
+                    File.WriteAllBytes(fileName, stream.ToArray());
+                }
+            }
+            finally
+            {
+                if (stream != null)
+                {
+                    stream.Dispose();
+                }
             }
         }
 
@@ -67,8 +79,8 @@ namespace SonarQube.Common
             {
                 throw new ArgumentNullException("model");
             }
-            StringBuilder sb = new StringBuilder();
-            using (StringWriter writer = new StringWriter(sb, System.Globalization.CultureInfo.InvariantCulture))
+            var sb = new StringBuilder();
+            using (var writer = new StringWriter(sb, CultureInfo.InvariantCulture))
             {
                 Write(model, writer);
             }
@@ -89,19 +101,19 @@ namespace SonarQube.Common
                 throw new FileNotFoundException(fileName);
             }
 
-            XmlSerializer ser = new XmlSerializer(typeof(T));
+            var ser = new XmlSerializer(typeof(T));
 
             object o;
-            using (FileStream fs = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var fs = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 o = ser.Deserialize(fs);
             }
 
-            T model = (T)o;
+            var model = (T)o;
             return model;
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Private methods
 
@@ -110,9 +122,9 @@ namespace SonarQube.Common
             Debug.Assert(model != null);
             Debug.Assert(writer != null);
 
-            XmlSerializer serializer = new XmlSerializer(typeof(T));
+            var serializer = new XmlSerializer(typeof(T));
 
-            XmlWriterSettings settings = new XmlWriterSettings
+            var settings = new XmlWriterSettings
             {
                 CloseOutput = true,
                 ConformanceLevel = ConformanceLevel.Document,
@@ -121,13 +133,13 @@ namespace SonarQube.Common
                 OmitXmlDeclaration = false
             };
 
-            using (XmlWriter xmlWriter = XmlWriter.Create(writer, settings))
+            using (var xmlWriter = XmlWriter.Create(writer, settings))
             {
                 serializer.Serialize(xmlWriter, model);
                 xmlWriter.Flush();
             }
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

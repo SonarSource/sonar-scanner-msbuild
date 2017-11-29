@@ -47,7 +47,7 @@ namespace SonarQube.Common
         [XmlAttribute]
         public string Location { get; set; }
 
-        #endregion
+        #endregion Data
 
         #region Static helpers
 
@@ -56,8 +56,6 @@ namespace SonarQube.Common
         /// </summary>
         public static readonly IEqualityComparer<string> ResultKeyComparer = StringComparer.Ordinal;
 
-        #endregion
-
-
+        #endregion Static helpers
     }
 }

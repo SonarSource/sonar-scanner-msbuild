@@ -33,7 +33,7 @@ namespace SonarScanner.Shim
         /// </summary>
         public static AnalysisProperties ToAnalysisProperties(this AnalysisConfig config, ILogger logger)
         {
-            AnalysisProperties properties = new AnalysisProperties();
+            var properties = new AnalysisProperties();
 
             properties.AddRange(
                 config.GetAnalysisSettings(includeServerSettings: false)
@@ -48,8 +48,7 @@ namespace SonarScanner.Shim
 
         private static void AddOrSetProperty(string key, string value, AnalysisProperties properties, ILogger logger)
         {
-            Property property;
-            Property.TryGetProperty(key, properties, out property);
+            Property.TryGetProperty(key, properties, out Property property);
             if (property == null)
             {
                 logger.LogDebug(Resources.MSG_SettingAnalysisProperty, key, value);

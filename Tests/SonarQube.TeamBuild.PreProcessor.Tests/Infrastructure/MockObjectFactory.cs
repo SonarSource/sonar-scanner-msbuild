@@ -46,7 +46,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public IAnalyzerProvider CreateRoslynAnalyzerProvider(ILogger logger)
         {
             Assert.IsNotNull(logger);
-            return this.analyzerProvider;
+            return analyzerProvider;
         }
 
         public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args, ILogger logger)
@@ -54,14 +54,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsNotNull(args);
             Assert.IsNotNull(logger);
 
-            return this.server;
+            return server;
         }
 
         public ITargetsInstaller CreateTargetInstaller()
         {
-            return this.targetsInstaller;
+            return targetsInstaller;
         }
 
-        #endregion
+        #endregion PreprocessorObjectFactory methods
     }
 }

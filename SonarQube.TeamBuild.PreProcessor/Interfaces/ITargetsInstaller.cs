@@ -17,13 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
     /// <summary>
-    /// Copies the loader targets file - SonarQube.Integration.ImportBefore.targets - to a user specific location 
+    /// Copies the loader targets file - SonarQube.Integration.ImportBefore.targets - to a user specific location
     /// from where MsBuild can automatically import it. Also gives a warning if such a file is present in the non-user specific directory.
     /// </summary>
     public interface ITargetsInstaller

@@ -17,30 +17,29 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
-using System;
+
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
+using SonarQube.Common;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
-    static class RoslynSonarLint
+    internal static class RoslynSonarLint
     {
-        public static string GenerateXml(IEnumerable<ActiveRule> activeRules, IDictionary<string, string> serverSettings, string language, string repoKey)
+        public static string GenerateXml(IEnumerable<ActiveRule> activeRules, IDictionary<string, string> serverSettings,
+            string language, string repoKey)
         {
             var repoActiveRules = activeRules.Where(ar => repoKey.Equals(ar.RepoKey));
             var settings = serverSettings.Where(a => a.Key.StartsWith("sonar." + language + "."));
 
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
             builder.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
             builder.AppendLine("<AnalysisInput>");
 
             builder.AppendLine("  <Settings>");
-            foreach (KeyValuePair<string, string> pair in settings)
+            foreach (var pair in settings)
             {
                 if (!Utilities.IsSecuredServerProperty(pair.Key))
                 {
@@ -51,17 +50,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
             builder.AppendLine("  <Rules>");
 
-            foreach (ActiveRule activeRule in repoActiveRules)
+            foreach (var activeRule in repoActiveRules)
             {
                 builder.AppendLine("    <Rule>");
-                string templateKey = activeRule.TemplateKey;
-                String ruleKey = templateKey == null ? activeRule.RuleKey : templateKey;
+                var templateKey = activeRule.TemplateKey;
+                var ruleKey = templateKey ?? activeRule.RuleKey;
                 builder.AppendLine("      <Key>" + EscapeXml(ruleKey) + "</Key>");
 
                 if (activeRule.Parameters != null && activeRule.Parameters.Any())
                 {
                     builder.AppendLine("      <Parameters>");
-                    foreach (KeyValuePair<string, string> entry in activeRule.Parameters)
+                    foreach (var entry in activeRule.Parameters)
                     {
                         builder.AppendLine("        <Parameter>");
                         builder.AppendLine("          <Key>" + EscapeXml(entry.Key) + "</Key>");
@@ -90,7 +89,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             builder.AppendLine("    </Setting>");
         }
 
-        private static String EscapeXml(String str)
+        private static string EscapeXml(string str)
         {
             return str.Replace("&", "&amp;").Replace("\"", "&quot;").Replace("'", "&apos;").Replace("<", "&lt;").Replace(">", "&gt;");
         }

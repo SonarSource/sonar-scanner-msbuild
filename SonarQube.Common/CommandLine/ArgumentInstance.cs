@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,26 +28,22 @@ namespace SonarQube.Common
     /// <summary>
     /// Data class for an instance of an argument
     /// </summary>
-    [DebuggerDisplay("{descriptor.Id}={value}")]
+    [DebuggerDisplay("{Descriptor.Id}={Value}")]
     public class ArgumentInstance
     {
-        private readonly ArgumentDescriptor descriptor;
-        private readonly string value;
-
         public ArgumentInstance(ArgumentDescriptor descriptor, string value)
         {
-            this.descriptor = descriptor ?? throw new ArgumentNullException("descriptor");
-            this.value = value;
+            Descriptor = descriptor ?? throw new ArgumentNullException("descriptor");
+            Value = value;
         }
 
         #region Data
 
-        public ArgumentDescriptor Descriptor { get { return this.descriptor; } }
+        public ArgumentDescriptor Descriptor { get; }
 
-        public string Value { get { return this.value; } }
+        public string Value { get; }
 
-
-        #endregion
+        #endregion Data
 
         #region Static methods
 
@@ -70,7 +66,7 @@ namespace SonarQube.Common
         {
             if (TryGetArgument(id, arguments, out ArgumentInstance instance))
             {
-                value = instance.value;
+                value = instance.Value;
             }
             else
             {
@@ -80,6 +76,6 @@ namespace SonarQube.Common
             return instance != null;
         }
 
-        #endregion
+        #endregion Static methods
     }
 }

@@ -17,13 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 
 namespace TestUtilities
 {
@@ -38,21 +38,21 @@ namespace TestUtilities
         /// immediate sub-directories of this folder only.</param>
         public static IList<ProjectInfo> GetProjectInfosFromOutputFolder(string rootOutputFolder)
         {
-            List<ProjectInfo> items = new List<ProjectInfo>();
+            var items = new List<ProjectInfo>();
 
-            foreach (string directory in Directory.EnumerateDirectories(rootOutputFolder, "*.*", SearchOption.TopDirectoryOnly))
+            foreach (var directory in Directory.EnumerateDirectories(rootOutputFolder, "*.*", SearchOption.TopDirectoryOnly))
             {
-                string fileName = Path.Combine(directory, FileConstants.ProjectInfoFileName);
+                var fileName = Path.Combine(directory, FileConstants.ProjectInfoFileName);
                 if (File.Exists(fileName))
                 {
-                    ProjectInfo item = ProjectInfo.Load(fileName);
+                    var item = ProjectInfo.Load(fileName);
                     items.Add(item);
                 }
             }
             return items;
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Assertions
 
@@ -94,7 +94,7 @@ namespace TestUtilities
         /// <param name="rootOutputFolder">The root SonarQube analysis output folder i.e. the folder that contains the per-project folders</param>
         public static void AssertNoProjectInfoFilesExists(string rootOutputFolder)
         {
-            IList<ProjectInfo> items = GetProjectInfosFromOutputFolder(rootOutputFolder);
+            var items = GetProjectInfosFromOutputFolder(rootOutputFolder);
             Assert.AreEqual(0, items.Count, "Not expecting any project info files to exist");
         }
 
@@ -105,10 +105,10 @@ namespace TestUtilities
         /// <param name="fullProjectFileName">The full path and file name of the project file to which the project info file relates</param>
         public static ProjectInfo AssertProjectInfoExists(string rootOutputFolder, string fullProjectFileName)
         {
-            IList<ProjectInfo> items = GetProjectInfosFromOutputFolder(rootOutputFolder);
+            var items = GetProjectInfosFromOutputFolder(rootOutputFolder);
             Assert.AreNotEqual(0, items.Count, "Failed to locate any project info files under the specified root folder");
 
-            ProjectInfo match = GetProjectInfosFromOutputFolder(rootOutputFolder).FirstOrDefault(pi => fullProjectFileName.Equals(pi.FullPath, StringComparison.OrdinalIgnoreCase));
+            var match = GetProjectInfosFromOutputFolder(rootOutputFolder).FirstOrDefault(pi => fullProjectFileName.Equals(pi.FullPath, StringComparison.OrdinalIgnoreCase));
             Assert.IsNotNull(match, "Failed to retrieve a project info file for the specified project: {0}", fullProjectFileName);
             return match;
         }
@@ -122,14 +122,14 @@ namespace TestUtilities
         public static void AssertAnalysisResultDoesNotExists(ProjectInfo projectInfo, string resultId)
         {
             Assert.IsNotNull(projectInfo.AnalysisResults, "AnalysisResults should not be null");
-            bool found = SonarQube.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
+            var found = SonarQube.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
             Assert.IsFalse(found, "Not expecting to find an analysis result for id. Id: {0}", resultId);
         }
 
         public static AnalysisResult AssertAnalysisResultExists(ProjectInfo projectInfo, string resultId)
         {
             Assert.IsNotNull(projectInfo.AnalysisResults, "AnalysisResults should not be null");
-            bool found = SonarQube.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
+            var found = SonarQube.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
             Assert.IsTrue(found, "Failed to find an analysis result with the expected id. Id: {0}", resultId);
             Assert.IsNotNull(result, "Returned analysis result should not be null. Id: {0}", resultId);
             return result;
@@ -137,14 +137,14 @@ namespace TestUtilities
 
         public static AnalysisResult AssertAnalysisResultExists(ProjectInfo projectInfo, string resultId, string expectedLocation)
         {
-            AnalysisResult result = AssertAnalysisResultExists(projectInfo, resultId);
+            var result = AssertAnalysisResultExists(projectInfo, resultId);
             Assert.AreEqual(expectedLocation, result.Location,
                 "Analysis result exists but does not have the expected location. Id: {0}, expected: {1}, actual: {2}",
                     resultId, expectedLocation, result.Location);
             return result;
         }
 
-        #endregion
+        #endregion Assertions
 
         #region Private methods
 
@@ -160,7 +160,7 @@ namespace TestUtilities
             }
             else
             {
-                foreach(AnalysisResult expectedResult in expected.AnalysisResults)
+                foreach(var expectedResult in expected.AnalysisResults)
                 {
                     AssertAnalysisResultExists(actual, expectedResult.Id, expectedResult.Location);
                 }
@@ -168,7 +168,6 @@ namespace TestUtilities
             }
         }
 
-        #endregion
-
+        #endregion Private methods
     }
 }

@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using System.Collections.Generic;
 
 namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
 {
@@ -32,30 +32,30 @@ namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
 
         public IEnumerable<string> UrlsToReturn { get; set; }
 
-        #endregion
+        #endregion Test helpers
 
         #region Assertions
 
         public void AssertGetUrlsCalled()
         {
-            Assert.IsTrue(this.getUrlsCalled, "Expecting GetCodeCoverageReportUrls to have been called");
+            Assert.IsTrue(getUrlsCalled, "Expecting GetCodeCoverageReportUrls to have been called");
         }
 
         public void AssertGetUrlsNotCalled()
         {
-            Assert.IsFalse(this.getUrlsCalled, "Not expecting GetCodeCoverageReportUrls to have been called");
+            Assert.IsFalse(getUrlsCalled, "Not expecting GetCodeCoverageReportUrls to have been called");
         }
 
-        #endregion
+        #endregion Assertions
 
         #region ICoverageUrlProvider interface
 
         public IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri, ILogger logger)
         {
-            this.getUrlsCalled = true;
-            return this.UrlsToReturn;
+            getUrlsCalled = true;
+            return UrlsToReturn;
         }
 
-        #endregion
+        #endregion ICoverageUrlProvider interface
     }
 }

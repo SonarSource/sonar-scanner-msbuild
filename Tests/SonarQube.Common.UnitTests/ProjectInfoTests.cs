@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.Common.UnitTests
@@ -37,7 +37,7 @@ namespace SonarQube.Common.UnitTests
         public void ProjectInfo_Serialization_InvalidFileName()
         {
             // 0. Setup
-            ProjectInfo pi = new ProjectInfo();
+            var pi = new ProjectInfo();
 
             // 1a. Missing file name - save
             AssertException.Expects<ArgumentNullException>(() => pi.Save(null));
@@ -55,11 +55,11 @@ namespace SonarQube.Common.UnitTests
         public void ProjectInfo_Serialization_SaveAndReload()
         {
             // 0. Setup
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            Guid projectGuid = Guid.NewGuid();
+            var projectGuid = Guid.NewGuid();
 
-            ProjectInfo originalProjectInfo = new ProjectInfo
+            var originalProjectInfo = new ProjectInfo
             {
                 FullPath = "c:\\fullPath\\project.proj",
                 ProjectLanguage = "a language",
@@ -69,7 +69,7 @@ namespace SonarQube.Common.UnitTests
                 Encoding = "MyEncoding"
             };
 
-            string fileName = Path.Combine(testFolder, "ProjectInfo1.xml");
+            var fileName = Path.Combine(testFolder, "ProjectInfo1.xml");
 
             SaveAndReloadProjectInfo(originalProjectInfo, fileName);
         }
@@ -79,11 +79,11 @@ namespace SonarQube.Common.UnitTests
         public void ProjectInfo_Serialization_AnalysisResults()
         {
             // 0. Setup
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            Guid projectGuid = Guid.NewGuid();
+            var projectGuid = Guid.NewGuid();
 
-            ProjectInfo originalProjectInfo = new ProjectInfo
+            var originalProjectInfo = new ProjectInfo
             {
                 ProjectGuid = projectGuid
             };
@@ -102,7 +102,7 @@ namespace SonarQube.Common.UnitTests
             SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults3.xml"));
         }
 
-        #endregion
+        #endregion Tests
 
         #region Helper methods
 
@@ -111,15 +111,15 @@ namespace SonarQube.Common.UnitTests
             Assert.IsFalse(File.Exists(outputFileName), "Test error: file should not exist at the start of the test. File: {0}", outputFileName);
             original.Save(outputFileName);
             Assert.IsTrue(File.Exists(outputFileName), "Failed to create the output file. File: {0}", outputFileName);
-            this.TestContext.AddResultFile(outputFileName);
+            TestContext.AddResultFile(outputFileName);
 
-            ProjectInfo reloadedProjectInfo = ProjectInfo.Load(outputFileName);
+            var reloadedProjectInfo = ProjectInfo.Load(outputFileName);
             Assert.IsNotNull(reloadedProjectInfo, "Reloaded project info should not be null");
 
             ProjectInfoAssertions.AssertExpectedValues(original, reloadedProjectInfo);
             return reloadedProjectInfo;
         }
 
-        #endregion
+        #endregion Helper methods
     }
 }

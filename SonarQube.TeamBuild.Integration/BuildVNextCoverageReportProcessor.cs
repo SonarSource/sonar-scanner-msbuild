@@ -17,13 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.TeamBuild.Integration
 {
-
     public class BuildVNextCoverageReportProcessor : CoverageReportProcessorBase
     {
         #region Public methods
@@ -38,10 +37,10 @@ namespace SonarQube.TeamBuild.Integration
         {
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Overrides
-        
+
         protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath)
         {
             binaryFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger);
@@ -49,7 +48,6 @@ namespace SonarQube.TeamBuild.Integration
             return true; // there aren't currently any conditions under which we'd want to stop processing
         }
 
-        #endregion
-
+        #endregion Overrides
     }
 }

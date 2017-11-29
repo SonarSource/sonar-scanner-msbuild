@@ -17,13 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
+
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
@@ -35,9 +34,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             Assert.IsTrue(File.Exists(filePath), "Expected ruleset file does not exist: {0}", filePath);
 
-            XDocument doc = XDocument.Load(filePath);
+            var doc = XDocument.Load(filePath);
 
-            foreach (string ruleId in expectedRuleIds)
+            foreach (var ruleId in expectedRuleIds)
             {
                 AssertRuleIdExists(doc, ruleId);
             }
@@ -45,14 +44,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedRuleCount(doc, expectedRuleIds.Length);
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Private methods
 
         private static void AssertRuleIdExists(XDocument doc, string ruleId)
         {
             Debug.WriteLine(doc.ToString());
-            XElement element = doc.Descendants().Single(e => e.Name == "Rule" && HasRuleIdAttribute(e, ruleId));
+            var element = doc.Descendants().Single(e => e.Name == "Rule" && HasRuleIdAttribute(e, ruleId));
             Assert.IsNotNull(element, "Could not find ruleId with expected id: {0}", ruleId);
         }
 
@@ -63,10 +62,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static void AssertExpectedRuleCount(XDocument doc, int expectedCount)
         {
-            IEnumerable<XElement> rules = doc.Descendants().Where(e => e.Name == "Rule");
+            var rules = doc.Descendants().Where(e => e.Name == "Rule");
             Assert.AreEqual(expectedCount, rules.Count(), "Unexpected number of rules");
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

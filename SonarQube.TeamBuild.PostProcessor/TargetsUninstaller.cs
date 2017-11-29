@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System;
 using System.IO;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
@@ -31,9 +31,9 @@ namespace SonarQube.TeamBuild.PostProcessor
     {
         public void UninstallTargets(ILogger logger)
         {
-            foreach (string directoryPath in FileConstants.ImportBeforeDestinationDirectoryPaths)
+            foreach (var directoryPath in FileConstants.ImportBeforeDestinationDirectoryPaths)
             {
-                string destinationPath = Path.Combine(directoryPath, FileConstants.ImportBeforeTargetsName);
+                var destinationPath = Path.Combine(directoryPath, FileConstants.ImportBeforeTargetsName);
 
                 if (!File.Exists(destinationPath))
                 {

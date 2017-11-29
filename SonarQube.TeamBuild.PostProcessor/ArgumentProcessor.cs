@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
@@ -73,8 +73,8 @@ namespace SonarQube.TeamBuild.PostProcessor
             provider = null;
 
             // This call will fail if there are duplicate or missing arguments
-            CommandLineParser parser = new CommandLineParser(Descriptors, false /* don't allow unrecognized arguments*/);
-            bool parsedOk = parser.ParseArguments(commandLineArgs, logger, out IEnumerable<ArgumentInstance> arguments);
+            var parser = new CommandLineParser(Descriptors, false /* don't allow unrecognized arguments*/);
+            var parsedOk = parser.ParseArguments(commandLineArgs, logger, out IEnumerable<ArgumentInstance> arguments);
 
             if (parsedOk)
             {
@@ -103,9 +103,9 @@ namespace SonarQube.TeamBuild.PostProcessor
         /// <returns>True if the arguments are valid, otherwise false</returns>
         private static bool AreParsedArgumentsValid(IAnalysisPropertyProvider provider, ILogger logger)
         {
-            bool areValid = true;
+            var areValid = true;
 
-            foreach (Property property in provider.GetAllProperties())
+            foreach (var property in provider.GetAllProperties())
             {
                 if (!IsPermittedProperty(property))
                 {
@@ -127,6 +127,6 @@ namespace SonarQube.TeamBuild.PostProcessor
             return ProcessRunnerArguments.SensitivePropertyKeys.Any(marker => Property.AreKeysEqual(marker, property.Id));
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

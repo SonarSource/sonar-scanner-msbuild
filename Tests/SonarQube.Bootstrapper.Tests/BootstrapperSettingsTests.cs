@@ -17,12 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
-using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using TestUtilities;
 
 namespace SonarQube.Bootstrapper.Tests
@@ -49,9 +48,9 @@ namespace SonarQube.Bootstrapper.Tests
             // Check the properties values and that relative paths are turned into absolute paths
 
             // 0. Setup
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
-            using (EnvironmentVariableScope envScope = new EnvironmentVariableScope())
+            using (var envScope = new EnvironmentVariableScope())
             {
                 envScope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
 

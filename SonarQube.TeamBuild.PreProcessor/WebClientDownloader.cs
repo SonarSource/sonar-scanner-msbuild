@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Linq;
-using System.Text;
 using System.Net;
+using System.Text;
 using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor
@@ -43,7 +43,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                 password = "";
             }
 
-            this.client = new WebClient();
+            client = new WebClient();
             if (userName != null)
             {
                 if (userName.Contains(':'))
@@ -63,33 +63,33 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public string GetHeader(HttpRequestHeader header)
         {
-            return this.client.Headers[header];
+            return client.Headers[header];
         }
 
         #region IDownloaderMethods
 
         public bool TryDownloadIfExists(string url, out string contents)
         {
-            this.logger.LogDebug(Resources.MSG_Downloading, url);
+            logger.LogDebug(Resources.MSG_Downloading, url);
             string data = null;
-            bool success = DoIgnoringMissingUrls(() => data = client.DownloadString(url));
+            var success = DoIgnoringMissingUrls(() => data = client.DownloadString(url));
             contents = data;
             return success;
         }
 
         public bool TryDownloadFileIfExists(string url, string targetFilePath)
         {
-            this.logger.LogDebug(Resources.MSG_DownloadingFile, url, targetFilePath);
+            logger.LogDebug(Resources.MSG_DownloadingFile, url, targetFilePath);
             return DoIgnoringMissingUrls(() => client.DownloadFile(url, targetFilePath));
         }
 
         public string Download(string url)
         {
-            this.logger.LogDebug(Resources.MSG_Downloading, url);
+            logger.LogDebug(Resources.MSG_Downloading, url);
             return client.DownloadString(url);
         }
 
-        #endregion
+        #endregion IDownloaderMethods
 
         #region Private methods
 
@@ -112,8 +112,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             catch (WebException e)
             {
-                var response = e.Response as HttpWebResponse;
-                if (response != null && response.StatusCode == HttpStatusCode.NotFound)
+                if (e.Response is HttpWebResponse response && response.StatusCode == HttpStatusCode.NotFound)
                 {
                     return false;
                 }
@@ -121,7 +120,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
         }
 
-        #endregion
+        #endregion Private methods
 
         #region IDisposable implementation
 
@@ -129,20 +128,20 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!this.disposed && disposing && this.client != null)
+            if (!disposed && disposing && client != null)
             {
-                this.client.Dispose();
+                client.Dispose();
             }
 
-            this.disposed = true;
+            disposed = true;
         }
 
-        #endregion
+        #endregion IDisposable implementation
     }
 }

@@ -18,15 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.Win32;
-using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.Setup.Configuration;
+using Microsoft.Win32;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.Integration
 {
@@ -79,16 +80,16 @@ namespace SonarQube.TeamBuild.Integration
 
             bool success;
 
-            this.conversionToolPath = GetExeToolPath(logger);
+            conversionToolPath = GetExeToolPath(logger);
 
-            if (this.conversionToolPath == null)
+            if (conversionToolPath == null)
             {
                 logger.LogWarning(Resources.CONV_WARN_FailToFindConversionTool);
                 success = false;
             }
             else
             {
-                logger.LogDebug(Resources.CONV_DIAG_CommandLineToolInfo, this.conversionToolPath);
+                logger.LogDebug(Resources.CONV_DIAG_CommandLineToolInfo, conversionToolPath);
                 success = true;
             }
             return success;
@@ -109,7 +110,7 @@ namespace SonarQube.TeamBuild.Integration
                 throw new ArgumentNullException("logger");
             }
 
-            return ConvertBinaryToXml(this.conversionToolPath, inputFilePath, outputFilePath, logger);
+            return ConvertBinaryToXml(conversionToolPath, inputFilePath, outputFilePath, logger);
         }
 
         #endregion IReportConverter interface
@@ -130,22 +131,22 @@ namespace SonarQube.TeamBuild.Integration
             string toolPath = null;
 
             logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageToolSetupConfiguration);
-            ISetupConfiguration configurationQuery = setupConfigurationFactory.GetSetupConfigurationQuery();
+            var configurationQuery = setupConfigurationFactory.GetSetupConfigurationQuery();
             if (configurationQuery != null)
             {
-                IEnumSetupInstances instanceEnumerator = configurationQuery.EnumInstances();
+                var instanceEnumerator = configurationQuery.EnumInstances();
 
                 int fetched;
-                ISetupInstance[] tempInstance = new ISetupInstance[1];
+                var tempInstance = new ISetupInstance[1];
 
-                List<ISetupInstance2> instances = new List<ISetupInstance2>();
+                var instances = new List<ISetupInstance2>();
                 //Enumerate the configuration instances
                 do
                 {
                     instanceEnumerator.Next(1, tempInstance, out fetched);
                     if (fetched > 0)
                     {
-                        ISetupInstance2 instance = (ISetupInstance2)tempInstance[0];
+                        var instance = (ISetupInstance2)tempInstance[0];
                         if (instance.GetPackages().Any(p => CodeCoverageInstallationPackageNames.Contains(p.GetId())))
                         {
                             //Store instances that have code coverage package installed
@@ -156,7 +157,8 @@ namespace SonarQube.TeamBuild.Integration
 
                 if (instances.Count > 1)
                 {
-                    logger.LogDebug(Resources.CONV_DIAG_MultipleVsVersionsInstalled, string.Join(", ", instances.Select(i => i.GetInstallationVersion())));
+                    logger.LogDebug(Resources.CONV_DIAG_MultipleVsVersionsInstalled, string.Join(", ", instances.Select(i =>
+                        i.GetInstallationVersion())));
                 }
 
                 //Get the installation path for the latest visual studio found
@@ -186,7 +188,7 @@ namespace SonarQube.TeamBuild.Integration
             string toolPath = null;
 
             logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageToolRegistry);
-            using (RegistryKey key = Registry.LocalMachine.OpenSubKey(VisualStudioRegistryPath, false))
+            using (var key = Registry.LocalMachine.OpenSubKey(VisualStudioRegistryPath, false))
             {
                 // i.e. no VS installed
                 if (key == null)
@@ -194,13 +196,13 @@ namespace SonarQube.TeamBuild.Integration
                     return null;
                 }
 
-                string[] keys = key.GetSubKeyNames();
+                var keys = key.GetSubKeyNames();
 
                 // Find the ShellFolder paths for the installed VS versions
-                IDictionary<string, string> versionFolderMap = GetVsShellFolders(key, keys);
+                var versionFolderMap = GetVsShellFolders(key, keys);
 
                 // Attempt to locate the code coverage tool for each installed version
-                IDictionary<double, string> versionToolMap = GetCoverageToolsPaths(versionFolderMap);
+                var versionToolMap = GetCoverageToolsPaths(versionFolderMap);
                 Debug.Assert(!versionToolMap.Keys.Any(k => double.IsNaN(k)), "Version key should be a number");
 
                 if (versionToolMap.Count > 1)
@@ -211,7 +213,7 @@ namespace SonarQube.TeamBuild.Integration
                 if (versionToolMap.Count > 0)
                 {
                     // Use the latest version of the tool
-                    double maxVersion = versionToolMap.Keys.Max();
+                    var maxVersion = versionToolMap.Keys.Max();
                     toolPath = versionToolMap[maxVersion];
                 }
             }
@@ -224,17 +226,14 @@ namespace SonarQube.TeamBuild.Integration
         /// </summary>
         private static IDictionary<string, string> GetVsShellFolders(RegistryKey vsKey, string[] keys)
         {
-            Dictionary<string, string> versionFolderMap = new Dictionary<string, string>();
-            foreach (string key in keys)
+            var versionFolderMap = new Dictionary<string, string>();
+            foreach (var key in keys)
             {
-                if (Regex.IsMatch(key, @"\d+.\d+"))
+                // Check for the shell dir subkey
+                if (Regex.IsMatch(key, @"\d+.\d+") && Registry.GetValue(vsKey.Name + "\\" + key, "ShellFolder", null)
+                    is string shellFolder)
                 {
-                    // Check for the shell dir subkey
-                    string shellFolder = Registry.GetValue(vsKey.Name + "\\" + key, "ShellFolder", null) as string;
-                    if (shellFolder != null)
-                    {
-                        versionFolderMap[key] = shellFolder;
-                    }
+                    versionFolderMap[key] = shellFolder;
                 }
             }
             return versionFolderMap;
@@ -248,13 +247,13 @@ namespace SonarQube.TeamBuild.Integration
         /// The returned map will only have entries for VS version for which the code coverage tool could be found.</remarks>
         private static IDictionary<double, string> GetCoverageToolsPaths(IDictionary<string, string> versionFolderMap)
         {
-            Dictionary<double, string> versionPathMap = new Dictionary<double, string>();
-            foreach (KeyValuePair<string, string> kvp in versionFolderMap)
+            var versionPathMap = new Dictionary<double, string>();
+            foreach (var kvp in versionFolderMap)
             {
-                string toolPath = Path.Combine(kvp.Value, TeamToolPathandExeName);
+                var toolPath = Path.Combine(kvp.Value, TeamToolPathandExeName);
                 if (File.Exists(toolPath))
                 {
-                    double version = TryGetVersionAsDouble(kvp.Key);
+                    var version = TryGetVersionAsDouble(kvp.Key);
 
                     if (!double.IsNaN(version))
                     {
@@ -271,7 +270,7 @@ namespace SonarQube.TeamBuild.Integration
         /// </summary>
         private static double TryGetVersionAsDouble(string versionKey)
         {
-            if (!double.TryParse(versionKey, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out double result))
+            if (!double.TryParse(versionKey, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double result))
             {
                 result = double.NaN;
             }
@@ -281,7 +280,8 @@ namespace SonarQube.TeamBuild.Integration
         #endregion Code Coverage Tool path from registry
 
         // was internal
-        public static bool ConvertBinaryToXml(string converterExeFilePath, string inputBinaryFilePath, string outputXmlFilePath, ILogger logger)
+        public static bool ConvertBinaryToXml(string converterExeFilePath, string inputBinaryFilePath, string outputXmlFilePath,
+            ILogger logger)
         {
             Debug.Assert(!string.IsNullOrEmpty(converterExeFilePath), "Expecting the conversion tool path to have been set");
             Debug.Assert(File.Exists(converterExeFilePath), "Expecting the converter exe to exist: " + converterExeFilePath);
@@ -289,22 +289,22 @@ namespace SonarQube.TeamBuild.Integration
             Debug.Assert(File.Exists(inputBinaryFilePath), "Expecting the input file to exist: " + inputBinaryFilePath);
             Debug.Assert(Path.IsPathRooted(outputXmlFilePath), "Expecting the output file name to be a full absolute path");
 
-            List<string> args = new List<string>
+            var args = new List<string>
             {
                 "analyze",
-                string.Format(System.Globalization.CultureInfo.InvariantCulture, @"/output:{0}", outputXmlFilePath),
+                string.Format(CultureInfo.InvariantCulture, @"/output:{0}", outputXmlFilePath),
                 inputBinaryFilePath
             };
 
-            ProcessRunnerArguments scannerArgs = new ProcessRunnerArguments(converterExeFilePath, false, logger)
+            var scannerArgs = new ProcessRunnerArguments(converterExeFilePath, false, logger)
             {
                 WorkingDirectory = Path.GetDirectoryName(outputXmlFilePath),
                 CmdLineArgs = args,
                 TimeoutInMilliseconds = ConversionTimeoutInMs
             };
 
-            ProcessRunner runner = new ProcessRunner();
-            bool success = runner.Execute(scannerArgs);
+            var runner = new ProcessRunner();
+            var success = runner.Execute(scannerArgs);
 
             if (success)
             {

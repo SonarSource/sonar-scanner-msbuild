@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -57,8 +57,8 @@ namespace SonarQube.Common
 
             logger.LogDebug(Resources.MSG_BeginningRetry, timeoutInMilliseconds, pauseBetweenTriesInMilliseconds);
 
-            Stopwatch timer = Stopwatch.StartNew();
-            bool succeeded = op();
+            var timer = Stopwatch.StartNew();
+            var succeeded = op();
 
             while (!succeeded && timer.ElapsedMilliseconds < timeoutInMilliseconds)
             {
@@ -140,7 +140,7 @@ namespace SonarQube.Common
             }
             Debug.Assert(directories.Length > 0);
 
-            foreach (string directory in directories)
+            foreach (var directory in directories)
             {
                 try
                 {
@@ -230,14 +230,14 @@ namespace SonarQube.Common
         {
             if (instance != null)
             {
-                IDisposable disposable = instance as IDisposable;
+                var disposable = instance as IDisposable;
                 disposable?.Dispose();
             }
         }
 
         public static string ToDisplayString(this Version version)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append(version.Major);
             sb.Append(".");
             sb.Append(version.Minor);
@@ -257,8 +257,6 @@ namespace SonarQube.Common
             return sb.ToString();
         }
 
-        #endregion
-
+        #endregion Public methods
     }
 }
-

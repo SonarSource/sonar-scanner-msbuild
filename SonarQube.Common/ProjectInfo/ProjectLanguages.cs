@@ -17,8 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
+
 namespace SonarQube.Common
 {
     public static class ProjectLanguages
@@ -27,7 +28,6 @@ namespace SonarQube.Common
 
         public const string CSharp = "C#";
         public const string VisualBasic = "VB";
-
 
         private static StringComparer LanguageNameComparer = StringComparer.Ordinal;
 
@@ -40,6 +40,5 @@ namespace SonarQube.Common
         {
             return LanguageNameComparer.Equals(language, ProjectLanguages.VisualBasic);
         }
-
     }
 }

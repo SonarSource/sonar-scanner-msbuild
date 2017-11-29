@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor
@@ -37,8 +37,8 @@ namespace SonarQube.TeamBuild.PreProcessor
             logger.IncludeTimestamp = true;
 
             IPreprocessorObjectFactory factory = new PreprocessorObjectFactory();
-            TeamBuildPreProcessor preProcessor = new TeamBuildPreProcessor(factory, logger);
-            bool success = preProcessor.Execute(args);
+            var preProcessor = new TeamBuildPreProcessor(factory, logger);
+            var success = preProcessor.Execute(args);
 
             return success ? SuccessCode : ErrorCode;
         }

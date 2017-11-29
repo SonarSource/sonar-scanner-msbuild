@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using System;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -34,16 +34,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void TestInitialize()
         {
             // 0. Setup
-            ListPropertiesProvider cmdLineProps = new ListPropertiesProvider();
+            var cmdLineProps = new ListPropertiesProvider();
             cmdLineProps.AddProperty("cmd.key.1", "cmd value 1");
             cmdLineProps.AddProperty("shared.key.1", "shared cmd value");
 
-            ListPropertiesProvider fileProps = new ListPropertiesProvider();
+            var fileProps = new ListPropertiesProvider();
             fileProps.AddProperty("file.key.1", "file value 1");
             fileProps.AddProperty("shared.key.1", "shared file value");
             fileProps.AddProperty("shared.key.2", "shared file value");
 
-            ListPropertiesProvider envProps = new ListPropertiesProvider();
+            var envProps = new ListPropertiesProvider();
             envProps.AddProperty("env.key.1", "env value 1");
             envProps.AddProperty("shared.key.1", "shared env value");
             envProps.AddProperty("shared.key.2", "shared env value");
@@ -104,7 +104,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void ProcArgs_GetSettingOrDefault()
         {
             // 1. Missing key -> default returned
-            string result = args.GetSetting("missing.property", "default value");
+            var result = args.GetSetting("missing.property", "default value");
             Assert.AreEqual("default value", result);
 
             // 2. Returns existing values
@@ -125,20 +125,20 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // Arrange
             // The set of command line properties to supply
-            ListPropertiesProvider cmdLineProperties = new ListPropertiesProvider();
+            var cmdLineProperties = new ListPropertiesProvider();
             cmdLineProperties.AddProperty("shared.key1", "cmd line value1 - should override server value");
             cmdLineProperties.AddProperty("cmd.line.only", "cmd line value4 - only on command line");
             cmdLineProperties.AddProperty("xxx", "cmd line value XXX - lower case");
             cmdLineProperties.AddProperty(SonarProperties.HostUrl, "http://host");
 
             // The set of file properties to supply
-            ListPropertiesProvider fileProperties = new ListPropertiesProvider();
+            var fileProperties = new ListPropertiesProvider();
             fileProperties.AddProperty("shared.key1", "file value1 - should be overridden");
             fileProperties.AddProperty("file.only", "file value3 - only in file");
             fileProperties.AddProperty("XXX", "file line value XXX - upper case");
 
             // Act
-            ProcessedArgs args = new ProcessedArgs("key", "branch", "version", null, false, cmdLineProperties, fileProperties, EmptyPropertyProvider.Instance);
+            var args = new ProcessedArgs("key", "branch", "version", null, false, cmdLineProperties, fileProperties, EmptyPropertyProvider.Instance);
 
             AssertExpectedValue("shared.key1", "cmd line value1 - should override server value", args);
             AssertExpectedValue("cmd.line.only", "cmd line value4 - only on command line", args);
@@ -148,18 +148,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedValue(SonarProperties.HostUrl, "http://host", args);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Checks
 
         private static void AssertExpectedValue(string key, string expectedValue, ProcessedArgs args)
         {
-            bool found = args.TryGetSetting(key, out string actualValue);
+            var found = args.TryGetSetting(key, out string actualValue);
 
             Assert.IsTrue(found, "Expected setting was not found. Key: {0}", key);
             Assert.AreEqual(expectedValue, actualValue, "Setting does not have the expected value. Key: {0}", key);
         }
 
-        #endregion
+        #endregion Checks
     }
 }

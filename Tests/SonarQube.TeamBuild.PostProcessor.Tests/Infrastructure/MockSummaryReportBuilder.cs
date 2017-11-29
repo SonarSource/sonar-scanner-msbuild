@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration.Interfaces;
@@ -35,23 +35,23 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             Assert.IsFalse(methodCalled, "Generate reports has already been called");
 
-            this.methodCalled = true;
+            methodCalled = true;
         }
 
-        #endregion
+        #endregion ISummaryReportBuilder interface
 
         #region Checks
 
         public void AssertExecuted()
         {
-            Assert.IsTrue(this.methodCalled, "Expecting ISummaryReportBuilder.GenerateReports to have been called");
+            Assert.IsTrue(methodCalled, "Expecting ISummaryReportBuilder.GenerateReports to have been called");
         }
 
         public void AssertNotExecuted()
         {
-            Assert.IsFalse(this.methodCalled, "Not expecting ISummaryReportBuilder.GenerateReports to have been called");
+            Assert.IsFalse(methodCalled, "Not expecting ISummaryReportBuilder.GenerateReports to have been called");
         }
 
-        #endregion
+        #endregion Checks
     }
 }

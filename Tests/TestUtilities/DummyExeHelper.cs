@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.CodeDom.Compiler;
 using System.IO;
+using Microsoft.CSharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TestUtilities
 {
@@ -34,6 +34,7 @@ namespace TestUtilities
     {
         // FIX: should be using constants in the product code
         public const string PreProcessorExeName = "MSBuild.SonarQube.Internal.PreProcess.exe";
+
         public const string PostProcessorExeName = "MSBuild.SonarQube.Internal.PostProcess.exe";
 
         #region Public methods
@@ -55,25 +56,25 @@ namespace TestUtilities
 
         public static string CreateDummyExe(string outputDir, string exeName, int exitCode, string additionalCode)
         {
-            string code = GetDummyExeSource(exitCode, additionalCode);
-            string asmPath = Path.Combine(outputDir, exeName);
+            var code = GetDummyExeSource(exitCode, additionalCode);
+            var asmPath = Path.Combine(outputDir, exeName);
             CompileAssembly(code, asmPath);
             return asmPath;
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Checks
 
         public static string AssertDummyPreProcLogExists(string dummyBinDir, TestContext testContext)
         {
-            string logFilePath = GetLogFilePath(dummyBinDir, PreProcessorExeName);
+            var logFilePath = GetLogFilePath(dummyBinDir, PreProcessorExeName);
             return AssertLogFileExists(logFilePath, testContext);
         }
 
         public static string AssertDummyPostProcLogExists(string dummyBinDir, TestContext testContext)
         {
-            string logFilePath = GetLogFilePath(dummyBinDir, PostProcessorExeName);
+            var logFilePath = GetLogFilePath(dummyBinDir, PostProcessorExeName);
             return AssertLogFileExists(logFilePath, testContext);
         }
 
@@ -89,7 +90,7 @@ namespace TestUtilities
 
         public static string GetLogFilePath(string dummyBinDir, string exeName)
         {
-            string logFilePath = Path.Combine(dummyBinDir, exeName);
+            var logFilePath = Path.Combine(dummyBinDir, exeName);
             logFilePath = Path.ChangeExtension(logFilePath, ".log");
             return logFilePath;
         }
@@ -98,7 +99,7 @@ namespace TestUtilities
         {
             Assert.IsTrue(File.Exists(logPath), "Expected log file does not exist: {0}", logPath);
 
-            string[] actualLines = File.ReadAllLines(logPath);
+            var actualLines = File.ReadAllLines(logPath);
 
             CollectionAssert.AreEqual(expected ?? new string[] { }, actualLines, "Log file does not have the expected content");
         }
@@ -112,23 +113,23 @@ namespace TestUtilities
 
         public static string AssertLogFileDoesNotExist(string dummyBinDir, string exeName)
         {
-            string logFilePath = GetLogFilePath(dummyBinDir, exeName);
+            var logFilePath = GetLogFilePath(dummyBinDir, exeName);
 
             Assert.IsFalse(File.Exists(logFilePath), "Not expecting the dummy exe log to exist. File: {0}", logFilePath);
             return logFilePath;
         }
 
-        #endregion
+        #endregion Checks
 
         #region Private methods
 
         private static string GetDummyExeSource(int returnCode, string additionalCode)
         {
             string code;
-            string resourceName = "TestUtilities.EmbeddedCode.DummyExe.cs";
+            var resourceName = "TestUtilities.EmbeddedCode.DummyExe.cs";
 
-            using (Stream stream = typeof(DummyExeHelper).Assembly.GetManifestResourceStream(resourceName))
-            using (StreamReader reader = new StreamReader(stream))
+            using (var stream = typeof(DummyExeHelper).Assembly.GetManifestResourceStream(resourceName))
+            using (var reader = new StreamReader(stream))
             {
                 code = reader.ReadToEnd();
             }
@@ -143,21 +144,20 @@ namespace TestUtilities
         /// </summary>
         private static void CompileAssembly(string code, string outputFilePath)
         {
-            CSharpCodeProvider provider = new CSharpCodeProvider();
+            var provider = new CSharpCodeProvider();
 
-            CompilerParameters options = new CompilerParameters
+            var options = new CompilerParameters
             {
                 OutputAssembly = outputFilePath,
                 GenerateExecutable = true,
                 GenerateInMemory = false
             };
 
-
-            CompilerResults result = provider.CompileAssemblyFromSource(options, code);
+            var result = provider.CompileAssemblyFromSource(options, code);
 
             if (result.Errors.Count > 0)
             {
-                foreach(string item in result.Output)
+                foreach(var item in result.Output)
                 {
                     Console.WriteLine(item);
                 }
@@ -165,7 +165,6 @@ namespace TestUtilities
             }
         }
 
-        #endregion
-
+        #endregion Private methods
     }
 }

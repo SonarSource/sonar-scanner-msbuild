@@ -17,13 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using SonarQube.Common;
 
 namespace TestUtilities
 {
@@ -44,9 +44,9 @@ namespace TestUtilities
         {
             public FileInProject(string itemGroup, string filePath, bool shouldAnalyse)
             {
-                this.ItemGroup = itemGroup;
-                this.FilePath = filePath;
-                this.ShouldBeAnalysed = shouldAnalyse;
+                ItemGroup = itemGroup;
+                FilePath = filePath;
+                ShouldBeAnalysed = shouldAnalyse;
             }
 
             /// <summary>
@@ -69,11 +69,11 @@ namespace TestUtilities
 
         public ProjectDescriptor()
         {
-            this.AnalysisResults = new List<AnalysisResult>();
-            this.Files = new List<FileInProject>();
+            AnalysisResults = new List<AnalysisResult>();
+            Files = new List<FileInProject>();
 
             // set default encoding
-            this.Encoding = Encoding.UTF8;
+            Encoding = Encoding.UTF8;
         }
 
         #region Public properties
@@ -86,7 +86,7 @@ namespace TestUtilities
         {
             get
             {
-                return this.Files.Where(f => f.ItemGroup == CompilerInputItemGroup).Select(f => f.FilePath).ToList();
+                return Files.Where(f => f.ItemGroup == CompilerInputItemGroup).Select(f => f.FilePath).ToList();
             }
         }
 
@@ -115,12 +115,12 @@ namespace TestUtilities
 
         public string FullDirectoryPath
         {
-            get { return Path.Combine(this.ParentDirectoryPath, this.ProjectFolderName); }
+            get { return Path.Combine(ParentDirectoryPath, ProjectFolderName); }
         }
 
         public string FullFilePath
         {
-            get { return Path.Combine(this.FullDirectoryPath, this.ProjectFileName); }
+            get { return Path.Combine(FullDirectoryPath, ProjectFileName); }
         }
 
         /// <summary>
@@ -128,10 +128,9 @@ namespace TestUtilities
         /// </summary>
         public string ProjectName
         {
-
             get
             {
-                return Path.GetFileNameWithoutExtension(this.ProjectFileName);
+                return Path.GetFileNameWithoutExtension(ProjectFileName);
             }
         }
 
@@ -139,7 +138,7 @@ namespace TestUtilities
         {
             get
             {
-                return this.Files.Where(f => f.ShouldBeAnalysed).Select(f => f.FilePath);
+                return Files.Where(f => f.ShouldBeAnalysed).Select(f => f.FilePath);
             }
         }
 
@@ -150,7 +149,7 @@ namespace TestUtilities
         {
             get
             {
-                return this.Files.Where(f => !f.ShouldBeAnalysed).Select(f => f.FilePath);
+                return Files.Where(f => !f.ShouldBeAnalysed).Select(f => f.FilePath);
             }
         }
 
@@ -158,26 +157,26 @@ namespace TestUtilities
         {
             get
             {
-                return ProjectLanguages.IsVbProject(this.ProjectLanguage);
+                return ProjectLanguages.IsVbProject(ProjectLanguage);
             }
         }
 
-        #endregion
+        #endregion Public properties
 
         #region Public methods
 
         public ProjectInfo CreateProjectInfo()
         {
-            ProjectInfo info = new ProjectInfo()
+            var info = new ProjectInfo()
             {
-                FullPath = this.FullFilePath,
-                ProjectLanguage = this.ProjectLanguage,
-                ProjectGuid = this.ProjectGuid,
-                ProjectName = this.ProjectName,
-                ProjectType = this.IsTestProject ? ProjectType.Test : ProjectType.Product,
-                IsExcluded = this.IsExcluded,
-                Encoding = this.Encoding.WebName,
-                AnalysisResults = new List<AnalysisResult>(this.AnalysisResults)
+                FullPath = FullFilePath,
+                ProjectLanguage = ProjectLanguage,
+                ProjectGuid = ProjectGuid,
+                ProjectName = ProjectName,
+                ProjectType = IsTestProject ? ProjectType.Test : ProjectType.Product,
+                IsExcluded = IsExcluded,
+                Encoding = Encoding.WebName,
+                AnalysisResults = new List<AnalysisResult>(AnalysisResults)
             };
 
             return info;
@@ -185,15 +184,14 @@ namespace TestUtilities
 
         public void AddContentFile(string filePath, bool shouldAnalyse)
         {
-            this.Files.Add(new FileInProject(ProjectDescriptor.ContentItemGroup, filePath, shouldAnalyse));
+            Files.Add(new FileInProject(ProjectDescriptor.ContentItemGroup, filePath, shouldAnalyse));
         }
 
         public void AddCompileInputFile(string filePath, bool shouldAnalyse)
         {
-            this.Files.Add(new FileInProject(ProjectDescriptor.CompilerInputItemGroup, filePath, shouldAnalyse));
+            Files.Add(new FileInProject(ProjectDescriptor.CompilerInputItemGroup, filePath, shouldAnalyse));
         }
 
-        #endregion
-
+        #endregion Public methods
     }
 }

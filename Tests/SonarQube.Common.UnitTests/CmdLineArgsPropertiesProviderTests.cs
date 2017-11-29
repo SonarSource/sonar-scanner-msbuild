@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.Common.UnitTests
@@ -47,7 +47,7 @@ namespace SonarQube.Common.UnitTests
         [TestCategory("Properties")]
         public void CmdLineArgProperties_NoArguments()
         {
-            IAnalysisPropertyProvider provider = CheckProcessingSucceeds(Enumerable.Empty<ArgumentInstance>(), new TestLogger());
+            var provider = CheckProcessingSucceeds(Enumerable.Empty<ArgumentInstance>(), new TestLogger());
 
             Assert.AreEqual(0, provider.GetAllProperties().Count(), "Not expecting any properties");
         }
@@ -57,11 +57,11 @@ namespace SonarQube.Common.UnitTests
         public void CmdLineArgProperties_DynamicProperties()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
 
-            ArgumentDescriptor dummyDescriptor = new ArgumentDescriptor("dummy", new string[] { "dummy prefix" }, false, "dummy desc", true);
-            ArgumentDescriptor dummyDescriptor2 = new ArgumentDescriptor("dummy2", new string[] { "dummy prefix 2" }, false, "dummy desc 2", true);
+            var dummyDescriptor = new ArgumentDescriptor("dummy", new string[] { "dummy prefix" }, false, "dummy desc", true);
+            var dummyDescriptor2 = new ArgumentDescriptor("dummy2", new string[] { "dummy prefix 2" }, false, "dummy desc 2", true);
 
             args.Add(new ArgumentInstance(dummyDescriptor, "should be ignored"));
             args.Add(new ArgumentInstance(dummyDescriptor2, "should be ignored"));
@@ -69,7 +69,7 @@ namespace SonarQube.Common.UnitTests
             AddDynamicArguments(args, "key1=value1", "key2=value two with spaces");
 
             // Act
-            IAnalysisPropertyProvider provider = CheckProcessingSucceeds(args, logger);
+            var provider = CheckProcessingSucceeds(args, logger);
 
             // Assert
             provider.AssertExpectedPropertyValue("key1", "value1");
@@ -83,8 +83,8 @@ namespace SonarQube.Common.UnitTests
         public void CmdLineArgProperties_DynamicProperties_Invalid()
         {
             // Arrange
-            // Act 
-            TestLogger logger = CheckProcessingFails(
+            // Act
+            var logger = CheckProcessingFails(
                     "invalid1 =aaa",
                     "notkeyvalue",
                     " spacebeforekey=bb",
@@ -105,8 +105,8 @@ namespace SonarQube.Common.UnitTests
         public void CmdLineArgProperties_DynamicProperties_Duplicates()
         {
             // Arrange
-            // Act 
-            TestLogger logger = CheckProcessingFails(
+            // Act
+            var logger = CheckProcessingFails(
                     "dup1=value1", "dup1=value2",
                     "dup2=value3", "dup2=value4",
                     "unique=value5");
@@ -129,54 +129,48 @@ namespace SonarQube.Common.UnitTests
                 "sonar.projectKey=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectKey, "/k");
 
-
             logger = CheckProcessingFails(
                 "sonar.projectName=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectName, "/n");
-
 
             logger = CheckProcessingFails(
                 "sonar.projectVersion=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectVersion, "/v");
 
-
             // 2. Other values that can't be set
             logger = CheckProcessingFails(
                 "sonar.working.directory=value1");
             logger.AssertSingleErrorExists(SonarProperties.WorkingDirectory);
-
-
-
         }
 
         [TestMethod]
         [Description("Test for https://jira.sonarsource.com/browse/SONARMSBRU-208")]
         public void SonarProjectBaseDir_IsAllowed()
         {
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
 
             // sonar.projectBaseDir used to be un-settable
             AddDynamicArguments(args, "sonar.projectBaseDir=value1");
 
-            IAnalysisPropertyProvider provider = CheckProcessingSucceeds(args, logger);
+            var provider = CheckProcessingSucceeds(args, logger);
             provider.AssertExpectedPropertyValue("sonar.projectBaseDir", "value1");
             provider.AssertExpectedPropertyCount(1);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Private methods
 
         private static void AddDynamicArguments(IList<ArgumentInstance> args, params string[] argValues)
         {
-            foreach (string argValue in argValues)
+            foreach (var argValue in argValues)
             {
                 args.Add(new ArgumentInstance(CmdLineArgPropertyProvider.Descriptor, argValue));
             }
         }
 
-        #endregion
+        #endregion Private methods
 
         #region Checks
 
@@ -190,9 +184,9 @@ namespace SonarQube.Common.UnitTests
 
         private static TestLogger CheckProcessingFails(IEnumerable<ArgumentInstance> args)
         {
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
-            bool success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out IAnalysisPropertyProvider provider);
+            var success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out IAnalysisPropertyProvider provider);
             Assert.IsFalse(success, "Not expecting the provider to be created");
             Assert.IsNull(provider, "Expecting the provider to be null is processing fails");
             logger.AssertErrorsLogged();
@@ -202,7 +196,7 @@ namespace SonarQube.Common.UnitTests
 
         private static IAnalysisPropertyProvider CheckProcessingSucceeds(IEnumerable<ArgumentInstance> args, TestLogger logger)
         {
-            bool success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out IAnalysisPropertyProvider provider);
+            var success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out IAnalysisPropertyProvider provider);
 
             Assert.IsTrue(success, "Expected processing to succeed");
             Assert.IsNotNull(provider, "Not expecting a null provider when processing succeeds");
@@ -211,6 +205,6 @@ namespace SonarQube.Common.UnitTests
             return provider;
         }
 
-        #endregion
+        #endregion Checks
     }
 }

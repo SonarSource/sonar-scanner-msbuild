@@ -17,13 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -45,10 +45,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void RoslynRuleSet_GeneratorArgumentChecks()
         {
             IDictionary<string, string> dict = new Dictionary<string, string>();
-            RoslynRuleSetGenerator generator = new RoslynRuleSetGenerator(dict);
+            var generator = new RoslynRuleSetGenerator(dict);
             IEnumerable<ActiveRule> activeRules = new List<ActiveRule>();
             IEnumerable<string> inactiveRules = new List<string>();
-            string language = "cs";
+            var language = "cs";
 
             AssertException.Expects<ArgumentNullException>(() => generator.Generate(activeRules, inactiveRules, null));
             AssertException.Expects<ArgumentNullException>(() => generator.Generate(activeRules, null, language));
@@ -59,13 +59,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void RoslynRuleSet_Empty()
         {
             IDictionary<string, string> dict = new Dictionary<string, string>();
-            RoslynRuleSetGenerator generator = new RoslynRuleSetGenerator(dict);
-            List<ActiveRule> activeRules = new List<ActiveRule>();
+            var generator = new RoslynRuleSetGenerator(dict);
+            var activeRules = new List<ActiveRule>();
             IEnumerable<string> inactiveRules = new List<string>();
-            string language = "cs";
+            var language = "cs";
             activeRules.Add(new ActiveRule("repo", "key"));
 
-            RuleSet ruleSet = generator.Generate(activeRules, inactiveRules, language);
+            var ruleSet = generator.Generate(activeRules, inactiveRules, language);
             // No analyzer
             Assert.IsFalse(ruleSet.Rules.Any());
 
@@ -91,10 +91,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 { "custom.ruleNamespace", "SonarAnalyzer.Custom" }
             };
 
-            RoslynRuleSetGenerator generator = new RoslynRuleSetGenerator(dict);
-            List<ActiveRule> activeRules = new List<ActiveRule>();
-            List<string> inactiveRules = new List<string>();
-            string language = "cs";
+            var generator = new RoslynRuleSetGenerator(dict);
+            var activeRules = new List<ActiveRule>();
+            var inactiveRules = new List<string>();
+            var language = "cs";
 
             activeRules.Add(new ActiveRule("csharpsquid", "S1000"));
             activeRules.Add(new ActiveRule("csharpsquid", "S1001"));
@@ -104,7 +104,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             inactiveRules.Add("csharpsquid:S1002");
             inactiveRules.Add("roslyn.custom:S1005");
 
-            RuleSet ruleSet = generator.Generate(activeRules, inactiveRules, language);
+            var ruleSet = generator.Generate(activeRules, inactiveRules, language);
             string[] activatedCSharp = { "S1000", "S1001" };
             string[] activatedCustom = { "custom" };
 
@@ -120,13 +120,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual(ruleSet.Name, "Rules for SonarQube");
         }
 
-        #endregion
+        #endregion Tests
 
         #region Checks
 
         private void AssertAnalyzerRules(RuleSet ruleSet, string analyzerId, string[] activatedRuleIds, string[] inactivatedRuleIds)
         {
-            Rules rules = ruleSet.Rules.First(r => r.AnalyzerId.Equals(analyzerId));
+            var rules = ruleSet.Rules.First(r => r.AnalyzerId.Equals(analyzerId));
             Assert.AreEqual(analyzerId, rules.RuleNamespace);
             Assert.AreEqual(rules.RuleList.Count, activatedRuleIds.Count() + inactivatedRuleIds.Count());
 
@@ -134,18 +134,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsFalse(rules.RuleList.GroupBy(x => x.Id).Any(g => g.Count() > 1));
 
             // Active correspond to Warning, inactive to None
-            foreach (string id in activatedRuleIds)
+            foreach (var id in activatedRuleIds)
             {
                 Assert.IsTrue(rules.RuleList.Exists(r => r.Id.Equals(id) && r.Action.Equals("Warning")));
             }
 
-            foreach (string id in inactivatedRuleIds)
+            foreach (var id in inactivatedRuleIds)
             {
                 Assert.IsTrue(rules.RuleList.Exists(r => r.Id.Equals(id) && r.Action.Equals("None")));
             }
         }
 
-        #endregion
-
+        #endregion Checks
     }
 }

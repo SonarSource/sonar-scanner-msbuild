@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using System;
 
 namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
 {
@@ -36,21 +36,21 @@ namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
 
         public bool ConversionResult { get; set; }
 
-        #endregion
+        #endregion Test helpers
 
         #region Assertions
 
         public void AssertExpectedNumberOfConversions(int expected)
         {
-            Assert.AreEqual(expected, this.convertCallCount, "ConvertToXml called an unexpected number of times");
+            Assert.AreEqual(expected, convertCallCount, "ConvertToXml called an unexpected number of times");
         }
 
         public void AssertConvertNotCalled()
         {
-            Assert.AreEqual(0, this.convertCallCount, "Not expecting ConvertToXml to have been called");
+            Assert.AreEqual(0, convertCallCount, "Not expecting ConvertToXml to have been called");
         }
 
-        #endregion
+        #endregion Assertions
 
         #region ICoverageReportConverter interface
 
@@ -58,23 +58,23 @@ namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
         {
             Assert.IsNotNull(logger, "Supplied logger should not be null");
 
-            return this.CanConvert;
+            return CanConvert;
         }
 
         bool ICoverageReportConverter.ConvertToXml(string fullBinaryFileName, string fullXmlFileName, ILogger logger)
         {
             Assert.IsNotNull(logger, "Supplied logger should not be null");
 
-            this.convertCallCount++;
+            convertCallCount++;
 
-            if (this.ConversionOp != null)
+            if (ConversionOp != null)
             {
-                return this.ConversionOp(fullBinaryFileName, fullBinaryFileName, logger);
+                return ConversionOp(fullBinaryFileName, fullBinaryFileName, logger);
             }
 
             return true;
         }
 
-        #endregion
+        #endregion ICoverageReportConverter interface
     }
 }

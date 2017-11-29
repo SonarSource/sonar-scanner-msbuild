@@ -17,14 +17,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.Integration
 {
@@ -90,7 +90,7 @@ namespace SonarQube.TeamBuild.Integration
 
             string coverageFilePath = null;
 
-            string trxFilePath = FindTrxFile(buildRootDirectory, logger);
+            var trxFilePath = FindTrxFile(buildRootDirectory, logger);
 
             if (!string.IsNullOrEmpty(trxFilePath))
             {
@@ -102,7 +102,7 @@ namespace SonarQube.TeamBuild.Integration
             return coverageFilePath;
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Private methods
 
@@ -113,7 +113,7 @@ namespace SonarQube.TeamBuild.Integration
 
             logger.LogInfo(Resources.TRX_DIAG_LocatingTrx);
 
-            string[] testDirectories = Directory.GetDirectories(buildRootDirectory, TestResultsFolderName, SearchOption.AllDirectories);
+            var testDirectories = Directory.GetDirectories(buildRootDirectory, TestResultsFolderName, SearchOption.AllDirectories);
 
             if (testDirectories == null ||
                 !testDirectories.Any())
@@ -124,7 +124,7 @@ namespace SonarQube.TeamBuild.Integration
 
             logger.LogInfo(Resources.TRX_DIAG_FolderPaths, string.Join(", ", testDirectories));
 
-            string[] trxFiles = testDirectories.SelectMany(dir => Directory.GetFiles(dir, "*.trx")).ToArray();
+            var trxFiles = testDirectories.SelectMany(dir => Directory.GetFiles(dir, "*.trx")).ToArray();
 
             string trxFilePath = null;
 
@@ -160,6 +160,7 @@ namespace SonarQube.TeamBuild.Integration
                     case 0:
                         logger.LogDebug(Resources.TRX_DIAG_NoCodeCoverageInfo);
                         break;
+
                     case 1:
                         coverageFilePath = attachmentUris.First();
                         logger.LogDebug(Resources.TRX_DIAG_SingleCodeCoverageAttachmentFound, coverageFilePath);
@@ -171,6 +172,7 @@ namespace SonarQube.TeamBuild.Integration
                         }
 
                         break;
+
                     default:
                         logger.LogWarning(Resources.TRX_WARN_MultipleCodeCoverageAttachmentsFound, string.Join(", ", attachmentUris.ToArray()));
                         break;
@@ -185,21 +187,21 @@ namespace SonarQube.TeamBuild.Integration
             Debug.Assert(File.Exists(trxFilePath));
 
             coverageFilePaths = null;
-            bool continueProcessing = true;
+            var continueProcessing = true;
 
-            List<string> runAttachments = new List<string>();
+            var runAttachments = new List<string>();
             try
             {
-                XmlDocument doc = new XmlDocument();
+                var doc = new XmlDocument();
                 doc.Load(trxFilePath);
-                XmlNamespaceManager nsmgr = new XmlNamespaceManager(doc.NameTable);
+                var nsmgr = new XmlNamespaceManager(doc.NameTable);
                 nsmgr.AddNamespace("x", CodeCoverageXmlNamespace);
 
-                XmlNodeList attachmentNodes = doc.SelectNodes("/x:TestRun/x:ResultSummary/x:CollectorDataEntries/x:Collector[@uri='datacollector://microsoft/CodeCoverage/2.0']/x:UriAttachments/x:UriAttachment/x:A", nsmgr);
+                var attachmentNodes = doc.SelectNodes("/x:TestRun/x:ResultSummary/x:CollectorDataEntries/x:Collector[@uri='datacollector://microsoft/CodeCoverage/2.0']/x:UriAttachments/x:UriAttachment/x:A", nsmgr);
 
                 foreach (XmlNode attachmentNode in attachmentNodes)
                 {
-                    XmlAttribute att = attachmentNode.Attributes["href"];
+                    var att = attachmentNode.Attributes["href"];
                     if (att != null && att.Value != null)
                     {
                         runAttachments.Add(att.Value);
@@ -217,6 +219,6 @@ namespace SonarQube.TeamBuild.Integration
             return continueProcessing;
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

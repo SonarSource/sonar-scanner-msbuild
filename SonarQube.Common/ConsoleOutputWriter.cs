@@ -17,21 +17,20 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 
 namespace SonarQube.Common
 {
     public class ConsoleWriter : IOutputWriter
     {
-
         private static readonly object ConsoleWriterLock = new object();
 
-        void IOutputWriter.WriteLine(string message, ConsoleColor textColor, bool isError)
+        void IOutputWriter.WriteLine(string message, ConsoleColor color, bool isError)
         {
             lock (ConsoleWriterLock)
             {
-                using (new ConsoleColorScope(textColor))
+                using (new ConsoleColorScope(color))
                 {
                     if (isError)
                     {

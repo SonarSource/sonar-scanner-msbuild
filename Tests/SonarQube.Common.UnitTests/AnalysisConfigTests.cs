@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.Common.UnitTests
@@ -38,7 +38,7 @@ namespace SonarQube.Common.UnitTests
         public void AnalysisConfig_Serialization_InvalidFileName()
         {
             // 0. Setup
-            AnalysisConfig config = new AnalysisConfig();
+            var config = new AnalysisConfig();
 
             // 1a. Missing file name - save
             AssertException.Expects<ArgumentNullException>(() => config.Save(null));
@@ -56,16 +56,15 @@ namespace SonarQube.Common.UnitTests
         public void AnalysisConfig_Serialization_SaveAndReload()
         {
             // 0. Setup
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            AnalysisConfig originalConfig = new AnalysisConfig
+            var originalConfig = new AnalysisConfig
             {
                 SonarConfigDir = @"c:\config",
                 SonarOutputDir = @"c:\output",
                 SonarProjectKey = @"key.1.2",
                 SonarProjectName = @"My project",
                 SonarProjectVersion = @"1.0",
-
 
                 LocalSettings = new AnalysisProperties()
             };
@@ -76,7 +75,7 @@ namespace SonarQube.Common.UnitTests
                 new Property() { Id = "server.key", Value = "server.value" }
             };
 
-            AnalyzerSettings settings = new AnalyzerSettings
+            var settings = new AnalyzerSettings
             {
                 RuleSetFilePath = "ruleset path",
 
@@ -96,7 +95,7 @@ namespace SonarQube.Common.UnitTests
                 settings
             };
 
-            string fileName = Path.Combine(testFolder, "config1.xml");
+            var fileName = Path.Combine(testFolder, "config1.xml");
 
             SaveAndReloadConfig(originalConfig, fileName);
         }
@@ -106,10 +105,10 @@ namespace SonarQube.Common.UnitTests
         public void AnalysisConfig_Serialization_SaveAndReload_EmptySettings()
         {
             // Arrange
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            AnalysisConfig originalConfig = new AnalysisConfig();
-            string fileName = Path.Combine(testFolder, "empty_config.xml");
+            var originalConfig = new AnalysisConfig();
+            var fileName = Path.Combine(testFolder, "empty_config.xml");
 
             // Act and assert
             SaveAndReloadConfig(originalConfig, fileName);
@@ -120,9 +119,9 @@ namespace SonarQube.Common.UnitTests
         public void AnalysisConfig_Serialization_AdditionalConfig()
         {
             // 0. Setup
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            AnalysisConfig originalConfig = new AnalysisConfig();
+            var originalConfig = new AnalysisConfig();
 
             // 1. Null list
             SaveAndReloadConfig(originalConfig, Path.Combine(testFolder, "AnalysisConfig_NullAdditionalSettings.xml"));
@@ -144,13 +143,13 @@ namespace SonarQube.Common.UnitTests
         public void AnalysisConfig_SharedReadAllowed()
         {
             // 0. Setup
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string filePath = Path.Combine(testFolder, "config.txt");
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var filePath = Path.Combine(testFolder, "config.txt");
 
-            AnalysisConfig config = new AnalysisConfig();
+            var config = new AnalysisConfig();
             config.Save(filePath);
 
-            using (FileStream lockingStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var lockingStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 AnalysisConfig.Load(filePath);
             }
@@ -161,7 +160,7 @@ namespace SonarQube.Common.UnitTests
         public void AnalysisConfig_ExpectedXmlFormat()
         {
             // Arrange
-            string xml = @"<?xml version=""1.0"" encoding=""utf-8""?>
+            var xml = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <AnalysisConfig xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns=""http://www.sonarsource.com/msbuild/integration/2015/1"">
   <SonarConfigDir>c:\config</SonarConfigDir>
   <SonarOutputDir>c:\output</SonarOutputDir>
@@ -194,14 +193,14 @@ namespace SonarQube.Common.UnitTests
   </AnalyzersSettings>
 </AnalysisConfig>";
 
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string fullPath = TestUtils.CreateTextFile(testDir, "input.txt", xml);
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var fullPath = TestUtils.CreateTextFile(testDir, "input.txt", xml);
 
             // Act
-            AnalysisConfig actual = AnalysisConfig.Load(fullPath);
+            var actual = AnalysisConfig.Load(fullPath);
 
             // Assert
-            AnalysisConfig expected = new AnalysisConfig
+            var expected = new AnalysisConfig
             {
                 SonarConfigDir = "c:\\config",
                 SonarOutputDir = "c:\\output",
@@ -216,7 +215,7 @@ namespace SonarQube.Common.UnitTests
                 new Property() { Id = "local.key", Value = "local.value" }
             };
 
-            AnalyzerSettings settings = new AnalyzerSettings();
+            var settings = new AnalyzerSettings();
 
             settings = new AnalyzerSettings
             {
@@ -237,7 +236,7 @@ namespace SonarQube.Common.UnitTests
             AssertExpectedValues(expected, actual);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Helper methods
 
@@ -246,9 +245,9 @@ namespace SonarQube.Common.UnitTests
             Assert.IsFalse(File.Exists(outputFileName), "Test error: file should not exist at the start of the test. File: {0}", outputFileName);
             original.Save(outputFileName);
             Assert.IsTrue(File.Exists(outputFileName), "Failed to create the output file. File: {0}", outputFileName);
-            this.TestContext.AddResultFile(outputFileName);
+            TestContext.AddResultFile(outputFileName);
 
-            AnalysisConfig reloaded = AnalysisConfig.Load(outputFileName);
+            var reloaded = AnalysisConfig.Load(outputFileName);
             Assert.IsNotNull(reloaded, "Reloaded analysis config should not be null");
 
             AssertExpectedValues(original, reloaded);
@@ -280,7 +279,7 @@ namespace SonarQube.Common.UnitTests
                 return;
             }
 
-            foreach(ConfigSetting expectedSetting in expected.AdditionalConfig)
+            foreach(var expectedSetting in expected.AdditionalConfig)
             {
                 AssertSettingExists(expectedSetting.Id, expectedSetting.Value, actual);
             }
@@ -291,7 +290,7 @@ namespace SonarQube.Common.UnitTests
         {
             Assert.IsNotNull(actual.AdditionalConfig, "Not expecting the additional settings to be null");
 
-            ConfigSetting actualSetting = actual.AdditionalConfig.FirstOrDefault(s => string.Equals(settingId, s.Id, StringComparison.InvariantCultureIgnoreCase));
+            var actualSetting = actual.AdditionalConfig.FirstOrDefault(s => string.Equals(settingId, s.Id, StringComparison.InvariantCultureIgnoreCase));
             Assert.IsNotNull(actualSetting, "Expected setting not found: {0}", settingId);
             Assert.AreEqual(expectedValue, actualSetting.Value, "Setting does not have the expected value. SettingId: {0}", settingId);
         }
@@ -309,11 +308,11 @@ namespace SonarQube.Common.UnitTests
             Assert.IsNotNull(actualList, "Not expecting the actual analyzers settings to be null for a reloaded file");
 
             Assert.AreEqual(expectedList.Count, actualList.Count, "Expecting number of analyzer settings to be the same");
-            
-            for(int i = 0; i < actualList.Count; i++)
+
+            for(var i = 0; i < actualList.Count; i++)
             {
-                AnalyzerSettings actual = actualList[i];
-                AnalyzerSettings expected = expectedList[i];
+                var actual = actualList[i];
+                var expected = expectedList[i];
 
                 Assert.AreEqual(expected.RuleSetFilePath, actual.RuleSetFilePath, "Unexpected Ruleset value");
 
@@ -322,6 +321,6 @@ namespace SonarQube.Common.UnitTests
             }
         }
 
-        #endregion
+        #endregion Helper methods
     }
 }

@@ -17,9 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.Common.UnitTests
@@ -36,7 +36,7 @@ namespace SonarQube.Common.UnitTests
         public void ConfigExt_GetAndSet()
         {
             // 0. Setup
-            AnalysisConfig config = new AnalysisConfig();
+            var config = new AnalysisConfig();
 
             string result;
 
@@ -52,14 +52,14 @@ namespace SonarQube.Common.UnitTests
             config.SetConfigValue("id1", "value2");
             Assert.AreEqual("value2", config.GetConfigValue("id1", "XXX"), "Unexpected config value returned");
         }
-        
+
         [TestMethod]
         public void ConfigExt_GetAnalysisSettings_LocalOnly()
         {
             // Check that local settings are always retrieved by GetAnalysisSettings
 
             // 0. Setup
-            AnalysisConfig config = new AnalysisConfig
+            var config = new AnalysisConfig
             {
                 LocalSettings = new AnalysisProperties()
             };
@@ -67,13 +67,13 @@ namespace SonarQube.Common.UnitTests
             config.LocalSettings.Add(new Property() { Id = "local.2", Value = "local.value.2" });
 
             // 1. Local only
-            IAnalysisPropertyProvider localProperties = config.GetAnalysisSettings(false);
+            var localProperties = config.GetAnalysisSettings(false);
             localProperties.AssertExpectedPropertyCount(2);
             localProperties.AssertExpectedPropertyValue("local.1", "local.value.1");
             localProperties.AssertExpectedPropertyValue("local.2", "local.value.2");
 
             // 2. Local and server
-            IAnalysisPropertyProvider allProperties = config.GetAnalysisSettings(true);
+            var allProperties = config.GetAnalysisSettings(true);
             allProperties.AssertExpectedPropertyCount(2);
             allProperties.AssertExpectedPropertyValue("local.1", "local.value.1");
             allProperties.AssertExpectedPropertyValue("local.2", "local.value.2");
@@ -86,7 +86,7 @@ namespace SonarQube.Common.UnitTests
             // if includeServerSettings is true
 
             // 0. Setup
-            AnalysisConfig config = new AnalysisConfig
+            var config = new AnalysisConfig
             {
                 ServerSettings = new AnalysisProperties()
             };
@@ -94,14 +94,14 @@ namespace SonarQube.Common.UnitTests
             config.ServerSettings.Add(new Property() { Id = "server.2", Value = "server.value.2" });
 
             // 1. Local only
-            IAnalysisPropertyProvider localProperties = config.GetAnalysisSettings(false);
+            var localProperties = config.GetAnalysisSettings(false);
             localProperties.AssertExpectedPropertyCount(0);
 
             localProperties.AssertPropertyDoesNotExist("server.1");
             localProperties.AssertPropertyDoesNotExist("server.2");
 
             // 2. Local and server
-            IAnalysisPropertyProvider allProperties = config.GetAnalysisSettings(true);
+            var allProperties = config.GetAnalysisSettings(true);
             allProperties.AssertExpectedPropertyCount(2);
             allProperties.AssertExpectedPropertyValue("server.1", "server.value.1");
             allProperties.AssertExpectedPropertyValue("server.2", "server.value.2");
@@ -114,17 +114,17 @@ namespace SonarQube.Common.UnitTests
             // and that the file name config property is set and retrieved correctly
 
             // 0. Setup
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            AnalysisConfig config = new AnalysisConfig();
+            var config = new AnalysisConfig();
 
             // File settings
-            AnalysisProperties fileSettings = new AnalysisProperties
+            var fileSettings = new AnalysisProperties
             {
                 new Property() { Id = "file.1", Value = "file.value.1" },
                 new Property() { Id = "file.2", Value = "file.value.2" }
             };
-            string settingsFilePath = Path.Combine(testDir, "settings.txt");
+            var settingsFilePath = Path.Combine(testDir, "settings.txt");
             fileSettings.Save(settingsFilePath);
 
             // 1. Get path when not set -> null
@@ -135,7 +135,7 @@ namespace SonarQube.Common.UnitTests
             Assert.AreEqual(settingsFilePath, config.GetSettingsFilePath(), "Unexpected settings file path value returned");
 
             // 3. Check file properties are retrieved
-            IAnalysisPropertyProvider provider = config.GetAnalysisSettings(false);
+            var provider = config.GetAnalysisSettings(false);
             provider.AssertExpectedPropertyCount(2);
             provider.AssertExpectedPropertyValue("file.1", "file.value.1");
             provider.AssertExpectedPropertyValue("file.2", "file.value.2");
@@ -147,18 +147,18 @@ namespace SonarQube.Common.UnitTests
             // Expected precedence: local -> file -> server
 
             // 0. Setup
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            AnalysisConfig config = new AnalysisConfig();
+            var config = new AnalysisConfig();
 
             // File settings
-            AnalysisProperties fileSettings = new AnalysisProperties
+            var fileSettings = new AnalysisProperties
             {
                 new Property() { Id = "file.1", Value = "file.value.1" },
                 new Property() { Id = "shared.property", Value = "shared value from file - should never be returned" },
                 new Property() { Id = "shared.property2", Value = "shared value 2 from file" }
             };
-            string settingsFilePath = Path.Combine(testDir, "settings.txt");
+            var settingsFilePath = Path.Combine(testDir, "settings.txt");
             fileSettings.Save(settingsFilePath);
             config.SetSettingsFilePath(settingsFilePath);
 
@@ -179,9 +179,8 @@ namespace SonarQube.Common.UnitTests
                 new Property() { Id = "shared.property2", Value = "shared value 2 from server - should never be returned" }
             };
 
-
             // 1. Precedence - local should win over file
-            IAnalysisPropertyProvider provider = config.GetAnalysisSettings(false);
+            var provider = config.GetAnalysisSettings(false);
             provider.AssertExpectedPropertyCount(5);
             provider.AssertExpectedPropertyValue("local.1", "local.value.1");
             provider.AssertExpectedPropertyValue("local.2", "local.value.2");
@@ -208,10 +207,10 @@ namespace SonarQube.Common.UnitTests
         public void ConfigExt_GetAnalysisSettings_NoSettings()
         {
             // 0. Setup
-            AnalysisConfig config = new AnalysisConfig();
+            var config = new AnalysisConfig();
 
             // 1. No server settings
-            IAnalysisPropertyProvider provider = config.GetAnalysisSettings(false);
+            var provider = config.GetAnalysisSettings(false);
             Assert.IsNotNull(provider, "Returned provider should not be null");
             provider.AssertExpectedPropertyCount(0);
 
@@ -221,6 +220,6 @@ namespace SonarQube.Common.UnitTests
             provider.AssertExpectedPropertyCount(0);
         }
 
-        #endregion
+        #endregion Tests
     }
 }

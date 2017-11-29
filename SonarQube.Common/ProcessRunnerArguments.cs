@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,20 +32,17 @@ namespace SonarQube.Common
     /// </summary>
     public class ProcessRunnerArguments
     {
-        private readonly string exeName;
-        private readonly ILogger logger;
-
         /// <summary>
         /// Strings that are used to indicate arguments that contain
         /// sensitive data that should not be logged
         /// </summary>
-        public static readonly string[] SensitivePropertyKeys = new string[] {
+        public static readonly ISet<string> SensitivePropertyKeys = new HashSet<string>
+        {
             SonarProperties.SonarPassword,
             SonarProperties.SonarUserName,
             SonarProperties.DbPassword,
             SonarProperties.DbUserName
         };
-
 
         public ProcessRunnerArguments(string exeName, bool isBatchScript, ILogger logger)
         {
@@ -54,16 +51,16 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("exeName");
             }
 
-            this.exeName = exeName;
-            this.logger = logger ?? throw new ArgumentNullException("logger");
-            this.IsBatchScript = isBatchScript;
+            ExeName = exeName;
+            Logger = logger ?? throw new ArgumentNullException("logger");
+            IsBatchScript = isBatchScript;
 
-            this.TimeoutInMilliseconds = Timeout.Infinite;
+            TimeoutInMilliseconds = Timeout.Infinite;
         }
 
         #region Public properties
 
-        public string ExeName { get { return this.exeName; } }
+        public string ExeName { get; }
 
         /// <summary>
         /// Non-sensitive command line arguments (i.e. ones that can safely be logged). Optional.
@@ -81,13 +78,14 @@ namespace SonarQube.Common
         /// </summary>
         public IDictionary<string, string> EnvironmentVariables { get; set; }
 
-        public ILogger Logger { get { return this.logger; } }
+        public ILogger Logger { get; }
 
         public string GetEscapedArguments()
         {
-            if (this.CmdLineArgs == null) { return null; }
+            if (CmdLineArgs == null)
+            { return null; }
 
-            var result = string.Join(" ", this.CmdLineArgs.Select(a => EscapeArgument(a)));
+            var result = string.Join(" ", CmdLineArgs.Select(a => EscapeArgument(a)));
 
             if (IsBatchScript)
             {
@@ -103,13 +101,14 @@ namespace SonarQube.Common
         /// </summary>
         public string AsLogText()
         {
-            if (this.CmdLineArgs == null) { return null; }
+            if (CmdLineArgs == null)
+            { return null; }
 
-            bool hasSensitiveData = false;
+            var hasSensitiveData = false;
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            foreach (string arg in this.CmdLineArgs)
+            foreach (var arg in CmdLineArgs)
             {
                 if (ContainsSensitiveData(arg))
                 {
@@ -162,9 +161,9 @@ namespace SonarQube.Common
             var sb = new StringBuilder();
 
             sb.Append("\"");
-            for (int i = 0; i < arg.Length; i++)
+            for (var i = 0; i < arg.Length; i++)
             {
-                int numberOfBackslashes = 0;
+                var numberOfBackslashes = 0;
                 for (; i < arg.Length && arg[i] == '\\'; i++)
                 {
                     numberOfBackslashes++;
@@ -243,7 +242,6 @@ namespace SonarQube.Common
             return sb.ToString();
         }
 
-        #endregion
-
+        #endregion Public properties
     }
 }

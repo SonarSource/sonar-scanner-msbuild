@@ -54,11 +54,11 @@ namespace SonarQube.TeamBuild.PreProcessor
                 throw new ArgumentNullException("logger");
             }
 
-            string username = args.GetSetting(SonarProperties.SonarUserName, null);
-            string password = args.GetSetting(SonarProperties.SonarPassword, null);
-            string hostUrl = args.SonarQubeUrl;
+            var username = args.GetSetting(SonarProperties.SonarUserName, null);
+            var password = args.GetSetting(SonarProperties.SonarPassword, null);
+            var hostUrl = args.SonarQubeUrl;
 
-            this.server = new SonarWebService(new WebClientDownloader(username, password, logger), hostUrl, logger);
+            server = new SonarWebService(new WebClientDownloader(username, password, logger), hostUrl, logger);
             return server;
         }
 
@@ -74,15 +74,14 @@ namespace SonarQube.TeamBuild.PreProcessor
                 throw new ArgumentNullException("logger");
             }
 
-            if (this.server == null)
+            if (server == null)
             {
                 throw new InvalidOperationException(Resources.FACTORY_InternalError_MissingServer);
             }
 
-            return new Roslyn.RoslynAnalyzerProvider(new Roslyn.EmbeddedAnalyzerInstaller(this.server, logger), logger);
+            return new Roslyn.RoslynAnalyzerProvider(new Roslyn.EmbeddedAnalyzerInstaller(server, logger), logger);
         }
 
-        #endregion
-
+        #endregion IPreprocessorObjectFactory methods
     }
 }

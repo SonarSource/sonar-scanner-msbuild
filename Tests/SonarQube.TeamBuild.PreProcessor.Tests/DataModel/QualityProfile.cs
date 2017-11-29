@@ -17,10 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
-using System;
+
 using System.Collections.Generic;
+using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
 {
@@ -39,41 +38,40 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             this.id = id;
             this.language = language;
             this.organization = organization;
-            this.projectIds = new HashSet<string>();
-            this.inactiveRules = new List<string>();
-            this.activeRules = new List<ActiveRule>();
+            projectIds = new HashSet<string>();
+            inactiveRules = new List<string>();
+            activeRules = new List<ActiveRule>();
         }
 
         public QualityProfile AddProject(string projectKey, string projectBranch = null)
         {
-            string projectId = projectKey;
-            if (!String.IsNullOrWhiteSpace(projectBranch))
+            var projectId = projectKey;
+            if (!string.IsNullOrWhiteSpace(projectBranch))
             {
                 projectId = projectKey + ":" + projectBranch;
             }
 
-            this.projectIds.Add(projectId);
+            projectIds.Add(projectId);
             return this;
         }
 
         public QualityProfile AddRule(ActiveRule rule)
         {
-            this.activeRules.Add(rule);
+            activeRules.Add(rule);
             return this;
         }
 
         public QualityProfile AddInactiveRule(string ruleKey)
         {
-            this.inactiveRules.Add(ruleKey);
+            inactiveRules.Add(ruleKey);
             return this;
         }
 
-        public string Id { get { return this.id; } }
-        public string Language { get { return this.language; } }
-        public string Organization { get { return this.organization; } }
-        public IEnumerable<string> Projects { get { return this.projectIds; } }
-        public IList<ActiveRule> ActiveRules { get { return this.activeRules; } }
-        public IList<string> InactiveRules { get { return this.inactiveRules; } }
-
+        public string Id { get { return id; } }
+        public string Language { get { return language; } }
+        public string Organization { get { return organization; } }
+        public IEnumerable<string> Projects { get { return projectIds; } }
+        public IList<ActiveRule> ActiveRules { get { return activeRules; } }
+        public IList<string> InactiveRules { get { return inactiveRules; } }
     }
 }

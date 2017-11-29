@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using SonarQube.TeamBuild.Integration;
 using TestUtilities;
 
@@ -31,7 +31,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         /// </summary>
         public static EnvironmentVariableScope CreateValidNonTeamBuildScope()
         {
-            EnvironmentVariableScope scope = new EnvironmentVariableScope();
+            var scope = new EnvironmentVariableScope();
             scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "false");
 
             scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, null);

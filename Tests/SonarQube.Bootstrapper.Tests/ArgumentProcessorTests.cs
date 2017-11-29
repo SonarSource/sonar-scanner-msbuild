@@ -17,12 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using System.Collections.Generic;
+
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 using TestUtilities;
 
 namespace SonarQube.Bootstrapper.Tests
@@ -55,19 +54,19 @@ namespace SonarQube.Bootstrapper.Tests
         [TestMethod]
         public void ArgProc_UnrecognizedArgumentsAreIgnored()
         {
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             // 1. Minimal command line settings with extra values
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "foo", "blah", "/xxxx");
+            var settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "foo", "blah", "/xxxx");
             AssertUrlAndChildCmdLineArgs(settings, "foo", "/d:sonar.host.url=foo", "foo", "blah", "/xxxx");
         }
 
         [TestMethod]
         public void ArgProc_StripVerbsAndPrefixes()
         {
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "/begin:true", "/install:true");
+            var settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "/begin:true", "/install:true");
             AssertUrlAndChildCmdLineArgs(settings, "foo", "/d:sonar.host.url=foo", "/begin:true", "/install:true");
 
             settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "/installXXX:true");
@@ -80,18 +79,18 @@ namespace SonarQube.Bootstrapper.Tests
             // Command line properties should take precedence
 
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "settings");
-            string fullPropertiesPath = Path.Combine(testDir, "settings.txt");
-            AnalysisProperties properties = new AnalysisProperties
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext, "settings");
+            var fullPropertiesPath = Path.Combine(testDir, "settings.txt");
+            var properties = new AnalysisProperties
             {
                 new Property() { Id = SonarProperties.Verbose, Value = "true" }
             };
             properties.Save(fullPropertiesPath);
 
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             // 1. Settings file only
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath);
+            var settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath);
             Assert.AreEqual(settings.LoggingVerbosity, LoggerVerbosity.Debug);
 
             //// 2. Both file and cmd line
@@ -121,11 +120,11 @@ namespace SonarQube.Bootstrapper.Tests
         public void ArgProc_BeginVerb()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string validUrl = "/d:sonar.host.url=http://foo";
+            var logger = new TestLogger();
+            var validUrl = "/d:sonar.host.url=http://foo";
 
             // 1. Minimal parameters -> valid
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, validUrl, "begin");
+            var settings = CheckProcessingSucceeds(logger, validUrl, "begin");
             AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
             logger.AssertWarningsLogged(0);
             AssertExpectedChildArguments(settings, validUrl);
@@ -160,11 +159,11 @@ namespace SonarQube.Bootstrapper.Tests
         {
             // Arrange
             TestLogger logger;
-            string validUrl = "/d:sonar.host.url=http://foo";
+            var validUrl = "/d:sonar.host.url=http://foo";
 
             // 1. "beginx" -> valid, child argument "beginx"
             logger = new TestLogger();
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, validUrl, "beginX");
+            var settings = CheckProcessingSucceeds(logger, validUrl, "beginX");
             AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
             logger.AssertWarningsLogged(1); // Expecting a warning because "beginX" should not be recognised as "begin"
             AssertExpectedChildArguments(settings, validUrl, "beginX");
@@ -181,11 +180,11 @@ namespace SonarQube.Bootstrapper.Tests
         public void ArgProc_EndVerb()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string validUrl = "/d:sonar.host.url=http://foo";
+            var logger = new TestLogger();
+            var validUrl = "/d:sonar.host.url=http://foo";
 
             // 1. Minimal parameters -> valid
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "end");
+            var settings = CheckProcessingSucceeds(logger, "end");
             AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
             AssertExpectedChildArguments(settings);
 
@@ -237,7 +236,7 @@ namespace SonarQube.Bootstrapper.Tests
         {
             // 0. Setup
             TestLogger logger;
-            string validUrl = "/d:sonar.host.url=http://foo";
+            var validUrl = "/d:sonar.host.url=http://foo";
 
             // 1. Both present
             logger = CheckProcessingFails(validUrl, "begin", "end");
@@ -248,9 +247,9 @@ namespace SonarQube.Bootstrapper.Tests
         [TestMethod]
         public void ArgProc_SonarVerbose_IsBool()
         {
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "/d:sonar.verbose=yes");
+            var settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "/d:sonar.verbose=yes");
             Assert.AreEqual(VerbosityCalculator.DefaultLoggingVerbosity, settings.LoggingVerbosity, "Only expecting true or false");
 
             logger.AssertErrorsLogged(0);
@@ -261,18 +260,18 @@ namespace SonarQube.Bootstrapper.Tests
         public void ArgProc_SonarVerbose_CmdAndFile()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "settings");
-            string fullPropertiesPath = Path.Combine(testDir, "settings.txt");
-            AnalysisProperties properties = new AnalysisProperties
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext, "settings");
+            var fullPropertiesPath = Path.Combine(testDir, "settings.txt");
+            var properties = new AnalysisProperties
             {
                 new Property() { Id = SonarProperties.HostUrl, Value = "http://settingsFile" },
                 new Property() { Id = SonarProperties.LogLevel, Value = "INFO|DEBUG" }
             };
             properties.Save(fullPropertiesPath);
 
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
-            IBootstrapperSettings settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath);
+            var settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath);
             CollectionAssert.Contains(settings.ChildCmdLineArgs.ToList(), "/s: " + fullPropertiesPath);
             Assert.AreEqual(LoggerVerbosity.Debug, settings.LoggingVerbosity);
 
@@ -286,7 +285,7 @@ namespace SonarQube.Bootstrapper.Tests
 
         private static IBootstrapperSettings CheckProcessingSucceeds(TestLogger logger, params string[] cmdLineArgs)
         {
-            bool success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, logger, out IBootstrapperSettings settings);
+            var success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, logger, out IBootstrapperSettings settings);
 
             Assert.IsTrue(success, "Expecting processing to succeed");
             Assert.IsNotNull(settings, "Settings should not be null if processing succeeds");
@@ -297,8 +296,8 @@ namespace SonarQube.Bootstrapper.Tests
 
         private static TestLogger CheckProcessingFails(params string[] cmdLineArgs)
         {
-            TestLogger logger = new TestLogger();
-            bool success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, logger, out IBootstrapperSettings settings);
+            var logger = new TestLogger();
+            var success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, logger, out IBootstrapperSettings settings);
 
             Assert.IsFalse(success, "Expecting processing to fail");
             Assert.IsNull(settings, "Settings should be null if processing fails");
@@ -309,7 +308,6 @@ namespace SonarQube.Bootstrapper.Tests
 
         private static void AssertUrlAndChildCmdLineArgs(IBootstrapperSettings settings, string expectedUrl, params string[] expectedCmdLineArgs)
         {
-
             CollectionAssert.AreEqual(expectedCmdLineArgs, settings.ChildCmdLineArgs.ToList(), "Unexpected child command line arguments");
         }
 

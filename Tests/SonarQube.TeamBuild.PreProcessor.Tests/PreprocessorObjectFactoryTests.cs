@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using System;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -36,10 +36,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void Factory_ThrowsOnInvalidInput()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            ProcessedArgs validArgs = CreateValidArguments();
+            var logger = new TestLogger();
+            var validArgs = CreateValidArguments();
             IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory();
- 
+
             // 1. CreateSonarQubeServer method
             AssertException.Expects<ArgumentNullException>(() => testSubject.CreateSonarQubeServer(null, logger));
             AssertException.Expects<ArgumentNullException>(() => testSubject.CreateSonarQubeServer(validArgs, null));
@@ -52,8 +52,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void Factory_ValidCallSequence_ValidObjectReturned()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            ProcessedArgs validArgs = CreateValidArguments();
+            var logger = new TestLogger();
+            var validArgs = CreateValidArguments();
             IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory();
 
             // 1. Create the SonarQube server...
@@ -73,29 +73,29 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void Factory_InvalidCallSequence_Fails()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
             IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory();
 
             // 2. Act and assert
             AssertException.Expects<InvalidOperationException>(() => testSubject.CreateRoslynAnalyzerProvider(logger));
         }
 
-        #endregion
+        #endregion Tests
 
         #region Private methods
 
         private ProcessedArgs CreateValidArguments()
         {
-            Common.ListPropertiesProvider cmdLineArgs = new Common.ListPropertiesProvider();
+            var cmdLineArgs = new Common.ListPropertiesProvider();
             cmdLineArgs.AddProperty(Common.SonarProperties.HostUrl, "http://foo");
 
-            ProcessedArgs validArgs = new ProcessedArgs("key", "name", "verions", "organization", false,
+            var validArgs = new ProcessedArgs("key", "name", "verions", "organization", false,
                 cmdLineArgs,
                 new Common.ListPropertiesProvider(),
                 EmptyPropertyProvider.Instance);
             return validArgs;
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

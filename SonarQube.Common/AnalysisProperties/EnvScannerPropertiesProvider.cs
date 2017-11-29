@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Newtonsoft.Json.Linq;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace SonarQube.Common
 {
@@ -41,7 +41,7 @@ namespace SonarQube.Common
                 provider = new EnvScannerPropertiesProvider(Environment.GetEnvironmentVariable(ENV_VAR_KEY));
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 logger?.LogError(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY);
             }
@@ -63,10 +63,11 @@ namespace SonarQube.Common
             return Property.TryGetProperty(key, properties, out property);
         }
 
-        private IEnumerable<Property> ParseVar(String json)
+        private IEnumerable<Property> ParseVar(string json)
         {
-            var props = JObject.Parse(json).Properties();
-            return props.Select(p => new Property { Id = p.Name, Value = p.Value.ToString() });
+            return JObject.Parse(json)
+                .Properties()
+                .Select(p => new Property { Id = p.Name, Value = p.Value.ToString() });
         }
     }
 }

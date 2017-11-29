@@ -17,14 +17,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using SonarQube.Common;
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.IO;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -86,10 +86,10 @@ namespace SonarQube.MSBuild.Tasks
 
         public override bool Execute()
         {
-            AnalysisConfig config = TaskUtilities.TryGetConfig(this.AnalysisConfigDir, new MSBuildLoggerAdapter(this.Log));
+            var config = TaskUtilities.TryGetConfig(AnalysisConfigDir, new MSBuildLoggerAdapter(Log));
             ExecuteAnalysis(config);
 
-            return !this.Log.HasLoggedErrors;
+            return !Log.HasLoggedErrors;
         }
 
         private void ExecuteAnalysis(AnalysisConfig config)
@@ -102,34 +102,34 @@ namespace SonarQube.MSBuild.Tasks
             IList<AnalyzerSettings> analyzers = config.AnalyzersSettings;
             if (analyzers == null)
             {
-                this.Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
+                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
                 return;
             }
 
-            AnalyzerSettings settings = analyzers.SingleOrDefault(s => Language.Equals(s.Language));
+            var settings = analyzers.SingleOrDefault(s => Language.Equals(s.Language));
             if (settings == null)
             {
-                this.Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
+                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
                 return;
             }
 
-            this.RuleSetFilePath = settings.RuleSetFilePath;
+            RuleSetFilePath = settings.RuleSetFilePath;
 
             if (settings.AnalyzerAssemblyPaths != null)
             {
-                this.AnalyzerFilePaths = settings.AnalyzerAssemblyPaths.Where(f => IsAssemblyLibraryFileName(f)).ToArray();
+                AnalyzerFilePaths = settings.AnalyzerAssemblyPaths.Where(f => IsAssemblyLibraryFileName(f)).ToArray();
             }
 
             if (settings.AdditionalFilePaths != null)
             {
-                this.AdditionalFiles = settings.AdditionalFilePaths.ToArray();
+                AdditionalFiles = settings.AdditionalFilePaths.ToArray();
 
-                HashSet<string> additionalFileNames = new HashSet<string>(
-                    this.AdditionalFiles
+                var additionalFileNames = new HashSet<string>(
+                    AdditionalFiles
                         .Select(af => GetFileName(af))
                         .Where(n => !string.IsNullOrEmpty(n)));
 
-                this.AdditionalFilesToRemove = (this.OriginalAdditionalFiles ?? Enumerable.Empty<string>())
+                AdditionalFilesToRemove = (OriginalAdditionalFiles ?? Enumerable.Empty<string>())
                     .Where(original => additionalFileNames.Contains(GetFileName(original)))
                     .ToArray();
             }
@@ -161,6 +161,6 @@ namespace SonarQube.MSBuild.Tasks
             return filePath.EndsWith(DllExtension, StringComparison.OrdinalIgnoreCase);
         }
 
-        #endregion
+        #endregion Private methods
     }
 }
