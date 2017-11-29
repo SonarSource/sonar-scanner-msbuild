@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TestUtilities
 {
@@ -39,7 +39,7 @@ namespace TestUtilities
         {
             Assert.IsTrue(Directory.Exists(workingDirectory), "Test setup error: specified directory should exist - " + workingDirectory);
 
-            this.originalDirectory = Directory.GetCurrentDirectory();
+            originalDirectory = Directory.GetCurrentDirectory();
             Directory.SetCurrentDirectory(workingDirectory);
         }
 
@@ -49,24 +49,24 @@ namespace TestUtilities
 
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         private void Dispose(bool disposing)
         {
-            if (this.disposed)
+            if (disposed)
             {
                 return;
             }
-            this.disposed = true;
+            disposed = true;
 
             if (disposing)
             {
-                Directory.SetCurrentDirectory(this.originalDirectory);
+                Directory.SetCurrentDirectory(originalDirectory);
             }
         }
 
-        #endregion
+        #endregion IDispose implementation
     }
 }

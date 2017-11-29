@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -43,18 +43,18 @@ namespace SonarQube.Common
             this.providers = providers ?? throw new ArgumentNullException("providers");
         }
 
-        #endregion
+        #endregion Public methods
 
         #region IAnalysisPropertyProvider interface
 
         public IEnumerable<Property> GetAllProperties()
         {
-            HashSet<string> allKeys = new HashSet<string>(this.providers.SelectMany(p => p.GetAllProperties().Select(s => s.Id)));
+            var allKeys = new HashSet<string>(providers.SelectMany(p => p.GetAllProperties().Select(s => s.Id)));
 
             IList<Property> allProperties = new List<Property>();
-            foreach (string key in allKeys)
+            foreach (var key in allKeys)
             {
-                bool match = this.TryGetProperty(key, out Property property);
+                var match = TryGetProperty(key, out Property property);
 
                 Debug.Assert(match, "Expecting to find value for all keys. Key: " + key);
                 allProperties.Add(property);
@@ -67,7 +67,7 @@ namespace SonarQube.Common
         {
             property = null;
 
-            foreach (IAnalysisPropertyProvider current in this.providers)
+            foreach (var current in providers)
             {
                 if (current.TryGetProperty(key, out property))
                 {
@@ -78,6 +78,6 @@ namespace SonarQube.Common
             return false;
         }
 
-        #endregion
+        #endregion IAnalysisPropertyProvider interface
     }
 }

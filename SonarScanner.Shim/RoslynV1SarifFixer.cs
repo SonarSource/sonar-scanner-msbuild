@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System;
+using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarQube.Common;
-using System;
-using System.IO;
 
 namespace SonarScanner.Shim
 {
@@ -61,7 +61,7 @@ namespace SonarScanner.Shim
         {
             try
             {
-                JObject.Parse(input);     
+                JObject.Parse(input);
             }
             catch (JsonReaderException) // we expect invalid JSON
             {
@@ -75,13 +75,13 @@ namespace SonarScanner.Shim
         /// </summary>
         private static string ApplyFixToSarif(string unfixedSarif)
         {
-            string[] inputLines = unfixedSarif.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            var inputLines = unfixedSarif.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
 
             /// Example invalid line:
             /// "shortMessage": "message \test\ ["_"]",
-            for (int i = 0; i < inputLines.Length; i++)
+            for (var i = 0; i < inputLines.Length; i++)
             {
-                string line = inputLines[i];
+                var line = inputLines[i];
                 if (line.Contains(@"""uri"": ")
                     || line.Contains(@"""shortMessage"": ")
                     || line.Contains(@"""fullMessage"": ")
@@ -89,14 +89,14 @@ namespace SonarScanner.Shim
                 {
                     line = line.Replace(@"\", @"\\");
 
-                    string[] subStrings = line.Split('"');
+                    var subStrings = line.Split('"');
                     if (subStrings.Length > 5) // expect 5+ substrings because there are 4 syntactically required quotes
                     { // any less than 6 substrings and there aren't any quotes to escape
-                        string[] valueStrings = new string[subStrings.Length - 4];
+                        var valueStrings = new string[subStrings.Length - 4];
                         Array.Copy(subStrings, 3, valueStrings, 0, subStrings.Length - 4);
-                        string newValue = String.Join("\\\"", valueStrings); // join value string together with escaped quotes
+                        var newValue = string.Join("\\\"", valueStrings); // join value string together with escaped quotes
 
-                        string[] newLineStrings = new string[5]
+                        var newLineStrings = new string[5]
                         {
                                 subStrings[0],
                                 subStrings[1],
@@ -104,7 +104,7 @@ namespace SonarScanner.Shim
                                 newValue,
                                 subStrings[subStrings.Length - 1]
                         }; // construct final line
-                        line = String.Join(@"""", newLineStrings); // apply unescaped quotes only where syntactically necessary
+                        line = string.Join(@"""", newLineStrings); // apply unescaped quotes only where syntactically necessary
                     }
 
                     inputLines[i] = line;
@@ -114,7 +114,7 @@ namespace SonarScanner.Shim
             return string.Join(Environment.NewLine, inputLines);
         }
 
-        #endregion
+        #endregion Private Methods
 
         #region IRoslynV1SarifFixer
 
@@ -127,7 +127,7 @@ namespace SonarScanner.Shim
                 return null;
             }
 
-            string inputSarifFileString = File.ReadAllText(sarifFilePath);
+            var inputSarifFileString = File.ReadAllText(sarifFilePath);
 
             if (IsValidJson(inputSarifFileString))
             {
@@ -143,8 +143,8 @@ namespace SonarScanner.Shim
                 logger.LogWarning(Resources.WARN_SarifFixFail);
                 return null;
             }
-                
-            string changedSarif = ApplyFixToSarif(inputSarifFileString);
+
+            var changedSarif = ApplyFixToSarif(inputSarifFileString);
 
             if (!IsValidJson(changedSarif))
             {
@@ -155,10 +155,10 @@ namespace SonarScanner.Shim
             else
             {
                 //output valid -> write to new file and return new path
-                string writeDir = Path.GetDirectoryName(sarifFilePath);
-                string newSarifFileName =
+                var writeDir = Path.GetDirectoryName(sarifFilePath);
+                var newSarifFileName =
                     Path.GetFileNameWithoutExtension(sarifFilePath) + FixedFileSuffix + Path.GetExtension(sarifFilePath);
-                string newSarifFilePath = Path.Combine(writeDir, newSarifFileName);
+                var newSarifFilePath = Path.Combine(writeDir, newSarifFileName);
 
                 File.WriteAllText(newSarifFilePath, changedSarif);
 
@@ -167,7 +167,6 @@ namespace SonarScanner.Shim
             }
         }
 
-    #endregion
-
+    #endregion IRoslynV1SarifFixer
     }
 }

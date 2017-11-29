@@ -24,6 +24,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
     {
         // Target file names
         public const string AnalysisTargetFile = TestUtilities.TestUtils.AnalysisTargetFile;
+
         public const string ImportsBeforeFile = TestUtilities.TestUtils.ImportsBeforeFile;
 
         // Targets
@@ -39,6 +40,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         // Roslyn
         public const string OverrideRoslynAnalysisTarget = "OverrideRoslynCodeAnalysisProperties";
+
         public const string SetRoslynAnalysisPropertiesTarget = "SetRoslynCodeAnalysisProperties";
         public const string MergeResultSetsTask = "MergeRuleSets";
 
@@ -52,6 +54,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
     {
         // SonarQube Integration constants
         public const string SonarQubeTargetFilePath = "SonarQubeTargetFilePath";
+
         public const string SonarQubeTargetsPath = "SonarQubeTargetsPath";
 
         public const string SonarQubeConfigPath = "SonarQubeConfigPath";
@@ -66,6 +69,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         // Non-SonarQube constants
         public const string ProjectGuid = "ProjectGuid";
+
         public const string ProjectTypeGuids = "ProjectTypeGuids";
 
         public const string RunCodeAnalysis = "RunCodeAnalysis";
@@ -87,6 +91,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         // Roslyn
         public const string ResolvedCodeAnalysisRuleset = "ResolvedCodeAnalysisRuleSet";
+
         public const string TargetDir = "TargetDir"; // bin directory into which output will be dropped
         public const string TargetFileName = "TargetFileName"; // filename and extension of the project being built
         public const string ErrorLog = "ErrorLog"; // file path to which the Roslyn error log should be written
@@ -99,11 +104,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
         // Legacy TeamBuild environment variables (XAML Builds)
         public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
+
         public const string BuildUri_Legacy = "TF_BUILD_BUILDURI";
         public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
 
         // TFS 2015 Environment variables
         public const string TfsCollectionUri_TFS2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
+
         public const string BuildUri_TFS2015 = "BUILD_BUILDURI";
         public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
 
@@ -113,5 +120,4 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         public const string ItemType_Content = "Content";
         public const string AutoGenMetadata = "AutoGen";
     }
-
 }

@@ -17,10 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 
 namespace SonarQube.Common
@@ -45,7 +44,7 @@ namespace SonarQube.Common
         [XmlAttribute]
         public string Value { get; set; }
 
-        #endregion
+        #endregion Data
 
         #region Static helper methods
 
@@ -59,6 +58,6 @@ namespace SonarQube.Common
         /// </summary>
         public static readonly IEqualityComparer<string> SettingValueComparer = StringComparer.Ordinal;
 
-        #endregion
+        #endregion Static helper methods
     }
 }

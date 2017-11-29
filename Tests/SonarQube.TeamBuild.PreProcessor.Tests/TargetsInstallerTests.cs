@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarQube Scanner for MSBuild
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -17,14 +17,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
 using SonarQube.Common;
+using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 {
@@ -34,7 +34,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
     [TestClass]
     public class TargetsInstallerTests
     {
-        string WorkingDirectory;
+        private string WorkingDirectory;
 
         public TestContext TestContext { get; set; }
 
@@ -42,7 +42,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public void Init()
         {
             CleanupMsbuildDirectories();
-            WorkingDirectory = TestUtils.CreateTestSpecificFolder(this.TestContext, "sonarqube");
+            WorkingDirectory = TestUtils.CreateTestSpecificFolder(TestContext, "sonarqube");
         }
 
         [TestCleanup]
@@ -56,7 +56,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public void InstallTargetsFile_Copy()
         {
             // In case the dummy targets file somehow does not get deleted (e.g. when debugging) , make sure its content is valid XML
-            string sourceTargetsContent = @"<Project ToolsVersion=""4.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"" />";
+            var sourceTargetsContent = @"<Project ToolsVersion=""4.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"" />";
             CreateDummySourceTargetsFile(sourceTargetsContent);
 
             InstallTargetsFileAndAssert(sourceTargetsContent, expectCopy: true);
@@ -70,15 +70,15 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public void InstallTargetsFile_Overwrite()
         {
             // In case the dummy targets file somehow does not get deleted (e.g. when debugging), make sure its content valid XML
-            string sourceTargetsContent1 = @"<Project ToolsVersion=""4.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"" />";
-            string sourceTargetsContent2 = @"<Project ToolsVersion=""12.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"" />";
+            var sourceTargetsContent1 = @"<Project ToolsVersion=""4.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"" />";
+            var sourceTargetsContent2 = @"<Project ToolsVersion=""12.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"" />";
 
             CreateDummySourceTargetsFile(sourceTargetsContent1);
 
             InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
             Assert.IsTrue(FileConstants.ImportBeforeDestinationDirectoryPaths.Count == 2, "Expecting two destination directories");
 
-            string path = Path.Combine(FileConstants.ImportBeforeDestinationDirectoryPaths[0], FileConstants.ImportBeforeTargetsName);
+            var path = Path.Combine(FileConstants.ImportBeforeDestinationDirectoryPaths[0], FileConstants.ImportBeforeTargetsName);
             File.Delete(path);
 
             CreateDummySourceTargetsFile(sourceTargetsContent2);
@@ -91,12 +91,12 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             // SONARMSBRU-149: we used to deploy the targets file to the 4.0 directory but this
             // is no longer supported. To be on the safe side we'll clean up the old location too.
             IList<string> cleanUpDirs = new List<string>(FileConstants.ImportBeforeDestinationDirectoryPaths);
-            string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             cleanUpDirs.Add(Path.Combine(appData, "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"));
 
-            foreach (string destinationDir in cleanUpDirs)
+            foreach (var destinationDir in cleanUpDirs)
             {
-                string path = Path.Combine(destinationDir, FileConstants.ImportBeforeTargetsName);
+                var path = Path.Combine(destinationDir, FileConstants.ImportBeforeTargetsName);
                 if (File.Exists(path))
                 {
                     File.Delete(path);
@@ -106,11 +106,10 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 
         private static void CreateDummySourceTargetsFile(string sourceTargetsContent1)
         {
-            string exeLocation = Path.GetDirectoryName(typeof(TargetsInstaller).Assembly.Location);
+            var exeLocation = Path.GetDirectoryName(typeof(TargetsInstaller).Assembly.Location);
 
-            string dummyLoaderBeforeTargets = Path.Combine(exeLocation, "Targets", FileConstants.ImportBeforeTargetsName);
-            string dummyLoaderTargets = Path.Combine(exeLocation, "Targets", FileConstants.IntegrationTargetsName);
-
+            var dummyLoaderBeforeTargets = Path.Combine(exeLocation, "Targets", FileConstants.ImportBeforeTargetsName);
+            var dummyLoaderTargets = Path.Combine(exeLocation, "Targets", FileConstants.IntegrationTargetsName);
 
             if (File.Exists(dummyLoaderBeforeTargets))
             {
@@ -129,13 +128,13 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 
         private void InstallTargetsFileAndAssert(string expectedContent, bool expectCopy)
         {
-            TargetsInstaller installer = new TargetsInstaller();
-            TestLogger logger = new TestLogger();
+            var installer = new TargetsInstaller();
+            var logger = new TestLogger();
             installer.InstallLoaderTargets(logger, WorkingDirectory);
 
-            foreach (string destinationDir in FileConstants.ImportBeforeDestinationDirectoryPaths)
+            foreach (var destinationDir in FileConstants.ImportBeforeDestinationDirectoryPaths)
             {
-                string path = Path.Combine(destinationDir, FileConstants.ImportBeforeTargetsName);
+                var path = Path.Combine(destinationDir, FileConstants.ImportBeforeTargetsName);
                 Assert.IsTrue(File.Exists(path), ".targets file not found at: " + path);
                 Assert.AreEqual(
                     expectedContent,
@@ -145,7 +144,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                 Assert.IsTrue(logger.DebugMessages.Any(m => m.Contains(destinationDir)));
             }
 
-            string targetsPath = Path.Combine(WorkingDirectory, "bin", "targets", FileConstants.IntegrationTargetsName);
+            var targetsPath = Path.Combine(WorkingDirectory, "bin", "targets", FileConstants.IntegrationTargetsName);
             Assert.IsTrue(File.Exists(targetsPath), ".targets file not found at: " + targetsPath);
 
             if (expectCopy)
@@ -155,7 +154,6 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                     logger.DebugMessages.Count,
                     "All destinations should have been covered");
             }
-
         }
     }
 }

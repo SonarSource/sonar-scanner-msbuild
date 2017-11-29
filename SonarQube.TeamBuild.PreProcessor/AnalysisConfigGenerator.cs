@@ -59,7 +59,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            AnalysisConfig config = new AnalysisConfig
+            var config = new AnalysisConfig
             {
                 SonarProjectKey = localSettings.ProjectKey,
                 SonarProjectName = localSettings.ProjectName,
@@ -113,7 +113,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private static void AddSetting(AnalysisProperties properties, string id, string value)
         {
-            Property property = new Property() { Id = id, Value = value };
+            var property = new Property() { Id = id, Value = value };
 
             // Ensure it isn't possible to write sensitive data to the config file
             if (!property.ContainsSensitiveData())

@@ -17,14 +17,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -65,19 +65,24 @@ namespace SonarQube.TeamBuild.PreProcessor
             Descriptors = new List<ArgumentDescriptor>
             {
                 new ArgumentDescriptor(
-                id: KeywordIds.ProjectKey, prefixes: new string[] { "/key:", "/k:" }, required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectKey),
+                id: KeywordIds.ProjectKey, prefixes: new string[] { "/key:", "/k:" }, required: true, allowMultiple: false,
+                description: Resources.CmdLine_ArgDescription_ProjectKey),
 
                 new ArgumentDescriptor(
-                id: KeywordIds.ProjectName, prefixes: new string[] { "/name:", "/n:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectName),
+                id: KeywordIds.ProjectName, prefixes: new string[] { "/name:", "/n:" }, required: false, allowMultiple: false,
+                description: Resources.CmdLine_ArgDescription_ProjectName),
 
                 new ArgumentDescriptor(
-                id: KeywordIds.ProjectVersion, prefixes: new string[] { "/version:", "/v:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion),
+                id: KeywordIds.ProjectVersion, prefixes: new string[] { "/version:", "/v:" }, required: false,
+                allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion),
 
                 new ArgumentDescriptor(
-                id: KeywordIds.Organization, prefixes: new string[] { "/organization:", "/o:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_Organization),
+                id: KeywordIds.Organization, prefixes: new string[] { "/organization:", "/o:" }, required: false,
+                allowMultiple: false, description: Resources.CmdLine_ArgDescription_Organization),
 
                 new ArgumentDescriptor(
-              id: KeywordIds.InstallLoaderTargets, prefixes: new string[] { "/install:" }, required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets),
+                id: KeywordIds.InstallLoaderTargets, prefixes: new string[] { "/install:" }, required: false,
+                allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets),
 
                 FilePropertyProvider.Descriptor,
                 CmdLineArgPropertyProvider.Descriptor
@@ -106,21 +111,23 @@ namespace SonarQube.TeamBuild.PreProcessor
             ProcessedArgs processed = null;
 
             // This call will fail if there are duplicate, missing, or unrecognized arguments
-            CommandLineParser parser = new CommandLineParser(Descriptors, false /* don't allow unrecognized */);
-            bool parsedOk = parser.ParseArguments(commandLineArgs, logger, out IEnumerable<ArgumentInstance> arguments);
+            var parser = new CommandLineParser(Descriptors, false /* don't allow unrecognized */);
+            var parsedOk = parser.ParseArguments(commandLineArgs, logger, out IEnumerable<ArgumentInstance> arguments);
 
             // Handle the /install: command line only argument
             parsedOk &= TryGetInstallTargetsEnabled(arguments, logger, out bool installLoaderTargets);
 
             // Handler for command line analysis properties
-            parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out IAnalysisPropertyProvider cmdLineProperties);
+            parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger,
+                out IAnalysisPropertyProvider cmdLineProperties);
 
             // Handler for scanner environment properties
             parsedOk &= EnvScannerPropertiesProvider.TryCreateProvider(logger, out IAnalysisPropertyProvider scannerEnvProperties);
 
             // Handler for property file
-            string asmPath = Path.GetDirectoryName(typeof(PreProcessor.ArgumentProcessor).Assembly.Location);
-            parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out IAnalysisPropertyProvider globalFileProperties);
+            var asmPath = Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location);
+            parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger,
+                out IAnalysisPropertyProvider globalFileProperties);
 
             if (parsedOk)
             {
@@ -162,9 +169,9 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <returns>True if the arguments are valid, otherwise false</returns>
         private static bool AreParsedArgumentsValid(ProcessedArgs args, ILogger logger)
         {
-            bool areValid = true;
+            var areValid = true;
 
-            string projectKey = args.ProjectKey;
+            var projectKey = args.ProjectKey;
             if (!IsValidProjectKey(projectKey))
             {
                 logger.LogError(Resources.ERROR_InvalidProjectKeyArg);
@@ -176,11 +183,11 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private static bool TryGetInstallTargetsEnabled(IEnumerable<ArgumentInstance> arguments, ILogger logger, out bool installTargetsEnabled)
         {
-            bool hasInstallTargetsVerb = ArgumentInstance.TryGetArgument(KeywordIds.InstallLoaderTargets, arguments, out ArgumentInstance argumentInstance);
+            var hasInstallTargetsVerb = ArgumentInstance.TryGetArgument(KeywordIds.InstallLoaderTargets, arguments, out ArgumentInstance argumentInstance);
 
             if (hasInstallTargetsVerb)
             {
-                bool canParse = bool.TryParse(argumentInstance.Value, out installTargetsEnabled);
+                var canParse = bool.TryParse(argumentInstance.Value, out installTargetsEnabled);
 
                 if (!canParse)
                 {

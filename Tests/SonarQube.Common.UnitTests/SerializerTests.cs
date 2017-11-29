@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.Common.UnitTests
@@ -56,15 +56,14 @@ namespace SonarQube.Common.UnitTests
         public void Serializer_RoundTrip_Succeeds()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string filePath = Path.Combine(testDir, "file1.txt");
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var filePath = Path.Combine(testDir, "file1.txt");
 
-            MyDataClass original = new MyDataClass() { Value1 = "val1", Value2 = 22 };
-
+            var original = new MyDataClass() { Value1 = "val1", Value2 = 22 };
 
             // Act - save and reload
             Serializer.SaveModel(original, filePath);
-            MyDataClass reloaded = Serializer.LoadModel<MyDataClass>(filePath);
+            var reloaded = Serializer.LoadModel<MyDataClass>(filePath);
 
             // Assert
             Assert.IsNotNull(reloaded);
@@ -76,13 +75,13 @@ namespace SonarQube.Common.UnitTests
         public void Serializer_ToString_Succeeds()
         {
             // Arrange
-            MyDataClass inputData = new MyDataClass() { Value1 = "val1", Value2 = 22 };
+            var inputData = new MyDataClass() { Value1 = "val1", Value2 = 22 };
 
             // Act
-            string actual = Serializer.ToString(inputData);
+            var actual = Serializer.ToString(inputData);
 
             // Assert
-            string expected = @"<?xml version=""1.0"" encoding=""utf-16""?>
+            var expected = @"<?xml version=""1.0"" encoding=""utf-16""?>
 <MyDataClass xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
   <Value1>val1</Value1>
   <Value2>22</Value2>
@@ -91,7 +90,6 @@ namespace SonarQube.Common.UnitTests
             Assert.AreEqual(expected, actual);
         }
 
-        #endregion
-
+        #endregion Tests
     }
 }

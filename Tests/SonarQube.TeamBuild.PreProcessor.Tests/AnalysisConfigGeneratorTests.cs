@@ -17,13 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
+
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -39,22 +39,22 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void AnalysisConfGen_Simple()
         {
             // Arrange
-            string analysisDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
-            ListPropertiesProvider propertyProvider = new ListPropertiesProvider();
+            var propertyProvider = new ListPropertiesProvider();
             propertyProvider.AddProperty(SonarProperties.HostUrl, "http://foo");
-            ProcessedArgs args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, EmptyPropertyProvider.Instance, propertyProvider, EmptyPropertyProvider.Instance);
+            var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, EmptyPropertyProvider.Instance, propertyProvider, EmptyPropertyProvider.Instance);
 
-            TeamBuildSettings tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+            var tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
 
-            Dictionary<string, string> serverSettings = new Dictionary<string, string>
+            var serverSettings = new Dictionary<string, string>
             {
                 { "server.key.1", "server.value.1" }
             };
 
-            AnalyzerSettings analyzerSettings = new AnalyzerSettings
+            var analyzerSettings = new AnalyzerSettings
             {
                 RuleSetFilePath = "c:\\xxx.ruleset",
                 AdditionalFilePaths = new List<string>()
@@ -65,14 +65,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 "f:\\temp\\analyzer1.dll"
             };
 
-            List<AnalyzerSettings> analyzersSettings = new List<AnalyzerSettings>
+            var analyzersSettings = new List<AnalyzerSettings>
             {
                 analyzerSettings
             };
             Directory.CreateDirectory(tbSettings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(args, tbSettings, serverSettings, analyzersSettings, logger);
+            var actualConfig = AnalysisConfigGenerator.GenerateFile(args, tbSettings, serverSettings, analyzersSettings, logger);
 
             // Assert
             AssertConfigFileExists(actualConfig);
@@ -93,7 +93,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual(tbSettings.TfsUri, actualConfig.GetTfsUri());
 
             Assert.IsNotNull(actualConfig.ServerSettings);
-            Property serverProperty = actualConfig.ServerSettings.SingleOrDefault(s => string.Equals(s.Id, "server.key.1", System.StringComparison.Ordinal));
+            var serverProperty = actualConfig.ServerSettings.SingleOrDefault(s => string.Equals(s.Id, "server.key.1", System.StringComparison.Ordinal));
             Assert.IsNotNull(serverProperty);
             Assert.AreEqual("server.value.1", serverProperty.Value);
             Assert.AreSame(analyzerSettings, actualConfig.AnalyzersSettings[0]);
@@ -106,35 +106,35 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Instead, a pointer to the file should be created.
 
             // Arrange
-            string analysisDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             // The set of file properties to supply
-            AnalysisProperties fileProperties = new AnalysisProperties
+            var fileProperties = new AnalysisProperties
             {
                 new Property() { Id = SonarProperties.HostUrl, Value = "http://myserver" },
                 new Property() { Id = "file.only", Value = "file value" }
             };
-            string settingsFilePath = Path.Combine(analysisDir, "settings.txt");
+            var settingsFilePath = Path.Combine(analysisDir, "settings.txt");
             fileProperties.Save(settingsFilePath);
 
-            FilePropertyProvider fileProvider = FilePropertyProvider.Load(settingsFilePath);
+            var fileProvider = FilePropertyProvider.Load(settingsFilePath);
 
-            ProcessedArgs args = new ProcessedArgs("key", "name", "version", "organization", false, EmptyPropertyProvider.Instance, fileProvider, EmptyPropertyProvider.Instance);
+            var args = new ProcessedArgs("key", "name", "version", "organization", false, EmptyPropertyProvider.Instance, fileProvider, EmptyPropertyProvider.Instance);
 
-            TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+            var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            AnalysisConfig actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), logger);
+            var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), logger);
 
             // Assert
             AssertConfigFileExists(actualConfig);
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
 
-            string actualSettingsFilePath = actualConfig.GetSettingsFilePath();
+            var actualSettingsFilePath = actualConfig.GetSettingsFilePath();
             Assert.AreEqual(settingsFilePath, actualSettingsFilePath, "Unexpected settings file path");
 
             // Check the file setting value do not appear in the config file
@@ -150,11 +150,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void AnalysisConfGen_AnalysisConfigDoesNotContainSensitiveData()
         {
             // Arrange
-            string analysisDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
-            ListPropertiesProvider cmdLineArgs = new ListPropertiesProvider();
+            var cmdLineArgs = new ListPropertiesProvider();
             // Public args - should be written to the config file
             cmdLineArgs.AddProperty("sonar.host.url", "http://host");
             cmdLineArgs.AddProperty("public.key", "public value");
@@ -166,17 +166,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             cmdLineArgs.AddProperty(SonarProperties.DbPassword, "secret db password");
 
             // Create a settings file with public and sensitive data
-            AnalysisProperties fileSettings = new AnalysisProperties
+            var fileSettings = new AnalysisProperties
             {
                 new Property() { Id = "file.public.key", Value = "file public value" },
                 new Property() { Id = SonarProperties.DbUserName, Value = "secret db user" },
                 new Property() { Id = SonarProperties.DbPassword, Value = "secret db password" }
             };
-            string fileSettingsPath = Path.Combine(analysisDir, "fileSettings.txt");
+            var fileSettingsPath = Path.Combine(analysisDir, "fileSettings.txt");
             fileSettings.Save(fileSettingsPath);
-            FilePropertyProvider fileProvider = FilePropertyProvider.Load(fileSettingsPath);
+            var fileProvider = FilePropertyProvider.Load(fileSettingsPath);
 
-            ProcessedArgs args = new ProcessedArgs("key", "name", "1.0", null, false, cmdLineArgs, fileProvider, EmptyPropertyProvider.Instance);
+            var args = new ProcessedArgs("key", "name", "1.0", null, false, cmdLineArgs, fileProvider, EmptyPropertyProvider.Instance);
 
             IDictionary<string, string> serverProperties = new Dictionary<string, string>
             {
@@ -189,11 +189,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 { "sonar.cpp.License.Secured", "secret license 2" }
             };
 
-            TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+            var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            AnalysisConfig config = AnalysisConfigGenerator.GenerateFile(args, settings, serverProperties, new List<AnalyzerSettings>(), logger);
+            var config = AnalysisConfigGenerator.GenerateFile(args, settings, serverProperties, new List<AnalyzerSettings>(), logger);
 
             // Assert
             AssertConfigFileExists(config);
@@ -228,18 +228,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsFalse(string.IsNullOrWhiteSpace(config.FileName), "Config file name should be set");
             Assert.IsTrue(File.Exists(config.FileName), "Expecting the analysis config file to exist. Path: {0}", config.FileName);
 
-            this.TestContext.AddResultFile(config.FileName);
+            TestContext.AddResultFile(config.FileName);
         }
 
         private static void AssertSettingDoesNotExist(string key, AnalysisConfig actualConfig)
         {
-            bool found = actualConfig.GetAnalysisSettings(true).TryGetProperty(key, out Property setting);
+            var found = actualConfig.GetAnalysisSettings(true).TryGetProperty(key, out Property setting);
             Assert.IsFalse(found, "The setting should not exist. Key: {0}", key);
         }
 
         private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
-            bool found = Property.TryGetProperty(key, actualConfig.ServerSettings, out Property property);
+            var found = Property.TryGetProperty(key, actualConfig.ServerSettings, out Property property);
 
             Assert.IsTrue(found, "Expected server property was not found. Key: {0}", key);
             Assert.AreEqual(expectedValue, property.Value, "Unexpected server value. Key: {0}", key);
@@ -247,7 +247,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static void AssertExpectedLocalSetting(string key, string expectedValue, AnalysisConfig acutalConfig)
         {
-            bool found = Property.TryGetProperty(key, acutalConfig.LocalSettings, out Property property);
+            var found = Property.TryGetProperty(key, acutalConfig.LocalSettings, out Property property);
 
             Assert.IsTrue(found, "Expected local property was not found. Key: {0}", key);
             Assert.AreEqual(expectedValue, property.Value, "Unexpected local value. Key: {0}", key);
@@ -257,7 +257,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         {
             Assert.IsTrue(File.Exists(filePath), "File should exist: {0}", filePath);
 
-            string content = File.ReadAllText(filePath);
+            var content = File.ReadAllText(filePath);
             Assert.IsTrue(content.IndexOf(text, System.StringComparison.InvariantCultureIgnoreCase) < 0, "Not expecting text to be found in the file. Text: '{0}', file: {1}",
                 text, filePath);
         }

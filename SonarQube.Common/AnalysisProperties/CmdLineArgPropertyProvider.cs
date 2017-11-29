@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +32,8 @@ namespace SonarQube.Common
         public const string DynamicPropertyArgumentId = "dynamic.property";
 
         public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(
-            id: DynamicPropertyArgumentId, prefixes: new string[] { "/d:" }, required: false, allowMultiple: true, description: Resources.CmdLine_ArgDescription_DynamicProperty);
+            id: DynamicPropertyArgumentId, prefixes: new string[] { "/d:" }, required: false, allowMultiple: true,
+            description: Resources.CmdLine_ArgDescription_DynamicProperty);
 
         private readonly IEnumerable<Property> properties;
 
@@ -44,7 +45,8 @@ namespace SonarQube.Common
         /// <param name="commandLineArguments">List of command line arguments (optional)</param>
         /// <returns>False if errors occurred when constructing the provider, otherwise true</returns>
         /// <remarks>If no properties were provided on the command line then an empty provider will be returned</remarks>
-        public static bool TryCreateProvider(IEnumerable<ArgumentInstance> commandLineArguments, ILogger logger, out IAnalysisPropertyProvider provider)
+        public static bool TryCreateProvider(IEnumerable<ArgumentInstance> commandLineArguments, ILogger logger,
+            out IAnalysisPropertyProvider provider)
         {
             if (commandLineArguments == null)
             {
@@ -73,22 +75,21 @@ namespace SonarQube.Common
             return false;
         }
 
-        #endregion
-
+        #endregion Public methods
 
         #region IAnalysisPropertyProvider interface
 
         public bool TryGetProperty(string key, out Property property)
         {
-            return Property.TryGetProperty(key, this.properties, out property);
+            return Property.TryGetProperty(key, properties, out property);
         }
 
         public IEnumerable<Property> GetAllProperties()
         {
-            return this.properties ?? Enumerable.Empty<Property>();
+            return properties ?? Enumerable.Empty<Property>();
         }
 
-        #endregion
+        #endregion IAnalysisPropertyProvider interface
 
         #region Private methods
 
@@ -97,7 +98,7 @@ namespace SonarQube.Common
             this.properties = properties ?? throw new ArgumentNullException("properties");
         }
 
-        #endregion
+        #endregion Private methods
 
         #region Analysis properties handling
 
@@ -110,14 +111,15 @@ namespace SonarQube.Common
         /// Analysis properties (/d:[key]=[value] arguments) need further processing. We need
         /// to extract the key-value pairs and check for duplicate keys.
         /// </remarks>
-        private static bool ExtractAndValidateProperties(IEnumerable<ArgumentInstance> arguments, ILogger logger, out IEnumerable<Property> analysisProperties)
+        private static bool ExtractAndValidateProperties(IEnumerable<ArgumentInstance> arguments, ILogger logger,
+            out IEnumerable<Property> analysisProperties)
         {
-            bool containsDuplicateProperty = false;
-            bool containsAnalysisProperty = false;
+            var containsDuplicateProperty = false;
+            var containsAnalysisProperty = false;
 
-            List<Property> validProperties = new List<Property>();
+            var validProperties = new List<Property>();
 
-            foreach (ArgumentInstance argument in arguments.Where(a => a.Descriptor.Id == DynamicPropertyArgumentId))
+            foreach (var argument in arguments.Where(a => a.Descriptor.Id == DynamicPropertyArgumentId))
             {
                 if (Property.TryParse(argument.Value, out Property property))
                 {
@@ -139,12 +141,16 @@ namespace SonarQube.Common
             }
 
             // Check for named parameters that can't be set by dynamic properties
-            bool containsProjectKey = ContainsNamedParameter(SonarProperties.ProjectKey, validProperties, logger, Resources.ERROR_CmdLine_MustUseProjectKey);
-            bool containsProjectName = ContainsNamedParameter(SonarProperties.ProjectName, validProperties, logger, Resources.ERROR_CmdLine_MustUseProjectName);
-            bool containsProjectVersion = ContainsNamedParameter(SonarProperties.ProjectVersion, validProperties, logger, Resources.ERROR_CmdLine_MustUseProjectVersion);
+            var containsProjectKey = ContainsNamedParameter(SonarProperties.ProjectKey, validProperties, logger,
+                Resources.ERROR_CmdLine_MustUseProjectKey);
+            var containsProjectName = ContainsNamedParameter(SonarProperties.ProjectName, validProperties, logger,
+                Resources.ERROR_CmdLine_MustUseProjectName);
+            var containsProjectVersion = ContainsNamedParameter(SonarProperties.ProjectVersion, validProperties, logger,
+                Resources.ERROR_CmdLine_MustUseProjectVersion);
 
             // Check for others properties that can't be set
-            bool containsUnsettableWorkingDirectory = ContainsUnsettableParameter(SonarProperties.WorkingDirectory, validProperties, logger);
+            var containsUnsettableWorkingDirectory = ContainsUnsettableParameter(SonarProperties.WorkingDirectory, validProperties,
+                logger);
 
             analysisProperties = validProperties;
 
@@ -156,7 +162,8 @@ namespace SonarQube.Common
                 !containsUnsettableWorkingDirectory;
         }
 
-        private static bool ContainsNamedParameter(string propertyName, IEnumerable<Property> properties, ILogger logger, string errorMessage)
+        private static bool ContainsNamedParameter(string propertyName, IEnumerable<Property> properties, ILogger logger,
+            string errorMessage)
         {
             if (Property.TryGetProperty(propertyName, properties, out Property existing))
             {
@@ -176,7 +183,6 @@ namespace SonarQube.Common
             return false;
         }
 
-        #endregion
-
+        #endregion Analysis properties handling
     }
 }

@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor
 {
@@ -31,50 +31,43 @@ namespace SonarQube.TeamBuild.PreProcessor
     public class ProcessedArgs
     {
         private readonly string sonarQubeUrl;
-        private readonly string projectKey;
-        private readonly string projectName;
-        private readonly string projectVersion;
-        private readonly string organization;
-
-        private readonly IAnalysisPropertyProvider cmdLineProperties;
         private readonly IAnalysisPropertyProvider globalFileProperties;
-        private readonly IAnalysisPropertyProvider scannerEnvProperties;
-        private readonly IAnalysisPropertyProvider aggProperties;
 
-        public ProcessedArgs(string key, string name, string version, string organization, bool installLoaderTargets, IAnalysisPropertyProvider cmdLineProperties,
-            IAnalysisPropertyProvider globalFileProperties, IAnalysisPropertyProvider scannerEnvProperties)
+        public ProcessedArgs(string key, string name, string version, string organization, bool installLoaderTargets,
+            IAnalysisPropertyProvider cmdLineProperties, IAnalysisPropertyProvider globalFileProperties,
+            IAnalysisPropertyProvider scannerEnvProperties)
         {
             if (string.IsNullOrWhiteSpace(key))
             {
                 throw new ArgumentNullException("key");
             }
 
-            this.projectKey = key;
-            this.projectName = name;
-            this.projectVersion = version;
-            this.organization = organization;
+            ProjectKey = key;
+            ProjectName = name;
+            ProjectVersion = version;
+            Organization = organization;
 
-            this.cmdLineProperties = cmdLineProperties ?? throw new ArgumentNullException("cmdLineProperties");
+            CmdLineProperties = cmdLineProperties ?? throw new ArgumentNullException("cmdLineProperties");
             this.globalFileProperties = globalFileProperties ?? throw new ArgumentNullException("globalFileProperties");
-            this.scannerEnvProperties = scannerEnvProperties ?? throw new ArgumentNullException("scannerEnvProperties");
-            this.InstallLoaderTargets = installLoaderTargets;
+            ScannerEnvProperties = scannerEnvProperties ?? throw new ArgumentNullException("scannerEnvProperties");
+            InstallLoaderTargets = installLoaderTargets;
 
-            this.aggProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, scannerEnvProperties);
-            if (!aggProperties.TryGetValue(SonarProperties.HostUrl, out this.sonarQubeUrl))
+            AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
+            if (!AggregateProperties.TryGetValue(SonarProperties.HostUrl, out sonarQubeUrl))
             {
-                this.sonarQubeUrl = "http://localhost:9000";
+                sonarQubeUrl = "http://localhost:9000";
             }
         }
 
-        public string ProjectKey { get { return this.projectKey; } }
+        public string ProjectKey { get; }
 
-        public string ProjectName { get { return this.projectName; } }
+        public string ProjectName { get; }
 
-        public string ProjectVersion { get { return this.projectVersion; } }
+        public string ProjectVersion { get; }
 
-        public string Organization { get { return this.organization; } }
+        public string Organization { get; }
 
-        public string SonarQubeUrl { get { return this.sonarQubeUrl; } }
+        public string SonarQubeUrl => sonarQubeUrl;
 
         /// <summary>
         /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up
@@ -84,11 +77,11 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <summary>
         /// Returns the combined command line and file analysis settings
         /// </summary>
-        public IAnalysisPropertyProvider AggregateProperties { get { return this.aggProperties; } }
+        public IAnalysisPropertyProvider AggregateProperties { get; }
 
-        public IAnalysisPropertyProvider CmdLineProperties { get { return this.cmdLineProperties; } }
+        public IAnalysisPropertyProvider CmdLineProperties { get; }
 
-        public IAnalysisPropertyProvider ScannerEnvProperties { get { return this.scannerEnvProperties; } }
+        public IAnalysisPropertyProvider ScannerEnvProperties { get; }
 
         /// <summary>
         /// Returns the name of property settings file or null if there is not one
@@ -97,11 +90,11 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             get
             {
-                FilePropertyProvider fileProvider = this.globalFileProperties as FilePropertyProvider;
-                if (fileProvider != null)
+                if (globalFileProperties is FilePropertyProvider fileProvider)
                 {
                     Debug.Assert(fileProvider.PropertiesFile != null, "File properties should not be null");
-                    Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath), "Settings file name should not be null");
+                    Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath),
+                        "Settings file name should not be null");
                     return fileProvider.PropertiesFile.FilePath;
                 }
                 return null;
@@ -114,9 +107,9 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// </summary>
         public string GetSetting(string key)
         {
-            if (!this.aggProperties.TryGetValue(key, out string value))
+            if (!AggregateProperties.TryGetValue(key, out string value))
             {
-                string message = string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.ERROR_MissingSetting, key);
+                var message = string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.ERROR_MissingSetting, key);
                 throw new InvalidOperationException(message);
             }
             return value;
@@ -128,7 +121,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// </summary>
         public string GetSetting(string key, string defaultValue)
         {
-            if (!this.aggProperties.TryGetValue(key, out string value))
+            if (!AggregateProperties.TryGetValue(key, out string value))
             {
                 value = defaultValue;
             }
@@ -137,12 +130,12 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public bool TryGetSetting(string key, out string value)
         {
-            return this.aggProperties.TryGetValue(key, out value);
+            return AggregateProperties.TryGetValue(key, out value);
         }
 
         public IEnumerable<Property> GetAllProperties()
         {
-            return this.aggProperties.GetAllProperties();
+            return AggregateProperties.GetAllProperties();
         }
     }
 }

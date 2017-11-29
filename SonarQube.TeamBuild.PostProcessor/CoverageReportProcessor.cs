@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System;
+using System.Diagnostics;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.Integration.Interfaces;
-using System;
-using System.Diagnostics;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
@@ -39,17 +39,17 @@ namespace SonarQube.TeamBuild.PostProcessor
                 throw new ArgumentNullException("settings");
             }
 
-            this.TryCreateCoverageReportProcessor(settings);
+            TryCreateCoverageReportProcessor(settings);
 
-            this.initialisedSuccesfully = (this.processor != null && this.processor.Initialise(config, settings, logger));
-            return this.initialisedSuccesfully;
+            initialisedSuccesfully = (processor != null && processor.Initialise(config, settings, logger));
+            return initialisedSuccesfully;
         }
 
         public bool ProcessCoverageReports()
         {
-            Debug.Assert(this.initialisedSuccesfully, "Initialization failed, cannot process coverage reports");
+            Debug.Assert(initialisedSuccesfully, "Initialization failed, cannot process coverage reports");
 
-            return this.processor.ProcessCoverageReports();
+            return processor.ProcessCoverageReports();
         }
 
         /// <summary>
@@ -59,12 +59,12 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             if (settings.BuildEnvironment == BuildEnvironment.TeamBuild)
             {
-                this.processor = new BuildVNextCoverageReportProcessor();
+                processor = new BuildVNextCoverageReportProcessor();
             }
             else if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
                 && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
             {
-                this.processor = new TfsLegacyCoverageReportProcessor();
+                processor = new TfsLegacyCoverageReportProcessor();
             }
         }
     }

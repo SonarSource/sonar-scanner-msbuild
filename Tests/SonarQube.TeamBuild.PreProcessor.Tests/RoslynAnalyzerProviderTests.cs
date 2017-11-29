@@ -17,18 +17,17 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.PreProcessor.Roslyn;
 using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Xml;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -51,14 +50,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void RoslynConfig_SetupAnalyzers_ArgumentChecks()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
             IList<ActiveRule> activeRules = new List<ActiveRule>();
             IList<string> inactiveRules = new List<string>();
-            string pluginKey = RoslynAnalyzerProvider.CSharpPluginKey;
+            var pluginKey = RoslynAnalyzerProvider.CSharpPluginKey;
             IDictionary<string, string> serverSettings = new Dictionary<string, string>();
-            TeamBuildSettings settings = CreateSettings(this.TestContext.DeploymentDirectory);
+            var settings = CreateSettings(TestContext.DeploymentDirectory);
 
-            RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
+            var testSubject = CreateTestSubject(logger);
 
             // Act and assert
             AssertException.Expects<ArgumentNullException>(() => testSubject.SetupAnalyzer(null, serverSettings, activeRules, inactiveRules, pluginKey));
@@ -72,14 +71,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void RoslynConfig_NoActiveRules()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
             IList<ActiveRule> activeRules = new List<ActiveRule>();
             IList<string> inactiveRules = new List<string>();
-            string pluginKey = "csharp";
+            var pluginKey = "csharp";
             IDictionary<string, string> serverSettings = new Dictionary<string, string>();
-            TeamBuildSettings settings = CreateSettings(this.TestContext.DeploymentDirectory);
+            var settings = CreateSettings(TestContext.DeploymentDirectory);
 
-            RoslynAnalyzerProvider testSubject = CreateTestSubject(logger);
+            var testSubject = CreateTestSubject(logger);
 
             // Act and assert
             Assert.IsNull(testSubject.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, pluginKey));
@@ -89,11 +88,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void RoslynConfig_NoAssemblies()
         {
             // Arrange
-            string rootFolder = CreateTestFolders();
-            TestLogger logger = new TestLogger();
+            var rootFolder = CreateTestFolders();
+            var logger = new TestLogger();
             IList<ActiveRule> activeRules = createActiveRules();
             IList<string> inactiveRules = createInactiveRules();
-            string language = RoslynAnalyzerProvider.CSharpLanguage;
+            var language = RoslynAnalyzerProvider.CSharpLanguage;
 
             // missing properties to get plugin related properties
             IDictionary<string, string> serverSettings = new Dictionary<string, string>
@@ -104,16 +103,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
                 { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" }
             };
 
-            MockAnalyzerInstaller mockInstaller = new MockAnalyzerInstaller
+            var mockInstaller = new MockAnalyzerInstaller
             {
                 AssemblyPathsToReturn = new HashSet<string>(new string[] { "c:\\assembly1.dll", "d:\\foo\\assembly2.dll" })
             };
-            TeamBuildSettings settings = CreateSettings(rootFolder);
+            var settings = CreateSettings(rootFolder);
 
-            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
+            var testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, language);
+            var actualSettings = testSubject.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, language);
 
             // Assert
             CheckSettingsInvariants(actualSettings);
@@ -122,7 +121,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             CheckRuleset(actualSettings, rootFolder, language);
             Assert.IsTrue(!actualSettings.AnalyzerAssemblyPaths.Any());
-            List<string> plugins = new List<string>();
+            var plugins = new List<string>();
             mockInstaller.AssertExpectedPluginsRequested(plugins);
         }
 
@@ -136,21 +135,21 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void RoslynConfig_ValidProfile()
         {
             // Arrange
-            string rootFolder = CreateTestFolders();
-            TestLogger logger = new TestLogger();
+            var rootFolder = CreateTestFolders();
+            var logger = new TestLogger();
             IList<ActiveRule> activeRules = createActiveRules();
             IList<string> inactiveRules = createInactiveRules();
-            string language = RoslynAnalyzerProvider.CSharpLanguage;
-            MockAnalyzerInstaller mockInstaller = new MockAnalyzerInstaller
+            var language = RoslynAnalyzerProvider.CSharpLanguage;
+            var mockInstaller = new MockAnalyzerInstaller
             {
                 AssemblyPathsToReturn = new HashSet<string>(new string[] { "c:\\assembly1.dll", "d:\\foo\\assembly2.dll" })
             };
-            TeamBuildSettings settings = CreateSettings(rootFolder);
+            var settings = CreateSettings(rootFolder);
 
-            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
+            var testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
             // Act
-            AnalyzerSettings actualSettings = testSubject.SetupAnalyzer(settings, ServerSettings, activeRules, inactiveRules, language);
+            var actualSettings = testSubject.SetupAnalyzer(settings, ServerSettings, activeRules, inactiveRules, language);
 
             // Assert
             CheckSettingsInvariants(actualSettings);
@@ -160,7 +159,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             CheckRuleset(actualSettings, rootFolder, language);
             CheckExpectedAdditionalFiles(rootFolder, language, settings.SonarOutputDirectory, actualSettings);
             CheckExpectedAssemblies(actualSettings, "c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
-            List<string> plugins = new List<string>
+            var plugins = new List<string>
             {
                 "wintellect",
                 "csharp"
@@ -168,13 +167,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             mockInstaller.AssertExpectedPluginsRequested(plugins);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Private methods
 
         private List<string> createInactiveRules()
         {
-            List<string> list = new List<string>
+            var list = new List<string>
             {
                 "csharpsquid:S1000"
             };
@@ -192,9 +191,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
               <Rule Id=""Wintellect003"" Action=""Warning""/>
             </Rules>
             */
-            List<ActiveRule> rules = new List<ActiveRule>();
-            ActiveRule ruleWithParameter = new ActiveRule("csharpsquid", "S1116");
-            Dictionary<string, string> p = new Dictionary<string, string>
+            var rules = new List<ActiveRule>();
+            var ruleWithParameter = new ActiveRule("csharpsquid", "S1116");
+            var p = new Dictionary<string, string>
             {
                 { "key", "value" }
             };
@@ -228,7 +227,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private string CreateTestFolders()
         {
-            string rootFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var rootFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
             // Create the binary and conf folders that are created by the bootstrapper
             Directory.CreateDirectory(GetBinaryPath(rootFolder));
@@ -239,13 +238,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static RoslynAnalyzerProvider CreateTestSubject(ILogger logger)
         {
-            RoslynAnalyzerProvider testSubject = new RoslynAnalyzerProvider(new MockAnalyzerInstaller(), logger);
+            var testSubject = new RoslynAnalyzerProvider(new MockAnalyzerInstaller(), logger);
             return testSubject;
         }
 
         private static TeamBuildSettings CreateSettings(string rootDir)
         {
-            TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(rootDir);
+            var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(rootDir);
             return settings;
         }
 
@@ -264,7 +263,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return Path.Combine(rootDir, "bin");
         }
 
-        #endregion
+        #endregion Private methods
 
         #region Checks
 
@@ -276,7 +275,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsFalse(string.IsNullOrEmpty(actualSettings.RuleSetFilePath));
 
             // Any file paths returned in the config should exist
-            foreach (string filePath in actualSettings.AdditionalFilePaths)
+            foreach (var filePath in actualSettings.AdditionalFilePaths)
             {
                 Assert.IsTrue(File.Exists(filePath), "Expected additional file does not exist: {0}", filePath);
             }
@@ -288,16 +287,16 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsFalse(string.IsNullOrWhiteSpace(actualSettings.RuleSetFilePath), "Ruleset file path should be set");
             Assert.IsTrue(Path.IsPathRooted(actualSettings.RuleSetFilePath), "Ruleset file path should be absolute");
             Assert.IsTrue(File.Exists(actualSettings.RuleSetFilePath), "Specified ruleset file does not exist: {0}", actualSettings.RuleSetFilePath);
-            this.TestContext.AddResultFile(actualSettings.RuleSetFilePath);
+            TestContext.AddResultFile(actualSettings.RuleSetFilePath);
 
             CheckFileIsXml(actualSettings.RuleSetFilePath);
 
             Assert.AreEqual(RoslynAnalyzerProvider.GetRoslynRulesetFileName(language), Path.GetFileName(actualSettings.RuleSetFilePath), "Ruleset file does not have the expected name");
 
-            string expectedFilePath = GetExpectedRulesetFilePath(rootTestDir, language);
+            var expectedFilePath = GetExpectedRulesetFilePath(rootTestDir, language);
             Assert.AreEqual(expectedFilePath, actualSettings.RuleSetFilePath, "Ruleset was not written to the expected location");
 
-            string expectedContent = @"<?xml version=""1.0"" encoding=""utf-8""?>
+            var expectedContent = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" Name=""Rules for SonarQube"" Description=""This rule set was automatically generated from SonarQube"" ToolsVersion=""14.0"">
   <Rules AnalyzerId=""SonarAnalyzer.CSharp"" RuleNamespace=""SonarAnalyzer.CSharp"">
     <Rule Id=""S1116"" Action=""Warning"" />
@@ -309,13 +308,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
   </Rules>
 </RuleSet>";
             Assert.AreEqual(expectedContent, File.ReadAllText(actualSettings.RuleSetFilePath), "Ruleset file does not have the expected content: {0}", actualSettings.RuleSetFilePath);
-
         }
 
         private void CheckExpectedAdditionalFiles(string rootTestDir, string language, string outDir, AnalyzerSettings actualSettings)
         {
             // Currently, only SonarLint.xml is written
-            List<string> filePaths = actualSettings.AdditionalFilePaths;
+            var filePaths = actualSettings.AdditionalFilePaths;
             Assert.AreEqual(filePaths.Count(), 1);
 
             //string expectedContent = expected.AdditionalFiles[expectedFileName];
@@ -346,18 +344,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         private void CheckExpectedAdditionalFileExists(string expectedFileName, string expectedContent, AnalyzerSettings actualSettings)
         {
             // Check one file of the expected name exists
-            IEnumerable<string> matches = actualSettings.AdditionalFilePaths.Where(actual => string.Equals(expectedFileName, Path.GetFileName(actual), System.StringComparison.OrdinalIgnoreCase));
+            var matches = actualSettings.AdditionalFilePaths.Where(actual => string.Equals(expectedFileName, Path.GetFileName(actual), System.StringComparison.OrdinalIgnoreCase));
             Assert.AreEqual(1, matches.Count(), "Unexpected number of files named \"{0}\". One and only one expected", expectedFileName);
 
             // Check the file exists and has the expected content
-            string actualFilePath = matches.First();
+            var actualFilePath = matches.First();
             Assert.IsTrue(File.Exists(actualFilePath), "AdditionalFile does not exist: {0}", actualFilePath);
 
             // Dump the contents to help with debugging
-            this.TestContext.AddResultFile(actualFilePath);
-            this.TestContext.WriteLine("File contents: {0}", actualFilePath);
-            this.TestContext.WriteLine(File.ReadAllText(actualFilePath));
-            this.TestContext.WriteLine("");
+            TestContext.AddResultFile(actualFilePath);
+            TestContext.WriteLine("File contents: {0}", actualFilePath);
+            TestContext.WriteLine(File.ReadAllText(actualFilePath));
+            TestContext.WriteLine("");
 
             if (expectedContent != null) // null expected means "don't check"
             {
@@ -367,14 +365,14 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static void CheckFileIsXml(string fullPath)
         {
-            XmlDocument doc = new XmlDocument();
+            var doc = new XmlDocument();
             doc.Load(fullPath);
             Assert.IsNotNull(doc.FirstChild, "Expecting the file to contain some valid XML");
         }
 
         private static void CheckExpectedAssemblies(AnalyzerSettings actualSettings, params string[] expected)
         {
-            foreach (string expectedItem in expected)
+            foreach (var expectedItem in expected)
             {
                 Assert.IsTrue(actualSettings.AnalyzerAssemblyPaths.Contains(expectedItem, StringComparer.OrdinalIgnoreCase),
                     "Expected assembly file path was not returned: {0}", expectedItem);
@@ -382,7 +380,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.AreEqual(expected.Length, actualSettings.AnalyzerAssemblyPaths.Count(), "Too many assembly file paths returned");
         }
 
-        #endregion
+        #endregion Checks
+
         /*
         public TestContext TestContext { get; set; }
 
@@ -794,21 +793,18 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             logger.AssertWarningsLogged(0);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Private methods
-
-
 
         private static string GetBase64EncodedString(string text)
         {
             return System.Convert.ToBase64String(Encoding.UTF8.GetBytes(text));
         }
 
-        #endregion
+        #endregion Private methods
 
         #region Checks
-
 
         private static void AssertNoRulesetFiles(IEnumerable<AnalyzerSettings> actualSettings, string rootTestDir)
         {
@@ -821,8 +817,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsFalse(File.Exists(filePath), "Not expecting the ruleset file to exist: {0}", filePath);
         }
 
+        #endregion Checks
 
-        #endregion
         */
     }
 }

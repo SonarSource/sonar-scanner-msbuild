@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.Common.UnitTests
@@ -59,8 +59,8 @@ namespace SonarQube.Common.UnitTests
         {
             // Arrange
             IAnalysisPropertyProvider provider;
-            TestLogger logger = new TestLogger();
-            string defaultPropertiesDir = this.TestContext.TestDeploymentDir;
+            var logger = new TestLogger();
+            var defaultPropertiesDir = TestContext.TestDeploymentDir;
 
             // Act
             provider = CheckProcessingSucceeds(Enumerable.Empty<ArgumentInstance>(), defaultPropertiesDir, logger);
@@ -75,14 +75,14 @@ namespace SonarQube.Common.UnitTests
         public void FileProvider_UseDefaultPropertiesFile()
         {
             // Arrange
-            string defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string validPropertiesFile = CreateValidPropertiesFile(defaultPropertiesDir, FilePropertyProvider.DefaultFileName, "key1", "value1");
-            TestLogger logger = new TestLogger();
+            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var validPropertiesFile = CreateValidPropertiesFile(defaultPropertiesDir, FilePropertyProvider.DefaultFileName, "key1", "value1");
+            var logger = new TestLogger();
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
 
             // Act
-            IAnalysisPropertyProvider provider = CheckProcessingSucceeds(args, defaultPropertiesDir, logger);
+            var provider = CheckProcessingSucceeds(args, defaultPropertiesDir, logger);
 
             // Assert
             AssertExpectedPropertiesFile(validPropertiesFile, provider);
@@ -95,10 +95,10 @@ namespace SonarQube.Common.UnitTests
         public void FileProvider_UseSpecifiedPropertiesFile()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string validPropertiesFile = CreateValidPropertiesFile(testDir, "myPropertiesFile.xml", "xxx", "value with spaces");
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var validPropertiesFile = CreateValidPropertiesFile(testDir, "myPropertiesFile.xml", "xxx", "value with spaces");
 
-            string defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "Default");
+            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(TestContext, "Default");
             CreateFile(defaultPropertiesDir, FilePropertyProvider.DefaultFileName, "invalid file - will error if this file is loaded");
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>
@@ -106,10 +106,10 @@ namespace SonarQube.Common.UnitTests
                 new ArgumentInstance(FilePropertyProvider.Descriptor, validPropertiesFile)
             };
 
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             // Act
-            IAnalysisPropertyProvider provider = CheckProcessingSucceeds(args, defaultPropertiesDir, logger);
+            var provider = CheckProcessingSucceeds(args, defaultPropertiesDir, logger);
 
             // Assert
             AssertExpectedPropertiesFile(validPropertiesFile, provider);
@@ -122,8 +122,8 @@ namespace SonarQube.Common.UnitTests
         public void FileProvider_MissingPropertiesFile()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string defaultPropertiesDir = this.TestContext.DeploymentDirectory;
+            var logger = new TestLogger();
+            var defaultPropertiesDir = TestContext.DeploymentDirectory;
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>
             {
@@ -143,9 +143,9 @@ namespace SonarQube.Common.UnitTests
         public void FileProvider_InvalidDefaultPropertiesFile()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string invalidFile = CreateFile(defaultPropertiesDir, FilePropertyProvider.DefaultFileName, "not a valid XML properties file");
+            var logger = new TestLogger();
+            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var invalidFile = CreateFile(defaultPropertiesDir, FilePropertyProvider.DefaultFileName, "not a valid XML properties file");
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
 
@@ -162,9 +162,9 @@ namespace SonarQube.Common.UnitTests
         public void FileProvider_InvalidSpecifiedPropertiesFile()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string invalidFile = CreateFile(defaultPropertiesDir, "invalidPropertiesFile.txt", "not a valid XML properties file");
+            var logger = new TestLogger();
+            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var invalidFile = CreateFile(defaultPropertiesDir, "invalidPropertiesFile.txt", "not a valid XML properties file");
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>
             {
@@ -179,13 +179,13 @@ namespace SonarQube.Common.UnitTests
             logger.AssertSingleErrorExists(invalidFile);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Private methods
 
         private static string CreateFile(string path, string fileName, string content)
         {
-            string fullPath = Path.Combine(path, fileName);
+            var fullPath = Path.Combine(path, fileName);
             File.WriteAllText(fullPath, content);
             return fullPath;
         }
@@ -195,9 +195,9 @@ namespace SonarQube.Common.UnitTests
         /// </summary>
         private static string CreateValidPropertiesFile(string path, string fileName, string property, string value)
         {
-            string fullPath = Path.Combine(path, fileName);
+            var fullPath = Path.Combine(path, fileName);
 
-            AnalysisProperties properties = new AnalysisProperties
+            var properties = new AnalysisProperties
             {
                 new Property() { Id = property, Value = value }
             };
@@ -211,13 +211,13 @@ namespace SonarQube.Common.UnitTests
             properties.Add(new Property() { Id = key, Value = value });
         }
 
-        #endregion
+        #endregion Private methods
 
         #region Checks
 
         private static IAnalysisPropertyProvider CheckProcessingSucceeds(IEnumerable<ArgumentInstance> cmdLineArgs, string defaultPropertiesDirectory, TestLogger logger)
         {
-            bool isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out IAnalysisPropertyProvider provider);
+            var isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out IAnalysisPropertyProvider provider);
 
             Assert.IsTrue(isValid, "Expecting the provider to be initialized successfully");
             Assert.IsNotNull(provider, "Not expecting a null provider if the function returned true");
@@ -228,7 +228,7 @@ namespace SonarQube.Common.UnitTests
 
         private static void CheckProcessingFails(IEnumerable<ArgumentInstance> cmdLineArgs, string defaultPropertiesDirectory, TestLogger logger)
         {
-            bool isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out IAnalysisPropertyProvider provider);
+            var isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out IAnalysisPropertyProvider provider);
 
             Assert.IsFalse(isValid, "Not expecting the provider to be initialized successfully");
             Assert.IsNull(provider, "Not expecting a provider instance if the function returned true");
@@ -237,21 +237,21 @@ namespace SonarQube.Common.UnitTests
 
         private static void AssertExpectedPropertiesFile(string expectedFilePath, IAnalysisPropertyProvider actualProvider)
         {
-            FilePropertyProvider fileProvider = AssertIsFilePropertyProvider(actualProvider);
+            var fileProvider = AssertIsFilePropertyProvider(actualProvider);
 
             Assert.IsNotNull(fileProvider.PropertiesFile, "Properties file object should not be null");
             Assert.AreEqual(expectedFilePath, fileProvider.PropertiesFile.FilePath, "Properties were not loaded from the expected location");
         }
-        
+
         private static void AssertIsDefaultPropertiesFile(IAnalysisPropertyProvider actualProvider)
         {
-            FilePropertyProvider fileProvider = AssertIsFilePropertyProvider(actualProvider);
+            var fileProvider = AssertIsFilePropertyProvider(actualProvider);
             Assert.IsTrue(fileProvider.IsDefaultSettingsFile, "Expecting the provider to be marked as using the default properties file");
         }
 
         private static void AssertIsNotDefaultPropertiesFile(IAnalysisPropertyProvider actualProvider)
         {
-            FilePropertyProvider fileProvider = AssertIsFilePropertyProvider(actualProvider);
+            var fileProvider = AssertIsFilePropertyProvider(actualProvider);
             Assert.IsFalse(fileProvider.IsDefaultSettingsFile, "Not expecting the provider to be marked as using the default properties file");
         }
 
@@ -263,6 +263,6 @@ namespace SonarQube.Common.UnitTests
             return (FilePropertyProvider)actualProvider;
         }
 
-        #endregion
+        #endregion Checks
     }
 }

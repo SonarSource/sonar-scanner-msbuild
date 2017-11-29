@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -51,16 +51,16 @@ namespace SonarQube.Common
             Debug.Assert(!string.IsNullOrWhiteSpace(runnerArgs.ExeName), "Process runner exe name should not be null/empty");
             Debug.Assert(runnerArgs.Logger != null, "Process runner logger should not be null/empty");
 
-            this.outputLogger = runnerArgs.Logger;
+            outputLogger = runnerArgs.Logger;
 
             if (!File.Exists(runnerArgs.ExeName))
             {
-                this.outputLogger.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
-                this.ExitCode = ErrorCode;
+                outputLogger.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
+                ExitCode = ErrorCode;
                 return false;
             }
 
-            ProcessStartInfo psi = new ProcessStartInfo()
+            var psi = new ProcessStartInfo()
             {
                 FileName = runnerArgs.ExeName,
                 RedirectStandardError = true,
@@ -87,7 +87,7 @@ namespace SonarQube.Common
 
                 // Warning: do not log the raw command line args as they
                 // may contain sensitive data
-                this.outputLogger.LogDebug(Resources.MSG_ExecutingFile,
+                outputLogger.LogDebug(Resources.MSG_ExecutingFile,
                     runnerArgs.ExeName,
                     runnerArgs.AsLogText(),
                     runnerArgs.WorkingDirectory,
@@ -104,25 +104,25 @@ namespace SonarQube.Common
                 // true: we might still have timed out, but the process ended when we asked it to
                 if (succeeded)
                 {
-                    this.outputLogger.LogDebug(Resources.MSG_ExecutionExitCode, process.ExitCode);
-                    this.ExitCode = process.ExitCode;
+                    outputLogger.LogDebug(Resources.MSG_ExecutionExitCode, process.ExitCode);
+                    ExitCode = process.ExitCode;
                 }
                 else
                 {
-                    this.ExitCode = ErrorCode;
+                    ExitCode = ErrorCode;
 
                     try
                     {
                         process.Kill();
-                        this.outputLogger.LogWarning(Resources.WARN_ExecutionTimedOutKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+                        outputLogger.LogWarning(Resources.WARN_ExecutionTimedOutKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
                     }
                     catch
                     {
-                        this.outputLogger.LogWarning(Resources.WARN_ExecutionTimedOutNotKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+                        outputLogger.LogWarning(Resources.WARN_ExecutionTimedOutNotKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
                     }
                 }
 
-                succeeded = succeeded && (this.ExitCode == 0);
+                succeeded = succeeded && (ExitCode == 0);
             }
 
             return succeeded;
@@ -139,9 +139,9 @@ namespace SonarQube.Common
                 return;
             }
 
-            foreach (KeyValuePair<string, string> envVariable in envVariables)
+            foreach (var envVariable in envVariables)
             {
-                Debug.Assert(!String.IsNullOrEmpty(envVariable.Key), "Env variable name cannot be null or empty");
+                Debug.Assert(!string.IsNullOrEmpty(envVariable.Key), "Env variable name cannot be null or empty");
 
                 if (psi.EnvironmentVariables.ContainsKey(envVariable.Key))
                 {
@@ -161,7 +161,7 @@ namespace SonarQube.Common
             {
                 // It's important to log this as an important message because
                 // this the log redirection pipeline of the child process
-                this.outputLogger.LogInfo(e.Data);
+                outputLogger.LogInfo(e.Data);
             }
         }
 
@@ -171,11 +171,11 @@ namespace SonarQube.Common
             {
                 if (e.Data.StartsWith("WARN"))
                 {
-                    this.outputLogger.LogWarning(e.Data);
+                    outputLogger.LogWarning(e.Data);
                 }
                 else
                 {
-                    this.outputLogger.LogError(e.Data);
+                    outputLogger.LogError(e.Data);
                 }
             }
         }

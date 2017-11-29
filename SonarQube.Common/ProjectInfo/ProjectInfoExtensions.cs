@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -110,13 +110,12 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("location");
             }
 
-
             if (projectInfo.AnalysisResults == null)
             {
                 projectInfo.AnalysisResults = new System.Collections.Generic.List<AnalysisResult>();
             }
 
-            AnalysisResult result = new AnalysisResult() { Id = id, Location = location };
+            var result = new AnalysisResult() { Id = id, Location = location };
             projectInfo.AnalysisResults.Add(result);
         }
 
@@ -166,7 +165,7 @@ namespace SonarQube.Common
             return null;
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Private methods
 
@@ -176,7 +175,7 @@ namespace SonarQube.Common
         /// </summary>
         public static IList<string> GetAllAnalysisFiles(this ProjectInfo projectInfo)
         {
-            List<String> files = new List<string>();
+            var files = new List<string>();
             var compiledFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisType.FilesToAnalyze);
             if (compiledFilesPath != null && File.Exists(compiledFilesPath))
             {
@@ -185,7 +184,6 @@ namespace SonarQube.Common
             return files;
         }
 
-        #endregion
-
+        #endregion Private methods
     }
 }

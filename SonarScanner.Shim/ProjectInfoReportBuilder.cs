@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using SonarQube.Common;
 
 namespace SonarScanner.Shim
 {
@@ -58,25 +58,25 @@ namespace SonarScanner.Shim
                 throw new ArgumentNullException("logger");
             }
 
-            ProjectInfoReportBuilder builder = new ProjectInfoReportBuilder(config, result, logger);
+            var builder = new ProjectInfoReportBuilder(config, result, logger);
             builder.Generate();
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Private methods
 
         private ProjectInfoReportBuilder(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
             this.config = config;
-            this.analysisResult = result;
+            analysisResult = result;
             this.logger = logger;
-            this.sb = new StringBuilder();
+            sb = new StringBuilder();
         }
 
         private void Generate()
         {
-            IEnumerable<ProjectInfo> validProjects = this.analysisResult.GetProjectsByStatus(ProjectInfoValidity.Valid);
+            IEnumerable<ProjectInfo> validProjects = analysisResult.GetProjectsByStatus(ProjectInfoValidity.Valid);
 
             WriteTitle(Resources.REPORT_ProductProjectsTitle);
             WriteFileList(validProjects.Where(p => p.ProjectType == ProjectType.Product));
@@ -98,35 +98,35 @@ namespace SonarScanner.Shim
             WriteFilesByStatus(ProjectInfoValidity.ExcludeFlagSet);
             WriteGroupSpacer();
 
-            string reportFileName = Path.Combine(config.SonarOutputDir, ReportFileName);
+            var reportFileName = Path.Combine(config.SonarOutputDir, ReportFileName);
             logger.LogDebug(Resources.MSG_WritingSummary, reportFileName);
             File.WriteAllText(reportFileName, sb.ToString());
         }
 
         private void WriteTitle(string title)
         {
-            this.sb.AppendLine(title);
-            this.sb.AppendLine("---------------------------------------");
+            sb.AppendLine(title);
+            sb.AppendLine("---------------------------------------");
         }
 
         private void WriteGroupSpacer()
         {
-            this.sb.AppendLine();
-            this.sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
         }
 
         private void WriteFilesByStatus(params ProjectInfoValidity[] statuses)
         {
-            IEnumerable<ProjectInfo> projects = Enumerable.Empty<ProjectInfo>();
+            var projects = Enumerable.Empty<ProjectInfo>();
 
-            foreach (ProjectInfoValidity status in statuses)
+            foreach (var status in statuses)
             {
-                projects = projects.Concat(this.analysisResult.GetProjectsByStatus(status));
+                projects = projects.Concat(analysisResult.GetProjectsByStatus(status));
             }
 
             if (!projects.Any())
             {
-                this.sb.AppendLine(Resources.REPORT_NoProjectsOfType);
+                sb.AppendLine(Resources.REPORT_NoProjectsOfType);
             }
             else
             {
@@ -136,12 +136,12 @@ namespace SonarScanner.Shim
 
         private void WriteFileList(IEnumerable<ProjectInfo> projects)
         {
-            foreach(ProjectInfo project in projects)
+            foreach(var project in projects)
             {
-                this.sb.AppendLine(project.FullPath);
+                sb.AppendLine(project.FullPath);
             }
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

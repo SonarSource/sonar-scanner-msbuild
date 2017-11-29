@@ -18,13 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
+using System.IO;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
@@ -44,7 +44,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void TestInitialize()
         {
             HackForVs2017Update3.Enable();
-            TestUtils.EnsureImportBeforeTargetsExists(this.TestContext);
+            TestUtils.EnsureImportBeforeTargetsExists(TestContext);
         }
 
         #region Tests
@@ -55,9 +55,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // 1. Prebuild
             // Arrange
-            this.EnsureDummyIntegrationTargetsFileExists();
+            EnsureDummyIntegrationTargetsFileExists();
 
-            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties
+            var preImportProperties = new WellKnownProjectProperties
             {
                 SonarQubeTargetsPath = "",
                 TeamBuild2105BuildDirectory = "",
@@ -65,17 +65,16 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             };
 
             // Act
-            ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
+            var projectInstance = CreateAndEvaluateProject(preImportProperties);
 
             // Assert
             BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarQubeTargetFilePath);
             AssertAnalysisTargetsAreNotImported(projectInstance);
 
-
             // 2. Now build -> succeeds. Info target not executed
-            BuildLogger logger = new BuildLogger();
+            var logger = new BuildLogger();
 
-            BuildResult result = BuildUtilities.BuildTargets(projectInstance, logger);
+            var result = BuildUtilities.BuildTargets(projectInstance, logger);
 
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
             logger.AssertTargetNotExecuted(TargetConstants.ImportBeforeInfoTarget);
@@ -88,9 +87,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // 1. Pre-build
             // Arrange
-            string dummySonarTargetsDir = this.EnsureDummyIntegrationTargetsFileExists();
+            var dummySonarTargetsDir = EnsureDummyIntegrationTargetsFileExists();
 
-            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties
+            var preImportProperties = new WellKnownProjectProperties
             {
                 SonarQubeTempPath = Path.GetTempPath(),
                 SonarQubeTargetsPath = Path.GetDirectoryName(dummySonarTargetsDir),
@@ -98,17 +97,16 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             };
 
             // Act
-            ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
+            var projectInstance = CreateAndEvaluateProject(preImportProperties);
 
             // Assert
             BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeTargetFilePath, dummySonarTargetsDir);
             AssertAnalysisTargetsAreNotImported(projectInstance);
 
-
             // 2. Now build -> succeeds
-            BuildLogger logger = new BuildLogger();
+            var logger = new BuildLogger();
 
-            BuildResult result = BuildUtilities.BuildTargets(projectInstance, logger);
+            var result = BuildUtilities.BuildTargets(projectInstance, logger);
 
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
             logger.AssertTargetNotExecuted(TargetConstants.ImportBeforeInfoTarget);
@@ -121,7 +119,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // 1. Prebuild
             // Arrange
-            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties
+            var preImportProperties = new WellKnownProjectProperties
             {
                 SonarQubeTempPath = "nonExistentPath",
                 MSBuildExtensionsPath = "nonExistentPath",
@@ -130,7 +128,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             };
 
             // Act
-            ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
+            var projectInstance = CreateAndEvaluateProject(preImportProperties);
 
             // Assert
             BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeTargetsPath, @"nonExistentPath\bin\targets");
@@ -138,17 +136,16 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             AssertAnalysisTargetsAreNotImported(projectInstance); // Targets should not be imported
 
-
             // 2. Now build -> fails with an error message
-            BuildLogger logger = new BuildLogger();
+            var logger = new BuildLogger();
 
-            BuildResult result = BuildUtilities.BuildTargets(projectInstance, logger);
+            var result = BuildUtilities.BuildTargets(projectInstance, logger);
 
             BuildAssertions.AssertTargetFailed(result, TargetConstants.DefaultBuildTarget);
             logger.AssertTargetExecuted(TargetConstants.ImportBeforeInfoTarget);
             logger.AssertExpectedErrorCount(1);
 
-            string projectName = Path.GetFileName(projectInstance.FullPath);
+            var projectName = Path.GetFileName(projectInstance.FullPath);
             Assert.IsTrue(logger.Errors[0].Message.Contains(projectName), "Expecting the error message to contain the project file name");
         }
 
@@ -158,9 +155,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // 1. Pre-build
             // Arrange
-            string dummySonarTargetsDir = this.EnsureDummyIntegrationTargetsFileExists();
+            var dummySonarTargetsDir = EnsureDummyIntegrationTargetsFileExists();
 
-            WellKnownProjectProperties preImportProperties = new WellKnownProjectProperties
+            var preImportProperties = new WellKnownProjectProperties
             {
                 SonarQubeTempPath = Path.GetTempPath(),
                 SonarQubeTargetsPath = Path.GetDirectoryName(dummySonarTargetsDir),
@@ -169,24 +166,23 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             };
 
             // Act
-            ProjectInstance projectInstance = this.CreateAndEvaluateProject(preImportProperties);
+            var projectInstance = CreateAndEvaluateProject(preImportProperties);
 
             // Assert
             BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeTargetFilePath, dummySonarTargetsDir);
             AssertAnalysisTargetsAreImported(projectInstance);
 
-
             // 2. Now build -> succeeds
-            BuildLogger logger = new BuildLogger();
+            var logger = new BuildLogger();
 
-            BuildResult result = BuildUtilities.BuildTargets(projectInstance, logger);
+            var result = BuildUtilities.BuildTargets(projectInstance, logger);
 
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
             logger.AssertTargetExecuted(TargetConstants.ImportBeforeInfoTarget);
             logger.AssertExpectedErrorCount(0);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Private methods
 
@@ -197,10 +193,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // explicitly imports our SonarQube "ImportBefore" project).
             BuildUtilities.DisableStandardTargetsWildcardImporting(preImportProperties);
 
-            ProjectRootElement projectRoot = CreateImportsBeforeTestProject(preImportProperties);
+            var projectRoot = CreateImportsBeforeTestProject(preImportProperties);
 
             // Evaluate the imports
-            ProjectInstance projectInstance = new ProjectInstance(projectRoot);
+            var projectInstance = new ProjectInstance(projectRoot);
 
             SavePostEvaluationProject(projectInstance);
             return projectInstance;
@@ -216,18 +212,18 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             EnsureDummyIntegrationTargetsFileExists();
 
             // Locate the real "ImportsBefore" target file
-            string importsBeforeTargets = Path.Combine(TestUtils.GetTestSpecificFolderName(this.TestContext), TargetConstants.ImportsBeforeFile);
+            var importsBeforeTargets = Path.Combine(TestUtils.GetTestSpecificFolderName(TestContext), TargetConstants.ImportsBeforeFile);
             Assert.IsTrue(File.Exists(importsBeforeTargets), "Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
 
-            string projectName = this.TestContext.TestName + ".proj";
-            string testSpecificFolder = TestUtils.EnsureTestSpecificFolder(this.TestContext);
-            string fullProjectPath = Path.Combine(testSpecificFolder, projectName);
+            var projectName = TestContext.TestName + ".proj";
+            var testSpecificFolder = TestUtils.EnsureTestSpecificFolder(TestContext);
+            var fullProjectPath = Path.Combine(testSpecificFolder, projectName);
 
-            ProjectRootElement root = BuildUtilities.CreateMinimalBuildableProject(preImportProperties, false /* not a VB project */, importsBeforeTargets);
+            var root = BuildUtilities.CreateMinimalBuildableProject(preImportProperties, false /* not a VB project */, importsBeforeTargets);
             root.AddProperty(TargetProperties.ProjectGuid, Guid.NewGuid().ToString("D"));
 
             root.Save(fullProjectPath);
-            this.TestContext.AddResultFile(fullProjectPath);
+            TestContext.AddResultFile(fullProjectPath);
 
             return root;
         }
@@ -237,9 +233,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// </summary>
         private void SavePostEvaluationProject(ProjectInstance projectInstance)
         {
-            string postBuildProject = projectInstance.FullPath + ".postbuild.proj";
+            var postBuildProject = projectInstance.FullPath + ".postbuild.proj";
             projectInstance.ToProjectRootElement().Save(postBuildProject);
-            this.TestContext.AddResultFile(postBuildProject);
+            TestContext.AddResultFile(postBuildProject);
         }
 
         /// <summary>
@@ -251,15 +247,14 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             // This can't just be in the TestContext.DeploymentDirectory as this will
             // be shared with other tests, and some of those tests might be deploying
             // the real analysis targets to that location.
-            string testSpecificDir = TestUtils.EnsureTestSpecificFolder(this.TestContext);
+            var testSpecificDir = TestUtils.EnsureTestSpecificFolder(TestContext);
 
-            string fullPath = Path.Combine(testSpecificDir, TargetConstants.AnalysisTargetFile);
+            var fullPath = Path.Combine(testSpecificDir, TargetConstants.AnalysisTargetFile);
             if (!File.Exists(fullPath))
             {
-
 // To check whether the targets are imported or not we check for
 // the existence of the DummyProperty, below.
-                string contents = @"<Project xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+                var contents = @"<Project xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
   <PropertyGroup>
     <DummyProperty>123</DummyProperty>
   </PropertyGroup>
@@ -277,30 +272,30 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// </summary>
         private static string EnsureDummyAnalysisConfigFileExists(string rootBuildDir)
         {
-            string subDir = Path.Combine(rootBuildDir, ".sonarqube", "conf");
+            var subDir = Path.Combine(rootBuildDir, ".sonarqube", "conf");
             Directory.CreateDirectory(subDir);
 
-            string fullPath = Path.Combine(subDir, FileConstants.ConfigFileName);
+            var fullPath = Path.Combine(subDir, FileConstants.ConfigFileName);
             File.WriteAllText(fullPath, "Dummy config file");
             return fullPath;
         }
 
-        #endregion
+        #endregion Private methods
 
         #region Assertions
 
         private static void AssertAnalysisTargetsAreNotImported(ProjectInstance projectInstance)
         {
-            ProjectPropertyInstance propertyInstance = projectInstance.GetProperty(DummyAnalysisTargetsMarkerProperty);
+            var propertyInstance = projectInstance.GetProperty(DummyAnalysisTargetsMarkerProperty);
             Assert.IsNull(propertyInstance, "SonarQube Analysis targets should not have been imported");
         }
 
         private static void AssertAnalysisTargetsAreImported(ProjectInstance projectInstance)
         {
-            ProjectPropertyInstance propertyInstance = projectInstance.GetProperty(DummyAnalysisTargetsMarkerProperty);
+            var propertyInstance = projectInstance.GetProperty(DummyAnalysisTargetsMarkerProperty);
             Assert.IsNotNull(propertyInstance, "Failed to import the SonarQube Analysis targets");
         }
 
-        #endregion
+        #endregion Assertions
     }
 }

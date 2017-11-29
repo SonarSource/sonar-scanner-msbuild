@@ -17,14 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using System;
+
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace TestUtilities
 {
@@ -73,7 +69,7 @@ namespace TestUtilities
         /// <exception cref="ParseException">If the stream source is invalid.</exception>
         public void Load(Stream streamIn)
         {
-            JavaPropertyReader reader = new JavaPropertyReader(this);
+            var reader = new JavaPropertyReader(this);
             reader.Parse(streamIn);
         }
 
@@ -85,7 +81,7 @@ namespace TestUtilities
         /// <returns>The value corresponding to the key - or null if not found.</returns>
         public string GetProperty(string key)
         {
-            Object objectValue = this[key];
+            var objectValue = this[key];
             if (objectValue != null)
             {
                 return AsString(objectValue);
@@ -107,8 +103,8 @@ namespace TestUtilities
         /// <returns>The value corresponding to the key - or null if not found.</returns>
         public string GetProperty(string key, string defaultValue)
         {
-            string val = GetProperty(key);
-            return (val == null) ? defaultValue : val;
+            var val = GetProperty(key);
+            return val ?? defaultValue;
         }
 
         /// <summary>
@@ -119,7 +115,7 @@ namespace TestUtilities
         /// <returns>The original value of the key - as a string.</returns>
         public string SetProperty(string key, string newValue)
         {
-            string oldValue = AsString(this[key]);
+            var oldValue = AsString(this[key]);
             this[key] = newValue;
             return oldValue;
         }
@@ -136,9 +132,9 @@ namespace TestUtilities
             {
                 combined = new Hashtable(defaults);
 
-                for (IEnumerator e = this.Keys.GetEnumerator(); e.MoveNext();)
+                for (var e = Keys.GetEnumerator(); e.MoveNext();)
                 {
-                    string key = AsString(e.Current);
+                    var key = AsString(e.Current);
                     combined.Add(key, this[key]);
                 }
             }
@@ -155,7 +151,7 @@ namespace TestUtilities
         /// </summary>
         /// <param name="o">An Object or null to be returned as a string.</param>
         /// <returns>string value of the object - or null.</returns>
-        private string AsString(Object o)
+        private string AsString(object o)
         {
             if (o == null)
             {

@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TestUtilities
 {
@@ -36,12 +36,12 @@ namespace TestUtilities
 
         public static void AssertExpectedIncludeFilesAndDefaultAction(string rulesetFilePath, params string[] expectedIncludePaths)
         {
-            XDocument doc = XDocument.Load(rulesetFilePath);
-            IEnumerable<XElement> includeElements = doc.Descendants(IncludeElementName);
-            foreach (string expected in expectedIncludePaths)
+            var doc = XDocument.Load(rulesetFilePath);
+            var includeElements = doc.Descendants(IncludeElementName);
+            foreach (var expected in expectedIncludePaths)
             {
-                XElement includeElement = AssertSingleIncludeExists(includeElements, expected);
-                
+                var includeElement = AssertSingleIncludeExists(includeElements, expected);
+
                 // We expect the Include Action to always be "Warning"
                 AssertExpectedIncludeAction(includeElement, WarningActionValue);
             }
@@ -51,7 +51,7 @@ namespace TestUtilities
 
         private static void AssertExpectedIncludeAction(XElement includeElement, string expectedAction)
         {
-            XAttribute actionAttr = includeElement.Attribute(ActionAttrName);
+            var actionAttr = includeElement.Attribute(ActionAttrName);
 
             Assert.IsNotNull(actionAttr, "Include element does not have an Action attribute: {0}", includeElement);
             Assert.AreEqual(expectedAction, actionAttr.Value, "Unexpected Action value");
@@ -59,7 +59,7 @@ namespace TestUtilities
 
         private static XElement AssertSingleIncludeExists(IEnumerable<XElement> includeElements, string expectedPath)
         {
-            IEnumerable<XElement> matches = includeElements.Where(i => HasIncludePath(i, expectedPath));
+            var matches = includeElements.Where(i => HasIncludePath(i, expectedPath));
             Assert.AreEqual(1, matches.Count(), "Expecting one and only Include with Path '{0}'", expectedPath);
             return matches.First();
         }
@@ -71,6 +71,5 @@ namespace TestUtilities
 
             return attr != null && string.Equals(attr.Value, includePath, StringComparison.OrdinalIgnoreCase);
         }
-
     }
 }

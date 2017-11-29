@@ -17,9 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarQube.Common.UnitTests
 {
@@ -42,8 +42,8 @@ namespace SonarQube.Common.UnitTests
 
         private static void CheckVersionString(string version, string expectedDisplayString)
         {
-            Version actualVersion = new Version(version);
-            string actualVersionString = actualVersion.ToDisplayString();
+            var actualVersion = new Version(version);
+            var actualVersionString = actualVersion.ToDisplayString();
 
             Assert.AreEqual(expectedDisplayString, actualVersionString);
         }

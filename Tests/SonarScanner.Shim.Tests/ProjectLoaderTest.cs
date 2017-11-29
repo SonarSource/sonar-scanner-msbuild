@@ -39,12 +39,12 @@ namespace SonarScanner.Shim.Tests
         public void ProjectLoader()
         {
             // Arrange
-            string testSourcePath = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testSourcePath = TestUtils.CreateTestSpecificFolder(TestContext);
 
             // Create sub-directories, some with project info XML files and some without
-            TestUtils.EnsureTestSpecificFolder(this.TestContext, "EmptyDir1");
+            TestUtils.EnsureTestSpecificFolder(TestContext, "EmptyDir1");
 
-            ProjectDescriptor validTestProject = new ProjectDescriptor()
+            var validTestProject = new ProjectDescriptor()
             {
                 ParentDirectoryPath = testSourcePath,
                 ProjectFolderName = "validTestProjectDir",
@@ -57,9 +57,9 @@ namespace SonarScanner.Shim.Tests
             validTestProject.AddContentFile("contentFile1.js", true);
             CreateFilesFromDescriptor(validTestProject, "testCompileListFile", "testVisualStudioCodeCoverageReport");
 
-            TestUtils.EnsureTestSpecificFolder(this.TestContext, "EmptyDir2");
+            TestUtils.EnsureTestSpecificFolder(TestContext, "EmptyDir2");
 
-            ProjectDescriptor validNonTestProject = new ProjectDescriptor()
+            var validNonTestProject = new ProjectDescriptor()
             {
                 ParentDirectoryPath = testSourcePath,
                 ProjectFolderName = "validNonTestProjectDir",
@@ -71,7 +71,7 @@ namespace SonarScanner.Shim.Tests
             validNonTestProject.AddContentFile("AnotherSourceFile.vb", true);
             CreateFilesFromDescriptor(validNonTestProject, "list.txt", "visualstudio-codecoverage.xml");
 
-            ProjectDescriptor validNonTestNoReportsProject = new ProjectDescriptor()
+            var validNonTestNoReportsProject = new ProjectDescriptor()
             {
                 ParentDirectoryPath = testSourcePath,
                 ProjectFolderName = "validNonTestNoReportsProjectDir",
@@ -100,11 +100,11 @@ namespace SonarScanner.Shim.Tests
         public void ProjectLoader_NonRecursive()
         {
             // 0. Setup
-            string rootTestDir = Path.Combine(this.TestContext.DeploymentDirectory, "ProjectLoader_NonRecursive");
-            string childDir = Path.Combine(rootTestDir, "Child1");
+            var rootTestDir = Path.Combine(TestContext.DeploymentDirectory, "ProjectLoader_NonRecursive");
+            var childDir = Path.Combine(rootTestDir, "Child1");
 
             // Create a valid project in the child directory
-            ProjectDescriptor validNonTestProject = new ProjectDescriptor()
+            var validNonTestProject = new ProjectDescriptor()
             {
                 ParentDirectoryPath = childDir,
                 ProjectFolderName = "validNonTestProjectDir",
@@ -140,12 +140,12 @@ namespace SonarScanner.Shim.Tests
                 Directory.CreateDirectory(descriptor.FullDirectoryPath);
             }
 
-            ProjectInfo projectInfo = descriptor.CreateProjectInfo();
+            var projectInfo = descriptor.CreateProjectInfo();
 
             // Create the analysis file list if any input files have been specified
             if (descriptor.FilesToAnalyse.Any())
             {
-                string fullAnalysisFileListPath = Path.Combine(descriptor.FullDirectoryPath, compileFiles);
+                var fullAnalysisFileListPath = Path.Combine(descriptor.FullDirectoryPath, compileFiles);
                 File.WriteAllLines(fullAnalysisFileListPath, descriptor.FilesToAnalyse);
 
                 // Add the compile list as an analysis result
@@ -155,7 +155,7 @@ namespace SonarScanner.Shim.Tests
             // Create the Visual Studio Code Coverage report file
             if (visualStudioCodeCoverageReportFileName != null)
             {
-                string fullVisualStudioCodeCoverageName = Path.Combine(descriptor.FullDirectoryPath, visualStudioCodeCoverageReportFileName);
+                var fullVisualStudioCodeCoverageName = Path.Combine(descriptor.FullDirectoryPath, visualStudioCodeCoverageReportFileName);
                 File.Create(fullVisualStudioCodeCoverageName);
 
                 // Add the Visual Studio Code Coverage report as an analysis result
@@ -174,7 +174,7 @@ namespace SonarScanner.Shim.Tests
 
         private static ProjectInfo AssertProjectResultExists(string expectedProjectName, IEnumerable<ProjectInfo> actualProjects)
         {
-            ProjectInfo actual = actualProjects.FirstOrDefault(p => expectedProjectName.Equals(p.ProjectName));
+            var actual = actualProjects.FirstOrDefault(p => expectedProjectName.Equals(p.ProjectName));
             Assert.IsNotNull(actual, "Failed to find project with the expected name: {0}", expectedProjectName);
             return actual;
         }

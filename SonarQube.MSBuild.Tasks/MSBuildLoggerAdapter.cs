@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System;
 using Microsoft.Build.Utilities;
 using SonarQube.Common;
-using System;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -50,22 +50,22 @@ namespace SonarQube.MSBuild.Tasks
 
         void ILogger.LogDebug(string message, params object[] args)
         {
-            this.LogMessage(Common.LoggerVerbosity.Debug, message, args);
+            LogMessage(LoggerVerbosity.Debug, message, args);
         }
 
         void ILogger.LogError(string message, params object[] args)
         {
-            this.msBuildLogger.LogError(message, args);
+            msBuildLogger.LogError(message, args);
         }
 
         void ILogger.LogInfo(string message, params object[] args)
         {
-            this.LogMessage(Common.LoggerVerbosity.Info, message, args);
+            LogMessage(LoggerVerbosity.Info, message, args);
         }
 
         void ILogger.LogWarning(string message, params object[] args)
         {
-            this.msBuildLogger.LogWarning(message, args);
+            msBuildLogger.LogWarning(message, args);
         }
 
         void ILogger.SuspendOutput()
@@ -78,23 +78,22 @@ namespace SonarQube.MSBuild.Tasks
             // no-op
         }
 
-        #endregion
+        #endregion SonarQube.Common.ILogger methods
 
         #region Private methods
 
-        private void LogMessage(Common.LoggerVerbosity verbosity, string message, params object[] args)
+        private void LogMessage(LoggerVerbosity verbosity, string message, params object[] args)
         {
             // We need to adapt between the ILogger verbosity and the MsBuild logger verbosity
-            if (verbosity == Common.LoggerVerbosity.Info)
+            if (verbosity == LoggerVerbosity.Info)
             {
-                this.msBuildLogger.LogMessage(Microsoft.Build.Framework.MessageImportance.Normal, message, args);
+                msBuildLogger.LogMessage(Microsoft.Build.Framework.MessageImportance.Normal, message, args);
             }
             else
             {
-                this.msBuildLogger.LogMessage(Microsoft.Build.Framework.MessageImportance.Low, message, args);
+                msBuildLogger.LogMessage(Microsoft.Build.Framework.MessageImportance.Low, message, args);
             }
         }
-
 
         #endregion Private methods
     }

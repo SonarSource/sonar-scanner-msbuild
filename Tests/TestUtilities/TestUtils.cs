@@ -17,11 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TestUtilities
 {
@@ -29,6 +28,7 @@ namespace TestUtilities
     {
         // Target file names
         public const string AnalysisTargetFile = "SonarQube.Integration.targets";
+
         public const string ImportsBeforeFile = "SonarQube.Integration.ImportBefore.targets";
 
         #region Public methods
@@ -40,7 +40,7 @@ namespace TestUtilities
         /// </summary>
         public static string CreateTestSpecificFolder(TestContext testContext, params string[] optionalSubDirNames)
         {
-            string fullPath = DoCreateTestSpecificFolder(testContext, optionalSubDirNames, throwIfExists: true);
+            var fullPath = DoCreateTestSpecificFolder(testContext, optionalSubDirNames, throwIfExists: true);
             return fullPath;
         }
 
@@ -50,7 +50,7 @@ namespace TestUtilities
         /// </summary>
         public static string EnsureTestSpecificFolder(TestContext testContext, params string[] optionalSubDirNames)
         {
-            string fullPath = DoCreateTestSpecificFolder(testContext, optionalSubDirNames, throwIfExists: false);
+            var fullPath = DoCreateTestSpecificFolder(testContext, optionalSubDirNames, throwIfExists: false);
             return fullPath;
         }
 
@@ -62,9 +62,9 @@ namespace TestUtilities
         public static string CreateTextFile(string parentDir, string fileName, string content, params string[] substitutionArgs)
         {
             Assert.IsTrue(Directory.Exists(parentDir), "Test setup error: expecting the parent directory to exist: {0}", parentDir);
-            string fullPath = Path.Combine(parentDir, fileName);
+            var fullPath = Path.Combine(parentDir, fileName);
 
-            string formattedContent = content;
+            var formattedContent = content;
             if (substitutionArgs != null && substitutionArgs.Length > 0)
             {
                 formattedContent = string.Format(System.Globalization.CultureInfo.InvariantCulture, content, substitutionArgs);
@@ -79,7 +79,7 @@ namespace TestUtilities
         /// </summary>
         public static string EnsureImportBeforeTargetsExists(TestContext testContext)
         {
-            string filePath = Path.Combine(GetTestSpecificFolderName(testContext), ImportsBeforeFile);
+            var filePath = Path.Combine(GetTestSpecificFolderName(testContext), ImportsBeforeFile);
             if (File.Exists(filePath))
             {
                 testContext.WriteLine("ImportBefore target file already exists: {0}", filePath);
@@ -98,7 +98,7 @@ namespace TestUtilities
         /// </summary>
         public static string EnsureAnalysisTargetsExists(TestContext testContext)
         {
-            string filePath = Path.Combine(GetTestSpecificFolderName(testContext), AnalysisTargetFile);
+            var filePath = Path.Combine(GetTestSpecificFolderName(testContext), AnalysisTargetFile);
             if (File.Exists(filePath))
             {
                 testContext.WriteLine("Analysis target file already exists: {0}", filePath);
@@ -117,7 +117,7 @@ namespace TestUtilities
         /// </summary>
         public static string EnsureDefaultPropertiesFileExists(string targetDir, TestContext testContext)
         {
-            string filePath = Path.Combine(targetDir, SonarQube.Common.FilePropertyProvider.DefaultFileName);
+            var filePath = Path.Combine(targetDir, SonarQube.Common.FilePropertyProvider.DefaultFileName);
             if (File.Exists(filePath))
             {
                 testContext.WriteLine("Default properties file already exists: {0}", filePath);
@@ -133,7 +133,7 @@ namespace TestUtilities
 
         public static string GetTestSpecificFolderName(TestContext testContext)
         {
-            string fullPath = Path.Combine(testContext.DeploymentDirectory, testContext.TestName);
+            var fullPath = Path.Combine(testContext.DeploymentDirectory, testContext.TestName);
             return fullPath;
         }
 
@@ -143,27 +143,26 @@ namespace TestUtilities
         /// <returns>Returns the full file name of the new file</returns>
         public static string WriteBatchFileForTest(TestContext context, string content)
         {
-            string fileName = Path.Combine(context.DeploymentDirectory, context.TestName + ".bat");
+            var fileName = Path.Combine(context.DeploymentDirectory, context.TestName + ".bat");
             Assert.IsFalse(File.Exists(fileName), "Not expecting a batch file to already exist: {0}", fileName);
             File.WriteAllText(fileName, content);
             return fileName;
         }
 
-
-        #endregion
+        #endregion Public methods
 
         #region Private methods
 
         private static string DoCreateTestSpecificFolder(TestContext testContext, string[] optionalSubDirNames, bool throwIfExists)
         {
-            string fullPath = GetTestSpecificFolderName(testContext);
+            var fullPath = GetTestSpecificFolderName(testContext);
             if (optionalSubDirNames != null &&
                 optionalSubDirNames.Any())
             {
                 fullPath = Path.Combine(new[] { fullPath }.Concat(optionalSubDirNames).ToArray());
             }
 
-            bool exists = Directory.Exists(fullPath);
+            var exists = Directory.Exists(fullPath);
 
             if (exists)
             {
@@ -182,13 +181,13 @@ namespace TestUtilities
 
         private static void ExtractResourceToFile(string resourceName, string filePath)
         {
-            Stream stream = typeof(TestUtils).Assembly.GetManifestResourceStream(resourceName);
-            using(StreamReader reader =  new StreamReader(stream))
+            var stream = typeof(TestUtils).Assembly.GetManifestResourceStream(resourceName);
+            using(var reader =  new StreamReader(stream))
             {
                 File.WriteAllText(filePath, reader.ReadToEnd());
             }
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

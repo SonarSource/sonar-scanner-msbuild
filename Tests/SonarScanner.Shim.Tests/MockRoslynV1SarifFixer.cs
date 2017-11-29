@@ -17,14 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using SonarQube.Common;
 
 namespace SonarScanner.Shim.Tests
 {
-    class MockRoslynV1SarifFixer : IRoslynV1SarifFixer
+    internal class MockRoslynV1SarifFixer : IRoslynV1SarifFixer
     {
-
         #region Test Hooks
 
         public string ReturnVal { get; set; }
@@ -35,11 +34,11 @@ namespace SonarScanner.Shim.Tests
 
         public MockRoslynV1SarifFixer(string returnVal)
         {
-            this.ReturnVal = returnVal;
-            this.CallCount = 0;
+            ReturnVal = returnVal;
+            CallCount = 0;
         }
 
-        #endregion
+        #endregion Test Hooks
 
         #region IRoslynV1SarifFixer
 
@@ -50,6 +49,6 @@ namespace SonarScanner.Shim.Tests
             return ReturnVal;
         }
 
-        #endregion
+        #endregion IRoslynV1SarifFixer
     }
 }

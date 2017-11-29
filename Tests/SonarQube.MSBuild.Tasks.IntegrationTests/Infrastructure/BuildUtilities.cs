@@ -17,15 +17,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.Build.Construction;
-using Microsoft.Build.Execution;
-using Microsoft.Build.Framework;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Build.Construction;
+using Microsoft.Build.Execution;
+using Microsoft.Build.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.IntegrationTests
@@ -48,7 +48,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public static ProjectDescriptor CreateValidProjectDescriptor(string parentDirectory, string projectFileName = "MyProject.xproj.txt", bool isVBProject = false)
         {
-            ProjectDescriptor descriptor = new ProjectDescriptor()
+            var descriptor = new ProjectDescriptor()
             {
                 ProjectLanguage = isVBProject ? SonarQube.Common.ProjectLanguages.VisualBasic : SonarQube.Common.ProjectLanguages.CSharp,
                 ProjectGuid = Guid.NewGuid(),
@@ -68,8 +68,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// <param name="preImportProperties">Any MSBuild properties that should be set before any targets are imported</param>
         public static ProjectRootElement CreateValidProjectRoot(TestContext testContext, string projectDirectory, IDictionary<string, string> preImportProperties, bool isVBProject = false)
         {
-            ProjectDescriptor descriptor = CreateValidProjectDescriptor(projectDirectory, isVBProject: isVBProject);
-            ProjectRootElement projectRoot = CreateInitializedProjectRoot(testContext, descriptor, preImportProperties);
+            var descriptor = CreateValidProjectDescriptor(projectDirectory, isVBProject: isVBProject);
+            var projectRoot = CreateInitializedProjectRoot(testContext, descriptor, preImportProperties);
             return projectRoot;
         }
 
@@ -88,7 +88,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 throw new ArgumentNullException("descriptor");
             }
 
-            ProjectRootElement projectRoot = BuildUtilities.CreateAnalysisProject(testContext, descriptor, preImportProperties);
+            var projectRoot = BuildUtilities.CreateAnalysisProject(testContext, descriptor, preImportProperties);
 
             projectRoot.ToolsVersion = MSBuildToolsVersionForTestProjects;
 
@@ -107,9 +107,9 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// <param name="importsBeforeTargets">Any targets that should be imported before the C# targets are imported. Optional.</param>
         public static ProjectRootElement CreateMinimalBuildableProject(IDictionary<string, string> preImportProperties, bool isVBProject, params string[] importsBeforeTargets)
         {
-            ProjectRootElement root = ProjectRootElement.Create();
+            var root = ProjectRootElement.Create();
 
-            foreach(string importTarget in importsBeforeTargets)
+            foreach(var importTarget in importsBeforeTargets)
             {
                 Assert.IsTrue(File.Exists(importTarget), "Test error: the specified target file does not exist. Path: {0}", importTarget);
                 root.AddImport(importTarget);
@@ -117,7 +117,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
             if (preImportProperties != null)
             {
-                foreach(KeyValuePair<string, string> kvp in preImportProperties)
+                foreach(var kvp in preImportProperties)
                 {
                     root.AddProperty(kvp.Key, kvp.Value);
                 }
@@ -154,7 +154,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public static ProjectRootElement CreateProjectFromTemplate(string projectFilePath, TestContext testContext, string templateXml, params object[] args)
         {
-            string projectXml = templateXml;
+            var projectXml = templateXml;
             if (args != null && args.Any())
             {
                 projectXml = string.Format(System.Globalization.CultureInfo.CurrentCulture, templateXml, args);
@@ -163,11 +163,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             File.WriteAllText(projectFilePath, projectXml);
             testContext.AddResultFile(projectFilePath);
 
-            ProjectRootElement projectRoot = ProjectRootElement.Open(projectFilePath);
+            var projectRoot = ProjectRootElement.Open(projectFilePath);
             return projectRoot;
         }
 
-        #endregion
+        #endregion Project creation helpers
 
         #region Build helper methods
 
@@ -188,7 +188,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 throw new ArgumentNullException("logger");
             }
 
-            ProjectInstance projectInstance = new ProjectInstance(projectRoot);
+            var projectInstance = new ProjectInstance(projectRoot);
             return BuildTargets(projectInstance, logger, targets);
         }
 
@@ -209,17 +209,17 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 throw new ArgumentNullException("logger");
             }
 
-            BuildParameters parameters = new BuildParameters
+            var parameters = new BuildParameters
             {
                 Loggers = new ILogger[] { logger ?? new BuildLogger() },
                 UseSynchronousLogging = true,
                 ShutdownInProcNodeOnBuildFinish = true // required, other we can get an "Attempted to access an unloaded AppDomain" exception when the test finishes.
             };
 
-            BuildRequestData requestData = new BuildRequestData(projectInstance, targets);
+            var requestData = new BuildRequestData(projectInstance, targets);
 
             BuildResult result = null;
-            BuildManager mgr = new BuildManager();
+            var mgr = new BuildManager();
             try
             {
                 result = mgr.Build(parameters, requestData);
@@ -237,7 +237,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             return result;
         }
 
-        #endregion
+        #endregion Build helper methods
 
         #region Miscellaneous public methods
 
@@ -272,7 +272,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             LogMessage(string.Empty);
         }
 
-        #endregion
+        #endregion Miscellaneous public methods
 
         #region Private methods
 
@@ -293,11 +293,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 throw new ArgumentNullException("descriptor");
             }
 
-            string sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(testContext);
+            var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(testContext);
             Assert.IsTrue(File.Exists(sqTargetFile), "Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
             testContext.AddResultFile(sqTargetFile);
 
-            IDictionary<string, string> properties = preImportProperties ?? new Dictionary<string, string>();
+            var properties = preImportProperties ?? new Dictionary<string, string>();
 
             // Disable the standard "ImportBefore/ImportAfter" behaviour if the caller
             // hasn't defined what they want to happen explicitly
@@ -306,7 +306,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 DisableStandardTargetsWildcardImporting(properties);
             }
 
-            ProjectRootElement root = CreateMinimalBuildableProject(properties, descriptor.IsVbProject, sqTargetFile);
+            var root = CreateMinimalBuildableProject(properties, descriptor.IsVbProject, sqTargetFile);
 
             // Set the location of the task assembly
             if (!properties.ContainsKey(TargetProperties.SonarBuildTasksAssemblyFile))
@@ -319,7 +319,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
                 root.AddProperty(TargetProperties.ProjectGuid, descriptor.ProjectGuid.ToString("D"));
             }
 
-            foreach (ProjectDescriptor.FileInProject file in descriptor.Files)
+            foreach (var file in descriptor.Files)
             {
                 root.AddItem(file.ItemGroup, file.FilePath);
             }
@@ -352,7 +352,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             LogMessage();
             LogMessage("******************************************************");
             LogMessage(title ?? "Project properties");
-            foreach (ProjectPropertyInstance property in projectInstance.Properties ?? Enumerable.Empty<ProjectPropertyInstance>())
+            foreach (var property in projectInstance.Properties ?? Enumerable.Empty<ProjectPropertyInstance>())
             {
                 LogMessage("{0} = {1}{2}",
                     property.Name,
@@ -363,6 +363,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
             LogMessage();
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

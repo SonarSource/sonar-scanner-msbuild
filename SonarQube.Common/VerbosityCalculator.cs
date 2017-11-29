@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Linq;
 
@@ -26,7 +26,7 @@ namespace SonarQube.Common
     /// <summary>
     /// The integration assemblies use the SonarQube log specific settings to determine verbosity. These settings are:
     /// sonar.log.level is a flag enum with the values INFO, DEBUG and TRACE - and a valid value is INFO|DEBUG
-    /// sonar.verbosity can be true or false and will override sonar.log.level by setting it to INFO|DEBUG or to INFO 
+    /// sonar.verbosity can be true or false and will override sonar.log.level by setting it to INFO|DEBUG or to INFO
     /// All values are case-sensitive. The calculator ignores invalid values.
     /// </summary>
     public static class VerbosityCalculator
@@ -49,7 +49,7 @@ namespace SonarQube.Common
         private const string SonarLogDebugValue = "DEBUG";
 
         /// <summary>
-        /// Computes verbosity based on the available properties. 
+        /// Computes verbosity based on the available properties.
         /// </summary>
         /// <remarks>If no verbosity setting is present, the default verbosity (info) is used</remarks>
         public static LoggerVerbosity ComputeVerbosity(IAnalysisPropertyProvider properties, ILogger logger)
@@ -73,7 +73,7 @@ namespace SonarQube.Common
 
         private static LoggerVerbosity ComputeVerbosity(string sonarVerboseValue, string sonarLogValue, ILogger logger)
         {
-            if (!String.IsNullOrWhiteSpace(sonarVerboseValue))
+            if (!string.IsNullOrWhiteSpace(sonarVerboseValue))
             {
                 if (sonarVerboseValue.Equals("true", StringComparison.Ordinal))
                 {
@@ -91,7 +91,7 @@ namespace SonarQube.Common
                 }
             }
 
-            if (!String.IsNullOrWhiteSpace(sonarLogValue) && sonarLogValue.Split('|').Any(s => s.Equals(SonarLogDebugValue, StringComparison.Ordinal)))
+            if (!string.IsNullOrWhiteSpace(sonarLogValue) && sonarLogValue.Split('|').Any(s => s.Equals(SonarLogDebugValue, StringComparison.Ordinal)))
             {
                 logger.LogDebug(Resources.MSG_SonarLogLevelWasSpecified, sonarLogValue);
                 return LoggerVerbosity.Debug;

@@ -17,22 +17,33 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.Serialization;
 
 namespace SonarQube.Common
 {
     /// <summary>
-    /// Thrown when a there is an error that is well handled and should cause the process to exit in a clean way. 
+    /// Thrown when a there is an error that is well handled and should cause the process to exit in a clean way.
     /// The message will be logged and the process will return exit code 1.
     /// </summary>
     public class AnalysisException : Exception
     {
-        public AnalysisException(string message) : base(message)
+        public AnalysisException()
+        {
+        }
+
+        public AnalysisException(string message)
+            : base(message)
+        {
+        }
+
+        public AnalysisException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+
+        protected AnalysisException(SerializationInfo info, StreamingContext context)
         {
         }
     }

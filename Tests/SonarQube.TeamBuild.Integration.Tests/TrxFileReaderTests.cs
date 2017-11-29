@@ -17,10 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System.IO;
-using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.Integration.Tests
@@ -36,11 +35,11 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void TrxReader_TestsResultsDirectoryMissing()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            TestLogger logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var logger = new TestLogger();
 
             // Act
-            string coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
@@ -54,13 +53,13 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void TrxReader_InvalidTrxFile()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
             TestUtils.CreateTextFile(resultsDir, "dummy.trx", "this is not a trx file");
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             // Act
-            string coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
@@ -73,14 +72,14 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void TrxReader_MultipleTrxFiles()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
-            string trx1 = TestUtils.CreateTextFile(resultsDir, "mytrx1.trx", "<TestRun />");
-            string trx2 = TestUtils.CreateTextFile(resultsDir, "mytrx2.trx", "<TestRun />");
-            TestLogger logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
+            var trx1 = TestUtils.CreateTextFile(resultsDir, "mytrx1.trx", "<TestRun />");
+            var trx2 = TestUtils.CreateTextFile(resultsDir, "mytrx2.trx", "<TestRun />");
+            var logger = new TestLogger();
 
             // Act
-            string coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
@@ -93,9 +92,9 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void TrxReader_SingleTrxFileInSubfolder()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "Dummy", "TestResults");
-            string trxFile = TestUtils.CreateTextFile(resultsDir, "no_attachments.trx",
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "Dummy", "TestResults");
+            var trxFile = TestUtils.CreateTextFile(resultsDir, "no_attachments.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
 	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE"" xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
@@ -107,10 +106,10 @@ namespace SonarQube.TeamBuild.Integration.Tests
   </ResultSummary>
 </TestRun>
 ");
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             // Act
-            string coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
@@ -125,9 +124,9 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void TrxReader_TrxWithNoAttachments()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
-            string trxFile = TestUtils.CreateTextFile(resultsDir, "no_attachments.trx",
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
+            var trxFile = TestUtils.CreateTextFile(resultsDir, "no_attachments.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
 	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE"" xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
@@ -139,10 +138,10 @@ namespace SonarQube.TeamBuild.Integration.Tests
   </ResultSummary>
 </TestRun>
 ");
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             // Act
-            string coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
@@ -158,8 +157,8 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void TrxReader_TrxWithMultipleAttachments()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
 
             TestUtils.CreateTextFile(resultsDir, "multiple_attachments.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
@@ -190,10 +189,10 @@ namespace SonarQube.TeamBuild.Integration.Tests
   </ResultSummary>
 </TestRun>
 ");
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             // Act
-            string coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
@@ -207,9 +206,9 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void TrxReader_SingleAttachment_RelativePath()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
-            string coverageFileName = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
+            var coverageFileName = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
 
             TestUtils.CreateTextFile(resultsDir, "single_attachment.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
@@ -233,13 +232,13 @@ namespace SonarQube.TeamBuild.Integration.Tests
 </TestRun>",
            coverageFileName);
 
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             // Act
-            string coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
 
             // Assert
-            string expected = Path.Combine(resultsDir, "single_attachment", "In", coverageFileName);
+            var expected = Path.Combine(resultsDir, "single_attachment", "In", coverageFileName);
 
             Assert.AreEqual(expected, coverageFilePath);
 
@@ -251,9 +250,9 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void TrxReader_SingleAttachment_AbsolutePath()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string resultsDir = TestUtils.CreateTestSpecificFolder(this.TestContext, "TestResults");
-            string coverageFileName = "x:\\dir1\\dir2\\xxx.coverage";
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
+            var coverageFileName = "x:\\dir1\\dir2\\xxx.coverage";
 
             TestUtils.CreateTextFile(resultsDir, "single_attachment.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
@@ -277,17 +276,16 @@ namespace SonarQube.TeamBuild.Integration.Tests
 </TestRun>",
            coverageFileName);
 
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             // Act
-            string coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
 
             // Assert
             Assert.AreEqual(coverageFilePath, coverageFilePath);
             logger.AssertDebugMessageExists(coverageFileName);
         }
 
-        #endregion
-
+        #endregion Tests
     }
 }

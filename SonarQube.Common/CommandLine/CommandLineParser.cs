@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -83,18 +83,16 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("logger");
             }
 
-
-            bool parsedOk = true;
+            var parsedOk = true;
 
             // List of values that have been recognized
             IList<ArgumentInstance> recognized = new List<ArgumentInstance>();
 
-            foreach (string arg in commandLineArgs)
+            foreach (var arg in commandLineArgs)
             {
-
                 if (TryGetMatchingDescriptor(arg, out ArgumentDescriptor descriptor, out string prefix))
                 {
-                    string newId = descriptor.Id;
+                    var newId = descriptor.Id;
 
                     if (!descriptor.AllowMultiple && IdExists(newId, recognized))
                     {
@@ -105,19 +103,19 @@ namespace SonarQube.Common
                     else
                     {
                         // Store the argument
-                        string argValue = arg.Substring(prefix.Length);
+                        var argValue = arg.Substring(prefix.Length);
                         recognized.Add(new ArgumentInstance(descriptor, argValue));
                     }
                 }
                 else
                 {
-                    if (!this.allowUnrecognized)
+                    if (!allowUnrecognized)
                     {
                         logger.LogError(Resources.ERROR_CmdLine_UnrecognizedArg, arg);
                         parsedOk = false;
                     }
 
-                    Debug.WriteLineIf(this.allowUnrecognized, "Ignoring unrecognized argument: " + arg);
+                    Debug.WriteLineIf(allowUnrecognized, "Ignoring unrecognized argument: " + arg);
                 }
             }
 
@@ -141,11 +139,11 @@ namespace SonarQube.Common
             descriptor = null;
             prefix = null;
 
-            bool found = false;
+            var found = false;
 
-            foreach (ArgumentDescriptor item in this.descriptors)
+            foreach (var item in descriptors)
             {
-                string match = TryGetMatchingPrefix(item, argument);
+                var match = TryGetMatchingPrefix(item, argument);
                 if (match != null)
                 {
                     descriptor = item;
@@ -178,7 +176,7 @@ namespace SonarQube.Common
 
         private static bool IdExists(string id, IEnumerable<ArgumentInstance> arguments)
         {
-            bool exists = ArgumentInstance.TryGetArgument(id, arguments, out ArgumentInstance existing);
+            var exists = ArgumentInstance.TryGetArgument(id, arguments, out ArgumentInstance existing);
             return exists;
         }
 
@@ -187,12 +185,12 @@ namespace SonarQube.Common
         /// </summary>
         private bool CheckRequiredArgumentsSupplied(IEnumerable<ArgumentInstance> arguments, ILogger logger)
         {
-            bool allExist = true;
-            foreach (ArgumentDescriptor desc in this.descriptors.Where(d => d.Required))
+            var allExist = true;
+            foreach (var desc in descriptors.Where(d => d.Required))
             {
                 ArgumentInstance.TryGetArgument(desc.Id, arguments, out ArgumentInstance argument);
 
-                bool exists = argument != null && !string.IsNullOrWhiteSpace(argument.Value);
+                var exists = argument != null && !string.IsNullOrWhiteSpace(argument.Value);
                 if (!exists)
                 {
                     logger.LogError(Resources.ERROR_CmdLine_MissingRequiredArgument, desc.Description);
@@ -201,6 +199,5 @@ namespace SonarQube.Common
             }
             return allExist;
         }
-
     }
 }

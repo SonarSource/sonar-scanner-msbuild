@@ -17,13 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.Common.UnitTests
@@ -34,7 +31,7 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void ParseValidJson()
         {
-            EnvScannerPropertiesProvider provider = new EnvScannerPropertiesProvider("{ \"sonar.host.url\": \"http://myhost\"}");
+            var provider = new EnvScannerPropertiesProvider("{ \"sonar.host.url\": \"http://myhost\"}");
             Assert.AreEqual(provider.GetAllProperties().First().Id, "sonar.host.url");
             Assert.AreEqual(provider.GetAllProperties().First().Value, "http://myhost");
             Assert.AreEqual(1, provider.GetAllProperties().Count());
@@ -49,9 +46,9 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void ParseInvalidJson()
         {
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
             Environment.SetEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "trash");
-            bool result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out IAnalysisPropertyProvider provider);
+            var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out IAnalysisPropertyProvider provider);
             Assert.IsFalse(result);
             logger.AssertErrorLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
         }
@@ -59,7 +56,7 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void NonExistingEnvVar()
         {
-            EnvScannerPropertiesProvider provider = new EnvScannerPropertiesProvider(null);
+            var provider = new EnvScannerPropertiesProvider(null);
             Assert.AreEqual(0, provider.GetAllProperties().Count());
         }
     }

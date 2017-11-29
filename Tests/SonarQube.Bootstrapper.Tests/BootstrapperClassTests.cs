@@ -17,17 +17,16 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System.IO;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration.Interfaces;
 using SonarQube.TeamBuild.PostProcessor.Interfaces;
 using SonarQube.TeamBuild.PreProcessor;
-using System.IO;
-using System.Linq;
 using TestUtilities;
-using static SonarQube.Bootstrapper.Program;
 
 namespace SonarQube.Bootstrapper.Tests
 {
@@ -45,11 +44,11 @@ namespace SonarQube.Bootstrapper.Tests
         [TestInitialize]
         public void MyTestInitialize()
         {
-            RootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            RootDir = TestUtils.CreateTestSpecificFolder(TestContext);
             // this is the Temp folder used by Bootstrapper
             TempDir = Path.Combine(RootDir, ".sonarqube");
             // it will look in Directory.GetCurrentDir, which is RootDir.
-            string analysisConfigFile = Path.Combine(TempDir, "conf", "SonarQubeAnalysisConfig.xml");
+            var analysisConfigFile = Path.Combine(TempDir, "conf", "SonarQubeAnalysisConfig.xml");
             CreateAnalysisConfig(analysisConfigFile);
             MockProcessors(true, true);
         }
@@ -57,7 +56,7 @@ namespace SonarQube.Bootstrapper.Tests
         private void CreateAnalysisConfig(string filePath)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-            AnalysisConfig config = new AnalysisConfig();
+            var config = new AnalysisConfig();
             config.Save(filePath);
         }
 
@@ -86,7 +85,7 @@ namespace SonarQube.Bootstrapper.Tests
                 MockProcessors(false, true);
 
                 // Act
-                TestLogger logger = CheckExecutionFails(AnalysisPhase.PreProcessing, true,
+                var logger = CheckExecutionFails(AnalysisPhase.PreProcessing, true,
                     "/install:true",  // this argument should just pass through
                     "/d:sonar.verbose=true",
                     "/d:sonar.host.url=http://host:9",
@@ -114,7 +113,7 @@ namespace SonarQube.Bootstrapper.Tests
             using (InitializeNonTeamBuildEnvironment(RootDir))
             {
                 // Act
-                TestLogger logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
+                var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
                 Assert.IsTrue(File.Exists(Path.Combine(TempDir, "bin", "SonarQube.Common.dll")));
@@ -131,7 +130,7 @@ namespace SonarQube.Bootstrapper.Tests
             using (InitializeNonTeamBuildEnvironment(RootDir))
             {
                 // Act
-                TestLogger logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
+                var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
                 logger.AssertWarningsLogged(0);
@@ -150,14 +149,14 @@ namespace SonarQube.Bootstrapper.Tests
             using (InitializeNonTeamBuildEnvironment(RootDir))
             {
                 // Create dummy file in Temp
-                string filePath = Path.Combine(TempDir, "myfile");
+                var filePath = Path.Combine(TempDir, "myfile");
                 Directory.CreateDirectory(TempDir);
-                FileStream stream = File.Create(filePath);
+                var stream = File.Create(filePath);
                 stream.Close();
                 Assert.IsTrue(File.Exists(filePath));
 
                 // Act
-                TestLogger logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
+                var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
                 Assert.IsFalse(File.Exists(filePath));
@@ -174,7 +173,7 @@ namespace SonarQube.Bootstrapper.Tests
                 Directory.CreateDirectory(TempDir);
 
                 // Act
-                TestLogger logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
+                var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
 
                 // Assert
                 logger.AssertWarningsLogged(0);
@@ -191,7 +190,7 @@ namespace SonarQube.Bootstrapper.Tests
             using (InitializeNonTeamBuildEnvironment(RootDir))
             {
                 // Act
-                TestLogger logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
+                var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
 
                 // Assert
                 logger.AssertErrorsLogged(2);
@@ -207,7 +206,7 @@ namespace SonarQube.Bootstrapper.Tests
                 Directory.CreateDirectory(TempDir);
 
                 // Act
-                TestLogger logger = CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, "other params", "yet.more.params");
+                var logger = CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, "other params", "yet.more.params");
 
                 // Assert
                 logger.AssertWarningsLogged(0);
@@ -226,11 +225,11 @@ namespace SonarQube.Bootstrapper.Tests
                 // this is usually created by the PreProcessor
                 Directory.CreateDirectory(TempDir);
 
-                string analysisConfigFile = Path.Combine(TempDir, "conf", "SonarQubeAnalysisConfig.xml");
+                var analysisConfigFile = Path.Combine(TempDir, "conf", "SonarQubeAnalysisConfig.xml");
                 File.Delete(analysisConfigFile);
 
                 // Act
-                TestLogger logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false, "other params", "yet.more.params");
+                var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false, "other params", "yet.more.params");
 
                 // Assert
                 logger.AssertWarningsLogged(0);
@@ -246,7 +245,7 @@ namespace SonarQube.Bootstrapper.Tests
         private static EnvironmentVariableScope InitializeNonTeamBuildEnvironment(string workingDirectory)
         {
             Directory.SetCurrentDirectory(workingDirectory);
-            EnvironmentVariableScope scope = new EnvironmentVariableScope();
+            var scope = new EnvironmentVariableScope();
             scope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, null);
             scope.SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
             return scope;
@@ -258,10 +257,10 @@ namespace SonarQube.Bootstrapper.Tests
 
         private TestLogger CheckExecutionFails(AnalysisPhase phase, bool debug, params string[] args)
         {
-            TestLogger logger = new TestLogger();
-            IBootstrapperSettings settings = MockBootstrapSettings(phase, debug, args);
-            BootstrapperClass bootstrapper = new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
-            int exitCode = bootstrapper.Execute();
+            var logger = new TestLogger();
+            var settings = MockBootstrapSettings(phase, debug, args);
+            var bootstrapper = new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
+            var exitCode = bootstrapper.Execute();
 
             Assert.AreEqual(Bootstrapper.Program.ErrorCode, exitCode, "Bootstrapper did not return the expected exit code");
             logger.AssertErrorsLogged();
@@ -271,10 +270,10 @@ namespace SonarQube.Bootstrapper.Tests
 
         private TestLogger CheckExecutionSucceeds(AnalysisPhase phase, bool debug, params string[] args)
         {
-            TestLogger logger = new TestLogger();
-            IBootstrapperSettings settings = MockBootstrapSettings(phase, debug, args);
-            BootstrapperClass bootstrapper = new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
-            int exitCode = bootstrapper.Execute();
+            var logger = new TestLogger();
+            var settings = MockBootstrapSettings(phase, debug, args);
+            var bootstrapper = new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
+            var exitCode = bootstrapper.Execute();
 
             Assert.AreEqual(0, exitCode, "Bootstrapper did not return the expected exit code");
             logger.AssertErrorsLogged(0);

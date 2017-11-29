@@ -17,9 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarQube.Common.UnitTests
 {
@@ -33,7 +33,7 @@ namespace SonarQube.Common.UnitTests
         public void CLogger_NoExceptionOnNullMessage()
         {
             // 1. Logger without timestamps
-            ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
+            var logger = new ConsoleLogger(includeTimestamp: false);
 
             logger.LogInfo(null);
             logger.LogInfo(null, null);
@@ -61,7 +61,6 @@ namespace SonarQube.Common.UnitTests
             logger.LogError(null);
             logger.LogError(null, null);
             logger.LogError(null, "abc");
-
         }
 
         [TestMethod]
@@ -69,7 +68,7 @@ namespace SonarQube.Common.UnitTests
         public void CLogger_NoExceptionOnNullArgs()
         {
             // 1. Logger without timestamps
-            ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
+            var logger = new ConsoleLogger(includeTimestamp: false);
 
             logger.LogInfo(null, null);
             logger.LogInfo("123", null);
@@ -96,10 +95,10 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void CLogger_ExpectedMessages_Message()
         {
-            using (OutputCaptureScope output = new OutputCaptureScope())
+            using (var output = new OutputCaptureScope())
             {
                 // 1. Logger without timestamps
-                ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
+                var logger = new ConsoleLogger(includeTimestamp: false);
 
                 logger.LogInfo("message1");
                 output.AssertExpectedLastMessage("message1");
@@ -131,10 +130,10 @@ namespace SonarQube.Common.UnitTests
             // "WARNING" prefix, so we're using "AssertLastMessageEndsWith"
             // even for warnings that do not have timestamps.
 
-            using (OutputCaptureScope output = new OutputCaptureScope())
+            using (var output = new OutputCaptureScope())
             {
                 // 1. Logger without timestamps
-                ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
+                var logger = new ConsoleLogger(includeTimestamp: false);
 
                 logger.LogWarning("warn1");
                 output.AssertLastMessageEndsWith("warn1");
@@ -162,10 +161,10 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void CLogger_ExpectedMessages_Error()
         {
-            using (OutputCaptureScope output = new OutputCaptureScope())
+            using (var output = new OutputCaptureScope())
             {
                 // 1. Logger without timestamps
-                ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
+                var logger = new ConsoleLogger(includeTimestamp: false);
 
                 logger.LogError("simple error1");
                 output.AssertExpectedLastError("simple error1");
@@ -194,11 +193,10 @@ namespace SonarQube.Common.UnitTests
         [Description("Checks that formatted strings and special formatting characters are handled correctly")]
         public void CLogger_FormattedStrings()
         {
-            using (OutputCaptureScope output = new OutputCaptureScope())
+            using (var output = new OutputCaptureScope())
             {
-
                 // 1. Logger without timestamps
-                ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
+                var logger = new ConsoleLogger(includeTimestamp: false);
 
                 logger.LogInfo("{ }");
                 output.AssertExpectedLastMessage("{ }");
@@ -238,10 +236,10 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void CLogger_Verbosity()
         {
-            ConsoleLogger logger = new ConsoleLogger(includeTimestamp: false);
+            var logger = new ConsoleLogger(includeTimestamp: false);
             Assert.AreEqual(logger.Verbosity, LoggerVerbosity.Debug, "Default verbosity should be Debug");
 
-            using (OutputCaptureScope output = new OutputCaptureScope())
+            using (var output = new OutputCaptureScope())
             {
                 logger.Verbosity = LoggerVerbosity.Info;
                 logger.LogInfo("info1");
@@ -268,9 +266,9 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void CLogger_SuspendAndResume()
         {
-            OutputRecorder recorder = new OutputRecorder();
+            var recorder = new OutputRecorder();
 
-            ConsoleLogger logger = ConsoleLogger.CreateLoggerForTesting(false, recorder);
+            var logger = ConsoleLogger.CreateLoggerForTesting(false, recorder);
 
             // 1. Suspend output - should be able to call this multiple times
             logger.SuspendOutput();
@@ -307,7 +305,7 @@ namespace SonarQube.Common.UnitTests
             logger.LogError("error 2");
             recorder.AssertExpectedLastOutput("error 2", ConsoleLogger.ErrorColor, true);
         }
-        
-        #endregion
+
+        #endregion Tests
     }
 }

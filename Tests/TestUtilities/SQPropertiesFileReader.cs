@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TestUtilities
 {
@@ -30,8 +30,6 @@ namespace TestUtilities
     /// </summary>
     public class SQPropertiesFileReader
     {
-
-
         /// <summary>
         /// Mapping of property names to values
         /// </summary>
@@ -52,20 +50,20 @@ namespace TestUtilities
             {
                 throw new ArgumentNullException("fullPath");
             }
-                        
+
             if (!File.Exists(fullPath))
             {
                 throw new FileNotFoundException();
             }
 
-            this.propertyFilePath = fullPath;
-            this.ExtractProperties(fullPath);
+            propertyFilePath = fullPath;
+            ExtractProperties(fullPath);
         }
 
         public void AssertSettingExists(string key, string expectedValue)
         {
-            string actualValue = this.properties.GetProperty(key);
-            bool found = actualValue != null;
+            var actualValue = properties.GetProperty(key);
+            var found = actualValue != null;
 
             Assert.IsTrue(found, "Expected setting was not found. Key: {0}", key);
             Assert.AreEqual(expectedValue, actualValue, "Property does not have the expected value. Key: {0}", key);
@@ -73,13 +71,13 @@ namespace TestUtilities
 
         public void AssertSettingDoesNotExist(string key)
         {
-            string actualValue = this.properties.GetProperty(key);
-            bool found = actualValue != null;
+            var actualValue = properties.GetProperty(key);
+            var found = actualValue != null;
 
             Assert.IsFalse(found, "Not expecting setting to be found. Key: {0}, value: {1}", key, actualValue);
         }
 
-        #endregion
+        #endregion Public methods
 
         #region FilePropertiesProvider
 
@@ -87,10 +85,10 @@ namespace TestUtilities
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(fullPath), "fullPath should be specified");
 
-            this.properties = new JavaProperties();
-            this.properties.Load(File.Open(fullPath, FileMode.Open));
+            properties = new JavaProperties();
+            properties.Load(File.Open(fullPath, FileMode.Open));
         }
 
-        #endregion
+        #endregion FilePropertiesProvider
     }
 }

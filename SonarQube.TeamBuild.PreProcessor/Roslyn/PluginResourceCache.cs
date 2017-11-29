@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,7 +29,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
     public class SubdirIndex
     {
         // global locking, to ensure synchronized access to index file by multiple processes
-        private static readonly EventWaitHandle waitHandle = new EventWaitHandle(true, EventResetMode.AutoReset, "90CD3CFF-A12C-4013-A44A-199B8C26818B");
+        private static readonly EventWaitHandle waitHandle = new EventWaitHandle(true, EventResetMode.AutoReset,
+            "90CD3CFF-A12C-4013-A44A-199B8C26818B");
 
         private readonly string basedir;
         private readonly string indexPath;
@@ -71,7 +72,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         private string FindAndCreateNextAvailablePath(int start)
         {
-            int count = start;
+            var count = start;
             while (Directory.Exists(Path.Combine(basedir, count.ToString())))
             {
                 count++;
@@ -100,7 +101,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                 throw new DirectoryNotFoundException("no such directory: " + basedir);
             }
 
-            this.index = new SubdirIndex(basedir);
+            index = new SubdirIndex(basedir);
         }
 
         /// <summary>

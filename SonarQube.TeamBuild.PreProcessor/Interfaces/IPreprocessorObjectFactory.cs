@@ -43,6 +43,5 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// Creates and returns the component that provisions the Roslyn analyzers
         /// </summary>
         IAnalyzerProvider CreateRoslynAnalyzerProvider(ILogger logger);
-
     }
 }

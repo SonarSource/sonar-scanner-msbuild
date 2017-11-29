@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Interfaces;
+
 using System;
 using System.IO;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.TeamBuild.Integration
 {
@@ -80,7 +80,7 @@ namespace SonarQube.TeamBuild.Integration
 
             TeamBuildSettings settings;
 
-            BuildEnvironment env = GetBuildEnvironment();
+            var env = GetBuildEnvironment();
             switch (env)
             {
                 case BuildEnvironment.LegacyTeamBuild:
@@ -134,12 +134,12 @@ namespace SonarQube.TeamBuild.Integration
         /// </summary>
         public static BuildEnvironment GetBuildEnvironment()
         {
-            BuildEnvironment env = BuildEnvironment.NotTeamBuild;
+            var env = BuildEnvironment.NotTeamBuild;
 
             if (IsInTeamBuild)
             {
                 // Work out which flavour of TeamBuild
-                string buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_Legacy);
+                var buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_Legacy);
                 if (string.IsNullOrEmpty(buildUri))
                 {
                     buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_TFS2015);
@@ -235,7 +235,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             get
             {
-                return Path.Combine(this.AnalysisBaseDirectory, "conf");
+                return Path.Combine(AnalysisBaseDirectory, "conf");
             }
         }
 
@@ -243,7 +243,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             get
             {
-                return Path.Combine(this.AnalysisBaseDirectory, "out");
+                return Path.Combine(AnalysisBaseDirectory, "out");
             }
         }
 
@@ -251,13 +251,13 @@ namespace SonarQube.TeamBuild.Integration
         {
             get
             {
-                return Path.Combine(this.AnalysisBaseDirectory, "bin");
+                return Path.Combine(AnalysisBaseDirectory, "bin");
             }
         }
 
         public string AnalysisConfigFilePath
         {
-            get { return Path.Combine(this.SonarConfigDirectory, FileConstants.ConfigFileName); }
+            get { return Path.Combine(SonarConfigDirectory, FileConstants.ConfigFileName); }
         }
 
         /// <summary>
@@ -280,7 +280,7 @@ namespace SonarQube.TeamBuild.Integration
                 throw new ArgumentNullException("analysisBaseDirectory");
             }
 
-            TeamBuildSettings settings = new TeamBuildSettings()
+            var settings = new TeamBuildSettings()
             {
                 BuildEnvironment = BuildEnvironment.NotTeamBuild,
                 AnalysisBaseDirectory = analysisBaseDirectory,
@@ -303,7 +303,7 @@ namespace SonarQube.TeamBuild.Integration
 
         private static bool TryGetBoolEnvironmentVariable(string envVar, bool defaultValue)
         {
-            string value = Environment.GetEnvironmentVariable(envVar);
+            var value = Environment.GetEnvironmentVariable(envVar);
 
             if (value != null && bool.TryParse(value, out bool result))
             {
@@ -314,7 +314,7 @@ namespace SonarQube.TeamBuild.Integration
 
         private static int TryGetIntEnvironmentVariable(string envVar, int defaultValue)
         {
-            string value = Environment.GetEnvironmentVariable(envVar);
+            var value = Environment.GetEnvironmentVariable(envVar);
 
             if (value != null &&
                 int.TryParse(value,

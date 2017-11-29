@@ -17,12 +17,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
 {
@@ -41,20 +37,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
 
         public ActiveRule()
         {
-
         }
 
         public ActiveRule(string repoKey, string ruleKey)
         {
-            this.RepoKey = repoKey;
-            this.RuleKey = ruleKey;
+            RepoKey = repoKey;
+            RuleKey = ruleKey;
         }
 
         public ActiveRule(string repoKey, string ruleKey, string internalKey)
         {
-            this.RepoKey = repoKey;
-            this.RuleKey = ruleKey;
-            this.InternalKey = internalKey;
+            RepoKey = repoKey;
+            RuleKey = ruleKey;
+            InternalKey = internalKey;
         }
     }
 }

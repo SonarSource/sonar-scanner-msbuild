@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +47,7 @@ namespace SonarQube.Common
         [XmlText]
         public string Value { get; set; }
 
-        #endregion
+        #endregion Data
 
         #region Public methods
 
@@ -56,7 +56,7 @@ namespace SonarQube.Common
         /// </summary>
         public bool ContainsSensitiveData()
         {
-            return ProcessRunnerArguments.ContainsSensitiveData(this.Id) || ProcessRunnerArguments.ContainsSensitiveData(this.Value);
+            return ProcessRunnerArguments.ContainsSensitiveData(Id) || ProcessRunnerArguments.ContainsSensitiveData(Value);
         }
 
         /// <summary>
@@ -64,10 +64,10 @@ namespace SonarQube.Common
         /// </summary>
         public string AsSonarScannerArg()
         {
-            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "-D{0}={1}", this.Id, this.Value);
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "-D{0}={1}", Id, Value);
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Static helper methods
 
@@ -76,7 +76,7 @@ namespace SonarQube.Common
         // * start at the beginning of a line
         // * start with a character or number
         // * are in the form [key]=[value],
-        // * where [key] can  
+        // * where [key] can
         //   - starts with an alpanumeric character.
         //   - can be followed by any number of alphanumeric characters or .
         //   - whitespace is not allowed
@@ -106,7 +106,7 @@ namespace SonarQube.Common
         /// </summary>
         public static bool IsValidKey(string key)
         {
-            bool isValid = ValidSettingKeyRegEx.IsMatch(key);
+            var isValid = ValidSettingKeyRegEx.IsMatch(key);
             return isValid;
         }
 
@@ -122,12 +122,12 @@ namespace SonarQube.Common
         {
             property = null;
 
-            Match match = SingleLinePropertyRegEx.Match(input);
+            var match = SingleLinePropertyRegEx.Match(input);
 
             if (match.Success)
             {
-                string key = match.Groups["key"].Value;
-                string value = match.Groups["value"].Value;
+                var key = match.Groups["key"].Value;
+                var value = match.Groups["value"].Value;
 
                 property = new Property() { Id = key, Value = value };
             }
@@ -148,10 +148,10 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("properties");
             }
 
-            property = properties.FirstOrDefault(s => Property.PropertyKeyComparer.Equals(s.Id, key));
+            property = properties.FirstOrDefault(s => PropertyKeyComparer.Equals(s.Id, key));
             return property != null;
         }
 
-        #endregion
+        #endregion Static helper methods
     }
 }

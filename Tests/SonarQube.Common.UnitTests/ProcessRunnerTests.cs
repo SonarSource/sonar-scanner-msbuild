@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.Common.UnitTests
@@ -38,14 +38,14 @@ namespace SonarQube.Common.UnitTests
         public void ProcRunner_ExecutionFailed()
         {
             // Arrange
-            string exeName = TestUtils.WriteBatchFileForTest(TestContext, "exit -2");
+            var exeName = TestUtils.WriteBatchFileForTest(TestContext, "exit -2");
 
-            TestLogger logger = new TestLogger();
-            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger);
-            ProcessRunner runner = new ProcessRunner();
+            var logger = new TestLogger();
+            var args = new ProcessRunnerArguments(exeName, true, logger);
+            var runner = new ProcessRunner();
 
             // Act
-            bool success = runner.Execute(args);
+            var success = runner.Execute(args);
 
             // Assert
             Assert.IsFalse(success, "Expecting the process to have failed");
@@ -56,18 +56,18 @@ namespace SonarQube.Common.UnitTests
         public void ProcRunner_ExecutionSucceeded()
         {
             // Arrange
-            string exeName = TestUtils.WriteBatchFileForTest(TestContext,
+            var exeName = TestUtils.WriteBatchFileForTest(TestContext,
 @"@echo Hello world
 xxx yyy
 @echo Testing 1,2,3...>&2
 ");
 
-            TestLogger logger = new TestLogger();
-            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger);
-            ProcessRunner runner = new ProcessRunner();
+            var logger = new TestLogger();
+            var args = new ProcessRunnerArguments(exeName, true, logger);
+            var runner = new ProcessRunner();
 
             // Act
-            bool success = runner.Execute(args);
+            var success = runner.Execute(args);
 
             // Assert
             Assert.IsTrue(success, "Expecting the process to have succeeded");
@@ -86,22 +86,22 @@ xxx yyy
             // "Input redirection is not supported, exiting the process immediately."
             // Alternatives such as
             // pinging a non-existent address with a timeout were not reliable.
-            string exeName = TestUtils.WriteBatchFileForTest(TestContext,
+            var exeName = TestUtils.WriteBatchFileForTest(TestContext,
 @"waitfor /t 2 somethingThatNeverHappen
 @echo Hello world
 ");
 
-            TestLogger logger = new TestLogger();
-            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger)
+            var logger = new TestLogger();
+            var args = new ProcessRunnerArguments(exeName, true, logger)
             {
                 TimeoutInMilliseconds = 100
             };
-            ProcessRunner runner = new ProcessRunner();
+            var runner = new ProcessRunner();
 
-            Stopwatch timer = Stopwatch.StartNew();
+            var timer = Stopwatch.StartNew();
 
             // Act
-            bool success = runner.Execute(args);
+            var success = runner.Execute(args);
 
             // Assert
             timer.Stop(); // Sanity check that the process actually timed out
@@ -120,10 +120,10 @@ xxx yyy
         public void ProcRunner_PassesEnvVariables()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            ProcessRunner runner = new ProcessRunner();
+            var logger = new TestLogger();
+            var runner = new ProcessRunner();
 
-            string exeName = TestUtils.WriteBatchFileForTest(TestContext,
+            var exeName = TestUtils.WriteBatchFileForTest(TestContext,
 @"echo %PROCESS_VAR%
 @echo %PROCESS_VAR2%
 @echo %PROCESS_VAR3%
@@ -133,13 +133,13 @@ xxx yyy
                 { "PROCESS_VAR2", "PROCESS_VAR2 value" },
                 { "PROCESS_VAR3", "PROCESS_VAR3 value" } };
 
-            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger)
+            var args = new ProcessRunnerArguments(exeName, true, logger)
             {
                 EnvironmentVariables = envVariables
             };
 
             // Act
-            bool success = runner.Execute(args);
+            var success = runner.Execute(args);
 
             // Assert
             Assert.IsTrue(success, "Expecting the process to have succeeded");
@@ -156,8 +156,8 @@ xxx yyy
             // Tests that existing environment variables will be overwritten successfully
 
             // Arrange
-            TestLogger logger = new TestLogger();
-            ProcessRunner runner = new ProcessRunner();
+            var logger = new TestLogger();
+            var runner = new ProcessRunner();
 
             try
             {
@@ -167,7 +167,7 @@ xxx yyy
                 Environment.SetEnvironmentVariable("proc.runner.test.process", "existing process value", EnvironmentVariableTarget.Process);
                 Environment.SetEnvironmentVariable("proc.runner.test.user", "existing user value", EnvironmentVariableTarget.User);
 
-                string exeName = TestUtils.WriteBatchFileForTest(TestContext,
+                var exeName = TestUtils.WriteBatchFileForTest(TestContext,
 @"@echo file: %proc.runner.test.machine%
 @echo file: %proc.runner.test.process%
 @echo file: %proc.runner.test.user%
@@ -178,13 +178,13 @@ xxx yyy
                     { "proc.runner.test.process", "process override" },
                     { "proc.runner.test.user", "user override" } };
 
-                ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, true, logger)
+                var args = new ProcessRunnerArguments(exeName, true, logger)
                 {
                     EnvironmentVariables = envVariables
                 };
 
                 // Act
-                bool success = runner.Execute(args);
+                var success = runner.Execute(args);
 
                 // Assert
                 Assert.IsTrue(success, "Expecting the process to have succeeded");
@@ -214,12 +214,12 @@ xxx yyy
             // Tests attempting to launch a non-existent exe
 
             // Arrange
-            TestLogger logger = new TestLogger();
-            ProcessRunnerArguments args = new ProcessRunnerArguments("missingExe.foo", false, logger);
-            ProcessRunner runner = new ProcessRunner();
+            var logger = new TestLogger();
+            var args = new ProcessRunnerArguments("missingExe.foo", false, logger);
+            var runner = new ProcessRunner();
 
             // Act
-            bool success = runner.Execute(args);
+            var success = runner.Execute(args);
 
             // Assert
             Assert.IsFalse(success, "Expecting the process to have failed");
@@ -233,12 +233,12 @@ xxx yyy
             // Checks arguments passed to the child process are correctly quoted
 
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
             // Create a dummy exe that will produce a log file showing any input args
-            string exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
+            var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
 
-            TestLogger logger = new TestLogger();
-            ProcessRunnerArguments args = new ProcessRunnerArguments(exeName, false, logger);
+            var logger = new TestLogger();
+            var args = new ProcessRunnerArguments(exeName, false, logger);
 
             var expected = new[] {
                 "unquoted",
@@ -258,17 +258,17 @@ xxx yyy
 
             args.CmdLineArgs = expected;
 
-            ProcessRunner runner = new ProcessRunner();
+            var runner = new ProcessRunner();
 
             // Act
-            bool success = runner.Execute(args);
+            var success = runner.Execute(args);
 
             // Assert
             Assert.IsTrue(success, "Expecting the process to have succeeded");
             Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
 
             // Check that the public and private arguments are passed to the child process
-            string exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, this.TestContext);
+            var exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, TestContext);
             DummyExeHelper.AssertExpectedLogContents(exeLogFile, expected);
         }
 
@@ -278,14 +278,14 @@ xxx yyy
             // Checks arguments passed to a batch script which itself passes them on are correctly escaped
 
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
             // Create a dummy exe that will produce a log file showing any input args
-            string exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
+            var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
 
-            string batchName = TestUtils.WriteBatchFileForTest(TestContext, "\"" + exeName + "\" %*");
+            var batchName = TestUtils.WriteBatchFileForTest(TestContext, "\"" + exeName + "\" %*");
 
-            TestLogger logger = new TestLogger();
-            ProcessRunnerArguments args = new ProcessRunnerArguments(batchName, true, logger);
+            var logger = new TestLogger();
+            var args = new ProcessRunnerArguments(batchName, true, logger);
 
             var expected = new[] {
                 "unquoted",
@@ -305,17 +305,17 @@ xxx yyy
 
             args.CmdLineArgs = expected;
 
-            ProcessRunner runner = new ProcessRunner();
+            var runner = new ProcessRunner();
 
             // Act
-            bool success = runner.Execute(args);
+            var success = runner.Execute(args);
 
             // Assert
             Assert.IsTrue(success, "Expecting the process to have succeeded");
             Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
 
             // Check that the public and private arguments are passed to the child process
-            string exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, this.TestContext);
+            var exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, TestContext);
             DummyExeHelper.AssertExpectedLogContents(exeLogFile, expected);
         }
 
@@ -324,21 +324,21 @@ xxx yyy
         public void ProcRunner_DoNotLogSensitiveData()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
             // Create a dummy exe that will produce a log file showing any input args
-            string exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
+            var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
 
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             // Public args - should appear in the log
-            string[] publicArgs = new string[]
+            var publicArgs = new string[]
             {
                 "public1",
                 "public2",
                 "/d:sonar.projectKey=my.key"
             };
 
-            string[] sensitiveArgs = new string[] {
+            var sensitiveArgs = new string[] {
                 // Public args - should appear in the log
                 "public1", "public2", "/dmy.key=value",
 
@@ -357,23 +357,23 @@ xxx yyy
                 "sonar.password=secret data password typo"
             };
 
-            string[] allArgs = sensitiveArgs.Union(publicArgs).ToArray();
+            var allArgs = sensitiveArgs.Union(publicArgs).ToArray();
 
-            ProcessRunnerArguments runnerArgs = new ProcessRunnerArguments(exeName, false, logger)
+            var runnerArgs = new ProcessRunnerArguments(exeName, false, logger)
             {
                 CmdLineArgs = allArgs
             };
-            ProcessRunner runner = new ProcessRunner();
+            var runner = new ProcessRunner();
 
             // Act
-            bool success = runner.Execute(runnerArgs);
+            var success = runner.Execute(runnerArgs);
 
             // Assert
             Assert.IsTrue(success, "Expecting the process to have succeeded");
             Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
 
             // Check public arguments are logged but private ones are not
-            foreach(string arg in publicArgs)
+            foreach(var arg in publicArgs)
             {
                 logger.AssertSingleDebugMessageExists(arg);
             }
@@ -382,12 +382,11 @@ xxx yyy
             AssertTextDoesNotAppearInLog("secret", logger);
 
             // Check that the public and private arguments are passed to the child process
-            string exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, this.TestContext);
+            var exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, TestContext);
             DummyExeHelper.AssertExpectedLogContents(exeLogFile, allArgs);
         }
 
-        #endregion
-
+        #endregion Tests
 
         #region Private methods
 
@@ -416,6 +415,6 @@ xxx yyy
             Assert.IsFalse(logEntries.Any(e => e.IndexOf(text, StringComparison.OrdinalIgnoreCase) > -1), "Specified text should not appear anywhere in the log file: {0}", text);
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

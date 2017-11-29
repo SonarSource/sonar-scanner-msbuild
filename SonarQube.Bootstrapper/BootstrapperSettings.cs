@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
+using SonarQube.Common;
 
 namespace SonarQube.Bootstrapper
 {
@@ -52,19 +52,16 @@ namespace SonarQube.Bootstrapper
 
         private readonly ILogger logger;
 
-        private readonly AnalysisPhase analysisPhase;
-        private readonly IEnumerable<string> childCmdLineArgs;
-        private readonly LoggerVerbosity verbosity;
-
         private string tempDir;
 
         #region Constructor(s)
 
-        public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, LoggerVerbosity verbosity, ILogger logger)
+        public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, LoggerVerbosity verbosity,
+            ILogger logger)
         {
-            this.analysisPhase = phase;
-            this.childCmdLineArgs = childCmdLineArgs;
-            this.verbosity = verbosity;
+            Phase = phase;
+            ChildCmdLineArgs = childCmdLineArgs;
+            LoggingVerbosity = verbosity;
             this.logger = logger ?? throw new ArgumentNullException("logger");
         }
 
@@ -76,42 +73,30 @@ namespace SonarQube.Bootstrapper
         {
             get
             {
-                if (this.tempDir == null)
+                if (tempDir == null)
                 {
-                    this.tempDir = CalculateTempDir(this.logger);
+                    tempDir = CalculateTempDir();
                 }
-                return this.tempDir;
+                return tempDir;
             }
         }
 
-        public AnalysisPhase Phase
-        {
-            get { return this.analysisPhase; }
-        }
+        public AnalysisPhase Phase { get; }
 
-        public IEnumerable<string> ChildCmdLineArgs
-        {
-            get { return this.childCmdLineArgs; }
-        }
+        public IEnumerable<string> ChildCmdLineArgs { get; }
 
-        public LoggerVerbosity LoggingVerbosity
-        {
-            get { return this.verbosity; }
-        }
+        public LoggerVerbosity LoggingVerbosity { get; }
 
-        public string ScannerBinaryDirPath
-        {
-            get { return Path.GetDirectoryName(typeof(BootstrapperSettings).Assembly.Location); }
-        }
+        public string ScannerBinaryDirPath => Path.GetDirectoryName(typeof(BootstrapperSettings).Assembly.Location);
 
         #endregion IBootstrapperSettings
 
         #region Private methods
 
-        private static string CalculateTempDir(ILogger logger)
+        private string CalculateTempDir()
         {
             logger.LogDebug(Resources.MSG_UsingEnvVarToGetDirectory);
-            string rootDir = GetFirstEnvironmentVariable(DirectoryEnvVarNames, logger);
+            var rootDir = GetFirstEnvironmentVariable(DirectoryEnvVarNames);
 
             if (string.IsNullOrWhiteSpace(rootDir))
             {
@@ -125,12 +110,12 @@ namespace SonarQube.Bootstrapper
         /// Returns the value of the first environment variable from the supplied
         /// list that return a non-empty value
         /// </summary>
-        private static string GetFirstEnvironmentVariable(string[] varNames, ILogger logger)
+        private string GetFirstEnvironmentVariable(string[] varNames)
         {
             string result = null;
-            foreach (string varName in varNames)
+            foreach (var varName in varNames)
             {
-                string value = Environment.GetEnvironmentVariable(varName);
+                var value = Environment.GetEnvironmentVariable(varName);
                 if (!string.IsNullOrWhiteSpace(value))
                 {
                     logger.LogDebug(Resources.MSG_UsingBuildEnvironmentVariable, varName, value);

@@ -17,14 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using SonarQube.Common;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text.RegularExpressions;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -68,26 +67,26 @@ namespace SonarQube.MSBuild.Tasks
 
         public override bool Execute()
         {
-            bool taskSuccess = true;
+            var taskSuccess = true;
 
-            AnalysisConfig config = TaskUtilities.TryGetConfig(this.AnalysisConfigDir, new MSBuildLoggerAdapter(this.Log));
+            var config = TaskUtilities.TryGetConfig(AnalysisConfigDir, new MSBuildLoggerAdapter(Log));
 
             if (config != null)
             {
-                string regEx = TryGetRegularExpression(config);
+                var regEx = TryGetRegularExpression(config);
 
                 try
                 {
-                    this.IsTest = !string.IsNullOrEmpty(regEx) && Regex.IsMatch(this.FullFilePath, regEx, RegexOptions.IgnoreCase);
+                    IsTest = !string.IsNullOrEmpty(regEx) && Regex.IsMatch(FullFilePath, regEx, RegexOptions.IgnoreCase);
                 }
                 catch (ArgumentException ex) // thrown for invalid regular expressions
                 {
                     taskSuccess = false;
-                    this.Log.LogError(Resources.IsTest_InvalidRegularExpression, regEx, ex.Message, TestRegExSettingId);
+                    Log.LogError(Resources.IsTest_InvalidRegularExpression, regEx, ex.Message, TestRegExSettingId);
                 }
             }
 
-            return !this.Log.HasLoggedErrors && taskSuccess;
+            return !Log.HasLoggedErrors && taskSuccess;
         }
 
         #endregion Overrides
@@ -102,13 +101,12 @@ namespace SonarQube.MSBuild.Tasks
 
             if (!string.IsNullOrWhiteSpace(regEx))
             {
-                this.Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);
+                Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);
             }
 
             return regEx;
         }
-        
-        #endregion Private methods
 
+        #endregion Private methods
     }
 }

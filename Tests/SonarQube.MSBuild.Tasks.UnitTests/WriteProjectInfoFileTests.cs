@@ -17,17 +17,17 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarQube.Common.Interfaces;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
+using SonarQube.Common.Interfaces;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.UnitTests
@@ -46,11 +46,11 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_FileCreated()
         {
             // Arrange
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            Guid projectGuid = Guid.NewGuid();
+            var projectGuid = Guid.NewGuid();
 
-            WriteProjectInfoFile task = new WriteProjectInfoFile
+            var task = new WriteProjectInfoFile
             {
                 FullProjectPath = "c:\\fullPath\\project.proj",
                 ProjectLanguage = "cs",
@@ -64,7 +64,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // No analysis results are supplied
 
             // Act
-            ProjectInfo reloadedProjectInfo = ExecuteAndCheckSucceeds(task, testFolder);
+            var reloadedProjectInfo = ExecuteAndCheckSucceeds(task, testFolder);
 
             // Addition assertions
             ProjectInfoAssertions.AssertExpectedValues(
@@ -82,11 +82,11 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_AnalysisResults()
         {
             // Arrange
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            Guid projectGuid = Guid.NewGuid();
+            var projectGuid = Guid.NewGuid();
 
-            WriteProjectInfoFile task = new WriteProjectInfoFile
+            var task = new WriteProjectInfoFile
             {
                 BuildEngine = new DummyBuildEngine(),
                 FullProjectPath = "x:\\a.csproj",
@@ -97,9 +97,8 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 ProjectLanguage = "C#"
             };
 
-            List<ITaskItem> resultInputs = new List<ITaskItem>
+            var resultInputs = new List<ITaskItem>
             {
-
                 // Add invalid task items
                 // Note: the TaskItem class won't allow the item spec or metadata values to be null,
                 // so we aren't testing those
@@ -132,13 +131,13 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_AnalysisSettings()
         {
             // Arrange
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            Guid projectGuid = Guid.NewGuid();
+            var projectGuid = Guid.NewGuid();
 
-            WriteProjectInfoFile task = new WriteProjectInfoFile();
+            var task = new WriteProjectInfoFile();
 
-            DummyBuildEngine buildEngine = new DummyBuildEngine();
+            var buildEngine = new DummyBuildEngine();
             task.BuildEngine = buildEngine;
             task.FullProjectPath = "x:\\analysisSettings.csproj";
             task.IsTest = false;
@@ -152,9 +151,8 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             //    <Value>C:\zzz\reportlocation.xxx</Value>
             // </SonarQubeSetting>
 
-            List<ITaskItem> settingsInputs = new List<ITaskItem>
+            var settingsInputs = new List<ITaskItem>
             {
-
                 // Add invalid task items
                 // Note: the TaskItem class won't allow the item spec or metadata values to be null,
                 // so we aren't testing those
@@ -206,9 +204,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_MissingProjectGuid()
         {
             // Arrange
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            WriteProjectInfoFile task = new WriteProjectInfoFile
+            var task = new WriteProjectInfoFile
             {
                 FullProjectPath = "c:\\fullPath\\project.proj",
                 IsTest = true,
@@ -219,19 +217,19 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // No analysis results are supplied
 
             // Act
-            DummyBuildEngine engine = new DummyBuildEngine();
+            var engine = new DummyBuildEngine();
             task.BuildEngine = engine;
-            bool success = task.Execute();
+            var success = task.Execute();
 
             // Assert
             Assert.IsTrue(success, "Not expecting the task to fail as this would fail the build");
             engine.AssertNoErrors();
             Assert.AreEqual(1, engine.Warnings.Count, "Expecting a build warning as the ProjectGuid is missing");
 
-            BuildWarningEventArgs firstWarning = engine.Warnings[0];
+            var firstWarning = engine.Warnings[0];
             Assert.IsNotNull(firstWarning.Message, "Warning message should not be null");
 
-            string projectInfoFilePath = Path.Combine(testFolder, ExpectedProjectInfoFileName);
+            var projectInfoFilePath = Path.Combine(testFolder, ExpectedProjectInfoFileName);
             Assert.IsFalse(File.Exists(projectInfoFilePath), "Not expecting the project info file to have been created");
         }
 
@@ -240,11 +238,11 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_UseSolutionProjectGuid()
         {
             // Arrange
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            Guid projectGuid = Guid.NewGuid();
+            var projectGuid = Guid.NewGuid();
 
-            WriteProjectInfoFile task = new WriteProjectInfoFile
+            var task = new WriteProjectInfoFile
             {
                 FullProjectPath = "c:\\fullPath\\project.proj",
                 SolutionConfigurationContents = @"<SolutionConfiguration>
@@ -258,7 +256,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             };
 
             // Act
-            ProjectInfo reloadedProjectInfo = ExecuteAndCheckSucceeds(task, testFolder);
+            var reloadedProjectInfo = ExecuteAndCheckSucceeds(task, testFolder);
 
             // Addition assertions
             ProjectInfoAssertions.AssertExpectedValues(
@@ -276,7 +274,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_UnrecognisedLanguages()
         {
             // Arrange
-            WriteProjectInfoFile task = new WriteProjectInfoFile
+            var task = new WriteProjectInfoFile
             {
                 FullProjectPath = "c:\\fullPath\\project.proj",
                 IsTest = true,
@@ -285,15 +283,15 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
                 // 1. Null language
                 ProjectLanguage = null,
-                OutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "null.language")
+                OutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "null.language")
             };
 
-            ProjectInfo actual = ExecuteAndCheckSucceeds(task, task.OutputFolder);
+            var actual = ExecuteAndCheckSucceeds(task, task.OutputFolder);
             Assert.IsNull(actual.ProjectLanguage, "Expecting the language to be null");
 
             // 2. Unrecognized language
             task.ProjectLanguage = "unrecognized language";
-            task.OutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, "unrecog.language");
+            task.OutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "unrecog.language");
 
             actual = ExecuteAndCheckSucceeds(task, task.OutputFolder);
             Assert.AreEqual("unrecognized language", actual.ProjectLanguage, "Unexpected value for project language");
@@ -402,13 +400,11 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             // Assert
             Assert.AreEqual(null, actual.Encoding, "unexpected encoding");
         }
-        
-
 
         private ProjectInfo WriteProjectInfoFile_ExecuteAndReturn(IEncodingProvider encodingProvider, decimal? codePage, string projectLanguage, string folderName)
         {
             // Arrange
-            WriteProjectInfoFile task = new WriteProjectInfoFile(encodingProvider)
+            var task = new WriteProjectInfoFile(encodingProvider)
             {
                 FullProjectPath = "c:\\fullPath\\project.proj",
                 IsTest = true,
@@ -416,20 +412,20 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 ProjectGuid = Guid.NewGuid().ToString("B"),
                 ProjectLanguage = projectLanguage,
                 CodePage = codePage.ToString(),
-                OutputFolder = TestUtils.CreateTestSpecificFolder(this.TestContext, folderName)
+                OutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, folderName)
             };
 
             // Act
             return ExecuteAndCheckSucceeds(task, task.OutputFolder);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Helper methods
 
         private static ITaskItem CreateAnalysisResultTaskItem(string id, string location, params string[] idAndValuePairs)
         {
-            ITaskItem item = CreateMetadataItem(location, idAndValuePairs);
+            var item = CreateMetadataItem(location, idAndValuePairs);
             item.SetMetadata(BuildTaskConstants.ResultMetadataIdProperty, id);
             return item;
         }
@@ -447,29 +443,29 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             Math.DivRem(idAndValuePairs.Length, 2, out int remainder);
             Assert.AreEqual(0, remainder, "Test setup error: the supplied list should contain id-location pairs");
 
-            for (int index = 0; index < idAndValuePairs.Length; index += 2)
+            for (var index = 0; index < idAndValuePairs.Length; index += 2)
             {
                 item.SetMetadata(idAndValuePairs[index], idAndValuePairs[index + 1]);
             }
             return item;
         }
 
-        #endregion
+        #endregion Helper methods
 
         #region Checks
 
         private ProjectInfo ExecuteAndCheckSucceeds(Task task, string testFolder)
         {
-            string expectedOutputFile = Path.Combine(testFolder, ExpectedProjectInfoFileName);
+            var expectedOutputFile = Path.Combine(testFolder, ExpectedProjectInfoFileName);
             Assert.IsFalse(File.Exists(expectedOutputFile), "Test error: output file should not exist before the task is executed");
 
-            bool result = task.Execute();
+            var result = task.Execute();
 
             Assert.IsTrue(result, "Expecting the task execution to succeed");
             Assert.IsTrue(File.Exists(expectedOutputFile), "Expected output file was not created by the task. Expected: {0}", expectedOutputFile);
-            this.TestContext.AddResultFile(expectedOutputFile);
+            TestContext.AddResultFile(expectedOutputFile);
 
-            ProjectInfo reloadedProjectInfo = ProjectInfo.Load(expectedOutputFile);
+            var reloadedProjectInfo = ProjectInfo.Load(expectedOutputFile);
             Assert.IsNotNull(reloadedProjectInfo, "Not expecting the reloaded project info file to be null");
             return reloadedProjectInfo;
         }
@@ -479,7 +475,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             Assert.IsNotNull(actual, "Supplied project info should not be null");
             Assert.IsNotNull(actual.AnalysisResults, "AnalysisResults should not be null");
 
-            AnalysisResult result = actual.AnalysisResults.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
+            var result = actual.AnalysisResults.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
             Assert.IsNotNull(result, "AnalysisResult with the expected id does not exist. Id: {0}", expectedId);
 
             Assert.AreEqual(expectedLocation, result.Location, "Analysis result does not have the expected location");
@@ -498,7 +494,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             Assert.IsNotNull(actual, "Supplied project info should not be null");
             Assert.IsNotNull(actual.AnalysisSettings, "AnalysisSettings should not be null");
 
-            Property setting = actual.AnalysisSettings.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
+            var setting = actual.AnalysisSettings.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
             Assert.IsNotNull(setting, "AnalysisSetting with the expected id does not exist. Id: {0}", expectedId);
 
             Assert.AreEqual(expectedValue, setting.Value, "Setting does not have the expected value");
@@ -512,6 +508,6 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             Assert.AreEqual(count, actual.AnalysisSettings.Count, "Unexpected number of AnalysisSettings items");
         }
 
-        #endregion
+        #endregion Checks
     }
 }

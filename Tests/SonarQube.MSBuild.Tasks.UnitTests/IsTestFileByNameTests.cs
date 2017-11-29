@@ -17,11 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using System.Diagnostics;
-using System.IO;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.UnitTests
@@ -38,7 +37,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void IsTestFile_NoRegex()
         {
             // Arrange
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
             // 1. Check file names
             CheckFilePathIsNotTest(testFolder, "test"); // file name alone, no extension
@@ -82,7 +81,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         [Description(@"Validate the default regex that determines if a project is test or not if the filename contains the 'test' token (not the file path!)")]
         public void IsTestFile_DefaultRegex()
         {
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
             EnsureAnalysisConfig(testFolder, @"[^\\]*test[^\\]*$");
 
             // filename contains 'test'
@@ -112,19 +111,19 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void IsTestFile_InvalidRegexInConfig()
         {
             // Arrange
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string invalidRegEx = "Invalid regex ((";
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var invalidRegEx = "Invalid regex ((";
             EnsureAnalysisConfig(testFolder, invalidRegEx);
 
-            DummyBuildEngine dummyEngine = new DummyBuildEngine();
-            IsTestFileByName task = new IsTestFileByName
+            var dummyEngine = new DummyBuildEngine();
+            var task = new IsTestFileByName
             {
                 BuildEngine = dummyEngine,
                 FullFilePath = "Path",
                 AnalysisConfigDir = testFolder
             };
 
-            bool result = task.Execute();
+            var result = task.Execute();
 
             Assert.IsFalse(result, "Expecting the task to fail");
             dummyEngine.AssertSingleErrorExists(invalidRegEx); // expecting the invalid expression to appear in the error
@@ -135,19 +134,19 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void IsTestFile_TimeoutIfConfigLocked_TaskFails()
         {
             // Arrange
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            string configFile = EnsureAnalysisConfig(testFolder, ".XX.");
+            var configFile = EnsureAnalysisConfig(testFolder, ".XX.");
 
-            DummyBuildEngine dummyEngine = new DummyBuildEngine();
-            IsTestFileByName task = new IsTestFileByName
+            var dummyEngine = new DummyBuildEngine();
+            var task = new IsTestFileByName
             {
                 BuildEngine = dummyEngine,
                 FullFilePath = "XXX.proj",
                 AnalysisConfigDir = testFolder
             };
 
-            bool result = true;
+            var result = true;
             TaskUtilitiesTests.PerformOpOnLockedFile(configFile, () => result = task.Execute(), shouldTimeoutReadingConfig: true);
 
             Assert.IsFalse(result, "Expecting the task to fail if the config file could not be read");
@@ -160,7 +159,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void IsTestFile_RegExFromConfig()
         {
             // 0. Setup
-            string testFolder = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
             // 1a. Check the config setting is used if valid
             EnsureAnalysisConfig(testFolder, ".A.");
@@ -200,7 +199,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         /// </summary>
         private static string EnsureAnalysisConfig(string parentDir, string regExExpression)
         {
-            AnalysisConfig config = new AnalysisConfig();
+            var config = new AnalysisConfig();
             if (regExExpression != null)
             {
                 config.LocalSettings = new AnalysisProperties
@@ -209,7 +208,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 };
             }
 
-            string fullPath = Path.Combine(parentDir, FileConstants.ConfigFileName);
+            var fullPath = Path.Combine(parentDir, FileConstants.ConfigFileName);
             if (File.Exists(fullPath))
             {
                 File.Delete(fullPath);
@@ -224,27 +223,27 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
         private static void CheckFilePathIsTest(string analysisDir, string fullFileName)
         {
-            bool isTest = ExecuteAndCheckSuccess(analysisDir, fullFileName);
+            var isTest = ExecuteAndCheckSuccess(analysisDir, fullFileName);
             Assert.IsTrue(isTest, "Expecting the file name to be recognised as a test file. Name: {0}", fullFileName);
         }
 
         private static void CheckFilePathIsNotTest(string analysisDir, string fullFileName)
         {
-            bool isTest = ExecuteAndCheckSuccess(analysisDir, fullFileName);
+            var isTest = ExecuteAndCheckSuccess(analysisDir, fullFileName);
             Assert.IsFalse(isTest, "Not expecting the file name to be recognised as a test file. Name: {0}", fullFileName);
         }
 
         private static bool ExecuteAndCheckSuccess(string analysisDir, string fullFileName)
         {
-            DummyBuildEngine dummyEngine = new DummyBuildEngine();
-            IsTestFileByName task = new IsTestFileByName
+            var dummyEngine = new DummyBuildEngine();
+            var task = new IsTestFileByName
             {
                 BuildEngine = dummyEngine,
                 FullFilePath = fullFileName,
                 AnalysisConfigDir = analysisDir
             };
 
-            bool taskSucess = task.Execute();
+            var taskSucess = task.Execute();
             Assert.IsTrue(taskSucess, "Expecting the task to succeed");
             dummyEngine.AssertNoErrors();
             dummyEngine.AssertNoWarnings();

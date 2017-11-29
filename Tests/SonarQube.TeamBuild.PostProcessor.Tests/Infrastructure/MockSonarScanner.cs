@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarScanner.Shim;
-using System.Collections.Generic;
 
 namespace SonarQube.TeamBuild.PostProcessor.Tests
 {
@@ -37,37 +37,37 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         public IEnumerable<string> SuppliedCommandLineArgs { get; set; }
 
-        #endregion
+        #endregion Test Helpers
 
         #region ISonarScanner interface
 
         public ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger)
         {
-            Assert.IsFalse(this.methodCalled, "Scanner should only be called once");
-            this.methodCalled = true;
-            this.SuppliedCommandLineArgs = userCmdLineArguments;
+            Assert.IsFalse(methodCalled, "Scanner should only be called once");
+            methodCalled = true;
+            SuppliedCommandLineArgs = userCmdLineArguments;
             if (ErrorToLog != null)
             {
-                logger.LogError(this.ErrorToLog);
+                logger.LogError(ErrorToLog);
             }
 
-            return this.ValueToReturn;
+            return ValueToReturn;
         }
 
-        #endregion
+        #endregion ISonarScanner interface
 
         #region Checks
 
         public void AssertExecuted()
         {
-            Assert.IsTrue(this.methodCalled, "Expecting the sonar-scanner to have been called");
+            Assert.IsTrue(methodCalled, "Expecting the sonar-scanner to have been called");
         }
 
         public void AssertNotExecuted()
         {
-            Assert.IsFalse(this.methodCalled, "Not expecting the sonar-scanner to have been called");
+            Assert.IsFalse(methodCalled, "Not expecting the sonar-scanner to have been called");
         }
 
-        #endregion
+        #endregion Checks
     }
 }

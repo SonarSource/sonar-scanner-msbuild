@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System;
 using System.Diagnostics;
 using System.IO;
+using SonarQube.Common;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -56,7 +56,7 @@ namespace SonarQube.MSBuild.Tasks
                 return null;
             }
 
-            string fullAnalysisPath = Path.Combine(configDir, FileConstants.ConfigFileName);
+            var fullAnalysisPath = Path.Combine(configDir, FileConstants.ConfigFileName);
             logger.LogDebug(Resources.Shared_ReadingConfigFile, fullAnalysisPath);
             if (!File.Exists(fullAnalysisPath))
             {
@@ -64,7 +64,7 @@ namespace SonarQube.MSBuild.Tasks
                 return null;
             }
 
-            bool succeeded = Utilities.Retry(MaxConfigRetryPeriodInMilliseconds, DelayBetweenRetriesInMilliseconds, logger,
+            var succeeded = Utilities.Retry(MaxConfigRetryPeriodInMilliseconds, DelayBetweenRetriesInMilliseconds, logger,
                 () => DoLoadConfig(fullAnalysisPath, logger, out config));
             if (succeeded)
             {
@@ -77,7 +77,7 @@ namespace SonarQube.MSBuild.Tasks
             return config;
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Private methods
 
@@ -103,6 +103,6 @@ namespace SonarQube.MSBuild.Tasks
             return true;
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

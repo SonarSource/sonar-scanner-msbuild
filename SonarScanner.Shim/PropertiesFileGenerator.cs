@@ -62,19 +62,18 @@ namespace SonarScanner.Shim
         /// Note: the path to the generated file will be null if the file could not be generated.</returns>
         public ProjectInfoAnalysisResult GenerateFile()
         {
-            string projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
+            var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
             logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
 
             var result = new ProjectInfoAnalysisResult();
 
             var writer = new PropertiesWriter(analysisConfig);
 
-            IEnumerable<ProjectData> projects;
-            var success = TryWriteProperties(writer, out projects);
+            var success = TryWriteProperties(writer, out IEnumerable<ProjectData> projects);
 
             if (success)
             {
-                string contents = writer.Flush();
+                var contents = writer.Flush();
 
                 File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
 
@@ -223,7 +222,7 @@ namespace SonarScanner.Shim
         /// </summary>
         public string ComputeRootProjectBaseDir(IEnumerable<string> projectPaths)
         {
-            string projectBaseDir = analysisConfig.GetConfigValue(SonarProperties.ProjectBaseDir, null);
+            var projectBaseDir = analysisConfig.GetConfigValue(SonarProperties.ProjectBaseDir, null);
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
                 return projectBaseDir;
@@ -250,12 +249,11 @@ namespace SonarScanner.Shim
         /// </summary>
         private void TryFixSarifReport(ProjectInfo project, string language, string reportFilePropertyKey)
         {
-            Property reportPathProperty;
-            bool tryResult = project.TryGetAnalysisSetting(reportFilePropertyKey, out reportPathProperty);
+            var tryResult = project.TryGetAnalysisSetting(reportFilePropertyKey, out Property reportPathProperty);
             if (tryResult)
             {
-                string reportPath = reportPathProperty.Value;
-                string fixedPath = fixer.LoadAndFixFile(reportPath, language, logger);
+                var reportPath = reportPathProperty.Value;
+                var fixedPath = fixer.LoadAndFixFile(reportPath, language, logger);
 
                 if (!reportPath.Equals(fixedPath)) // only need to alter the property if there was no change
                 {
@@ -328,7 +326,7 @@ namespace SonarScanner.Shim
         {
             var projectDirectory = projectInfo.GetProjectDirectory();
 
-            foreach (string file in projectInfo.GetAllAnalysisFiles())
+            foreach (var file in projectInfo.GetAllAnalysisFiles())
             {
                 if (File.Exists(file))
                 {

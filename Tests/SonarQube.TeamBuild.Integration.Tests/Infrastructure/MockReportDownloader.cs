@@ -17,13 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using System;
+
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
 {
@@ -37,7 +36,7 @@ namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
 
         public bool CreateFileOnDownloadRequest { get; set; }
 
-        #endregion
+        #endregion Test helpers
 
         #region Assertions
 
@@ -48,37 +47,37 @@ namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
 
         public void AssertDownloadNotCalled()
         {
-            Assert.AreEqual(0, this.callCount, "Not expecting DownloadReport to have been called");
+            Assert.AreEqual(0, callCount, "Not expecting DownloadReport to have been called");
         }
-        
+
         public void AssertExpectedUrlsRequested(params string[] urls)
         {
-            CollectionAssert.AreEqual(urls, this.requestedUrls.ToArray(), "Unexpected urls requested");
+            CollectionAssert.AreEqual(urls, requestedUrls.ToArray(), "Unexpected urls requested");
         }
 
         public void AssertExpectedTargetFileNamesSupplied(params string[] urls)
         {
-            CollectionAssert.AreEqual(urls, this.targetFileNames.ToArray(), "Unexpected target files names supplied");
+            CollectionAssert.AreEqual(urls, targetFileNames.ToArray(), "Unexpected target files names supplied");
         }
 
-        #endregion
+        #endregion Assertions
 
         #region ICoverageReportDownloader interface
 
         bool ICoverageReportDownloader.DownloadReport(string tfsUri, string reportUrl, string newFullFileName, ILogger logger)
         {
-            this.callCount++;
-            this.requestedUrls.Add(reportUrl);
-            this.targetFileNames.Add(newFullFileName);
+            callCount++;
+            requestedUrls.Add(reportUrl);
+            targetFileNames.Add(newFullFileName);
 
-            if (this.CreateFileOnDownloadRequest)
+            if (CreateFileOnDownloadRequest)
             {
                 File.WriteAllText(newFullFileName, string.Empty);
             }
 
-            return this.CreateFileOnDownloadRequest;
+            return CreateFileOnDownloadRequest;
         }
 
-        #endregion
+        #endregion ICoverageReportDownloader interface
     }
 }

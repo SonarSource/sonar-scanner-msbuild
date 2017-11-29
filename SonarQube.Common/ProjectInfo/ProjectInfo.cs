@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
@@ -75,13 +75,12 @@ namespace SonarQube.Common
         /// </summary>
         public List<AnalysisResult> AnalysisResults { get; set; }
 
-
         /// <summary>
         /// List of additional analysis settings
         /// </summary>
         public AnalysisProperties AnalysisSettings { get; set; }
 
-        #endregion
+        #endregion Public properties
 
         #region Serialization
 
@@ -98,7 +97,6 @@ namespace SonarQube.Common
             Serializer.SaveModel(this, fileName);
         }
 
-
         /// <summary>
         /// Loads and returns project info from the specified XML file
         /// </summary>
@@ -109,11 +107,10 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("fileName");
             }
 
-            ProjectInfo model = Serializer.LoadModel<ProjectInfo>(fileName);
+            var model = Serializer.LoadModel<ProjectInfo>(fileName);
             return model;
         }
 
-        #endregion
-
+        #endregion Serialization
     }
 }

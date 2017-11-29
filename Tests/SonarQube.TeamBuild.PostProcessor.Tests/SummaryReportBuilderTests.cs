@@ -18,14 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.PostProcessor;
 using SonarScanner.Shim;
-using SonarQube.Common;
 using TestUtilities;
-using SonarQube.TeamBuild.Integration;
-using System.IO;
 
 namespace SonarQube.TeamBuild.PostProcessorTests
 {
@@ -38,9 +37,9 @@ namespace SonarQube.TeamBuild.PostProcessorTests
         public void SummaryReport_NoProjects()
         {
             // Arrange
-            string hostUrl = "http://mySonarQube:9000";
-            ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult { RanToCompletion = false };
-            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
+            var hostUrl = "http://mySonarQube:9000";
+            var result = new ProjectInfoAnalysisResult { RanToCompletion = false };
+            var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
 
             // Act
             var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result);
@@ -60,9 +59,9 @@ namespace SonarQube.TeamBuild.PostProcessorTests
         public void SummaryReport_WithBranch()
         {
             // Arrange
-            string hostUrl = "http://mySonarQube:9000";
-            ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult { RanToCompletion = false };
-            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
+            var hostUrl = "http://mySonarQube:9000";
+            var result = new ProjectInfoAnalysisResult { RanToCompletion = false };
+            var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
             config.LocalSettings = new AnalysisProperties
             {
                 new Property() { Id = SonarProperties.ProjectBranch, Value = "master" }
@@ -87,9 +86,9 @@ namespace SonarQube.TeamBuild.PostProcessorTests
         public void SummaryReport_AllTypesOfProjects()
         {
             // Arrange
-            string hostUrl = "http://mySonarQube:9000";
-            ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult() { RanToCompletion = true };
-            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "", SonarQubeHostUrl = hostUrl };
+            var hostUrl = "http://mySonarQube:9000";
+            var result = new ProjectInfoAnalysisResult() { RanToCompletion = true };
+            var config = new AnalysisConfig() { SonarProjectKey = "", SonarQubeHostUrl = hostUrl };
 
             AddProjectInfoToResult(result, ProjectInfoValidity.ExcludeFlagSet, type: ProjectType.Product, count: 4);
             AddProjectInfoToResult(result, ProjectInfoValidity.ExcludeFlagSet, type: ProjectType.Test, count: 1);
@@ -117,16 +116,16 @@ namespace SonarQube.TeamBuild.PostProcessorTests
         public void SummaryReport_ReportIsGenerated()
         {
             // Arrange
-            string hostUrl = "http://mySonarQube:9000";
-            ProjectInfoAnalysisResult result = new ProjectInfoAnalysisResult();
-            AnalysisConfig config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
+            var hostUrl = "http://mySonarQube:9000";
+            var result = new ProjectInfoAnalysisResult();
+            var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
 
-            TeamBuildSettings settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(this.TestContext.DeploymentDirectory);
+            var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestContext.DeploymentDirectory);
             config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
-            string expectedReportPath = Path.Combine(TestContext.TestDeploymentDir, SummaryReportBuilder.SummaryMdFilename);
+            var expectedReportPath = Path.Combine(TestContext.TestDeploymentDir, SummaryReportBuilder.SummaryMdFilename);
 
             // Act
-            SummaryReportBuilder builder = new SummaryReportBuilder();
+            var builder = new SummaryReportBuilder();
             builder.GenerateReports(settings, config, result, new TestLogger());
 
             // Assert
@@ -143,16 +142,16 @@ namespace SonarQube.TeamBuild.PostProcessorTests
 
             config.GetAnalysisSettings(false).TryGetValue("sonar.branch", out string branch);
 
-            if (String.IsNullOrEmpty(branch))
+            if (string.IsNullOrEmpty(branch))
             {
-                expectedUrl = String.Format(
+                expectedUrl = string.Format(
                     SummaryReportBuilder.DashboardUrlFormat,
                     expectedHostUrl,
                     config.SonarProjectKey);
             }
             else
             {
-                expectedUrl = String.Format(
+                expectedUrl = string.Format(
                     SummaryReportBuilder.DashboardUrlFormatWithBranch,
                     expectedHostUrl,
                     config.SonarProjectKey,
@@ -161,7 +160,6 @@ namespace SonarQube.TeamBuild.PostProcessorTests
 
             Assert.AreEqual(expectedUrl, summaryReportData.DashboardUrl, "Invalid dashboard url");
             Assert.AreEqual(analysisResult.RanToCompletion, summaryReportData.Succeeded, "Invalid outcome");
-
         }
 
         private static void VerifySummaryProjectCounts(
@@ -181,11 +179,10 @@ namespace SonarQube.TeamBuild.PostProcessorTests
 
         private static void AddProjectInfoToResult(ProjectInfoAnalysisResult result, ProjectInfoValidity validity, ProjectType type = ProjectType.Product, uint count = 1)
         {
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 result.Projects.Add(new ProjectData(new ProjectInfo { ProjectType = type }) { Status = validity });
             }
         }
-
     }
 }

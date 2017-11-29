@@ -17,12 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.Build.Framework;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Build.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarQube.MSBuild.Tasks.UnitTests
 {
@@ -36,20 +37,21 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 
         public DummyBuildEngine()
         {
-            this.warnings = new List<BuildWarningEventArgs>();
-            this.errors = new List<BuildErrorEventArgs>();
-            this.messages = new List<BuildMessageEventArgs>();
+            warnings = new List<BuildWarningEventArgs>();
+            errors = new List<BuildErrorEventArgs>();
+            messages = new List<BuildMessageEventArgs>();
         }
 
-        public IReadOnlyList<BuildErrorEventArgs> Errors { get { return this.errors.AsReadOnly(); } }
+        public IReadOnlyList<BuildErrorEventArgs> Errors { get { return errors.AsReadOnly(); } }
 
-        public IReadOnlyList<BuildWarningEventArgs> Warnings { get { return this.warnings.AsReadOnly(); } }
+        public IReadOnlyList<BuildWarningEventArgs> Warnings { get { return warnings.AsReadOnly(); } }
 
-        #endregion
+        #endregion Public methods
 
         #region IBuildEngine interface
 
-        bool IBuildEngine.BuildProjectFile(string projectFileName, string[] targetNames, System.Collections.IDictionary globalProperties, System.Collections.IDictionary targetOutputs)
+        bool IBuildEngine.BuildProjectFile(string projectFileName, string[] targetNames, IDictionary globalProperties,
+            IDictionary targetOutputs)
         {
             throw new NotImplementedException();
         }
@@ -77,19 +79,19 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         void IBuildEngine.LogErrorEvent(BuildErrorEventArgs e)
         {
             Console.WriteLine("BuildEngine: ERROR: {0}", e.Message);
-            this.errors.Add(e);
+            errors.Add(e);
         }
 
         void IBuildEngine.LogMessageEvent(BuildMessageEventArgs e)
         {
             Console.WriteLine("BuildEngine: MESSAGE: {0}", e.Message);
-            this.messages.Add(e);
+            messages.Add(e);
         }
 
         void IBuildEngine.LogWarningEvent(BuildWarningEventArgs e)
         {
             Console.WriteLine("BuildEngine: WARNING: {0}", e.Message);
-            this.warnings.Add(e);
+            warnings.Add(e);
         }
 
         string IBuildEngine.ProjectFileOfTaskNode
@@ -97,18 +99,18 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             get { return null; }
         }
 
-        #endregion
+        #endregion IBuildEngine interface
 
         #region Assertions
 
         public void AssertNoErrors()
         {
-            Assert.AreEqual(0, this.errors.Count, "Not expecting any errors to have been logged");
+            Assert.AreEqual(0, errors.Count, "Not expecting any errors to have been logged");
         }
 
         public void AssertNoWarnings()
         {
-            Assert.AreEqual(0, this.warnings.Count, "Not expecting any warnings to have been logged");
+            Assert.AreEqual(0, warnings.Count, "Not expecting any warnings to have been logged");
         }
 
         /// <summary>
@@ -116,7 +118,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         /// </summary>
         public void AssertSingleErrorExists(params string[] expected)
         {
-            IEnumerable<BuildErrorEventArgs> matches = this.errors.Where(w => expected.All(e => w.Message.Contains(e)));
+            var matches = errors.Where(w => expected.All(e => w.Message.Contains(e)));
             Assert.AreNotEqual(0, matches.Count(), "No error contains the expected strings: {0}", string.Join(",", expected));
             Assert.AreEqual(1, matches.Count(), "More than one error contains the expected strings: {0}", string.Join(",", expected));
         }
@@ -126,7 +128,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         /// </summary>
         public void AssertSingleMessageExists(params string[] expected)
         {
-            IEnumerable<BuildMessageEventArgs> matches = this.messages.Where(m => expected.All(e => m.Message.Contains(e)));
+            var matches = messages.Where(m => expected.All(e => m.Message.Contains(e)));
             Assert.AreNotEqual(0, matches.Count(), "No message contains the expected strings: {0}", string.Join(",", expected));
             Assert.AreEqual(1, matches.Count(), "More than one message contains the expected strings: {0}", string.Join(",", expected));
         }
@@ -136,11 +138,11 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         /// </summary>
         public void AssertSingleWarningExists(params string[] expected)
         {
-            IEnumerable<BuildWarningEventArgs> matches = this.warnings.Where(w => expected.All(e => w.Message.Contains(e)));
+            var matches = warnings.Where(w => expected.All(e => w.Message.Contains(e)));
             Assert.AreNotEqual(0, matches.Count(), "No warning contains the expected strings: {0}", string.Join(",", expected));
             Assert.AreEqual(1, matches.Count(), "More than one warning contains the expected strings: {0}", string.Join(",", expected));
         }
 
-        #endregion
+        #endregion Assertions
     }
 }

@@ -17,9 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TestUtilities
 {
@@ -34,7 +34,7 @@ namespace TestUtilities
         {
             Assert.IsNotNull("Test error: supplied operation cannot be null");
 
-            Type expectedType = typeof(TException);
+            var expectedType = typeof(TException);
             Exception caught = null;
             try
             {
@@ -51,6 +51,6 @@ namespace TestUtilities
             return (TException)caught;
         }
 
-        #endregion
+        #endregion Public methods
     }
 }

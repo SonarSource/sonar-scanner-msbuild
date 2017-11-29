@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarQube.MSBuild.Tasks.UnitTests
@@ -38,14 +38,14 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void MergeRulesets_PrimaryRulesetDoesNotExist()
         {
             // Arrange
-            string projectDir = this.TestContext.TestDeploymentDir;
-            string targetRulesetFilePath = Path.Combine(projectDir, "merged.ruleset.txt");
+            var projectDir = TestContext.TestDeploymentDir;
+            var targetRulesetFilePath = Path.Combine(projectDir, "merged.ruleset.txt");
 
-            DummyBuildEngine dummyEngine = new DummyBuildEngine();
-            MergeRuleSets task = CreateTask(dummyEngine,projectDir, "missing.ruleset", targetRulesetFilePath);
+            var dummyEngine = new DummyBuildEngine();
+            var task = CreateTask(dummyEngine,projectDir, "missing.ruleset", targetRulesetFilePath);
 
             // Act and Assert
-            FileNotFoundException ex = AssertException.Expects<FileNotFoundException>(() => task.Execute());
+            var ex = AssertException.Expects<FileNotFoundException>(() => task.Execute());
             Assert.AreEqual("missing.ruleset", ex.FileName);
         }
 
@@ -53,16 +53,16 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void MergeRulesets_MergedRulesetAlreadyExists()
         {
             // Arrange
-            string projectDir = this.TestContext.TestDeploymentDir;
-            string primaryRuleset = this.CreateValidRuleset("valid.ruleset.txt");
-            string targetRulesetFilePath = Path.Combine(projectDir, "merged.ruleset.txt");
+            var projectDir = TestContext.TestDeploymentDir;
+            var primaryRuleset = CreateValidRuleset("valid.ruleset.txt");
+            var targetRulesetFilePath = Path.Combine(projectDir, "merged.ruleset.txt");
             File.WriteAllText(targetRulesetFilePath, "dummy existing ruleset");
 
-            DummyBuildEngine dummyEngine = new DummyBuildEngine();
-            MergeRuleSets task = CreateTask(dummyEngine, projectDir, primaryRuleset, targetRulesetFilePath);
+            var dummyEngine = new DummyBuildEngine();
+            var task = CreateTask(dummyEngine, projectDir, primaryRuleset, targetRulesetFilePath);
 
             // Act and Assert
-            InvalidOperationException ex = AssertException.Expects<InvalidOperationException>(() => task.Execute());
+            var ex = AssertException.Expects<InvalidOperationException>(() => task.Execute());
             Assert.IsTrue(ex.Message.Contains(targetRulesetFilePath));
         }
 
@@ -70,23 +70,23 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void MergeRulesets_IncludeRulesets_AbsolutePaths()
         {
             // Arrange
-            string projectDir = this.TestContext.TestDeploymentDir;
+            var projectDir = TestContext.TestDeploymentDir;
             string mergedRuleset;
 
-            // 1. No included rulesets 
-            string primaryRuleset = this.CreateValidRuleset("no-added-includes.ruleset.txt");
+            // 1. No included rulesets
+            var primaryRuleset = CreateValidRuleset("no-added-includes.ruleset.txt");
             mergedRuleset = ExecuteAndCheckSuccess(projectDir, primaryRuleset);
             RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset /* no included files*/);
 
             // 2. Adding includes
-            primaryRuleset = this.CreateValidRuleset("added-includes1.ruleset.txt");
+            primaryRuleset = CreateValidRuleset("added-includes1.ruleset.txt");
             mergedRuleset = ExecuteAndCheckSuccess(projectDir, primaryRuleset, "c:\\include1.ruleset");
             RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset, "c:\\include1.ruleset");
 
             // 3. Adding an include that already exists
-            primaryRuleset = this.CreateValidRuleset("added-includes.existing.ruleset.txt");
-            string rulesetWithExistingInclude = ExecuteAndCheckSuccess(projectDir, primaryRuleset, "c:\\include1.ruleset", "c:\\include2.ruleset"); // create a file with includes
-            
+            primaryRuleset = CreateValidRuleset("added-includes.existing.ruleset.txt");
+            var rulesetWithExistingInclude = ExecuteAndCheckSuccess(projectDir, primaryRuleset, "c:\\include1.ruleset", "c:\\include2.ruleset"); // create a file with includes
+
             mergedRuleset = ExecuteAndCheckSuccess(projectDir, rulesetWithExistingInclude, "c:\\include1.ruleset", "c:\\INCLUDE2.RULESET", "c:\\include3.ruleset"); // add the same includes again with one extra
             RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset, "c:\\include1.ruleset", "c:\\include2.ruleset", "c:\\include3.ruleset");
         }
@@ -95,17 +95,17 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void MergeRulesets_IncludeRulesets_RelativePaths()
         {
             // Arrange
-            string absoluteRulesetPath = this.CreateValidRuleset("relative.ruleset");
-            string projectDir = Path.GetDirectoryName(absoluteRulesetPath);
+            var absoluteRulesetPath = CreateValidRuleset("relative.ruleset");
+            var projectDir = Path.GetDirectoryName(absoluteRulesetPath);
             string mergedRuleset;
 
             // 1. Relative ruleset path that can be resolved -> included
-            string primaryRuleset = this.CreateValidRuleset("found.relative.ruleset.txt");
+            var primaryRuleset = CreateValidRuleset("found.relative.ruleset.txt");
             mergedRuleset = ExecuteAndCheckSuccess(projectDir, primaryRuleset, "relative.ruleset");
             RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset, absoluteRulesetPath);
 
             // 1. Relative ruleset path that can be resolved -> included
-            primaryRuleset = this.CreateValidRuleset("found.relative2.ruleset.txt");
+            primaryRuleset = CreateValidRuleset("found.relative2.ruleset.txt");
             mergedRuleset = ExecuteAndCheckSuccess(projectDir, primaryRuleset,
                 ".\\relative.ruleset", // should be resolved correctly...
                 ".\\.\\relative.ruleset"); // ... but only added once.
@@ -113,7 +113,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset, absoluteRulesetPath);
 
             // 2. Relative ruleset path that cannot be resolved -> not included
-            primaryRuleset = this.CreateValidRuleset("not.found.relative.ruleset.txt");
+            primaryRuleset = CreateValidRuleset("not.found.relative.ruleset.txt");
             mergedRuleset = ExecuteAndCheckSuccess(projectDir, primaryRuleset, "not.found\\relative.ruleset");
             RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset /* ruleset should not have been resolved */);
         }
@@ -122,24 +122,23 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         public void MergeRulesets_EmptyRuleset()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string primaryRuleset = TestUtils.CreateTextFile(testDir, "empty.ruleset.txt",
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var primaryRuleset = TestUtils.CreateTextFile(testDir, "empty.ruleset.txt",
 @"<RuleSet Name = 'RulesetName' ToolsVersion = '14.0' />");
 
             // Act
-            string mergedRuleset = ExecuteAndCheckSuccess(testDir, primaryRuleset, "c:\\foo\\added.ruleset");
+            var mergedRuleset = ExecuteAndCheckSuccess(testDir, primaryRuleset, "c:\\foo\\added.ruleset");
 
             // Assert
             RuleSetAssertions.AssertExpectedIncludeFilesAndDefaultAction(mergedRuleset, "c:\\foo\\added.ruleset");
         }
 
-
         [TestMethod]
         public void MergeRulesets_ExistingInclude()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            string primaryRuleset = TestUtils.CreateTextFile(testDir, "existing.ruleset.txt",
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var primaryRuleset = TestUtils.CreateTextFile(testDir, "existing.ruleset.txt",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""RulesetName"" ToolsVersion=""14.0"">
   <Include Path=""d:\error.include.ruleset"" Action=""Error"" />
@@ -152,7 +151,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
 </RuleSet>
 ");
             // Act
-            string mergedRuleset = ExecuteAndCheckSuccess(testDir, primaryRuleset,
+            var mergedRuleset = ExecuteAndCheckSuccess(testDir, primaryRuleset,
                 "d:\\error.include.ruleset",
                 "d:\\info.include.ruleset",
                 "d:\\warning.include.ruleset",
@@ -164,41 +163,40 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 "d:\\error.include.ruleset",
                 "d:\\info.include.ruleset",
                 "d:\\warning.include.ruleset",
-                "d:\\default.include.ruleset"); 
+                "d:\\default.include.ruleset");
         }
 
-        #endregion
+        #endregion Tests
 
         #region Checks
 
         private string ExecuteAndCheckSuccess(string projectDirectory, string primaryRuleset, params string[] rulesetsToInclude)
         {
-            string mergedRulesetFileName = primaryRuleset + ".merged.txt";
+            var mergedRulesetFileName = primaryRuleset + ".merged.txt";
 
-            DummyBuildEngine dummyEngine = new DummyBuildEngine();
-            MergeRuleSets task = CreateTask(dummyEngine, projectDirectory, primaryRuleset, mergedRulesetFileName, rulesetsToInclude);
+            var dummyEngine = new DummyBuildEngine();
+            var task = CreateTask(dummyEngine, projectDirectory, primaryRuleset, mergedRulesetFileName, rulesetsToInclude);
 
-            bool taskSucess = task.Execute();
+            var taskSucess = task.Execute();
             Assert.IsTrue(taskSucess, "Expecting the task to succeed");
             dummyEngine.AssertNoErrors();
             dummyEngine.AssertNoWarnings();
 
             Assert.IsTrue(File.Exists(mergedRulesetFileName), "Expecting the merged ruleset to have been created: {0}", mergedRulesetFileName);
-            this.TestContext.AddResultFile(primaryRuleset);
-            this.TestContext.AddResultFile(mergedRulesetFileName);
+            TestContext.AddResultFile(primaryRuleset);
+            TestContext.AddResultFile(mergedRulesetFileName);
 
             return mergedRulesetFileName;
         }
-       
-        #endregion
 
+        #endregion Checks
 
         #region Private methods
 
         private string CreateValidRuleset(string fileName)
         {
-            string testDir = TestUtils.EnsureTestSpecificFolder(this.TestContext);
-            string rulesetPath = TestUtils.CreateTextFile(testDir, fileName,
+            var testDir = TestUtils.EnsureTestSpecificFolder(TestContext);
+            var rulesetPath = TestUtils.CreateTextFile(testDir, fileName,
 @"<?xml version='1.0' encoding='utf-8'?>
 <RuleSet Name='RulesetName' ToolsVersion='14.0'>
   <Rules AnalyzerId='My.Analyzer' RuleNamespace='My.Analyzers'>
@@ -207,7 +205,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
   </Rules>
 </RuleSet>
 ");
-            return rulesetPath;     
+            return rulesetPath;
         }
 
         private static MergeRuleSets CreateTask(DummyBuildEngine buildEngine,
@@ -216,7 +214,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             string targetRulesetFilePath,
             params string[] rulesetsToInclude)
         {
-            MergeRuleSets task = new MergeRuleSets
+            var task = new MergeRuleSets
             {
                 BuildEngine = buildEngine,
                 ProjectDirectoryPath = projectDir,
@@ -228,6 +226,6 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             return task;
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

@@ -17,13 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.TeamBuild.PreProcessor.Roslyn;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.TeamBuild.PreProcessor.Roslyn;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.Tests
@@ -41,19 +41,19 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void EmbeddedInstall_SinglePlugin_SingleResource_Succeeds()
         {
             // Arrange
-            string localCacheDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            TestLogger logger = new TestLogger();
+            var localCacheDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var logger = new TestLogger();
 
-            Plugin requestedPlugin = new Plugin("plugin1", "1.0", "embeddedFile1.zip");
-            MockSonarQubeServer mockServer = new MockSonarQubeServer();
+            var requestedPlugin = new Plugin("plugin1", "1.0", "embeddedFile1.zip");
+            var mockServer = new MockSonarQubeServer();
             AddPlugin(mockServer, requestedPlugin, "file1.dll", "file2.txt");
 
-            IList<string> expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 0, requestedPlugin, "file1.dll", "file2.txt");
+            var expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 0, requestedPlugin, "file1.dll", "file2.txt");
 
-            EmbeddedAnalyzerInstaller testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+            var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
 
             // Act
-            IEnumerable<string> actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
+            var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
 
             // Assert
             Assert.IsNotNull(actualFiles, "Returned list should not be null");
@@ -66,28 +66,28 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void EmbeddedInstall_MultiplePlugins_Succeeds()
         {
             // Arrange
-            string localCacheDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            TestLogger logger = new TestLogger();
+            var localCacheDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var logger = new TestLogger();
 
-            Plugin request1 = new Plugin("no.matching.resource.plugin", "2.0", "non.existent.resource.zip");
-            Plugin request2 = new Plugin("plugin1", "1.0", "p1.resource1.zip");
-            Plugin request3 = new Plugin("plugin1", "1.0", "p1.resource2.zip"); // second resource for plugin 1
-            Plugin request4 = new Plugin("plugin2", "2.0", "p2.resource1.zip");
+            var request1 = new Plugin("no.matching.resource.plugin", "2.0", "non.existent.resource.zip");
+            var request2 = new Plugin("plugin1", "1.0", "p1.resource1.zip");
+            var request3 = new Plugin("plugin1", "1.0", "p1.resource2.zip"); // second resource for plugin 1
+            var request4 = new Plugin("plugin2", "2.0", "p2.resource1.zip");
 
-            MockSonarQubeServer mockServer = new MockSonarQubeServer();
+            var mockServer = new MockSonarQubeServer();
             AddPlugin(mockServer, request2, "p1.resource1.file1.dll", "p1.resource1.file2.dll");
             AddPlugin(mockServer, request3, "p1.resource2.file1.dll");
             AddPlugin(mockServer, request4, "p2.resource1.dll");
 
-            List<string> expectedPaths = new List<string>();
+            var expectedPaths = new List<string>();
             expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 1, request2, "p1.resource1.file1.dll", "p1.resource1.file2.dll"));
             expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 2, request3, "p1.resource2.file1.dll"));
             expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 3, request4, "p2.resource1.dll"));
 
-            EmbeddedAnalyzerInstaller testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+            var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
 
             // Act
-            IEnumerable<string> actualFiles = testSubject.InstallAssemblies(new Plugin[] { request1, request2, request3, request4});
+            var actualFiles = testSubject.InstallAssemblies(new Plugin[] { request1, request2, request3, request4});
 
             // Assert
             Assert.IsNotNull(actualFiles, "Returned list should not be null");
@@ -101,17 +101,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void EmbeddedInstall_MissingResource_SucceedsWithWarningAndNoFiles()
         {
             // Arrange
-            string localCacheDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var localCacheDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            TestLogger logger = new TestLogger();
-            MockSonarQubeServer mockServer = CreateServerWithDummyPlugin("plugin1");
+            var logger = new TestLogger();
+            var mockServer = CreateServerWithDummyPlugin("plugin1");
 
-            Plugin requestedPlugin = new Plugin() { Key = "missingPlugin", Version = "1.0", StaticResourceName = "could.be.anything" };
+            var requestedPlugin = new Plugin() { Key = "missingPlugin", Version = "1.0", StaticResourceName = "could.be.anything" };
 
-            EmbeddedAnalyzerInstaller testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+            var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
 
             // Act
-            IEnumerable<string> actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
+            var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
 
             // Assert
             Assert.IsNotNull(actualFiles, "Returned list should not be null");
@@ -125,15 +125,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void EmbeddedInstall_NoPluginsSpecified_SucceedsButNoFiles()
         {
             // Arrange
-            string localCacheDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var localCacheDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            TestLogger logger = new TestLogger();
-            MockSonarQubeServer mockServer = CreateServerWithDummyPlugin("plugin1");
+            var logger = new TestLogger();
+            var mockServer = CreateServerWithDummyPlugin("plugin1");
 
-            EmbeddedAnalyzerInstaller testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+            var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
 
             // Act
-            IEnumerable<string> actualFiles = testSubject.InstallAssemblies(new Plugin[] { });
+            var actualFiles = testSubject.InstallAssemblies(new Plugin[] { });
 
             // Assert
             Assert.IsNotNull(actualFiles, "Returned list should not be null");
@@ -141,7 +141,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedFilesInCache(0, localCacheDir);
         }
 
-        #endregion
+        #endregion Fetching from server tests
 
         #region Caching tests
 
@@ -149,34 +149,32 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void EmbeddedInstall_CachingScenarios()
         {
             // Arrange
-            string localCacheDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
-            TestLogger logger = new TestLogger();
+            var localCacheDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var logger = new TestLogger();
 
-            Plugin requestA = new Plugin("p111", "1.0-SNAPSHOT", "p1.zip");
-            Plugin requestB = new Plugin("p222", "9.1.3.0", "p2.zip");
+            var requestA = new Plugin("p111", "1.0-SNAPSHOT", "p1.zip");
+            var requestB = new Plugin("p222", "9.1.3.0", "p2.zip");
 
-            MockSonarQubeServer mockServer = new MockSonarQubeServer();
+            var mockServer = new MockSonarQubeServer();
             AddPlugin(mockServer, requestA, "aaa", "bbb");
             AddPlugin(mockServer, requestB, "ccc");
 
-            IList<string> expectedPlugin111Paths = CalculateExpectedCachedFilePaths(localCacheDir, 0, requestA, "aaa", "bbb");
-            IList<string> expectedPlugin222Paths = CalculateExpectedCachedFilePaths(localCacheDir, 1, requestB, "ccc");
-            List<string> allExpectedPaths = new List<string>(expectedPlugin111Paths);
+            var expectedPlugin111Paths = CalculateExpectedCachedFilePaths(localCacheDir, 0, requestA, "aaa", "bbb");
+            var expectedPlugin222Paths = CalculateExpectedCachedFilePaths(localCacheDir, 1, requestB, "ccc");
+            var allExpectedPaths = new List<string>(expectedPlugin111Paths);
             allExpectedPaths.AddRange(expectedPlugin222Paths);
 
-            EmbeddedAnalyzerInstaller testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+            var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
 
             AssertExpectedFilesInCache(0, localCacheDir); // cache should be empty to start with
 
-
             // 1. Empty cache -> cache miss -> server called
-            IEnumerable<string> actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA });
+            var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA });
             mockServer.AssertMethodCalled(DownloadEmbeddedFileMethodName, 1); // should have tried to download
 
             AssertExpectedFilesReturned(expectedPlugin111Paths, actualFiles);
             AssertExpectedFilesExist(expectedPlugin111Paths);
             AssertExpectedFilesInCache(4, localCacheDir); // only files for the first request should exist
-
 
             // 2. New request + request request -> partial cache miss -> server called only for the new request
             actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
@@ -185,7 +183,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
             AssertExpectedFilesExist(allExpectedPaths);
             AssertExpectedFilesInCache(6, localCacheDir); // files for both plugins should exist
-
 
             // 3. Repeat the request -> cache hit -> server not called
             actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
@@ -205,7 +202,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedFilesInCache(6, localCacheDir); // files for both plugins should exist
         }
 
-        #endregion
+        #endregion Caching tests
 
         #region Private methods
 
@@ -214,12 +211,12 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         /// </summary>
         private MockSonarQubeServer CreateServerWithDummyPlugin(string languageKey)
         {
-            MockSonarQubeServer mockServer = new MockSonarQubeServer();
+            var mockServer = new MockSonarQubeServer();
             mockServer.Data.Languages.Add(languageKey);
             mockServer.Data.AddEmbeddedZipFile(languageKey, "embeddedFile1.zip", "file1.dll", "file2.txt");
             return mockServer;
         }
-        
+
         private void AddPlugin(MockSonarQubeServer mockServer, Plugin plugin, params string[] files)
         {
             mockServer.Data.AddEmbeddedZipFile(plugin.Key, plugin.StaticResourceName, files);
@@ -227,13 +224,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private static IList<string> CalculateExpectedCachedFilePaths(string baseDir, int count, Plugin plugin, params string[] fileNames)
         {
-            List<string> files = new List<string>();
+            var files = new List<string>();
 
-            string pluginDir = Path.Combine(baseDir, count.ToString());
+            var pluginDir = Path.Combine(baseDir, count.ToString());
 
-            foreach (string fileName in fileNames)
+            foreach (var fileName in fileNames)
             {
-                string fullFilePath = Path.Combine(pluginDir, fileName);
+                var fullFilePath = Path.Combine(pluginDir, fileName);
                 files.Add(fullFilePath);
             }
             return files;
@@ -244,7 +241,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             DumpFileList("Expected files", expectedFileNames);
             DumpFileList("Actual files", actualFilePaths);
 
-            foreach (string expected in expectedFileNames)
+            foreach (var expected in expectedFileNames)
             {
                 Assert.IsTrue(actualFilePaths.Contains(expected, StringComparer.OrdinalIgnoreCase), "Expected file does not exist: {0}", expected);
             }
@@ -254,32 +251,30 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
         private void DumpFileList(string title, IEnumerable<string> files)
         {
-            this.TestContext.WriteLine("");
-            this.TestContext.WriteLine(title);
-            this.TestContext.WriteLine("---------------");
-            foreach (string file in files)
+            TestContext.WriteLine("");
+            TestContext.WriteLine(title);
+            TestContext.WriteLine("---------------");
+            foreach (var file in files)
             {
-                this.TestContext.WriteLine("\t{0}", file);
+                TestContext.WriteLine("\t{0}", file);
             }
-            this.TestContext.WriteLine("");
+            TestContext.WriteLine("");
         }
 
         private void AssertExpectedFilesExist(IEnumerable<string> expectedFileNames)
         {
-            foreach (string expected in expectedFileNames)
+            foreach (var expected in expectedFileNames)
             {
                 Assert.IsTrue(File.Exists(expected), "Expected file does not exist: {0}", expected);
             }
-
         }
 
         private static void AssertExpectedFilesInCache(int expected, string localCacheDir)
         {
-            string[] allActualFiles = Directory.GetFiles(localCacheDir, "*.*", SearchOption.AllDirectories);
+            var allActualFiles = Directory.GetFiles(localCacheDir, "*.*", SearchOption.AllDirectories);
             Assert.AreEqual(expected, allActualFiles.Count(), "Too many files found in the cache directory");
         }
 
-        #endregion
-
+        #endregion Private methods
     }
 }

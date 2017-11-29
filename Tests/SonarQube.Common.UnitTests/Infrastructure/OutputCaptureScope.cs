@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using System;
 using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarQube.Common.UnitTests
 {
@@ -38,34 +38,34 @@ namespace SonarQube.Common.UnitTests
 
         public OutputCaptureScope()
         {
-            this.outputWriter = new StringWriter();
-            Console.SetOut(this.outputWriter);
+            outputWriter = new StringWriter();
+            Console.SetOut(outputWriter);
 
-            this.errorWriter = new StringWriter();
-            Console.SetError(this.errorWriter);
+            errorWriter = new StringWriter();
+            Console.SetError(errorWriter);
         }
 
         public string GetLastErrorMessage()
         {
-            return GetLastMessage(this.errorWriter);
+            return GetLastMessage(errorWriter);
         }
 
         public string GetLastOutputMessage()
         {
-            return GetLastMessage(this.outputWriter);
+            return GetLastMessage(outputWriter);
         }
 
         #region Assertions
 
         public void AssertExpectedLastMessage(string expected)
         {
-            string lastMessage = GetLastMessage(this.outputWriter);
+            var lastMessage = GetLastMessage(outputWriter);
             Assert.AreEqual(expected, lastMessage, "Expected message was not logged");
         }
 
         public void AssertLastMessageEndsWith(string expected)
         {
-            string lastMessage = GetLastMessage(this.outputWriter);
+            var lastMessage = GetLastMessage(outputWriter);
 
             Assert.IsTrue(lastMessage.EndsWith(expected, StringComparison.CurrentCulture), "Message does not end with the expected string: '{0}'", lastMessage);
             Assert.IsTrue(lastMessage.Length > expected.Length, "Expecting the message to be prefixed with timestamp text");
@@ -73,19 +73,19 @@ namespace SonarQube.Common.UnitTests
 
         public void AssertExpectedLastError(string expected)
         {
-            string last = GetLastMessage(this.errorWriter);
+            var last = GetLastMessage(errorWriter);
             Assert.AreEqual(expected, last, "Expected error was not logged");
         }
 
         public void AssertLastErrorEndsWith(string expected)
         {
-            string last = GetLastMessage(this.errorWriter);
+            var last = GetLastMessage(errorWriter);
 
             Assert.IsTrue(last.EndsWith(expected, StringComparison.CurrentCulture), "Error does not end with the expected string: '{0}'", last);
             Assert.IsTrue(last.Length > expected.Length, "Expecting the error to be prefixed with timestamp text");
         }
 
-        #endregion
+        #endregion Assertions
 
         #region IDisposable implementation
 
@@ -93,7 +93,7 @@ namespace SonarQube.Common.UnitTests
 
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
@@ -101,37 +101,37 @@ namespace SonarQube.Common.UnitTests
         {
             if (disposing && !disposed)
             {
-                this.disposed = true;
+                disposed = true;
 
-                StreamWriter standardError = new StreamWriter(Console.OpenStandardError())
+                var standardError = new StreamWriter(Console.OpenStandardError())
                 {
                     AutoFlush = true
                 };
                 Console.SetError(standardError);
 
-                StreamWriter standardOut = new StreamWriter(Console.OpenStandardOutput())
+                var standardOut = new StreamWriter(Console.OpenStandardOutput())
                 {
                     AutoFlush = true
                 };
                 Console.SetOut(standardOut);
 
-                this.outputWriter.Dispose();
-                this.outputWriter = null;
+                outputWriter.Dispose();
+                outputWriter = null;
 
-                this.errorWriter.Dispose();
-                this.errorWriter = null;
+                errorWriter.Dispose();
+                errorWriter = null;
             }
         }
 
-        #endregion
+        #endregion IDisposable implementation
 
         #region Private methods
 
         private static string GetLastMessage(StringWriter writer)
         {
             writer.Flush();
-            string allText = writer.GetStringBuilder().ToString();
-            string[] lines = allText.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            var allText = writer.GetStringBuilder().ToString();
+            var lines = allText.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
 
             Assert.IsTrue(lines.Length > 1, "No output written");
 
@@ -142,7 +142,6 @@ namespace SonarQube.Common.UnitTests
             return lines[lines.Length - 2];
         }
 
-        #endregion
-
+        #endregion Private methods
     }
 }

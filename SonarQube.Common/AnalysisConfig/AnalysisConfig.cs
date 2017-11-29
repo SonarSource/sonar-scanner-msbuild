@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
@@ -47,9 +47,9 @@ namespace SonarQube.Common
         public string SonarScannerWorkingDirectory { get; set; }
 
         /// <summary>
-        /// Parent directory of the source files. 
+        /// Parent directory of the source files.
         /// </summary>
-        /// <remarks>SCM plugins like Git or TFVC expect to find .git or $tf subdirectories directly under the sources directory 
+        /// <remarks>SCM plugins like Git or TFVC expect to find .git or $tf subdirectories directly under the sources directory
         /// in order to and provide annotations. </remarks>
         public string SourcesDirectory { get; set; }
 
@@ -86,7 +86,7 @@ namespace SonarQube.Common
         /// </summary>
         public List<AnalyzerSettings> AnalyzersSettings { get; set; }
 
-        #endregion
+        #endregion SonarQube project properties
 
         #region Serialization
 
@@ -104,7 +104,7 @@ namespace SonarQube.Common
             }
 
             Serializer.SaveModel(this, fileName);
-            this.FileName = fileName;
+            FileName = fileName;
         }
 
         /// <summary>
@@ -117,12 +117,11 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("fileName");
             }
 
-            AnalysisConfig model = Serializer.LoadModel<AnalysisConfig>(fileName);
+            var model = Serializer.LoadModel<AnalysisConfig>(fileName);
             model.FileName = fileName;
             return model;
         }
 
-        #endregion
-
+        #endregion Serialization
     }
 }

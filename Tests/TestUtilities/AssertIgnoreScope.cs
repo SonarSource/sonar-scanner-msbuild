@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -37,7 +37,7 @@ namespace TestUtilities
 
         private static void SetAssertUIEnabled(bool enable)
         {
-            DefaultTraceListener listener = Debug.Listeners.OfType<DefaultTraceListener>().FirstOrDefault();
+            var listener = Debug.Listeners.OfType<DefaultTraceListener>().FirstOrDefault();
             Debug.Assert(listener != null, "Failed to locate the default trace listener");
             if (listener != null)
             {
@@ -69,6 +69,6 @@ namespace TestUtilities
             Dispose(true);
         }
 
-        #endregion
+        #endregion IDisposable Support
     }
 }

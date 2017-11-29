@@ -17,14 +17,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
@@ -68,7 +68,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             this.logger.LogDebug(RoslynResources.EAI_LocalAnalyzerCache, localCacheDirectory);
             Directory.CreateDirectory(localCacheDirectory); // ensure the cache dir exists
 
-            this.cache = new PluginResourceCache(localCacheDirectory);
+            cache = new PluginResourceCache(localCacheDirectory);
         }
 
         #region IAnalyzerInstaller methods
@@ -82,17 +82,17 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
             if (!plugins.Any())
             {
-                this.logger.LogInfo(RoslynResources.EAI_NoPluginsSpecified);
+                logger.LogInfo(RoslynResources.EAI_NoPluginsSpecified);
                 return Enumerable.Empty<string>(); // nothing to deploy
             }
 
-            this.logger.LogInfo(RoslynResources.EAI_InstallingAnalyzers);
+            logger.LogInfo(RoslynResources.EAI_InstallingAnalyzers);
 
-            HashSet<string> allFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (Plugin plugin in plugins)
+            var allFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var plugin in plugins)
             {
-                IEnumerable<string> files = GetPluginResourceFiles(plugin);
-                foreach (string file in files)
+                var files = GetPluginResourceFiles(plugin);
+                foreach (var file in files)
                 {
                     allFiles.Add(file);
                 }
@@ -101,7 +101,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return allFiles;
         }
 
-        #endregion
+        #endregion IAnalyzerInstaller methods
 
         #region Private methods
 
@@ -111,25 +111,25 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         /// </summary>
         private static string GetLocalCacheDirectory()
         {
-            string localCache = Path.Combine(Path.GetTempPath(), ".sonarqube", "resources");
+            var localCache = Path.Combine(Path.GetTempPath(), ".sonarqube", "resources");
             return localCache;
         }
 
         private IEnumerable<string> GetPluginResourceFiles(Plugin plugin)
         {
-            this.logger.LogDebug(RoslynResources.EAI_ProcessingPlugin, plugin.Key, plugin.Version);
+            logger.LogDebug(RoslynResources.EAI_ProcessingPlugin, plugin.Key, plugin.Version);
 
-            string cacheDir = cache.GetResourceSpecificDir(plugin);
+            var cacheDir = cache.GetResourceSpecificDir(plugin);
 
-            IEnumerable<string> allFiles = FetchFilesFromCache(cacheDir);
+            var allFiles = FetchFilesFromCache(cacheDir);
 
             if (allFiles.Any())
             {
-                this.logger.LogDebug(RoslynResources.EAI_CacheHit, cacheDir);
+                logger.LogDebug(RoslynResources.EAI_CacheHit, cacheDir);
             }
             else
             {
-                this.logger.LogDebug(RoslynResources.EAI_CacheMiss);
+                logger.LogDebug(RoslynResources.EAI_CacheMiss);
                 if (FetchResourceFromServer(plugin, cacheDir))
                 {
                     allFiles = FetchFilesFromCache(cacheDir);
@@ -152,25 +152,25 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         private bool FetchResourceFromServer(Plugin plugin, string targetDir)
         {
-            this.logger.LogDebug(RoslynResources.EAI_FetchingPluginResource, plugin.Key, plugin.Version, plugin.StaticResourceName);
+            logger.LogDebug(RoslynResources.EAI_FetchingPluginResource, plugin.Key, plugin.Version, plugin.StaticResourceName);
 
             Directory.CreateDirectory(targetDir);
 
-            bool success = server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir);
+            var success = server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir);
 
             if (success)
             {
-                string targetFilePath = Path.Combine(targetDir, plugin.StaticResourceName);
+                var targetFilePath = Path.Combine(targetDir, plugin.StaticResourceName);
 
                 if (IsZipFile(targetFilePath))
                 {
-                    this.logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
+                    logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
                     ZipFile.ExtractToDirectory(targetFilePath, targetDir);
                 }
             }
             else
             {
-                this.logger.LogWarning(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName);
+                logger.LogWarning(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName);
             }
             return success;
         }
@@ -180,6 +180,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             return string.Equals(".zip", Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase);
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

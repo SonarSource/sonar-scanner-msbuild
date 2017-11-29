@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
 using SonarQube.Common;
+using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.UnitTests
 {
@@ -51,21 +51,21 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         [TestMethod]
         public void SemicolonInUsername()
         {
-            ArgumentException actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("user:name", "", new TestLogger()));
+            var actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("user:name", "", new TestLogger()));
             Assert.AreEqual(Resources.WCD_UserNameCannotContainColon, actual.Message);
         }
 
         [TestMethod]
         public void AccentsInUsername()
         {
-            ArgumentException actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("héhé", "password", new TestLogger()));
+            var actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("héhé", "password", new TestLogger()));
             Assert.AreEqual(Resources.WCD_UserNameMustBeAscii, actual.Message);
         }
 
         [TestMethod]
         public void AccentsInPassword()
         {
-            ArgumentException actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("username", "héhé", new TestLogger()));
+            var actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("username", "héhé", new TestLogger()));
             Assert.AreEqual(Resources.WCD_UserNameMustBeAscii, actual.Message);
         }
     }

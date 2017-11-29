@@ -17,14 +17,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
+
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 
 namespace SonarQube.MSBuild.Tasks
 {
@@ -71,42 +71,42 @@ namespace SonarQube.MSBuild.Tasks
 
         public override bool Execute()
         {
-            Debug.Assert(this.PrimaryRulesetFilePath != null, "[Required] property PrimaryRulesetFilePath should not be null when the task is called from MSBuild");
-            Debug.Assert(this.ProjectDirectoryPath != null, "[Required] property ProjectDirectoryPath should not be null when the task is called from MSBuild");
-            Debug.Assert(this.MergedRuleSetFilePath != null, "[Required] property MergedRuleSetFilePath should not be null when the task is called from MSBuild");
+            Debug.Assert(PrimaryRulesetFilePath != null, "[Required] property PrimaryRulesetFilePath should not be null when the task is called from MSBuild");
+            Debug.Assert(ProjectDirectoryPath != null, "[Required] property ProjectDirectoryPath should not be null when the task is called from MSBuild");
+            Debug.Assert(MergedRuleSetFilePath != null, "[Required] property MergedRuleSetFilePath should not be null when the task is called from MSBuild");
 
-            this.Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_MergingRulesets);
+            Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_MergingRulesets);
 
-            if (!File.Exists(this.PrimaryRulesetFilePath))
+            if (!File.Exists(PrimaryRulesetFilePath))
             {
-                throw new FileNotFoundException(Resources.MergeRulesets_MissingPrimaryRuleset, this.PrimaryRulesetFilePath);
+                throw new FileNotFoundException(Resources.MergeRulesets_MissingPrimaryRuleset, PrimaryRulesetFilePath);
             }
-            if (File.Exists(this.MergedRuleSetFilePath))
+            if (File.Exists(MergedRuleSetFilePath))
             {
                 throw new InvalidOperationException(
-                    string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.MergeRuleset_MergedRulesetAlreadyExists, this.MergedRuleSetFilePath));
+                    string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.MergeRuleset_MergedRulesetAlreadyExists, MergedRuleSetFilePath));
             }
 
-            if (this.IncludedRulesetFilePaths == null || this.IncludedRulesetFilePaths.Length == 0)
+            if (IncludedRulesetFilePaths == null || IncludedRulesetFilePaths.Length == 0)
             {
-                this.Log.LogMessage(MessageImportance.Low, Resources.MergeRuleset_NoRulesetsSpecified);
-                File.Copy(this.PrimaryRulesetFilePath, this.MergedRuleSetFilePath);
+                Log.LogMessage(MessageImportance.Low, Resources.MergeRuleset_NoRulesetsSpecified);
+                File.Copy(PrimaryRulesetFilePath, MergedRuleSetFilePath);
                 return true; // nothing to do if there are no rulesets except copy the file
             }
 
-            XDocument ruleset = XDocument.Load(PrimaryRulesetFilePath);
-            foreach (string includePath in this.IncludedRulesetFilePaths)
+            var ruleset = XDocument.Load(PrimaryRulesetFilePath);
+            foreach (var includePath in IncludedRulesetFilePaths)
             {
-                string resolvedIncludePath = this.TryResolveIncludedRuleset(includePath);
+                var resolvedIncludePath = TryResolveIncludedRuleset(includePath);
                 if (resolvedIncludePath != null)
                 {
                     EnsureIncludeExists(ruleset, resolvedIncludePath);
                 }
             }
-            this.Log.LogMessage(MessageImportance.Low, Resources.MergeRuleset_SavingUpdatedRuleset, this.MergedRuleSetFilePath);
-            ruleset.Save(this.MergedRuleSetFilePath);
+            Log.LogMessage(MessageImportance.Low, Resources.MergeRuleset_SavingUpdatedRuleset, MergedRuleSetFilePath);
+            ruleset.Save(MergedRuleSetFilePath);
 
-            return !this.Log.HasLoggedErrors;
+            return !Log.HasLoggedErrors;
         }
 
         #endregion Overrides
@@ -123,15 +123,15 @@ namespace SonarQube.MSBuild.Tasks
             }
             else
             {
-                this.Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_ResolvingRuleset, includePath);
-                resolvedPath = Path.GetFullPath(Path.Combine(this.ProjectDirectoryPath, includePath));
+                Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_ResolvingRuleset, includePath);
+                resolvedPath = Path.GetFullPath(Path.Combine(ProjectDirectoryPath, includePath));
                 if (File.Exists(resolvedPath))
                 {
-                    this.Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_ResolvedRuleset, resolvedPath);
+                    Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_ResolvedRuleset, resolvedPath);
                 }
                 else
                 {
-                    this.Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_FailedToResolveRuleset, includePath);
+                    Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_FailedToResolveRuleset, includePath);
                     resolvedPath = null;
                 }
             }
@@ -141,14 +141,14 @@ namespace SonarQube.MSBuild.Tasks
 
         private void EnsureIncludeExists(XDocument ruleset, string includePath)
         {
-            XElement includeElement = FindExistingInclude(ruleset, includePath);
+            var includeElement = FindExistingInclude(ruleset, includePath);
             if (includeElement != null)
             {
-                this.Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_RulesetAlreadyIncluded, includePath);
+                Log.LogMessage(MessageImportance.Low, Resources.MergeRulesets_RulesetAlreadyIncluded, includePath);
             }
             else
             {
-                this.Log.LogMessage(MessageImportance.Low, Resources.MergeRuleset_IncludingRuleset, includePath);
+                Log.LogMessage(MessageImportance.Low, Resources.MergeRuleset_IncludingRuleset, includePath);
                 includeElement = new XElement(IncludeElementName);
                 includeElement.SetAttributeValue(PathAttributeName, includePath);
                 ruleset.Root.AddFirst(includeElement);
@@ -162,7 +162,7 @@ namespace SonarQube.MSBuild.Tasks
         {
             return ruleset.Descendants(IncludeElementName).FirstOrDefault(e =>
                 {
-                    XAttribute attr = e.Attribute(PathAttributeName);
+                    var attr = e.Attribute(PathAttributeName);
                     return attr != null && string.Equals(includePath, attr.Value, StringComparison.OrdinalIgnoreCase);
                 });
         }

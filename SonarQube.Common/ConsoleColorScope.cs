@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Diagnostics;
 
@@ -27,18 +27,18 @@ namespace SonarQube.Common
     /// Utility class that changes the console text colour for the lifetime of the instance
     /// </summary>
     /// <remarks>This will have no effect if the console output streams have been re-directed</remarks>
-    internal class ConsoleColorScope : IDisposable
+    internal sealed class ConsoleColorScope : IDisposable
     {
         private readonly ConsoleColor originalForeground;
         private readonly ConsoleColor originalBackground;
 
         public ConsoleColorScope(ConsoleColor textColor)
         {
-            this.originalForeground = Console.ForegroundColor;
-            this.originalBackground = Console.BackgroundColor;
+            originalForeground = Console.ForegroundColor;
+            originalBackground = Console.BackgroundColor;
 
             // Check the text doesn't clash with the background color
-            ConsoleColor newBackground = Console.BackgroundColor;
+            var newBackground = Console.BackgroundColor;
             if (textColor == Console.BackgroundColor)
             {
                 newBackground = (newBackground == ConsoleColor.Black) ? ConsoleColor.Gray : ConsoleColor.Black;
@@ -67,27 +67,19 @@ namespace SonarQube.Common
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    SetColors(this.originalForeground, this.originalBackground);
-                }
-                disposedValue = true;
-            }
-        }
+        private bool disposedValue = false; // To detect redundant calls
 
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
+            if (!disposedValue)
+            {
+                SetColors(originalForeground, originalBackground);
+                disposedValue = true;
+            }
         }
 
-        #endregion
+        #endregion IDisposable Support
     }
 }

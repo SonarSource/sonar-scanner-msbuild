@@ -34,7 +34,7 @@ namespace SonarScanner.Shim
 
         public static bool IsInFolder(string filePath, string folder)
         {
-            string normalizedPath = Path.GetDirectoryName(Path.GetFullPath(filePath));
+            var normalizedPath = Path.GetDirectoryName(Path.GetFullPath(filePath));
             return normalizedPath.StartsWith(folder, StringComparison.OrdinalIgnoreCase);
         }
 

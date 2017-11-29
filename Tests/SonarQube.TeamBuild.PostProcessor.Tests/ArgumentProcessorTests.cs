@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using System;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PostProcessor.Tests
@@ -36,7 +36,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         public void PostArgProc_NoArgs()
         {
             // 0. Setup
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
             IAnalysisPropertyProvider provider;
 
             // 1. Null input
@@ -46,7 +46,6 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             provider = CheckProcessingSucceeds(logger, new string[] { });
             provider.AssertExpectedPropertyCount(0);
         }
-
 
         [TestMethod]
         public void PostArgProc_Unrecognised()
@@ -71,8 +70,8 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         public void PostArgProc_PermittedArguments()
         {
             // 0. Setup
-            TestLogger logger = new TestLogger();
-            string[] args = new string[]
+            var logger = new TestLogger();
+            var args = new string[]
             {
                 "/d:sonar.login=user name",
                 "/d:sonar.password=pwd",
@@ -81,7 +80,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             };
 
             // 1. All valid args
-            IAnalysisPropertyProvider provider = CheckProcessingSucceeds(logger, args);
+            var provider = CheckProcessingSucceeds(logger, args);
 
             provider.AssertExpectedPropertyCount(4);
             provider.AssertExpectedPropertyValue("sonar.login", "user name");
@@ -104,7 +103,6 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             logger.AssertSingleErrorExists("aaa");
             logger.AssertSingleErrorExists("xxx");
 
-
             // 2. Incorrect versions of permitted /d: arguments
             logger = CheckProcessingFails("/D:sonar.login=user name"); // wrong case for "/d:"
             logger.AssertSingleErrorExists("sonar.login");
@@ -113,13 +111,13 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             logger.AssertSingleErrorExists("SONAR.login");
         }
 
-        #endregion
+        #endregion Tests
 
         #region Checks
 
         private static IAnalysisPropertyProvider CheckProcessingSucceeds(TestLogger logger, string[] input)
         {
-            bool success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
+            var success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
 
             Assert.IsTrue(success, "Expecting processing to have succeeded");
             Assert.IsNotNull(provider, "Returned provider should not be null");
@@ -130,9 +128,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         private static TestLogger CheckProcessingFails(params string[] input)
         {
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
-            bool success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
+            var success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
 
             Assert.IsFalse(success, "Not expecting processing to have succeeded");
             Assert.IsNull(provider, "Provider should be null if processing fails");
@@ -141,6 +139,6 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             return logger;
         }
 
-        #endregion
+        #endregion Checks
     }
 }

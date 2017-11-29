@@ -37,7 +37,7 @@ namespace SonarScanner.Shim
 
         private static ProjectInfo TryGetProjectInfo(string projectFolderPath)
         {
-            string projectInfoPath = Path.Combine(projectFolderPath, FileConstants.ProjectInfoFileName);
+            var projectInfoPath = Path.Combine(projectFolderPath, FileConstants.ProjectInfoFileName);
 
             return File.Exists(projectInfoPath)
                 ? ProjectInfo.Load(projectInfoPath)

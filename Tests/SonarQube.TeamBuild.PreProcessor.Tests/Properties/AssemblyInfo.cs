@@ -17,10 +17,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("SonarQube.TeamBuild.PreProcessor.Tests")]
 [assembly: AssemblyProduct("SonarQube.TeamBuild.PreProcessor.Tests")]

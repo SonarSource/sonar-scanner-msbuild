@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Common;
 using System;
+using SonarQube.Common;
 
 namespace SonarQube.Bootstrapper
 {
@@ -64,8 +64,8 @@ namespace SonarQube.Bootstrapper
             }
 
             IProcessorFactory processorFactory = new DefaultProcessorFactory(logger);
-            BootstrapperClass bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
-            int exitCode = bootstrapper.Execute();
+            var bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
+            var exitCode = bootstrapper.Execute();
             Environment.ExitCode = exitCode;
             return exitCode;
         }

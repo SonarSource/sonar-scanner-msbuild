@@ -17,9 +17,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 using TestUtilities;
 
 namespace SonarQube.Common.UnitTests
@@ -48,7 +47,6 @@ namespace SonarQube.Common.UnitTests
             CheckVerbosity("", LoggerVerbosity.Info, "false");
             CheckVerbosity("", LoggerVerbosity.Debug, null, "DEBUG");
             CheckVerbosity("", LoggerVerbosity.Debug, null, "INFO|DEBUG|TRACE");
-            
 
             CheckVerbosity("sonar.verbose takes precedence over sonar.log.level", LoggerVerbosity.Debug, "true", "INFO");
             CheckVerbosity("sonar.verbose takes precedence over sonar.log.level", LoggerVerbosity.Info, "false", "DEBUG");
@@ -59,7 +57,7 @@ namespace SonarQube.Common.UnitTests
         private static void CheckVerbosity(string errorMessage, LoggerVerbosity expectedVerbosity, string verbosity = null, string logLevel = null, int expectedNumberOfWarnings = 0)
         {
             var provider = CreatePropertiesProvider(verbosity, logLevel);
-            TestLogger logger = new TestLogger();
+            var logger = new TestLogger();
 
             var actualVerbosity = VerbosityCalculator.ComputeVerbosity(provider, logger);
 
@@ -71,7 +69,7 @@ namespace SonarQube.Common.UnitTests
 
         private static ListPropertiesProvider CreatePropertiesProvider(string verbosity, string logLevel)
         {
-            ListPropertiesProvider propertyProvider = new ListPropertiesProvider();
+            var propertyProvider = new ListPropertiesProvider();
             if (verbosity != null)
             {
                 propertyProvider.AddProperty(SonarProperties.Verbose, verbosity);

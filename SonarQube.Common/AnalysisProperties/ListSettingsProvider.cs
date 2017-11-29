@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Collections.Generic;
 
@@ -34,7 +34,7 @@ namespace SonarQube.Common
 
         public ListPropertiesProvider()
         {
-            this.properties = new List<Property>();
+            properties = new List<Property>();
         }
 
         public ListPropertiesProvider(IEnumerable<Property> properties)
@@ -54,17 +54,17 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("key");
             }
 
-            if (this.TryGetProperty(key, out Property existing))
+            if (TryGetProperty(key, out Property existing))
             {
                 throw new ArgumentOutOfRangeException("key");
             }
 
-            Property newProperty = new Property() { Id = key, Value = value };
-            this.properties.Add(newProperty);
+            var newProperty = new Property() { Id = key, Value = value };
+            properties.Add(newProperty);
             return newProperty;
         }
 
-        #endregion
+        #endregion Public methods
 
         #region IAnalysisProperiesProvider interface
 
@@ -80,9 +80,9 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("key");
             }
 
-            return Property.TryGetProperty(key, this.properties, out property);
+            return Property.TryGetProperty(key, properties, out property);
         }
 
-        #endregion
+        #endregion IAnalysisProperiesProvider interface
     }
 }

@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
 using System;
 using System.Xml.Serialization;
 
@@ -46,9 +46,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             {
                 throw new ArgumentNullException("staticResourceName");
             }
-            this.Key = key;
-            this.Version = version;
-            this.StaticResourceName = staticResourceName;
+            Key = key;
+            Version = version;
+            StaticResourceName = staticResourceName;
         }
 
         [XmlAttribute("Key")]
@@ -62,6 +62,5 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         /// </summary>
         [XmlAttribute("StaticResourceName")]
         public string StaticResourceName { get; set; }
-
     }
 }

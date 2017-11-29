@@ -17,12 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration.Tests.Infrastructure;
-using System;
-using System.IO;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.Integration.Tests
@@ -55,17 +54,17 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void ReportProcessor_CannotConvertFiles()
         {
             // Arrange
-            MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1 } };
-            MockReportDownloader downloader = new MockReportDownloader();
-            MockReportConverter converter = new MockReportConverter() { CanConvert = false };
-            AnalysisConfig context = this.CreateValidContext();
-            TeamBuildSettings settings = this.CreateValidSettings();
-            TestLogger logger = new TestLogger();
+            var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1 } };
+            var downloader = new MockReportDownloader();
+            var converter = new MockReportConverter() { CanConvert = false };
+            var context = CreateValidContext();
+            var settings = CreateValidSettings();
+            var logger = new TestLogger();
 
-            TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool initResult = processor.Initialise(context, settings, logger);
+            var initResult = processor.Initialise(context, settings, logger);
 
             // Assert
             Assert.IsFalse(initResult, "Expecting false: processor should not have been initialised successfully");
@@ -83,19 +82,19 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void ReportProcessor_NoUrlsFound()
         {
             // Arrange
-            MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { } };
-            MockReportDownloader downloader = new MockReportDownloader();
-            MockReportConverter converter = new MockReportConverter() { CanConvert = true };
-            AnalysisConfig context = this.CreateValidContext();
-            TeamBuildSettings settings = this.CreateValidSettings();
-            TestLogger logger = new TestLogger();
+            var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { } };
+            var downloader = new MockReportDownloader();
+            var converter = new MockReportConverter() { CanConvert = true };
+            var context = CreateValidContext();
+            var settings = CreateValidSettings();
+            var logger = new TestLogger();
 
-            TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool initResult = processor.Initialise(context, settings, logger);
+            var initResult = processor.Initialise(context, settings, logger);
             Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
-            bool result = processor.ProcessCoverageReports();
+            var result = processor.ProcessCoverageReports();
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -113,19 +112,19 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void ReportProcessor_MultipleUrlsFound()
         {
             // Arrange
-            MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1, ValidUrl2 } };
-            MockReportDownloader downloader = new MockReportDownloader();
-            MockReportConverter converter = new MockReportConverter() { CanConvert = true };
-            AnalysisConfig context = this.CreateValidContext();
-            TeamBuildSettings settings = this.CreateValidSettings();
-            TestLogger logger = new TestLogger();
+            var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1, ValidUrl2 } };
+            var downloader = new MockReportDownloader();
+            var converter = new MockReportConverter() { CanConvert = true };
+            var context = CreateValidContext();
+            var settings = CreateValidSettings();
+            var logger = new TestLogger();
 
-            TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool initResult = processor.Initialise(context, settings, logger);
+            var initResult = processor.Initialise(context, settings, logger);
             Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
-            bool result = processor.ProcessCoverageReports();
+            var result = processor.ProcessCoverageReports();
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -142,19 +141,19 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void ReportProcessor_SingleUrlFound_NotDownloaded()
         {
             // Arrange
-            MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1 } };
-            MockReportDownloader downloader = new MockReportDownloader();
-            MockReportConverter converter = new MockReportConverter() { CanConvert = true };
-            AnalysisConfig context = this.CreateValidContext();
-            TeamBuildSettings settings = this.CreateValidSettings();
-            TestLogger logger = new TestLogger();
+            var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl1 } };
+            var downloader = new MockReportDownloader();
+            var converter = new MockReportConverter() { CanConvert = true };
+            var context = CreateValidContext();
+            var settings = CreateValidSettings();
+            var logger = new TestLogger();
 
-            TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool initResult = processor.Initialise(context, settings, logger);
+            var initResult = processor.Initialise(context, settings, logger);
             Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
-            bool result = processor.ProcessCoverageReports();
+            var result = processor.ProcessCoverageReports();
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -174,21 +173,21 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void ReportProcessor_SingleUrlFound_DownloadedOk()
         {
             // Arrange
-            MockReportUrlProvider urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl2 } };
-            MockReportDownloader downloader = new MockReportDownloader();
-            MockReportConverter converter = new MockReportConverter() { CanConvert = true };
-            AnalysisConfig context = this.CreateValidContext();
-            TeamBuildSettings settings = this.CreateValidSettings();
-            TestLogger logger = new TestLogger();
+            var urlProvider = new MockReportUrlProvider() { UrlsToReturn = new string[] { ValidUrl2 } };
+            var downloader = new MockReportDownloader();
+            var converter = new MockReportConverter() { CanConvert = true };
+            var context = CreateValidContext();
+            var settings = CreateValidSettings();
+            var logger = new TestLogger();
 
             downloader.CreateFileOnDownloadRequest = true;
 
-            TfsLegacyCoverageReportProcessor processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            bool initResult = processor.Initialise(context, settings, logger);
+            var initResult = processor.Initialise(context, settings, logger);
             Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
-            bool result = processor.ProcessCoverageReports();
+            var result = processor.ProcessCoverageReports();
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
@@ -209,17 +208,17 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
         private AnalysisConfig CreateValidContext()
         {
-            AnalysisConfig context = new AnalysisConfig()
+            var context = new AnalysisConfig()
             {
-                SonarOutputDir = this.TestContext.DeploymentDirectory, // tests can write to this directory
-                SonarConfigDir = this.TestContext.TestRunResultsDirectory, // we don't read anything from this directory, we just want it to be different from the output directory
+                SonarOutputDir = TestContext.DeploymentDirectory, // tests can write to this directory
+                SonarConfigDir = TestContext.TestRunResultsDirectory, // we don't read anything from this directory, we just want it to be different from the output directory
             };
             return context;
         }
 
         private TeamBuildSettings CreateValidSettings()
         {
-            return TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(this.TestContext.DeploymentDirectory);
+            return TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestContext.DeploymentDirectory);
         }
 
         #endregion Private methods

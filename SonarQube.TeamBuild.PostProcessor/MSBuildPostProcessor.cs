@@ -17,14 +17,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
+
+using System;
+using System.Collections.Generic;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.Integration.Interfaces;
 using SonarQube.TeamBuild.PostProcessor.Interfaces;
 using SonarScanner.Shim;
-using System;
-using System.Collections.Generic;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
@@ -38,12 +38,12 @@ namespace SonarQube.TeamBuild.PostProcessor
         private readonly ILogger logger;
         private readonly ITargetsUninstaller targetUninstaller;
 
-        public MSBuildPostProcessor(ICoverageReportProcessor codeCoverageProcessor, ISonarScanner scanner, ISummaryReportBuilder reportBuilder, ILogger logger,
-            ITargetsUninstaller targetUninstaller)
+        public MSBuildPostProcessor(ICoverageReportProcessor codeCoverageProcessor, ISonarScanner scanner,
+            ISummaryReportBuilder reportBuilder, ILogger logger, ITargetsUninstaller targetUninstaller)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.codeCoverageProcessor = codeCoverageProcessor ?? throw new ArgumentNullException(nameof(codeCoverageProcessor));
-            this.sonarScanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
+            sonarScanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
             this.reportBuilder = reportBuilder ?? throw new ArgumentNullException(nameof(reportBuilder));
             this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
         }
@@ -63,7 +63,7 @@ namespace SonarQube.TeamBuild.PostProcessor
                 throw new ArgumentNullException(nameof(settings));
             }
 
-            this.targetUninstaller.UninstallTargets(logger);
+            targetUninstaller.UninstallTargets(logger);
 
             logger.SuspendOutput();
 
@@ -85,22 +85,22 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
 
             // if initialisation fails a warning will have been logged at the source of the failure
-            bool initialised = this.codeCoverageProcessor.Initialise(config, settings, logger);
+            var initialised = codeCoverageProcessor.Initialise(config, settings, logger);
 
-            if (initialised && !this.codeCoverageProcessor.ProcessCoverageReports())
+            if (initialised && !codeCoverageProcessor.ProcessCoverageReports())
             {
                 // if processing fails, stop the workflow
                 return false;
             }
 
-            ProjectInfoAnalysisResult result = InvokeSonarScanner(provider, config);
-            this.reportBuilder.GenerateReports(settings, config, result, logger);
+            var result = InvokeSonarScanner(provider, config);
+            reportBuilder.GenerateReports(settings, config, result, logger);
             return result.RanToCompletion;
         }
 
         private void LogStartupSettings(AnalysisConfig config, ITeamBuildSettings settings)
         {
-            string configFileName = config == null ? string.Empty : config.FileName;
+            var configFileName = config == null ? string.Empty : config.FileName;
             logger.LogDebug(Resources.MSG_LoadingConfig, configFileName);
 
             switch (settings.BuildEnvironment)
@@ -148,8 +148,8 @@ namespace SonarQube.TeamBuild.PostProcessor
                 return true;
             }
 
-            string configUri = config.GetBuildUri();
-            string environmentUi = settings.BuildUri;
+            var configUri = config.GetBuildUri();
+            var environmentUi = settings.BuildUri;
 
             if (!string.Equals(configUri, environmentUi, System.StringComparison.OrdinalIgnoreCase))
             {
@@ -162,10 +162,10 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         private ProjectInfoAnalysisResult InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config)
         {
-            IEnumerable<string> args = GetSonarScannerArgs(cmdLineArgs);
+            var args = GetSonarScannerArgs(cmdLineArgs);
 
             logger.IncludeTimestamp = false;
-            ProjectInfoAnalysisResult result = this.sonarScanner.Execute(config, args, logger);
+            var result = sonarScanner.Execute(config, args, logger);
             logger.IncludeTimestamp = true;
             return result;
         }
@@ -176,7 +176,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             if (provider != null)
             {
-                foreach (Property property in provider.GetAllProperties())
+                foreach (var property in provider.GetAllProperties())
                 {
                     args.Add(property.AsSonarScannerArg());
                 }

@@ -18,11 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
+using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using System;
-using System.IO;
-using System.Collections.Generic;
 using TestUtilities;
 
 namespace SonarScanner.Shim.Tests
@@ -40,7 +39,7 @@ namespace SonarScanner.Shim.Tests
             var folder = TestUtils.CreateTestSpecificFolder(TestContext);
             File.Create(Path.Combine(folder, "sonar-project.properties"));
 
-            bool called = false;
+            var called = false;
             SonarProjectPropertiesValidator.Validate(
                 folder, new List<ProjectData>(),
                 onValid: () => Assert.Fail("expected validation to fail"),
@@ -72,7 +71,7 @@ namespace SonarScanner.Shim.Tests
                 p3,
             };
 
-            bool called = false;
+            var called = false;
             SonarProjectPropertiesValidator.Validate(
                 folder, projects,
                 onValid: () => Assert.Fail("expected validation to fail"),
@@ -108,7 +107,7 @@ namespace SonarScanner.Shim.Tests
                 p4,
             };
 
-            bool called = false;
+            var called = false;
             SonarProjectPropertiesValidator.Validate(
                 folder, projects,
                 onValid: () => called = true,
@@ -119,7 +118,7 @@ namespace SonarScanner.Shim.Tests
             Assert.IsTrue(called, "Callback not called");
         }
 
-        #endregion
+        #endregion Tests
 
         #region Private methods
 
@@ -127,13 +126,13 @@ namespace SonarScanner.Shim.Tests
         {
             var projectFolder = Path.Combine(folder, projectName);
             Directory.CreateDirectory(projectFolder);
-            ProjectInfo project = new ProjectInfo
+            var project = new ProjectInfo
             {
                 FullPath = Path.Combine(projectFolder, projectName + ".csproj")
             };
             return project;
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

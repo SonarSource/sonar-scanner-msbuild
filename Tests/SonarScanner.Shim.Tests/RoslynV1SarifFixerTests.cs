@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarQube Scanner for MSBuild
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.Shim;
+
 using System;
 using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarScanner.Shim;
 using TestUtilities;
 
 namespace SonarQube.Shim.Tests
@@ -41,10 +41,10 @@ namespace SonarQube.Shim.Tests
         public void SarifFixer_ShouldNotChange_Valid()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            string testSarifString = @"{
+            var testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -71,12 +71,12 @@ namespace SonarQube.Shim.Tests
     }
   ]
 }";
-            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            var testSarifPath = Path.Combine(testDir, "testSarif.json");
             File.WriteAllText(testSarifPath, testSarifString);
-            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
+            var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
 
             // Assert
             // already valid -> no change to file, same file path returned
@@ -88,10 +88,10 @@ namespace SonarQube.Shim.Tests
         public void SarifFixer_ShouldNotChange_Unfixable()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            string testSarifString = @"{
+            var testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -99,8 +99,7 @@ namespace SonarQube.Shim.Tests
     ""fileVersion"": ""1.0.0""
   },
   ""issues"": [
-    { 
-
+    {
 }}}}}}}}}}}}}}}}}}}}}}}}}
 
       ""ruleId"": ""DD001"",
@@ -121,12 +120,12 @@ namespace SonarQube.Shim.Tests
     }
   ]
 }";
-            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            var testSarifPath = Path.Combine(testDir, "testSarif.json");
             File.WriteAllText(testSarifPath, testSarifString);
-            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
+            var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
 
             // Assert
             // unfixable -> no change to file, null return
@@ -136,19 +135,19 @@ namespace SonarQube.Shim.Tests
 
         /// <summary>
         /// The current solution cannot fix values spanning multiple fields. As such it should not attempt to.
-        /// 
+        ///
         /// Example invalid:
-        /// "fullMessage": "message 
+        /// "fullMessage": "message
         /// \test\ ["_"]",
         /// </summary>
         [TestMethod]
         public void SarifFixer_ShouldNotChange_MultipleLineValues()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            string testSarifString = @"{
+            var testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -158,7 +157,7 @@ namespace SonarQube.Shim.Tests
   ""issues"": [
     {
       ""ruleId"": ""DD001"",
-      ""shortMessage"": ""Test shortMessage. 
+      ""shortMessage"": ""Test shortMessage.
 It features ""quoted text""."",
       ""properties"": {
         ""severity"": ""Info"",
@@ -167,12 +166,12 @@ It features ""quoted text""."",
     }
   ]
 }";
-            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            var testSarifPath = Path.Combine(testDir, "testSarif.json");
             File.WriteAllText(testSarifPath, testSarifString);
-            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
+            var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
 
             // Assert
             // unfixable -> no change to file, null return
@@ -184,10 +183,10 @@ It features ""quoted text""."",
         public void SarifFixer_ShouldChange_EscapeBackslashes()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            string testSarifString = @"{
+            var testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -209,19 +208,19 @@ It features ""quoted text""."",
     }
   ]
 }";
-            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            var testSarifPath = Path.Combine(testDir, "testSarif.json");
             File.WriteAllText(testSarifPath, testSarifString);
-            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
+            var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
 
             // Assert
             // fixable -> no change to file, file path in return value, file contents as expected
             AssertFileUnchanged(testSarifPath, originalWriteTime);
             Assert.IsNotNull(returnedSarifPath);
 
-            string returnedSarifString = File.ReadAllText(returnedSarifPath);
+            var returnedSarifString = File.ReadAllText(returnedSarifPath);
             Assert.AreEqual(@"{
   ""version"": ""0.1"",
   ""toolInfo"": {
@@ -250,10 +249,10 @@ It features ""quoted text""."",
         public void SarifFixer_ShouldChange_EscapeQuotes()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            string testSarifString = @"{
+            var testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -271,19 +270,19 @@ It features ""quoted text""."",
     }
   ]
 }";
-            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            var testSarifPath = Path.Combine(testDir, "testSarif.json");
             File.WriteAllText(testSarifPath, testSarifString);
-            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
+            var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
 
             // Assert
             // fixable -> no change to file, file path in return value, file contents as expected
             AssertFileUnchanged(testSarifPath, originalWriteTime);
             Assert.IsNotNull(returnedSarifPath);
 
-            string returnedSarifString = File.ReadAllText(returnedSarifPath);
+            var returnedSarifString = File.ReadAllText(returnedSarifPath);
             Assert.AreEqual(@"{
   ""version"": ""0.1"",
   ""toolInfo"": {
@@ -308,10 +307,10 @@ It features ""quoted text""."",
         public void SarifFixer_ShouldChange_EscapeCharsInAllAffectedFields()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            string testSarifString = @"{
+            var testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -340,19 +339,19 @@ It features ""quoted text""."",
     }
   ]
 }";
-            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            var testSarifPath = Path.Combine(testDir, "testSarif.json");
             File.WriteAllText(testSarifPath, testSarifString);
-            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
+            var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
 
             // Assert
             // fixable -> no change to file, file path in return value, file contents as expected
             AssertFileUnchanged(testSarifPath, originalWriteTime);
             Assert.IsNotNull(returnedSarifPath);
 
-            string returnedSarifString = File.ReadAllText(returnedSarifPath);
+            var returnedSarifString = File.ReadAllText(returnedSarifPath);
             Assert.AreEqual(@"{
   ""version"": ""0.1"",
   ""toolInfo"": {
@@ -388,10 +387,10 @@ It features ""quoted text""."",
         public void SarifFixer_VBNet()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            string testSarifString = @"{
+            var testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual Basic Compiler"",
@@ -413,19 +412,19 @@ It features ""quoted text""."",
     }
   ]
 }";
-            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            var testSarifPath = Path.Combine(testDir, "testSarif.json");
             File.WriteAllText(testSarifPath, testSarifString);
-            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
+            var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage, logger);
 
             // Assert
             // fixable -> no change to file, file path in return value, file contents as expected
             AssertFileUnchanged(testSarifPath, originalWriteTime);
             Assert.IsNotNull(returnedSarifPath);
 
-            string returnedSarifString = File.ReadAllText(returnedSarifPath);
+            var returnedSarifString = File.ReadAllText(returnedSarifPath);
             Assert.AreEqual(@"{
   ""version"": ""0.1"",
   ""toolInfo"": {
@@ -448,7 +447,6 @@ It features ""quoted text""."",
     }
   ]
 }", returnedSarifString);
-
         }
 
         /// <summary>
@@ -458,10 +456,10 @@ It features ""quoted text""."",
         public void SarifFixer_ShouldNotFixInvalid()
         {
             // Arrange
-            TestLogger logger = new TestLogger();
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
-            string testSarifString = @"{
+            var testSarifString = @"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -483,16 +481,16 @@ It features ""quoted text""."",
     }
   ]
 }";
-            string testSarifPath = Path.Combine(testDir, "testSarif.json");
+            var testSarifPath = Path.Combine(testDir, "testSarif.json");
             File.WriteAllText(testSarifPath, testSarifString);
-            DateTime originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
+            var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            string returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage, logger);
             Assert.IsNull(returnedSarifPath);
         }
 
-        #endregion
+        #endregion Tests
 
         #region Private Methods
 
@@ -501,6 +499,6 @@ It features ""quoted text""."",
             Assert.AreEqual(originalWriteTime, new FileInfo(filePath).LastWriteTime);
         }
 
-        #endregion
+        #endregion Private Methods
     }
 }

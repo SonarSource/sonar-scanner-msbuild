@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,6 +25,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using SonarQube.Common;
 
 namespace SonarScanner.Shim
 {
@@ -49,9 +49,9 @@ namespace SonarScanner.Shim
                 return null;
             }
 
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
 
-            foreach (char c in value)
+            foreach (var c in value)
             {
                 if (c == '\\')
                 {
@@ -74,8 +74,8 @@ namespace SonarScanner.Shim
         public PropertiesWriter(AnalysisConfig config)
         {
             this.config = config ?? throw new ArgumentNullException("config");
-            this.sb = new StringBuilder();
-            this.projects = new List<ProjectInfo>();
+            sb = new StringBuilder();
+            projects = new List<ProjectInfo>();
         }
 
         public bool FinishedWriting { get; private set; }
@@ -85,17 +85,17 @@ namespace SonarScanner.Shim
         /// </summary>
         public string Flush()
         {
-            if (this.FinishedWriting)
+            if (FinishedWriting)
             {
                 throw new InvalidOperationException();
             }
 
-            this.FinishedWriting = true;
+            FinishedWriting = true;
 
-            Debug.Assert(this.projects.Select(p => p.ProjectGuid).Distinct().Count() == projects.Count(),
+            Debug.Assert(projects.Select(p => p.ProjectGuid).Distinct().Count() == projects.Count(),
                 "Expecting the project guids to be unique");
 
-            AppendKeyValue(sb, "sonar.modules", string.Join(",", this.projects.Select(p => p.GetProjectGuidAsString())));
+            AppendKeyValue(sb, "sonar.modules", string.Join(",", projects.Select(p => p.GetProjectGuidAsString())));
             sb.AppendLine();
 
             return sb.ToString();
@@ -103,7 +103,7 @@ namespace SonarScanner.Shim
 
         public void WriteSettingsForProject(ProjectData project, string codeCoverageFilePath)
         {
-            if (this.FinishedWriting)
+            if (FinishedWriting)
             {
                 throw new InvalidOperationException();
             }
@@ -118,9 +118,9 @@ namespace SonarScanner.Shim
 
             projects.Add(project.Project);
 
-            string guid = project.Project.GetProjectGuidAsString();
+            var guid = project.Project.GetProjectGuidAsString();
 
-            AppendKeyValue(sb, guid, SonarProperties.ProjectKey, this.config.SonarProjectKey + ":" + guid);
+            AppendKeyValue(sb, guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
             AppendKeyValue(sb, guid, SonarProperties.ProjectName, project.Project.ProjectName);
             AppendKeyValue(sb, guid, SonarProperties.ProjectBaseDir, project.Project.GetProjectDirectory());
 
@@ -148,7 +148,7 @@ namespace SonarScanner.Shim
 
             if (project.Project.AnalysisSettings != null && project.Project.AnalysisSettings.Any())
             {
-                foreach (Property setting in project.Project.AnalysisSettings)
+                foreach (var setting in project.Project.AnalysisSettings)
                 {
                     sb.AppendFormat("{0}.{1}={2}", guid, setting.Id, Escape(setting.Value));
                     sb.AppendLine();
@@ -221,26 +221,29 @@ namespace SonarScanner.Shim
                 throw new ArgumentNullException("properties");
             }
 
-            foreach (Property setting in properties)
+            foreach (var setting in properties)
             {
-                AppendKeyValue(this.sb, setting.Id, setting.Value);
+                AppendKeyValue(sb, setting.Id, setting.Value);
             }
             sb.AppendLine();
         }
 
         public void WriteSonarProjectInfo(string projectBaseDir)
         {
-            AppendKeyValue(sb, SonarProperties.ProjectKey, this.config.SonarProjectKey);
-            AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectName, this.config.SonarProjectName);
-            AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectVersion, this.config.SonarProjectVersion);
-            AppendKeyValue(sb, SonarProperties.WorkingDirectory, Path.Combine(this.config.SonarOutputDir, ".sonar"));
+            AppendKeyValue(sb, SonarProperties.ProjectKey, config.SonarProjectKey);
+            AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectName, config.SonarProjectName);
+            AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectVersion, config.SonarProjectVersion);
+            AppendKeyValue(sb, SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar"));
             AppendKeyValue(sb, SonarProperties.ProjectBaseDir, projectBaseDir);
 
-            this.projects.Select((p, index) =>
+            projects.Select((p, index) =>
             {
-                string moduleWorkdir = Path.Combine(this.config.SonarOutputDir, ".sonar", "mod" + index);
+                var moduleWorkdir = Path.Combine(config.SonarOutputDir, ".sonar", "mod" + index);
                 return new { ProjectInfo = p, Workdir = moduleWorkdir };
-            }).ToList().ForEach(t => AppendKeyValue(sb, t.ProjectInfo.GetProjectGuidAsString(), SonarProperties.WorkingDirectory, t.Workdir));
+            })
+                .ToList()
+                .ForEach(t => AppendKeyValue(sb, t.ProjectInfo.GetProjectGuidAsString(), SonarProperties.WorkingDirectory,
+                    t.Workdir));
         }
 
         public void WriteSharedFiles(ICollection<string> sharedFiles)
@@ -253,10 +256,9 @@ namespace SonarScanner.Shim
             }
 
             sb.AppendLine();
-
         }
 
-        #endregion
+        #endregion Public methods
 
         #region Private methods
 
@@ -288,6 +290,6 @@ namespace SonarScanner.Shim
             return c <= sbyte.MaxValue;
         }
 
-        #endregion
+        #endregion Private methods
     }
 }

@@ -17,9 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
- 
-using SonarQube.Common;
+
 using System.IO;
+using SonarQube.Common;
 
 namespace SonarQube.Bootstrapper.Tests
 {
@@ -27,13 +27,13 @@ namespace SonarQube.Bootstrapper.Tests
     {
         public static string GetDefaultPropertiesFilePath()
         {
-            string defaultPropertiesFilePath = Path.Combine(Path.GetDirectoryName(typeof(Bootstrapper.Program).Assembly.Location), FilePropertyProvider.DefaultFileName);
+            var defaultPropertiesFilePath = Path.Combine(Path.GetDirectoryName(typeof(Bootstrapper.Program).Assembly.Location), FilePropertyProvider.DefaultFileName);
             return defaultPropertiesFilePath;
         }
 
         public static void EnsureDefaultPropertiesFileDoesNotExist()
         {
-            string defaultPropertiesFilePath = GetDefaultPropertiesFilePath();
+            var defaultPropertiesFilePath = GetDefaultPropertiesFilePath();
             if (File.Exists(defaultPropertiesFilePath))
             {
                 File.Delete(defaultPropertiesFilePath);
