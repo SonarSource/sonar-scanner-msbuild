@@ -3,14 +3,15 @@
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <AssemblyName>TeamBuild.SonarQube.Integration</AssemblyName>
-    <RootNamespace>SonarQube.TeamBuild.Integration</RootNamespace>
+    <AssemblyName>MSBuild.SonarQube.Internal.PreProcess</AssemblyName>
+    <RootNamespace>SonarQube.TeamBuild.PreProcessor</RootNamespace>
     <DebugType>Full</DebugType>
-    <CodeAnalysisRuleSet>SonarQube.TeamBuild.Integration.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SonarQube.Begin.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="License.txt" />
+    <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
+    <ProjectReference Include="..\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,24 +21,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="License.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
     <AdditionalFiles Include="..\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.TeamFoundationServer.ExtendedClient" Version="14.102.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.14.114" NoWarn="NU1701" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="6.6.0.3969" />
-    <PackageReference Include="WindowsAzure.ServiceBus" Version="4.1.6" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,4 +44,5 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
 </Project>

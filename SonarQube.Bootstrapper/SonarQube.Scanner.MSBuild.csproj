@@ -1,16 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net46</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <AssemblyName>TeamBuild.SonarQube.Integration</AssemblyName>
-    <RootNamespace>SonarQube.TeamBuild.Integration</RootNamespace>
+    <AssemblyName>SonarQube.Scanner.MSBuild</AssemblyName>
+    <RootNamespace>SonarQube.Bootstrapper</RootNamespace>
+    <StartupObject>SonarQube.Bootstrapper.Program</StartupObject>
     <DebugType>Full</DebugType>
-    <CodeAnalysisRuleSet>SonarQube.TeamBuild.Integration.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SonarQube.Scanner.MSBuild.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="License.txt" />
+    <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
+    <ProjectReference Include="..\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj" />
+    <ProjectReference Include="..\SonarQube.TeamBuild.PostProcessor\SonarQube.Scanner.End.csproj" />
+    <ProjectReference Include="..\SonarQube.TeamBuild.PreProcessor\SonarQube.Scanner.Begin.csproj" />
+    <ProjectReference Include="..\SonarScanner.Shim\SonarScanner.Shim.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,24 +26,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="License.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
     <AdditionalFiles Include="..\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.TeamFoundationServer.ExtendedClient" Version="14.102.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.14.114" NoWarn="NU1701" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="6.6.0.3969" />
-    <PackageReference Include="WindowsAzure.ServiceBus" Version="4.1.6" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
+    <None Update="SonarQube.Analysis.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -54,4 +56,5 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
 </Project>

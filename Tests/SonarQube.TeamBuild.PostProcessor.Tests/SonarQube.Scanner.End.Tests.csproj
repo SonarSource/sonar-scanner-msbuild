@@ -5,16 +5,23 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 
     <IsPackable>false</IsPackable>
+
+    <AssemblyName>SonarQube.TeamBuild.PostProcessor.Tests</AssemblyName>
+
+    <RootNamespace>SonarQube.TeamBuild.PostProcessor.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
+    <PackageReference Include="Moq" Version="4.7.145" />
     <PackageReference Include="MSTest.TestAdapter" Version="1.2.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\SonarQube.Common\SonarQube.Common.csproj" />
+    <ProjectReference Include="..\..\SonarQube.TeamBuild.PostProcessor\SonarQube.Scanner.End.csproj" />
+    <ProjectReference Include="..\..\SonarQube.TeamBuild.PreProcessor\SonarQube.Scanner.Begin.csproj" />
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj" />
   </ItemGroup>
 

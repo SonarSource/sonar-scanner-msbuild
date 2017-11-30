@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="SonarQube - SonarQube Scanner for MSBuild C# QP for SonarSource" ToolsVersion="15.0">
+  <Include Path="..\sonarqube\sonar-scanner-msbuildcsharp.ruleset" Action="Default" />
+</RuleSet>
