@@ -47,7 +47,6 @@ import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestUtils {
-  public static final String MSBUILD_PATH = "MSBUILD_PATH";
   private final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
   @CheckForNull
@@ -75,14 +74,10 @@ public class TestUtils {
   public static Path getCustomRoslynPlugin() {
     Path customPluginDir = Paths.get("").resolve("analyzers");
 
-    DirectoryStream.Filter<Path> jarFilter = new DirectoryStream.Filter<Path>() {
-      public boolean accept(Path file) throws IOException {
-        return Files.isRegularFile(file) && file.toString().endsWith(".jar");
-      }
-    };
+    DirectoryStream.Filter<Path> jarFilter = file -> Files.isRegularFile(file) && file.toString().endsWith(".jar");
     List<Path> jars = new ArrayList<>();
     try {
-      Files.newDirectoryStream(customPluginDir, jarFilter).forEach(p -> jars.add(p));
+      Files.newDirectoryStream(customPluginDir, jarFilter).forEach(jars::add);
     } catch (IOException e) {
       throw new IllegalStateException(e);
     }
@@ -103,7 +98,8 @@ public class TestUtils {
     return tmpProjectDir;
   }
 
-  public static void runMSBuildWithBuildWrapper(Orchestrator orch, Path projectDir, File buildWrapperPath, File outDir, String... arguments) {
+  public static void runMSBuildWithBuildWrapper(Orchestrator orch, Path projectDir, File buildWrapperPath, File outDir,
+    String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
     int r = CommandExecutor.create().execute(Command.create(buildWrapperPath.toString())
@@ -120,7 +116,7 @@ public class TestUtils {
     assertThat(r.isSuccess()).isTrue();
   }
 
-  public static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, String... arguments) {
+  private static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
     BuildResult result = new BuildResult();
@@ -134,31 +130,14 @@ public class TestUtils {
 
   private static Path getMsBuildPath(Orchestrator orch) {
     String msBuildPathStr = orch.getConfiguration().getString("msbuild.path",
-      orch.getConfiguration().getString(MSBUILD_PATH, "C:\\Program Files (x86)\\Microsoft Visual Studio\\"
-        + "2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"));
+      orch.getConfiguration().getString("MSBUILD_PATH", "C:\\Program Files (x86)\\Microsoft Visual "
+        + "Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"));
     Path msBuildPath = Paths.get(msBuildPathStr).toAbsolutePath();
     if (!Files.exists(msBuildPath)) {
       throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath.toString()
-        + ". Please configure property '" + MSBUILD_PATH + "'");
+        + ". Please configure property 'msbuild.path' or 'MSBUILD_PATH'.");
     }
     return msBuildPath;
   }
 
-  protected static String parseVersion() {
-    try {
-      String content = FileUtils.readFileToString(new File("../AssemblyInfo.Shared.cs"), StandardCharsets.UTF_8);
-      return parseVersion(content);
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
-  private static String parseVersion(String content) {
-    Pattern p = Pattern.compile("(?s).*\\[assembly: AssemblyVersion\\(\"(.*?)\"\\)].*");
-    Matcher matcher = p.matcher(content);
-    if (matcher.matches()) {
-      return matcher.group(1);
-    }
-    throw new IllegalStateException("Unable to parse version from " + content);
-  }
 }
