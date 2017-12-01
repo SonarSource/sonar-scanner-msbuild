@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarQube Scanner for MSBuild
  * Copyright (C) 2016-2017 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -102,48 +102,125 @@ namespace SonarScanner.Shim
 
             FixSarifAndEncoding(projects, analysisProperties);
 
-            var rootProjectBaseDir = ComputeRootProjectBaseDir(projectPaths);
-
             allProjects = projects
                 .GroupBy(p => p.ProjectGuid)
-                .Select(g => ToProjectData(g, rootProjectBaseDir))
+                .Select(ToProjectData)
                 .ToList();
 
             var validProjects = allProjects
                 .Where(d => d.Status == ProjectInfoValidity.Valid)
                 .ToList();
 
-            if (validProjects.Any())
-            {
-                var sharedFilePaths = validProjects
-                    .SelectMany(p => p.ExternalFiles)
-                    .Where(f => !PathHelper.IsPartOfAProject(f, projectPaths))
-                    .Distinct(StringComparer.InvariantCultureIgnoreCase)
-                    .ToList();
-
-                writer.WriteSonarProjectInfo(rootProjectBaseDir);
-                writer.WriteSharedFiles(sharedFilePaths);
-
-                foreach (var projectData in validProjects)
-                {
-                    writer.WriteSettingsForProject(projectData,
-                        projectData.CoverageAnalysisExists(logger) ? projectData.VisualStudioCoverageLocation : null);
-                }
-
-                // Handle global settings
-                writer.WriteGlobalSettings(analysisProperties);
-
-                return true;
-            }
-            else
+            if (validProjects.Count == 0)
             {
                 logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
-
                 return false;
+            }
+
+            var rootProjectBaseDir = ComputeRootProjectBaseDir(projectPaths);
+            var rootModuleFiles = PutFilesToRightModuleOrRoot(validProjects, rootProjectBaseDir).ToList();
+            PostProcessProjectStatus(validProjects);
+
+            if (rootModuleFiles.Count == 0 && validProjects.All(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze))
+            {
+                logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
+                return false;
+            }
+
+            writer.WriteSonarProjectInfo(rootProjectBaseDir);
+            writer.WriteSharedFiles(rootModuleFiles);
+            validProjects.ForEach(p => writer.WriteSettingsForProject(p, p.CoverageAnalysisExists(logger)
+                ? p.VisualStudioCoverageLocation : null));
+
+            // Handle global settings
+            writer.WriteGlobalSettings(analysisProperties);
+
+            return true;
+        }
+
+        private IEnumerable<string> PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, string rootProjectBaseDir)
+        {
+            var fileWithProjects = projects
+                .SelectMany(p => p.ReferencedFiles.Select(f => new { Project = p, File = f }))
+                .GroupBy(group => group.File, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.Select(x => x.Project).ToList());
+
+            foreach (var group in fileWithProjects)
+            {
+                var file = group.Key;
+
+                if (!File.Exists(file))
+                {
+                    logger.LogWarning(Resources.WARN_FileDoesNotExist, file);
+                    logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '",
+                        group.Value.Select(x => x.Project.GetProjectDirectory())));
+                    continue;
+                }
+
+                if (!PathHelper.IsInFolder(file, rootProjectBaseDir)) // File is outside of the SonarQube root module
+                {
+                    logger.LogWarning(Resources.WARN_FileIsOutsideProjectDirectory, file);
+                    logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '",
+                        group.Value.Select(x => x.Project.GetProjectDirectory())));
+                    continue;
+                }
+
+                if (group.Value.Count >= 1)
+                {
+                    var closestProject = GetClosestProject(file, group.Value);
+
+                    if (closestProject == null)
+                    {
+                        yield return file;
+                    }
+                    else
+                    {
+                        closestProject.SonarQubeModuleFiles.Add(file);
+                    }
+                }
             }
         }
 
-        private ProjectData ToProjectData(IGrouping<Guid, ProjectInfo> projects, string rootProjectBaseDir)
+        private void PostProcessProjectStatus(IEnumerable<ProjectData> projects)
+        {
+            foreach (var project in projects)
+            {
+                if (project.SonarQubeModuleFiles.Count == 0)
+                {
+                    project.Status = ProjectInfoValidity.NoFilesToAnalyze;
+                }
+            }
+        }
+
+        private static ProjectData GetClosestProject(string filePath, IEnumerable<ProjectData> projects)
+        {
+            var longestMatchingPath = (Length: 0, Items: new List<ProjectData>());
+
+            foreach (var project in projects)
+            {
+                var projectPath = project.Project.GetProjectDirectory();
+                if (filePath.StartsWith(projectPath))
+                {
+                    if (filePath.Length == longestMatchingPath.Length)
+                    {
+                        longestMatchingPath.Items.Add(project);
+                    }
+                    else if (filePath.Length > longestMatchingPath.Length)
+                    {
+                        longestMatchingPath = (Length: filePath.Length, Items: new List<ProjectData> { project });
+                    }
+                }
+            }
+
+            if (longestMatchingPath.Items.Count == 1)
+            {
+                return longestMatchingPath.Items[0];
+            }
+
+            return null;
+        }
+
+        private ProjectData ToProjectData(IGrouping<Guid, ProjectInfo> projects)
         {
             // Shouldn't really matter which project is taken
             var projectData = new ProjectData(projects.First())
@@ -164,13 +241,13 @@ namespace SonarScanner.Shim
                 if (status == ProjectInfoValidity.Valid)
                 {
                     projectData.Status = ProjectInfoValidity.Valid;
-                    AddProjectFiles(p, projectData, rootProjectBaseDir);
+                    AddProjectFiles(p, projectData);
                     AddRoslynOutputFilePath(p, projectData);
                     AddAnalyzerOutputFilePath(p, projectData);
                 }
             }
 
-            if (!projectData.HasFiles)
+            if (projectData.ReferencedFiles.Count == 0)
             {
                 projectData.Status = ProjectInfoValidity.NoFilesToAnalyze;
             }
@@ -322,31 +399,11 @@ namespace SonarScanner.Shim
         /// Returns all of the valid files that can be analyzed. Logs warnings/info about
         /// files that cannot be analyzed.
         /// </summary>
-        private void AddProjectFiles(ProjectInfo projectInfo, ProjectData projectData, string rootProjectBaseDir)
+        private void AddProjectFiles(ProjectInfo projectInfo, ProjectData projectData)
         {
-            var projectDirectory = projectInfo.GetProjectDirectory();
-
             foreach (var file in projectInfo.GetAllAnalysisFiles())
             {
-                if (File.Exists(file))
-                {
-                    if (PathHelper.IsInFolder(file, projectDirectory))
-                    {
-                        projectData.ProjectFiles.Add(file);
-                    }
-                    else if (PathHelper.IsInFolder(file, rootProjectBaseDir))
-                    {
-                        projectData.ExternalFiles.Add(file);
-                    }
-                    else
-                    {
-                        logger.LogWarning(Resources.WARN_FileIsOutsideProjectDirectory, file, projectInfo.FullPath);
-                    }
-                }
-                else
-                {
-                    logger.LogWarning(Resources.WARN_FileDoesNotExist, file);
-                }
+                projectData.ReferencedFiles.Add(file);
             }
         }
     }

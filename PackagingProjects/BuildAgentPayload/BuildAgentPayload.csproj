@@ -52,6 +52,7 @@
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\MSBuild.SonarQube.Internal.PostProcess.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\SonarScanner.Shim.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\Newtonsoft.Json.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\System.ValueTuple.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\TeamBuild.SonarQube.Integration.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\net46\SonarQube.Integration.Tasks.dll" />
     <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\net46\Targets\SonarQube.Integration.targets" />

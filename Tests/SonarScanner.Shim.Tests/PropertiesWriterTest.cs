@@ -65,12 +65,12 @@ namespace SonarScanner.Shim.Tests
                 missingFileOutsideProjectDir
             };
             var productCS = new ProjectData(CreateProjectInfo("你好", "DB2E5521-3172-47B9-BA50-864F12E6DFFF", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.CSharp, "UTF-8"));
-            productCS.ProjectFiles.Add(productFile);
-            productCS.ProjectFiles.Add(productChineseFile);
-            productCS.ProjectFiles.Add(missingFileOutsideProjectDir);
+            productCS.SonarQubeModuleFiles.Add(productFile);
+            productCS.SonarQubeModuleFiles.Add(productChineseFile);
+            productCS.SonarQubeModuleFiles.Add(missingFileOutsideProjectDir);
 
             var productVB = new ProjectData(CreateProjectInfo("vbProject", "B51622CF-82F4-48C9-9F38-FB981FAFAF3A", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.VisualBasic, "UTF-8"));
-            productVB.ProjectFiles.Add(productFile);
+            productVB.SonarQubeModuleFiles.Add(productFile);
 
             var testBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_TestBaseDir");
             var testProject = CreateEmptyFile(testBaseDir, "MyTest.csproj");
@@ -82,7 +82,7 @@ namespace SonarScanner.Shim.Tests
                 testFile
             };
             var test = new ProjectData(CreateProjectInfo("my_test_project", "DA0FCD82-9C5C-4666-9370-C7388281D49B", testProject, true, testFiles, testFileListFilePath, null, ProjectLanguages.VisualBasic, "UTF-8"));
-            test.ProjectFiles.Add(testFile);
+            test.SonarQubeModuleFiles.Add(testFile);
 
             var config = new AnalysisConfig()
             {
@@ -202,7 +202,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
                 new Property() { Id = "my.setting2", Value = "setting 2 with spaces" },
                 new Property() { Id = "my.setting.3", Value = @"c:\dir1\dir2\foo.txt" } // path that will be escaped
             };
-            product.ProjectFiles.Add(productFile);
+            product.ReferencedFiles.Add(productFile);
             // Act
             var writer = new PropertiesWriter(config);
             writer.WriteSettingsForProject(product, null);
@@ -234,7 +234,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
 
             var projectKey = "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5";
             var product = new ProjectData(CreateProjectInfo("AnalysisSettingsTest.proj", projectKey, productProject, false, productFiles, productFileListFilePath, null, "language", "UTF-8"));
-            product.ProjectFiles.Add(productFile);
+            product.ReferencedFiles.Add(productFile);
 
             var config = new AnalysisConfig()
             {

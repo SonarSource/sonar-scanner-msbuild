@@ -113,8 +113,8 @@ namespace SonarScanner.Shim
                 throw new ArgumentNullException("project");
             }
 
-            Debug.Assert(project.HasFiles, "Expecting a project to have files to analyze");
-            Debug.Assert(project.ProjectFiles.All(File.Exists), "Expecting all of the specified files to exist");
+            Debug.Assert(project.ReferencedFiles.Count > 0, "Expecting a project to have files to analyze");
+            Debug.Assert(project.SonarQubeModuleFiles.All(File.Exists), "Expecting all of the specified files to exist");
 
             projects.Add(project.Project);
 
@@ -141,7 +141,7 @@ namespace SonarScanner.Shim
                 sb.AppendLine(guid + @".sonar.tests=\");
             }
 
-            var escapedFiles = project.ProjectFiles.Select(Escape);
+            var escapedFiles = project.SonarQubeModuleFiles.Select(Escape);
             sb.AppendLine(string.Join(@",\" + Environment.NewLine, escapedFiles));
 
             sb.AppendLine();
@@ -246,9 +246,9 @@ namespace SonarScanner.Shim
                     t.Workdir));
         }
 
-        public void WriteSharedFiles(ICollection<string> sharedFiles)
+        public void WriteSharedFiles(IEnumerable<string> sharedFiles)
         {
-            if (sharedFiles.Count > 0)
+            if (sharedFiles.Any())
             {
                 sb.AppendLine(@"sonar.sources=\");
                 var escapedFiles = sharedFiles.Select(Escape);

@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestUtils {
-  public static final String MSBUILD_PATH = "msbuild.path";
+  public static final String MSBUILD_PATH = "MSBUILD_PATH";
   private final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
   @CheckForNull
@@ -133,10 +133,12 @@ public class TestUtils {
   }
 
   private static Path getMsBuildPath(Orchestrator orch) {
-    String msBuildPathStr = orch.getConfiguration().getString(MSBUILD_PATH, "C:\\Program Files (x86)\\MSBuild\\14.0\\bin\\MSBuild.exe");
+    String msBuildPathStr = orch.getConfiguration().getString(MSBUILD_PATH, "C:\\Program Files (x86)\\"
+      + "Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe");
     Path msBuildPath = Paths.get(msBuildPathStr).toAbsolutePath();
     if (!Files.exists(msBuildPath)) {
-      throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath.toString() + ". Please configure property '" + MSBUILD_PATH + "'");
+      throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath.toString()
+        + ". Please configure property '" + MSBUILD_PATH + "'");
     }
     return msBuildPath;
   }

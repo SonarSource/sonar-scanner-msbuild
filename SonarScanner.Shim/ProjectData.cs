@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using SonarQube.Common;
 
 namespace SonarScanner.Shim
@@ -58,14 +57,14 @@ namespace SonarScanner.Shim
         public ProjectInfo Project { get; }
 
         /// <summary>
-        /// Files that are used by the project and are located in its folder
+        /// All files referenced by the given project
         /// </summary>
-        public ICollection<string> ProjectFiles { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public ISet<string> ReferencedFiles { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
-        /// Files, that are used by the project, but located in a different folder
+        /// All files that belongs to this SonarQube module.
         /// </summary>
-        public ICollection<string> ExternalFiles { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public ICollection<string> SonarQubeModuleFiles { get; } = new List<string>();
 
         /// <summary>
         /// Roslyn analysis output files (json)
@@ -76,7 +75,5 @@ namespace SonarScanner.Shim
         /// The folders where the protobuf files are generated
         /// </summary>
         public ICollection<string> AnalyzerOutPaths { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        public bool HasFiles => ProjectFiles.Any() || ExternalFiles.Any();
     }
 }

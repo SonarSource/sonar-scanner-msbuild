@@ -61,6 +61,15 @@ namespace SonarScanner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File was referenced by the following projects: &apos;{0}&apos;..
+        /// </summary>
+        public static string DEBUG_FileReferencedByProjects {
+            get {
+                return ResourceManager.GetString("DEBUG_FileReferencedByProjects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to sonar-project.properties files are not understood by the SonarQube Scanner for MSBuild. Remove those files from the following folders: {0}.
         /// </summary>
         public static string ERR_ConflictingSonarProjectProperties {
@@ -344,7 +353,7 @@ namespace SonarScanner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to File referenced in the project does not exist: {0}.
+        ///   Looks up a localized string similar to File &apos;{0}&apos; does not exist..
         /// </summary>
         public static string WARN_FileDoesNotExist {
             get {
@@ -353,7 +362,7 @@ namespace SonarScanner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to File is not under the project directory and cannot currently be analysed by SonarQube. File: {0}, project: {1}.
+        ///   Looks up a localized string similar to File &apos;{0}&apos; is not located under the root directory and will not be analysed..
         /// </summary>
         public static string WARN_FileIsOutsideProjectDirectory {
             get {

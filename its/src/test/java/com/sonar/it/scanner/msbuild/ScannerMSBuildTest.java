@@ -27,6 +27,7 @@ import com.sonar.orchestrator.util.NetworkUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
@@ -61,10 +62,13 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.wsclient.issue.Issue;
 import org.sonar.wsclient.issue.IssueQuery;
+
+import org.sonarqube.ws.WsComponents;
 import org.sonarqube.ws.WsMeasures;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.component.ShowWsRequest;
 import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -437,22 +441,67 @@ public class ScannerMSBuildTest {
     assertThat(issues).hasSize(2 + 37 + 1);
   }
 
+  @Test
+  public void testCSharpAllFlat() throws IOException {
+    Path projectDir = TestUtils.projectDir(temp, "CSharpAllFlat");
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("begin")
+      .setProjectKey("CSharpAllFlat")
+      .setProjectName("CSharpAllFlat")
+      .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "CSharpAllFlat.sln");
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("end"));
+
+    assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
+  }
+
+  @Test
+  public void testCSharpSharedFiles() throws IOException {
+    Path projectDir = TestUtils.projectDir(temp, "CSharpSharedFiles");
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("begin")
+      .setProjectKey("CSharpSharedFiles")
+      .setProjectName("CSharpSharedFiles")
+      .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "CSharpSharedFiles.sln");
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("end"));
+
+    assertThat(getComponent("CSharpSharedFiles:Common.cs"))
+      .isNotNull();
+    assertThat(getComponent("CSharpSharedFiles:CSharpSharedFiles:D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs"))
+      .isNotNull();
+    assertThat(getComponent("CSharpSharedFiles:CSharpSharedFiles:72CD6ED2-481A-4828-BA15-8CD5F0472A77:Class2.cs"))
+      .isNotNull();
+  }
+
+  private static WsComponents.Component getComponent(String componentKey) {
+    return newWsClient().components().show(new ShowWsRequest().setKey(componentKey)).getComponent();
+  }
+
   @CheckForNull
-  static Integer getMeasureAsInteger(String componentKey, String metricKey) {
+  private static Integer getMeasureAsInteger(String componentKey, String metricKey) {
     WsMeasures.Measure measure = getMeasure(componentKey, metricKey);
     return (measure == null) ? null : Integer.parseInt(measure.getValue());
   }
 
   @CheckForNull
-  static WsMeasures.Measure getMeasure(@Nullable String componentKey, String metricKey) {
+  private static WsMeasures.Measure getMeasure(@Nullable String componentKey, String metricKey) {
     WsMeasures.ComponentWsResponse response = newWsClient().measures().component(new ComponentWsRequest()
       .setComponentKey(componentKey)
-      .setMetricKeys(Arrays.asList(metricKey)));
+      .setMetricKeys(Collections.singletonList(metricKey)));
     List<WsMeasures.Measure> measures = response.getComponent().getMeasuresList();
     return measures.size() == 1 ? measures.get(0) : null;
   }
 
-  static WsClient newWsClient() {
+  private static WsClient newWsClient() {
     return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
       .url(ORCHESTRATOR.getServer().getUrl())
       .build());
@@ -494,7 +543,7 @@ public class ScannerMSBuildTest {
     return contextHandler;
   }
 
-  private static final SecurityHandler basicAuth(String username, String password, String realm) {
+  private static SecurityHandler basicAuth(String username, String password, String realm) {
 
     HashLoginService l = new HashLoginService();
     l.putUser(username, Credential.getCredential(password), new String[] {"user"});
