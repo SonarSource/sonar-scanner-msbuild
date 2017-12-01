@@ -24,6 +24,7 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -96,7 +97,7 @@ public class VBNetTest {
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
 
-    List<String> keys = issues.stream().map(i -> i.ruleKey()).collect(Collectors.toList());
+    List<String> keys = issues.stream().map(Issue::ruleKey).collect(Collectors.toList());
     assertThat(keys).containsAll(Arrays.asList("vbnet:S3385",
       "vbnet:S2358"));
 
@@ -105,21 +106,21 @@ public class VBNetTest {
   }
 
   @CheckForNull
-  static Integer getMeasureAsInteger(String componentKey, String metricKey) {
+  private static Integer getMeasureAsInteger(String componentKey, String metricKey) {
     WsMeasures.Measure measure = getMeasure(componentKey, metricKey);
     return (measure == null) ? null : Integer.parseInt(measure.getValue());
   }
 
   @CheckForNull
-  static WsMeasures.Measure getMeasure(@Nullable String componentKey, String metricKey) {
+  private static WsMeasures.Measure getMeasure(@Nullable String componentKey, String metricKey) {
     WsMeasures.ComponentWsResponse response = newWsClient().measures().component(new ComponentWsRequest()
       .setComponentKey(componentKey)
-      .setMetricKeys(Arrays.asList(metricKey)));
+      .setMetricKeys(Collections.singletonList(metricKey)));
     List<WsMeasures.Measure> measures = response.getComponent().getMeasuresList();
     return measures.size() == 1 ? measures.get(0) : null;
   }
 
-  static WsClient newWsClient() {
+  private static WsClient newWsClient() {
     return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
       .url(ORCHESTRATOR.getServer().getUrl())
       .build());

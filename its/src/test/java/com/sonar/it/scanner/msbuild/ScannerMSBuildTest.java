@@ -284,7 +284,7 @@ public class ScannerMSBuildTest {
     // 2 CS, 2 vbnet
     assertThat(issues).hasSize(4);
 
-    List<String> keys = issues.stream().map(i -> i.ruleKey()).collect(Collectors.toList());
+    List<String> keys = issues.stream().map(Issue::ruleKey).collect(Collectors.toList());
     assertThat(keys).containsAll(Arrays.asList("vbnet:S3385",
       "vbnet:S2358",
       "csharpsquid:S2228",
@@ -421,21 +421,14 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCustomRoslynAnalyzer() throws Exception {
-    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfileCustomRoslyn.xml"));
-    ORCHESTRATOR.getServer().provisionProject("foo", "Foo");
-    ORCHESTRATOR.getServer().associateProjectToQualityProfile("foo", "cs", "ProfileForTestCustomRoslyn");
+    String folderName = "ProjectUnderTest";
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/" + folderName +
+      "/TestQualityProfileCustomRoslyn.xml"));
+    ORCHESTRATOR.getServer().provisionProject(folderName, folderName);
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(folderName, "cs",
+      "ProfileForTestCustomRoslyn");
 
-    Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
-      .addArgument("begin")
-      .setProjectKey("foo")
-      .setProjectName("Foo")
-      .setProjectVersion("1.0"));
-
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
-
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
-      .addArgument("end"));
+    runBeginBuildAndEndForStandardProject(folderName);
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).hasSize(2 + 37 + 1);
@@ -443,36 +436,14 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpAllFlat() throws IOException {
-    Path projectDir = TestUtils.projectDir(temp, "CSharpAllFlat");
-
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
-      .addArgument("begin")
-      .setProjectKey("CSharpAllFlat")
-      .setProjectName("CSharpAllFlat")
-      .setProjectVersion("1.0"));
-
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "CSharpAllFlat.sln");
-
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
-      .addArgument("end"));
+    runBeginBuildAndEndForStandardProject("CSharpAllFlat");
 
     assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
   }
 
   @Test
   public void testCSharpSharedFiles() throws IOException {
-    Path projectDir = TestUtils.projectDir(temp, "CSharpSharedFiles");
-
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
-      .addArgument("begin")
-      .setProjectKey("CSharpSharedFiles")
-      .setProjectName("CSharpSharedFiles")
-      .setProjectVersion("1.0"));
-
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "CSharpSharedFiles.sln");
-
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
-      .addArgument("end"));
+    runBeginBuildAndEndForStandardProject("CSharpSharedFiles");
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
       .isNotNull();
@@ -480,6 +451,21 @@ public class ScannerMSBuildTest {
       .isNotNull();
     assertThat(getComponent("CSharpSharedFiles:CSharpSharedFiles:72CD6ED2-481A-4828-BA15-8CD5F0472A77:Class2.cs"))
       .isNotNull();
+  }
+
+  private void runBeginBuildAndEndForStandardProject(String folderName) throws IOException {
+    Path projectDir = TestUtils.projectDir(temp, folderName);
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("begin")
+      .setProjectKey(folderName)
+      .setProjectName(folderName)
+      .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", folderName + ".sln");
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("end"));
   }
 
   private static WsComponents.Component getComponent(String componentKey) {
