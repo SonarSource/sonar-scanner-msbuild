@@ -453,6 +453,18 @@ public class ScannerMSBuildTest {
       .isNotNull();
   }
 
+  @Test
+  public void testCSharpSharedProjectType() throws IOException {
+    runBeginBuildAndEndForStandardProject("CSharpSharedProjectType");
+
+    assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
+      .isNotNull();
+    assertThat(getComponent("CSharpSharedProjectType:CSharpSharedProjectType:36F96F66-8136-46C0-B83B-EFAE05A8FFC1:Program.cs"))
+      .isNotNull();
+    assertThat(getComponent("CSharpSharedProjectType:CSharpSharedProjectType:F96D8AA1-BCE1-4655-8D65-08F2A5FAC15B:Program.cs"))
+      .isNotNull();
+  }
+
   private void runBeginBuildAndEndForStandardProject(String folderName) throws IOException {
     Path projectDir = TestUtils.projectDir(temp, folderName);
 
