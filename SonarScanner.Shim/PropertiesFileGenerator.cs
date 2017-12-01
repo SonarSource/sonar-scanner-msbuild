@@ -118,7 +118,7 @@ namespace SonarScanner.Shim
             }
 
             var rootProjectBaseDir = ComputeRootProjectBaseDir(projectPaths);
-            var rootModuleFiles = PutFilesToRightModuleOrRoot(validProjects, rootProjectBaseDir).ToList();
+            var rootModuleFiles = PutFilesToRightModuleOrRoot(validProjects, rootProjectBaseDir);
             PostProcessProjectStatus(validProjects);
 
             if (rootModuleFiles.Count == 0 && validProjects.All(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze))
@@ -138,12 +138,27 @@ namespace SonarScanner.Shim
             return true;
         }
 
-        private IEnumerable<string> PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, string rootProjectBaseDir)
+        /// <summary>
+        ///     This method iterates through all referenced files and will either:
+        ///     - Skip the file if:
+        ///         - it doesn't exists
+        ///         - it is located outside of the <see cref="rootProjectBaseDir"/> folder
+        ///     - Add the file to the SonarQubeModuleFiles property of the only project it was referenced by (if the project was
+        ///       found as being the closest folder to the file.
+        ///     - Add the file to the list of files returns by this method in other cases.
+        /// </summary>
+        /// <remarks>
+        ///     This method has some side effects.
+        /// </remarks>
+        /// <returns>The list of files to attach to the root module.</returns>
+        private ICollection<string> PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, string rootProjectBaseDir)
         {
             var fileWithProjects = projects
                 .SelectMany(p => p.ReferencedFiles.Select(f => new { Project = p, File = f }))
                 .GroupBy(group => group.File, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(group => group.Key, group => group.Select(x => x.Project).ToList());
+
+            var rootModuleFiles = new List<string>();
 
             foreach (var group in fileWithProjects)
             {
@@ -153,7 +168,7 @@ namespace SonarScanner.Shim
                 {
                     logger.LogWarning(Resources.WARN_FileDoesNotExist, file);
                     logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '",
-                        group.Value.Select(x => x.Project.GetProjectDirectory())));
+                        group.Value.Select(x => x.Project.FullPath)));
                     continue;
                 }
 
@@ -161,17 +176,17 @@ namespace SonarScanner.Shim
                 {
                     logger.LogWarning(Resources.WARN_FileIsOutsideProjectDirectory, file);
                     logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '",
-                        group.Value.Select(x => x.Project.GetProjectDirectory())));
+                        group.Value.Select(x => x.Project.FullPath)));
                     continue;
                 }
 
                 if (group.Value.Count >= 1)
                 {
-                    var closestProject = GetClosestProject(file, group.Value);
+                    var closestProject = GetClosestProjectOrDefault(file, group.Value);
 
                     if (closestProject == null)
                     {
-                        yield return file;
+                        rootModuleFiles.Add(file);
                     }
                     else
                     {
@@ -179,6 +194,8 @@ namespace SonarScanner.Shim
                     }
                 }
             }
+
+            return rootModuleFiles;
         }
 
         private void PostProcessProjectStatus(IEnumerable<ProjectData> projects)
@@ -192,13 +209,21 @@ namespace SonarScanner.Shim
             }
         }
 
-        private static ProjectData GetClosestProject(string filePath, IEnumerable<ProjectData> projects)
+        private static ProjectData GetClosestProjectOrDefault(string filePath, IEnumerable<ProjectData> projects)
         {
             var longestMatchingPath = (Length: 0, Items: new List<ProjectData>());
 
             foreach (var project in projects)
             {
                 var projectPath = project.Project.GetProjectDirectory();
+
+                // Ensure that folder path always ends with backslash so a directory like 'c:\aaa\bbb' doesn't match
+                // a file like 'c:\aaa\bbb.cs' nor 'c:\aaa\bbbxxxx\myfile.cs'
+                if (!projectPath.EndsWith(@"\"))
+                {
+                    projectPath += @"\";
+                }
+
                 if (filePath.StartsWith(projectPath))
                 {
                     if (filePath.Length == longestMatchingPath.Length)
