@@ -727,7 +727,12 @@ namespace SonarScanner.Shim.Tests
             config.SonarOutputDir = TestSonarqubeOutputDir;
 
             config.SourcesDirectory = teamBuildValue;
-            config.SetConfigValue(SonarProperties.ProjectBaseDir, userValue);
+
+            if (config.LocalSettings == null)
+            {
+                config.LocalSettings = new AnalysisProperties();
+            }
+            config.LocalSettings.Add(new Property { Id = SonarProperties.ProjectBaseDir, Value = userValue });
 
             var logger = new TestLogger();
 

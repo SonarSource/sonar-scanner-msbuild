@@ -324,7 +324,9 @@ namespace SonarScanner.Shim
         /// </summary>
         public string ComputeRootProjectBaseDir(IEnumerable<string> projectPaths)
         {
-            var projectBaseDir = analysisConfig.GetConfigValue(SonarProperties.ProjectBaseDir, null);
+            var projectBaseDir = analysisConfig.LocalSettings
+                ?.FirstOrDefault(p => ConfigSetting.SettingKeyComparer.Equals(SonarProperties.ProjectBaseDir, p.Id))
+                ?.Value;
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
                 return projectBaseDir;
