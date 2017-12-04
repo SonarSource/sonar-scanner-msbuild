@@ -6,7 +6,7 @@
     <AssemblyName>MSBuild.SonarQube.Internal.PostProcess</AssemblyName>
     <RootNamespace>SonarQube.TeamBuild.PostProcessor</RootNamespace>
     <DebugType>Full</DebugType>
-    <CodeAnalysisRuleSet>SonarQube.End.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SonarQube.Scanner.End.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>

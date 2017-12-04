@@ -6,9 +6,9 @@
 
     <IsPackable>false</IsPackable>
 
-    <AssemblyName>SonarQube.TeamBuild.Integration.Tests</AssemblyName>
+    <AssemblyName>SonarQube.TeamBuild.PostProcessor.Tests</AssemblyName>
 
-    <RootNamespace>SonarQube.TeamBuild.Integration.Tests</RootNamespace>
+    <RootNamespace>SonarQube.TeamBuild.PostProcessor.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,8 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\SonarQube.Bootstrapper\SonarQube.Scanner.MSBuild.csproj" />
-    <ProjectReference Include="..\..\SonarQube.Common\SonarQube.Common.csproj" />
+    <ProjectReference Include="..\..\SonarQube.Scanner.End\SonarQube.Scanner.End.csproj" />
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj" />
   </ItemGroup>
 

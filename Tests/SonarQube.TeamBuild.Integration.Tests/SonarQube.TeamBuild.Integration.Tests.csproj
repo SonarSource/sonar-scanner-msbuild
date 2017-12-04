@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\SonarQube.Common\SonarQube.Common.csproj" />
     <ProjectReference Include="..\..\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj" />
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj" />
   </ItemGroup>

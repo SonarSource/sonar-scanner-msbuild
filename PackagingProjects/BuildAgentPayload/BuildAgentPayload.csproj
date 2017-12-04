@@ -44,11 +44,11 @@
     <!-- OutputPath is required by the Clean and Rebuild tasks -->
   </PropertyGroup>
   <ItemGroup>
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net46\SonarQube.Scanner.MSBuild.exe" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net46\SonarQube.Analysis.xml" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Scanner.MSBuild\bin\$(Configuration)\net46\SonarQube.Scanner.MSBuild.exe" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Scanner.MSBuild\bin\$(Configuration)\net46\SonarQube.Analysis.xml" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Common\bin\$(Configuration)\net46\SonarQube.Common.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\net46\MSBuild.SonarQube.Internal.PreProcess.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\net46\MSBuild.SonarQube.Internal.PostProcess.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Scanner.Begin\bin\$(Configuration)\net46\MSBuild.SonarQube.Internal.PreProcess.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Scanner.End\bin\$(Configuration)\net46\MSBuild.SonarQube.Internal.PostProcess.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\net46\SonarScanner.Shim.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\net46\Newtonsoft.Json.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\net46\System.ValueTuple.dll" />
@@ -58,7 +58,7 @@
     <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\net46\Targets\SonarQube.Integration.ImportBefore.targets" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration) == 'Debug'">
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net46\SonarQube.Scanner.MSBuild.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Scanner.MSBuild\bin\$(Configuration)\net46\SonarQube.Scanner.MSBuild.pdb" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">

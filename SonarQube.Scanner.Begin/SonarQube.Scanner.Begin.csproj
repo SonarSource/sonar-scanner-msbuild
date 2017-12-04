@@ -6,7 +6,7 @@
     <AssemblyName>MSBuild.SonarQube.Internal.PreProcess</AssemblyName>
     <RootNamespace>SonarQube.TeamBuild.PreProcessor</RootNamespace>
     <DebugType>Full</DebugType>
-    <CodeAnalysisRuleSet>SonarQube.Begin.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SonarQube.Scanner.Begin.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
