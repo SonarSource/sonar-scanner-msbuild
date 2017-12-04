@@ -45,6 +45,7 @@
   </PropertyGroup>
   <ItemGroup>
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Scanner.MSBuild\bin\$(Configuration)\net46\SonarQube.Scanner.MSBuild.exe" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\net46\MSBuild.SonarQube.Runner.exe" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Scanner.MSBuild\bin\$(Configuration)\net46\SonarQube.Analysis.xml" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Common\bin\$(Configuration)\net46\SonarQube.Common.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Scanner.Begin\bin\$(Configuration)\net46\MSBuild.SonarQube.Internal.PreProcess.dll" />
@@ -59,6 +60,7 @@
   </ItemGroup>
   <ItemGroup Condition="$(Configuration) == 'Debug'">
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Scanner.MSBuild\bin\$(Configuration)\net46\SonarQube.Scanner.MSBuild.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\net46\MSBuild.SonarQube.Runner.pdb" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">

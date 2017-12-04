@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net46</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyName>MSBuild.SonarQube.Runner</AssemblyName>
+    <RootNamespace>SonarQube.Old.Bootstrapper</RootNamespace>
+    <StartupObject>SonarQube.Old.Bootstrapper.Program</StartupObject>
+    <DebugType>Full</DebugType>
+    <CodeAnalysisRuleSet>SonarQube.Old.Bootstrapper.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SonarQube.Scanner.MSBuild\SonarQube.Scanner.MSBuild.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="..\SonarLint.xml">
+      <Link>Properties\SonarLint.xml</Link>
+    </AdditionalFiles>
+  </ItemGroup>
+
+</Project>
