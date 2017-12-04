@@ -25,10 +25,13 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.NetworkUtils;
 import java.io.IOException;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -68,6 +71,7 @@ import org.sonarqube.ws.WsMeasures;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.component.SearchWsRequest;
 import org.sonarqube.ws.client.component.ShowWsRequest;
 import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
@@ -462,6 +466,50 @@ public class ScannerMSBuildTest {
     assertThat(getComponent("CSharpSharedProjectType:CSharpSharedProjectType:36F96F66-8136-46C0-B83B-EFAE05A8FFC1:Program.cs"))
       .isNotNull();
     assertThat(getComponent("CSharpSharedProjectType:CSharpSharedProjectType:F96D8AA1-BCE1-4655-8D65-08F2A5FAC15B:Program.cs"))
+      .isNotNull();
+  }
+
+  @Test
+  public void testCSharpSharedFileWithOneProjectWithoutProjectBaseDir() throws IOException {
+    runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject");
+
+    Set<String> componentKeys = newWsClient()
+      .components()
+      .search(new SearchWsRequest().setLanguage("cs").setQualifiers(Collections.singletonList("FIL")))
+      .getComponentsList()
+      .stream()
+      .map(WsComponents.Component::getKey)
+      .collect(Collectors.toSet());
+
+    // When not using /d:sonar.projectBaseDir the root dir will be set at the level of the project so that the
+    // file Common.cs will be outside of the scope and won't be pushed to SQ
+    assertThat(componentKeys).doesNotContain("CSharpSharedFileWithOneProject:Common.cs");
+    assertThat(componentKeys).contains("CSharpSharedFileWithOneProject:CSharpSharedFileWithOneProject:"
+      + "D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs");
+  }
+
+  @Test
+  public void testCSharpSharedFileWithOneProjectUsingProjectBaseDir() throws IOException {
+    String folderName = "CSharpSharedFileWithOneProject";
+    Path projectDir = TestUtils.projectDir(temp, folderName);
+    String projectBaseDir = projectDir.toRealPath(LinkOption.NOFOLLOW_LINKS).toString();
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("begin")
+      .setProjectKey(folderName)
+      .setProjectName(folderName)
+      .setProjectVersion("1.0")
+      .setProperty("sonar.projectBaseDir", projectBaseDir));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+      .addArgument("end"));
+
+    assertThat(getComponent(folderName + ":Common.cs"))
+      .isNotNull();
+    assertThat(getComponent(folderName + ":" + folderName + ":D8FEDBA2-D056-42FB-B146-5A409727B65D:"
+      + "Class1.cs"))
       .isNotNull();
   }
 
