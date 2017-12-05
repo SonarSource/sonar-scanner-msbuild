@@ -35,8 +35,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
     {
         public TestContext TestContext { get; set; }
 
-
-
         #region Tests
 
         [TestMethod]
@@ -408,13 +406,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         private static void AssertDirectoryExists(string path)
         {
             Assert.IsTrue(Directory.Exists(path), "Expected directory does not exist: {0}", path);
-        }
-
-        private static string AssertFileExists(string directory, string fileName)
-        {
-            var fullPath = Path.Combine(directory, fileName);
-            Assert.IsTrue(File.Exists(fullPath), "Expected file does not exist");
-            return fullPath;
         }
 
         #endregion Checks

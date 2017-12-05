@@ -226,7 +226,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                     ]
                   }
                 ]}";
-            var result = ws.GetProperties("comp");
+            var result = ws.GetProperties("comp", projectBranch: null);
             Assert.AreEqual(7, result.Count);
             Assert.AreEqual("myfile,myfile2", result["sonar.exclusions"]);
             Assert.AreEqual("testing.xml", result["sonar.junit.reportsPath"]);
@@ -276,7 +276,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             Assert.AreEqual("OverwrittenId", actual[0].RuleKey);
             Assert.AreEqual("OverwrittenId", actual[0].InternalKeyOrKey);
             Assert.AreEqual(null, actual[0].TemplateKey);
-            Assert.AreEqual(1, actual[0].Parameters.Count());
+            Assert.AreEqual(1, actual[0].Parameters.Count);
         }
 
         [TestMethod]
@@ -366,20 +366,20 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             Assert.AreEqual("S2368", actual[0].RuleKey);
             Assert.AreEqual("S2368", actual[0].InternalKeyOrKey);
             Assert.AreEqual(null, actual[0].TemplateKey);
-            Assert.AreEqual(0, actual[0].Parameters.Count());
+            Assert.AreEqual(0, actual[0].Parameters.Count);
 
             Assert.AreEqual("common-vbnet", actual[1].RepoKey);
             Assert.AreEqual("InsufficientCommentDensity", actual[1].RuleKey);
             Assert.AreEqual("InsufficientCommentDensity.internal", actual[1].InternalKeyOrKey);
             Assert.AreEqual(null, actual[1].TemplateKey);
-            Assert.AreEqual(1, actual[1].Parameters.Count());
+            Assert.AreEqual(1, actual[1].Parameters.Count);
             Assert.IsTrue(actual[1].Parameters.First().Equals(new KeyValuePair<string, string>("minimumCommentDensity", "50")));
 
             Assert.AreEqual("vbnet", actual[2].RepoKey);
             Assert.AreEqual("S2346", actual[2].RuleKey);
             Assert.AreEqual("S2346", actual[2].InternalKeyOrKey);
             Assert.AreEqual(null, actual[2].TemplateKey);
-            Assert.AreEqual(0, actual[2].Parameters.Count());
+            Assert.AreEqual(0, actual[2].Parameters.Count);
         }
 
         [TestMethod]
@@ -429,7 +429,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                 ["sonar.property2"] = "value2",
                 ["sonar.msbuild.testProjectPattern"] = "pattern"
             };
-            var actual1 = ws.GetProperties("foo bar");
+            var actual1 = ws.GetProperties("foo bar", projectBranch: null);
 
             Assert.AreEqual(true, expected1.Count == actual1.Count && !expected1.Except(actual1).Any());
 
@@ -489,7 +489,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             Assert.IsFalse(File.Exists(expectedFilePath), "File should not be created");
         }
 
-        private class TestDownloader : IDownloader
+        private sealed class TestDownloader : IDownloader
         {
             public IDictionary<string, string> Pages = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
             public List<string> AccessedUrls = new List<string>();

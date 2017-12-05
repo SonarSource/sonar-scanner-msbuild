@@ -82,11 +82,11 @@ namespace TestUtilities
 
         public Guid ProjectGuid { get; set; }
 
-        public IList<string> ManagedSourceFiles
+        public bool HasManagedSourceFiles
         {
             get
             {
-                return Files.Where(f => f.ItemGroup == CompilerInputItemGroup).Select(f => f.FilePath).ToList();
+                return Files.Any(f => f.ItemGroup == CompilerInputItemGroup);
             }
         }
 

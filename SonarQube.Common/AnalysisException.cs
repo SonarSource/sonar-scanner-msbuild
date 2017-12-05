@@ -27,6 +27,7 @@ namespace SonarQube.Common
     /// Thrown when a there is an error that is well handled and should cause the process to exit in a clean way.
     /// The message will be logged and the process will return exit code 1.
     /// </summary>
+    [Serializable]
     public class AnalysisException : Exception
     {
         public AnalysisException()
@@ -44,6 +45,7 @@ namespace SonarQube.Common
         }
 
         protected AnalysisException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }

@@ -328,7 +328,7 @@ namespace SonarScanner.Shim.Tests
             Assert.IsNotNull(result.FullPropertiesFilePath, "Expecting the sonar-scanner properties file to have been set");
 
             var matches = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
-            Assert.AreNotEqual(0, matches.Count(), "Expecting at least one valid ProjectInfo file to exist");
+            Assert.AreNotEqual(0, matches.Count, "Expecting at least one valid ProjectInfo file to exist");
 
             TestContext.AddResultFile(result.FullPropertiesFilePath);
 
@@ -340,7 +340,7 @@ namespace SonarScanner.Shim.Tests
             Assert.IsNull(result.FullPropertiesFilePath, "Expecting the sonar-scanner properties file to have been set");
 
             var matches = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
-            Assert.AreEqual(0, matches.Count(), "Expecting no valid ProjectInfo files to exist");
+            Assert.AreEqual(0, matches.Count, "Expecting no valid ProjectInfo files to exist");
 
             logger.AssertErrorsLogged(1);
         }

@@ -29,8 +29,6 @@ namespace SonarQube.Bootstrapper.Tests
     {
         public TestContext TestContext { get; set; }
 
-        #region Tests
-
         [TestMethod]
         public void DefaultProperties_AreValid()
         {
@@ -43,19 +41,5 @@ namespace SonarQube.Bootstrapper.Tests
 
             Assert.AreEqual(0, defaultProps.Count, "Unexpected number of properties defined in the default properties file");
         }
-
-        #endregion Tests
-
-        #region Checks
-
-        private static void AssertPropertyHasValue(string key, string expectedValue, AnalysisProperties properties)
-        {
-            var found = Property.TryGetProperty(key, properties, out Property match);
-
-            Assert.IsTrue(found, "Expected property was not found. Key: {0}", key);
-            Assert.AreEqual(expectedValue, match.Value, "Property does not have the expected value. Key: {0}", key);
-        }
-
-        #endregion Checks
     }
 }

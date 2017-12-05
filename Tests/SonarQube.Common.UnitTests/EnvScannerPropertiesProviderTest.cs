@@ -32,8 +32,8 @@ namespace SonarQube.Common.UnitTests
         public void ParseValidJson()
         {
             var provider = new EnvScannerPropertiesProvider("{ \"sonar.host.url\": \"http://myhost\"}");
-            Assert.AreEqual(provider.GetAllProperties().First().Id, "sonar.host.url");
-            Assert.AreEqual(provider.GetAllProperties().First().Value, "http://myhost");
+            Assert.AreEqual("sonar.host.url", provider.GetAllProperties().First().Id);
+            Assert.AreEqual("http://myhost", provider.GetAllProperties().First().Value);
             Assert.AreEqual(1, provider.GetAllProperties().Count());
         }
 

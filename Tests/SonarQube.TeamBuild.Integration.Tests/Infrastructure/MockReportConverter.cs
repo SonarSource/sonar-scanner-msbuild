@@ -32,8 +32,6 @@ namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
 
         public bool CanConvert { get; set; }
 
-        public Func<string, string, ILogger, bool> ConversionOp { get; set; }
-
         public bool ConversionResult { get; set; }
 
         #endregion Test helpers
@@ -61,16 +59,11 @@ namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
             return CanConvert;
         }
 
-        bool ICoverageReportConverter.ConvertToXml(string fullBinaryFileName, string fullXmlFileName, ILogger logger)
+        bool ICoverageReportConverter.ConvertToXml(string inputFilePath, string outputFilePath, ILogger logger)
         {
             Assert.IsNotNull(logger, "Supplied logger should not be null");
 
             convertCallCount++;
-
-            if (ConversionOp != null)
-            {
-                return ConversionOp(fullBinaryFileName, fullBinaryFileName, logger);
-            }
 
             return true;
         }

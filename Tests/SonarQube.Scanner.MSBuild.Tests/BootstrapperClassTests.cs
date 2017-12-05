@@ -116,6 +116,7 @@ namespace SonarQube.Bootstrapper.Tests
                 var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
+                logger.AssertWarningsLogged(0);
                 Assert.IsTrue(File.Exists(Path.Combine(TempDir, "bin", "SonarQube.Common.dll")));
                 Assert.IsTrue(File.Exists(Path.Combine(TempDir, "bin", "SonarQube.Integration.Tasks.dll")));
             }
@@ -159,6 +160,7 @@ namespace SonarQube.Bootstrapper.Tests
                 var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
+                logger.AssertWarningsLogged(0);
                 Assert.IsFalse(File.Exists(filePath));
             }
         }
@@ -303,11 +305,6 @@ namespace SonarQube.Bootstrapper.Tests
             MockPostProcessor.Verify(x => x.Execute(
                 It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()),
                 Times.Never());
-        }
-
-        private void AssertPreProcessorNotCalled()
-        {
-            MockPreProcessor.Verify(x => x.Execute(It.IsAny<string[]>()), Times.Never());
         }
 
         private void AssertPostProcessorArgs(params string[] expectedArgs)

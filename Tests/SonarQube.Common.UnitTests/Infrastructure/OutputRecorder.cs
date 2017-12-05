@@ -73,12 +73,12 @@ namespace SonarQube.Common.UnitTests
 
         #region IOutputWriter methods
 
-        public void WriteLine(string message, ConsoleColor textColor, bool isError)
+        public void WriteLine(string message, ConsoleColor color, bool isError)
         {
-            outputMessages.Add(new OutputMessage(message, textColor, isError));
+            outputMessages.Add(new OutputMessage(message, color, isError));
 
             // Dump to the console to assist debugging
-            Console.WriteLine("IsError: {0}, TextColor: {1}, Message: {2}", isError, textColor.ToString(), message);
+            Console.WriteLine("IsError: {0}, TextColor: {1}, Message: {2}", isError, color.ToString(), message);
         }
 
         #endregion IOutputWriter methods

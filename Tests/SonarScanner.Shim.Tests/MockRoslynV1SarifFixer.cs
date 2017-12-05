@@ -42,7 +42,7 @@ namespace SonarScanner.Shim.Tests
 
         #region IRoslynV1SarifFixer
 
-        public string LoadAndFixFile(string sarifPath, string language, ILogger logger)
+        public string LoadAndFixFile(string sarifFilePath, string language, ILogger logger)
         {
             CallCount++;
             LastLanguage = language;

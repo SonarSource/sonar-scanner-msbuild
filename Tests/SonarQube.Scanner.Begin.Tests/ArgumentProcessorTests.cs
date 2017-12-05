@@ -50,8 +50,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // 3. Only key and host URL are required
             var args = CheckProcessingSucceeds("/k:key", "/d:sonar.host.url=myurl");
-            Assert.AreEqual(args.ProjectKey, "key");
-            Assert.AreEqual(args.SonarQubeUrl, "myurl");
+            Assert.AreEqual("key", args.ProjectKey);
+            Assert.AreEqual("myurl", args.SonarQubeUrl);
 
             // 4. Argument is present but has no value
             logger = CheckProcessingFails("/key:");
@@ -63,7 +63,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void PreArgProc_DefaultHostUrl()
         {
             var args = CheckProcessingSucceeds("/k:key");
-            Assert.AreEqual(args.SonarQubeUrl, "http://localhost:9000");
+            Assert.AreEqual("http://localhost:9000", args.SonarQubeUrl);
         }
 
         [TestMethod]
@@ -376,13 +376,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public void PreArgProc_Organization()
         {
             var args = CheckProcessingSucceeds( "/key:my.key", "/organization:my_org");
-            Assert.AreEqual(args.Organization, "my_org");
+            Assert.AreEqual("my_org", args.Organization);
 
             args = CheckProcessingSucceeds("/key:my.key", "/o:my_org");
-            Assert.AreEqual(args.Organization, "my_org");
+            Assert.AreEqual("my_org", args.Organization);
 
             args = CheckProcessingSucceeds("/key:my.key");
-            Assert.AreEqual(args.Organization, null);
+            Assert.IsNull(args.Organization);
         }
 
         #endregion Tests

@@ -36,7 +36,7 @@ namespace SonarQube.Common
         /// Strings that are used to indicate arguments that contain
         /// sensitive data that should not be logged
         /// </summary>
-        public static readonly IEnumerable<string> SensitivePropertyKeys = new HashSet<string>
+        private static readonly ISet<string> SensitivePropertyKeys = new HashSet<string>
         {
             SonarProperties.SonarPassword,
             SonarProperties.SonarUserName,
@@ -57,8 +57,6 @@ namespace SonarQube.Common
 
             TimeoutInMilliseconds = Timeout.Infinite;
         }
-
-        #region Public properties
 
         public string ExeName { get; }
 
@@ -242,6 +240,14 @@ namespace SonarQube.Common
             return sb.ToString();
         }
 
-        #endregion Public properties
+        /// <summary>
+        /// Determines whether the supplied property is accepted by the post-processor
+        /// </summary>
+        public static bool IsPermittedProperty(Property property)
+        {
+            // Currently the post-processor only accepts command line arguments that
+            // will be stripped from the the pre-processor command line
+            return SensitivePropertyKeys.Any(marker => Property.AreKeysEqual(marker, property.Id));
+        }
     }
 }

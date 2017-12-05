@@ -181,7 +181,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <param name="projectBranch">The SonarQube project branch to retrieve properties for (optional).</param>
         /// <returns>A dictionary of key-value property pairs.</returns>
         ///
-        public IDictionary<string, string> GetProperties(string projectKey, string projectBranch = null)
+        public IDictionary<string, string> GetProperties(string projectKey, string projectBranch)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
             {

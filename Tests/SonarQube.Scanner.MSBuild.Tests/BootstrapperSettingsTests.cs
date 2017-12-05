@@ -36,7 +36,6 @@ namespace SonarQube.Bootstrapper.Tests
         [TestMethod]
         public void BootSettings_InvalidArguments()
         {
-            ILogger validLogger = new TestLogger();
             IList<string> validArgs = null;
 
             AssertException.Expects<ArgumentNullException>(() => new BootstrapperSettings(AnalysisPhase.PreProcessing, validArgs, LoggerVerbosity.Debug, null));

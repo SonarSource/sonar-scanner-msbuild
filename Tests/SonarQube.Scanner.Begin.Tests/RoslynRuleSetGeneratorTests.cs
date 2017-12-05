@@ -69,9 +69,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // No analyzer
             Assert.IsFalse(ruleSet.Rules.Any());
 
-            Assert.AreEqual(ruleSet.Description, "This rule set was automatically generated from SonarQube");
-            Assert.AreEqual(ruleSet.ToolsVersion, "14.0");
-            Assert.AreEqual(ruleSet.Name, "Rules for SonarQube");
+            Assert.AreEqual("This rule set was automatically generated from SonarQube", ruleSet.Description);
+            Assert.AreEqual("14.0", ruleSet.ToolsVersion);
+            Assert.AreEqual("Rules for SonarQube", ruleSet.Name);
         }
 
         [TestMethod]
@@ -111,13 +111,13 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             string[] inactivatedCSharp = { "S1002" };
             string[] inactivatedCustom = { "S1005" };
 
-            Assert.AreEqual(2, ruleSet.Rules.Count());
+            Assert.AreEqual(2, ruleSet.Rules.Count);
             AssertAnalyzerRules(ruleSet, "SonarAnalyzer.Custom", activatedCustom, inactivatedCustom);
             AssertAnalyzerRules(ruleSet, "SonarAnalyzer.CSharp", activatedCSharp, inactivatedCSharp);
 
-            Assert.AreEqual(ruleSet.Description, "This rule set was automatically generated from SonarQube");
-            Assert.AreEqual(ruleSet.ToolsVersion, "14.0");
-            Assert.AreEqual(ruleSet.Name, "Rules for SonarQube");
+            Assert.AreEqual("This rule set was automatically generated from SonarQube", ruleSet.Description);
+            Assert.AreEqual("14.0", ruleSet.ToolsVersion);
+            Assert.AreEqual("Rules for SonarQube", ruleSet.Name);
         }
 
         #endregion Tests

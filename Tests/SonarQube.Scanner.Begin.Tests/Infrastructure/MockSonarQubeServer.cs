@@ -93,7 +93,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return Data.ServerProperties;
         }
 
-        bool ISonarQubeServer.TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language, out string qualityProfile)
+        bool ISonarQubeServer.TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language, out string qualityProfileKey)
         {
             LogMethodCalled();
 
@@ -109,7 +109,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             var profile = Data.QualityProfiles
                 .FirstOrDefault(qp => string.Equals(qp.Language, language) && qp.Projects.Contains(projectId) && string.Equals(qp.Organization, organization));
 
-            qualityProfile = profile?.Id;
+            qualityProfileKey = profile?.Id;
             return profile != null;
         }
 

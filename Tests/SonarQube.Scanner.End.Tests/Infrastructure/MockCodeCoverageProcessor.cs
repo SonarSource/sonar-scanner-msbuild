@@ -39,7 +39,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         #region ICoverageReportProcessor interface
 
-        public bool Initialise(AnalysisConfig context, ITeamBuildSettings settings, ILogger logger)
+        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger)
         {
             Assert.IsFalse(initalisedCalled, "Expecting Initialise to be called only once");
             initalisedCalled = true;

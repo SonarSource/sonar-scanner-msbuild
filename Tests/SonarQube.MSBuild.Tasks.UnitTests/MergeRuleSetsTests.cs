@@ -28,8 +28,6 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
     [TestClass]
     public class MergeRuleSetsTests
     {
-        private const string ErrorActionValue = "Error";
-
         public TestContext TestContext { get; set; }
 
         #region Tests

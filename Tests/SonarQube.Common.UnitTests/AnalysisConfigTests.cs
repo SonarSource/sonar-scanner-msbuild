@@ -215,9 +215,7 @@ namespace SonarQube.Common.UnitTests
                 new Property() { Id = "local.key", Value = "local.value" }
             };
 
-            var settings = new AnalyzerSettings();
-
-            settings = new AnalyzerSettings
+            var settings = new AnalyzerSettings
             {
                 RuleSetFilePath = "d:\\ruleset path.ruleset",
                 AdditionalFilePaths = new List<string>()
@@ -240,7 +238,7 @@ namespace SonarQube.Common.UnitTests
 
         #region Helper methods
 
-        private AnalysisConfig SaveAndReloadConfig(AnalysisConfig original, string outputFileName)
+        private void SaveAndReloadConfig(AnalysisConfig original, string outputFileName)
         {
             Assert.IsFalse(File.Exists(outputFileName), "Test error: file should not exist at the start of the test. File: {0}", outputFileName);
             original.Save(outputFileName);
@@ -251,7 +249,6 @@ namespace SonarQube.Common.UnitTests
             Assert.IsNotNull(reloaded, "Reloaded analysis config should not be null");
 
             AssertExpectedValues(original, reloaded);
-            return reloaded;
         }
 
         private static void AssertExpectedValues(AnalysisConfig expected, AnalysisConfig actual)

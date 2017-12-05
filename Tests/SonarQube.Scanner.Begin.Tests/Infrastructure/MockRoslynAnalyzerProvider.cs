@@ -37,11 +37,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         #region IAnalyzerProvider methods
 
         AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings,
-            IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules, string pluginKey)
+            IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules, string language)
         {
             Assert.IsNotNull(settings);
             Assert.IsNotNull(serverSettings);
-            Assert.IsFalse(string.IsNullOrWhiteSpace(pluginKey));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(language));
 
             return SettingsToReturn;
         }

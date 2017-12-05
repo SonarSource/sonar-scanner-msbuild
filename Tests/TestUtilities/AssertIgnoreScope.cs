@@ -28,7 +28,7 @@ namespace TestUtilities
     /// Helper class to suppress assertions during tests
     /// </summary>
     /// <remarks>Prevents tests from failing due to assertion dialogues appearing</remarks>
-    public class AssertIgnoreScope : IDisposable
+    public sealed class AssertIgnoreScope : IDisposable
     {
         public AssertIgnoreScope()
         {
@@ -49,7 +49,7 @@ namespace TestUtilities
 
         private bool disposedValue = false; // To detect redundant calls
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
