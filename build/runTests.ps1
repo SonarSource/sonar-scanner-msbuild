@@ -1,6 +1,6 @@
 function runTests() {
     Write-Host "Start tests"
-    $x = ""; Get-ChildItem -path . -Recurse -Include *Tests.dll | where { $_.FullName -match "bin" } | foreach { $x += """$_"" " }; iex "& '$env:VSTEST_PATH' /EnableCodeCoverage $x"
+    $x = ""; Get-ChildItem -path . -Recurse -Include *Tests.dll | where { $_.FullName -match "bin" } | foreach { $x += """$_"" " }; iex "& '$env:VSTEST_PATH' /EnableCodeCoverage /Logger:trx $x"
     testExitCode
 }
 
@@ -16,7 +16,6 @@ function Write-Header([string]$text) {
 # Original: http://jameskovacs.com/2010/02/25/the-exec-problem
 function Exec ([scriptblock]$command, [string]$errorMessage = "ERROR: Command '${command}' FAILED.") {
     Write-Debug "Invoking command:${command}"
-    Write-Host "Invoking command:${command}"
 
     $output = ""
     & $command | Tee-Object -Variable output
@@ -70,6 +69,34 @@ function Get-CodeCoveragePath {
     return Get-ExecutablePath -name "CodeCoverage.exe" -directory $codeCoverageDirectory -envVar "CODE_COVERAGE_PATH"
 }
 
+# Tests
+function Invoke-UnitTests([string]$binPath, [bool]$failsIfNotTest) {
+    Write-Header "Running unit tests"
+
+    $escapedPath = $binPath -Replace '\\', '\\'
+
+    Write-Debug "Running unit tests for"
+    $testFiles = @()
+    $testDirs = @()
+    Get-ChildItem "." -Recurse -Include "*.*Tests.dll" `
+        | Where-Object { $_.DirectoryName -Match $escapedPath } `
+        | ForEach-Object {
+            $currentFile = $_
+            Write-Debug "   - ${currentFile}"
+            $testFiles += $currentFile
+            $testDirs += $currentFile.Directory
+        }
+    $testDirs = $testDirs | Select-Object -Uniq
+
+    $cmdOutput = Exec { & (Get-VsTestPath) $testFiles /Parallel /Enablecodecoverage /InIsolation /Logger:trx `
+        /UseVsixExtensions:true /TestAdapterPath:$testDirs `
+    } -errorMessage "ERROR: Unit Tests execution FAILED."
+
+    if ($failsIfNotTest -And $cmdOutput -Match "Warning: No test is available") {
+        throw "No test was found but was expecting to find some"
+    }
+}
+
 # Coverage
 function Invoke-CodeCoverage() {
     Write-Header "Creating coverage report"
@@ -86,7 +113,14 @@ function Invoke-CodeCoverage() {
             Remove-Item -Force $filePathWithNewExtension
         }
 
-        Exec { & $codeCoverageExe analyze /output:$filePathWithNewExtension $_.FullName `
-        } -errorMessage "ERROR: Code coverage reports generation FAILED."
+        if ($_.Length -eq 0) {
+            Write-Host "    Code coverage file is empty and will be ignored: $_"
+        }
+        else
+        {
+            Write-Host "    Converting code coverage file $_."
+            Exec { & $codeCoverageExe analyze /output:$filePathWithNewExtension $_.FullName `
+            } -errorMessage "ERROR: Code coverage reports generation FAILED."
+        }
     }
 }
