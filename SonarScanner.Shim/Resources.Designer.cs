@@ -128,6 +128,15 @@ namespace SonarScanner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The project base directory doesn&apos;t exist..
+        /// </summary>
+        public static string ERR_ProjectBaseDirDoesNotExist {
+            get {
+                return ResourceManager.GetString("ERR_ProjectBaseDirDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The SonarQube Scanner did not complete successfully.
         /// </summary>
         public static string ERR_SonarScannerExecutionFailed {

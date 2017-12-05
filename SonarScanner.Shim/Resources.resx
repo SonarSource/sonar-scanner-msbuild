@@ -238,4 +238,7 @@ Possible causes:
   <data name="DEBUG_FileReferencedByProjects" xml:space="preserve">
     <value>File was referenced by the following projects: '{0}'.</value>
   </data>
+  <data name="ERR_ProjectBaseDirDoesNotExist" xml:space="preserve">
+    <value>The project base directory doesn't exist.</value>
+  </data>
 </root>

@@ -627,6 +627,20 @@ namespace SonarScanner.Shim.Tests
               teamBuildValue: null,
               userValue: "",
               projectPaths: new[] { @"f:\work\A", @"e:\work\B" });
+
+            // Support relative paths
+            VerifyProjectBaseDir(
+                expectedValue: Path.Combine(Directory.GetCurrentDirectory(), "src"),
+                teamBuildValue: null,
+                userValue: @".\src",
+                projectPaths: new[] { @"d:\work\proj1.csproj" });
+
+            // Support short name paths
+            var result= ComputeProjectBaseDir(
+                teamBuildValue: null,
+                userValue: @"C:\PROGRA~1",
+                projectPaths: new[] { @"d:\work\proj1.csproj" });
+            result.Should().BeOneOf(@"C:\Program Files", @"C:\Program Files (x86)");
         }
 
         #endregion Tests
@@ -720,7 +734,7 @@ namespace SonarScanner.Shim.Tests
 
         #region Private methods
 
-        private void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths)
+        private string ComputeProjectBaseDir(string teamBuildValue, string userValue, string[] projectPaths)
         {
             var config = new AnalysisConfig();
             var writer = new PropertiesWriter(config);
@@ -737,8 +751,12 @@ namespace SonarScanner.Shim.Tests
             var logger = new TestLogger();
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger).ComputeRootProjectBaseDir(projectPaths);
+            return new PropertiesFileGenerator(config, logger).ComputeRootProjectBaseDir(projectPaths);
+        }
 
+        private void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths)
+        {            
+            var result = ComputeProjectBaseDir(teamBuildValue, userValue, projectPaths);
             result.Should().Be(expectedValue);
         }
 
