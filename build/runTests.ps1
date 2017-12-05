@@ -86,10 +86,6 @@ function Invoke-CodeCoverage() {
             Remove-Item -Force $filePathWithNewExtension
         }
 
-        Exec { & "$codeCoverageExe" analyze /output:"$filePathWithNewExtension" "$_.FullName" `
-        } -errorMessage "ERROR: Code coverage reports generation FAILED."
-
-
         Exec { & $codeCoverageExe analyze /output:$filePathWithNewExtension $_.FullName `
         } -errorMessage "ERROR: Code coverage reports generation FAILED."
     }
