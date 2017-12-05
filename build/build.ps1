@@ -77,7 +77,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
     testExitCode
 
     #run tests
-    . (Join-Path $PSScriptRoot "RunTests.ps1")
+    . (Join-Path $PSScriptRoot "runTests.ps1")
     runTests
     Invoke-CodeCoverage
 
