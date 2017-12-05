@@ -58,12 +58,6 @@ function deploy([string] $version) {
     new-item -path . -name qa.properties -type "file"
 }
 
-function runTests() {
-    Write-Host "Start tests"
-    $x = ""; Get-ChildItem -path . -Recurse -Include *Tests.dll | where { $_.FullName -match "bin" } | foreach { $x += """$_"" " }; iex "& $env:VSTEST_PATH $x"
-    testExitCode
-}
-
 if ($env:IS_PULLREQUEST -eq "true") { 
     write-host -f green "in a pull request"
 
@@ -81,8 +75,11 @@ if ($env:IS_PULLREQUEST -eq "true") {
     testExitCode
     & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /t:rebuild /p:Configuration=Release
     testExitCode
+
     #run tests
+    . (Join-Path $PSScriptRoot "RunTests.ps1")
     runTests
+    Invoke-CodeCoverage
 
     .\SonarQube.Scanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
     testExitCode
