@@ -118,6 +118,13 @@ namespace SonarScanner.Shim
             }
 
             var rootProjectBaseDir = ComputeRootProjectBaseDir(projectPaths);
+            if (rootProjectBaseDir == null ||
+                !Directory.Exists(rootProjectBaseDir))
+            {
+                logger.LogError(Resources.ERR_ProjectBaseDirDoesNotExist);
+                return false;
+            }
+
             var rootModuleFiles = PutFilesToRightModuleOrRoot(validProjects, rootProjectBaseDir);
             PostProcessProjectStatus(validProjects);
 
@@ -329,7 +336,7 @@ namespace SonarScanner.Shim
                 ?.Value;
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
-                return projectBaseDir;
+                return Path.GetFullPath(projectBaseDir);
             }
 
             projectBaseDir = analysisConfig.SourcesDirectory;

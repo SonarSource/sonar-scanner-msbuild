@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
@@ -489,17 +490,41 @@ public class ScannerMSBuildTest {
   }
 
   @Test
-  public void testCSharpSharedFileWithOneProjectUsingProjectBaseDir() throws IOException {
+  public void testCSharpSharedFileWithOneProjectUsingProjectBaseDirAbsolute() throws IOException {
+    runCSharpSharedFileWithOneProjectUsingProjectBaseDir(1,
+      projectDir -> {
+        try {
+          return projectDir.toRealPath(LinkOption.NOFOLLOW_LINKS).toString();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+        return null;
+      });
+  }
+
+  @Test
+  public void testCSharpSharedFileWithOneProjectUsingProjectBaseDirRelative() throws IOException {
+    runCSharpSharedFileWithOneProjectUsingProjectBaseDir(2,
+      projectDir -> ".");
+  }
+
+  @Test
+  public void testCSharpSharedFileWithOneProjectUsingProjectBaseDirAbsoluteShort() throws IOException {
+    runCSharpSharedFileWithOneProjectUsingProjectBaseDir(3,
+      projectDir -> projectDir.toString());
+  }
+
+  private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Integer number, Function<Path ,String> getProjectBaseDir)
+    throws IOException {
     String folderName = "CSharpSharedFileWithOneProject";
     Path projectDir = TestUtils.projectDir(temp, folderName);
-    String projectBaseDir = projectDir.toRealPath(LinkOption.NOFOLLOW_LINKS).toString();
 
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
       .addArgument("begin")
-      .setProjectKey(folderName)
-      .setProjectName(folderName)
+      .setProjectKey(folderName + number)
+      .setProjectName(folderName + number)
       .setProjectVersion("1.0")
-      .setProperty("sonar.projectBaseDir", projectBaseDir));
+      .setProperty("sonar.projectBaseDir", getProjectBaseDir.apply(projectDir)));
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
