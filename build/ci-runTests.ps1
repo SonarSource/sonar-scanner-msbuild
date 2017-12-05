@@ -1,4 +1,9 @@
-function runTests() {
+# Script to execute unit tests and convert the code coverage results.
+# This script is used by the CI build. However, the test execution was extracted into this script
+# to make it easier to debug and test on a local machine. See the comments at the end of the file
+# for more information on debugging locally.
+
+function Invoke-Tests() {
     Write-Host "Start tests"
     $x = ""; Get-ChildItem -path . -Recurse -Include *Tests.dll | where { $_.FullName -match "bin" } | foreach { $x += """$_"" " }; iex "& '$env:VSTEST_PATH' /EnableCodeCoverage /Logger:trx $x"
     testExitCode
@@ -125,3 +130,15 @@ function Invoke-CodeCoverage() {
         }
     }
 }
+
+# To test locally:
+# 1. Set the working directory to the repo root
+# 2. Build the solution
+# 3. Delete any existing test results
+# 4. Uncomment the code below and set $vsTestPath appropriately
+# 5. Run this script
+
+#$vsTestPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\Extensions\TestPlatform\vstest.console.exe"
+#[environment]::SetEnvironmentVariable("VSTEST_PATH", $vsTestPath, "Process")
+#Invoke-Tests
+#Invoke-CodeCoverage
