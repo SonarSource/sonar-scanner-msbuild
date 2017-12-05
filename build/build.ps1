@@ -58,6 +58,12 @@ function deploy([string] $version) {
     new-item -path . -name qa.properties -type "file"
 }
 
+function runTests() {
+    . (Join-Path $PSScriptRoot "ci-runTests.ps1")
+    Invoke-Tests
+    Invoke-CodeCoverage
+}
+
 if ($env:IS_PULLREQUEST -eq "true") { 
     write-host -f green "in a pull request"
 
@@ -75,11 +81,8 @@ if ($env:IS_PULLREQUEST -eq "true") {
     testExitCode
     & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /t:rebuild /p:Configuration=Release
     testExitCode
-
     #run tests
-    . (Join-Path $PSScriptRoot "runTests.ps1")
     runTests
-    Invoke-CodeCoverage
 
     .\SonarQube.Scanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
     testExitCode
