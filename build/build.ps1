@@ -96,7 +96,8 @@ if ($env:IS_PULLREQUEST -eq "true") {
         #start analysis
         .\SonarQube.Scanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:master `
             /d:sonar.host.url=$env:SONAR_HOST_URL `
-            /d:sonar.login=$env:SONAR_TOKEN 
+            /d:sonar.login=$env:SONAR_TOKEN `
+            /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" 
         testExitCode
 
         #build
