@@ -5,6 +5,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyName>SonarQube.TestUtilities</AssemblyName>
     <RootNamespace>TestUtilities</RootNamespace>
+    <CodeAnalysisRuleSet>TestUtilities.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,6 +40,7 @@
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="4.19.4" />
     <PackageReference Include="MSTest.TestFramework" Version="1.2.0" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="6.7.0.4267" />
   </ItemGroup>
 
   <ItemGroup>

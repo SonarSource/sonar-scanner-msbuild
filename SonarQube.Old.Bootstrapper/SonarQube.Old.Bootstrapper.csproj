@@ -27,4 +27,8 @@
     </AdditionalFiles>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="6.7.0.4267" />
+  </ItemGroup>
+
 </Project>

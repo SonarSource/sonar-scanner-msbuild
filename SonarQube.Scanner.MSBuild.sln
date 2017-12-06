@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2010
+VisualStudioVersion = 15.0.27130.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{E04A4D31-AC10-4F56-9678-5D538932578C}"
 EndProject
@@ -19,16 +19,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildAgentPayload", "Packag
 		{1A8F1FC3-2F48-49B3-BF2A-4775AB41E542} = {1A8F1FC3-2F48-49B3-BF2A-4775AB41E542}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{78700959-9C9B-4566-B245-48BBE5D403F6}"
-	ProjectSection(SolutionItems) = preProject
-		SonarQube\sonar-msbuild-runnerCSharp.ruleset = SonarQube\sonar-msbuild-runnerCSharp.ruleset
-		SonarLint.xml = SonarLint.xml
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{B6AA1FBF-BA98-4686-8C37-D1FD13DBB2E6}"
 	ProjectSection(SolutionItems) = preProject
 		SonarQube\SolutionBinding.sqconfig = SonarQube\SolutionBinding.sqconfig
 		SonarQube\sonar-scanner-msbuildCSharp.ruleset = SonarQube\sonar-scanner-msbuildCSharp.ruleset
+		SonarLint.xml = SonarLint.xml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Common", "SonarQube.Common\SonarQube.Common.csproj", "{D81CFC61-5910-4A55-A376-2A9D2B4DA45D}"
@@ -63,7 +58,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.TeamBuild.Integra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarScanner.Shim.Tests", "Tests\SonarScanner.Shim.Tests\SonarScanner.Shim.Tests.csproj", "{C2E2925D-5C98-4E8E-AF57-D765CFA487AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Old.Bootstrapper", "SonarQube.Old.Bootstrapper\SonarQube.Old.Bootstrapper.csproj", "{35848C6E-2018-4831-94FA-40D7E45B5A09}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Old.Bootstrapper", "SonarQube.Old.Bootstrapper\SonarQube.Old.Bootstrapper.csproj", "{35848C6E-2018-4831-94FA-40D7E45B5A09}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compatibility", "Compatibility", "{52EB8620-7610-4052-BE6E-25CD4D3459A7}"
 EndProject

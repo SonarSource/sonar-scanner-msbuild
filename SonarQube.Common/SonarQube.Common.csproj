@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="6.6.0.3969" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="6.7.0.4267" />
   </ItemGroup>
 
   <ItemGroup>

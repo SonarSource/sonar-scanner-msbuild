@@ -32,7 +32,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.TeamFoundationServer.ExtendedClient" Version="14.102.0" />
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.14.114" NoWarn="NU1701" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="6.6.0.3969" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="6.7.0.4267" />
     <PackageReference Include="WindowsAzure.ServiceBus" Version="4.1.6" />
   </ItemGroup>
 

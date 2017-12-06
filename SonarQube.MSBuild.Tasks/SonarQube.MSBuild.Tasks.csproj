@@ -45,7 +45,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="14.3.0" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="6.6.0.3969" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="6.7.0.4267" />
   </ItemGroup>
 
   <ItemGroup>
