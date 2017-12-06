@@ -5,6 +5,7 @@
     <CodeAnalysisRuleSet>SonarQube.MSBuild.Tasks.ruleset</CodeAnalysisRuleSet>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyName>SonarQube.Integration.Tasks</AssemblyName>
+    <DebugType>Full</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
