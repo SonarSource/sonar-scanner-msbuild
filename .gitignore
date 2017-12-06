@@ -168,3 +168,4 @@ build/
 # IntelliJ
 .idea
 *.iml
+/.sonarqube

@@ -138,6 +138,7 @@ function Invoke-CodeCoverage() {
 # 4. Uncomment the code below and set $vsTestPath appropriately
 # 5. Run this script
 
+#function testExitCode(){} # Dummy method definition for method called by Invoke-Tests
 #$vsTestPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\Extensions\TestPlatform\vstest.console.exe"
 #[environment]::SetEnvironmentVariable("VSTEST_PATH", $vsTestPath, "Process")
 #Invoke-Tests
