@@ -33,7 +33,7 @@ namespace SonarScanner.Shim
     /// </summary>
     internal class ProjectInfoReportBuilder
     {
-        private const string ReportFileName = "ProjectInfo.log";
+        internal const string ReportFileName = "ProjectInfo.log";
 
         private readonly AnalysisConfig config;
         private readonly ProjectInfoAnalysisResult analysisResult;
