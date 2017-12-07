@@ -36,7 +36,7 @@ namespace SonarQube.Common
         /// Strings that are used to indicate arguments that contain
         /// sensitive data that should not be logged
         /// </summary>
-        public static readonly ISet<string> SensitivePropertyKeys = new HashSet<string>
+        public static readonly IEnumerable<string> SensitivePropertyKeys = new HashSet<string>
         {
             SonarProperties.SonarPassword,
             SonarProperties.SonarUserName,
