@@ -74,7 +74,11 @@ if ($env:IS_PULLREQUEST -eq "true") {
         /d:sonar.github.repository=$env:GITHUB_REPO `
         /d:sonar.github.oauth=$env:GITHUB_TOKEN `
         /d:sonar.analysis.mode=issues `
-        /d:sonar.scanAllFiles=true
+        /d:sonar.scanAllFiles=true `
+        /d:sonar.analysis.buildNumber=$env:BUILD_NUMBER `
+        /d:sonar.analysis.pipeline=$env:BUILD_NUMBER `
+        /d:sonar.analysis.sha1=$env:GIT_SHA1 `
+        /d:sonar.analysis.repository=$env:GITHUB_REPO
     testExitCode
 
     restore
@@ -97,7 +101,11 @@ if ($env:IS_PULLREQUEST -eq "true") {
         .\SonarQube.Scanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:master `
             /d:sonar.host.url=$env:SONAR_HOST_URL `
             /d:sonar.login=$env:SONAR_TOKEN `
-            /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" 
+            /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" `
+            /d:sonar.analysis.buildNumber=$env:BUILD_NUMBER `
+            /d:sonar.analysis.pipeline=$env:BUILD_NUMBER `
+            /d:sonar.analysis.sha1=$env:GIT_SHA1 `
+            /d:sonar.analysis.repository=$env:GITHUB_REPO    
         testExitCode
 
         #build
