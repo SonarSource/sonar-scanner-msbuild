@@ -36,9 +36,9 @@ namespace SonarScanner.Shim.Tests
         [TestMethod]
         public void PIRB_WriteSummaryReport_InvalidArgs_Throws()
         {
-            AnalysisConfig analysisConfig = new AnalysisConfig();
-            ProjectInfoAnalysisResult analysisResult = new ProjectInfoAnalysisResult();
-            ILogger loggerMock = new Mock<ILogger>().Object;
+            var analysisConfig = new AnalysisConfig();
+            var analysisResult = new ProjectInfoAnalysisResult();
+            var loggerMock = new Mock<ILogger>().Object;
 
             // 1. Invalid analysis config
             Action op = () => ProjectInfoReportBuilder.WriteSummaryReport(null, analysisResult, loggerMock);
@@ -57,14 +57,14 @@ namespace SonarScanner.Shim.Tests
         public void PIRB_WriteSummaryReport_ValidArgs_FileCreated()
         {
             // Arrange
-            string testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
 
-            AnalysisConfig analysisConfig = new AnalysisConfig()
+            var analysisConfig = new AnalysisConfig()
             {
                 SonarOutputDir = testDir
             };
 
-            ProjectInfoAnalysisResult analysisResult = new ProjectInfoAnalysisResult();
+            var analysisResult = new ProjectInfoAnalysisResult();
 
             analysisResult.Projects.Add(CreateProjectData("project1", ProjectType.Product, ProjectInfoValidity.ExcludeFlagSet));
 
@@ -80,17 +80,17 @@ namespace SonarScanner.Shim.Tests
             analysisResult.Projects.Add(CreateProjectData("project9", ProjectType.Test, ProjectInfoValidity.Valid));
             analysisResult.Projects.Add(CreateProjectData("projectA", ProjectType.Test, ProjectInfoValidity.Valid));
 
-            ILogger loggerMock = new Mock<ILogger>().Object;
+            var loggerMock = new Mock<ILogger>().Object;
 
             // Act
             ProjectInfoReportBuilder.WriteSummaryReport(analysisConfig, analysisResult, loggerMock);
 
             // Assert
-            string expectedFileName = Path.Combine(testDir, ProjectInfoReportBuilder.ReportFileName);
+            var expectedFileName = Path.Combine(testDir, ProjectInfoReportBuilder.ReportFileName);
             File.Exists(expectedFileName).Should().BeTrue();
             this.TestContext.AddResultFile(expectedFileName);
 
-            string contents = File.ReadAllText(expectedFileName);
+            var contents = File.ReadAllText(expectedFileName);
             contents.Should().Contain("project1");
             contents.Should().Contain("project2");
             contents.Should().Contain("project3");
