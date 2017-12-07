@@ -20,9 +20,11 @@
 
 using System;
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarQube.Common;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.Integration.Tests
@@ -33,6 +35,40 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public TestContext TestContext { get; set; }
 
         #region Tests
+
+        [TestMethod]
+        public void Conv_Initialize_InvalidArgs_Throws()
+        {
+            var testSubject = new CoverageReportConverter();
+            Action op = () => testSubject.Initialize(null);
+
+            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
+        public void Conv_ConvertToXml_InvalidArgs_Throws()
+        {
+            ILogger loggerMock = new Mock<ILogger>().Object;
+            var testSubject = new CoverageReportConverter();
+
+            // 1. Null input path
+            Action op = () => testSubject.ConvertToXml(null, "dummypath", loggerMock);
+            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("inputFilePath");
+
+            op = () => testSubject.ConvertToXml("\t\n", "dummypath", loggerMock);
+            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("inputFilePath");
+
+            // 2. Null output path
+            op = () => testSubject.ConvertToXml("dummypath", null, loggerMock);
+            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("outputFilePath");
+
+            op = () => testSubject.ConvertToXml("dummypath", "   ", loggerMock);
+            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("outputFilePath");
+
+            // 3. Null logger
+            op = () => testSubject.ConvertToXml("dummyInput", "dummyOutput", null);
+            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
 
         [TestMethod]
         [WorkItem(72)] // Regression test for bug #72: CodeCoverage conversion - conversion errors should be detected and reported
