@@ -110,6 +110,7 @@
   <UsingTask TaskName="WriteProjectInfoFile" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="IsTestFileByName" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="GetAnalyzerSettings" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
+  <UsingTask TaskName="MakeUniqueDir" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
 
   <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
@@ -224,19 +225,15 @@
     <!-- **************************************************************************** -->
     <!-- Create the project-specific directories for conf and out -->
 
-    <!-- Calculate a project-specific directory names for conf and out -->
+    <!-- Create folder with unique name in the .sonarqube/out/ folder -->
+    <MakeUniqueDir Path="$(SonarQubeOutputPath)" Prefix="$(MSBuildProjectName)_">
+      <Output TaskParameter="UniquePath" PropertyName="ProjectSpecificOutDir" />
+      <Output TaskParameter="UniqueName" PropertyName="UniqueName" />
+    </MakeUniqueDir>
+    <!-- Create .sonarqube/conf/ sub-folder with the same unique name -->
     <PropertyGroup>
-      <FolderDisambiguator Condition=" $(FolderDisambiguator)=='' ">_$([System.DateTime]::Now.ToString("ffff"))</FolderDisambiguator>
-      <ProjectSpecificOutDir>$(SonarQubeOutputPath)\$(MSBuildProjectName)$(FolderDisambiguator)</ProjectSpecificOutDir>
-      <ProjectSpecificConfDir>$(SonarQubeConfigPath)\$(MSBuildProjectName)$(FolderDisambiguator)</ProjectSpecificConfDir>
+      <ProjectSpecificConfDir>$(SonarQubeConfigPath)\$(UniqueName)</ProjectSpecificConfDir>
     </PropertyGroup>
-
-    <!-- Create the project-specific output folder -->
-    <RemoveDir Directories="$(ProjectSpecificOutDir)" />
-    <MakeDir Directories="$(ProjectSpecificOutDir)" />
-
-    <!-- Create the project-specific conf folder -->
-    <RemoveDir Directories="$(ProjectSpecificConfDir)" />
     <MakeDir Directories="$(ProjectSpecificConfDir)" />
   </Target>
 
