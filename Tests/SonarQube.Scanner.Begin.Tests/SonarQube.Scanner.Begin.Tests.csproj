@@ -4,8 +4,6 @@
     <TargetFramework>net46</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <IsPackable>false</IsPackable>
-    <AssemblyName>SonarQube.TeamBuild.PreProcessor.Tests</AssemblyName>
-    <RootNamespace>SonarQube.TeamBuild.PreProcessor.Tests</RootNamespace>
     <CodeAnalysisRuleSet>SonarQube.Scanner.Begin.Tests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 

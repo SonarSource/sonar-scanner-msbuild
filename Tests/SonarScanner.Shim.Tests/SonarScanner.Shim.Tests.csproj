@@ -4,8 +4,6 @@
     <TargetFramework>net46</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <IsPackable>false</IsPackable>
-    <AssemblyName>SonarScanner.Shim.Tests</AssemblyName>
-    <RootNamespace>SonarScanner.Shim.Tests</RootNamespace>
     <CodeAnalysisRuleSet>SonarScanner.Shim.Tests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 

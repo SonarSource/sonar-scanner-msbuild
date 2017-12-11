@@ -4,8 +4,6 @@
     <TargetFramework>net46</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <IsPackable>false</IsPackable>
-    <AssemblyName>SonarQube.MSBuild.Tasks.UnitTests</AssemblyName>
-    <RootNamespace>SonarQube.MSBuild.Tasks.UnitTests</RootNamespace>
     <CodeAnalysisRuleSet>SonarQube.MSBuild.Tasks.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 

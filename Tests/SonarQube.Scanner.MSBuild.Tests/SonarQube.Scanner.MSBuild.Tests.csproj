@@ -4,8 +4,6 @@
     <TargetFramework>net46</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <IsPackable>false</IsPackable>
-    <AssemblyName>SonarQube.TeamBuild.Integration.Tests</AssemblyName>
-    <RootNamespace>SonarQube.TeamBuild.Integration.Tests</RootNamespace>
     <CodeAnalysisRuleSet>SonarQube.Scanner.MSBuild.Tests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
