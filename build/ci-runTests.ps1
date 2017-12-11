@@ -4,12 +4,11 @@
 # for more information on debugging locally.
 
 function Invoke-Tests() {
-    Write-Host "Start tests"
-    $x = ""
-    Get-ChildItem -path . -Recurse -Include *Tests.dll | Where-Object { $_.FullName -match "bin" } | ForEach-Object { $x += """$_"" " }
-    Write-Host $x
-    Invoke-Expression "& '$env:VSTEST_PATH' /EnableCodeCoverage /Logger:trx $x"
-  #  testExitCode
+    # Write-Host "Start tests"
+    # $x = ""; Get-ChildItem -path . -Recurse -Include *Tests.dll | Where-Object { $_.FullName -match "bin" } | ForEach-Object { $x += """$_"" " }; Invoke-Expression "& '$env:VSTEST_PATH' /EnableCodeCoverage /Logger:trx $x"
+    # testExitCode
+
+    Invoke-UnitTests "bin\Release" $true
 }
 
 #Copied from https://github.com/SonarSource/sonar-csharp/blob/master/scripts/utils.ps1
