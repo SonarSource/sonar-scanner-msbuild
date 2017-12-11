@@ -5,8 +5,11 @@
 
 function Invoke-Tests() {
     Write-Host "Start tests"
-    $x = ""; Get-ChildItem -path . -Recurse -Include *Tests.dll | where { $_.FullName -match "bin" } | foreach { $x += """$_"" " }; iex "& '$env:VSTEST_PATH' /EnableCodeCoverage /Logger:trx $x"
-    testExitCode
+    $x = ""
+    Get-ChildItem -path . -Recurse -Include *Tests.dll | Where-Object { $_.FullName -match "bin" } | ForEach-Object { $x += """$_"" " }
+    Write-Host $x
+    Invoke-Expression "& '$env:VSTEST_PATH' /EnableCodeCoverage /Logger:trx $x"
+  #  testExitCode
 }
 
 #Copied from https://github.com/SonarSource/sonar-csharp/blob/master/scripts/utils.ps1
@@ -16,7 +19,6 @@ function Write-Header([string]$text) {
     Write-Host $text
     Write-Host "================================================"
 }
-
 
 # Original: http://jameskovacs.com/2010/02/25/the-exec-problem
 function Exec ([scriptblock]$command, [string]$errorMessage = "ERROR: Command '${command}' FAILED.") {
