@@ -85,9 +85,11 @@ function Invoke-UnitTests([string]$binPath, [bool]$failsIfNotTest) {
 
     $projectRoot = Join-Path $PSScriptRoot ".."
 
+    Write-Header $projectRoot
+    
     Write-Debug "Running unit tests for"
     $testFiles = @()
-    Get-ChildItem $projectRoot -Recurse -Include "*.*Tests.dll" `
+    Get-ChildItem $projectRoot -Recurse -Include "SonarQube.Common.UnitTests.dll" `
         | Where-Object { $_.DirectoryName -Match $escapedPath } `
         | ForEach-Object {
             $currentFile = $_
