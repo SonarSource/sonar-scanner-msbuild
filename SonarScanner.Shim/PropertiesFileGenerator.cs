@@ -336,21 +336,26 @@ namespace SonarScanner.Shim
                 ?.Value;
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
-                return Path.GetFullPath(projectBaseDir);
+                projectBaseDir = Path.GetFullPath(projectBaseDir);
+                logger.LogDebug("Using user supplied project base directory: '{0}'.", projectBaseDir);
+                return projectBaseDir;
             }
 
             projectBaseDir = analysisConfig.SourcesDirectory;
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
+                logger.LogDebug("Using TFS/VSTS sources directory as project base directory: '{0}'.", projectBaseDir);
                 return projectBaseDir;
             }
 
             projectBaseDir = PathHelper.GetCommonRoot(projectPaths);
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
+                logger.LogDebug("Using longest common projects root path as project base directory: '{0}'.", projectBaseDir);
                 return projectBaseDir;
             }
 
+            logger.LogDebug("Using fallback project base directory: '{0}'.", analysisConfig.SonarOutputDir);
             return analysisConfig.SonarOutputDir;
         }
 
