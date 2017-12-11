@@ -546,11 +546,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
         #region Private methods
 
-        private string AddEmptyAnalysedCodeFile(ProjectDescriptor descriptor, string projectFolder, string extension = "cs")
+        private void AddEmptyAnalysedCodeFile(ProjectDescriptor descriptor, string projectFolder, string extension = "cs")
         {
             var filePath = CreateEmptyFile(projectFolder, extension);
             descriptor.AddCompileInputFile(filePath, true);
-            return filePath;
         }
 
         private static void AddEmptyContentFile(ProjectDescriptor descriptor, string projectFolder)
@@ -608,7 +607,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
 
             // We expect the compiler to warn if there are no compiler inputs
-            var expectedWarnings = (descriptor.ManagedSourceFiles.Any()) ? 0 : 1;
+            var expectedWarnings = descriptor.HasManagedSourceFiles ? 0 : 1;
             logger.AssertExpectedErrorCount(0);
             logger.AssertExpectedWarningCount(expectedWarnings);
 
@@ -701,27 +700,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
                     }
                 }
             }
-        }
-
-        private static void AssertFileIsNotAnalysed(string analysisFileListPath, string unanalysedPath)
-        {
-            var actualFiles = GetAnalysedFiles(analysisFileListPath); CollectionAssert.DoesNotContain(actualFiles, unanalysedPath, "File should not be analysed: {0}", unanalysedPath);
-        }
-
-        private static void AssertFileIsAnalysed(string analysisFileListPath, string unanalysedPath)
-        {
-            var actualFiles = GetAnalysedFiles(analysisFileListPath);
-            CollectionAssert.Contains(actualFiles, unanalysedPath, "File should not be analysed: {0}", unanalysedPath);
-        }
-
-        private static string[] GetAnalysedFiles(string analysisFileListPath)
-        {
-            if (!File.Exists(analysisFileListPath))
-            {
-                Assert.Inconclusive("Test error: the specified analysis file list does not exist: {0}", analysisFileListPath);
-            }
-
-            return File.ReadAllLines(analysisFileListPath);
         }
 
         private void CheckProjectInfo(ProjectInfo expected, string projectOutputFolder)

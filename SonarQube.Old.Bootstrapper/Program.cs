@@ -20,6 +20,9 @@
 
 namespace SonarQube.Old.Bootstrapper
 {
+    /// <summary>
+    /// This executable is still used by the extension for VSTS and perhaps many customers.
+    /// </summary>
     internal static class Program
     {
         private static void Main(string[] args)

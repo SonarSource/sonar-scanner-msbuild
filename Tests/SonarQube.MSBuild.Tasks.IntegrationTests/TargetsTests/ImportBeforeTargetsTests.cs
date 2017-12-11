@@ -266,20 +266,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             return fullPath;
         }
 
-        /// <summary>
-        /// Ensures a file with the correct file name exists in the correct sub-directory
-        /// under the specified root
-        /// </summary>
-        private static string EnsureDummyAnalysisConfigFileExists(string rootBuildDir)
-        {
-            var subDir = Path.Combine(rootBuildDir, ".sonarqube", "conf");
-            Directory.CreateDirectory(subDir);
-
-            var fullPath = Path.Combine(subDir, FileConstants.ConfigFileName);
-            File.WriteAllText(fullPath, "Dummy config file");
-            return fullPath;
-        }
-
         #endregion Private methods
 
         #region Assertions

@@ -169,7 +169,6 @@ namespace SonarScanner.Shim.Tests
             var config = CreateValidConfig(testDir);
 
             // Mock SARIF fixer simulates fixable SARIF with fixed name
-            var returnPathDir = Path.GetDirectoryName(testSarifPath);
             var returnPathFileName = Path.GetFileNameWithoutExtension(testSarifPath) +
                 RoslynV1SarifFixer.FixedFileSuffix + Path.GetExtension(testSarifPath);
 
@@ -209,7 +208,6 @@ namespace SonarScanner.Shim.Tests
             var config = CreateValidConfig(testDir);
 
             // Mock SARIF fixer simulates fixable SARIF with fixed name
-            var returnPathDir = Path.GetDirectoryName(testSarifPath);
             var returnPathFileName = Path.GetFileNameWithoutExtension(testSarifPath) +
                 RoslynV1SarifFixer.FixedFileSuffix + Path.GetExtension(testSarifPath);
 
@@ -236,7 +234,6 @@ namespace SonarScanner.Shim.Tests
 
             // SARIF file path
             var testSarifPath = Path.Combine(testDir, "testSarif.json");
-            var escapedSarifPath = testSarifPath.Replace(@"\", @"\\");
 
             // Create SARIF report path property and add it to the project info
             var projectSettings = new AnalysisProperties
@@ -737,7 +734,6 @@ namespace SonarScanner.Shim.Tests
         private string ComputeProjectBaseDir(string teamBuildValue, string userValue, string[] projectPaths)
         {
             var config = new AnalysisConfig();
-            var writer = new PropertiesWriter(config);
             config.SonarOutputDir = TestSonarqubeOutputDir;
 
             config.SourcesDirectory = teamBuildValue;

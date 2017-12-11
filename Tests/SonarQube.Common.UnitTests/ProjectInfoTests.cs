@@ -106,7 +106,7 @@ namespace SonarQube.Common.UnitTests
 
         #region Helper methods
 
-        private ProjectInfo SaveAndReloadProjectInfo(ProjectInfo original, string outputFileName)
+        private void SaveAndReloadProjectInfo(ProjectInfo original, string outputFileName)
         {
             Assert.IsFalse(File.Exists(outputFileName), "Test error: file should not exist at the start of the test. File: {0}", outputFileName);
             original.Save(outputFileName);
@@ -117,7 +117,6 @@ namespace SonarQube.Common.UnitTests
             Assert.IsNotNull(reloadedProjectInfo, "Reloaded project info should not be null");
 
             ProjectInfoAssertions.AssertExpectedValues(original, reloadedProjectInfo);
-            return reloadedProjectInfo;
         }
 
         #endregion Helper methods

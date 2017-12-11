@@ -172,11 +172,10 @@ namespace SonarScanner.Shim.Tests
 
         #region Assertions
 
-        private static ProjectInfo AssertProjectResultExists(string expectedProjectName, IEnumerable<ProjectInfo> actualProjects)
+        private static void AssertProjectResultExists(string expectedProjectName, IEnumerable<ProjectInfo> actualProjects)
         {
             var actual = actualProjects.FirstOrDefault(p => expectedProjectName.Equals(p.ProjectName));
             Assert.IsNotNull(actual, "Failed to find project with the expected name: {0}", expectedProjectName);
-            return actual;
         }
 
         #endregion Assertions

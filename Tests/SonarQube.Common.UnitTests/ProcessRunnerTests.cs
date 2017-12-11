@@ -106,8 +106,8 @@ xxx yyy
             // Assert
             timer.Stop(); // Sanity check that the process actually timed out
             logger.LogInfo("Test output: test ran for {0}ms", timer.ElapsedMilliseconds);
-            // TODO: the following line throws regularly on the CI machines (elapsed time is around 97ms);
-            // Assert.IsTrue(timer.ElapsedMilliseconds >= 100, "Test error: batch process exited too early. Elapsed time(ms): {0}", timer.ElapsedMilliseconds);
+            // TODO: the following line throws regularly on the CI machines (elapsed time is around 97ms)
+            //// Assert.IsTrue(timer.ElapsedMilliseconds >= 100, "Test error: batch process exited too early. Elapsed time(ms): {0}", timer.ElapsedMilliseconds);
 
             Assert.IsFalse(success, "Expecting the process to have failed");
             Assert.AreEqual(ProcessRunner.ErrorCode, runner.ExitCode, "Unexpected exit code");

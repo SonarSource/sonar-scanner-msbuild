@@ -53,11 +53,6 @@ namespace TestUtilities
         private const int STATE_value_ws = 9;
         private const int STATE_finish = 10;
 
-        private static string[] stateNames = new string[]
-        { "STATE_start", "STATE_comment", "STATE_key", "STATE_key_escape", "STATE_key_ws",
-            "STATE_before_separator", "STATE_after_separator", "STATE_value", "STATE_value_escape",
-            "STATE_value_ws", "STATE_finish" };
-
         private static readonly int[][] states = new int[][] {
             new int[]{//STATE_start
                 MATCH_end_of_input, STATE_finish,           ACTION_ignore,
@@ -132,13 +127,13 @@ namespace TestUtilities
             }
         };
 
-        private Hashtable hashtable;
+        private readonly Hashtable hashtable;
 
         private const int bufferSize = 1000;
 
         private bool escaped = false;
-        private StringBuilder keyBuilder = new StringBuilder();
-        private StringBuilder valueBuilder = new StringBuilder();
+        private readonly StringBuilder keyBuilder = new StringBuilder();
+        private readonly StringBuilder valueBuilder = new StringBuilder();
 
         /// <summary>
         /// Construct a reader passing a reference to a Hashtable (or JavaProperties) instance
@@ -316,7 +311,6 @@ namespace TestUtilities
                 {
                     if (Matches(states[state][s], ch))
                     {
-                        //Debug.WriteLine( stateNames[ state ] + ", " + (s/3) + ", " + ch + (ch>20?" (" + (char) ch + ")" : "") );
                         matched = true;
                         DoAction(states[state][s + 2], ch);
 
@@ -380,7 +374,6 @@ namespace TestUtilities
                     break;
 
                 case ACTION_store_property:
-                    //Debug.WriteLine( keyBuilder.ToString() + "=" + valueBuilder.ToString() );
                     // Corrected to avoid duplicate entry errors - thanks to David Tanner.
                     hashtable[keyBuilder.ToString()] = valueBuilder.ToString();
                     keyBuilder.Length = 0;
@@ -401,46 +394,48 @@ namespace TestUtilities
 
         private char EscapedChar(int ch)
         {
-            if (escaped)
+            if (!escaped)
             {
-                switch (ch)
-                {
-                    case 't':
-                        return '\t';
+                return (char)ch;
+            }
 
-                    case 'r':
-                        return '\r';
+            switch (ch)
+            {
+                case 't':
+                    return '\t';
 
-                    case 'n':
-                        return '\n';
+                case 'r':
+                    return '\r';
 
-                    case 'f':
-                        return '\f';
+                case 'n':
+                    return '\n';
 
-                    case 'u':
-                        var uch = 0;
-                        for (var i = 0; i < 4; i++)
+                case 'f':
+                    return '\f';
+
+                case 'u':
+                    var uch = 0;
+                    for (var i = 0; i < 4; i++)
+                    {
+                        ch = NextChar();
+                        if (ch >= '0' && ch <= '9')
                         {
-                            ch = NextChar();
-                            if (ch >= '0' && ch <= '9')
-                            {
-                                uch = (uch << 4) + ch - '0';
-                            }
-                            else if (ch >= 'a' && ch <= 'z')
-                            {
-                                uch = (uch << 4) + ch - 'a' + 10;
-                            }
-                            else if (ch >= 'A' && ch <= 'Z')
-                            {
-                                uch = (uch << 4) + ch - 'A' + 10;
-                            }
-                            else
-                            {
-                                throw new ParseException("Invalid Unicode character.");
-                            }
+                            uch = (uch << 4) + ch - '0';
                         }
-                        return (char)uch;
-                }
+                        else if (ch >= 'a' && ch <= 'z')
+                        {
+                            uch = (uch << 4) + ch - 'a' + 10;
+                        }
+                        else if (ch >= 'A' && ch <= 'Z')
+                        {
+                            uch = (uch << 4) + ch - 'A' + 10;
+                        }
+                        else
+                        {
+                            throw new ParseException("Invalid Unicode character.");
+                        }
+                    }
+                    return (char)uch;
             }
 
             return (char)ch;
@@ -489,7 +484,7 @@ namespace TestUtilities
             if (reader.BaseStream.Position == reader.BaseStream.Length)
             {
                 // We have reached the end of the stream. The reder will throw exception if we call Read any further.
-                // We just return -1 now;
+                // We just return -1 now
                 return -1;
             }
             // reader.ReadChar() will take into account the encoding.

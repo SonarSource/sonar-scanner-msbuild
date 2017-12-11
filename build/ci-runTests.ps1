@@ -4,9 +4,11 @@
 # for more information on debugging locally.
 
 function Invoke-Tests() {
-    Write-Host "Start tests"
-    $x = ""; Get-ChildItem -path . -Recurse -Include *Tests.dll | where { $_.FullName -match "bin" } | foreach { $x += """$_"" " }; iex "& '$env:VSTEST_PATH' /EnableCodeCoverage /Logger:trx $x"
-    testExitCode
+    # Write-Host "Start tests"
+    # $x = ""; Get-ChildItem -path . -Recurse -Include *Tests.dll | Where-Object { $_.FullName -match "bin" } | ForEach-Object { $x += """$_"" " }; Invoke-Expression "& '$env:VSTEST_PATH' /EnableCodeCoverage /Logger:trx $x"
+    # testExitCode
+
+    Invoke-UnitTests "bin" $true
 }
 
 #Copied from https://github.com/SonarSource/sonar-csharp/blob/master/scripts/utils.ps1
@@ -17,7 +19,6 @@ function Write-Header([string]$text) {
     Write-Host "================================================"
 }
 
-
 # Original: http://jameskovacs.com/2010/02/25/the-exec-problem
 function Exec ([scriptblock]$command, [string]$errorMessage = "ERROR: Command '${command}' FAILED.") {
     Write-Debug "Invoking command:${command}"
@@ -25,6 +26,8 @@ function Exec ([scriptblock]$command, [string]$errorMessage = "ERROR: Command '$
     $output = ""
     & $command | Tee-Object -Variable output
     if ((-not $?) -or ($lastexitcode -ne 0)) {
+        Write-Host $output
+        
         throw $errorMessage
     }
 
@@ -80,21 +83,27 @@ function Invoke-UnitTests([string]$binPath, [bool]$failsIfNotTest) {
 
     $escapedPath = $binPath -Replace '\\', '\\'
 
+    $projectRoot = Join-Path $PSScriptRoot ".."
+
+    Write-Header $projectRoot
+    
     Write-Debug "Running unit tests for"
     $testFiles = @()
-    $testDirs = @()
-    Get-ChildItem "." -Recurse -Include "*.*Tests.dll" `
+    Get-ChildItem $projectRoot -Recurse -Include "SonarQube.Common.UnitTests.dll" `
         | Where-Object { $_.DirectoryName -Match $escapedPath } `
         | ForEach-Object {
             $currentFile = $_
             Write-Debug "   - ${currentFile}"
             $testFiles += $currentFile
-            $testDirs += $currentFile.Directory
         }
-    $testDirs = $testDirs | Select-Object -Uniq
+        
+    Write-Header "found test assemblies"
+    Write-Host $testFiles
+
+    Write-Header "running..."
 
     $cmdOutput = Exec { & (Get-VsTestPath) $testFiles /Parallel /Enablecodecoverage /InIsolation /Logger:trx `
-        /UseVsixExtensions:true /TestAdapterPath:$testDirs `
+        /UseVsixExtensions:true `
     } -errorMessage "ERROR: Unit Tests execution FAILED."
 
     if ($failsIfNotTest -And $cmdOutput -Match "Warning: No test is available") {

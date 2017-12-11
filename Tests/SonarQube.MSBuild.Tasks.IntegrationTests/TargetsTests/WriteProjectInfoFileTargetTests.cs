@@ -874,7 +874,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             config.Save(fullPath);
         }
 
-        private static ProjectItemElement AddItem(ProjectRootElement projectRoot, string itemTypeName, string include, params string[] idAndValuePairs)
+        private static void AddItem(ProjectRootElement projectRoot, string itemTypeName, string include, params string[] idAndValuePairs)
         {
             var item = projectRoot.AddItem(itemTypeName, include);
 
@@ -885,8 +885,6 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
             {
                 item.AddMetadata(idAndValuePairs[index], idAndValuePairs[index + 1]);
             }
-
-            return item;
         }
 
         #endregion Private methods

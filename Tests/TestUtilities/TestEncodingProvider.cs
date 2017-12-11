@@ -26,8 +26,8 @@ namespace TestUtilities
 {
     public class TestEncodingProvider : IEncodingProvider
     {
-        private Func<int, Encoding> _intEncodingFunc;
-        private Func<string, Encoding> _stringEncodingFunc;
+        private readonly Func<int, Encoding> _intEncodingFunc;
+        private readonly Func<string, Encoding> _stringEncodingFunc;
 
         public TestEncodingProvider(Func<int, Encoding> intEncodingFunc, Func<string, Encoding> stringEncodingFunc)
         {

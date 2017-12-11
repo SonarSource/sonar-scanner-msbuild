@@ -47,12 +47,6 @@ namespace TestUtilities
             SetVariable("PATH", value);
         }
 
-        private static void AssertEnvironmentVariableDoesNotExist(string name)
-        {
-            var vars = Environment.GetEnvironmentVariables();
-            Assert.IsFalse(vars.Contains(name), "Test setup error: environment variable already exists. Name: {0}", name);
-        }
-
         #region IDispose implementation
 
         private bool disposed;
@@ -63,7 +57,7 @@ namespace TestUtilities
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (disposed)
             {

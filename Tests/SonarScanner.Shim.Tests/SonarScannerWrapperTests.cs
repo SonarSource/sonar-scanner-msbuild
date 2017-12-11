@@ -280,7 +280,7 @@ namespace SonarScanner.Shim.Tests
             testLogger.AssertInfoMessageExists(ExpectedConsoleMessagePrefix);
             testLogger.AssertInfoMessageExists(expectedWorkingDir);
 
-            if (actualOutcome == false)
+            if (!actualOutcome)
             {
                 testLogger.AssertErrorsLogged();
             }
