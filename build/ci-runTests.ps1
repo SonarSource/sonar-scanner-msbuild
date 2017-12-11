@@ -26,6 +26,8 @@ function Exec ([scriptblock]$command, [string]$errorMessage = "ERROR: Command '$
     $output = ""
     & $command | Tee-Object -Variable output
     if ((-not $?) -or ($lastexitcode -ne 0)) {
+        Write-Host $output
+        
         throw $errorMessage
     }
 
