@@ -8,7 +8,7 @@ function Invoke-Tests() {
     # $x = ""; Get-ChildItem -path . -Recurse -Include *Tests.dll | Where-Object { $_.FullName -match "bin" } | ForEach-Object { $x += """$_"" " }; Invoke-Expression "& '$env:VSTEST_PATH' /EnableCodeCoverage /Logger:trx $x"
     # testExitCode
 
-    Invoke-UnitTests "bin\Release" $true
+    Invoke-UnitTests "bin" $true
 }
 
 #Copied from https://github.com/SonarSource/sonar-csharp/blob/master/scripts/utils.ps1
@@ -81,21 +81,21 @@ function Invoke-UnitTests([string]$binPath, [bool]$failsIfNotTest) {
 
     $escapedPath = $binPath -Replace '\\', '\\'
 
+    $projectRoot = Join-Path $PSScriptRoot ".."
+
     Write-Debug "Running unit tests for"
     $testFiles = @()
-    $testDirs = @()
-    Get-ChildItem "." -Recurse -Include "*.*Tests.dll" `
+    Get-ChildItem $projectRoot -Recurse -Include "*.*Tests.dll" `
         | Where-Object { $_.DirectoryName -Match $escapedPath } `
         | ForEach-Object {
             $currentFile = $_
             Write-Debug "   - ${currentFile}"
             $testFiles += $currentFile
-            $testDirs += $currentFile.Directory
         }
     $testDirs = $testDirs | Select-Object -Uniq
 
     $cmdOutput = Exec { & (Get-VsTestPath) $testFiles /Parallel /Enablecodecoverage /InIsolation /Logger:trx `
-        /UseVsixExtensions:true /TestAdapterPath:$testDirs `
+        /UseVsixExtensions:true `
     } -errorMessage "ERROR: Unit Tests execution FAILED."
 
     if ($failsIfNotTest -And $cmdOutput -Match "Warning: No test is available") {
