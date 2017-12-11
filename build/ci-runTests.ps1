@@ -94,7 +94,11 @@ function Invoke-UnitTests([string]$binPath, [bool]$failsIfNotTest) {
             Write-Debug "   - ${currentFile}"
             $testFiles += $currentFile
         }
-    $testDirs = $testDirs | Select-Object -Uniq
+        
+    Write-Header "found test assemblies"
+    Write-Host $testFiles
+
+    Write-Header "running..."
 
     $cmdOutput = Exec { & (Get-VsTestPath) $testFiles /Parallel /Enablecodecoverage /InIsolation /Logger:trx `
         /UseVsixExtensions:true `
