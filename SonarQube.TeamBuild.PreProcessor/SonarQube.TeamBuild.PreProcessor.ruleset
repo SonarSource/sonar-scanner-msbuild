@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="SonarQube" ToolsVersion="15.0">
+<RuleSet Name="SonarQube - SonarQube Scanner for MSBuild C# QP for SonarSource" ToolsVersion="15.0">
   <Include Path="..\sonarqube\sonar-scanner-msbuildcsharp.ruleset" Action="Default" />
   <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
     <Rule Id="S1451" Action="Warning" />
