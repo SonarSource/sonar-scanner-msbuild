@@ -252,10 +252,15 @@ namespace SonarScanner.Shim
             return null;
         }
 
-        private ProjectData ToProjectData(IGrouping<Guid, ProjectInfo> projects)
+        internal /* for testing */ ProjectData ToProjectData(IGrouping<Guid, ProjectInfo> projects)
         {
-            // Shouldn't really matter which project is taken
-            var projectData = new ProjectData(projects.First())
+            // To ensure consistently sending of metrics from the same configuration we sort the project outputs
+            // and use only the first one for metrics.
+            var orderedProjects = projects
+                .OrderBy(p => $"{p.Configuration}_{p.Platform}_{p.TargetFramework}")
+                .ToList();
+
+            var projectData = new ProjectData(orderedProjects[0])
             {
                 Status = ProjectInfoValidity.ExcludeFlagSet
             };
@@ -266,7 +271,7 @@ namespace SonarScanner.Shim
                 return projectData;
             }
 
-            foreach (var p in projects)
+            foreach (var p in orderedProjects)
             {
                 var status = p.Classify(logger);
                 // If we find just one valid configuration, everything is valid

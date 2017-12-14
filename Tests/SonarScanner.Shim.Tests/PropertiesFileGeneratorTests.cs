@@ -643,6 +643,67 @@ namespace SonarScanner.Shim.Tests
             result.Should().BeOneOf(@"C:\Program Files", @"C:\Program Files (x86)");
         }
 
+        [TestMethod]
+        public void ProjectData_Orders_AnalyzerOutPaths()
+        {
+            var guid = Guid.NewGuid();
+
+            var projectInfos = new[]
+            {
+                new ProjectInfo
+                {
+                    ProjectGuid = guid,
+                    Configuration = "Release",
+                    Platform = "anyCpu",
+                    TargetFramework = "netstandard2.0",
+                    AnalysisSettings = new AnalysisProperties
+                    {
+                        new Property { Id = ".analyzer.projectOutPath", Value = "1" }
+                    },
+                },
+                new ProjectInfo
+                {
+                    ProjectGuid = guid,
+                    Configuration = "Debug",
+                    Platform = "anyCpu",
+                    TargetFramework = "netstandard2.0",
+                    AnalysisSettings = new AnalysisProperties
+                    {
+                        new Property { Id = ".analyzer.projectOutPath", Value = "2" }
+                    },
+                },
+                new ProjectInfo
+                {
+                    ProjectGuid = guid,
+                    Configuration = "Debug",
+                    Platform = "x86",
+                    TargetFramework = "net46",
+                    AnalysisSettings = new AnalysisProperties
+                    {
+                        new Property { Id = ".analyzer.projectOutPath", Value = "3" }
+                    },
+                },
+                new ProjectInfo
+                {
+                    ProjectGuid = guid,
+                    Configuration = "Debug",
+                    Platform = "x86",
+                    TargetFramework = "netstandard2.0",
+                    AnalysisSettings = new AnalysisProperties
+                    {
+                        new Property { Id = ".analyzer.projectOutPath", Value = "4" }
+                    },
+                },
+            };
+
+            var analysisRootDir = TestUtils.CreateTestSpecificFolder(TestContext, "project");
+            var propertiesFileGenerator = new PropertiesFileGenerator(CreateValidConfig(analysisRootDir), new TestLogger());
+            var result = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First());
+
+            CollectionAssert.AreEqual(new[] { "2", "3", "4", "1" }, result.AnalyzerOutPaths.ToList());
+
+
+        }
         #endregion Tests
 
         #region Assertions

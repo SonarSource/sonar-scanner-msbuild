@@ -58,7 +58,10 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
                 IsExcluded = false,
                 OutputFolder = testFolder,
                 ProjectGuid = projectGuid.ToString("B"),
-                ProjectName = "MyProject"
+                ProjectName = "MyProject",
+                Configuration = "conf-1",
+                Platform = "plat-1",
+                TargetFramework = "target-1",
             };
             task.ProjectLanguage = ProjectLanguages.CSharp;
             // No analysis results are supplied
@@ -67,14 +70,16 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             var reloadedProjectInfo = ExecuteAndCheckSucceeds(task, testFolder);
 
             // Addition assertions
-            ProjectInfoAssertions.AssertExpectedValues(
-                "c:\\fullPath\\project.proj",
-                ProjectLanguages.CSharp,
-                ProjectType.Test,
-                projectGuid,
-                "MyProject",
-                false, // IsExcluded
-                reloadedProjectInfo);
+            Assert.IsNotNull(reloadedProjectInfo, "Supplied ProjectInfo should not be null");
+            Assert.AreEqual("c:\\fullPath\\project.proj", reloadedProjectInfo.FullPath, "Unexpected FullPath");
+            Assert.AreEqual(ProjectLanguages.CSharp, reloadedProjectInfo.ProjectLanguage, "Unexpected ProjectLanguage");
+            Assert.AreEqual(ProjectType.Test, reloadedProjectInfo.ProjectType, "Unexpected ProjectType");
+            Assert.AreEqual(projectGuid, reloadedProjectInfo.ProjectGuid, "Unexpected ProjectGuid");
+            Assert.AreEqual("MyProject", reloadedProjectInfo.ProjectName, "Unexpected ProjectName");
+            Assert.IsFalse(reloadedProjectInfo.IsExcluded, "Unexpected IsExcluded");
+            Assert.AreEqual("conf-1", reloadedProjectInfo.Configuration);
+            Assert.AreEqual("plat-1", reloadedProjectInfo.Platform);
+            Assert.AreEqual("target-1", reloadedProjectInfo.TargetFramework);
         }
 
         [TestMethod]
@@ -259,14 +264,16 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             var reloadedProjectInfo = ExecuteAndCheckSucceeds(task, testFolder);
 
             // Addition assertions
-            ProjectInfoAssertions.AssertExpectedValues(
-                "c:\\fullPath\\project.proj",
-                ProjectLanguages.CSharp,
-                ProjectType.Test,
-                projectGuid,
-                "ProjectWithoutProjectGuid",
-                false, // IsExcluded
-                reloadedProjectInfo);
+            Assert.IsNotNull(reloadedProjectInfo, "Supplied ProjectInfo should not be null");
+            Assert.AreEqual("c:\\fullPath\\project.proj", reloadedProjectInfo.FullPath, "Unexpected FullPath");
+            Assert.AreEqual(ProjectLanguages.CSharp, reloadedProjectInfo.ProjectLanguage, "Unexpected ProjectLanguage");
+            Assert.AreEqual(ProjectType.Test, reloadedProjectInfo.ProjectType, "Unexpected ProjectType");
+            Assert.AreEqual(projectGuid, reloadedProjectInfo.ProjectGuid, "Unexpected ProjectGuid");
+            Assert.AreEqual("ProjectWithoutProjectGuid", reloadedProjectInfo.ProjectName, "Unexpected ProjectName");
+            Assert.IsFalse(reloadedProjectInfo.IsExcluded, "Unexpected IsExcluded");
+            Assert.IsNull(reloadedProjectInfo.Configuration);
+            Assert.IsNull(reloadedProjectInfo.Platform);
+            Assert.IsNull(reloadedProjectInfo.TargetFramework);
         }
 
         [TestMethod]
