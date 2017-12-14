@@ -48,24 +48,6 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void Creates_Sequential_Folders_With_Prefix()
-        {
-            // Arrange
-
-            // Create an empty folder, representing the .sonarqube/out folder
-            var root = TestUtils.CreateTestSpecificFolder(TestContext);
-            var task = new MakeUniqueDir { Path = root, Prefix = "the-prefix" };
-
-            // Act
-            task.Execute(); // create "the-prefix0"
-
-            // Assert
-            Assert.IsTrue(Directory.Exists(Path.Combine(root, "the-prefix0")));
-            Assert.AreEqual("the-prefix0", task.UniqueName);
-            Assert.AreEqual(Path.Combine(root, "the-prefix0"), task.UniquePath);
-        }
-
-        [TestMethod]
         public void Creates_Sequential_Folders_Some_Already_Exist()
         {
             // Arrange

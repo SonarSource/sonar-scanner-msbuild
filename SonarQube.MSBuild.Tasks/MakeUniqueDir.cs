@@ -35,11 +35,6 @@ namespace SonarQube.MSBuild.Tasks
         public string Path { get; set; }
 
         /// <summary>
-        /// Optional folder name prefix
-        /// </summary>
-        public string Prefix { get; set; }
-
-        /// <summary>
         /// Returns the name of the created folder
         /// </summary>
         [Output]
@@ -61,13 +56,12 @@ namespace SonarQube.MSBuild.Tasks
             {
                 for (var i = 0; /* endless */ ; i++)
                 {
-                    var name = $"{Prefix ?? string.Empty}{i}";
-                    var fullPath = System.IO.Path.Combine(Path, name);
-                    if (!Directory.Exists(fullPath))
+                    UniqueName = i.ToString();
+                    UniquePath = System.IO.Path.Combine(Path, UniqueName);
+
+                    if (!Directory.Exists(UniquePath))
                     {
-                        Directory.CreateDirectory(fullPath);
-                        UniqueName = name;
-                        UniquePath = fullPath;
+                        Directory.CreateDirectory(UniquePath);
                         break;
                     }
                 }
