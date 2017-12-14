@@ -70,6 +70,12 @@ namespace SonarQube.MSBuild.Tasks
         [Required]
         public string FullProjectPath { get; set; }
 
+        public string Configuration { get; set; }
+
+        public string Platform { get; set; }
+
+        public string TargetFramework { get; set; }
+
         /// <summary>
         /// Optional, in case we are imported into a project type that does not have a language specified
         /// </summary>
@@ -111,7 +117,10 @@ namespace SonarQube.MSBuild.Tasks
                 ProjectName = ProjectName,
                 FullPath = FullProjectPath,
                 ProjectLanguage = ProjectLanguage,
-                Encoding = ComputeEncoding(CodePage)?.WebName
+                Encoding = ComputeEncoding(CodePage)?.WebName,
+                Configuration = Configuration,
+                Platform = Platform,
+                TargetFramework = TargetFramework,
             };
 
             string guid = null;

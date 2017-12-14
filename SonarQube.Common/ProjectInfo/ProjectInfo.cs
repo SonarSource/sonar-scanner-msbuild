@@ -80,6 +80,21 @@ namespace SonarQube.Common
         /// </summary>
         public AnalysisProperties AnalysisSettings { get; set; }
 
+        /// <summary>
+        /// MSBuild configuration for the current build
+        /// </summary>
+        public string Configuration { get; set; }
+
+        /// <summary>
+        /// MSBuild plaform for the current build
+        /// </summary>
+        public string Platform { get; set; }
+
+        /// <summary>
+        /// MSBuild target framework for the current build
+        /// </summary>
+        public string TargetFramework { get; set; }
+
         #endregion Public properties
 
         #region Serialization

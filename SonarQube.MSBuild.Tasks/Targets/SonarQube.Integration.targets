@@ -282,7 +282,10 @@
        AnalysisResults="@(AnalysisResults)"
        AnalysisSettings="@(SonarQubeSetting)"
        OutputFolder="$(ProjectSpecificOutDir)"
-       CodePage="$(CodePage)"/>
+       CodePage="$(CodePage)"
+       Configuration="$(Configuration)"
+       Platform="$(Platform)"
+       TargetFramework="$(TargetFramework)" />
   </Target>
 
   <!-- **************************************************************************** -->

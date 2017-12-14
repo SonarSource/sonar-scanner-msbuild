@@ -61,31 +61,16 @@ namespace TestUtilities
         /// </summary>
         public static void AssertExpectedValues(ProjectInfo expected, ProjectInfo actual)
         {
-            AssertExpectedValues(expected.FullPath, expected.ProjectLanguage, expected.ProjectType, expected.ProjectGuid, expected.ProjectName, expected.IsExcluded, actual);
+            Assert.IsNotNull(actual, "Supplied ProjectInfo should not be null");
+
+            Assert.AreEqual(expected.FullPath, actual.FullPath, "Unexpected FullPath");
+            Assert.AreEqual(expected.ProjectLanguage, actual.ProjectLanguage, "Unexpected ProjectLanguage");
+            Assert.AreEqual(expected.ProjectType, actual.ProjectType, "Unexpected ProjectType");
+            Assert.AreEqual(expected.ProjectGuid, actual.ProjectGuid, "Unexpected ProjectGuid");
+            Assert.AreEqual(expected.ProjectName, actual.ProjectName, "Unexpected ProjectName");
+            Assert.AreEqual(expected.IsExcluded, actual.IsExcluded, "Unexpected IsExcluded");
 
             CompareAnalysisResults(expected, actual);
-        }
-
-        /// <summary>
-        /// Checks that the project info contains the expected values
-        /// </summary>
-        public static void AssertExpectedValues(
-            string expectedFullProjectPath,
-            string expectedProjectLanguage,
-            ProjectType expectedProjectType,
-            Guid expectedProjectGuid,
-            string expectedProjectName,
-            bool expectedIsExcluded,
-            ProjectInfo actualProjectInfo)
-        {
-            Assert.IsNotNull(actualProjectInfo, "Supplied ProjectInfo should not be null");
-
-            Assert.AreEqual(expectedFullProjectPath, actualProjectInfo.FullPath, "Unexpected FullPath");
-            Assert.AreEqual(expectedProjectLanguage, actualProjectInfo.ProjectLanguage, "Unexpected ProjectLanguage");
-            Assert.AreEqual(expectedProjectType, actualProjectInfo.ProjectType, "Unexpected ProjectType");
-            Assert.AreEqual(expectedProjectGuid, actualProjectInfo.ProjectGuid, "Unexpected ProjectGuid");
-            Assert.AreEqual(expectedProjectName, actualProjectInfo.ProjectName, "Unexpected ProjectName");
-            Assert.AreEqual(expectedIsExcluded, actualProjectInfo.IsExcluded, "Unexpected IsExcluded");
         }
 
         /// <summary>
