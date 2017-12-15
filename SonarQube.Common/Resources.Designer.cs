@@ -197,6 +197,15 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to At least one property name is missing. Please check that the settings file is valid..
+        /// </summary>
+        public static string ERROR_InvalidPropertyName {
+            get {
+                return ResourceManager.GetString("ERROR_InvalidPropertyName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Descriptor ids must be unique.
         /// </summary>
         public static string ERROR_Parser_UniqueDescriptorIds {

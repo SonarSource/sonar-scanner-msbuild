@@ -254,4 +254,7 @@
   <data name="ERROR_FailedParsePropertiesEnvVar" xml:space="preserve">
     <value>Failed to parse properties from the environment variable '{0}'</value>
   </data>
+  <data name="ERROR_InvalidPropertyName" xml:space="preserve">
+    <value>At least one property name is missing. Please check that the settings file is valid.</value>
+  </data>
 </root>

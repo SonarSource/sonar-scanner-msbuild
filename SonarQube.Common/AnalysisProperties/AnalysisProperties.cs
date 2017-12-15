@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Serialization;
 
 namespace SonarQube.Common
@@ -68,9 +69,15 @@ namespace SonarQube.Common
                 throw new ArgumentNullException("fileName");
             }
 
-            var model = Serializer.LoadModel<AnalysisProperties>(fileName);
-            model.FilePath = fileName;
-            return model;
+            var properties = Serializer.LoadModel<AnalysisProperties>(fileName);
+            properties.FilePath = fileName;
+
+            if (properties.Any(p => p.Id == null))
+            {
+                throw new System.Xml.XmlException(Resources.ERROR_InvalidPropertyName);
+            }
+
+            return properties;
         }
 
         #endregion Serialization
