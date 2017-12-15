@@ -169,14 +169,16 @@ namespace SonarQube.TeamBuild.Integration
                     var trxDirectoryName = Path.GetDirectoryName(trxFilePath);
                     var trxFileName = Path.GetFileNameWithoutExtension(trxFilePath);
 
-                    var possibleCoveragePath = new[]
-                    {
-                        attachmentName,
-                        Path.Combine(trxDirectoryName, trxFileName, "In", attachmentName),
-                        // https://jira.sonarsource.com/browse/SONARMSBRU-361
-                        // With VSTest task the coverage file name uses underscore instead of spaces.
-                        Path.Combine(trxDirectoryName, trxFileName.Replace(' ', '_'), "In", attachmentName)
-                    }.FirstOrDefault(path => File.Exists(path));
+                    var possibleCoveragePath =
+                        new[]
+                        {
+                            attachmentName,
+                            Path.Combine(trxDirectoryName, trxFileName, "In", attachmentName),
+                            // https://jira.sonarsource.com/browse/SONARMSBRU-361
+                            // With VSTest task the coverage file name uses underscore instead of spaces.
+                            Path.Combine(trxDirectoryName, trxFileName.Replace(' ', '_'), "In", attachmentName)
+                        }
+                        .FirstOrDefault(path => File.Exists(path));
 
                     if (possibleCoveragePath != null)
                     {

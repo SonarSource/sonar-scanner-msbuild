@@ -245,7 +245,53 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
         [TestMethod, TestCategory("CodeCoverage")]
         [Description("Tests handling of a trx file that contains a single code coverage attachment with a non-rooted path")]
-        public void TrxReader_SingleAttachment_RelativePath()
+        public void TrxReader_SingleAttachment_RelativePathWithSpaces()
+        {
+            // Arrange
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
+            var coverageFileName = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+
+            TestUtils.CreateTextFile(resultsDir, "single attachment.trx",
+@"<?xml version=""1.0"" encoding=""UTF-8""?>
+<TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
+	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
+	xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
+  <ResultSummary outcome=""Completed"">
+    <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
+    <RunInfos />
+    <CollectorDataEntries>
+      <Collector agentName=""MACHINENAME"" uri=""datacollector://microsoft/CodeCoverage/2.0"" collectorDisplayName=""Code Coverage"">
+        <UriAttachments>
+          <UriAttachment>
+            <A href=""{0}"">
+            </A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>",
+           coverageFileName);
+
+            var logger = new TestLogger();
+
+            var expectedFilePath = Path.Combine(resultsDir, "single attachment", "In", coverageFileName);
+            Directory.CreateDirectory(Path.GetDirectoryName(expectedFilePath));
+            File.Create(expectedFilePath);
+
+            // Act
+            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+
+            // Assert
+            Assert.AreEqual(expectedFilePath, coverageFilePath);
+
+            logger.AssertDebugMessageExists(coverageFileName);
+        }
+
+        [TestMethod, TestCategory("CodeCoverage")]
+        [Description("Tests handling of a trx file that contains a single code coverage attachment with a non-rooted path")]
+        public void TrxReader_SingleAttachment_RelativePathWithUnderscores()
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
