@@ -200,6 +200,9 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   <data name="TRX_DIAG_TestResultsDirectoryNotFound" xml:space="preserve">
     <value>Test results directory does not exist in {0}</value>
   </data>
+  <data name="TRX_WARN_InvalidConstructedCoveragePath" xml:space="preserve">
+    <value>Coverage attachment could not be found. Trx file: {0}. Attachment name: {1}</value>
+  </data>
   <data name="TRX_WARN_InvalidTrx" xml:space="preserve">
     <value>Located trx file is not a valid xml file. File: {0}. File load error: {1}</value>
   </data>

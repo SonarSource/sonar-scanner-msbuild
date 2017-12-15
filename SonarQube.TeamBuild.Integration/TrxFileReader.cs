@@ -151,35 +151,48 @@ namespace SonarQube.TeamBuild.Integration
         {
             Debug.Assert(File.Exists(trxFilePath));
 
-            string coverageFilePath = null;
-
-            if (TryExtractCoverageFilePaths(trxFilePath, logger, out IEnumerable<string> attachmentUris))
+            if (!TryExtractCoverageFilePaths(trxFilePath, logger, out var attachmentUris))
             {
-                switch (attachmentUris.Count())
-                {
-                    case 0:
-                        logger.LogDebug(Resources.TRX_DIAG_NoCodeCoverageInfo);
-                        break;
-
-                    case 1:
-                        coverageFilePath = attachmentUris.First();
-                        logger.LogDebug(Resources.TRX_DIAG_SingleCodeCoverageAttachmentFound, coverageFilePath);
-
-                        if (!Path.IsPathRooted(coverageFilePath))
-                        {
-                            coverageFilePath = Path.Combine(Path.GetDirectoryName(trxFilePath), Path.GetFileNameWithoutExtension(trxFilePath), "In", coverageFilePath);
-                            logger.LogDebug(Resources.TRX_DIAG_AbsoluteTrxPath, coverageFilePath);
-                        }
-
-                        break;
-
-                    default:
-                        logger.LogWarning(Resources.TRX_WARN_MultipleCodeCoverageAttachmentsFound, string.Join(", ", attachmentUris.ToArray()));
-                        break;
-                }
+                return null;
             }
 
-            return coverageFilePath;
+            switch (attachmentUris.Count())
+            {
+                case 0:
+                    logger.LogDebug(Resources.TRX_DIAG_NoCodeCoverageInfo);
+                    return null;
+
+                case 1:
+                    var attachmentName = attachmentUris.First();
+                    logger.LogDebug(Resources.TRX_DIAG_SingleCodeCoverageAttachmentFound, attachmentName);
+
+                    var trxDirectoryName = Path.GetDirectoryName(trxFilePath);
+                    var trxFileName = Path.GetFileNameWithoutExtension(trxFilePath);
+
+                    var possibleCoveragePath = new[]
+                    {
+                        attachmentName,
+                        Path.Combine(trxDirectoryName, trxFileName, "In", attachmentName),
+                        // https://jira.sonarsource.com/browse/SONARMSBRU-361
+                        // With VSTest task the coverage file name uses underscore instead of spaces.
+                        Path.Combine(trxDirectoryName, trxFileName.Replace(' ', '_'), "In", attachmentName)
+                    }.FirstOrDefault(path => File.Exists(path));
+
+                    if (possibleCoveragePath != null)
+                    {
+                        logger.LogDebug(Resources.TRX_DIAG_AbsoluteTrxPath, possibleCoveragePath);
+                    }
+                    else
+                    {
+                        logger.LogWarning(Resources.TRX_WARN_InvalidConstructedCoveragePath, trxFilePath, attachmentName);
+                    }
+
+                    return possibleCoveragePath;
+
+                default:
+                    logger.LogWarning(Resources.TRX_WARN_MultipleCodeCoverageAttachmentsFound, string.Join(", ", attachmentUris.ToArray()));
+                    return null;
+            }
         }
 
         private static bool TryExtractCoverageFilePaths(string trxFilePath, ILogger logger, out IEnumerable<string> coverageFilePaths)

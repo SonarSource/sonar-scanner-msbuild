@@ -305,6 +305,15 @@ namespace SonarQube.TeamBuild.Integration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Coverage attachment could not be found. Trx file: {0}. Attachment name: {1}.
+        /// </summary>
+        internal static string TRX_WARN_InvalidConstructedCoveragePath {
+            get {
+                return ResourceManager.GetString("TRX_WARN_InvalidConstructedCoveragePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Located trx file is not a valid xml file. File: {0}. File load error: {1}.
         /// </summary>
         internal static string TRX_WARN_InvalidTrx {
