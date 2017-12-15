@@ -245,7 +245,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
         [TestMethod, TestCategory("CodeCoverage")]
         [Description("Tests handling of a trx file that contains a single code coverage attachment with a non-rooted path")]
-        public void TrxReader_SingleAttachment_RelativePathWithSpaces()
+        public void TrxReader_SingleAttachment_Path1()
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
@@ -291,7 +291,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
         [TestMethod, TestCategory("CodeCoverage")]
         [Description("Tests handling of a trx file that contains a single code coverage attachment with a non-rooted path")]
-        public void TrxReader_SingleAttachment_RelativePathWithUnderscores()
+        public void TrxReader_SingleAttachment_Path2()
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
