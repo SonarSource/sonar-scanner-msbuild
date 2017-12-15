@@ -197,7 +197,7 @@ namespace SonarQube.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to At least one of the property name is malformed. Please check that the settings file is valid..
+        ///   Looks up a localized string similar to At least one property name is missing. Please check that the settings file is valid..
         /// </summary>
         public static string ERROR_InvalidPropertyName {
             get {

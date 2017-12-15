@@ -82,13 +82,13 @@ namespace SonarQube.Bootstrapper.Tests
             // Act - will error if the file is badly-formed
             try
             {
-                var defaultProps = AnalysisProperties.Load(propertiesFile);
+                var properties = AnalysisProperties.Load(propertiesFile);
 
                 Assert.Fail("Expecting XmlException to be thrown.");
             }
             catch (System.Xml.XmlException e)
             {
-                Assert.AreEqual("At least one of the property name is malformed. Please check that the settings file is valid.",
+                Assert.AreEqual("At least one property name is missing. Please check that the settings file is valid.",
                     e.Message);
             }
         }
