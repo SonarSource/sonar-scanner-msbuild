@@ -647,7 +647,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             // Check folder naming
             var folderName = Path.GetFileName(projectOutputFolder);
-            Assert.IsTrue(folderName.StartsWith(expected.ProjectName), "Project output folder does not start with the project name. Expected: {0}, actual: {1}",
+            Assert.IsFalse(folderName.StartsWith(expected.ProjectName), "Project output folder starts with the project name. Expected: {0}, actual: {1}",
                 expected.ProjectFolderName, folderName);
 
             // Check specific files
