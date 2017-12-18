@@ -21,9 +21,9 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyVersion("4.0.1")]
-[assembly: AssemblyFileVersion("4.0.1.0")]
-[assembly: AssemblyInformationalVersion("Version:4.0.1.0 Branch:not-set Sha1:not-set")]
+[assembly: AssemblyVersion("4.1.0")]
+[assembly: AssemblyFileVersion("4.1.0.0")]
+[assembly: AssemblyInformationalVersion("Version:4.1.0.0 Branch:not-set Sha1:not-set")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SonarSource and Microsoft")]
 [assembly: AssemblyCopyright("Copyright © SonarSource and Microsoft 2015-2017")]
