@@ -226,9 +226,9 @@ namespace SonarScanner.Shim
 
                 // Ensure that folder path always ends with backslash so a directory like 'c:\aaa\bbb' doesn't match
                 // a file like 'c:\aaa\bbb.cs' nor 'c:\aaa\bbbxxxx\myfile.cs'
-                if (!projectPath.EndsWith(@"\"))
+                if (!projectPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
                 {
-                    projectPath += @"\";
+                    projectPath += Path.DirectorySeparatorChar;
                 }
 
                 if (filePath.StartsWith(projectPath))
