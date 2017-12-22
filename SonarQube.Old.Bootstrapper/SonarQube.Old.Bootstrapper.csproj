@@ -1,81 +1,41 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{35848C6E-2018-4831-94FA-40D7E45B5A09}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarQube.Old.Bootstrapper</RootNamespace>
+    <TargetFramework>net46</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyName>MSBuild.SonarQube.Runner</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <DebugType>Full</DebugType>
     <CodeAnalysisRuleSet>SonarQube.Old.Bootstrapper.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>SonarQube.Old.Bootstrapper.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
-    <None Include="SonarQube.Old.Bootstrapper.ruleset" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj">
-      <Project>{60aacbb4-1661-4eeb-a029-91289c1d3f7e}</Project>
-      <Name>SonarQube.Bootstrapper</Name>
-    </ProjectReference>
-  </ItemGroup>
+
   <ItemGroup>
     <AdditionalFiles Include="..\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
   </ItemGroup>
+
   <ItemGroup>
-    <Analyzer Include="..\packages\SonarAnalyzer.CSharp.6.6.0.3969\analyzers\Google.Protobuf.dll" />
-    <Analyzer Include="..\packages\SonarAnalyzer.CSharp.6.6.0.3969\analyzers\SonarAnalyzer.CSharp.dll" />
-    <Analyzer Include="..\packages\SonarAnalyzer.CSharp.6.6.0.3969\analyzers\SonarAnalyzer.dll" />
+    <None Update="SonarQube.Analysis.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
+  <ItemGroup>
+    <Compile Include="..\AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="3.13.5" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="4.0.4.403061554" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="6.7.0.4267" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj" />
+  </ItemGroup>
+
 </Project>
