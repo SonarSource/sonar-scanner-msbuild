@@ -39,7 +39,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\..</SourcesRoot>
-    <DestinationDir>$(SourcesRoot)\DeploymentArtifacts\BuildAgentPayload\$(Configuration)\</DestinationDir>
+    <DestinationDir>$(SourcesRoot)\..\DeploymentArtifacts\BuildAgentPayload\$(Configuration)\</DestinationDir>
     <WorkDestinationDir>$(DestinationDir)Work</WorkDestinationDir>
     <!-- OutputPath is required by the Clean and Rebuild tasks -->
   </PropertyGroup>
