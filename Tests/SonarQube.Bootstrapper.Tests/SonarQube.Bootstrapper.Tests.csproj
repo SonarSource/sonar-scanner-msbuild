@@ -73,27 +73,27 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj">
+    <ProjectReference Include="..\..\src\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj">
       <Project>{60aacbb4-1661-4eeb-a029-91289c1d3f7e}</Project>
       <Name>SonarQube.Bootstrapper</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SonarQube.Common\SonarQube.Common.csproj">
+    <ProjectReference Include="..\..\src\SonarQube.Common\SonarQube.Common.csproj">
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>SonarQube.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj">
+    <ProjectReference Include="..\..\src\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj">
       <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>
       <Name>SonarQube.TeamBuild.Integration</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SonarQube.TeamBuild.PostProcessor\SonarQube.TeamBuild.PostProcessor.csproj">
+    <ProjectReference Include="..\..\src\SonarQube.TeamBuild.PostProcessor\SonarQube.TeamBuild.PostProcessor.csproj">
       <Project>{80f02fad-fe7e-41b6-9151-bb650fdd6103}</Project>
       <Name>SonarQube.TeamBuild.PostProcessor</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SonarQube.TeamBuild.PreProcessor\SonarQube.TeamBuild.PreProcessor.csproj">
+    <ProjectReference Include="..\..\src\SonarQube.TeamBuild.PreProcessor\SonarQube.TeamBuild.PreProcessor.csproj">
       <Project>{f43364bb-e460-4ac4-87e9-de460a9f55f5}</Project>
       <Name>SonarQube.TeamBuild.PreProcessor</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SonarScanner.Shim\SonarScanner.Shim.csproj">
+    <ProjectReference Include="..\..\src\SonarScanner.Shim\SonarScanner.Shim.csproj">
       <Project>{c28a09bf-6025-4ea1-90d7-4d5ec0af815d}</Project>
       <Name>SonarScanner.Shim</Name>
     </ProjectReference>

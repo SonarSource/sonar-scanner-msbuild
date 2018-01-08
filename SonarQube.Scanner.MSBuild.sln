@@ -1,53 +1,47 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2010
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.MSBuild.Tasks", "SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.MSBuild.Tasks", "src\SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{E04A4D31-AC10-4F56-9678-5D538932578C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtilities", "Tests\TestUtilities\TestUtilities.csproj", "{2FA8E679-3BEC-4679-A543-8CADB117C9EB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtilities", "tests\TestUtilities\TestUtilities.csproj", "{2FA8E679-3BEC-4679-A543-8CADB117C9EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.MSBuild.Tasks.UnitTests", "Tests\SonarQube.MSBuild.Tasks.UnitTests\SonarQube.MSBuild.Tasks.UnitTests.csproj", "{9921D017-AAFC-48E3-8F48-E45DC084CEA4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.MSBuild.Tasks.UnitTests", "tests\SonarQube.MSBuild.Tasks.Unittests\SonarQube.MSBuild.Tasks.UnitTests.csproj", "{9921D017-AAFC-48E3-8F48-E45DC084CEA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.MSBuild.Tasks.IntegrationTests", "Tests\SonarQube.MSBuild.Tasks.IntegrationTests\SonarQube.MSBuild.Tasks.IntegrationTests.csproj", "{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.MSBuild.Tasks.IntegrationTests", "tests\SonarQube.MSBuild.Tasks.Integrationtests\SonarQube.MSBuild.Tasks.IntegrationTests.csproj", "{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Common", "SonarQube.Common\SonarQube.Common.csproj", "{E312FDBB-BC13-4559-8F21-76CA5B88EBC5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Common", "src\SonarQube.Common\SonarQube.Common.csproj", "{E312FDBB-BC13-4559-8F21-76CA5B88EBC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Common.UnitTests", "Tests\SonarQube.Common.UnitTests\SonarQube.Common.UnitTests.csproj", "{A74AA08B-58D3-4B52-BC40-3A4F9A997705}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Common.UnitTests", "tests\SonarQube.Common.Unittests\SonarQube.Common.UnitTests.csproj", "{A74AA08B-58D3-4B52-BC40-3A4F9A997705}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.Integration", "SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj", "{66CE9491-1C14-45D2-BEB6-A0695C63EBB2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.Integration", "src\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj", "{66CE9491-1C14-45D2-BEB6-A0695C63EBB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.PostProcessor", "SonarQube.TeamBuild.PostProcessor\SonarQube.TeamBuild.PostProcessor.csproj", "{80F02FAD-FE7E-41B6-9151-BB650FDD6103}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.PostProcessor", "src\SonarQube.TeamBuild.PostProcessor\SonarQube.TeamBuild.PostProcessor.csproj", "{80F02FAD-FE7E-41B6-9151-BB650FDD6103}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.Integration.Tests", "Tests\SonarQube.TeamBuild.Integration.Tests\SonarQube.TeamBuild.Integration.Tests.csproj", "{D46E5A94-A9DD-4337-ADD7-2D79CB9D640A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.Integration.Tests", "tests\SonarQube.TeamBuild.Integration.tests\SonarQube.TeamBuild.Integration.Tests.csproj", "{D46E5A94-A9DD-4337-ADD7-2D79CB9D640A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.PreProcessor", "SonarQube.TeamBuild.PreProcessor\SonarQube.TeamBuild.PreProcessor.csproj", "{F43364BB-E460-4AC4-87E9-DE460A9F55F5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.PreProcessor", "src\SonarQube.TeamBuild.PreProcessor\SonarQube.TeamBuild.PreProcessor.csproj", "{F43364BB-E460-4AC4-87E9-DE460A9F55F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.PreProcessor.Tests", "Tests\SonarQube.TeamBuild.PreProcessor.Tests\SonarQube.TeamBuild.PreProcessor.Tests.csproj", "{81E8D103-270F-4363-87D1-72BE7FC4F94A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.PreProcessor.Tests", "tests\SonarQube.TeamBuild.PreProcessor.tests\SonarQube.TeamBuild.PreProcessor.Tests.csproj", "{81E8D103-270F-4363-87D1-72BE7FC4F94A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.Shim", "SonarScanner.Shim\SonarScanner.Shim.csproj", "{C28A09BF-6025-4EA1-90D7-4D5EC0AF815D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.Shim", "src\SonarScanner.Shim\SonarScanner.Shim.csproj", "{C28A09BF-6025-4EA1-90D7-4D5EC0AF815D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.Shim.Tests", "Tests\SonarScanner.Shim.Tests\SonarScanner.Shim.Tests.csproj", "{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.Shim.Tests", "tests\SonarScanner.Shim.tests\SonarScanner.Shim.Tests.csproj", "{F43FC14B-5249-46F4-9E89-F4AAFDDB27ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Bootstrapper", "SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj", "{60AACBB4-1661-4EEB-A029-91289C1D3F7E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Bootstrapper", "src\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj", "{60AACBB4-1661-4EEB-A029-91289C1D3F7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Bootstrapper.Tests", "Tests\SonarQube.Bootstrapper.Tests\SonarQube.Bootstrapper.Tests.csproj", "{3410EA30-5F7A-4E0F-B5F6-8E83077A20DB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Bootstrapper.Tests", "tests\SonarQube.Bootstrapper.tests\SonarQube.Bootstrapper.Tests.csproj", "{3410EA30-5F7A-4E0F-B5F6-8E83077A20DB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packaging", "Packaging", "{37FB4C72-0F3D-4BF2-9F78-2780A76746A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.PostProcessor.Tests", "Tests\SonarQube.TeamBuild.PostProcessor.Tests\SonarQube.TeamBuild.PostProcessor.Tests.csproj", "{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.PostProcessor.Tests", "tests\SonarQube.TeamBuild.PostProcessor.tests\SonarQube.TeamBuild.PostProcessor.Tests.csproj", "{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildAgentPayload", "PackagingProjects\BuildAgentPayload\BuildAgentPayload.csproj", "{ECEADD3A-5992-420F-950D-510BBDDC06E1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildAgentPayload", "src\PackagingProjects\BuildAgentPayload\BuildAgentPayload.csproj", "{ECEADD3A-5992-420F-950D-510BBDDC06E1}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{78700959-9C9B-4566-B245-48BBE5D403F6}"
-	ProjectSection(SolutionItems) = preProject
-		SonarQube\sonar-msbuild-runnerCSharp.ruleset = SonarQube\sonar-msbuild-runnerCSharp.ruleset
-		SonarLint.xml = SonarLint.xml
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Old.Bootstrapper", "SonarQube.Old.Bootstrapper\SonarQube.Old.Bootstrapper.csproj", "{35848C6E-2018-4831-94FA-40D7E45B5A09}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Old.Bootstrapper", "src\SonarQube.Old.Bootstrapper\SonarQube.Old.Bootstrapper.csproj", "{35848C6E-2018-4831-94FA-40D7E45B5A09}"
 	ProjectSection(ProjectDependencies) = postProject
 		{60AACBB4-1661-4EEB-A029-91289C1D3F7E} = {60AACBB4-1661-4EEB-A029-91289C1D3F7E}
 	EndProjectSection

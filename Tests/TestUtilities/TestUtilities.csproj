@@ -84,7 +84,7 @@
     <Compile Include="TestUtils.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\SonarQube.Common\SonarQube.Common.csproj">
+    <ProjectReference Include="..\..\src\SonarQube.Common\SonarQube.Common.csproj">
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>SonarQube.Common</Name>
     </ProjectReference>
@@ -93,13 +93,13 @@
     <Content Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets">
+    <EmbeddedResource Include="..\..\src\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets">
       <Link>Embedded\SonarQube.Integration.ImportBefore.targets</Link>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\..\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.targets">
+    <EmbeddedResource Include="..\..\src\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.targets">
       <Link>Embedded\SonarQube.Integration.targets</Link>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\..\SonarQube.Bootstrapper\SonarQube.Analysis.xml">
+    <EmbeddedResource Include="..\..\src\SonarQube.Bootstrapper\SonarQube.Analysis.xml">
       <Link>Embedded\SonarQube.Analysis.xml</Link>
     </EmbeddedResource>
   </ItemGroup>

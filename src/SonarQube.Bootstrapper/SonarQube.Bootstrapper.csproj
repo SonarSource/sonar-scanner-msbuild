@@ -2,19 +2,16 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F43364BB-E460-4AC4-87E9-DE460A9F55F5}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{60AACBB4-1661-4EEB-A029-91289C1D3F7E}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarQube.TeamBuild.PreProcessor</RootNamespace>
-    <AssemblyName>MSBuild.SonarQube.Internal.PreProcess</AssemblyName>
+    <RootNamespace>SonarQube.Bootstrapper</RootNamespace>
+    <AssemblyName>SonarQube.Scanner.MSBuild</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -25,7 +22,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>SonarQube.TeamBuild.PreProcessor.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>
+    </CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -35,16 +33,10 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>SonarQube.TeamBuild.PreProcessor.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
+    <CodeAnalysisRuleSet>
+    </CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression.FileSystem" />
@@ -55,31 +47,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\AssemblyInfo.Shared.cs">
+    <Compile Include="..\..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-    <Compile Include="AnalysisConfigGenerator.cs" />
     <Compile Include="ArgumentProcessor.cs" />
-    <Compile Include="Interfaces\IAnalyzerInstaller.cs" />
-    <Compile Include="Interfaces\IAnalyzerProvider.cs" />
-    <Compile Include="Interfaces\IDownloader.cs" />
-    <Compile Include="Interfaces\IPreprocessorObjectFactory.cs" />
-    <Compile Include="Interfaces\ITargetsInstaller.cs" />
-    <Compile Include="Interfaces\ISonarQubeServer.cs" />
-    <Compile Include="Interfaces\ITeamBuildPreProcessor.cs" />
-    <Compile Include="Roslyn\ActiveRule.cs" />
-    <Compile Include="Roslyn\PluginResourceCache.cs" />
-    <Compile Include="Roslyn\Model\Plugin.cs" />
-    <Compile Include="Roslyn\RoslynAnalyzerProvider.cs" />
-    <Compile Include="Roslyn\RoslynRuleSetGenerator.cs" />
-    <Compile Include="Roslyn\EmbeddedAnalyzerInstaller.cs" />
-    <Compile Include="Roslyn\RoslynResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>RoslynResources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="PreprocessorObjectFactory.cs" />
-    <Compile Include="ProcessedArgs.cs" />
+    <Compile Include="BootstrapperClass.cs" />
+    <Compile Include="BootstrapperSettings.cs" />
+    <Compile Include="Interfaces\IProcessorFactory.cs" />
+    <Compile Include="Interfaces\IBootstrapperSettings.cs" />
+    <Compile Include="DefaultProcessorFactory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">
@@ -87,21 +63,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Roslyn\RoslynSonarLint.cs" />
-    <Compile Include="RulesetWriter.cs" />
-    <Compile Include="SonarWebService.cs" />
-    <Compile Include="TargetsInstaller.cs" />
-    <Compile Include="TeamBuildPreProcessor.cs" />
-    <Compile Include="WebClientDownloader.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="SonarQube.TeamBuild.PreProcessor.ruleset" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj">
@@ -112,6 +73,18 @@
       <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>
       <Name>SonarQube.TeamBuild.Integration</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SonarQube.TeamBuild.PostProcessor\SonarQube.TeamBuild.PostProcessor.csproj">
+      <Project>{80f02fad-fe7e-41b6-9151-bb650fdd6103}</Project>
+      <Name>SonarQube.TeamBuild.PostProcessor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SonarQube.TeamBuild.PreProcessor\SonarQube.TeamBuild.PreProcessor.csproj">
+      <Project>{f43364bb-e460-4ac4-87e9-de460a9f55f5}</Project>
+      <Name>SonarQube.TeamBuild.PreProcessor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SonarScanner.Shim\SonarScanner.Shim.csproj">
+      <Project>{c28a09bf-6025-4ea1-90d7-4d5ec0af815d}</Project>
+      <Name>SonarScanner.Shim</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">
@@ -119,22 +92,25 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Roslyn\RoslynResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>RoslynResources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <AdditionalFiles Include="..\SonarLint.xml">
+    <None Include="app.config" />
+    <None Include="packages.config" />
+    <None Include="SonarQube.Analysis.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="SonarQube.Bootstrapper.ruleset" />
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.6.6.0.3969\analyzers\SonarAnalyzer.CSharp.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.6.6.0.3969\analyzers\SonarAnalyzer.dll" />
+    <Analyzer Include="..\..\packages\SonarAnalyzer.CSharp.6.6.0.3969\analyzers\Google.Protobuf.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="..\..\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
-    <Content Include="License.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Analyzer Include="..\packages\SonarAnalyzer.CSharp.6.6.0.3969\analyzers\SonarAnalyzer.CSharp.dll" />
-    <Analyzer Include="..\packages\SonarAnalyzer.CSharp.6.6.0.3969\analyzers\SonarAnalyzer.dll" />
-    <Analyzer Include="..\packages\SonarAnalyzer.CSharp.6.6.0.3969\analyzers\Google.Protobuf.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
