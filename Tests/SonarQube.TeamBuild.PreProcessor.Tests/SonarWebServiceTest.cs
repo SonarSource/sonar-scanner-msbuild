@@ -65,7 +65,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             }
             catch (Exception)
             {
-                logger.AssertErrorLogged("Failed to request and parse 'http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar': Error parsing boolean value. Path '', line 0, position 0.");
+                logger.AssertErrorLogged("Failed to request and parse 'http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar': Error parsing boolean value. Path '', line 1, position 2.");
             }
         }
 
