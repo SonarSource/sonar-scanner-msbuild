@@ -22,7 +22,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.PreProcessor.UnitTests
@@ -487,6 +490,62 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             Assert.IsFalse(success, "Expected failure");
             var expectedFilePath = Path.Combine(testDir, "dummy.txt");
             Assert.IsFalse(File.Exists(expectedFilePath), "File should not be created");
+        }
+
+        [TestMethod]
+        public void GetProperties_Old_Forbidden()
+        {
+            const string serverUrl = "http://localhost";
+            const string projectKey = "my-project";
+
+            var responseMock = new Mock<HttpWebResponse>();
+            responseMock.SetupGet(x => x.StatusCode).Returns(HttpStatusCode.Forbidden);
+
+            var downloaderMock = new Mock<IDownloader>();
+            downloaderMock
+                .Setup(x => x.Download($"{serverUrl}/api/server/version"))
+                .Returns("1.2.3.4");
+            downloaderMock
+                .Setup(x => x.Download($"{serverUrl}/api/properties?resource={projectKey}"))
+                .Throws(new WebException("Forbidden", new Exception(), WebExceptionStatus.ConnectionClosed, responseMock.Object));
+
+            var service = new SonarWebService(downloaderMock.Object, serverUrl, logger);
+
+            Action action = () => service.GetProperties(projectKey);
+            action.ShouldThrow<WebException>();
+
+            logger.Errors.Should().HaveCount(1);
+            logger.Warnings.Should().HaveCount(1);
+            logger.Warnings[0].Should().Be("To analyze private projects make sure the scanner user has 'Browse' permission.");
+        }
+
+        [TestMethod]
+        public void GetProperties_63plus_Forbidden()
+        {
+            const string serverUrl = "http://localhost";
+            const string projectKey = "my-project";
+
+            var responseMock = new Mock<HttpWebResponse>();
+            responseMock.SetupGet(x => x.StatusCode).Returns(HttpStatusCode.Forbidden);
+
+            var downloaderMock = new Mock<IDownloader>();
+            downloaderMock
+                .Setup(x => x.Download($"{serverUrl}/api/server/version"))
+                .Returns("6.3.0.0");
+
+            var content = string.Empty;
+            downloaderMock
+                .Setup(x => x.TryDownloadIfExists($"{serverUrl}/api/settings/values?component={projectKey}", out content))
+                .Throws(new WebException("Forbidden", new Exception(), WebExceptionStatus.ConnectionClosed, responseMock.Object));
+
+            var service = new SonarWebService(downloaderMock.Object, serverUrl, logger);
+
+            Action action = () => service.GetProperties(projectKey);
+            action.ShouldThrow<WebException>();
+
+            logger.Errors.Should().HaveCount(1);
+            logger.Warnings.Should().HaveCount(1);
+            logger.Warnings[0].Should().Be("To analyze private projects make sure the scanner user has 'Browse' permission.");
         }
 
         private class TestDownloader : IDownloader
