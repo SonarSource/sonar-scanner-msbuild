@@ -22,9 +22,7 @@ namespace SonarQube.Old.Bootstrapper
 {
     internal static class Program
     {
-        private static void Main(string[] args)
-        {
+        private static int Main(string[] args) =>
             SonarQube.Bootstrapper.Program.Main(args);
-        }
     }
 }
