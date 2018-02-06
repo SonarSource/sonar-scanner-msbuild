@@ -265,7 +265,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             return encodedUrl;
         }
 
-        private T DoLogExceptions<T>(Func<T> op, string url)
+        private T DoLogExceptions<T>(Func<T> op, string url, Action<Exception> onError = null)
         {
             try
             {
@@ -273,6 +273,8 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
             catch (Exception e)
             {
+                onError?.Invoke(e);
+
                 logger.LogError("Failed to request and parse '{0}': {1}", url, e.Message);
                 throw;
             }
@@ -298,7 +300,7 @@ namespace SonarQube.TeamBuild.PreProcessor
                 var contents = downloader.Download(ws);
                 var properties = JArray.Parse(contents);
                 return properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
-            }, ws);
+            }, ws, LogPermissionRequired);
 
             return CheckTestProjectPattern(result);
         }
@@ -307,10 +309,11 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             var ws = GetUrl("/api/settings/values?component={0}", projectId);
             logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
-            var contents = "";
-            var success = DoLogExceptions(() => downloader.TryDownloadIfExists(ws, out contents), ws);
 
-            if (!success)
+            var contents = string.Empty;
+            var projectFound = DoLogExceptions(() => downloader.TryDownloadIfExists(ws, out contents), ws, LogPermissionRequired);
+
+            if (!projectFound)
             {
                 ws = GetUrl("/api/settings/values");
                 logger.LogDebug("No settings for project {0}. Getting global settings: {1}", projectId, ws);
@@ -424,6 +427,16 @@ namespace SonarQube.TeamBuild.PreProcessor
         private string EscapeQuery(string format, params string[] args)
         {
             return string.Format(System.Globalization.CultureInfo.InvariantCulture, format, args.Select(a => WebUtility.UrlEncode(a)).ToArray());
+        }
+
+        private void LogPermissionRequired(Exception e)
+        {
+            if (e is WebException exception &&
+                exception.Response is HttpWebResponse response &&
+                response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                logger.LogWarning("To analyze private projects make sure the scanner user has 'Browse' permission.");
+            }
         }
 
         #endregion Private methods
