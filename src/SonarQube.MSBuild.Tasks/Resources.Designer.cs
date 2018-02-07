@@ -22,7 +22,7 @@ namespace SonarQube.MSBuild.Tasks {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Resources {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace SonarQube.MSBuild.Tasks {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarQube.MSBuild.Tasks.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace SonarQube.MSBuild.Tasks {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Analyzer settings for language {0} have not been specified in the analysis config file.
         /// </summary>
-        public static string AnalyzerSettings_NotSpecifiedInConfig {
+        internal static string AnalyzerSettings_NotSpecifiedInConfig {
             get {
                 return ResourceManager.GetString("AnalyzerSettings_NotSpecifiedInConfig", resourceCulture);
             }
@@ -75,7 +75,7 @@ namespace SonarQube.MSBuild.Tasks {
         ///Expression: {0}
         ///Error: {1}.
         /// </summary>
-        public static string IsTest_InvalidRegularExpression {
+        internal static string IsTest_InvalidRegularExpression {
             get {
                 return ResourceManager.GetString("IsTest_InvalidRegularExpression", resourceCulture);
             }
@@ -84,7 +84,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Using regular expression for detecting test projects from analysis config file: {0}.
         /// </summary>
-        public static string IsTest_UsingRegExFromConfig {
+        internal static string IsTest_UsingRegExFromConfig {
             get {
                 return ResourceManager.GetString("IsTest_UsingRegExFromConfig", resourceCulture);
             }
@@ -93,7 +93,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Including ruleset &quot;{0}&quot;.
         /// </summary>
-        public static string MergeRuleset_IncludingRuleset {
+        internal static string MergeRuleset_IncludingRuleset {
             get {
                 return ResourceManager.GetString("MergeRuleset_IncludingRuleset", resourceCulture);
             }
@@ -102,7 +102,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Failed to merge rulesets. A ruleset with the specified name already exists: {0}.
         /// </summary>
-        public static string MergeRuleset_MergedRulesetAlreadyExists {
+        internal static string MergeRuleset_MergedRulesetAlreadyExists {
             get {
                 return ResourceManager.GetString("MergeRuleset_MergedRulesetAlreadyExists", resourceCulture);
             }
@@ -111,7 +111,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to No rulesets were specified for inclusion.
         /// </summary>
-        public static string MergeRuleset_NoRulesetsSpecified {
+        internal static string MergeRuleset_NoRulesetsSpecified {
             get {
                 return ResourceManager.GetString("MergeRuleset_NoRulesetsSpecified", resourceCulture);
             }
@@ -120,7 +120,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Saving updated ruleset &quot;{0}&quot;.
         /// </summary>
-        public static string MergeRuleset_SavingUpdatedRuleset {
+        internal static string MergeRuleset_SavingUpdatedRuleset {
             get {
                 return ResourceManager.GetString("MergeRuleset_SavingUpdatedRuleset", resourceCulture);
             }
@@ -129,7 +129,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Failed to locate the specified ruleset: {0}.
         /// </summary>
-        public static string MergeRulesets_FailedToResolveRuleset {
+        internal static string MergeRulesets_FailedToResolveRuleset {
             get {
                 return ResourceManager.GetString("MergeRulesets_FailedToResolveRuleset", resourceCulture);
             }
@@ -138,7 +138,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Merging rulesets....
         /// </summary>
-        public static string MergeRulesets_MergingRulesets {
+        internal static string MergeRulesets_MergingRulesets {
             get {
                 return ResourceManager.GetString("MergeRulesets_MergingRulesets", resourceCulture);
             }
@@ -147,7 +147,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to The specified ruleset does not exist.
         /// </summary>
-        public static string MergeRulesets_MissingPrimaryRuleset {
+        internal static string MergeRulesets_MissingPrimaryRuleset {
             get {
                 return ResourceManager.GetString("MergeRulesets_MissingPrimaryRuleset", resourceCulture);
             }
@@ -156,7 +156,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Resolved ruleset: {0}.
         /// </summary>
-        public static string MergeRulesets_ResolvedRuleset {
+        internal static string MergeRulesets_ResolvedRuleset {
             get {
                 return ResourceManager.GetString("MergeRulesets_ResolvedRuleset", resourceCulture);
             }
@@ -165,7 +165,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Resolving relative ruleset: {0}.
         /// </summary>
-        public static string MergeRulesets_ResolvingRuleset {
+        internal static string MergeRulesets_ResolvingRuleset {
             get {
                 return ResourceManager.GetString("MergeRulesets_ResolvingRuleset", resourceCulture);
             }
@@ -174,7 +174,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Ruleset is already included: {0}.
         /// </summary>
-        public static string MergeRulesets_RulesetAlreadyIncluded {
+        internal static string MergeRulesets_RulesetAlreadyIncluded {
             get {
                 return ResourceManager.GetString("MergeRulesets_RulesetAlreadyIncluded", resourceCulture);
             }
@@ -183,7 +183,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Config file could not be found.
         /// </summary>
-        public static string Shared_ConfigFileNotFound {
+        internal static string Shared_ConfigFileNotFound {
             get {
                 return ResourceManager.GetString("Shared_ConfigFileNotFound", resourceCulture);
             }
@@ -192,7 +192,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Error reading config file: {0}.
         /// </summary>
-        public static string Shared_ErrorReadingConfigFile {
+        internal static string Shared_ErrorReadingConfigFile {
             get {
                 return ResourceManager.GetString("Shared_ErrorReadingConfigFile", resourceCulture);
             }
@@ -201,7 +201,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Failed to read the config file: {0}.
         /// </summary>
-        public static string Shared_ReadingConfigFailed {
+        internal static string Shared_ReadingConfigFailed {
             get {
                 return ResourceManager.GetString("Shared_ReadingConfigFailed", resourceCulture);
             }
@@ -210,7 +210,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Reading config file: {0} ....
         /// </summary>
-        public static string Shared_ReadingConfigFile {
+        internal static string Shared_ReadingConfigFile {
             get {
                 return ResourceManager.GetString("Shared_ReadingConfigFile", resourceCulture);
             }
@@ -219,7 +219,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Read config file successfully.
         /// </summary>
-        public static string Shared_ReadingConfigSucceeded {
+        internal static string Shared_ReadingConfigSucceeded {
             get {
                 return ResourceManager.GetString("Shared_ReadingConfigSucceeded", resourceCulture);
             }
@@ -228,7 +228,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Failed to resolve path relative to project file. Path: {0}.
         /// </summary>
-        public static string WPIF_FailedToResolvePath {
+        internal static string WPIF_FailedToResolvePath {
             get {
                 return ResourceManager.GetString("WPIF_FailedToResolvePath", resourceCulture);
             }
@@ -237,7 +237,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded to SonarQube. Project file: {0}.
         /// </summary>
-        public static string WPIF_MissingOrInvalidProjectGuid {
+        internal static string WPIF_MissingOrInvalidProjectGuid {
             get {
                 return ResourceManager.GetString("WPIF_MissingOrInvalidProjectGuid", resourceCulture);
             }
@@ -246,7 +246,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Resolved relative path. Path: {0}.
         /// </summary>
-        public static string WPIF_ResolvedPath {
+        internal static string WPIF_ResolvedPath {
             get {
                 return ResourceManager.GetString("WPIF_ResolvedPath", resourceCulture);
             }
@@ -255,7 +255,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Attempting to resolve the file result path. Analysis type: {0}, path: {1}.
         /// </summary>
-        public static string WPIF_ResolvingRelativePath {
+        internal static string WPIF_ResolvingRelativePath {
             get {
                 return ResourceManager.GetString("WPIF_ResolvingRelativePath", resourceCulture);
             }
@@ -264,7 +264,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Analysis setting key &quot;{0}&quot; is invalid and will be ignored.
         /// </summary>
-        public static string WPIF_WARN_InvalidSettingKey {
+        internal static string WPIF_WARN_InvalidSettingKey {
             get {
                 return ResourceManager.GetString("WPIF_WARN_InvalidSettingKey", resourceCulture);
             }
@@ -273,7 +273,7 @@ namespace SonarQube.MSBuild.Tasks {
         /// <summary>
         ///   Looks up a localized string similar to Analysis setting &quot;{0}&quot; does not have &quot;Value&quot; metadata and will be ignored.
         /// </summary>
-        public static string WPIF_WARN_MissingValueMetadata {
+        internal static string WPIF_WARN_MissingValueMetadata {
             get {
                 return ResourceManager.GetString("WPIF_WARN_MissingValueMetadata", resourceCulture);
             }

@@ -39,7 +39,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packaging", "Packaging", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.PostProcessor.Tests", "tests\SonarQube.TeamBuild.PostProcessor.tests\SonarQube.TeamBuild.PostProcessor.Tests.csproj", "{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildAgentPayload", "src\PackagingProjects\BuildAgentPayload\BuildAgentPayload.csproj", "{ECEADD3A-5992-420F-950D-510BBDDC06E1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildAgentPayload", "src\PackagingProjects\BuildAgentPayload.csproj", "{ECEADD3A-5992-420F-950D-510BBDDC06E1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Old.Bootstrapper", "src\SonarQube.Old.Bootstrapper\SonarQube.Old.Bootstrapper.csproj", "{35848C6E-2018-4831-94FA-40D7E45B5A09}"
 	ProjectSection(ProjectDependencies) = postProject

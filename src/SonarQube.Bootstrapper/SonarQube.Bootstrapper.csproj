@@ -3,29 +3,13 @@
     <TargetFramework>net46</TargetFramework>
     <AssemblyName>SonarQube.Scanner.MSBuild</AssemblyName>
     <RootNamespace>SonarQube.Bootstrapper</RootNamespace>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <CodeAnalysisRuleSet>SonarQube.Bootstrapper.ruleset</CodeAnalysisRuleSet>
-    <DebugType>Full</DebugType>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Include="..\..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-  </ItemGroup>
   <ItemGroup>
     <None Include="SonarQube.Analysis.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="6.6.0.3969" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />

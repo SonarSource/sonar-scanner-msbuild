@@ -4,14 +4,12 @@
   -->
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <DebugType>Full</DebugType>
     <SonarQubeExclude>True</SonarQubeExclude>
     <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.0.3.778</ScannerCliVersion>
     <ScannerCliArtifact>sonar-scanner-cli-$(ScannerCliVersion).zip</ScannerCliArtifact>
     <ScannerCliDirectory>sonar-scanner-$(ScannerCliVersion)</ScannerCliDirectory>
     <MavenCentralUrl>https://repox.sonarsource.com/sonarsource-public-releases/org/sonarsource/scanner/cli/sonar-scanner-cli/$(ScannerCliVersion)/$(ScannerCliArtifact)</MavenCentralUrl>
-    <SourcesRoot>$(MSBuildThisFileFullPath)\..\..\..</SourcesRoot>
+    <SourcesRoot>$(MSBuildThisFileFullPath)\..\..</SourcesRoot>
     <DestinationDir>$(SourcesRoot)\..\DeploymentArtifacts\BuildAgentPayload\$(Configuration)\</DestinationDir>
     <WorkDestinationDir>$(DestinationDir)Work</WorkDestinationDir>
     <!-- OutputPath is required by the Clean and Rebuild tasks -->

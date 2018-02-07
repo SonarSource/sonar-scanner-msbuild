@@ -22,7 +22,7 @@ namespace SonarQube.Common {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Resources {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace SonarQube.Common {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarQube.Common.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace SonarQube.Common {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to /d:[key]=[value].
         /// </summary>
-        public static string CmdLine_ArgDescription_DynamicProperty {
+        internal static string CmdLine_ArgDescription_DynamicProperty {
             get {
                 return ResourceManager.GetString("CmdLine_ArgDescription_DynamicProperty", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to [/s:{full path to the analysis settings file}].
         /// </summary>
-        public static string CmdLine_ArgDescription_PropertiesFilePath {
+        internal static string CmdLine_ArgDescription_PropertiesFilePath {
             get {
                 return ResourceManager.GetString("CmdLine_ArgDescription_PropertiesFilePath", resourceCulture);
             }
@@ -82,7 +82,7 @@ namespace SonarQube.Common {
         ///   Looks up a localized string similar to Failed to create an empty directory &apos;{0}&apos;. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.
         ///  Detailed error message: {1}.
         /// </summary>
-        public static string ERROR_CannotCreateEmptyDirectory {
+        internal static string ERROR_CannotCreateEmptyDirectory {
             get {
                 return ResourceManager.GetString("ERROR_CannotCreateEmptyDirectory", resourceCulture);
             }
@@ -91,7 +91,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to The property &apos;{0}&apos; is automatically set by the SonarQube Scanner for MSBuild and cannot be overridden on the command line..
         /// </summary>
-        public static string ERROR_CmdLine_CannotSetPropertyOnCommandLine {
+        internal static string ERROR_CmdLine_CannotSetPropertyOnCommandLine {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_CannotSetPropertyOnCommandLine", resourceCulture);
             }
@@ -100,7 +100,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to A value has already been supplied for this argument: {0}. Existing: &apos;{1}&apos;.
         /// </summary>
-        public static string ERROR_CmdLine_DuplicateArg {
+        internal static string ERROR_CmdLine_DuplicateArg {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_DuplicateArg", resourceCulture);
             }
@@ -109,7 +109,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to A value has already been supplied for this property. Key: {0}, existing value: {1}.
         /// </summary>
-        public static string ERROR_CmdLine_DuplicateProperty {
+        internal static string ERROR_CmdLine_DuplicateProperty {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_DuplicateProperty", resourceCulture);
             }
@@ -118,7 +118,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to The format of the analysis property {0} is invalid.
         /// </summary>
-        public static string ERROR_CmdLine_InvalidAnalysisProperty {
+        internal static string ERROR_CmdLine_InvalidAnalysisProperty {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_InvalidAnalysisProperty", resourceCulture);
             }
@@ -127,7 +127,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to A required argument is missing: {0}.
         /// </summary>
-        public static string ERROR_CmdLine_MissingRequiredArgument {
+        internal static string ERROR_CmdLine_MissingRequiredArgument {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_MissingRequiredArgument", resourceCulture);
             }
@@ -136,7 +136,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Please use the parameter prefix &apos;/k:&apos; to define the key of the SonarQube project instead of injecting this key with the help of the &apos;sonar.projectKey&apos; property..
         /// </summary>
-        public static string ERROR_CmdLine_MustUseProjectKey {
+        internal static string ERROR_CmdLine_MustUseProjectKey {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_MustUseProjectKey", resourceCulture);
             }
@@ -145,7 +145,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Please use the parameter prefix &apos;/n:&apos; to define the name of the SonarQube project instead of injecting this name with the help of the &apos;sonar.projectName&apos; property..
         /// </summary>
-        public static string ERROR_CmdLine_MustUseProjectName {
+        internal static string ERROR_CmdLine_MustUseProjectName {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_MustUseProjectName", resourceCulture);
             }
@@ -154,7 +154,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Please use the parameter prefix &apos;/v:&apos; to define the version of the SonarQube project instead of injecting this version with the help of the &apos;sonar.projectVersion&apos; property..
         /// </summary>
-        public static string ERROR_CmdLine_MustUseProjectVersion {
+        internal static string ERROR_CmdLine_MustUseProjectVersion {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_MustUseProjectVersion", resourceCulture);
             }
@@ -163,7 +163,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Unrecognized command line argument: {0}.
         /// </summary>
-        public static string ERROR_CmdLine_UnrecognizedArg {
+        internal static string ERROR_CmdLine_UnrecognizedArg {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_UnrecognizedArg", resourceCulture);
             }
@@ -172,7 +172,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: {0}.
         /// </summary>
-        public static string ERROR_ConnectionFailed {
+        internal static string ERROR_ConnectionFailed {
             get {
                 return ResourceManager.GetString("ERROR_ConnectionFailed", resourceCulture);
             }
@@ -181,7 +181,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Failed to parse properties from the environment variable &apos;{0}&apos;.
         /// </summary>
-        public static string ERROR_FailedParsePropertiesEnvVar {
+        internal static string ERROR_FailedParsePropertiesEnvVar {
             get {
                 return ResourceManager.GetString("ERROR_FailedParsePropertiesEnvVar", resourceCulture);
             }
@@ -190,7 +190,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Could not find a file on the SonarQube server. URL: {0}.
         /// </summary>
-        public static string ERROR_FileNotFound {
+        internal static string ERROR_FileNotFound {
             get {
                 return ResourceManager.GetString("ERROR_FileNotFound", resourceCulture);
             }
@@ -199,7 +199,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to At least one property name is missing. Please check that the settings file is valid..
         /// </summary>
-        public static string ERROR_InvalidPropertyName {
+        internal static string ERROR_InvalidPropertyName {
             get {
                 return ResourceManager.GetString("ERROR_InvalidPropertyName", resourceCulture);
             }
@@ -208,7 +208,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Descriptor ids must be unique.
         /// </summary>
-        public static string ERROR_Parser_UniqueDescriptorIds {
+        internal static string ERROR_Parser_UniqueDescriptorIds {
             get {
                 return ResourceManager.GetString("ERROR_Parser_UniqueDescriptorIds", resourceCulture);
             }
@@ -217,7 +217,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Execution failed. The specified executable does not exist: {0}.
         /// </summary>
-        public static string ERROR_ProcessRunner_ExeNotFound {
+        internal static string ERROR_ProcessRunner_ExeNotFound {
             get {
                 return ResourceManager.GetString("ERROR_ProcessRunner_ExeNotFound", resourceCulture);
             }
@@ -226,7 +226,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Unable to find the SonarQube analysis settings file &apos;{0}&apos;. Please fix the path to this settings file..
         /// </summary>
-        public static string ERROR_Properties_GlobalPropertiesFileDoesNotExist {
+        internal static string ERROR_Properties_GlobalPropertiesFileDoesNotExist {
             get {
                 return ResourceManager.GetString("ERROR_Properties_GlobalPropertiesFileDoesNotExist", resourceCulture);
             }
@@ -235,7 +235,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Unable to read the SonarQube analysis settings file &apos;{0}&apos;. Please fix the content of this file..
         /// </summary>
-        public static string ERROR_Properties_InvalidPropertiesFile {
+        internal static string ERROR_Properties_InvalidPropertiesFile {
             get {
                 return ResourceManager.GetString("ERROR_Properties_InvalidPropertiesFile", resourceCulture);
             }
@@ -244,7 +244,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to The settings file could not be found.
         /// </summary>
-        public static string ERROR_SettingsFileNotFound {
+        internal static string ERROR_SettingsFileNotFound {
             get {
                 return ResourceManager.GetString("ERROR_SettingsFileNotFound", resourceCulture);
             }
@@ -253,7 +253,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to A server certificate could not be validated. Possible cause: you are using a self-signed SSL certificate but the certificate has not been installed on the client machine. Please make sure that you can access {0} without encountering certificate errors..
         /// </summary>
-        public static string ERROR_TrustFailure {
+        internal static string ERROR_TrustFailure {
             get {
                 return ResourceManager.GetString("ERROR_TrustFailure", resourceCulture);
             }
@@ -262,7 +262,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Could not authorize while connecting to the SonarQube server. Check your credentials and try again..
         /// </summary>
-        public static string ERROR_UnauthorizedConnection {
+        internal static string ERROR_UnauthorizedConnection {
             get {
                 return ResourceManager.GetString("ERROR_UnauthorizedConnection", resourceCulture);
             }
@@ -271,7 +271,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to The name of the SonarQube server could not be resolved. Check the url is correct and that the server is available. Url: {0}.
         /// </summary>
-        public static string ERROR_UrlNameResolutionFailed {
+        internal static string ERROR_UrlNameResolutionFailed {
             get {
                 return ResourceManager.GetString("ERROR_UrlNameResolutionFailed", resourceCulture);
             }
@@ -280,7 +280,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to WARNING: .
         /// </summary>
-        public static string Logger_WarningPrefix {
+        internal static string Logger_WarningPrefix {
             get {
                 return ResourceManager.GetString("Logger_WarningPrefix", resourceCulture);
             }
@@ -289,7 +289,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Commencing retry-able operation. Max wait (milliseconds): {0}, pause between tries (milliseconds): {1}.
         /// </summary>
-        public static string MSG_BeginningRetry {
+        internal static string MSG_BeginningRetry {
             get {
                 return ResourceManager.GetString("MSG_BeginningRetry", resourceCulture);
             }
@@ -298,7 +298,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to &lt;sensitive data removed&gt;.
         /// </summary>
-        public static string MSG_CmdLine_SensitiveCmdLineArgsAlternativeText {
+        internal static string MSG_CmdLine_SensitiveCmdLineArgsAlternativeText {
             get {
                 return ResourceManager.GetString("MSG_CmdLine_SensitiveCmdLineArgsAlternativeText", resourceCulture);
             }
@@ -307,7 +307,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Creating directory: {0}.
         /// </summary>
-        public static string MSG_CreatingDirectory {
+        internal static string MSG_CreatingDirectory {
             get {
                 return ResourceManager.GetString("MSG_CreatingDirectory", resourceCulture);
             }
@@ -316,7 +316,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Removing the existing directory: {0}.
         /// </summary>
-        public static string MSG_DeletingDirectory {
+        internal static string MSG_DeletingDirectory {
             get {
                 return ResourceManager.GetString("MSG_DeletingDirectory", resourceCulture);
             }
@@ -325,7 +325,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to The directory already exists: {0}.
         /// </summary>
-        public static string MSG_DirectoryAlreadyExists {
+        internal static string MSG_DirectoryAlreadyExists {
             get {
                 return ResourceManager.GetString("MSG_DirectoryAlreadyExists", resourceCulture);
             }
@@ -338,7 +338,7 @@ namespace SonarQube.Common {
         ///  Timeout (ms):{3}
         ///  Process id: {4}.
         /// </summary>
-        public static string MSG_ExecutingFile {
+        internal static string MSG_ExecutingFile {
             get {
                 return ResourceManager.GetString("MSG_ExecutingFile", resourceCulture);
             }
@@ -347,7 +347,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Process returned exit code {0}.
         /// </summary>
-        public static string MSG_ExecutionExitCode {
+        internal static string MSG_ExecutionExitCode {
             get {
                 return ResourceManager.GetString("MSG_ExecutionExitCode", resourceCulture);
             }
@@ -356,7 +356,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Default properties file was found at {0}.
         /// </summary>
-        public static string MSG_Properties_DefaultPropertiesFileFound {
+        internal static string MSG_Properties_DefaultPropertiesFileFound {
             get {
                 return ResourceManager.GetString("MSG_Properties_DefaultPropertiesFileFound", resourceCulture);
             }
@@ -365,7 +365,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Default properties file was not found at {0}.
         /// </summary>
-        public static string MSG_Properties_DefaultPropertiesFileNotFound {
+        internal static string MSG_Properties_DefaultPropertiesFileNotFound {
             get {
                 return ResourceManager.GetString("MSG_Properties_DefaultPropertiesFileNotFound", resourceCulture);
             }
@@ -374,7 +374,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Loading analysis properties from {0}.
         /// </summary>
-        public static string MSG_Properties_LoadingPropertiesFromFile {
+        internal static string MSG_Properties_LoadingPropertiesFromFile {
             get {
                 return ResourceManager.GetString("MSG_Properties_LoadingPropertiesFromFile", resourceCulture);
             }
@@ -383,7 +383,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Retrying....
         /// </summary>
-        public static string MSG_RetryingOperation {
+        internal static string MSG_RetryingOperation {
             get {
                 return ResourceManager.GetString("MSG_RetryingOperation", resourceCulture);
             }
@@ -392,7 +392,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Operation timed out, Elapsed time (ms): {0}.
         /// </summary>
-        public static string MSG_RetryOperationFailed {
+        internal static string MSG_RetryOperationFailed {
             get {
                 return ResourceManager.GetString("MSG_RetryOperationFailed", resourceCulture);
             }
@@ -401,7 +401,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Operation succeeded. Elapsed time (ms): {0}.
         /// </summary>
-        public static string MSG_RetryOperationSucceeded {
+        internal static string MSG_RetryOperationSucceeded {
             get {
                 return ResourceManager.GetString("MSG_RetryOperationSucceeded", resourceCulture);
             }
@@ -410,7 +410,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Overwriting the value of environment variable &apos;{0}&apos;. Old value: {1}, new value: {2}.
         /// </summary>
-        public static string MSG_Runner_OverwritingEnvVar {
+        internal static string MSG_Runner_OverwritingEnvVar {
             get {
                 return ResourceManager.GetString("MSG_Runner_OverwritingEnvVar", resourceCulture);
             }
@@ -419,7 +419,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Setting environment variable &apos;{0}&apos;. Value: {1}.
         /// </summary>
-        public static string MSG_Runner_SettingEnvVar {
+        internal static string MSG_Runner_SettingEnvVar {
             get {
                 return ResourceManager.GetString("MSG_Runner_SettingEnvVar", resourceCulture);
             }
@@ -428,7 +428,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to sonar.log.level={0} was specified - setting the log verbosity to &apos;DEBUG&apos;.
         /// </summary>
-        public static string MSG_SonarLogLevelWasSpecified {
+        internal static string MSG_SonarLogLevelWasSpecified {
             get {
                 return ResourceManager.GetString("MSG_SonarLogLevelWasSpecified", resourceCulture);
             }
@@ -437,7 +437,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to sonar.verbose={0} was specified - setting the log verbosity to &apos;{1}&apos;.
         /// </summary>
-        public static string MSG_SonarVerboseWasSpecified {
+        internal static string MSG_SonarVerboseWasSpecified {
             get {
                 return ResourceManager.GetString("MSG_SonarVerboseWasSpecified", resourceCulture);
             }
@@ -446,7 +446,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Timed out after waiting {0} ms for process {1} to complete: it has been terminated, but its child processes may still be running..
         /// </summary>
-        public static string WARN_ExecutionTimedOutKilled {
+        internal static string WARN_ExecutionTimedOutKilled {
             get {
                 return ResourceManager.GetString("WARN_ExecutionTimedOutKilled", resourceCulture);
             }
@@ -455,7 +455,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Timed out after waiting {0} ms for process {1} to complete: it could not be terminated and might still be running..
         /// </summary>
-        public static string WARN_ExecutionTimedOutNotKilled {
+        internal static string WARN_ExecutionTimedOutNotKilled {
             get {
                 return ResourceManager.GetString("WARN_ExecutionTimedOutNotKilled", resourceCulture);
             }
@@ -464,7 +464,7 @@ namespace SonarQube.Common {
         /// <summary>
         ///   Looks up a localized string similar to Expecting the sonar.verbose property to be set to either &apos;true&apos; or &apos;false&apos; (case-sensitive) but it was set to &apos;{0}&apos;..
         /// </summary>
-        public static string WARN_SonarVerboseNotBool {
+        internal static string WARN_SonarVerboseNotBool {
             get {
                 return ResourceManager.GetString("WARN_SonarVerboseNotBool", resourceCulture);
             }

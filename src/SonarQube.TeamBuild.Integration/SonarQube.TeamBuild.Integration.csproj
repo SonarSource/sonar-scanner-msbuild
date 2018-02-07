@@ -3,35 +3,10 @@
     <TargetFramework>net46</TargetFramework>
     <AssemblyName>TeamBuild.SonarQube.Integration</AssemblyName>
     <RootNamespace>SonarQube.TeamBuild.Integration</RootNamespace>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <CodeAnalysisRuleSet>SonarQube.TeamBuild.Integration.ruleset</CodeAnalysisRuleSet>
-    <DebugType>Full</DebugType>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.Core" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Include="..\..\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-    <Content Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" version="5.2.2" />
@@ -45,7 +20,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" version="1.14.114" />
     <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" version="1.7.0.0" />
     <PackageReference Include="Newtonsoft.Json" version="8.0.3" />
-    <PackageReference Include="SonarAnalyzer.CSharp" version="6.6.0.3969" developmentDependency="true" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" version="4.0.2.206221351" />
     <PackageReference Include="WindowsAzure.ServiceBus" version="3.3.2" />
   </ItemGroup>

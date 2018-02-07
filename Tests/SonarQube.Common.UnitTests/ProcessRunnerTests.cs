@@ -378,7 +378,7 @@ xxx yyy
                 logger.AssertSingleDebugMessageExists(arg);
             }
 
-            logger.AssertSingleDebugMessageExists(SonarQube.Common.Resources.MSG_CmdLine_SensitiveCmdLineArgsAlternativeText);
+            logger.AssertSingleDebugMessageExists("<sensitive data removed>");
             AssertTextDoesNotAppearInLog("secret", logger);
 
             // Check that the public and private arguments are passed to the child process

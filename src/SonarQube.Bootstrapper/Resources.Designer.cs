@@ -22,7 +22,7 @@ namespace SonarQube.Bootstrapper {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Resources {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace SonarQube.Bootstrapper {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarQube.Bootstrapper.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace SonarQube.Bootstrapper {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to SonarQube Scanner for MSBuild.
         /// </summary>
-        public static string AssemblyDescription {
+        internal static string AssemblyDescription {
             get {
                 return ResourceManager.GetString("AssemblyDescription", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to begin - perform pre-MSBuild analysis steps.
         /// </summary>
-        public static string CmdLine_ArgDescription_Begin {
+        internal static string CmdLine_ArgDescription_Begin {
             get {
                 return ResourceManager.GetString("CmdLine_ArgDescription_Begin", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to end - perform post-MSBuild/post-test steps.
         /// </summary>
-        public static string CmdLine_ArgDescription_End {
+        internal static string CmdLine_ArgDescription_End {
             get {
                 return ResourceManager.GetString("CmdLine_ArgDescription_End", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to The SonarQube URL must be supplied. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000)..
         /// </summary>
-        public static string ERROR_Args_UrlRequired {
+        internal static string ERROR_Args_UrlRequired {
             get {
                 return ResourceManager.GetString("ERROR_Args_UrlRequired", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to Invalid command line parameters. Please specify either &apos;begin&apos; or &apos;end&apos;, not both..
         /// </summary>
-        public static string ERROR_CmdLine_BothBeginAndEndSupplied {
+        internal static string ERROR_CmdLine_BothBeginAndEndSupplied {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_BothBeginAndEndSupplied", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to SonarQube analysis could not be completed because the analysis configuration file could not be found: {0}..
         /// </summary>
-        public static string ERROR_ConfigFileNotFound {
+        internal static string ERROR_ConfigFileNotFound {
             get {
                 return ResourceManager.GetString("ERROR_ConfigFileNotFound", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to {0} failed. Exit code: {1}.
         /// </summary>
-        public static string ERROR_ProcessingFailed {
+        internal static string ERROR_ProcessingFailed {
             get {
                 return ResourceManager.GetString("ERROR_ProcessingFailed", resourceCulture);
             }
@@ -126,7 +126,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to Temporary analysis directory (usually .sonarqube) doesn&apos;t exist. The &quot;begin&quot; step was probably not executed..
         /// </summary>
-        public static string ERROR_TempDirDoesNotExist {
+        internal static string ERROR_TempDirDoesNotExist {
             get {
                 return ResourceManager.GetString("ERROR_TempDirDoesNotExist", resourceCulture);
             }
@@ -135,7 +135,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to The C# plugin installed on the SonarQube server is not compatible with the SonarQube analysis agent (i.e. the MSBuild.SonarQube.Scanner.exe, or the build automation task). Either check the compatibility matrix or get the latest versions for both..
         /// </summary>
-        public static string ERROR_VersionMismatch {
+        internal static string ERROR_VersionMismatch {
             get {
                 return ResourceManager.GetString("ERROR_VersionMismatch", resourceCulture);
             }
@@ -144,7 +144,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to Extracting files to {0}....
         /// </summary>
-        public static string MSG_ExtractingFiles {
+        internal static string MSG_ExtractingFiles {
             get {
                 return ResourceManager.GetString("MSG_ExtractingFiles", resourceCulture);
             }
@@ -153,7 +153,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to Preparing working directories....
         /// </summary>
-        public static string MSG_PreparingDirectories {
+        internal static string MSG_PreparingDirectories {
             get {
                 return ResourceManager.GetString("MSG_PreparingDirectories", resourceCulture);
             }
@@ -162,7 +162,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to {0} started..
         /// </summary>
-        public static string MSG_ProcessingStarted {
+        internal static string MSG_ProcessingStarted {
             get {
                 return ResourceManager.GetString("MSG_ProcessingStarted", resourceCulture);
             }
@@ -171,7 +171,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to {0} succeeded..
         /// </summary>
-        public static string MSG_ProcessingSucceeded {
+        internal static string MSG_ProcessingSucceeded {
             get {
                 return ResourceManager.GetString("MSG_ProcessingSucceeded", resourceCulture);
             }
@@ -180,7 +180,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to SonarQube server URL: {0}.
         /// </summary>
-        public static string MSG_ServerUrl {
+        internal static string MSG_ServerUrl {
             get {
                 return ResourceManager.GetString("MSG_ServerUrl", resourceCulture);
             }
@@ -189,7 +189,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to Using environment variable &apos;{0}&apos;, value &apos;{1}&apos;.
         /// </summary>
-        public static string MSG_UsingBuildEnvironmentVariable {
+        internal static string MSG_UsingBuildEnvironmentVariable {
             get {
                 return ResourceManager.GetString("MSG_UsingBuildEnvironmentVariable", resourceCulture);
             }
@@ -198,7 +198,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to Using environment variables to determine the download directory....
         /// </summary>
-        public static string MSG_UsingEnvVarToGetDirectory {
+        internal static string MSG_UsingEnvVarToGetDirectory {
             get {
                 return ResourceManager.GetString("MSG_UsingEnvVarToGetDirectory", resourceCulture);
             }
@@ -207,7 +207,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to Post-processing.
         /// </summary>
-        public static string PhaseLabel_PostProcessing {
+        internal static string PhaseLabel_PostProcessing {
             get {
                 return ResourceManager.GetString("PhaseLabel_PostProcessing", resourceCulture);
             }
@@ -216,7 +216,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to Pre-processing.
         /// </summary>
-        public static string PhaseLabel_PreProcessing {
+        internal static string PhaseLabel_PreProcessing {
             get {
                 return ResourceManager.GetString("PhaseLabel_PreProcessing", resourceCulture);
             }
@@ -225,7 +225,7 @@ namespace SonarQube.Bootstrapper {
         /// <summary>
         ///   Looks up a localized string similar to Please specify the command &apos;begin&apos; or &apos;end&apos; to indicate whether pre- or post-processing is required. These parameters will become mandatory in a later release..
         /// </summary>
-        public static string WARN_CmdLine_v09_Compat {
+        internal static string WARN_CmdLine_v09_Compat {
             get {
                 return ResourceManager.GetString("WARN_CmdLine_v09_Compat", resourceCulture);
             }
