@@ -31,7 +31,7 @@ namespace SonarQube.Bootstrapper
         public static int Main(string[] args)
         {
             var logger = new ConsoleLogger(includeTimestamp: false);
-            Utilities.LogAssemblyVersion(logger, typeof(Program).Assembly, Resources.AssemblyDescription);
+            Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
             return Execute(args, logger);
         }
 

@@ -44,6 +44,8 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             client = new WebClient();
+            client.Headers[HttpRequestHeader.UserAgent] = $"ScannerMSBuild/{Utilities.ScannerVersion}";
+
             if (userName != null)
             {
                 if (userName.Contains(':'))

@@ -49,6 +49,20 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
+        public void UserAgent()
+        {
+            // Arrange
+            var downloader = new WebClientDownloader(null, null, new TestLogger());
+
+            // Act
+            var userAgent = downloader.GetHeader(HttpRequestHeader.UserAgent);
+
+            // Assert
+            var scannerVersion = typeof(WebClientDownloaderTest).Assembly.GetName().Version.ToDisplayString();
+            Assert.AreEqual($"ScannerMSBuild/{scannerVersion}", userAgent);
+        }
+
+        [TestMethod]
         public void SemicolonInUsername()
         {
             var actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("user:name", "", new TestLogger()));

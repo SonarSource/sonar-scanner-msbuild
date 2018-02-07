@@ -34,7 +34,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         private static int Main(string[] args)
         {
             var logger = new ConsoleLogger(includeTimestamp: false);
-            Utilities.LogAssemblyVersion(logger, typeof(Program).Assembly, Resources.AssemblyDescription);
+            Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
             logger.IncludeTimestamp = true;
 
             var settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
