@@ -18,16 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Setup.Configuration;
+using System.Reflection;
 
-namespace SonarQube.TeamBuild.Integration
-{
-    public interface IVisualStudioSetupConfigurationFactory
-    {
-        /// <summary>
-        /// Attempts to instantiate a queryable setup configuration object.
-        /// </summary>
-        /// <returns></returns>
-        ISetupConfiguration GetSetupConfigurationQuery();
-    }
-}
+[assembly: AssemblyTitle("TeamBuild.SonarQube.Integration.Legacy")]
+[assembly: AssemblyProduct("TeamBuild.SonarQube.Integration.Legacy")]
+[assembly: AssemblyDescription("")]

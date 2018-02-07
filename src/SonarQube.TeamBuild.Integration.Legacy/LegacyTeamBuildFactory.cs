@@ -18,16 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Setup.Configuration;
-
-namespace SonarQube.TeamBuild.Integration
+namespace SonarQube.TeamBuild.Integration.Legacy
 {
-    public interface IVisualStudioSetupConfigurationFactory
+    public class LegacyTeamBuildFactory : ILegacyTeamBuildFactory
     {
-        /// <summary>
-        /// Attempts to instantiate a queryable setup configuration object.
-        /// </summary>
-        /// <returns></returns>
-        ISetupConfiguration GetSetupConfigurationQuery();
+        public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri)
+        {
+            return new LegacyBuildSummaryLogger(tfsUri, buildUri);
+        }
+
+        public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
+        {
+            return new TfsLegacyCoverageReportProcessor();
+        }
     }
 }

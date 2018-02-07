@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.PostProcessor;
 using SonarQube.TeamBuild.PostProcessor.Interfaces;
 using SonarQube.TeamBuild.PreProcessor;
@@ -29,18 +31,21 @@ namespace SonarQube.Bootstrapper
     public class DefaultProcessorFactory : IProcessorFactory
     {
         private readonly ILogger logger;
+        private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
 
-        public DefaultProcessorFactory(ILogger logger)
+        public DefaultProcessorFactory(ILogger logger, ILegacyTeamBuildFactory legacyTeamBuildFactory)
         {
             this.logger = logger;
+            this.legacyTeamBuildFactory
+                = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
         }
 
         public IMSBuildPostProcessor CreatePostProcessor()
         {
             return new MSBuildPostProcessor(
-                new CoverageReportProcessor(),
+                new CoverageReportProcessor(legacyTeamBuildFactory),
                 new SonarScannerWrapper(),
-                new SummaryReportBuilder(),
+                new SummaryReportBuilder(legacyTeamBuildFactory),
                 logger,
                 new TargetsUninstaller());
         }

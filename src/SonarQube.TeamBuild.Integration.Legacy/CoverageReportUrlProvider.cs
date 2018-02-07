@@ -27,7 +27,7 @@ using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.TestManagement.Client;
 using SonarQube.Common;
 
-namespace SonarQube.TeamBuild.Integration
+namespace SonarQube.TeamBuild.Integration.Legacy
 {
     internal class CoverageReportUrlProvider : ICoverageUrlProvider
     {
