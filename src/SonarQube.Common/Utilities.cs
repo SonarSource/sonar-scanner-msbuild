@@ -30,6 +30,8 @@ namespace SonarQube.Common
     {
         #region Public methods
 
+        public static string ScannerVersion => typeof(Utilities).Assembly.GetName().Version.ToDisplayString();
+
         /// <summary>
         /// Retries the specified operation until the specified timeout period expires
         /// </summary>
@@ -205,22 +207,18 @@ namespace SonarQube.Common
             return false;
         }
 
-        public static void LogAssemblyVersion(ILogger logger, System.Reflection.Assembly assembly, string description)
+        public static void LogAssemblyVersion(ILogger logger, string description)
         {
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
-            }
-            if (assembly == null)
-            {
-                throw new ArgumentNullException("assembly");
+                throw new ArgumentNullException(nameof(logger));
             }
             if (string.IsNullOrWhiteSpace(description))
             {
-                throw new ArgumentNullException("description");
+                throw new ArgumentNullException(nameof(description));
             }
 
-            logger.LogInfo("{0} {1}", description, assembly.GetName().Version.ToDisplayString());
+            logger.LogInfo("{0} {1}", description, ScannerVersion);
         }
 
         /// <summary>

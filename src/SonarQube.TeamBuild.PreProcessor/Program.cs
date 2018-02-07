@@ -33,7 +33,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         private static int Main(string[] args)
         {
             ILogger logger = new ConsoleLogger(includeTimestamp: false);
-            Utilities.LogAssemblyVersion(logger, typeof(Program).Assembly, Resources.AssemblyDescription);
+            Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
             logger.IncludeTimestamp = true;
 
             IPreprocessorObjectFactory factory = new PreprocessorObjectFactory();
