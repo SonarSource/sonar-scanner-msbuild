@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
     <AssemblyName>MSBuild.SonarQube.Internal.PostProcess</AssemblyName>
     <RootNamespace>SonarQube.TeamBuild.PostProcessor</RootNamespace>
   </PropertyGroup>

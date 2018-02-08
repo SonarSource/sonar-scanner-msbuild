@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
     <AssemblyName>TeamBuild.SonarQube.Integration</AssemblyName>
     <RootNamespace>SonarQube.TeamBuild.Integration</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -9,13 +9,8 @@
     <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Services.Client" version="14.102.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" version="14.102.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" version="1.14.114" />
-    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" version="1.7.0.0" />
-    <PackageReference Include="Newtonsoft.Json" version="10.0.3" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" version="4.0.2.206221351" />
-    <PackageReference Include="WindowsAzure.ServiceBus" version="3.3.2" />
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.14.114" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">
