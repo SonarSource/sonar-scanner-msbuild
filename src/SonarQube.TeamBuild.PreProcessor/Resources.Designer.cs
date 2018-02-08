@@ -22,7 +22,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Resources {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarQube.TeamBuild.PreProcessor.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to SonarQube Scanner for MSBuild Begin Step.
         /// </summary>
-        public static string AssemblyDescription {
+        internal static string AssemblyDescription {
             get {
                 return ResourceManager.GetString("AssemblyDescription", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to /install:[true|false] - install standard MSBuild targets required for analysis (default true).
         /// </summary>
-        public static string CmdLine_ArgDescription_InstallTargets {
+        internal static string CmdLine_ArgDescription_InstallTargets {
             get {
                 return ResourceManager.GetString("CmdLine_ArgDescription_InstallTargets", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to /organization:[Organization to which the project belongs].
         /// </summary>
-        public static string CmdLine_ArgDescription_Organization {
+        internal static string CmdLine_ArgDescription_Organization {
             get {
                 return ResourceManager.GetString("CmdLine_ArgDescription_Organization", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to /key:[SonarQube project key].
         /// </summary>
-        public static string CmdLine_ArgDescription_ProjectKey {
+        internal static string CmdLine_ArgDescription_ProjectKey {
             get {
                 return ResourceManager.GetString("CmdLine_ArgDescription_ProjectKey", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to /name:[SonarQube project name] - required for SonarQube &lt; 6.1.
         /// </summary>
-        public static string CmdLine_ArgDescription_ProjectName {
+        internal static string CmdLine_ArgDescription_ProjectName {
             get {
                 return ResourceManager.GetString("CmdLine_ArgDescription_ProjectName", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to /version:[SonarQube project version] - required for SonarQube &lt; 6.1.
         /// </summary>
-        public static string CmdLine_ArgDescription_ProjectVersion {
+        internal static string CmdLine_ArgDescription_ProjectVersion {
             get {
                 return ResourceManager.GetString("CmdLine_ArgDescription_ProjectVersion", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to SonarQube pre-processing cannot be performed - required settings are missing.
         /// </summary>
-        public static string ERROR_CannotPerformProcessing {
+        internal static string ERROR_CannotPerformProcessing {
             get {
                 return ResourceManager.GetString("ERROR_CannotPerformProcessing", resourceCulture);
             }
@@ -126,7 +126,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Invalid value for /install: {0}. Valid values are &quot;true&quot; or &quot;false&quot;..
         /// </summary>
-        public static string ERROR_CmdLine_InvalidInstallTargetsValue {
+        internal static string ERROR_CmdLine_InvalidInstallTargetsValue {
             get {
                 return ResourceManager.GetString("ERROR_CmdLine_InvalidInstallTargetsValue", resourceCulture);
             }
@@ -135,7 +135,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to The following CheckId should not appear multiple times: {0}.
         /// </summary>
-        public static string ERROR_DuplicateCheckId {
+        internal static string ERROR_DuplicateCheckId {
             get {
                 return ResourceManager.GetString("ERROR_DuplicateCheckId", resourceCulture);
             }
@@ -150,7 +150,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
         ///Use &apos;/?&apos; or &apos;/h&apos; to see the help message..
         /// </summary>
-        public static string ERROR_InvalidCommandLineArgs {
+        internal static string ERROR_InvalidCommandLineArgs {
             get {
                 return ResourceManager.GetString("ERROR_InvalidCommandLineArgs", resourceCulture);
             }
@@ -159,7 +159,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Invalid project key. Allowed characters are alphanumeric, &apos;-&apos;, &apos;_&apos;, &apos;.&apos; and &apos;:&apos;, with at least one non-digit..
         /// </summary>
-        public static string ERROR_InvalidProjectKeyArg {
+        internal static string ERROR_InvalidProjectKeyArg {
             get {
                 return ResourceManager.GetString("ERROR_InvalidProjectKeyArg", resourceCulture);
             }
@@ -168,7 +168,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Missing analysis setting: {0}.
         /// </summary>
-        public static string ERROR_MissingSetting {
+        internal static string ERROR_MissingSetting {
             get {
                 return ResourceManager.GetString("ERROR_MissingSetting", resourceCulture);
             }
@@ -177,7 +177,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Internal error: cannot create an analyzer provider without a SonarQube server instance.
         /// </summary>
-        public static string FACTORY_InternalError_MissingServer {
+        internal static string FACTORY_InternalError_MissingServer {
             get {
                 return ResourceManager.GetString("FACTORY_InternalError_MissingServer", resourceCulture);
             }
@@ -186,7 +186,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Creating config and output folders....
         /// </summary>
-        public static string MSG_CreatingFolders {
+        internal static string MSG_CreatingFolders {
             get {
                 return ResourceManager.GetString("MSG_CreatingFolders", resourceCulture);
             }
@@ -195,7 +195,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Downloading from {0}....
         /// </summary>
-        public static string MSG_Downloading {
+        internal static string MSG_Downloading {
             get {
                 return ResourceManager.GetString("MSG_Downloading", resourceCulture);
             }
@@ -204,7 +204,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Downloading file from {0} to {1}....
         /// </summary>
-        public static string MSG_DownloadingFile {
+        internal static string MSG_DownloadingFile {
             get {
                 return ResourceManager.GetString("MSG_DownloadingFile", resourceCulture);
             }
@@ -213,7 +213,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Downloading {0} from {1} to {2}.
         /// </summary>
-        public static string MSG_DownloadingZip {
+        internal static string MSG_DownloadingZip {
             get {
                 return ResourceManager.GetString("MSG_DownloadingZip", resourceCulture);
             }
@@ -222,7 +222,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Extracting files to {0}....
         /// </summary>
-        public static string MSG_ExtractingFiles {
+        internal static string MSG_ExtractingFiles {
             get {
                 return ResourceManager.GetString("MSG_ExtractingFiles", resourceCulture);
             }
@@ -231,7 +231,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Fetching active rules for quality profile &apos;{0}&apos; from {1}....
         /// </summary>
-        public static string MSG_FetchingActiveRules {
+        internal static string MSG_FetchingActiveRules {
             get {
                 return ResourceManager.GetString("MSG_FetchingActiveRules", resourceCulture);
             }
@@ -240,7 +240,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Fetching analysis configuration settings....
         /// </summary>
-        public static string MSG_FetchingAnalysisConfiguration {
+        internal static string MSG_FetchingAnalysisConfiguration {
             get {
                 return ResourceManager.GetString("MSG_FetchingAnalysisConfiguration", resourceCulture);
             }
@@ -249,7 +249,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Fetching rules not active in quality profile &apos;{0}&apos; for language &apos;{1}&apos; from {2}....
         /// </summary>
-        public static string MSG_FetchingInactiveRules {
+        internal static string MSG_FetchingInactiveRules {
             get {
                 return ResourceManager.GetString("MSG_FetchingInactiveRules", resourceCulture);
             }
@@ -258,7 +258,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Fetching properties for project &apos;{0}&apos; from {1}....
         /// </summary>
-        public static string MSG_FetchingProjectProperties {
+        internal static string MSG_FetchingProjectProperties {
             get {
                 return ResourceManager.GetString("MSG_FetchingProjectProperties", resourceCulture);
             }
@@ -267,7 +267,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Fetching quality profile for project &apos;{0}&apos; from {1}....
         /// </summary>
-        public static string MSG_FetchingQualityProfile {
+        internal static string MSG_FetchingQualityProfile {
             get {
                 return ResourceManager.GetString("MSG_FetchingQualityProfile", resourceCulture);
             }
@@ -276,7 +276,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Generating rulesets....
         /// </summary>
-        public static string MSG_GeneratingRulesets {
+        internal static string MSG_GeneratingRulesets {
             get {
                 return ResourceManager.GetString("MSG_GeneratingRulesets", resourceCulture);
             }
@@ -285,7 +285,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Installed {0} to {1}.
         /// </summary>
-        public static string MSG_InstallTargets_Copy {
+        internal static string MSG_InstallTargets_Copy {
             get {
                 return ResourceManager.GetString("MSG_InstallTargets_Copy", resourceCulture);
             }
@@ -294,7 +294,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to The file {0} was overwritten at {1}.
         /// </summary>
-        public static string MSG_InstallTargets_Overwrite {
+        internal static string MSG_InstallTargets_Overwrite {
             get {
                 return ResourceManager.GetString("MSG_InstallTargets_Overwrite", resourceCulture);
             }
@@ -303,7 +303,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to The file {0} is up to date at {1}.
         /// </summary>
-        public static string MSG_InstallTargets_UpToDate {
+        internal static string MSG_InstallTargets_UpToDate {
             get {
                 return ResourceManager.GetString("MSG_InstallTargets_UpToDate", resourceCulture);
             }
@@ -312,7 +312,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Skipping installing the ImportsBefore targets file.
         /// </summary>
-        public static string MSG_NotCopyingTargets {
+        internal static string MSG_NotCopyingTargets {
             get {
                 return ResourceManager.GetString("MSG_NotCopyingTargets", resourceCulture);
             }
@@ -321,7 +321,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Updating build integration targets....
         /// </summary>
-        public static string MSG_UpdatingMSBuildTargets {
+        internal static string MSG_UpdatingMSBuildTargets {
             get {
                 return ResourceManager.GetString("MSG_UpdatingMSBuildTargets", resourceCulture);
             }
@@ -330,7 +330,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to A Roslyn analyzer &quot;additional file&quot; named &quot;{0}&quot; already exists at {1}. The existing file will not be overwritten..
         /// </summary>
-        public static string RAP_AdditionalFileAlreadyExists {
+        internal static string RAP_AdditionalFileAlreadyExists {
             get {
                 return ResourceManager.GetString("RAP_AdditionalFileAlreadyExists", resourceCulture);
             }
@@ -339,7 +339,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to The Roslyn profile exporter returned an AdditionalFile that does not specify a file name. The AdditionalFile will be ignored..
         /// </summary>
-        public static string RAP_AdditionalFileNameMustBeSpecified {
+        internal static string RAP_AdditionalFileNameMustBeSpecified {
             get {
                 return ResourceManager.GetString("RAP_AdditionalFileNameMustBeSpecified", resourceCulture);
             }
@@ -348,7 +348,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to No active rules for {0}.
         /// </summary>
-        public static string RAP_NoActiveRules {
+        internal static string RAP_NoActiveRules {
             get {
                 return ResourceManager.GetString("RAP_NoActiveRules", resourceCulture);
             }
@@ -357,7 +357,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for {0}.
         /// </summary>
-        public static string RAP_NoAnalyzerPluginsSpecified {
+        internal static string RAP_NoAnalyzerPluginsSpecified {
             get {
                 return ResourceManager.GetString("RAP_NoAnalyzerPluginsSpecified", resourceCulture);
             }
@@ -366,7 +366,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to No analyzer assemblies were specified for rule repository {0} in language {1}.
         /// </summary>
-        public static string RAP_NoAssembliesForRepo {
+        internal static string RAP_NoAssembliesForRepo {
             get {
                 return ResourceManager.GetString("RAP_NoAssembliesForRepo", resourceCulture);
             }
@@ -375,7 +375,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to No plugins found for language {0} with rulesets for Roslyn analyzer.
         /// </summary>
-        public static string RAP_NoPluginInstalled {
+        internal static string RAP_NoPluginInstalled {
             get {
                 return ResourceManager.GetString("RAP_NoPluginInstalled", resourceCulture);
             }
@@ -384,7 +384,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Could not obtain a {0} profile for project &apos;{1}&apos;.
         /// </summary>
-        public static string RAP_NoProfileForProject {
+        internal static string RAP_NoProfileForProject {
             get {
                 return ResourceManager.GetString("RAP_NoProfileForProject", resourceCulture);
             }
@@ -393,7 +393,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to No quality profile defined for language {0} and project {1}.
         /// </summary>
-        public static string RAP_NoQualityProfile {
+        internal static string RAP_NoQualityProfile {
             get {
                 return ResourceManager.GetString("RAP_NoQualityProfile", resourceCulture);
             }
@@ -402,7 +402,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to The exported profile does not contain a ruleset.
         /// </summary>
-        public static string RAP_ProfileDoesNotContainRuleset {
+        internal static string RAP_ProfileDoesNotContainRuleset {
             get {
                 return ResourceManager.GetString("RAP_ProfileDoesNotContainRuleset", resourceCulture);
             }
@@ -411,7 +411,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Found profile export &apos;{0}&apos; for project &apos;{1}&apos;.
         /// </summary>
-        public static string RAP_ProfileExportFound {
+        internal static string RAP_ProfileExportFound {
             get {
                 return ResourceManager.GetString("RAP_ProfileExportFound", resourceCulture);
             }
@@ -420,7 +420,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Could not find profile export &apos;{0}&apos; for project &apos;{1}&apos;.
         /// </summary>
-        public static string RAP_ProfileExportNotFound {
+        internal static string RAP_ProfileExportNotFound {
             get {
                 return ResourceManager.GetString("RAP_ProfileExportNotFound", resourceCulture);
             }
@@ -429,7 +429,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Provisioning analyzer assemblies for {0}....
         /// </summary>
-        public static string RAP_ProvisioningAnalyzerAssemblies {
+        internal static string RAP_ProvisioningAnalyzerAssemblies {
             get {
                 return ResourceManager.GetString("RAP_ProvisioningAnalyzerAssemblies", resourceCulture);
             }
@@ -438,7 +438,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Writing Roslyn generated ruleset to {0}....
         /// </summary>
-        public static string RAP_UnpackingRuleset {
+        internal static string RAP_UnpackingRuleset {
             get {
                 return ResourceManager.GetString("RAP_UnpackingRuleset", resourceCulture);
             }
@@ -447,7 +447,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Writing Roslyn analyzer additional file to {0}....
         /// </summary>
-        public static string RAP_WritingAdditionalFile {
+        internal static string RAP_WritingAdditionalFile {
             get {
                 return ResourceManager.GetString("RAP_WritingAdditionalFile", resourceCulture);
             }
@@ -456,7 +456,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to This version of the SonarQube Scanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
         /// </summary>
-        public static string WARN_ExistingGlobalTargets {
+        internal static string WARN_ExistingGlobalTargets {
             get {
                 return ResourceManager.GetString("WARN_ExistingGlobalTargets", resourceCulture);
             }
@@ -465,7 +465,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to username cannot contain the &apos;:&apos; character due to basic authentication limitations.
         /// </summary>
-        public static string WCD_UserNameCannotContainColon {
+        internal static string WCD_UserNameCannotContainColon {
             get {
                 return ResourceManager.GetString("WCD_UserNameCannotContainColon", resourceCulture);
             }
@@ -474,7 +474,7 @@ namespace SonarQube.TeamBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to username and password should contain only ASCII characters due to basic authentication limitations.
         /// </summary>
-        public static string WCD_UserNameMustBeAscii {
+        internal static string WCD_UserNameMustBeAscii {
             get {
                 return ResourceManager.GetString("WCD_UserNameMustBeAscii", resourceCulture);
             }

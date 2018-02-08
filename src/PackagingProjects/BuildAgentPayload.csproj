@@ -1,0 +1,92 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+  This project packages the assemblies and targets files that form the "sonarqube.msbuild.runner" that needs to be copied to the XAML build agents
+  -->
+  <PropertyGroup>
+    <TargetFramework>net46</TargetFramework>
+    <SonarQubeExclude>True</SonarQubeExclude>
+    <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.0.3.778</ScannerCliVersion>
+    <ScannerCliArtifact>sonar-scanner-cli-$(ScannerCliVersion).zip</ScannerCliArtifact>
+    <ScannerCliDirectory>sonar-scanner-$(ScannerCliVersion)</ScannerCliDirectory>
+    <MavenCentralUrl>https://repox.sonarsource.com/sonarsource-public-releases/org/sonarsource/scanner/cli/sonar-scanner-cli/$(ScannerCliVersion)/$(ScannerCliArtifact)</MavenCentralUrl>
+    <SourcesRoot>$(MSBuildThisFileFullPath)\..\..</SourcesRoot>
+    <DestinationDir>$(SourcesRoot)\..\DeploymentArtifacts\BuildAgentPayload\$(Configuration)\</DestinationDir>
+    <WorkDestinationDir>$(DestinationDir)Work</WorkDestinationDir>
+    <!-- OutputPath is required by the Clean and Rebuild tasks -->
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net46\SonarQube.Scanner.MSBuild.exe" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\net46\MSBuild.SonarQube.Runner.exe" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net46\SonarQube.Analysis.xml" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Common\bin\$(Configuration)\net46\SonarQube.Common.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\net46\MSBuild.SonarQube.Internal.PreProcess.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\net46\MSBuild.SonarQube.Internal.PostProcess.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\net46\SonarScanner.Shim.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\net46\Newtonsoft.Json.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\net46\System.ValueTuple.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\net46\TeamBuild.SonarQube.Integration.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\net46\SonarQube.Integration.Tasks.dll" />
+    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\net46\Targets\SonarQube.Integration.targets" />
+    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\net46\Targets\SonarQube.Integration.ImportBefore.targets" />
+  </ItemGroup>
+  <ItemGroup Condition="$(Configuration) == 'Debug'">
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net46\SonarQube.Scanner.MSBuild.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\net46\MSBuild.SonarQube.Runner.pdb" />
+  </ItemGroup>
+  <!-- Reference to dependencies to ensure the build order is correct -->
+  <ItemGroup>
+    <ProjectReference Include="$(SourcesRoot)\SonarQube.Common\SonarQube.Common.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\SonarQube.Old.Bootstrapper.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\SonarQube.TeamBuild.PostProcessor.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\SonarQube.TeamBuild.PreProcessor.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarScanner.Shim\SonarScanner.Shim.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <UsingTask TaskName="DownloadFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+    <ParameterGroup>
+      <Url ParameterType="System.String" Required="true" />
+      <File ParameterType="System.String" Required="false" />
+      <OutputFolder ParameterType="System.String" Required="false" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Web" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        using (var client = new System.Net.WebClient())
+            { client.DownloadFile(Url, (OutputFolder != null ? OutputFolder + "/" : "") + (File ?? System.IO.Path.GetFileName(new Uri(Url).LocalPath))); }
+        ]]></Code>
+    </Task>
+  </UsingTask>
+  <Target Name="CreatePayload" AfterTargets="Build">
+    <CallTarget Targets="CleanExistingPayload" />
+    <CallTarget Targets="DownloadScannerCli" />
+    <CallTarget Targets="UnzipScannerCli" />
+    <CallTarget Targets="CopyPayloadFiles" />
+    <CallTarget Targets="ZipPayloadFiles" />
+  </Target>
+  <Target Name="CopyPayloadFiles">
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(WorkDestinationDir)\%(RecursiveDir)" />
+    <Copy SourceFiles="@(TargetsToCopy)" DestinationFolder="$(WorkDestinationDir)\Targets" />
+  </Target>
+  <Target Name="DownloadScannerCli" Condition="!Exists('$(OutputPath)\$(ScannerCliArtifact)')">
+    <Message Text="Downloading: $(MavenCentralUrl)" />
+    <DownloadFile Url="$(MavenCentralUrl)" OutputFolder="$(OutputPath)" />
+  </Target>
+  <Target Name="UnzipScannerCli">
+    <RemoveDir Directories="$(OutputPath)$(ScannerCliDirectory)" />
+    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; [io.compression.zipfile]::ExtractToDirectory('$(OutputPath)$(ScannerCliArtifact)', '$(WorkDestinationDir)')&quot;" />
+  </Target>
+  <Target Name="ZipPayloadFiles">
+    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; Add-Type -assembly system.text.encoding; Add-Type -TypeDefinition 'public class MyEncoder : System.Text.UTF8Encoding { public MyEncoder() : base(true) {} public override byte[] GetBytes(string s) { return base.GetBytes(s.Replace((char) 92, (char) 47)); } }'; $enc = New-Object MyEncoder; [io.compression.zipfile]::CreateFromDirectory('$(WorkDestinationDir)', '$(DestinationDir)\SonarQube.Scanner.MSBuild.zip', [io.compression.compressionlevel]::fastest, $false, $enc)&quot;" />
+  </Target>
+  <Target Name="CleanExistingPayload" AfterTargets="Clean">
+    <RemoveDir Directories="$(DestinationDir)" />
+  </Target>
+</Project>

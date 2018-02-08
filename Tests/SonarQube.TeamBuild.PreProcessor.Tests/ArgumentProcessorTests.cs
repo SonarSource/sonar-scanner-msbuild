@@ -408,7 +408,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             logger = CheckProcessingFails(commandLineArgs);
             logger.AssertErrorsLogged(1);
-            logger.AssertSingleErrorExists(SonarQube.TeamBuild.PreProcessor.Resources.ERROR_InvalidProjectKeyArg);
+            logger.AssertSingleErrorExists("Invalid project key. Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit.");
         }
 
         private static void CheckProjectKeyIsValid(string projectKey)

@@ -66,21 +66,21 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         public void SemicolonInUsername()
         {
             var actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("user:name", "", new TestLogger()));
-            Assert.AreEqual(Resources.WCD_UserNameCannotContainColon, actual.Message);
+            Assert.AreEqual("username cannot contain the ':' character due to basic authentication limitations", actual.Message);
         }
 
         [TestMethod]
         public void AccentsInUsername()
         {
             var actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("héhé", "password", new TestLogger()));
-            Assert.AreEqual(Resources.WCD_UserNameMustBeAscii, actual.Message);
+            Assert.AreEqual("username and password should contain only ASCII characters due to basic authentication limitations", actual.Message);
         }
 
         [TestMethod]
         public void AccentsInPassword()
         {
             var actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("username", "héhé", new TestLogger()));
-            Assert.AreEqual(Resources.WCD_UserNameMustBeAscii, actual.Message);
+            Assert.AreEqual("username and password should contain only ASCII characters due to basic authentication limitations", actual.Message);
         }
     }
 }

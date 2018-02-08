@@ -22,7 +22,7 @@ namespace SonarScanner.Shim {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Resources {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace SonarScanner.Shim {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarScanner.Shim.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace SonarScanner.Shim {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to File was referenced by the following projects: &apos;{0}&apos;..
         /// </summary>
-        public static string DEBUG_FileReferencedByProjects {
+        internal static string DEBUG_FileReferencedByProjects {
             get {
                 return ResourceManager.GetString("DEBUG_FileReferencedByProjects", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to sonar-project.properties files are not understood by the SonarQube Scanner for MSBuild. Remove those files from the following folders: {0}.
         /// </summary>
-        public static string ERR_ConflictingSonarProjectProperties {
+        internal static string ERR_ConflictingSonarProjectProperties {
             get {
                 return ResourceManager.GetString("ERR_ConflictingSonarProjectProperties", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to An error occurred loading the analysis config file. Please check that it is a valid file and try again. Error: {0}.
         /// </summary>
-        public static string ERR_ErrorLoadingConfigFile {
+        internal static string ERR_ErrorLoadingConfigFile {
             get {
                 return ResourceManager.GetString("ERR_ErrorLoadingConfigFile", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Expected to be called with one argument: the full path to the analysis config file.
         /// </summary>
-        public static string ERR_InvalidCommandLineArgs {
+        internal static string ERR_InvalidCommandLineArgs {
             get {
                 return ResourceManager.GetString("ERR_InvalidCommandLineArgs", resourceCulture);
             }
@@ -103,7 +103,7 @@ namespace SonarScanner.Shim {
         ///  2. An unsupported version of MSBuild has been used to build the project. Currently MSBuild 14.0 upwards are supported
         ///  3. The begin, build or end steps have not all been launched from the same folder.
         /// </summary>
-        public static string ERR_NoProjectInfoFilesFound {
+        internal static string ERR_NoProjectInfoFilesFound {
             get {
                 return ResourceManager.GetString("ERR_NoProjectInfoFilesFound", resourceCulture);
             }
@@ -112,7 +112,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to No analysable projects were found but some duplicate project IDs were found. Possible cause: you are building multiple configurations (e.g. DEBUG|x86 and RELEASE|x64) at the same time, which is not supported by the SonarQube integration. Please build and analyse each configuration individually..
         /// </summary>
-        public static string ERR_NoValidButDuplicateProjects {
+        internal static string ERR_NoValidButDuplicateProjects {
             get {
                 return ResourceManager.GetString("ERR_NoValidButDuplicateProjects", resourceCulture);
             }
@@ -121,7 +121,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details..
         /// </summary>
-        public static string ERR_NoValidProjectInfoFiles {
+        internal static string ERR_NoValidProjectInfoFiles {
             get {
                 return ResourceManager.GetString("ERR_NoValidProjectInfoFiles", resourceCulture);
             }
@@ -130,7 +130,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to The project base directory doesn&apos;t exist..
         /// </summary>
-        public static string ERR_ProjectBaseDirDoesNotExist {
+        internal static string ERR_ProjectBaseDirDoesNotExist {
             get {
                 return ResourceManager.GetString("ERR_ProjectBaseDirDoesNotExist", resourceCulture);
             }
@@ -139,7 +139,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to The SonarQube Scanner did not complete successfully.
         /// </summary>
-        public static string ERR_SonarScannerExecutionFailed {
+        internal static string ERR_SonarScannerExecutionFailed {
             get {
                 return ResourceManager.GetString("ERR_SonarScannerExecutionFailed", resourceCulture);
             }
@@ -148,7 +148,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Generating SonarQube project properties file to {0}.
         /// </summary>
-        public static string MSG_GeneratingProjectProperties {
+        internal static string MSG_GeneratingProjectProperties {
             get {
                 return ResourceManager.GetString("MSG_GeneratingProjectProperties", resourceCulture);
             }
@@ -157,7 +157,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Analysis property is already correctly set: {0}={1}.
         /// </summary>
-        public static string MSG_MandatorySettingIsCorrectlySpecified {
+        internal static string MSG_MandatorySettingIsCorrectlySpecified {
             get {
                 return ResourceManager.GetString("MSG_MandatorySettingIsCorrectlySpecified", resourceCulture);
             }
@@ -166,7 +166,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to The project does not contain any files that can analyzed by SonarQube. Project file: {0}.
         /// </summary>
-        public static string MSG_NoFilesToAnalyze {
+        internal static string MSG_NoFilesToAnalyze {
             get {
                 return ResourceManager.GetString("MSG_NoFilesToAnalyze", resourceCulture);
             }
@@ -175,7 +175,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to The exclude flag has been set so the project will not be analyzed by SonarQube. Project file: {0}.
         /// </summary>
-        public static string MSG_ProjectIsExcluded {
+        internal static string MSG_ProjectIsExcluded {
             get {
                 return ResourceManager.GetString("MSG_ProjectIsExcluded", resourceCulture);
             }
@@ -184,7 +184,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Generation of the sonar-properties file failed. Unable to complete SonarQube analysis..
         /// </summary>
-        public static string MSG_PropertiesGenerationFailed {
+        internal static string MSG_PropertiesGenerationFailed {
             get {
                 return ResourceManager.GetString("MSG_PropertiesGenerationFailed", resourceCulture);
             }
@@ -193,7 +193,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to The supplied Code Analysis ErrorLog file is not a valid json file: {0}.
         /// </summary>
-        public static string MSG_SarifFileIsInvalid {
+        internal static string MSG_SarifFileIsInvalid {
             get {
                 return ResourceManager.GetString("MSG_SarifFileIsInvalid", resourceCulture);
             }
@@ -202,7 +202,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to The supplied Code Analysis ErrorLog file is a valid json file and does not need to be fixed: {0}.
         /// </summary>
-        public static string MSG_SarifFileIsValid {
+        internal static string MSG_SarifFileIsValid {
             get {
                 return ResourceManager.GetString("MSG_SarifFileIsValid", resourceCulture);
             }
@@ -211,7 +211,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to No Code Analysis ErrorLog file found at {0}..
         /// </summary>
-        public static string MSG_SarifFileNotFound {
+        internal static string MSG_SarifFileNotFound {
             get {
                 return ResourceManager.GetString("MSG_SarifFileNotFound", resourceCulture);
             }
@@ -220,7 +220,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Fixed invalid Code Analysis ErrorLog file. Please check that VS 2015 Update 1 (or later) is installed. Fixed file: {0}.
         /// </summary>
-        public static string MSG_SarifFixSuccess {
+        internal static string MSG_SarifFixSuccess {
             get {
                 return ResourceManager.GetString("MSG_SarifFixSuccess", resourceCulture);
             }
@@ -229,7 +229,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Setting analysis property: {0}={1}.
         /// </summary>
-        public static string MSG_SettingAnalysisProperty {
+        internal static string MSG_SettingAnalysisProperty {
             get {
                 return ResourceManager.GetString("MSG_SettingAnalysisProperty", resourceCulture);
             }
@@ -238,7 +238,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Calling the SonarQube Scanner....
         /// </summary>
-        public static string MSG_SonarScannerCalling {
+        internal static string MSG_SonarScannerCalling {
             get {
                 return ResourceManager.GetString("MSG_SonarScannerCalling", resourceCulture);
             }
@@ -247,7 +247,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to The SonarQube Scanner has finished.
         /// </summary>
-        public static string MSG_SonarScannerCompleted {
+        internal static string MSG_SonarScannerCompleted {
             get {
                 return ResourceManager.GetString("MSG_SonarScannerCompleted", resourceCulture);
             }
@@ -256,7 +256,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to The SONAR_SCANNER_HOME environment variable is not required and will be ignored..
         /// </summary>
-        public static string MSG_SonarScannerHomeIsSet {
+        internal static string MSG_SonarScannerHomeIsSet {
             get {
                 return ResourceManager.GetString("MSG_SonarScannerHomeIsSet", resourceCulture);
             }
@@ -265,7 +265,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to {0} is already set. Value: {1}.
         /// </summary>
-        public static string MSG_SonarScannerOptsAlreadySet {
+        internal static string MSG_SonarScannerOptsAlreadySet {
             get {
                 return ResourceManager.GetString("MSG_SonarScannerOptsAlreadySet", resourceCulture);
             }
@@ -274,7 +274,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to {0} is not configured. Setting it to the default value of {1}.
         /// </summary>
-        public static string MSG_SonarScannerOptsDefaultUsed {
+        internal static string MSG_SonarScannerOptsDefaultUsed {
             get {
                 return ResourceManager.GetString("MSG_SonarScannerOptsDefaultUsed", resourceCulture);
             }
@@ -283,7 +283,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Writing processing summary to {0}.
         /// </summary>
-        public static string MSG_WritingSummary {
+        internal static string MSG_WritingSummary {
             get {
                 return ResourceManager.GetString("MSG_WritingSummary", resourceCulture);
             }
@@ -292,7 +292,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Excluded projects.
         /// </summary>
-        public static string REPORT_ExcludedProjectsTitle {
+        internal static string REPORT_ExcludedProjectsTitle {
             get {
                 return ResourceManager.GetString("REPORT_ExcludedProjectsTitle", resourceCulture);
             }
@@ -301,7 +301,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Invalid projects.
         /// </summary>
-        public static string REPORT_InvalidProjectsTitle {
+        internal static string REPORT_InvalidProjectsTitle {
             get {
                 return ResourceManager.GetString("REPORT_InvalidProjectsTitle", resourceCulture);
             }
@@ -310,7 +310,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to {none}.
         /// </summary>
-        public static string REPORT_NoProjectsOfType {
+        internal static string REPORT_NoProjectsOfType {
             get {
                 return ResourceManager.GetString("REPORT_NoProjectsOfType", resourceCulture);
             }
@@ -319,7 +319,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Product projects.
         /// </summary>
-        public static string REPORT_ProductProjectsTitle {
+        internal static string REPORT_ProductProjectsTitle {
             get {
                 return ResourceManager.GetString("REPORT_ProductProjectsTitle", resourceCulture);
             }
@@ -328,7 +328,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Skipped projects.
         /// </summary>
-        public static string REPORT_SkippedProjectsTitle {
+        internal static string REPORT_SkippedProjectsTitle {
             get {
                 return ResourceManager.GetString("REPORT_SkippedProjectsTitle", resourceCulture);
             }
@@ -337,7 +337,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Test projects.
         /// </summary>
-        public static string REPORT_TestProjectsTitle {
+        internal static string REPORT_TestProjectsTitle {
             get {
                 return ResourceManager.GetString("REPORT_TestProjectsTitle", resourceCulture);
             }
@@ -346,7 +346,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Code coverage report does not exist at the specified location. Path: {0}.
         /// </summary>
-        public static string WARN_CodeCoverageReportNotFound {
+        internal static string WARN_CodeCoverageReportNotFound {
             get {
                 return ResourceManager.GetString("WARN_CodeCoverageReportNotFound", resourceCulture);
             }
@@ -355,7 +355,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Duplicate project GUID: &quot;{0}&quot;. Check that the project is only being built for a single platform/configuration and that that the project guid is unique. The project will not be analyzed by SonarQube. Project file: {1}.
         /// </summary>
-        public static string WARN_DuplicateProjectGuid {
+        internal static string WARN_DuplicateProjectGuid {
             get {
                 return ResourceManager.GetString("WARN_DuplicateProjectGuid", resourceCulture);
             }
@@ -364,7 +364,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to File &apos;{0}&apos; does not exist..
         /// </summary>
-        public static string WARN_FileDoesNotExist {
+        internal static string WARN_FileDoesNotExist {
             get {
                 return ResourceManager.GetString("WARN_FileDoesNotExist", resourceCulture);
             }
@@ -373,7 +373,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to File &apos;{0}&apos; is not located under the root directory and will not be analysed..
         /// </summary>
-        public static string WARN_FileIsOutsideProjectDirectory {
+        internal static string WARN_FileIsOutsideProjectDirectory {
             get {
                 return ResourceManager.GetString("WARN_FileIsOutsideProjectDirectory", resourceCulture);
             }
@@ -382,7 +382,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to The project has an invalid GUID &quot;{0}&quot;. The project will not be analyzed by SonarQube. Project file: {1}.
         /// </summary>
-        public static string WARN_InvalidProjectGuid {
+        internal static string WARN_InvalidProjectGuid {
             get {
                 return ResourceManager.GetString("WARN_InvalidProjectGuid", resourceCulture);
             }
@@ -391,7 +391,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Could not determine default project encoding, therefore {0} is being selected..
         /// </summary>
-        public static string WARN_NoEncoding {
+        internal static string WARN_NoEncoding {
             get {
                 return ResourceManager.GetString("WARN_NoEncoding", resourceCulture);
             }
@@ -400,7 +400,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Overriding analysis property. Effective value: {0}={1}.
         /// </summary>
-        public static string WARN_OverridingAnalysisProperty {
+        internal static string WARN_OverridingAnalysisProperty {
             get {
                 return ResourceManager.GetString("WARN_OverridingAnalysisProperty", resourceCulture);
             }
@@ -409,7 +409,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Property &quot;{0}&quot; is defined, but will be ignored during analysis..
         /// </summary>
-        public static string WARN_PropertyIgnored {
+        internal static string WARN_PropertyIgnored {
             get {
                 return ResourceManager.GetString("WARN_PropertyIgnored", resourceCulture);
             }
@@ -418,7 +418,7 @@ namespace SonarScanner.Shim {
         /// <summary>
         ///   Looks up a localized string similar to Failed to fix Code Analysis ErrorLog file. Please check that VS 2015 Update 1 (or later) is installed..
         /// </summary>
-        public static string WARN_SarifFixFail {
+        internal static string WARN_SarifFixFail {
             get {
                 return ResourceManager.GetString("WARN_SarifFixFail", resourceCulture);
             }
