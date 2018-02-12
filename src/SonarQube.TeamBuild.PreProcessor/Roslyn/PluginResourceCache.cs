@@ -29,8 +29,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
     public class SubdirIndex
     {
         // global locking, to ensure synchronized access to index file by multiple processes
-        private static readonly EventWaitHandle waitHandle = new EventWaitHandle(true, EventResetMode.AutoReset,
-            "90CD3CFF-A12C-4013-A44A-199B8C26818B");
+        private static readonly Mutex mutex = new Mutex(false, @"Global\90CD3CFF-A12C-4013-A44A-199B8C26818B");
 
         private readonly string basedir;
         private readonly string indexPath;
@@ -43,7 +42,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         public string GetOrCreatePath(string key)
         {
-            waitHandle.WaitOne();
+            mutex.WaitOne();
             try
             {
                 var mapping = ReadMapping();
@@ -57,7 +56,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
             }
             finally
             {
-                waitHandle.Set();
+                mutex.ReleaseMutex();
             }
         }
 
