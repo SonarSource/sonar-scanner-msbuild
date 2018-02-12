@@ -32,6 +32,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         private bool initialisedSuccesfully;
 
         private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
+
         public CoverageReportProcessor(ILegacyTeamBuildFactory legacyTeamBuildFactory)
         {
             this.legacyTeamBuildFactory

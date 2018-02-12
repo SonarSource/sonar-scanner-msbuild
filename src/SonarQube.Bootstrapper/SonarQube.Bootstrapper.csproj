@@ -18,15 +18,16 @@
     <ProjectReference Include="..\SonarQube.TeamBuild.PreProcessor\SonarQube.TeamBuild.PreProcessor.csproj" />
     <ProjectReference Include="..\SonarScanner.Shim\SonarScanner.Shim.csproj" />
   </ItemGroup>
+
   <!-- Conditionally reference project only if the framework is classic .NET Framework (not core or standard). -->
   <ItemGroup Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework')">
-      <ProjectReference Include="..\SonarQube.TeamBuild.Integration.Legacy\SonarQube.TeamBuild.Integration.Legacy.csproj" />
+    <ProjectReference Include="..\SonarQube.TeamBuild.Integration.Legacy\SonarQube.TeamBuild.Integration.Legacy.csproj" />
   </ItemGroup>
+
   <!-- Define a constant if the framework is classic .NET Framework. -->
   <Target Name="AddNetFrameworkMacro" BeforeTargets="CoreCompile" Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework')">
     <PropertyGroup>
       <DefineConstants>$(DefineConstants);IS_NET_FRAMEWORK</DefineConstants>
-      <IsNetFramework>true</IsNetFramework>
     </PropertyGroup>
   </Target>
 </Project>

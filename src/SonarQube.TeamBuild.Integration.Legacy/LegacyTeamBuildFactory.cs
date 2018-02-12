@@ -23,13 +23,9 @@ namespace SonarQube.TeamBuild.Integration.Legacy
     public class LegacyTeamBuildFactory : ILegacyTeamBuildFactory
     {
         public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri)
-        {
-            return new LegacyBuildSummaryLogger(tfsUri, buildUri);
-        }
+            => new LegacyBuildSummaryLogger(tfsUri, buildUri);
 
         public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
-        {
-            return new TfsLegacyCoverageReportProcessor();
-        }
+            => new TfsLegacyCoverageReportProcessor();
     }
 }
