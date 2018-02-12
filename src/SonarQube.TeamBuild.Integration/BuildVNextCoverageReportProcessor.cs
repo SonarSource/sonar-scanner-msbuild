@@ -48,6 +48,13 @@ namespace SonarQube.TeamBuild.Integration
             return true; // there aren't currently any conditions under which we'd want to stop processing
         }
 
+        protected override bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string trxFilePath)
+        {
+            trxFilePath = TrxFileReader.FindTrxFile(settings.BuildDirectory, logger);
+
+            return true;
+        }
+
         #endregion Overrides
     }
 }

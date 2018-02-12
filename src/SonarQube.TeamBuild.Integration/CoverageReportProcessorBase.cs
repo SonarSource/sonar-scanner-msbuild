@@ -73,10 +73,17 @@ namespace SonarQube.TeamBuild.Integration
                 success = ProcessBinaryCodeCoverageReport(binaryFilePath);
             }
 
+            if (TryGetTrxFile(config, settings, logger, out var trxFilePath))
+            {
+                InsertTestAnalysisResults(config.SonarOutputDir, trxFilePath);
+            }
+
             return success;
         }
 
         protected abstract bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath);
+
+        protected abstract bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string trxFilePath);
 
         #endregion ICoverageReportProcessor interface
 
@@ -112,6 +119,24 @@ namespace SonarQube.TeamBuild.Integration
                 {
                     var projectInfo = ProjectInfo.Load(projectInfoPath);
                     projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisType.VisualStudioCodeCoverage.ToString(), Location = coverageFilePath });
+                    projectInfo.Save(projectInfoPath);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Insert code coverage results information into each projectinfo file
+        /// </summary>
+        private static void InsertTestAnalysisResults(string sonarOutputDir, string testResultFilePath)
+        {
+            foreach (var projectFolderPath in Directory.GetDirectories(sonarOutputDir))
+            {
+                var projectInfoPath = Path.Combine(projectFolderPath, FileConstants.ProjectInfoFileName);
+
+                if (File.Exists(projectInfoPath))
+                {
+                    var projectInfo = ProjectInfo.Load(projectInfoPath);
+                    projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisType.TestResults.ToString(), Location = testResultFilePath });
                     projectInfo.Save(projectInfoPath);
                 }
             }

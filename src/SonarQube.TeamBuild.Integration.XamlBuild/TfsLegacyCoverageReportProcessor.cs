@@ -90,6 +90,13 @@ namespace SonarQube.TeamBuild.Integration.XamlBuild
             return continueProcessing;
         }
 
+        protected override bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string trxFilePath)
+        {
+            // We don't support TFS Legacy builds for automatic TRX discovery
+            trxFilePath = null;
+            return false;
+        }
+
         #endregion Virtual methods
     }
 }

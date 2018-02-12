@@ -48,7 +48,22 @@ namespace SonarScanner.Shim
             return true;
         }
 
+        public bool TestResultsExists(ILogger logger)
+        {
+            var trxLocation = TrxLocation;
+
+            if (trxLocation != null && !File.Exists(trxLocation))
+            {
+                logger.LogWarning(Resources.WARN_TestResultsNotFound, trxLocation);
+                return false;
+            }
+
+            return true;
+        }
+
         public string VisualStudioCoverageLocation => Project.TryGetAnalysisFileLocation(AnalysisType.VisualStudioCodeCoverage);
+
+        public string TrxLocation => Project.TryGetAnalysisFileLocation(AnalysisType.TestResults);
 
         public string Guid => Project.GetProjectGuidAsString();
 

@@ -53,6 +53,7 @@ namespace SonarScanner.Shim.Tests
             var productChineseFile = CreateEmptyFile(productBaseDir, "你好.cs");
 
             var productCoverageFilePath = CreateEmptyFile(productBaseDir, "productCoverageReport.txt");
+            var productTrxPath = CreateEmptyFile(productBaseDir, "productTrx.trx");
             var productFileListFilePath = Path.Combine(productBaseDir, "productManagedFiles.txt");
 
             var otherDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_OtherDir");
@@ -97,9 +98,9 @@ namespace SonarScanner.Shim.Tests
             using (new AssertIgnoreScope()) // expecting the property writer to complain about the missing file
             {
                 var writer = new PropertiesWriter(config);
-                writer.WriteSettingsForProject(productCS, productCoverageFilePath);
-                writer.WriteSettingsForProject(productVB, null);
-                writer.WriteSettingsForProject(test, null);
+                writer.WriteSettingsForProject(productCS);
+                writer.WriteSettingsForProject(productVB);
+                writer.WriteSettingsForProject(test);
 
                 actual = writer.Flush();
             }
@@ -109,11 +110,10 @@ namespace SonarScanner.Shim.Tests
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName=\u4F60\u597D
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir={0}
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sourceEncoding=utf-8
-DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.cs.vscoveragexml.reportsPaths={1}
 DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources=\
 {0}\\File.cs,\
 {0}\\\u4F60\u597D.cs,\
-{3}
+{2}
 
 B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectKey=my_project_key:B51622CF-82F4-48C9-9F38-FB981FAFAF3A
 B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectName=vbProject
@@ -124,20 +124,18 @@ B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sources=\
 
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey=my_project_key:DA0FCD82-9C5C-4666-9370-C7388281D49B
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectName=my_test_project
-DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectBaseDir={2}
+DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectBaseDir={1}
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sourceEncoding=utf-8
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources=
 DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
-{2}\\File.cs
+{1}\\File.cs
 
 sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981FAFAF3A,DA0FCD82-9C5C-4666-9370-C7388281D49B
 
 ",
  PropertiesWriter.Escape(productBaseDir),
- PropertiesWriter.Escape(productCoverageFilePath),
  PropertiesWriter.Escape(testBaseDir),
- PropertiesWriter.Escape(missingFileOutsideProjectDir),
- PropertiesWriter.Escape(config.SourcesDirectory));
+ PropertiesWriter.Escape(missingFileOutsideProjectDir));
 
             SaveToResultFile(productBaseDir, "Expected.txt", expected.ToString());
             SaveToResultFile(productBaseDir, "Actual.txt", actual);
@@ -169,7 +167,8 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             writer.Flush();
             using (new AssertIgnoreScope())
             {
-                AssertException.Expects<InvalidOperationException>(() => writer.WriteSettingsForProject(new ProjectData(new ProjectInfo()), "code coverage report"));
+                AssertException.Expects<InvalidOperationException>(
+                    () => writer.WriteSettingsForProject(new ProjectData(new ProjectInfo())));
             }
         }
 
@@ -205,7 +204,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             product.ReferencedFiles.Add(productFile);
             // Act
             var writer = new PropertiesWriter(config);
-            writer.WriteSettingsForProject(product, null);
+            writer.WriteSettingsForProject(product);
             var fullActualPath = SaveToResultFile(projectBaseDir, "Actual.txt", writer.Flush());
 
             // Assert
@@ -243,7 +242,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
 
             // Act
             var writer = new PropertiesWriter(config);
-            writer.WriteSettingsForProject(product, null);
+            writer.WriteSettingsForProject(product);
             writer.WriteSonarProjectInfo("dummy basedir");
             var s = writer.Flush();
 
@@ -251,16 +250,6 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             props.Load(GenerateStreamFromString(s));
             var key = projectKey + "." + SonarProperties.WorkingDirectory;
             Assert.IsTrue(props.ContainsKey(key));
-        }
-
-        public static Stream GenerateStreamFromString(string s)
-        {
-            var stream = new MemoryStream();
-            var writer = new StreamWriter(stream);
-            writer.Write(s);
-            writer.Flush();
-            stream.Position = 0;
-            return stream;
         }
 
         [TestMethod]
@@ -301,9 +290,61 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             propertyReader.AssertSettingExists("sonar.branch", "aBranch");
         }
 
+        [TestMethod]
+        public void PropertiesWriter_WriteVisualStudioCoveragePaths()
+        {
+            // Arrange
+            var projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_GlobalSettingsWritten");
+
+            var config = new AnalysisConfig()
+            {
+                SonarOutputDir = @"C:\my_folder"
+            };
+
+            var writer = new PropertiesWriter(config);
+
+            // Act
+            writer.WriteVisualStudioCoveragePaths(new[] { "path1", "path2" });
+
+            // Assert
+            var actual = writer.Flush(); // Flush writes "sonar.properties" in addition to other written properties
+            Assert.AreEqual("sonar.cs.vscoveragexml.reportsPaths=path1,path2\r\nsonar.modules=\r\n\r\n", actual);
+        }
+
+        [TestMethod]
+        public void PropertiesWriter_WriteVisualStudioTestResultsPaths()
+        {
+            // Arrange
+            var projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_GlobalSettingsWritten");
+
+            var config = new AnalysisConfig()
+            {
+                SonarOutputDir = @"C:\my_folder"
+            };
+
+            var writer = new PropertiesWriter(config);
+
+            // Act
+            writer.WriteVisualStudioTestResultsPaths(new[] { "path1", "path2" });
+
+            // Assert
+            var actual = writer.Flush(); // Flush writes "sonar.properties" in addition to other written properties
+            Assert.AreEqual("sonar.cs.vstest.reportsPaths=path1,path2\r\nsonar.modules=\r\n\r\n", actual);
+        }
+
         #endregion Tests
 
         #region Private methods
+
+        private static Stream GenerateStreamFromString(string s)
+        {
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
+            writer.Write(s);
+            writer.Flush();
+            stream.Position = 0;
+            return stream;
+        }
 
         private static ProjectInfo CreateProjectInfo(string name, string projectId, string fullFilePath, bool isTest, IEnumerable<string> files,
             string fileListFilePath, string coverageReportPath, string language, string encoding)

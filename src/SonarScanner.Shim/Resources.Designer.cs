@@ -423,5 +423,14 @@ namespace SonarScanner.Shim {
                 return ResourceManager.GetString("WARN_SarifFixFail", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test results (.trx) does not exist at the specified location. Path: {0}.
+        /// </summary>
+        internal static string WARN_TestResultsNotFound {
+            get {
+                return ResourceManager.GetString("WARN_TestResultsNotFound", resourceCulture);
+            }
+        }
     }
 }

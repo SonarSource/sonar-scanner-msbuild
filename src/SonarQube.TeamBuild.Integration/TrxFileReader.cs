@@ -106,7 +106,7 @@ namespace SonarQube.TeamBuild.Integration
 
         #region Private methods
 
-        private static string FindTrxFile(string buildRootDirectory, ILogger logger)
+        public static string FindTrxFile(string buildRootDirectory, ILogger logger)
         {
             Debug.Assert(!string.IsNullOrEmpty(buildRootDirectory));
             Debug.Assert(Directory.Exists(buildRootDirectory), "The specified build root directory should exist: " + buildRootDirectory);
