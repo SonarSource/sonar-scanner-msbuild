@@ -55,6 +55,14 @@ namespace SonarQube.TeamBuild.PostProcessor
         private ProjectInfoAnalysisResult result;
         private ITeamBuildSettings settings;
 
+        private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
+
+        public SummaryReportBuilder(ILegacyTeamBuildFactory legacyTeamBuildFactory)
+        {
+            this.legacyTeamBuildFactory
+                = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
+        }
+
         #region IReportBuilder interface methods
 
         /// <summary>
@@ -189,7 +197,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
 
-            using (var summaryLogger = new BuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
+            using (var summaryLogger = legacyTeamBuildFactory.BuildLegacyBuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
             {
                 // Add a link to SonarQube dashboard if analysis succeeded
                 if (summaryData.Succeeded)

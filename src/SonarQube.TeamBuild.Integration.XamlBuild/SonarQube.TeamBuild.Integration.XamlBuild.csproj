@@ -1,17 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
-    <AssemblyName>TeamBuild.SonarQube.Integration</AssemblyName>
-    <RootNamespace>SonarQube.TeamBuild.Integration</RootNamespace>
+    <AssemblyName>TeamBuild.SonarQube.Integration.XamlBuild</AssemblyName>
+    <RootNamespace>SonarQube.TeamBuild.Integration.XamlBuild</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
+    <ProjectReference Include="..\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" version="5.2.2" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core" version="5.2.2" />
+    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" version="3.13.5" />
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" version="14.102.0" />
+    <PackageReference Include="Microsoft.TeamFoundationServer.ExtendedClient" version="14.102.0" />
+    <PackageReference Include="Microsoft.Tpl.Dataflow" version="4.5.24" />
     <PackageReference Include="Microsoft.VisualStudio.Services.Client" version="14.102.0" />
     <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" version="14.102.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" version="1.14.114" />
     <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" version="1.7.0.0" />
     <PackageReference Include="Newtonsoft.Json" version="8.0.3" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" version="4.0.2.206221351" />

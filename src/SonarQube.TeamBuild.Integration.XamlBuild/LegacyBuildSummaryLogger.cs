@@ -23,14 +23,14 @@ using System.Globalization;
 using Microsoft.TeamFoundation.Build.Client;
 using Microsoft.TeamFoundation.Client;
 
-namespace SonarQube.TeamBuild.Integration
+namespace SonarQube.TeamBuild.Integration.XamlBuild
 {
     /// <summary>
     /// Wrapper to help write custom build summary messages
     /// </summary>
     /// <remarks>The class will connect to TFS when the first message is written, and
     /// save all of the written messages to the server when the class is disposed</remarks>
-    public class BuildSummaryLogger : IDisposable
+    public class LegacyBuildSummaryLogger : ILegacyBuildSummaryLogger
     {
         /// <summary>
         /// The priority specifies where this summary section appears in the list of summary sections.
@@ -52,7 +52,7 @@ namespace SonarQube.TeamBuild.Integration
 
         #region Public methods
 
-        public BuildSummaryLogger(string tfsUri, string buildUri)
+        public LegacyBuildSummaryLogger(string tfsUri, string buildUri)
         {
             if (string.IsNullOrWhiteSpace(tfsUri))
             {

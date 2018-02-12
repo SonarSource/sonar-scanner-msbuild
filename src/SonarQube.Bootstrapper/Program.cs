@@ -20,6 +20,7 @@
 
 using System;
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
 
 namespace SonarQube.Bootstrapper
 {
@@ -63,11 +64,20 @@ namespace SonarQube.Bootstrapper
                 return ErrorCode;
             }
 
-            IProcessorFactory processorFactory = new DefaultProcessorFactory(logger);
+            var processorFactory = new DefaultProcessorFactory(logger, GetLegacyTeamBuildFactory());
             var bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
             var exitCode = bootstrapper.Execute();
             Environment.ExitCode = exitCode;
             return exitCode;
+        }
+
+        private static ILegacyTeamBuildFactory GetLegacyTeamBuildFactory()
+        {
+#if IS_NET_FRAMEWORK
+            return new TeamBuild.Integration.XamlBuild.LegacyTeamBuildFactory();
+#else
+            return new NotSupportedLegacyTeamBuildFactory();
+#endif
         }
     }
 }

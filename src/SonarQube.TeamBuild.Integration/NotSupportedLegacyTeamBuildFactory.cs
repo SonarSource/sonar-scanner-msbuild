@@ -18,16 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Setup.Configuration;
+using System;
+using SonarQube.TeamBuild.Integration;
 
-namespace SonarQube.TeamBuild.Integration
+namespace SonarQube.Bootstrapper
 {
-    public interface IVisualStudioSetupConfigurationFactory
+    public class NotSupportedLegacyTeamBuildFactory : ILegacyTeamBuildFactory
     {
-        /// <summary>
-        /// Attempts to instantiate a queryable setup configuration object.
-        /// </summary>
-        /// <returns></returns>
-        ISetupConfiguration GetSetupConfigurationQuery();
+        private const string message
+            = "Legacy XAML builds are not supported by .NET Core version of Scanner for MSBuild. " +
+              "Please use the .NET Framework executable instead.";
+
+        public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri)
+            => throw new NotSupportedException(message);
+
+        public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
+            => throw new NotSupportedException(message);
     }
 }

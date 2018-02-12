@@ -22,6 +22,7 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.Integration.XamlBuild;
 using SonarQube.TeamBuild.PostProcessor;
 using SonarScanner.Shim;
 using TestUtilities;
@@ -125,7 +126,7 @@ namespace SonarQube.TeamBuild.PostProcessorTests
             var expectedReportPath = Path.Combine(TestContext.TestDeploymentDir, SummaryReportBuilder.SummaryMdFilename);
 
             // Act
-            var builder = new SummaryReportBuilder();
+            var builder = new SummaryReportBuilder(new LegacyTeamBuildFactory());
             builder.GenerateReports(settings, config, result, new TestLogger());
 
             // Assert

@@ -117,78 +117,40 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CONV_DIAG_CommandLineToolInfo" xml:space="preserve">
-    <value>Code coverage command line tool: {0}</value>
+  <data name="DOWN_DIAG_ConnectedToTFS" xml:space="preserve">
+    <value>Connected to {0}</value>
   </data>
-  <data name="CONV_DIAG_LocatingCodeCoverageTool" xml:space="preserve">
-    <value>Attempting to locate the CodeCoverage.exe tool...</value>
+  <data name="DOWN_DIAG_DownloadCoverageReportFromTo" xml:space="preserve">
+    <value>Downloading coverage file from {0} to {1}</value>
   </data>
-  <data name="CONV_DIAG_LocatingCodeCoverageToolRegistry" xml:space="preserve">
-    <value>Attempting to locate the CodeCoverage.exe tool using registry...</value>
+  <data name="PROC_DIAG_NoCodeCoverageReportsFound" xml:space="preserve">
+    <value>No code coverage reports were found for the current build.</value>
   </data>
-  <data name="CONV_DIAG_LocatingCodeCoverageToolSetupConfiguration" xml:space="preserve">
-    <value>Attempting to locate the CodeCoverage.exe tool using setup configuration...</value>
+  <data name="PROC_ERROR_FailedToDownloadReport" xml:space="preserve">
+    <value>Failed to download the code coverage report.</value>
   </data>
-  <data name="CONV_DIAG_MultipleVsVersionsInstalled" xml:space="preserve">
-    <value>Multiple versions of VS are installed: {0}</value>
-    <comment>First parameter: a list of VS versions</comment>
+  <data name="PROC_ERROR_FailedToDownloadReportReason" xml:space="preserve">
+    <value>"Failed to download the code coverage report from {0}. The HTTP status code was {1} and the reason \"{2}\""</value>
   </data>
-  <data name="CONV_DIAG_SetupConfigurationNotSupported" xml:space="preserve">
-    <value>Visual Studio setup configuration was not found.</value>
+  <data name="PROC_ERROR_MultipleCodeCoverageReportsFound" xml:space="preserve">
+    <value>More than one code coverage result file was created. Only one report can be uploaded to SonarQube. Please modify the build definition so either SonarQube analysis is disabled or only one platform/flavor is built</value>
   </data>
-  <data name="CONV_ERROR_ConversionToolFailed" xml:space="preserve">
-    <value>Failed to convert the downloaded code coverage tool to XML. No code coverage information will be uploaded to SonarQube.
-Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.</value>
+  <data name="SonarQubeSummarySectionHeader" xml:space="preserve">
+    <value>SonarQube Analysis Summary</value>
   </data>
-  <data name="CONV_ERROR_OutputFileNotFound" xml:space="preserve">
-    <value>Failed to convert the binary coverage file to XML. The expected output file was not found: {0}</value>
+  <data name="URL_DIAG_ConnectingToTfs" xml:space="preserve">
+    <value>Connecting to TFS...</value>
   </data>
-  <data name="CONV_WARN_FailToFindConversionTool" xml:space="preserve">
-    <value>Failed to find the code coverage command line tool. Possible cause: Visual Studio is not installed, or the installed version does not support code coverage.</value>
+  <data name="URL_DIAG_CoverageReportInfo" xml:space="preserve">
+    <value>Coverage Id: {0}, Platform {1}, Flavor {2}</value>
   </data>
-  <data name="EX_CoverageReportProcessorNotInitialised" xml:space="preserve">
-    <value>The Coverage Report Processor was not initialised before use.</value>
+  <data name="URL_DIAG_FetchingBuildInfo" xml:space="preserve">
+    <value>Fetching build information...</value>
   </data>
-  <data name="PROC_DIAG_FetchingCoverageReportInfoFromServer" xml:space="preserve">
-    <value>Fetching code coverage report information from TFS...</value>
+  <data name="URL_DIAG_FetchingCoverageReportInfo" xml:space="preserve">
+    <value>Fetch code coverage report info...</value>
   </data>
-  <data name="PROC_DIAG_UpdatingProjectInfoFiles" xml:space="preserve">
-    <value>Updating project info files with code coverage information...</value>
-  </data>
-  <data name="TRX_DIAG_AbsoluteTrxPath" xml:space="preserve">
-    <value>Absolute path to coverage file: {0}</value>
-  </data>
-  <data name="TRX_DIAG_FolderPaths" xml:space="preserve">
-    <value>Looking for TRX files in: {0}</value>
-  </data>
-  <data name="TRX_DIAG_LocatingTrx" xml:space="preserve">
-    <value>Attempting to locate a test results (.trx) file...</value>
-  </data>
-  <data name="TRX_DIAG_NoCodeCoverageInfo" xml:space="preserve">
-    <value>No code coverage attachments were found in the trx file</value>
-  </data>
-  <data name="TRX_DIAG_NoTestResultsFound" xml:space="preserve">
-    <value>No test results files found</value>
-  </data>
-  <data name="TRX_DIAG_SingleCodeCoverageAttachmentFound" xml:space="preserve">
-    <value>One code coverage attachment was found in the trx file: {0}</value>
-  </data>
-  <data name="TRX_DIAG_SingleTrxFileFound" xml:space="preserve">
-    <value>Located a test results file: {0}</value>
-  </data>
-  <data name="TRX_DIAG_TestResultsDirectoryNotFound" xml:space="preserve">
-    <value>Test results directory does not exist in {0}</value>
-  </data>
-  <data name="TRX_WARN_InvalidConstructedCoveragePath" xml:space="preserve">
-    <value>Coverage attachment could not be found. Trx file: {0}. Attachment name: {1}</value>
-  </data>
-  <data name="TRX_WARN_InvalidTrx" xml:space="preserve">
-    <value>Located trx file is not a valid xml file. File: {0}. File load error: {1}</value>
-  </data>
-  <data name="TRX_WARN_MultipleCodeCoverageAttachmentsFound" xml:space="preserve">
-    <value>Expecting to find at most one code coverage attachment in the trx file, but multiple attachments were found. Code coverage information will not be uploaded to SonarQube. Attachments: {0}</value>
-  </data>
-  <data name="TRX_WARN_MultipleTrxFilesFound" xml:space="preserve">
-    <value>More than one test result file was found: expecting to find only one. Results files: {0}</value>
+  <data name="URL_DIAG_Finished" xml:space="preserve">
+    <value>...done.</value>
   </data>
 </root>
