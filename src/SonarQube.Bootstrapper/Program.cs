@@ -74,7 +74,7 @@ namespace SonarQube.Bootstrapper
         private static ILegacyTeamBuildFactory GetLegacyTeamBuildFactory()
         {
 #if IS_NET_FRAMEWORK
-            return new TeamBuild.Integration.Legacy.LegacyTeamBuildFactory();
+            return new TeamBuild.Integration.XamlBuild.LegacyTeamBuildFactory();
 #else
             return new NotSupportedLegacyTeamBuildFactory();
 #endif

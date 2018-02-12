@@ -21,7 +21,7 @@
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Legacy;
+using SonarQube.TeamBuild.Integration.XamlBuild;
 using SonarQube.TeamBuild.Integration.Tests.Infrastructure;
 using TestUtilities;
 

@@ -22,7 +22,7 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.Integration.Legacy;
+using SonarQube.TeamBuild.Integration.XamlBuild;
 using SonarQube.TeamBuild.PostProcessor;
 using SonarScanner.Shim;
 using TestUtilities;

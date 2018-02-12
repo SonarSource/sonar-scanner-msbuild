@@ -26,7 +26,7 @@ using Microsoft.TeamFoundation.Client;
 using Microsoft.VisualStudio.Services.Common;
 using SonarQube.Common;
 
-namespace SonarQube.TeamBuild.Integration.Legacy
+namespace SonarQube.TeamBuild.Integration.XamlBuild
 {
     internal class CoverageReportDownloader : ICoverageReportDownloader
     {
