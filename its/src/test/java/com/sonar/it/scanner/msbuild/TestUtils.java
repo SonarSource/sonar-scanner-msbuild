@@ -93,7 +93,7 @@ public class TestUtils {
   public static Path projectDir(TemporaryFolder temp, String projectName) throws IOException {
     Path projectDir = Paths.get("projects").resolve(projectName);
     FileUtils.deleteDirectory(new File(temp.getRoot(), projectName));
-    Path tmpProjectDir = temp.newFolder(projectName).toPath();
+    Path tmpProjectDir = Paths.get(temp.newFolder(projectName).getCanonicalPath());
     FileUtils.copyDirectory(projectDir.toFile(), tmpProjectDir.toFile());
     return tmpProjectDir;
   }
