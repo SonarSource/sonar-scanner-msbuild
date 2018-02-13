@@ -105,8 +105,8 @@ namespace SonarQube.TeamBuild.PreProcessor
                 {
                     var contents = downloader.Download(ws);
                     var json = JObject.Parse(contents);
-                    total = Convert.ToInt32(json["total"]);
-                    fetched += Convert.ToInt32(json["ps"]);
+                    total = json["total"].ToObject<int>();
+                    fetched += json["ps"].ToObject<int>();
                     page++;
                     var rules = json["rules"].Children<JObject>();
 
@@ -139,8 +139,8 @@ namespace SonarQube.TeamBuild.PreProcessor
                 {
                     var contents = downloader.Download(ws);
                     var json = JObject.Parse(contents);
-                    total = Convert.ToInt32(json["total"]);
-                    fetched += Convert.ToInt32(json["ps"]);
+                    total = json["total"].ToObject<int>();
+                    fetched += json["ps"].ToObject<int>();
                     page++;
                     var rules = json["rules"].Children<JObject>();
                     var actives = json["actives"];
