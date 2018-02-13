@@ -6,11 +6,6 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
     <ProjectReference Include="..\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj" />
   </ItemGroup>
