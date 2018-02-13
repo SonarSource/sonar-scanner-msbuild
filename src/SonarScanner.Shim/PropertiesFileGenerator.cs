@@ -137,9 +137,6 @@ namespace SonarScanner.Shim
             writer.WriteSonarProjectInfo(rootProjectBaseDir);
             writer.WriteSharedFiles(rootModuleFiles);
 
-            writer.WriteVisualStudioCoveragePaths(validProjects.Where(p => p.CoverageAnalysisExists(logger)).Select(p => p.VisualStudioCoverageLocation));
-            writer.WriteVisualStudioTestResultsPaths(validProjects.Where(p => p.TestResultsExists(logger)).Select(p => p.TrxLocation));
-
             validProjects.ForEach(writer.WriteSettingsForProject);
 
             // Handle global settings

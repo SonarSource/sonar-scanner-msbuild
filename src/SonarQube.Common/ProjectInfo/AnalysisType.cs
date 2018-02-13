@@ -39,11 +39,6 @@ namespace SonarQube.Common
         /// <summary>
         /// An XML code coverage report produced by the Visual Studio code coverage tool
         /// </summary>
-        VisualStudioCodeCoverage,
-
-        /// <summary>
-        /// Test results file (.trx)
-        /// </summary>
-        TestResults
+        VisualStudioCodeCoverage
     }
 }

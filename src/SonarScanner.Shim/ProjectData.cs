@@ -35,36 +35,6 @@ namespace SonarScanner.Shim
             Project = project;
         }
 
-        public bool CoverageAnalysisExists(ILogger logger)
-        {
-            var visualStudioCoverageLocation = VisualStudioCoverageLocation;
-
-            if (visualStudioCoverageLocation != null && !File.Exists(visualStudioCoverageLocation))
-            {
-                logger.LogWarning(Resources.WARN_CodeCoverageReportNotFound, visualStudioCoverageLocation);
-                return false;
-            }
-
-            return true;
-        }
-
-        public bool TestResultsExists(ILogger logger)
-        {
-            var trxLocation = TrxLocation;
-
-            if (trxLocation != null && !File.Exists(trxLocation))
-            {
-                logger.LogWarning(Resources.WARN_TestResultsNotFound, trxLocation);
-                return false;
-            }
-
-            return true;
-        }
-
-        public string VisualStudioCoverageLocation => Project.TryGetAnalysisFileLocation(AnalysisType.VisualStudioCodeCoverage);
-
-        public string TrxLocation => Project.TryGetAnalysisFileLocation(AnalysisType.TestResults);
-
         public string Guid => Project.GetProjectGuidAsString();
 
         public ProjectInfoValidity Status { get; set; }

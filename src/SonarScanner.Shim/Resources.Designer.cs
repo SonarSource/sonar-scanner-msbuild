@@ -425,7 +425,7 @@ namespace SonarScanner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Test results (.trx) does not exist at the specified location. Path: {0}.
+        ///   Looks up a localized string similar to Test result file does not exist at the specified location. Path: {0}.
         /// </summary>
         internal static string WARN_TestResultsNotFound {
             get {

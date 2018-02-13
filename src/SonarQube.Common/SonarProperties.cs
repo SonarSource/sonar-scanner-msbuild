@@ -54,5 +54,8 @@ namespace SonarQube.Common
         public const string LogLevel = "sonar.log.level";
 
         public const string Organization = "sonar.organization";
+
+        public const string VsCoverageXmlReportsPaths = "sonar.cs.vscoveragexml.reportsPaths";
+        public const string VsTestReportsPaths = "sonar.cs.vstest.reportsPaths";
     }
 }

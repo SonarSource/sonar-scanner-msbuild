@@ -21,6 +21,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration.Interfaces;
 
@@ -41,8 +42,6 @@ namespace SonarQube.TeamBuild.Integration
         {
             this.converter = converter ?? throw new ArgumentNullException("converter");
         }
-
-        #region ICoverageReportProcessor interface
 
         public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger)
         {
@@ -68,80 +67,50 @@ namespace SonarQube.TeamBuild.Integration
 
             var success = TryGetBinaryReportFile(config, settings, logger, out string binaryFilePath);
 
-            if (success && binaryFilePath != null)
+            if (success &&
+                binaryFilePath != null &&
+                TryConvertCoverageReport(binaryFilePath, out var coverageReportPath) &&
+                !string.IsNullOrEmpty(coverageReportPath) &&
+                !config.LocalSettings.Any(IsVsCoverageXmlReportsPaths))
             {
-                success = ProcessBinaryCodeCoverageReport(binaryFilePath);
+                config.LocalSettings.Add( new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = coverageReportPath });
             }
 
-            if (TryGetTrxFile(config, settings, logger, out var trxFilePath))
+            if (TryGetTrxFile(config, settings, logger, out var trxPath) &&
+                !string.IsNullOrEmpty(trxPath) &&
+                !config.LocalSettings.Any(IsVsTestReportsPaths))
             {
-                InsertTestAnalysisResults(config.SonarOutputDir, trxFilePath);
+                config.LocalSettings.Add( new Property { Id = SonarProperties.VsTestReportsPaths, Value = trxPath });
             }
 
             return success;
         }
+
+        private static bool IsVsCoverageXmlReportsPaths(Property property) =>
+            Property.AreKeysEqual(property.Id, SonarProperties.VsCoverageXmlReportsPaths);
+
+        private static bool IsVsTestReportsPaths(Property property) =>
+            Property.AreKeysEqual(property.Id, SonarProperties.VsTestReportsPaths);
 
         protected abstract bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath);
 
         protected abstract bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string trxFilePath);
 
-        #endregion ICoverageReportProcessor interface
-
-        #region Private methods
-
-        private bool ProcessBinaryCodeCoverageReport(string binaryCoverageFilePath)
+        private bool TryConvertCoverageReport(string binaryCoverageFilePath, out string coverageReportFileName)
         {
-            bool success;
+            coverageReportFileName = null;
             var xmlFileName = Path.ChangeExtension(binaryCoverageFilePath, XmlReportFileExtension);
 
-            Debug.Assert(!File.Exists(xmlFileName), "Not expecting a file with the name of the binary-to-XML conversion output to already exist: " + xmlFileName);
-            success = converter.ConvertToXml(binaryCoverageFilePath, xmlFileName, logger);
+            Debug.Assert(!File.Exists(xmlFileName),
+                "Not expecting a file with the name of the binary-to-XML conversion output to already exist: " + xmlFileName);
 
-            if (success)
+            if (converter.ConvertToXml(binaryCoverageFilePath, xmlFileName, logger))
             {
-                logger.LogDebug(Resources.PROC_DIAG_UpdatingProjectInfoFiles);
-                InsertCoverageAnalysisResults(config.SonarOutputDir, xmlFileName);
+                coverageReportFileName = xmlFileName;
+                return true;
             }
 
-            return success;
+            return false;
         }
-
-        /// <summary>
-        /// Insert code coverage results information into each projectinfo file
-        /// </summary>
-        private static void InsertCoverageAnalysisResults(string sonarOutputDir, string coverageFilePath)
-        {
-            foreach (var projectFolderPath in Directory.GetDirectories(sonarOutputDir))
-            {
-                var projectInfoPath = Path.Combine(projectFolderPath, FileConstants.ProjectInfoFileName);
-
-                if (File.Exists(projectInfoPath))
-                {
-                    var projectInfo = ProjectInfo.Load(projectInfoPath);
-                    projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisType.VisualStudioCodeCoverage.ToString(), Location = coverageFilePath });
-                    projectInfo.Save(projectInfoPath);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Insert code coverage results information into each projectinfo file
-        /// </summary>
-        private static void InsertTestAnalysisResults(string sonarOutputDir, string testResultFilePath)
-        {
-            foreach (var projectFolderPath in Directory.GetDirectories(sonarOutputDir))
-            {
-                var projectInfoPath = Path.Combine(projectFolderPath, FileConstants.ProjectInfoFileName);
-
-                if (File.Exists(projectInfoPath))
-                {
-                    var projectInfo = ProjectInfo.Load(projectInfoPath);
-                    projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisType.TestResults.ToString(), Location = testResultFilePath });
-                    projectInfo.Save(projectInfoPath);
-                }
-            }
-        }
-
-        #endregion Private methods
     }
 }

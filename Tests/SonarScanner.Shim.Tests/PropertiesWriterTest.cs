@@ -252,6 +252,16 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             Assert.IsTrue(props.ContainsKey(key));
         }
 
+        public static Stream GenerateStreamFromString(string s)
+        {
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
+            writer.Write(s);
+            writer.Flush();
+            stream.Position = 0;
+            return stream;
+        }
+
         [TestMethod]
         public void PropertiesWriter_GlobalSettingsWritten()
         {
@@ -290,61 +300,9 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             propertyReader.AssertSettingExists("sonar.branch", "aBranch");
         }
 
-        [TestMethod]
-        public void PropertiesWriter_WriteVisualStudioCoveragePaths()
-        {
-            // Arrange
-            var projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_GlobalSettingsWritten");
-
-            var config = new AnalysisConfig()
-            {
-                SonarOutputDir = @"C:\my_folder"
-            };
-
-            var writer = new PropertiesWriter(config);
-
-            // Act
-            writer.WriteVisualStudioCoveragePaths(new[] { "path1", "path2" });
-
-            // Assert
-            var actual = writer.Flush(); // Flush writes "sonar.properties" in addition to other written properties
-            Assert.AreEqual("sonar.cs.vscoveragexml.reportsPaths=path1,path2\r\nsonar.modules=\r\n\r\n", actual);
-        }
-
-        [TestMethod]
-        public void PropertiesWriter_WriteVisualStudioTestResultsPaths()
-        {
-            // Arrange
-            var projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_GlobalSettingsWritten");
-
-            var config = new AnalysisConfig()
-            {
-                SonarOutputDir = @"C:\my_folder"
-            };
-
-            var writer = new PropertiesWriter(config);
-
-            // Act
-            writer.WriteVisualStudioTestResultsPaths(new[] { "path1", "path2" });
-
-            // Assert
-            var actual = writer.Flush(); // Flush writes "sonar.properties" in addition to other written properties
-            Assert.AreEqual("sonar.cs.vstest.reportsPaths=path1,path2\r\nsonar.modules=\r\n\r\n", actual);
-        }
-
         #endregion Tests
 
         #region Private methods
-
-        private static Stream GenerateStreamFromString(string s)
-        {
-            var stream = new MemoryStream();
-            var writer = new StreamWriter(stream);
-            writer.Write(s);
-            writer.Flush();
-            stream.Position = 0;
-            return stream;
-        }
 
         private static ProjectInfo CreateProjectInfo(string name, string projectId, string fullFilePath, bool isTest, IEnumerable<string> files,
             string fileListFilePath, string coverageReportPath, string language, string encoding)

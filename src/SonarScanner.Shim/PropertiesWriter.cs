@@ -159,22 +159,6 @@ namespace SonarScanner.Shim
             }
         }
 
-        public void WriteVisualStudioCoveragePaths(IEnumerable<string> paths)
-        {
-            if (paths.Any())
-            {
-                AppendKeyValue(sb, "sonar.cs.vscoveragexml.reportsPaths", string.Join(",", paths));
-            }
-        }
-
-        public void WriteVisualStudioTestResultsPaths(IEnumerable<string> paths)
-        {
-            if (paths.Any())
-            {
-                AppendKeyValue(sb, "sonar.cs.vstest.reportsPaths", string.Join(",", paths));
-            }
-        }
-
         public void WriteAnalyzerOutputPaths(ProjectData project)
         {
             if (!project.AnalyzerOutPaths.Any())

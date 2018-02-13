@@ -213,6 +213,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             {
                 SonarOutputDir = TestContext.DeploymentDirectory, // tests can write to this directory
                 SonarConfigDir = TestContext.TestRunResultsDirectory, // we don't read anything from this directory, we just want it to be different from the output directory
+                LocalSettings = new AnalysisProperties(),
             };
             return context;
         }
