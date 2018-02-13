@@ -111,9 +111,6 @@
     <Content Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="packages.config" />
     <None Include="SonarQube.TeamBuild.Integration.Tests.ruleset" />
   </ItemGroup>

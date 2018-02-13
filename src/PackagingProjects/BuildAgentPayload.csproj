@@ -46,11 +46,6 @@
     <ProjectReference Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\SonarQube.TeamBuild.PreProcessor.csproj" />
     <ProjectReference Include="$(SourcesRoot)\SonarScanner.Shim\SonarScanner.Shim.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
   <UsingTask TaskName="DownloadFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
     <ParameterGroup>
       <Url ParameterType="System.String" Required="true" />
