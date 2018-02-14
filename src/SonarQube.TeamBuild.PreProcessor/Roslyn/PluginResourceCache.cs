@@ -23,13 +23,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Newtonsoft.Json;
+using SonarQube.Common;
 
 namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 {
     public class SubdirIndex
     {
         // global locking, to ensure synchronized access to index file by multiple processes
-        private static readonly Mutex mutex = new Mutex(false, @"Global\90CD3CFF-A12C-4013-A44A-199B8C26818B");
+        private const string mutexName = @"Global\90CD3CFF-A12C-4013-A44A-199B8C26818B";
 
         private readonly string basedir;
         private readonly string indexPath;
@@ -42,8 +43,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         public string GetOrCreatePath(string key)
         {
-            mutex.WaitOne();
-            try
+            using (new MutexWrapper(mutexName))
             {
                 var mapping = ReadMapping();
                 if (!mapping.TryGetValue(key, out string path))
@@ -53,10 +53,6 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
                     File.WriteAllText(indexPath, JsonConvert.SerializeObject(mapping));
                 }
                 return path;
-            }
-            finally
-            {
-                mutex.ReleaseMutex();
             }
         }
 
