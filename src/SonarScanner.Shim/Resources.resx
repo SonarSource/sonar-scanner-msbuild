@@ -241,4 +241,7 @@ Possible causes:
   <data name="ERR_ProjectBaseDirDoesNotExist" xml:space="preserve">
     <value>The project base directory doesn't exist.</value>
   </data>
+  <data name="WARN_TestResultsNotFound" xml:space="preserve">
+    <value>Test result file does not exist at the specified location. Path: {0}</value>
+  </data>
 </root>

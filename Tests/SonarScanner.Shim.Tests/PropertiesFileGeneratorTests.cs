@@ -114,6 +114,32 @@ namespace SonarScanner.Shim.Tests
         }
 
         [TestMethod]
+        public void FileGen_TFS_Coverage_Trx_Are_Written()
+        {
+            // Arrange
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+
+            CreateProjectWithFiles("withFiles1", testDir);
+
+            var logger = new TestLogger();
+            var config = CreateValidConfig(testDir);
+
+            config.LocalSettings = new AnalysisProperties
+            {
+                new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = "coverage-path" },
+                new Property { Id = SonarProperties.VsTestReportsPaths, Value = "trx-path" },
+            };
+
+            // Act
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+
+            // Assert
+            var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
+            Assert.IsTrue(settingsFileContent.Contains("sonar.cs.vscoveragexml.reportsPaths=coverage-path"));
+            Assert.IsTrue(settingsFileContent.Contains("sonar.cs.vstest.reportsPaths=trx-path"));
+        }
+
+        [TestMethod]
         public void FileGen_ValidFiles_WithAlreadyValidSarif()
         {
             // Arrange
@@ -816,7 +842,7 @@ namespace SonarScanner.Shim.Tests
         }
 
         private void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths)
-        {            
+        {
             var result = ComputeProjectBaseDir(teamBuildValue, userValue, projectPaths);
             result.Should().Be(expectedValue);
         }

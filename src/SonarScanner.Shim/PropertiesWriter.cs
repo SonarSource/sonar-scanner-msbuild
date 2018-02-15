@@ -101,7 +101,7 @@ namespace SonarScanner.Shim
             return sb.ToString();
         }
 
-        public void WriteSettingsForProject(ProjectData project, string codeCoverageFilePath)
+        public void WriteSettingsForProject(ProjectData project)
         {
             if (FinishedWriting)
             {
@@ -128,8 +128,6 @@ namespace SonarScanner.Shim
             {
                 AppendKeyValue(sb, guid, SonarProperties.SourceEncoding, project.Project.Encoding.ToLowerInvariant());
             }
-
-            WriteVisualStudioCoveragePath(project, codeCoverageFilePath);
 
             if (project.Project.ProjectType == ProjectType.Product)
             {
@@ -158,14 +156,6 @@ namespace SonarScanner.Shim
                 WriteRoslynOutputPaths(project);
 
                 sb.AppendLine();
-            }
-        }
-
-        public void WriteVisualStudioCoveragePath(ProjectData project, string codeCoverageFilePath)
-        {
-            if (codeCoverageFilePath != null)
-            {
-                AppendKeyValue(sb, project.Guid, "sonar.cs.vscoveragexml.reportsPaths", codeCoverageFilePath);
             }
         }
 

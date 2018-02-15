@@ -90,6 +90,12 @@ namespace SonarQube.TeamBuild.Integration.XamlBuild
             return continueProcessing;
         }
 
+        protected override bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string trxFilePath)
+        {
+            trxFilePath = null;
+            return false;
+        }
+
         #endregion Virtual methods
     }
 }

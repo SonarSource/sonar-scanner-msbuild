@@ -158,6 +158,10 @@ namespace SonarQube.Bootstrapper
                 if (File.Exists(configFilePath))
                 {
                     config = AnalysisConfig.Load(configFilePath);
+                    if (config.LocalSettings == null)
+                    {
+                        config.LocalSettings = new AnalysisProperties();
+                    }
                 }
                 else
                 {
