@@ -69,6 +69,7 @@
     <Compile Include="ProcessRunnerTests.cs" />
     <Compile Include="ProjectInfoTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="MutexWrapperTests.cs" />
     <Compile Include="SerializerTests.cs" />
     <Compile Include="UtilitiesTests.cs" />
     <Compile Include="VerbosityCalculatorTests.cs" />
