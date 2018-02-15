@@ -19,7 +19,7 @@
  */
 
 using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Interfaces;
+using SonarQube.TeamBuild.Integration;
 
 namespace SonarQube.TeamBuild.PostProcessor.Interfaces
 {

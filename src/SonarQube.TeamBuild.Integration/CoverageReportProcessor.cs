@@ -23,31 +23,31 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.TeamBuild.Integration
 {
-    public abstract class CoverageReportProcessorBase : ICoverageReportProcessor
+    public class CoverageReportProcessor : ICoverageReportProcessor
     {
         private const string XmlReportFileExtension = "coveragexml";
         private readonly ICoverageReportConverter converter;
-
+        private readonly ICoverageReportLocator locator;
+        private readonly ILogger logger;
         private AnalysisConfig config;
         private ITeamBuildSettings settings;
-        private ILogger logger;
 
         private bool succesfullyInitialised = false;
 
-        protected CoverageReportProcessorBase(ICoverageReportConverter converter)
+        public CoverageReportProcessor(ICoverageReportConverter converter, ICoverageReportLocator locator, ILogger logger)
         {
             this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
+            this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger)
+        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             succesfullyInitialised = converter.Initialize(logger);
             return succesfullyInitialised;
@@ -65,22 +65,22 @@ namespace SonarQube.TeamBuild.Integration
             // Fetch all of the report URLs
             logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
 
-            var success = TryGetBinaryReportFile(config, settings, logger, out string binaryFilePath);
+            var success = locator.TryGetBinaryCoveragePath(config, settings, out string binaryFilePath);
 
             if (success &&
-                binaryFilePath != null &&
-                TryConvertCoverageReport(binaryFilePath, out var coverageReportPath) &&
-                !string.IsNullOrEmpty(coverageReportPath) &&
+                !string.IsNullOrEmpty(binaryFilePath) &&
+                TryConvertCoverageReport(binaryFilePath, out var xmlCoveragePath) &&
+                !string.IsNullOrEmpty(xmlCoveragePath) &&
                 !config.LocalSettings.Any(IsVsCoverageXmlReportsPaths))
             {
-                config.LocalSettings.Add( new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = coverageReportPath });
+                config.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = xmlCoveragePath });
             }
 
-            if (TryGetTrxFile(config, settings, logger, out var trxPath) &&
-                !string.IsNullOrEmpty(trxPath) &&
-                !config.LocalSettings.Any(IsVsTestReportsPaths))
+            if (!config.LocalSettings.Any(IsVsTestReportsPaths) &&
+                locator.TryGetTestResultsPath(config, settings, out var testResultsPath) &&
+                !string.IsNullOrEmpty(testResultsPath))
             {
-                config.LocalSettings.Add( new Property { Id = SonarProperties.VsTestReportsPaths, Value = trxPath });
+                config.LocalSettings.Add(new Property { Id = SonarProperties.VsTestReportsPaths, Value = testResultsPath });
             }
 
             return success;
@@ -91,10 +91,6 @@ namespace SonarQube.TeamBuild.Integration
 
         private static bool IsVsTestReportsPaths(Property property) =>
             Property.AreKeysEqual(property.Id, SonarProperties.VsTestReportsPaths);
-
-        protected abstract bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath);
-
-        protected abstract bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string trxFilePath);
 
         private bool TryConvertCoverageReport(string binaryCoverageFilePath, out string coverageReportFileName)
         {

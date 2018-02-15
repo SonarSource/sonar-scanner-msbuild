@@ -18,18 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarScanner.Shim;
-
-namespace SonarQube.TeamBuild.PostProcessor
+namespace SonarQube.TeamBuild.Integration
 {
-    /// <summary>
-    /// Encapsulates summary report building functionality
-    /// </summary>
-    /// <remarks>Interface added for testability</remarks>
-    public interface ISummaryReportBuilder
+    public interface ICoverageReportProcessorFactory
     {
-        void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger);
+        ICoverageReportProcessor Create(ITeamBuildSettings settings);
     }
 }

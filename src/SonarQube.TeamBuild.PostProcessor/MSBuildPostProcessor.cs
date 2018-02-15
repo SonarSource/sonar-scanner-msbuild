@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.Integration.Interfaces;
 using SonarQube.TeamBuild.PostProcessor.Interfaces;
 using SonarScanner.Shim;
 
@@ -32,17 +31,17 @@ namespace SonarQube.TeamBuild.PostProcessor
     {
         private const string scanAllFiles = "-Dsonar.scanAllFiles=true";
 
-        private readonly ICoverageReportProcessor codeCoverageProcessor;
+        private readonly ICoverageReportProcessorFactory codeCoverageProcessorFactory;
         private readonly ISummaryReportBuilder reportBuilder;
         private readonly ISonarScanner sonarScanner;
         private readonly ILogger logger;
         private readonly ITargetsUninstaller targetUninstaller;
 
-        public MSBuildPostProcessor(ICoverageReportProcessor codeCoverageProcessor, ISonarScanner scanner,
+        public MSBuildPostProcessor(ICoverageReportProcessorFactory codeCoverageProcessorFactory, ISonarScanner scanner,
             ISummaryReportBuilder reportBuilder, ILogger logger, ITargetsUninstaller targetUninstaller)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.codeCoverageProcessor = codeCoverageProcessor ?? throw new ArgumentNullException(nameof(codeCoverageProcessor));
+            this.codeCoverageProcessorFactory = codeCoverageProcessorFactory ?? throw new ArgumentNullException(nameof(codeCoverageProcessorFactory));
             sonarScanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
             this.reportBuilder = reportBuilder ?? throw new ArgumentNullException(nameof(reportBuilder));
             this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
@@ -84,10 +83,15 @@ namespace SonarQube.TeamBuild.PostProcessor
                 return false;
             }
 
-            // if initialization fails a warning will have been logged at the source of the failure
-            var initialised = codeCoverageProcessor.Initialise(config, settings, logger);
 
-            if (initialised && !codeCoverageProcessor.ProcessCoverageReports())
+            var codeCoverageProcessor = codeCoverageProcessorFactory.Create(settings);
+
+            // if initialisation fails a warning will have been logged at the source of the failure
+            var initializedSuccessfully =
+                codeCoverageProcessor != null &&
+                codeCoverageProcessor.Initialise(config, settings);
+
+            if (initializedSuccessfully && !codeCoverageProcessor.ProcessCoverageReports())
             {
                 // if processing fails, stop the workflow
                 return false;
