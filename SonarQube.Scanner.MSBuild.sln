@@ -53,7 +53,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{
 		SonarLint.xml = SonarLint.xml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.Integration.XamlBuild", "src\SonarQube.TeamBuild.Integration.XamlBuild\SonarQube.TeamBuild.Integration.XamlBuild.csproj", "{C3466723-5499-4FAD-B236-5C96094DE276}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.TeamBuild.Integration.Classic", "src\SonarQube.TeamBuild.Integration.Classic\SonarQube.TeamBuild.Integration.Classic.csproj", "{C3466723-5499-4FAD-B236-5C96094DE276}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

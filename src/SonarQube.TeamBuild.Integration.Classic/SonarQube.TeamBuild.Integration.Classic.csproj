@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
-    <AssemblyName>TeamBuild.SonarQube.Integration.XamlBuild</AssemblyName>
-    <RootNamespace>SonarQube.TeamBuild.Integration.XamlBuild</RootNamespace>
+    <AssemblyName>TeamBuild.SonarQube.Integration.Classic</AssemblyName>
+    <RootNamespace>SonarQube.TeamBuild.Integration.Classic</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
@@ -24,5 +24,19 @@
     <PackageReference Include="WindowsAzure.ServiceBus" version="3.3.2" />
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.14.114" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace></CustomToolNamespace>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>
