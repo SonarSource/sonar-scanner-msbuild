@@ -75,7 +75,7 @@ namespace SonarQube.Bootstrapper
         private static ICoverageReportConverter GetCoverageReportConverter()
         {
 #if IS_NET_FRAMEWORK
-            return new TeamBuild.Integration.XamlBuild.BinaryToXmlCoverageReportConverter();
+            return new TeamBuild.Integration.Classic.BinaryToXmlCoverageReportConverter();
 #else
             return new NullCoverageReportConverter();
 #endif
@@ -84,7 +84,7 @@ namespace SonarQube.Bootstrapper
         private static ILegacyTeamBuildFactory GetLegacyTeamBuildFactory()
         {
 #if IS_NET_FRAMEWORK
-            return new TeamBuild.Integration.XamlBuild.LegacyTeamBuildFactory();
+            return new TeamBuild.Integration.Classic.XamlBuild.LegacyTeamBuildFactory();
 #else
             return new NotSupportedLegacyTeamBuildFactory();
 #endif

@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.XamlBuild;
+using SonarQube.TeamBuild.Integration.Classic;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.Integration.Tests

@@ -25,7 +25,7 @@ using System.Linq;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration.Interfaces;
 
-namespace SonarQube.TeamBuild.Integration.XamlBuild
+namespace SonarQube.TeamBuild.Integration.Classic.XamlBuild
 {
     public class TfsLegacyCoverageReportProcessor : CoverageReportProcessorBase
     {

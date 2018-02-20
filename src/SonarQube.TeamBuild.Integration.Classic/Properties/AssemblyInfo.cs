@@ -18,20 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Common;
+using System.Reflection;
 
-namespace SonarQube.TeamBuild.Integration
-{
-    public interface ICoverageReportDownloader // was internal
-    {
-        /// <summary>
-        /// Downloads the specified files and returns a dictionary mapping the url to the name of the downloaded file
-        /// </summary>
-        /// <param name="tfsUri">The project collection URI</param>
-        /// <param name="reportUrl">The file to be downloaded</param>
-        /// <param name="downloadDir">The directory into which the files should be downloaded</param>
-        /// <param name="newFileName">The name of the new file</param>
-        /// <returns>True if the file was downloaded successfully, otherwise false</returns>
-        bool DownloadReport(string tfsUri, string reportUrl, string newFullFileName, ILogger logger);
-    }
-}
+[assembly: AssemblyTitle("TeamBuild.SonarQube.Integration.Classic")]
+[assembly: AssemblyProduct("TeamBuild.SonarQube.Integration.Classic")]
+[assembly: AssemblyDescription("")]

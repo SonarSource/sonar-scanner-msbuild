@@ -23,7 +23,7 @@ using System.Globalization;
 using Microsoft.TeamFoundation.Build.Client;
 using Microsoft.TeamFoundation.Client;
 
-namespace SonarQube.TeamBuild.Integration.XamlBuild
+namespace SonarQube.TeamBuild.Integration.Classic.XamlBuild
 {
     /// <summary>
     /// Wrapper to help write custom build summary messages
