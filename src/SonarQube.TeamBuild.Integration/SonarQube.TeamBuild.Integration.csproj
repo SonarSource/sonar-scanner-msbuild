@@ -8,8 +8,4 @@
   <ItemGroup>
     <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.14.114" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
-  </ItemGroup>
 </Project>

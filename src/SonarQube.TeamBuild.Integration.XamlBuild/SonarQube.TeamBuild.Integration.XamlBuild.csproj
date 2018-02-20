@@ -22,5 +22,7 @@
     <PackageReference Include="Newtonsoft.Json" version="10.0.3" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" version="4.0.2.206221351" />
     <PackageReference Include="WindowsAzure.ServiceBus" version="3.3.2" />
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.14.114" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.4.0" />
   </ItemGroup>
 </Project>

@@ -18,23 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Interfaces;
+using SonarQube.TeamBuild.Integration;
 
-namespace SonarQube.TeamBuild.Integration
+namespace SonarQube.Bootstrapper
 {
-    public class BuildVNextCoverageReportProcessor : CoverageReportProcessorBase
+    public class NullCoverageReportConverter : ICoverageReportConverter
     {
-        public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter)
-            : base(converter)
-        {
-        }
+        public bool ConvertToXml(string inputFilePath, string outputFilePath, ILogger logger)
+            => false;
 
-        protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath)
-        {
-            binaryFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger);
-
-            return true; // there aren't currently any conditions under which we'd want to stop processing
-        }
+        public bool Initialize(ILogger logger) => true;
     }
 }

@@ -35,7 +35,7 @@ namespace SonarQube.TeamBuild.Integration.XamlBuild
         private readonly ICoverageReportDownloader downloader;
 
         public TfsLegacyCoverageReportProcessor()
-            : this(new CoverageReportUrlProvider(), new CoverageReportDownloader(), new CoverageReportConverter())
+            : this(new CoverageReportUrlProvider(), new CoverageReportDownloader(), new BinaryToXmlCoverageReportConverter())
         {
         }
 
