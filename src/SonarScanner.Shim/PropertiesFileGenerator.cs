@@ -96,7 +96,7 @@ namespace SonarScanner.Shim
                 return false;
             }
 
-            var projectPaths = projects.Select(p => p.GetProjectDirectory()).ToList();
+            var projectDirectories = projects.Select(p => p.GetDirectory()).ToList();
 
             var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
 
@@ -117,9 +117,9 @@ namespace SonarScanner.Shim
                 return false;
             }
 
-            var rootProjectBaseDir = ComputeRootProjectBaseDir(projectPaths);
+            var rootProjectBaseDir = ComputeRootProjectBaseDir(projectDirectories);
             if (rootProjectBaseDir == null ||
-                !Directory.Exists(rootProjectBaseDir))
+                !rootProjectBaseDir.Exists)
             {
                 logger.LogError(Resources.ERR_ProjectBaseDirDoesNotExist);
                 return false;
@@ -158,20 +158,20 @@ namespace SonarScanner.Shim
         ///     This method has some side effects.
         /// </remarks>
         /// <returns>The list of files to attach to the root module.</returns>
-        private ICollection<string> PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, string rootProjectBaseDir)
+        private ICollection<FileInfo> PutFilesToRightModuleOrRoot(IEnumerable<ProjectData> projects, DirectoryInfo baseDirectory)
         {
             var fileWithProjects = projects
                 .SelectMany(p => p.ReferencedFiles.Select(f => new { Project = p, File = f }))
-                .GroupBy(group => group.File, StringComparer.OrdinalIgnoreCase)
+                .GroupBy(group => group.File, new FileInfoEqualityComparer())
                 .ToDictionary(group => group.Key, group => group.Select(x => x.Project).ToList());
 
-            var rootModuleFiles = new List<string>();
+            var rootModuleFiles = new HashSet<FileInfo>(new FileInfoEqualityComparer());
 
             foreach (var group in fileWithProjects)
             {
                 var file = group.Key;
 
-                if (!File.Exists(file))
+                if (!file.Exists)
                 {
                     logger.LogWarning(Resources.WARN_FileDoesNotExist, file);
                     logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '",
@@ -179,9 +179,9 @@ namespace SonarScanner.Shim
                     continue;
                 }
 
-                if (!PathHelper.IsInFolder(file, rootProjectBaseDir)) // File is outside of the SonarQube root module
+                if (!PathHelper.IsInDirectory(file, baseDirectory)) // File is outside of the SonarQube root module
                 {
-                    logger.LogWarning(Resources.WARN_FileIsOutsideProjectDirectory, file);
+                    logger.LogWarning(Resources.WARN_FileIsOutsideProjectDirectory, file, baseDirectory.FullName);
                     logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '",
                         group.Value.Select(x => x.Project.FullPath)));
                     continue;
@@ -189,7 +189,7 @@ namespace SonarScanner.Shim
 
                 if (group.Value.Count >= 1)
                 {
-                    var closestProject = GetClosestProjectOrDefault(file, group.Value);
+                    var closestProject = GetSingleClosestProjectOrDefault(file, group.Value);
 
                     if (closestProject == null)
                     {
@@ -216,40 +216,37 @@ namespace SonarScanner.Shim
             }
         }
 
-        private static ProjectData GetClosestProjectOrDefault(string filePath, IEnumerable<ProjectData> projects)
+        internal /* for testing */ static ProjectData GetSingleClosestProjectOrDefault(FileInfo fileInfo,
+            IEnumerable<ProjectData> projects)
         {
-            var longestMatchingPath = (Length: 0, Items: new List<ProjectData>());
+            var closestProjects = (Length: 0, Items: new List<ProjectData>());
 
             foreach (var project in projects)
             {
-                var projectPath = project.Project.GetProjectDirectory();
+                var projectDirectory = project.Project.GetDirectory();
 
-                // Ensure that folder path always ends with backslash so a directory like 'c:\aaa\bbb' doesn't match
-                // a file like 'c:\aaa\bbb.cs' nor 'c:\aaa\bbbxxxx\myfile.cs'
-                if (!projectPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                if (!fileInfo.IsInDirectory(projectDirectory))
                 {
-                    projectPath += Path.DirectorySeparatorChar;
+                    continue;
                 }
 
-                if (filePath.StartsWith(projectPath))
+                if (projectDirectory.FullName.Length == closestProjects.Length)
                 {
-                    if (filePath.Length == longestMatchingPath.Length)
-                    {
-                        longestMatchingPath.Items.Add(project);
-                    }
-                    else if (filePath.Length > longestMatchingPath.Length)
-                    {
-                        longestMatchingPath = (Length: filePath.Length, Items: new List<ProjectData> { project });
-                    }
+                    closestProjects.Items.Add(project);
+                }
+                else if (projectDirectory.FullName.Length > closestProjects.Length)
+                {
+                    closestProjects = (Length: projectDirectory.FullName.Length, Items: new List<ProjectData> { project });
+                }
+                else
+                {
+                    // nothing to do
                 }
             }
 
-            if (longestMatchingPath.Items.Count == 1)
-            {
-                return longestMatchingPath.Items[0];
-            }
-
-            return null;
+            return closestProjects.Items.Count == 1
+                ? closestProjects.Items[0]
+                : null;
         }
 
         internal /* for testing */ ProjectData ToProjectData(IGrouping<Guid, ProjectInfo> projects)
@@ -278,7 +275,7 @@ namespace SonarScanner.Shim
                 if (status == ProjectInfoValidity.Valid)
                 {
                     projectData.Status = ProjectInfoValidity.Valid;
-                    AddProjectFiles(p, projectData);
+                    p.GetAllAnalysisFiles().ToList().ForEach(path => projectData.ReferencedFiles.Add(path));
                     AddRoslynOutputFilePath(p, projectData);
                     AddAnalyzerOutputFilePath(p, projectData);
                 }
@@ -297,7 +294,7 @@ namespace SonarScanner.Shim
             var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".analyzer.projectOutPath"));
             if (property != null)
             {
-                projectData.AnalyzerOutPaths.Add(property.Value);
+                projectData.AnalyzerOutPaths.Add(new FileInfo(property.Value));
             }
         }
 
@@ -306,7 +303,7 @@ namespace SonarScanner.Shim
             var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".roslyn.reportFilePath"));
             if (property != null)
             {
-                projectData.RoslynReportFilePaths.Add(property.Value);
+                projectData.RoslynReportFilePaths.Add(new FileInfo(property.Value));
             }
         }
 
@@ -334,34 +331,37 @@ namespace SonarScanner.Shim
         /// 3. the common root path of projects, or if there isn't any
         /// 4. the .sonarqube/out directory
         /// </summary>
-        public string ComputeRootProjectBaseDir(IEnumerable<string> projectPaths)
+        public DirectoryInfo ComputeRootProjectBaseDir(IEnumerable<DirectoryInfo> projectPaths)
         {
+            DirectoryInfo rootDirectory;
+
             var projectBaseDir = analysisConfig.LocalSettings
                 ?.FirstOrDefault(p => ConfigSetting.SettingKeyComparer.Equals(SonarProperties.ProjectBaseDir, p.Id))
                 ?.Value;
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
-                projectBaseDir = Path.GetFullPath(projectBaseDir);
-                logger.LogDebug("Using user supplied project base directory: '{0}'.", projectBaseDir);
-                return projectBaseDir;
+                rootDirectory = new DirectoryInfo(projectBaseDir);
+                logger.LogDebug("Using user supplied project base directory: '{0}'.", rootDirectory.FullName);
+                return rootDirectory;
             }
 
-            projectBaseDir = analysisConfig.SourcesDirectory;
-            if (!string.IsNullOrWhiteSpace(projectBaseDir))
+            if (!string.IsNullOrWhiteSpace(analysisConfig.SourcesDirectory))
             {
-                logger.LogDebug("Using TFS/VSTS sources directory as project base directory: '{0}'.", projectBaseDir);
-                return projectBaseDir;
+                rootDirectory = new DirectoryInfo(analysisConfig.SourcesDirectory);
+                logger.LogDebug("Using TFS/VSTS sources directory as project base directory: '{0}'.", rootDirectory.FullName);
+                return rootDirectory;
             }
 
-            projectBaseDir = PathHelper.GetCommonRoot(projectPaths);
-            if (!string.IsNullOrWhiteSpace(projectBaseDir))
+            var commonRoot = PathHelper.GetCommonRoot(projectPaths);
+            if (commonRoot != null)
             {
-                logger.LogDebug("Using longest common projects root path as project base directory: '{0}'.", projectBaseDir);
-                return projectBaseDir;
+                logger.LogDebug("Using longest common projects root path as project base directory: '{0}'.", commonRoot.FullName);
+                return commonRoot;
             }
 
-            logger.LogDebug("Using fallback project base directory: '{0}'.", analysisConfig.SonarOutputDir);
-            return analysisConfig.SonarOutputDir;
+            rootDirectory = new DirectoryInfo(analysisConfig.SonarOutputDir);
+            logger.LogDebug("Using fallback project base directory: '{0}'.", rootDirectory.FullName);
+            return rootDirectory;
         }
 
         /// <summary>
@@ -436,18 +436,6 @@ namespace SonarScanner.Shim
                 {
                     projectInfo.Encoding = globalSourceEncoding;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Returns all of the valid files that can be analyzed. Logs warnings/info about
-        /// files that cannot be analyzed.
-        /// </summary>
-        private void AddProjectFiles(ProjectInfo projectInfo, ProjectData projectData)
-        {
-            foreach (var file in projectInfo.GetAllAnalysisFiles())
-            {
-                projectData.ReferencedFiles.Add(file);
             }
         }
     }

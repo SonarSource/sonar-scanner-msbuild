@@ -22,40 +22,84 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SonarQube.Common;
 
 namespace SonarScanner.Shim
 {
     public static class PathHelper
     {
-        public static bool IsPartOfAProject(string filePath, IEnumerable<string> projectPaths)
+        public static string WithTrailingDirectorySeparator(this DirectoryInfo directory)
         {
-            return projectPaths.Any(projectPath => IsInFolder(filePath, projectPath));
-        }
-
-        public static bool IsInFolder(string filePath, string folder)
-        {
-            var normalizedPath = Path.GetDirectoryName(Path.GetFullPath(filePath));
-            return normalizedPath.StartsWith(folder, StringComparison.OrdinalIgnoreCase);
-        }
-
-        public static string GetCommonRoot(IEnumerable<string> paths)
-        {
-            var projectDirectoryParts = paths
-                .Select(p => p.Split(Path.DirectorySeparatorChar))
-                .ToList();
-
-            if (projectDirectoryParts.Count == 0)
+            if (directory == null)
             {
-                return string.Empty;
+                throw new ArgumentNullException(nameof(directory));
             }
 
+            if (directory.FullName.EndsWith(Path.DirectorySeparatorChar.ToString()) ||
+                directory.FullName.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
+            {
+                return directory.FullName;
+            }
+
+            if (directory.FullName.Contains(Path.AltDirectorySeparatorChar))
+            {
+                return directory.FullName + Path.AltDirectorySeparatorChar;
+            }
+
+            return directory.FullName + Path.DirectorySeparatorChar;
+        }
+
+        public static bool IsInDirectory(this FileInfo file, DirectoryInfo directory)
+        {
+            var normalizedDirectoryPath = directory.WithTrailingDirectorySeparator();
+            return file.FullName.StartsWith(normalizedDirectoryPath, FileInfoEqualityComparer.ComparisonType);
+        }
+
+        public static DirectoryInfo GetCommonRoot(IEnumerable<DirectoryInfo> paths)
+        {
+            if (paths == null)
+            {
+                return null;
+            }
+
+            var projectDirectoryParts = paths
+                .Select(GetParts)
+                .ToList();
+
             var commonParts = projectDirectoryParts
-                .OrderBy(p => p.Length)
+                .OrderBy(p => p.Count)
                 .First()
                 .TakeWhile((element, index) => projectDirectoryParts.All(p => p[index] == element))
                 .ToArray();
 
-            return string.Join(Path.DirectorySeparatorChar.ToString(), commonParts);
+            if (commonParts.Length == 0)
+            {
+                return null;
+            }
+
+            return new DirectoryInfo(Path.Combine(commonParts));
+        }
+
+        public static IList<string> GetParts(DirectoryInfo directoryInfo)
+        {
+            if (directoryInfo == null)
+            {
+                throw new ArgumentNullException(nameof(directoryInfo));
+            }
+
+            var parts = new List<string>();
+            var currentDirectoryInfo = directoryInfo;
+
+            while (currentDirectoryInfo.Parent != null)
+            {
+                parts.Add(currentDirectoryInfo.Name);
+                currentDirectoryInfo = currentDirectoryInfo.Parent;
+            }
+
+            parts.Add(currentDirectoryInfo.Name);
+            parts.Reverse();
+
+            return parts;
         }
     }
 }

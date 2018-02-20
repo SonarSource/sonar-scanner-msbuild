@@ -143,7 +143,7 @@ namespace SonarQube.MSBuild.Tasks
         {
             try
             {
-                return Path.GetFileName(path)?.ToLowerInvariant();
+                return Path.GetFileName(path)?.ToUpperInvariant();
             }
             catch (ArgumentException)
             {

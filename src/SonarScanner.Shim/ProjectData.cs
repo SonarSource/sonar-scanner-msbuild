@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using SonarQube.Common;
@@ -44,21 +43,21 @@ namespace SonarScanner.Shim
         /// <summary>
         /// All files referenced by the given project
         /// </summary>
-        public ISet<string> ReferencedFiles { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public ISet<FileInfo> ReferencedFiles { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
 
         /// <summary>
         /// All files that belongs to this SonarQube module.
         /// </summary>
-        public ICollection<string> SonarQubeModuleFiles { get; } = new List<string>();
+        public ICollection<FileInfo> SonarQubeModuleFiles { get; } = new List<FileInfo>();
 
         /// <summary>
         /// Roslyn analysis output files (json)
         /// </summary>
-        public ICollection<string> RoslynReportFilePaths { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public ICollection<FileInfo> RoslynReportFilePaths { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
 
         /// <summary>
         /// The folders where the protobuf files are generated
         /// </summary>
-        public ICollection<string> AnalyzerOutPaths { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public ICollection<FileInfo> AnalyzerOutPaths { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
     }
 }
