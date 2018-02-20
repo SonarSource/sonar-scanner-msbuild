@@ -30,12 +30,12 @@ namespace SonarScanner.Shim
         public static IList<ProjectInfo> LoadFrom(string dumpFolderPath)
         {
             return Directory.GetDirectories(dumpFolderPath)
-                .Select(TryGetProjectInfo)
+                .Select(GetProjectInfo)
                 .Where(p => p != null)
                 .ToList();
         }
 
-        private static ProjectInfo TryGetProjectInfo(string projectFolderPath)
+        private static ProjectInfo GetProjectInfo(string projectFolderPath)
         {
             var projectInfoPath = Path.Combine(projectFolderPath, FileConstants.ProjectInfoFileName);
 
