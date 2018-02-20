@@ -29,7 +29,7 @@ using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.Win32;
 using SonarQube.Common;
 
-namespace SonarQube.TeamBuild.Integration.XamlBuild
+namespace SonarQube.TeamBuild.Integration.Classic
 {
     public class BinaryToXmlCoverageReportConverter : ICoverageReportConverter
     {

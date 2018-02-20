@@ -21,7 +21,7 @@
 
   <!-- Conditionally reference project only if the framework is classic .NET Framework (not core or standard). -->
   <ItemGroup Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework')">
-    <ProjectReference Include="..\SonarQube.TeamBuild.Integration.XamlBuild\SonarQube.TeamBuild.Integration.XamlBuild.csproj" />
+    <ProjectReference Include="..\SonarQube.TeamBuild.Integration.Classic\SonarQube.TeamBuild.Integration.Classic.csproj" />
   </ItemGroup>
 
   <!-- Define a constant if the framework is classic .NET Framework. -->
