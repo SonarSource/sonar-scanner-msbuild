@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <AssemblyName>TeamBuild.SonarQube.Integration.XamlBuild</AssemblyName>
     <RootNamespace>SonarQube.TeamBuild.Integration.XamlBuild</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" version="5.2.2" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Core" version="5.2.2" />
-    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" version="3.13.5" />
+    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" version="3.19.1" />
     <PackageReference Include="Microsoft.TeamFoundationServer.Client" version="14.102.0" />
     <PackageReference Include="Microsoft.TeamFoundationServer.ExtendedClient" version="14.102.0" />
     <PackageReference Include="Microsoft.Tpl.Dataflow" version="4.5.24" />

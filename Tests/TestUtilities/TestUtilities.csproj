@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TestUtilities</RootNamespace>
     <AssemblyName>SonarQube.TestUtilities</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SonarQubeTestProject>True</SonarQubeTestProject>
     <TargetFrameworkProfile />
