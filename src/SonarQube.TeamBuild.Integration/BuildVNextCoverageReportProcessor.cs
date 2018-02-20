@@ -25,21 +25,10 @@ namespace SonarQube.TeamBuild.Integration
 {
     public class BuildVNextCoverageReportProcessor : CoverageReportProcessorBase
     {
-        #region Public methods
-
-        public BuildVNextCoverageReportProcessor()
-            : this(new CoverageReportConverter())
-        {
-        }
-
         public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter)
             : base(converter)
         {
         }
-
-        #endregion Public methods
-
-        #region Overrides
 
         protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath)
         {

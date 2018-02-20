@@ -64,11 +64,21 @@ namespace SonarQube.Bootstrapper
                 return ErrorCode;
             }
 
-            var processorFactory = new DefaultProcessorFactory(logger, GetLegacyTeamBuildFactory());
+            var processorFactory = new DefaultProcessorFactory(logger, GetLegacyTeamBuildFactory(),
+                GetCoverageReportConverter());
             var bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
             var exitCode = bootstrapper.Execute();
             Environment.ExitCode = exitCode;
             return exitCode;
+        }
+
+        private static ICoverageReportConverter GetCoverageReportConverter()
+        {
+#if IS_NET_FRAMEWORK
+            return new TeamBuild.Integration.XamlBuild.BinaryToXmlCoverageReportConverter();
+#else
+            return new NullCoverageReportConverter();
+#endif
         }
 
         private static ILegacyTeamBuildFactory GetLegacyTeamBuildFactory()
