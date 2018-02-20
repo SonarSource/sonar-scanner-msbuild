@@ -73,6 +73,7 @@
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
     <Compile Include="MockRoslynV1SarifFixer.cs" />
+    <Compile Include="PathHelperTests.cs" />
     <Compile Include="ProjectInfoReportBuilderTests.cs" />
     <Compile Include="PropertiesFileGeneratorTests.cs" />
     <Compile Include="PropertiesFileGeneratorTests_MultiTarget.cs" />

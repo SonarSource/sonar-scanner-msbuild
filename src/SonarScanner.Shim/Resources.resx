@@ -121,7 +121,7 @@
     <value>Calling the SonarQube Scanner...</value>
   </data>
   <data name="WARN_FileIsOutsideProjectDirectory" xml:space="preserve">
-    <value>File '{0}' is not located under the root directory and will not be analyzed.</value>
+    <value>File '{0}' is not located under the root directory '{1}' and will not be analyzed.</value>
   </data>
   <data name="MSG_GeneratingProjectProperties" xml:space="preserve">
     <value>Generating SonarQube project properties file to {0}</value>

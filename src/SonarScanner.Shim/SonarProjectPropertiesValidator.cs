@@ -37,20 +37,14 @@ namespace SonarScanner.Shim
         /// <param name="onInvalid">Called when validation fails, with the list of folders containing a sonar-project.properties file</param>
         public static void Validate(string sonarScannerCwd, ICollection<ProjectData> projects, Action onValid, Action<IList<string>> onInvalid)
         {
-            var folders = new List<string>
-            {
-                sonarScannerCwd
-            };
-
-            folders.AddRange(projects
+            var invalidFolders = projects
                 .Where(p => p.Status == ProjectInfoValidity.Valid)
-                .Select(p => p.Project.GetProjectDirectory()));
-
-            var invalidFolders = folders
+                .Select(p => p.Project.GetDirectory().FullName)
+                .Union(new[] { sonarScannerCwd })
                 .Where(SonarProjectPropertiesExists)
                 .ToList();
 
-            if (invalidFolders.Any())
+            if (invalidFolders.Count > 0)
             {
                 onInvalid(invalidFolders);
             }

@@ -662,7 +662,7 @@ namespace SonarScanner.Shim.Tests
                 projectPaths: new[] { @"d:\work\proj1.csproj" });
 
             // Support short name paths
-            var result= ComputeProjectBaseDir(
+            var result = ComputeProjectBaseDir(
                 teamBuildValue: null,
                 userValue: @"C:\PROGRA~1",
                 projectPaths: new[] { @"d:\work\proj1.csproj" });
@@ -724,11 +724,133 @@ namespace SonarScanner.Shim.Tests
 
             var analysisRootDir = TestUtils.CreateTestSpecificFolder(TestContext, "project");
             var propertiesFileGenerator = new PropertiesFileGenerator(CreateValidConfig(analysisRootDir), new TestLogger());
-            var result = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First());
+            var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First()).AnalyzerOutPaths.ToList();
 
-            CollectionAssert.AreEqual(new[] { "2", "3", "4", "1" }, result.AnalyzerOutPaths.ToList());
+            results.Count.Should().Be(4);
+            results[0].FullName.Should().Be(new FileInfo("2").FullName);
+            results[1].FullName.Should().Be(new FileInfo("3").FullName);
+            results[2].FullName.Should().Be(new FileInfo("4").FullName);
+            results[3].FullName.Should().Be(new FileInfo("1").FullName);
+        }
 
+        [TestMethod]
+        public void GetClosestProjectOrDefault_WhenNoProjects_ReturnsNull()
+        {
+            // Arrange & Act
+            var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("foo"), Enumerable.Empty<ProjectData>());
 
+            // Assert
+            actual.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void GetClosestProjectOrDefault_WhenNoMatch_ReturnsNull()
+        {
+            // Arrange
+            var projects = new[]
+            {
+                new ProjectData(new ProjectInfo { FullPath = "D:\\foo.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "~foo\\bar.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "C:\\foobar.csproj" }),
+            };
+
+            // Act
+            var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("E:\\foo"), projects);
+
+            // Assert
+            actual.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void GetClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithSameCase_ReturnsProject()
+        {
+            // Arrange
+            var projects = new[]
+            {
+                new ProjectData(new ProjectInfo { FullPath = "foo.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "~foo\\bar.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\foo.csproj" }),
+            };
+
+            // Act
+            var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("C:\\foo\\foo.cs"), projects);
+
+            // Assert
+            actual.Should().Be(projects[2]);
+        }
+
+        [TestMethod]
+        public void GetClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithDifferentCase_ReturnsProject()
+        {
+            // Arrange
+            var projects = new[]
+            {
+                new ProjectData(new ProjectInfo { FullPath = "foo.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "~foo\\bar.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\foo.csproj" }),
+            };
+
+            // Act
+            var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("C:\\FOO\\FOO.cs"), projects);
+
+            // Assert
+            actual.Should().Be(projects[2]);
+        }
+
+        [TestMethod]
+        public void GetClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithDifferentSeparators_ReturnsProject()
+        {
+            // Arrange
+            var projects = new[]
+            {
+                new ProjectData(new ProjectInfo { FullPath = "foo.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "~foo\\bar.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "C:/foo/foo.csproj" }),
+            };
+
+            // Act
+            var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("C:\\foo\\foo.cs"), projects);
+
+            // Assert
+            actual.Should().Be(projects[2]);
+        }
+
+        [TestMethod]
+        public void GetClosestProjectOrDefault_WhenMultipleProjectsMatch_ReturnsProjectWithLongestMatch()
+        {
+            // Arrange
+            var projects = new[]
+            {
+                new ProjectData(new ProjectInfo { FullPath = "C:\\foo.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\bar.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\bar\\foo.csproj" }),
+                 new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\xxx.csproj" }),
+                 new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\bar\\foobar\\foo.csproj" }),
+            };
+
+            // Act
+            var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("C:\\foo\\bar\\foo.cs"), projects);
+
+            // Assert
+            actual.Should().Be(projects[2]);
+        }
+
+        [TestMethod]
+        public void GetClosestProjectOrDefault_WhenMultipleProjectsMatchWithSameLength_ReturnsNull()
+        {
+            // Arrange
+            var projects = new[]
+            {
+                new ProjectData(new ProjectInfo { FullPath = "C:\\fooNet46.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "C:\\fooXamarin.csproj" }),
+                new ProjectData(new ProjectInfo { FullPath = "C:\\fooNetStd.csproj" }),
+            };
+
+            // Act
+            var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("C:\\foo\\foo.cs"), projects);
+
+            // Assert
+            actual.Should().BeNull();
         }
         #endregion Tests
 
@@ -838,7 +960,9 @@ namespace SonarScanner.Shim.Tests
             var logger = new TestLogger();
 
             // Act
-            return new PropertiesFileGenerator(config, logger).ComputeRootProjectBaseDir(projectPaths);
+            return new PropertiesFileGenerator(config, logger)
+                .ComputeRootProjectBaseDir(projectPaths.Select(p => new DirectoryInfo(p)))
+                .FullName;
         }
 
         private void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths)

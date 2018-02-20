@@ -112,7 +112,7 @@ namespace SonarQube.Common
 
             if (projectInfo.AnalysisResults == null)
             {
-                projectInfo.AnalysisResults = new System.Collections.Generic.List<AnalysisResult>();
+                projectInfo.AnalysisResults = new List<AnalysisResult>();
             }
 
             var result = new AnalysisResult() { Id = id, Location = location };
@@ -122,19 +122,16 @@ namespace SonarQube.Common
         /// <summary>
         /// Returns the full path of the directory containing the project file
         /// </summary>
-        public static string GetProjectDirectory(this ProjectInfo projectInfo)
+        public static DirectoryInfo GetDirectory(this ProjectInfo projectInfo)
         {
             if (projectInfo == null)
             {
                 throw new ArgumentNullException(nameof(projectInfo));
             }
 
-            string dir = null;
-            if (projectInfo.FullPath != null)
-            {
-                dir = Path.GetDirectoryName(Path.GetFullPath(projectInfo.FullPath));
-            }
-            return dir;
+            return !string.IsNullOrWhiteSpace(projectInfo.FullPath)
+                ? new FileInfo(projectInfo.FullPath).Directory
+                : null;
         }
 
         /// <summary>
@@ -173,15 +170,16 @@ namespace SonarQube.Common
         /// Returns the list of files to be analyzed. If there are no files to be analyzed
         /// then an empty list will be returned.
         /// </summary>
-        public static IList<string> GetAllAnalysisFiles(this ProjectInfo projectInfo)
+        public static IEnumerable<FileInfo> GetAllAnalysisFiles(this ProjectInfo projectInfo)
         {
-            var files = new List<string>();
             var compiledFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisType.FilesToAnalyze);
-            if (compiledFilesPath != null && File.Exists(compiledFilesPath))
+            if (compiledFilesPath == null ||
+                !File.Exists(compiledFilesPath))
             {
-                files.AddRange(File.ReadAllLines(compiledFilesPath));
+                return Enumerable.Empty<FileInfo>();
             }
-            return files;
+
+            return File.ReadAllLines(compiledFilesPath).Select(path => new FileInfo(path));
         }
 
         #endregion Private methods

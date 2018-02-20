@@ -52,14 +52,14 @@ namespace SonarScanner.Shim.Tests
             var productFile = CreateEmptyFile(productBaseDir, "File.cs");
             var productChineseFile = CreateEmptyFile(productBaseDir, "你好.cs");
 
-            var productCoverageFilePath = CreateEmptyFile(productBaseDir, "productCoverageReport.txt");
+            var productCoverageFilePath = CreateEmptyFile(productBaseDir, "productCoverageReport.txt").FullName;
             var productTrxPath = CreateEmptyFile(productBaseDir, "productTrx.trx");
             var productFileListFilePath = Path.Combine(productBaseDir, "productManagedFiles.txt");
 
             var otherDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_OtherDir");
-            var missingFileOutsideProjectDir = Path.Combine(otherDir, "missing.cs");
+            var missingFileOutsideProjectDir = new FileInfo(Path.Combine(otherDir, "missing.cs"));
 
-            var productFiles = new List<string>
+            var productFiles = new List<FileInfo>
             {
                 productFile,
                 productChineseFile,
@@ -78,7 +78,7 @@ namespace SonarScanner.Shim.Tests
             var testFile = CreateEmptyFile(testBaseDir, "File.cs");
             var testFileListFilePath = Path.Combine(testBaseDir, "testManagedFiles.txt");
 
-            var testFiles = new List<string>
+            var testFiles = new List<FileInfo>
             {
                 testFile
             };
@@ -181,7 +181,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             var productProject = CreateEmptyFile(projectBaseDir, "MyProduct.csproj");
 
             var productFile = CreateEmptyFile(projectBaseDir, "File.cs");
-            var productFiles = new List<string>
+            var productFiles = new List<FileInfo>
             {
                 productFile
             };
@@ -225,7 +225,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             var productProject = CreateEmptyFile(projectBaseDir, "MyProduct.csproj");
 
             var productFile = CreateEmptyFile(projectBaseDir, "File.cs");
-            var productFiles = new List<string>
+            var productFiles = new List<FileInfo>
             {
                 productFile
             };
@@ -243,7 +243,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             // Act
             var writer = new PropertiesWriter(config);
             writer.WriteSettingsForProject(product);
-            writer.WriteSonarProjectInfo("dummy basedir");
+            writer.WriteSonarProjectInfo(new DirectoryInfo("dummy basedir"));
             var s = writer.Flush();
 
             var props = new JavaProperties();
@@ -304,14 +304,14 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
 
         #region Private methods
 
-        private static ProjectInfo CreateProjectInfo(string name, string projectId, string fullFilePath, bool isTest, IEnumerable<string> files,
+        private static ProjectInfo CreateProjectInfo(string name, string projectId, FileInfo fullFilePath, bool isTest, IEnumerable<FileInfo> files,
             string fileListFilePath, string coverageReportPath, string language, string encoding)
         {
             var projectInfo = new ProjectInfo()
             {
                 ProjectName = name,
                 ProjectGuid = Guid.Parse(projectId),
-                FullPath = fullFilePath,
+                FullPath = fullFilePath.FullName,
                 ProjectType = isTest ? ProjectType.Test : ProjectType.Product,
                 AnalysisResults = new List<AnalysisResult>(),
                 ProjectLanguage = language,
@@ -326,7 +326,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             if (files != null && files.Any())
             {
                 Assert.IsTrue(!string.IsNullOrWhiteSpace(fileListFilePath), "Test setup error: must supply the managedFileListFilePath as a list of files has been supplied");
-                File.WriteAllLines(fileListFilePath, files);
+                File.WriteAllLines(fileListFilePath, files.Select(x => x.FullName));
 
                 projectInfo.AddAnalyzerResult(AnalysisType.FilesToAnalyze, fileListFilePath);
             }
@@ -334,9 +334,9 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             return projectInfo;
         }
 
-        private static string CreateEmptyFile(string parentDir, string fileName)
+        private static FileInfo CreateEmptyFile(string parentDir, string fileName)
         {
-            return CreateFile(parentDir, fileName, string.Empty);
+            return new FileInfo(CreateFile(parentDir, fileName, string.Empty));
         }
 
         private static string CreateFile(string parentDir, string fileName, string content)
