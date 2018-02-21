@@ -426,6 +426,155 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             return ExecuteAndCheckSucceeds(task, task.OutputFolder);
         }
 
+        [TestMethod]
+        public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreNull_ReturnsNull()
+        {
+            AssertProjectGuidIsNull(null, null);
+        }
+
+        [TestMethod]
+        public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreEmptyString_ReturnsNull()
+        {
+            AssertProjectGuidIsNull("", "");
+        }
+
+        [TestMethod]
+        public void GetProjectGuid_WhenProjectGuidNullAndSolutionConfigurationContentsEmptyString_ReturnsNull()
+        {
+            AssertProjectGuidIsNull(null, "");
+        }
+
+        [TestMethod]
+        public void GetProjectGuid_WhenProjectGuidEmptyStringAndSolutionConfigurationContentsNull_ReturnsNull()
+        {
+            AssertProjectGuidIsNull("", null);
+        }
+
+        private void AssertProjectGuidIsNull(string projectGuid, string solutionConfigurationContents)
+        {
+            // Arrange
+            var testSubject = new WriteProjectInfoFile
+            {
+                ProjectGuid = projectGuid,
+                SolutionConfigurationContents = solutionConfigurationContents
+            };
+
+            // Act
+            var actual = testSubject.GetProjectGuid();
+
+            // Assert
+            Assert.AreEqual(null, actual);
+        }
+
+        [TestMethod]
+        public void GetProjectGuid_WhenProjectGuidHasValue_ReturnsProjectGuid()
+        {
+            // Arrange
+            var expectedGuid = Guid.Empty.ToString();
+            var testSubject = new WriteProjectInfoFile { ProjectGuid = expectedGuid, SolutionConfigurationContents = null };
+
+            // Act
+            var actual = testSubject.GetProjectGuid();
+
+            // Assert
+            Assert.AreEqual(expectedGuid, actual);
+        }
+
+        [TestMethod]
+        public void GetProjectGuid_WhenSolutionConfigurationContentsHasValueAndProjectFound_ReturnsProjectGuidInSolution()
+        {
+            // Same paths
+            AssertThatSolutionProjectGuidIsExpected(@"C:\NetStdApp\NetStdApp.csproj", @"C:\NetStdApp\NetStdApp.csproj");
+
+            // Relative path
+            AssertThatSolutionProjectGuidIsExpected(@"C:\NetStdApp\NetStdApp.csproj", @"C:\Foo\..\NetStdApp\NetStdApp.csproj");
+
+            // Different case
+            AssertThatSolutionProjectGuidIsExpected(@"C:\NetStdApp\NetStdApp.csproj", @"C:\NETSTDAPP\NetStdApp.csproj");
+        }
+
+        private void AssertThatSolutionProjectGuidIsExpected(string fullProjectPath, string solutionProjectPath)
+        {
+            // Arrange
+            var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
+            var testSubject = new WriteProjectInfoFile
+            {
+                ProjectGuid = null,
+                FullProjectPath = fullProjectPath,
+                SolutionConfigurationContents = @"<SolutionConfiguration>
+  <ProjectConfiguration Project=""" + expectedGuid + @""" AbsolutePath=""" + solutionProjectPath + @""" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+</SolutionConfiguration>"
+            };
+
+            // Act
+            var actual = testSubject.GetProjectGuid();
+
+            // Assert
+            Assert.AreEqual(expectedGuid, actual);
+        }
+
+        [TestMethod]
+        public void GetProjectGuid_WhenSolutionConfigurationContentsHasNoProjectAttribute_ReturnsNull()
+        {
+            // Arrange
+            var testSubject = new WriteProjectInfoFile
+            {
+                ProjectGuid = null,
+                FullProjectPath = @"C:\NetStdApp\NetStdApp.csproj",
+                SolutionConfigurationContents = @"<SolutionConfiguration>
+  <ProjectConfiguration AbsolutePath=""C:\NetStdApp\NetStdApp.csproj"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+</SolutionConfiguration>"
+            };
+
+            // Act
+            var actual = testSubject.GetProjectGuid();
+
+            // Assert
+            Assert.AreEqual(null, actual);
+        }
+
+        [TestMethod]
+        public void GetProjectGuid_WhenSolutionConfigurationContentsHasNoAbsolutePathAttribute_ReturnsNull()
+        {
+            // Arrange
+            var testSubject = new WriteProjectInfoFile
+            {
+                ProjectGuid = null,
+                FullProjectPath = @"C:\NetStdApp\NetStdApp.csproj",
+                SolutionConfigurationContents = @"<SolutionConfiguration>
+  <ProjectConfiguration Project=""{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+</SolutionConfiguration>"
+            };
+
+            // Act
+            var actual = testSubject.GetProjectGuid();
+
+            // Assert
+            Assert.AreEqual(null, actual);
+        }
+
+        [TestMethod]
+        public void GetProjectGuid_WhenSolutionConfigurationContentsHasMultipleMatch_ReturnsFirstGuid()
+        {
+            // Arrange
+            var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
+            var testSubject = new WriteProjectInfoFile
+            {
+                ProjectGuid = null,
+                FullProjectPath = @"C:\NetStdApp\NetStdApp.csproj",
+                SolutionConfigurationContents = @"<SolutionConfiguration>
+  <ProjectConfiguration Project=""" + expectedGuid + @""" AbsolutePath=""C:\NetStdApp\NetStdApp.csproj"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+  <ProjectConfiguration Project=""" + Guid.NewGuid() + @""" AbsolutePath=""C:\NetStdApp\NetStdApp.csproj"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+</SolutionConfiguration>"
+            };
+
+            // Act
+            var actual = testSubject.GetProjectGuid();
+
+            // Assert
+            Assert.AreEqual(expectedGuid, actual);
+        }
+
         #endregion Tests
 
         #region Helper methods

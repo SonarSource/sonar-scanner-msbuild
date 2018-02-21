@@ -123,20 +123,8 @@ namespace SonarQube.MSBuild.Tasks
                 TargetFramework = TargetFramework,
             };
 
-            string guid = null;
-            if (!string.IsNullOrEmpty(ProjectGuid))
-            {
-                guid = ProjectGuid;
-            }
-            else if (!string.IsNullOrEmpty(SolutionConfigurationContents))
-            {
-                // Try to get GUID from the Solution
-                guid = XDocument.Parse(SolutionConfigurationContents)
-                        .Descendants("ProjectConfiguration")
-                        .Where(element => element.Attribute("AbsolutePath")?.Value == FullProjectPath)
-                        .Select(element => element.Attribute("Project")?.Value)
-                        .FirstOrDefault();
-            }
+            var guid = GetProjectGuid();
+
             if (guid != null && Guid.TryParse(guid, out Guid projectId))
             {
                 pi.ProjectGuid = projectId;
@@ -150,6 +138,7 @@ namespace SonarQube.MSBuild.Tasks
             {
                 Log.LogWarning(Resources.WPIF_MissingOrInvalidProjectGuid, FullProjectPath);
             }
+
             return true;
         }
 
@@ -329,6 +318,32 @@ namespace SonarQube.MSBuild.Tasks
                 success = true;
             }
             return success;
+        }
+
+        internal /* for testing purpose */ string GetProjectGuid()
+        {
+            if (!string.IsNullOrEmpty(ProjectGuid))
+            {
+                return ProjectGuid;
+            }
+
+            if (!string.IsNullOrEmpty(SolutionConfigurationContents))
+            {
+                var fullProject = new FileInfo(FullProjectPath);
+
+                // Try to get GUID from the Solution
+                return XDocument.Parse(SolutionConfigurationContents)
+                    .Descendants("ProjectConfiguration")
+                    .Where(element => ArePathEquals(element.Attribute("AbsolutePath")?.Value, fullProject))
+                    .Select(element => element.Attribute("Project")?.Value)
+                    .FirstOrDefault();
+            }
+
+            return null;
+
+            bool ArePathEquals(string filePath, FileInfo file) =>
+                filePath != null &&
+                new FileInfo(filePath).FullName.Equals(file.FullName, StringComparison.OrdinalIgnoreCase);
         }
 
         #endregion Private methods
