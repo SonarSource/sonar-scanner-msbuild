@@ -17,15 +17,15 @@
   </PropertyGroup>
   <ItemGroup>
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\netcoreapp2.0\SonarQube.Analysis.xml" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Common\bin\$(Configuration)\net461\SonarQube.Common.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\net461\MSBuild.SonarQube.Internal.PreProcess.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\net461\MSBuild.SonarQube.Internal.PostProcess.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\net461\TeamBuild.SonarQube.Integration.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\net461\SonarQube.Integration.Tasks.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\net461\SonarScanner.Shim.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Common\bin\$(Configuration)\netstandard2.0\SonarQube.Common.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\netstandard2.0\MSBuild.SonarQube.Internal.PreProcess.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\netstandard2.0\MSBuild.SonarQube.Internal.PostProcess.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\netstandard2.0\TeamBuild.SonarQube.Integration.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\SonarQube.Integration.Tasks.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\netstandard2.0\SonarScanner.Shim.dll" />
 
     <!-- External dependencies -->
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\net461\Newtonsoft.Json.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\netstandard2.0\Newtonsoft.Json.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration.Classic\bin\$(Configuration)\net461\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" />
 
     <!-- .NET Framework entry points-->
@@ -42,12 +42,12 @@
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration.Classic\bin\$(Configuration)\net461\TeamBuild.SonarQube.Integration.Classic.dll" />
 
     <!-- Target files. -->
-    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\net461\Targets\SonarQube.Integration.targets" />
-    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\net461\Targets\SonarQube.Integration.ImportBefore.targets" />
+    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\Targets\SonarQube.Integration.targets" />
+    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\Targets\SonarQube.Integration.ImportBefore.targets" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration) == 'Debug'">
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net461\SonarQube.Scanner.MSBuild.pdb" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\net461\MSBuild.SonarQube.Runner.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\netcoreapp2.0\SonarQube.Scanner.MSBuild.pdb" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\netcoreapp2.0\MSBuild.SonarQube.Runner.pdb" />
   </ItemGroup>
   <!-- Reference to dependencies to ensure the build order is correct -->
   <ItemGroup>
