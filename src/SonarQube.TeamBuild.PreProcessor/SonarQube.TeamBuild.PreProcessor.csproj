@@ -1,9 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
     <AssemblyName>MSBuild.SonarQube.Internal.PreProcess</AssemblyName>
     <RootNamespace>SonarQube.TeamBuild.PreProcessor</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+     <!--
+       Copy the referenced dlls to the bin folder (same as copylocal for nuget references).
+       We use that mechanism to build the package - as we do not use "dotnet publish".
+     -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
@@ -11,5 +16,11 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+  </ItemGroup>
+  <!-- Dll from this nuget is required at runtime. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Security.Permissions">
+      <Version>4.4.1</Version>
+    </PackageReference>
   </ItemGroup>
 </Project>

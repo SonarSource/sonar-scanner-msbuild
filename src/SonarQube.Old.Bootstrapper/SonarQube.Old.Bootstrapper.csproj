@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFrameworks>netcoreapp2.0;net46</TargetFrameworks>
     <AssemblyName>MSBuild.SonarQube.Runner</AssemblyName>
     <RootNamespace>SonarQube.Old.Bootstrapper</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
