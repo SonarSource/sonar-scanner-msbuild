@@ -562,9 +562,9 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             {
                 ProjectGuid = null,
                 FullProjectPath = @"C:\NetStdApp\NetStdApp.csproj",
-                SolutionConfigurationContents = @"<SolutionConfiguration>
-  <ProjectConfiguration Project=""" + expectedGuid + @""" AbsolutePath=""C:\NetStdApp\NetStdApp.csproj"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
-  <ProjectConfiguration Project=""" + Guid.NewGuid() + @""" AbsolutePath=""C:\NetStdApp\NetStdApp.csproj"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+                SolutionConfigurationContents = $@"<SolutionConfiguration>
+  <ProjectConfiguration Project=""{expectedGuid}"" AbsolutePath=""C:\NetStdApp\NetStdApp.csproj"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
+  <ProjectConfiguration Project=""{Guid.NewGuid()}"" AbsolutePath=""C:\NetStdApp\NetStdApp.csproj"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
 </SolutionConfiguration>"
             };
 
