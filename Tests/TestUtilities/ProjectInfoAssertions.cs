@@ -34,7 +34,7 @@ namespace TestUtilities
         /// <summary>
         /// Returns the list of project info objects beneath the specified root output folder
         /// </summary>
-        /// <param name="rootOutputFolder">The root Sonary analysis ouptut folder. Project info files will be searched for in
+        /// <param name="rootOutputFolder">The root Sonary analysis output folder. Project info files will be searched for in
         /// immediate sub-directories of this folder only.</param>
         public static IList<ProjectInfo> GetProjectInfosFromOutputFolder(string rootOutputFolder)
         {

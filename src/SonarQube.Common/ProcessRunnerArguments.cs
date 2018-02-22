@@ -174,7 +174,7 @@ namespace SonarQube.Common
                     //
                     // Escape all backslashes, but let the terminating
                     // double quotation mark we add below be interpreted
-                    // as a metacharacter.
+                    // as a meta-character.
                     //
                     sb.Append('\\', numberOfBackslashes * 2);
                 }

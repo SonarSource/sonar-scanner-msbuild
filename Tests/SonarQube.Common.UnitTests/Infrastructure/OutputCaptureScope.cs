@@ -30,7 +30,7 @@ namespace SonarQube.Common.UnitTests
     /// </summary>
     /// <remarks>Note: attempts to set Console.ForegroundColor and Console.BackgroundColor
     /// don't work if the console output is being redirected, so we have no easy way of
-    /// capturing the colour in which the text is written.</remarks>
+    /// capturing the color in which the text is written.</remarks>
     public sealed class OutputCaptureScope : IDisposable
     {
         private StringWriter outputWriter;
@@ -68,7 +68,7 @@ namespace SonarQube.Common.UnitTests
             var lastMessage = GetLastMessage(outputWriter);
 
             Assert.IsTrue(lastMessage.EndsWith(expected, StringComparison.CurrentCulture), "Message does not end with the expected string: '{0}'", lastMessage);
-            Assert.IsTrue(lastMessage.Length > expected.Length, "Expecting the message to be prefixed with timestamp text");
+            Assert.IsTrue(lastMessage.Length > expected.Length, "Expecting the message to be prefixed with timestamps text");
         }
 
         public void AssertExpectedLastError(string expected)
@@ -82,7 +82,7 @@ namespace SonarQube.Common.UnitTests
             var last = GetLastMessage(errorWriter);
 
             Assert.IsTrue(last.EndsWith(expected, StringComparison.CurrentCulture), "Error does not end with the expected string: '{0}'", last);
-            Assert.IsTrue(last.Length > expected.Length, "Expecting the error to be prefixed with timestamp text");
+            Assert.IsTrue(last.Length > expected.Length, "Expecting the error to be prefixed with timestamps text");
         }
 
         #endregion Assertions

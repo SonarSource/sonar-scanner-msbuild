@@ -95,7 +95,7 @@ namespace SonarQube.MSBuild.Tasks
 
         private string TryGetRegularExpression(AnalysisConfig config)
         {
-            Debug.Assert(config != null, "Not expecting the supplied config to be null");
+            Debug.Assert(config != null, "Not expecting the supplied configuration to be null");
 
             config.GetAnalysisSettings(true).TryGetValue(TestRegExSettingId, out string regEx);
 

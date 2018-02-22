@@ -176,7 +176,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertExpectedFilesExist(expectedPlugin111Paths);
             AssertExpectedFilesInCache(4, localCacheDir); // only files for the first request should exist
 
-            // 2. New request + request request -> partial cache miss -> server called only for the new request
+            // 2. New request + request -> partial cache miss -> server called only for the new request
             actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
             mockServer.AssertMethodCalled(DownloadEmbeddedFileMethodName, 2); // new request
 

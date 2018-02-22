@@ -24,7 +24,7 @@ using System.Diagnostics;
 namespace SonarQube.Common
 {
     /// <summary>
-    /// Utility class that changes the console text colour for the lifetime of the instance
+    /// Utility class that changes the console text color for the lifetime of the instance
     /// </summary>
     /// <remarks>This will have no effect if the console output streams have been re-directed</remarks>
     internal sealed class ConsoleColorScope : IDisposable

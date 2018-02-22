@@ -277,7 +277,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        [Description("Tests that project info files are created for unrecognised languages")]
+        [Description("Tests that project info files are created for unrecognized languages")]
         public void WriteProjectInfoFile_UnrecognisedLanguages()
         {
             // Arrange

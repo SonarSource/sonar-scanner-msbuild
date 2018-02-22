@@ -121,7 +121,7 @@
     <value>Calling the SonarQube Scanner...</value>
   </data>
   <data name="WARN_FileIsOutsideProjectDirectory" xml:space="preserve">
-    <value>File '{0}' is not located under the root directory and will not be analysed.</value>
+    <value>File '{0}' is not located under the root directory and will not be analyzed.</value>
   </data>
   <data name="MSG_GeneratingProjectProperties" xml:space="preserve">
     <value>Generating SonarQube project properties file to {0}</value>
@@ -209,7 +209,7 @@ Possible causes:
     <value>Analysis property is already correctly set: {0}={1}</value>
   </data>
   <data name="ERR_NoValidButDuplicateProjects" xml:space="preserve">
-    <value>No analysable projects were found but some duplicate project IDs were found. Possible cause: you are building multiple configurations (e.g. DEBUG|x86 and RELEASE|x64) at the same time, which is not supported by the SonarQube integration. Please build and analyse each configuration individually.</value>
+    <value>No analysable projects were found but some duplicate project IDs were found. Possible cause: you are building multiple configurations (e.g. DEBUG|x86 and RELEASE|x64) at the same time, which is not supported by the SonarQube integration. Please build and analyze each configuration individually.</value>
   </data>
   <data name="ERR_ConflictingSonarProjectProperties" xml:space="preserve">
     <value>sonar-project.properties files are not understood by the SonarQube Scanner for MSBuild. Remove those files from the following folders: {0}</value>

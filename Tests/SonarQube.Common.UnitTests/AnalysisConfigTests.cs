@@ -156,7 +156,7 @@ namespace SonarQube.Common.UnitTests
         }
 
         [TestMethod]
-        [Description("Checks that the XML uses the expected element and attribute names, and that unrecognised elements are silently ignored")]
+        [Description("Checks that the XML uses the expected element and attribute names, and that unrecognized elements are silently ignored")]
         public void AnalysisConfig_ExpectedXmlFormat()
         {
             // Arrange

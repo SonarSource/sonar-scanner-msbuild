@@ -104,7 +104,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// Performs the specified web operation
         /// </summary>
         /// <returns>True if the operation completed successfully, false if the url could not be found.
-        /// Other web failures will be thrown as expections.</returns>
+        /// Other web failures will be thrown as exceptions.</returns>
         private static bool DoIgnoringMissingUrls(Action op)
         {
             try

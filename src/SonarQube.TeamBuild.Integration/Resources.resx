@@ -147,7 +147,7 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
     <value>Failed to find the code coverage command line tool. Possible cause: Visual Studio is not installed, or the installed version does not support code coverage.</value>
   </data>
   <data name="EX_CoverageReportProcessorNotInitialised" xml:space="preserve">
-    <value>The Coverage Report Processor was not initialised before use.</value>
+    <value>The Coverage Report Processor was not initialized before use.</value>
   </data>
   <data name="PROC_DIAG_FetchingCoverageReportInfoFromServer" xml:space="preserve">
     <value>Fetching code coverage report information from TFS...</value>

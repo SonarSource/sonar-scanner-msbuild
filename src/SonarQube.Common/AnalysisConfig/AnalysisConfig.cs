@@ -82,7 +82,7 @@ namespace SonarQube.Common
         public AnalysisProperties LocalSettings { get; set; }
 
         /// <summary>
-        /// Configuration for Roslyn analysers
+        /// Configuration for Roslyn analyzers
         /// </summary>
         public List<AnalyzerSettings> AnalyzersSettings { get; set; }
 

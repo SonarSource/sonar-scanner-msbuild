@@ -211,7 +211,7 @@ namespace SonarQube.Bootstrapper.Tests
                 // Assert
                 logger.AssertWarningsLogged(0);
 
-                // The bootstrapper pass through any parameters it doesn't recognise so the post-processor
+                // The bootstrapper pass through any parameters it doesn't recognize so the post-processor
                 // can decide whether to handle them or not
                 AssertPostProcessorArgs("other params", "yet.more.params");
             }

@@ -41,7 +41,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         public bool Initialise(AnalysisConfig context, ITeamBuildSettings settings, ILogger logger)
         {
-            Assert.IsFalse(initalisedCalled, "Expecting Initialise to be called only once");
+            Assert.IsFalse(initalisedCalled, "Expecting Initialize to be called only once");
             initalisedCalled = true;
             return InitialiseValueToReturn;
         }
@@ -49,7 +49,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         public bool ProcessCoverageReports()
         {
             Assert.IsFalse(processCoverageMethodCalled, "Expecting ProcessCoverageReports to be called only once");
-            Assert.IsTrue(initalisedCalled, "Expecting Initialise to be called first");
+            Assert.IsTrue(initalisedCalled, "Expecting Initialize to be called first");
             processCoverageMethodCalled = true;
             return ProcessValueToReturn;
         }

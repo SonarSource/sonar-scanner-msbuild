@@ -9,8 +9,8 @@
 
     A subdirectory will be created for each MSBuild project. Information about the project
     will be written to a file called "ProjectInfo.xml". Additional files may also be written
-    containing information required by different analysers. In particular, a file will be written
-    containing the list of files in the project that should be analysed by the sonar-scanner.
+    containing information required by different analyzers. In particular, a file will be written
+    containing the list of files in the project that should be analyzed by the sonar-scanner.
 
     The output will only be produced if the property $(SonarQubeTempPath) and
     is specified. $(SonarQubeTempPath) is the root folder under which per-analysis output
@@ -130,10 +130,10 @@
   </Target>
 
   <!-- **************************************************************************** -->
-  <!-- Categorise as a product or test project -->
+  <!-- Categorize as a product or test project -->
   <!-- **************************************************************************** -->
   <!-- Work out if the project is a test or Fakes project. -->
-  <!-- Fakes projects are auto-generated. If a project is recognised as a Fakes
+  <!-- Fakes projects are auto-generated. If a project is recognized as a Fakes
        project then it will be marked as a test project and excluded.
        For test projects, if it is explicitly marked then use that value, otherwise:
           * check if the name matches the regular expression in the config file, or

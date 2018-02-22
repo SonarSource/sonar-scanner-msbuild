@@ -77,7 +77,7 @@ namespace SonarQube.Common
         // * start with a character or number
         // * are in the form [key]=[value],
         // * where [key] can
-        //   - starts with an alpanumeric character.
+        //   - starts with an alphanumeric character.
         //   - can be followed by any number of alphanumeric characters or .
         //   - whitespace is not allowed
         // * [value] can contain anything
@@ -90,7 +90,7 @@ namespace SonarQube.Common
         /// </summary>
         /// <remarks>
         /// Validation rules:
-        /// Must start with an alpanumeric character.
+        /// Must start with an alphanumeric character.
         /// Can be followed by any number of alphanumeric characters or .
         /// Whitespace is not allowed
         /// </remarks>

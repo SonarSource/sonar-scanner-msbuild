@@ -21,8 +21,8 @@
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.XamlBuild;
 using SonarQube.TeamBuild.Integration.Tests.Infrastructure;
+using SonarQube.TeamBuild.Integration.XamlBuild;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.Integration.Tests
@@ -68,7 +68,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             var initResult = processor.Initialise(context, settings, logger);
 
             // Assert
-            Assert.IsFalse(initResult, "Expecting false: processor should not have been initialised successfully");
+            Assert.IsFalse(initResult, "Expecting false: processor should not have been initialized successfully");
 
             urlProvider.AssertGetUrlsNotCalled();
             downloader.AssertDownloadNotCalled();
@@ -94,7 +94,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             // Act
             var initResult = processor.Initialise(context, settings, logger);
-            Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
+            Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
             // Assert
@@ -124,7 +124,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             // Act
             var initResult = processor.Initialise(context, settings, logger);
-            Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
+            Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
             // Assert
@@ -153,7 +153,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             // Act
             var initResult = processor.Initialise(context, settings, logger);
-            Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
+            Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
             // Assert
@@ -187,7 +187,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             // Act
             var initResult = processor.Initialise(context, settings, logger);
-            Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
+            Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
             // Assert

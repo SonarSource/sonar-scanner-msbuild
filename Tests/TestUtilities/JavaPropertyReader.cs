@@ -297,7 +297,7 @@ namespace TestUtilities
         /// <para>An example of a long line split into two.</para>
         /// </summary>
         /// <param name="stream">The input stream that the properties are read from.</param>
-        /// <param name="encoding">The <see cref="System.Text.Encoding">encoding</see> that is used to read the properies file stream.</param>
+        /// <param name="encoding">The <see cref="System.Text.Encoding">encoding</see> that is used to read the properties file stream.</param>
         public void Parse(Stream stream, Encoding encoding)
         {
             var bufferedStream = new BufferedStream(stream, bufferSize);

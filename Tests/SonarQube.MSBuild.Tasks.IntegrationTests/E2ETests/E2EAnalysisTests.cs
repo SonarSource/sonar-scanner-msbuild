@@ -289,13 +289,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
             var projectFolder = descriptor.FullDirectoryPath;
 
-            // Add files that should be analysed
+            // Add files that should be analyzed
             var nonObjFolder = Path.Combine(projectFolder, "foo");
             Directory.CreateDirectory(nonObjFolder);
             AddEmptyAnalysedCodeFile(descriptor, rootInputFolder);
             AddEmptyAnalysedCodeFile(descriptor, nonObjFolder);
 
-            // Add files under the obj folder that should not be analysed
+            // Add files under the obj folder that should not be analyzed
             var objFolder = Path.Combine(projectFolder, "obj");
             var objSubFolder1 = Path.Combine(objFolder, "debug");
             var objSubFolder2 = Path.Combine(objFolder, "xxx"); // any folder under obj should be ignored
@@ -384,7 +384,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         {
             // Checks the integration targets handle non-VB/C# project types
             // that don't import the standard targets or set the expected properties
-            // The project info should be created as normal and the correct files to analyse detected.
+            // The project info should be created as normal and the correct files to analyze detected.
 
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
@@ -462,10 +462,10 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
             Assert.AreEqual(ProjectType.Product, projectInfo.ProjectType, "Project should be marked as a product project");
             Assert.AreEqual(1, projectInfo.AnalysisResults.Count, "Unexpected number of analysis results created");
 
-            // Check the correct list of files to analyse were returned
+            // Check the correct list of files to analyze were returned
             var filesToAnalyse = ProjectInfoAssertions.AssertAnalysisResultExists(projectInfo, AnalysisType.FilesToAnalyze.ToString());
             var actualFilesToAnalyse = File.ReadAllLines(filesToAnalyse.Location);
-            CollectionAssert.AreEquivalent(new string[] { codeFile, contentFile }, actualFilesToAnalyse, "Unexpected list of files to analyse");
+            CollectionAssert.AreEquivalent(new string[] { codeFile, contentFile }, actualFilesToAnalyse, "Unexpected list of files to analyze");
         }
 
         [TestMethod]
@@ -501,7 +501,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- no recognised content -->
+    <!-- no recognized content -->
   </ItemGroup>
 
   <Import Project='{3}' />
@@ -594,7 +594,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
         /// Creates and builds a new Sonar-enabled project using the supplied descriptor.
         /// The method will check the build succeeded and that a single project output file was created.
         /// </summary>
-        /// <returns>The full path of the project-specsific directory that was created during the build</returns>
+        /// <returns>The full path of the project-specific directory that was created during the build</returns>
         private string CreateAndBuildSonarProject(ProjectDescriptor descriptor, string rootOutputFolder, WellKnownProjectProperties preImportProperties)
         {
             var projectRoot = BuildUtilities.CreateInitializedProjectRoot(TestContext, descriptor, preImportProperties);
@@ -686,7 +686,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
                 // we expected is a subset of the actual
                 CollectionAssert.IsSubsetOf(expectedFiles, actualFiles, "Analysis file does not contain the expected entries");
 
-                // Check that any files that should not be analysed are not included
+                // Check that any files that should not be analyzed are not included
                 if (expected.FilesNotToAnalyse != null && expected.FilesNotToAnalyse.Any())
                 {
                     foreach (var unanalysedFile in expected.FilesNotToAnalyse)
@@ -705,13 +705,13 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
         private static void AssertFileIsNotAnalysed(string analysisFileListPath, string unanalysedPath)
         {
-            var actualFiles = GetAnalysedFiles(analysisFileListPath); CollectionAssert.DoesNotContain(actualFiles, unanalysedPath, "File should not be analysed: {0}", unanalysedPath);
+            var actualFiles = GetAnalysedFiles(analysisFileListPath); CollectionAssert.DoesNotContain(actualFiles, unanalysedPath, "File should not be analyzed: {0}", unanalysedPath);
         }
 
         private static void AssertFileIsAnalysed(string analysisFileListPath, string unanalysedPath)
         {
             var actualFiles = GetAnalysedFiles(analysisFileListPath);
-            CollectionAssert.Contains(actualFiles, unanalysedPath, "File should not be analysed: {0}", unanalysedPath);
+            CollectionAssert.Contains(actualFiles, unanalysedPath, "File should not be analyzed: {0}", unanalysedPath);
         }
 
         private static string[] GetAnalysedFiles(string analysisFileListPath)

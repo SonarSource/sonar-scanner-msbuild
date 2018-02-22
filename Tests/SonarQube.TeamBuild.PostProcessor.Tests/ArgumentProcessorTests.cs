@@ -53,7 +53,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             // 0. Setup
             TestLogger logger;
 
-            // 1. Unrecognised args
+            // 1. Unrecognized args
             logger = CheckProcessingFails("begin"); // bootstrapper verbs aren't meaningful to the post-processor
             logger.AssertSingleErrorExists("begin");
 

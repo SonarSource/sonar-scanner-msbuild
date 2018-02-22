@@ -28,7 +28,7 @@ using SonarQube.Common;
 namespace SonarScanner.Shim
 {
     /// <summary>
-    /// Outputs a report summarising the project info files that were found.
+    /// Outputs a report summarizing the project info files that were found.
     /// This is not used by SonarQube: it is only for debugging purposes.
     /// </summary>
     internal class ProjectInfoReportBuilder

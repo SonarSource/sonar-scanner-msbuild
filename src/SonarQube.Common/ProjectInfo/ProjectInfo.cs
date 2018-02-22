@@ -86,7 +86,7 @@ namespace SonarQube.Common
         public string Configuration { get; set; }
 
         /// <summary>
-        /// MSBuild plaform for the current build
+        /// MSBuild platform for the current build
         /// </summary>
         public string Platform { get; set; }
 

@@ -145,7 +145,7 @@ namespace SonarQube.Bootstrapper.Tests
             logger.AssertSingleWarningExists(ArgumentProcessor.BeginVerb);
             AssertExpectedChildArguments(settings, validUrl);
 
-            // 5. Incorrect case -> treated as unrecognised argument
+            // 5. Incorrect case -> treated as unrecognized argument
             // -> valid with 1 warning (no begin / end specified warning)
             logger = new TestLogger();
             settings = CheckProcessingSucceeds(logger, validUrl, "BEGIN"); // wrong case
@@ -165,7 +165,7 @@ namespace SonarQube.Bootstrapper.Tests
             logger = new TestLogger();
             var settings = CheckProcessingSucceeds(logger, validUrl, "beginX");
             AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-            logger.AssertWarningsLogged(1); // Expecting a warning because "beginX" should not be recognised as "begin"
+            logger.AssertWarningsLogged(1); // Expecting a warning because "beginX" should not be recognized as "begin"
             AssertExpectedChildArguments(settings, validUrl, "beginX");
 
             // 2. "begin", "beginx" should not be treated as duplicates
@@ -206,7 +206,7 @@ namespace SonarQube.Bootstrapper.Tests
             logger.AssertWarningsLogged(1);
             AssertExpectedChildArguments(settings);
 
-            // 5. Partial match -> unrecognised -> treated as preprocessing
+            // 5. Partial match -> unrecognized -> treated as preprocessing
             logger = new TestLogger();
             settings = CheckProcessingSucceeds(logger, "endx");
             AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);

@@ -224,13 +224,13 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         private static void CheckFilePathIsTest(string analysisDir, string fullFileName)
         {
             var isTest = ExecuteAndCheckSuccess(analysisDir, fullFileName);
-            Assert.IsTrue(isTest, "Expecting the file name to be recognised as a test file. Name: {0}", fullFileName);
+            Assert.IsTrue(isTest, "Expecting the file name to be recognized as a test file. Name: {0}", fullFileName);
         }
 
         private static void CheckFilePathIsNotTest(string analysisDir, string fullFileName)
         {
             var isTest = ExecuteAndCheckSuccess(analysisDir, fullFileName);
-            Assert.IsFalse(isTest, "Not expecting the file name to be recognised as a test file. Name: {0}", fullFileName);
+            Assert.IsFalse(isTest, "Not expecting the file name to be recognized as a test file. Name: {0}", fullFileName);
         }
 
         private static bool ExecuteAndCheckSuccess(string analysisDir, string fullFileName)

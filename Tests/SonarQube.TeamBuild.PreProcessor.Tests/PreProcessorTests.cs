@@ -248,7 +248,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 0, logger);
 
-            // only contains SonarQubeAnalysisConfig (no rulesets or aditional files)
+            // only contains SonarQubeAnalysisConfig (no rulesets or additional files)
             AssertDirectoryContains(settings.SonarConfigDirectory, Path.GetFileName(settings.AnalysisConfigFilePath));
         }
 
@@ -317,7 +317,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             AssertAnalysisConfig(settings.AnalysisConfigFilePath, 0, logger);
 
-            // only contains SonarQubeAnalysisConfig (no rulesets or aditional files)
+            // only contains SonarQubeAnalysisConfig (no rulesets or additional files)
             AssertDirectoryContains(settings.SonarConfigDirectory, Path.GetFileName(settings.AnalysisConfigFilePath));
         }
 

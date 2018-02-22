@@ -232,7 +232,7 @@ echo success > """ + outputFilePath + @"""");
             var fetched = 1;
             var noFetch = 0;
 
-            // We need to do this kind of trickery because Moq cannot setup a callback for a method with an out paramater.
+            // We need to do this kind of trickery because Moq cannot setup a callback for a method with an out parameter.
             Func<ISetupInstance[], bool> setupInstance = (ISetupInstance[] instances) =>
             {
                 if (calls > 0)

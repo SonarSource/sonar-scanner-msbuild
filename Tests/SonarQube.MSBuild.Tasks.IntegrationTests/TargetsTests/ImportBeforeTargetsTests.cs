@@ -189,7 +189,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         private ProjectInstance CreateAndEvaluateProject(Dictionary<string, string> preImportProperties)
         {
             // TODO: consider changing these tests to redirect where the common targets look for ImportBefore assemblies.
-            // That would allow us to test the actual ImportBefore behaviour (we're currently creating a project that
+            // That would allow us to test the actual ImportBefore behavior (we're currently creating a project that
             // explicitly imports our SonarQube "ImportBefore" project).
             BuildUtilities.DisableStandardTargetsWildcardImporting(preImportProperties);
 
