@@ -39,7 +39,7 @@ namespace SonarQube.TeamBuild.PostProcessor
 
         static ArgumentProcessor()
         {
-            // Initialise the set of valid descriptors.
+            // Initialize the set of valid descriptors.
             // To add a new argument, just add it to the list.
             Descriptors = new List<ArgumentDescriptor>
             {

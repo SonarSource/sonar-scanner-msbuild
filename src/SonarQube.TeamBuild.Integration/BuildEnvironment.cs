@@ -21,7 +21,7 @@
 namespace SonarQube.TeamBuild.Integration
 {
     /// <summary>
-    /// Lists the recognised build environments
+    /// Lists the recognized build environments
     /// </summary>
     public enum BuildEnvironment
     {

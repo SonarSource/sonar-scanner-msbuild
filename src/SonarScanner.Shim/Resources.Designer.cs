@@ -110,7 +110,7 @@ namespace SonarScanner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No analysable projects were found but some duplicate project IDs were found. Possible cause: you are building multiple configurations (e.g. DEBUG|x86 and RELEASE|x64) at the same time, which is not supported by the SonarQube integration. Please build and analyse each configuration individually..
+        ///   Looks up a localized string similar to No analysable projects were found but some duplicate project IDs were found. Possible cause: you are building multiple configurations (e.g. DEBUG|x86 and RELEASE|x64) at the same time, which is not supported by the SonarQube integration. Please build and analyze each configuration individually..
         /// </summary>
         internal static string ERR_NoValidButDuplicateProjects {
             get {
@@ -371,7 +371,7 @@ namespace SonarScanner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to File &apos;{0}&apos; is not located under the root directory and will not be analysed..
+        ///   Looks up a localized string similar to File &apos;{0}&apos; is not located under the root directory and will not be analyzed..
         /// </summary>
         internal static string WARN_FileIsOutsideProjectDirectory {
             get {

@@ -126,7 +126,7 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void CLogger_ExpectedMessages_Warning()
         {
-            // NOTE: we expect all warnings to be prefixed with a localised
+            // NOTE: we expect all warnings to be prefixed with a localized
             // "WARNING" prefix, so we're using "AssertLastMessageEndsWith"
             // even for warnings that do not have timestamps.
 

@@ -143,7 +143,7 @@ namespace TestUtilities
         }
 
         /// <summary>
-        /// List of files that should not be analysed
+        /// List of files that should not be analyzed
         /// </summary>
         public IEnumerable<string> FilesNotToAnalyse
         {

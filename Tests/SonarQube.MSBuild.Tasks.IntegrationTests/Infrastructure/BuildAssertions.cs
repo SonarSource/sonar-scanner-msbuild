@@ -117,7 +117,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
             var matches = actualResult.ProjectStateAfterBuild.GetItemsByItemTypeAndEvaluatedInclude(BuildTaskConstants.SettingItemName, settingName);
 
-            Assert.AreEqual(0, matches.Count(), "Not expected SonarQubeSetting with include value of '{0}' to exist. Actual occurences: {1}", settingName, matches.Count());
+            Assert.AreEqual(0, matches.Count(), "Not expected SonarQubeSetting with include value of '{0}' to exist. Actual occurrences: {1}", settingName, matches.Count());
         }
 
         /// <summary>

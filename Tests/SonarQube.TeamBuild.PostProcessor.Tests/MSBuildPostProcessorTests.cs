@@ -152,7 +152,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         }
 
         [TestMethod]
-        [Description("The coverage processing has 2 paths for fail - initialisation failures which are non-critical and processing errors that stop the post-processor workflow")]
+        [Description("The coverage processing has 2 paths for fail - initialization failures which are non-critical and processing errors that stop the post-processor workflow")]
         public void PostProc_ExecutionSucceedsIfCoverageNotInitialised()
         {
             // Arrange

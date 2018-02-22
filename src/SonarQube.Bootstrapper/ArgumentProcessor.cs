@@ -50,7 +50,7 @@ namespace SonarQube.Bootstrapper
 
         static ArgumentProcessor()
         {
-            // Initialise the set of valid descriptors.
+            // Initialize the set of valid descriptors.
             // To add a new argument, just add it to the list.
             Descriptors = new List<ArgumentDescriptor>
             {
@@ -190,7 +190,7 @@ namespace SonarQube.Bootstrapper
         }
 
         /// <summary>
-        /// Strips out any arguments that are only relevant to the boot strapper from the user-supplied
+        /// Strips out any arguments that are only relevant to the bootstrapper from the user-supplied
         /// command line arguments
         /// </summary>
         /// <remarks>We don't want to forward these arguments to the pre- or post- processor</remarks>

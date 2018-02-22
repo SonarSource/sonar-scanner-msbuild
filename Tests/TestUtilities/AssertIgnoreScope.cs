@@ -27,7 +27,7 @@ namespace TestUtilities
     /// <summary>
     /// Helper class to suppress assertions during tests
     /// </summary>
-    /// <remarks>Prevents tests from failing due to assertion dialogues appearing</remarks>
+    /// <remarks>Prevents tests from failing due to assertion dialogs appearing</remarks>
     public class AssertIgnoreScope : IDisposable
     {
         public AssertIgnoreScope()

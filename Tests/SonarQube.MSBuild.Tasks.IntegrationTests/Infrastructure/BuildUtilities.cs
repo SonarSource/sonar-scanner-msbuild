@@ -242,7 +242,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         #region Miscellaneous public methods
 
         /// <summary>
-        /// Sets properties to disable the normal ImportAfter/ImportBefore behaviour to
+        /// Sets properties to disable the normal ImportAfter/ImportBefore behavior to
         /// prevent any additional targets from being picked up.
         /// This is necessary so the tests run correctly on machines that have
         /// the installation targets installed.
@@ -299,7 +299,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
 
             var properties = preImportProperties ?? new Dictionary<string, string>();
 
-            // Disable the standard "ImportBefore/ImportAfter" behaviour if the caller
+            // Disable the standard "ImportBefore/ImportAfter" behavior if the caller
             // hasn't defined what they want to happen explicitly
             if (!properties.ContainsKey(StandardImportBeforePropertyName))
             {

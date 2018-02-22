@@ -26,7 +26,7 @@ namespace SonarQube.TeamBuild.Integration
     public interface ICoverageReportProcessor
     {
         /// <summary>
-        /// Initialises the converter
+        /// Initializes the converter
         /// </summary>
         /// <returns>Operation success</returns>
         bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger);

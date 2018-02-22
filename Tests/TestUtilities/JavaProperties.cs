@@ -55,7 +55,7 @@ namespace TestUtilities
         /// Use this constructor to provide a set of default values.  The default values are kept separate
         /// to the ones in this instant.
         /// </summary>
-        /// <param name="defaults">A Hashtable that holds a set of defafult key value pairs to
+        /// <param name="defaults">A Hashtable that holds a set of defaults key value pairs to
         /// return when the requested key has not been set.</param>
         public JavaProperties(Hashtable defaults)
         {
@@ -124,7 +124,7 @@ namespace TestUtilities
         /// Returns an enumerator of all the properties available in this instance - including the
         /// defaults.
         /// </summary>
-        /// <returns>An enumarator for all of the keys including defaults.</returns>
+        /// <returns>An enumerator for all of the keys including defaults.</returns>
         public IEnumerator PropertyNames()
         {
             Hashtable combined;

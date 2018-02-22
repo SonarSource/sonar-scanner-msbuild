@@ -135,7 +135,7 @@ namespace SonarQube.Common
 
         /// <summary>
         /// Attempt to find a properties file - either the one specified by the user, or the default properties file.
-        /// Returns true if the path to a file could be resolved, othewise false.
+        /// Returns true if the path to a file could be resolved, otherwise false.
         /// </summary>
         private static bool ResolveFilePath(string propertiesFilePath, string defaultPropertiesFileDirectory, ILogger logger,
             out AnalysisProperties properties)

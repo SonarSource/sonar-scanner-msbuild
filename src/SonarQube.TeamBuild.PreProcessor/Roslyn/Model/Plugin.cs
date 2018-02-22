@@ -58,7 +58,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         public string Version { get; set; }
 
         /// <summary>
-        /// Name of the static resource in the plugin that contains the analyzer artefacts
+        /// Name of the static resource in the plugin that contains the analyzer artifacts
         /// </summary>
         [XmlAttribute("StaticResourceName")]
         public string StaticResourceName { get; set; }

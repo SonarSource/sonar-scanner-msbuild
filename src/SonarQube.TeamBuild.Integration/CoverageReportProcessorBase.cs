@@ -60,7 +60,7 @@ namespace SonarQube.TeamBuild.Integration
                 throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialised);
             }
 
-            Debug.Assert(config != null, "Expecting the config to not be null. Did you call Initialise() ?");
+            Debug.Assert(config != null, "Expecting the config to not be null. Did you call Initialize() ?");
 
             // Fetch all of the report URLs
             logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);

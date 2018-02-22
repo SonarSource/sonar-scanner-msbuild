@@ -84,7 +84,7 @@ namespace SonarQube.TeamBuild.PostProcessor
                 return false;
             }
 
-            // if initialisation fails a warning will have been logged at the source of the failure
+            // if initialization fails a warning will have been logged at the source of the failure
             var initialised = codeCoverageProcessor.Initialise(config, settings, logger);
 
             if (initialised && !codeCoverageProcessor.ProcessCoverageReports())

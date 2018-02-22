@@ -159,7 +159,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
 
-            // Use project name that will be recognised as a test by the default regex
+            // Use project name that will be recognized as a test by the default regex
             var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "TestafoXB.proj");
 
             // Act
@@ -175,7 +175,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         [TestCategory("IsTest")]
         public void WriteProjectInfo_TestProject_HasTestGuid()
         {
-            // Checks the MSTest project type guid is recognised
+            // Checks the MSTest project type guid is recognized
 
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
@@ -201,7 +201,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         [TestCategory("IsTest")]
         public void WriteProjectInfo_TestProject_HasTestGuid_LowerCase()
         {
-            // Checks the MSTest project type guid is recognised
+            // Checks the MSTest project type guid is recognized
 
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
@@ -304,7 +304,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         [TestCategory("ProjectInfo")]
         public void WriteProjectInfo_FakesProjects_ExplicitSonarTestPropertyIsIgnored()
         {
-            // Checks that fakes projects are recognised and marked as test
+            // Checks that fakes projects are recognized and marked as test
             // projects, irrespective of whether the SonarQubeTestProject is
             // already set.
 
@@ -650,7 +650,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
         [TestMethod]
         public void WriteProjectInfo_UnrecognisedLanguage()
         {
-            // Checks the WriteProjectInfo target handles projects with unrecognised languages
+            // Checks the WriteProjectInfo target handles projects with unrecognized languages
 
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");

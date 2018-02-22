@@ -108,7 +108,7 @@ namespace SonarQube.TeamBuild.PostProcessorTests
                 summaryReportData,
                 expectedExcludedProjects: 5, // ExcludeFlagSet
                 expectedInvalidProjects: 15, // InvalidGuid, DuplicateGuid is not possible anymore
-                expectedSkippedProjects: 11, // No files to analyse
+                expectedSkippedProjects: 11, // No files to analyze
                 expectedProductProjects: 13,
                 expectedTestProjects: 17);
         }

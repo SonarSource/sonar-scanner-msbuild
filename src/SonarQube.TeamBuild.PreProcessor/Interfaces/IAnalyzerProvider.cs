@@ -33,7 +33,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// and rule parameter files
         /// </summary>
         /// <param name="projectKey">Identifier for the project being analyzed</param>
-        /// <returns>The settings required to configure the build for Roslyn a analyser</returns>
+        /// <returns>The settings required to configure the build for Roslyn a analyzer</returns>
         AnalyzerSettings SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings,
             IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules, string language);
     }

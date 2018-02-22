@@ -138,7 +138,7 @@ namespace SonarQube.TeamBuild.Integration
 
             if (IsInTeamBuild)
             {
-                // Work out which flavour of TeamBuild
+                // Work out which flavor of TeamBuild
                 var buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_Legacy);
                 if (string.IsNullOrEmpty(buildUri))
                 {

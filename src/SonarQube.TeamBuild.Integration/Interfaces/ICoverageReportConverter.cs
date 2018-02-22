@@ -25,9 +25,9 @@ namespace SonarQube.TeamBuild.Integration
     public interface ICoverageReportConverter // was internal
     {
         /// <summary>
-        /// Initialises the converter
+        /// Initializes the converter
         /// </summary>
-        /// <returns>True if the converter was initialised successfully, otherwise false</returns>
+        /// <returns>True if the converter was initialized successfully, otherwise false</returns>
         bool Initialize(ILogger logger);
 
         /// <summary>

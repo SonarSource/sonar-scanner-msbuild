@@ -158,7 +158,7 @@ namespace SonarQube.Common.UnitTests
             TestLogger logger;
 
             var verb1 = new ArgumentDescriptor("v1", new string[] { "begin" }, false /* not required */, "desc1", false /* no multiples */, true);
-            parser = new CommandLineParser(new ArgumentDescriptor[] { verb1 }, true /* allow unrecognised */);
+            parser = new CommandLineParser(new ArgumentDescriptor[] { verb1 }, true /* allow unrecognized */);
 
             // 1. Exact match -> matched
             logger = new TestLogger();
@@ -190,7 +190,7 @@ namespace SonarQube.Common.UnitTests
             var verb1 = new ArgumentDescriptor("v1", new string[] { "noMult" }, false /* required */, "noMult desc", false /* no multiples */, true);
             var verb2 = new ArgumentDescriptor("v2", new string[] { "multOk" }, false /* required */, "multOk desc", true /* allow multiples */, true);
 
-            parser = new CommandLineParser(new ArgumentDescriptor[] { verb1, verb2 }, true /* allow unrecognised */ );
+            parser = new CommandLineParser(new ArgumentDescriptor[] { verb1, verb2 }, true /* allow unrecognized */ );
 
             // 1. Allowed multiples
             logger = new TestLogger();
@@ -260,7 +260,7 @@ namespace SonarQube.Common.UnitTests
 
             // NOTE: this test only works because the descriptors are supplied to parser ordered
             // by decreasing prefix length
-            parser = new CommandLineParser(new ArgumentDescriptor[] { prefix2, verb2, prefix1, verb1 }, true /* allow unrecognised */);
+            parser = new CommandLineParser(new ArgumentDescriptor[] { prefix2, verb2, prefix1, verb1 }, true /* allow unrecognized */);
 
             // 1. Exact match -> matched
             logger = new TestLogger();

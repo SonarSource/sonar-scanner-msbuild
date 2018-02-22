@@ -41,7 +41,7 @@ namespace SonarQube.TeamBuild.Integration
     * -------------------------
     * The power shell script calls the "Invoke-VSTest" cmdlet, followed by the "Invoke_ResultPublisher" cmdlet.
     * One of the inputs to the "Invoke_ResultPublisher" cmdlet is the TRX file that was created by the tests.
-    * The TRX file contains information about the results and about any additional additional collectors
+    * The TRX file contains information about the results and about any additional collectors
     * that were executed, including the code coverage processor.
     *
     * The script assumes the TRX file is contained in the test results directory, which by default will be in

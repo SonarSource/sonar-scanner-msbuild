@@ -99,9 +99,9 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             CheckProjectKeyIsValid(".-_:"); // all non-alpha characters
 
-            CheckProjectKeyIsValid("0.1"); // numerics with with any other valid character is ok
-            CheckProjectKeyIsValid("_0"); // numeric with with any other valid character is ok
-            CheckProjectKeyIsValid("0."); // numeric with with any other valid character is ok
+            CheckProjectKeyIsValid("0.1"); // numerics with any other valid character is ok
+            CheckProjectKeyIsValid("_0"); // numeric with any other valid character is ok
+            CheckProjectKeyIsValid("0."); // numeric with any other valid character is ok
 
             // 3. More realistic valid options
             CheckProjectKeyIsValid("myproject");
@@ -116,7 +116,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // 0. Setup
             TestLogger logger;
 
-            // 1. Additional unrecognised arguments
+            // 1. Additional unrecognized arguments
             logger = CheckProcessingFails("unrecog2", "/key:k1", "/name:n1", "/version:v1", "unrecog1", "/p:key=value", string.Empty);
 
             logger.AssertErrorDoesNotExist("/key:");
@@ -131,7 +131,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // 2. Arguments using the wrong separator i.e. /k=k1  instead of /k:k1
             logger = CheckProcessingFails("/key=k1", "/name=n1", "/version=v1");
 
-            // Expecting errors for the unrecognised arguments...
+            // Expecting errors for the unrecognized arguments...
             logger.AssertSingleErrorExists("/key=k1");
             logger.AssertSingleErrorExists("/name=n1");
             logger.AssertSingleErrorExists("/version=v1");
@@ -395,7 +395,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
 
-            Assert.IsNull(result, "Not expecting the arguments to be processed succesfully");
+            Assert.IsNull(result, "Not expecting the arguments to be processed successfully");
             logger.AssertErrorsLogged();
             return logger;
         }
@@ -422,7 +422,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             var logger = new TestLogger();
             var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
 
-            Assert.IsNotNull(result, "Expecting the arguments to be processed succesfully");
+            Assert.IsNotNull(result, "Expecting the arguments to be processed successfully");
 
             logger.AssertErrorsLogged(0);
 
