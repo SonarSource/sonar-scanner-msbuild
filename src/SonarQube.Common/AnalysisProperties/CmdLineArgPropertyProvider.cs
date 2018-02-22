@@ -50,11 +50,11 @@ namespace SonarQube.Common
         {
             if (commandLineArguments == null)
             {
-                throw new ArgumentNullException("commandLineArguments");
+                throw new ArgumentNullException(nameof(commandLineArguments));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             if (ExtractAndValidateProperties(commandLineArguments, logger, out IEnumerable<Property> validProperties))
@@ -95,7 +95,7 @@ namespace SonarQube.Common
 
         private CmdLineArgPropertyProvider(IEnumerable<Property> properties)
         {
-            this.properties = properties ?? throw new ArgumentNullException("properties");
+            this.properties = properties ?? throw new ArgumentNullException(nameof(properties));
         }
 
         #endregion Private methods

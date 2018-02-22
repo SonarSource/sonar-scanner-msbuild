@@ -105,7 +105,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             ProcessedArgs processed = null;

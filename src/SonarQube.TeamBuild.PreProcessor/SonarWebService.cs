@@ -41,12 +41,12 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             if (string.IsNullOrWhiteSpace(server))
             {
-                throw new ArgumentNullException("server");
+                throw new ArgumentNullException(nameof(server));
             }
 
-            this.downloader = downloader ?? throw new ArgumentNullException("downloader");
+            this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
             serverUrl = server.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? server.Substring(0, server.Length - 1) : server;
-            this.logger = logger ?? throw new ArgumentNullException("logger");
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         #region ISonarQubeServer interface
@@ -185,7 +185,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             if (string.IsNullOrWhiteSpace(projectKey))
             {
-                throw new ArgumentNullException("projectKey");
+                throw new ArgumentNullException(nameof(projectKey));
             }
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
 
@@ -224,15 +224,15 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             if (string.IsNullOrWhiteSpace(pluginKey))
             {
-                throw new ArgumentNullException("pluginKey");
+                throw new ArgumentNullException(nameof(pluginKey));
             }
             if (string.IsNullOrWhiteSpace(embeddedFileName))
             {
-                throw new ArgumentNullException("embeddedFileName");
+                throw new ArgumentNullException(nameof(embeddedFileName));
             }
             if (string.IsNullOrWhiteSpace(targetDirectory))
             {
-                throw new ArgumentNullException("targetDirectory");
+                throw new ArgumentNullException(nameof(targetDirectory));
             }
 
             var url = GetUrl("/static/{0}/{1}", pluginKey, embeddedFileName);

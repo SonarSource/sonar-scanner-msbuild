@@ -33,20 +33,14 @@ namespace SonarQube.MSBuild.Tasks
 
         public MSBuildLoggerAdapter(TaskLoggingHelper msBuildLogger)
         {
-            this.msBuildLogger = msBuildLogger ?? throw new ArgumentNullException("msBuildLogger");
+            this.msBuildLogger = msBuildLogger ?? throw new ArgumentNullException(nameof(msBuildLogger));
         }
 
         #region SonarQube.Common.ILogger methods
 
-        bool ILogger.IncludeTimestamp
-        {
-            get; set;
-        }
+        bool ILogger.IncludeTimestamp { get; set; }
 
-        LoggerVerbosity ILogger.Verbosity
-        {
-            get; set;
-        }
+        LoggerVerbosity ILogger.Verbosity { get; set; }
 
         void ILogger.LogDebug(string message, params object[] args)
         {

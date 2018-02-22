@@ -39,7 +39,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             if (string.IsNullOrWhiteSpace(key))
             {
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             }
 
             ProjectKey = key;
@@ -47,9 +47,9 @@ namespace SonarQube.TeamBuild.PreProcessor
             ProjectVersion = version;
             Organization = organization;
 
-            CmdLineProperties = cmdLineProperties ?? throw new ArgumentNullException("cmdLineProperties");
-            this.globalFileProperties = globalFileProperties ?? throw new ArgumentNullException("globalFileProperties");
-            ScannerEnvProperties = scannerEnvProperties ?? throw new ArgumentNullException("scannerEnvProperties");
+            CmdLineProperties = cmdLineProperties ?? throw new ArgumentNullException(nameof(cmdLineProperties));
+            this.globalFileProperties = globalFileProperties ?? throw new ArgumentNullException(nameof(globalFileProperties));
+            ScannerEnvProperties = scannerEnvProperties ?? throw new ArgumentNullException(nameof(scannerEnvProperties));
             InstallLoaderTargets = installLoaderTargets;
 
             AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);

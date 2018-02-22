@@ -62,15 +62,15 @@ namespace SonarScanner.Shim
         {
             if (config == null)
             {
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
             }
             if (userCmdLineArguments == null)
             {
-                throw new ArgumentNullException("userCmdLineArguments");
+                throw new ArgumentNullException(nameof(userCmdLineArguments));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             var result = new PropertiesFileGenerator(config, logger).GenerateFile();

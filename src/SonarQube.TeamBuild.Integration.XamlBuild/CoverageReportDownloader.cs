@@ -34,19 +34,19 @@ namespace SonarQube.TeamBuild.Integration.XamlBuild
         {
             if (string.IsNullOrWhiteSpace(tfsUri))
             {
-                throw new ArgumentNullException("tfsUri");
+                throw new ArgumentNullException(nameof(tfsUri));
             }
             if (string.IsNullOrWhiteSpace(reportUrl))
             {
-                throw new ArgumentNullException("reportUrl");
+                throw new ArgumentNullException(nameof(reportUrl));
             }
             if (string.IsNullOrWhiteSpace(newFullFileName))
             {
-                throw new ArgumentNullException("newFullFileName");
+                throw new ArgumentNullException(nameof(newFullFileName));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             var downloadDir = Path.GetDirectoryName(newFullFileName);

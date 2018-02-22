@@ -81,11 +81,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             if (testContext == null)
             {
-                throw new ArgumentNullException("testContext");
+                throw new ArgumentNullException(nameof(testContext));
             }
             if (descriptor == null)
             {
-                throw new ArgumentNullException("descriptor");
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
             var projectRoot = BuildUtilities.CreateAnalysisProject(testContext, descriptor, preImportProperties);
@@ -181,11 +181,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             if (projectRoot == null)
             {
-                throw new ArgumentNullException("projectRoot");
+                throw new ArgumentNullException(nameof(projectRoot));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             var projectInstance = new ProjectInstance(projectRoot);
@@ -202,11 +202,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             if (projectInstance == null)
             {
-                throw new ArgumentNullException("projectInstance");
+                throw new ArgumentNullException(nameof(projectInstance));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             var parameters = new BuildParameters
@@ -253,7 +253,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             if (properties == null)
             {
-                throw new ArgumentNullException("properties");
+                throw new ArgumentNullException(nameof(properties));
             }
 
             properties[StandardImportBeforePropertyName] = "false";
@@ -286,11 +286,11 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             if (testContext == null)
             {
-                throw new ArgumentNullException("testContext");
+                throw new ArgumentNullException(nameof(testContext));
             }
             if (descriptor == null)
             {
-                throw new ArgumentNullException("descriptor");
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(testContext);
@@ -346,7 +346,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             if (projectInstance == null)
             {
-                throw new ArgumentNullException("projectInstance");
+                throw new ArgumentNullException(nameof(projectInstance));
             }
 
             LogMessage();

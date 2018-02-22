@@ -40,7 +40,7 @@ namespace SonarQube.Common
 
         public AggregatePropertiesProvider(params IAnalysisPropertyProvider[] providers)
         {
-            this.providers = providers ?? throw new ArgumentNullException("providers");
+            this.providers = providers ?? throw new ArgumentNullException(nameof(providers));
         }
 
         #endregion Public methods

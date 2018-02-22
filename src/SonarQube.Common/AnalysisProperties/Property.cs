@@ -141,11 +141,11 @@ namespace SonarQube.Common
         {
             if (string.IsNullOrWhiteSpace(key))
             {
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             }
             if (properties == null)
             {
-                throw new ArgumentNullException("properties");
+                throw new ArgumentNullException(nameof(properties));
             }
 
             property = properties.FirstOrDefault(s => PropertyKeyComparer.Equals(s.Id, key));

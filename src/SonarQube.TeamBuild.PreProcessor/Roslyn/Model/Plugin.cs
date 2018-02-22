@@ -36,15 +36,15 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         {
             if (string.IsNullOrWhiteSpace(key))
             {
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             }
             if (string.IsNullOrWhiteSpace(version))
             {
-                throw new ArgumentNullException("version");
+                throw new ArgumentNullException(nameof(version));
             }
             if (string.IsNullOrWhiteSpace(staticResourceName))
             {
-                throw new ArgumentNullException("staticResourceName");
+                throw new ArgumentNullException(nameof(staticResourceName));
             }
             Key = key;
             Version = version;

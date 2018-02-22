@@ -81,11 +81,11 @@ namespace SonarQube.TeamBuild.Integration
         {
             if (string.IsNullOrWhiteSpace(buildRootDirectory))
             {
-                throw new ArgumentNullException("buildRootDirectory");
+                throw new ArgumentNullException(nameof(buildRootDirectory));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             string coverageFilePath = null;

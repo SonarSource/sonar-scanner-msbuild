@@ -56,7 +56,7 @@ namespace SonarQube.Common
         {
             if (descriptors == null)
             {
-                throw new ArgumentNullException("descriptors");
+                throw new ArgumentNullException(nameof(descriptors));
             }
 
             if (descriptors.Select(d => d.Id).Distinct(ArgumentDescriptor.IdComparer).Count() != descriptors.Count())
@@ -76,11 +76,11 @@ namespace SonarQube.Common
         {
             if (commandLineArgs == null)
             {
-                throw new ArgumentNullException("commandLineArgs");
+                throw new ArgumentNullException(nameof(commandLineArgs));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             var parsedOk = true;

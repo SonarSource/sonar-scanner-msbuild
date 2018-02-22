@@ -73,7 +73,7 @@ namespace SonarScanner.Shim
 
         public PropertiesWriter(AnalysisConfig config)
         {
-            this.config = config ?? throw new ArgumentNullException("config");
+            this.config = config ?? throw new ArgumentNullException(nameof(config));
             sb = new StringBuilder();
             projects = new List<ProjectInfo>();
         }
@@ -110,7 +110,7 @@ namespace SonarScanner.Shim
 
             if (project == null)
             {
-                throw new ArgumentNullException("project");
+                throw new ArgumentNullException(nameof(project));
             }
 
             Debug.Assert(project.ReferencedFiles.Count > 0, "Expecting a project to have files to analyze");
@@ -208,7 +208,7 @@ namespace SonarScanner.Shim
         {
             if (properties == null)
             {
-                throw new ArgumentNullException("properties");
+                throw new ArgumentNullException(nameof(properties));
             }
 
             foreach (var setting in properties)

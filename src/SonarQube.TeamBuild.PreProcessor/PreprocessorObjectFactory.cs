@@ -47,11 +47,11 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             if (args == null)
             {
-                throw new ArgumentNullException("args");
+                throw new ArgumentNullException(nameof(args));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             var username = args.GetSetting(SonarProperties.SonarUserName, null);
@@ -71,7 +71,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             if (server == null)

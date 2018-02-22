@@ -33,7 +33,7 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         public WebClientDownloader(string userName, string password, ILogger logger)
         {
-            this.logger = logger ?? throw new ArgumentNullException("logger");
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             // SONARMSBRU-169 Support TLS versions 1.0, 1.1 and 1.2
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;

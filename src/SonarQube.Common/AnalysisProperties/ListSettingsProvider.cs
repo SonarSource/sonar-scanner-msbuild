@@ -41,7 +41,7 @@ namespace SonarQube.Common
         {
             if (properties == null)
             {
-                throw new ArgumentNullException("properties");
+                throw new ArgumentNullException(nameof(properties));
             }
 
             this.properties = new List<Property>(properties);
@@ -51,12 +51,12 @@ namespace SonarQube.Common
         {
             if (string.IsNullOrWhiteSpace(key))
             {
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             }
 
             if (TryGetProperty(key, out Property existing))
             {
-                throw new ArgumentOutOfRangeException("key");
+                throw new ArgumentOutOfRangeException(nameof(key));
             }
 
             var newProperty = new Property() { Id = key, Value = value };
@@ -77,7 +77,7 @@ namespace SonarQube.Common
         {
             if (string.IsNullOrWhiteSpace(key))
             {
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             }
 
             return Property.TryGetProperty(key, properties, out property);

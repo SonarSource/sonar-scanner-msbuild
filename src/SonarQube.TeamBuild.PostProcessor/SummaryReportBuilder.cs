@@ -70,10 +70,10 @@ namespace SonarQube.TeamBuild.PostProcessor
         /// </summary>
         public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
-            this.settings = settings ?? throw new ArgumentNullException("settings");
-            this.config = config ?? throw new ArgumentNullException("config");
-            this.result = result ?? throw new ArgumentNullException("result");
-            this.logger = logger ?? throw new ArgumentNullException("logger");
+            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            this.config = config ?? throw new ArgumentNullException(nameof(config));
+            this.result = result ?? throw new ArgumentNullException(nameof(result));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             GenerateReports();
         }
@@ -107,11 +107,11 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             if (config == null)
             {
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
             }
             if (result == null)
             {
-                throw new ArgumentNullException("result");
+                throw new ArgumentNullException(nameof(result));
             }
 
             var validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);

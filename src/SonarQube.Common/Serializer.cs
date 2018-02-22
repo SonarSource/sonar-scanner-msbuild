@@ -42,11 +42,11 @@ namespace SonarQube.Common
         {
             if (model == null)
             {
-                throw new ArgumentNullException("model");
+                throw new ArgumentNullException(nameof(model));
             }
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                throw new ArgumentNullException("fileName");
+                throw new ArgumentNullException(nameof(fileName));
             }
 
             // Serialize to memory first to reduce the opportunity for intermittent
@@ -77,7 +77,7 @@ namespace SonarQube.Common
         {
             if (model == null)
             {
-                throw new ArgumentNullException("model");
+                throw new ArgumentNullException(nameof(model));
             }
             var sb = new StringBuilder();
             using (var writer = new StringWriter(sb, CultureInfo.InvariantCulture))
@@ -94,7 +94,7 @@ namespace SonarQube.Common
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                throw new ArgumentNullException("fileName");
+                throw new ArgumentNullException(nameof(fileName));
             }
             if (!File.Exists(fileName))
             {

@@ -40,11 +40,11 @@ namespace SonarQube.Common
         {
             if (provider == null)
             {
-                throw new ArgumentNullException("provider");
+                throw new ArgumentNullException(nameof(provider));
             }
             if (string.IsNullOrWhiteSpace(name))
             {
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
             }
 
             if (provider.TryGetProperty(name, out Property property))

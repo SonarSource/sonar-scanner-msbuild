@@ -33,7 +33,7 @@ namespace SonarQube.Common
     {
         public ArgumentInstance(ArgumentDescriptor descriptor, string value)
         {
-            Descriptor = descriptor ?? throw new ArgumentNullException("descriptor");
+            Descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
             Value = value;
         }
 
@@ -51,11 +51,11 @@ namespace SonarQube.Common
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
             if (arguments == null)
             {
-                throw new ArgumentNullException("arguments");
+                throw new ArgumentNullException(nameof(arguments));
             }
 
             instance = arguments.FirstOrDefault(a => ArgumentDescriptor.IdComparer.Equals(a.Descriptor.Id, id));

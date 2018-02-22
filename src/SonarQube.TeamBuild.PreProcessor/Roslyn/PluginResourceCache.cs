@@ -89,7 +89,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         {
             if (string.IsNullOrWhiteSpace(basedir))
             {
-                throw new ArgumentNullException("basedir");
+                throw new ArgumentNullException(nameof(basedir));
             }
             if (!Directory.Exists(basedir))
             {

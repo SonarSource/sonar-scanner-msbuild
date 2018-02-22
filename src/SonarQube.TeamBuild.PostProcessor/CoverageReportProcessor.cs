@@ -43,7 +43,7 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             if (settings == null)
             {
-                throw new ArgumentNullException("settings");
+                throw new ArgumentNullException(nameof(settings));
             }
 
             TryCreateCoverageReportProcessor(settings);

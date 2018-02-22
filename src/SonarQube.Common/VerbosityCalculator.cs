@@ -56,12 +56,12 @@ namespace SonarQube.Common
         {
             if (properties == null)
             {
-                throw new ArgumentNullException("properties");
+                throw new ArgumentNullException(nameof(properties));
             }
 
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             properties.TryGetValue(SonarProperties.Verbose, out string sonarVerboseValue);

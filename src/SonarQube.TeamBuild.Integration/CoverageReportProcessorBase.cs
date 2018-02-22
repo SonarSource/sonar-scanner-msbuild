@@ -40,14 +40,14 @@ namespace SonarQube.TeamBuild.Integration
 
         protected CoverageReportProcessorBase(ICoverageReportConverter converter)
         {
-            this.converter = converter ?? throw new ArgumentNullException("converter");
+            this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
         public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger)
         {
-            this.config = config ?? throw new ArgumentNullException("config");
-            this.settings = settings ?? throw new ArgumentNullException("settings");
-            this.logger = logger ?? throw new ArgumentNullException("logger");
+            this.config = config ?? throw new ArgumentNullException(nameof(config));
+            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             succesfullyInitialised = converter.Initialize(logger);
             return succesfullyInitialised;

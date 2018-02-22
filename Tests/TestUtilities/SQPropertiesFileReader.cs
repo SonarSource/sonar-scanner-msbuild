@@ -48,7 +48,7 @@ namespace TestUtilities
         {
             if (string.IsNullOrWhiteSpace(fullPath))
             {
-                throw new ArgumentNullException("fullPath");
+                throw new ArgumentNullException(nameof(fullPath));
             }
 
             if (!File.Exists(fullPath))

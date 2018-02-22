@@ -48,11 +48,11 @@ namespace SonarQube.Common
         {
             if (string.IsNullOrWhiteSpace(exeName))
             {
-                throw new ArgumentNullException("exeName");
+                throw new ArgumentNullException(nameof(exeName));
             }
 
             ExeName = exeName;
-            Logger = logger ?? throw new ArgumentNullException("logger");
+            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
             IsBatchScript = isBatchScript;
 
             TimeoutInMilliseconds = Timeout.Infinite;

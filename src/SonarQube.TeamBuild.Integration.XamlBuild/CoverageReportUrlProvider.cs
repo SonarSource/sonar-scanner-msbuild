@@ -48,15 +48,15 @@ namespace SonarQube.TeamBuild.Integration.XamlBuild
         {
             if (string.IsNullOrWhiteSpace(tfsUri))
             {
-                throw new ArgumentNullException("tfsUri");
+                throw new ArgumentNullException(nameof(tfsUri));
             }
             if (string.IsNullOrWhiteSpace(buildUri))
             {
-                throw new ArgumentNullException("buildUri");
+                throw new ArgumentNullException(nameof(buildUri));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             var urls = new List<string>();

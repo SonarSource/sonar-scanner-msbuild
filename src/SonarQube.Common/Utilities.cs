@@ -42,19 +42,19 @@ namespace SonarQube.Common
         {
             if (timeoutInMilliseconds < 1)
             {
-                throw new ArgumentOutOfRangeException("timeoutInMilliseconds");
+                throw new ArgumentOutOfRangeException(nameof(timeoutInMilliseconds));
             }
             if (pauseBetweenTriesInMilliseconds < 1)
             {
-                throw new ArgumentOutOfRangeException("pauseBetweenTriesInMilliseconds");
+                throw new ArgumentOutOfRangeException(nameof(pauseBetweenTriesInMilliseconds));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
             if (op == null)
             {
-                throw new ArgumentNullException("op");
+                throw new ArgumentNullException(nameof(op));
             }
 
             logger.LogDebug(Resources.MSG_BeginningRetry, timeoutInMilliseconds, pauseBetweenTriesInMilliseconds);
@@ -89,11 +89,11 @@ namespace SonarQube.Common
         {
             if (string.IsNullOrWhiteSpace(directory))
             {
-                throw new ArgumentNullException("directory");
+                throw new ArgumentNullException(nameof(directory));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             if (Directory.Exists(directory))
@@ -114,11 +114,11 @@ namespace SonarQube.Common
         {
             if (string.IsNullOrWhiteSpace(directory))
             {
-                throw new ArgumentNullException("directory");
+                throw new ArgumentNullException(nameof(directory));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             if (Directory.Exists(directory))
@@ -138,7 +138,7 @@ namespace SonarQube.Common
         {
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
             Debug.Assert(directories.Length > 0);
 

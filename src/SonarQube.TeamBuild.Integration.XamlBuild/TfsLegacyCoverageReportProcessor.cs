@@ -43,8 +43,8 @@ namespace SonarQube.TeamBuild.Integration.XamlBuild
             ICoverageReportConverter converter) // was internal
             : base(converter)
         {
-            this.urlProvider = urlProvider ?? throw new ArgumentNullException("urlProvider");
-            this.downloader = downloader ?? throw new ArgumentNullException("downloader");
+            this.urlProvider = urlProvider ?? throw new ArgumentNullException(nameof(urlProvider));
+            this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
         }
 
         #region Virtual methods
