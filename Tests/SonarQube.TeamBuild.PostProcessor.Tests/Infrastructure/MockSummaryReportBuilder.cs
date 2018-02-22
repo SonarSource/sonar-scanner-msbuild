@@ -20,7 +20,6 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Interfaces;
 using SonarScanner.Shim;
 
 namespace SonarQube.TeamBuild.PostProcessor.Tests
@@ -31,7 +30,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         #region ISummaryReportBuilder interface
 
-        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+        public void GenerateReports(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
             Assert.IsFalse(methodCalled, "Generate reports has already been called");
 

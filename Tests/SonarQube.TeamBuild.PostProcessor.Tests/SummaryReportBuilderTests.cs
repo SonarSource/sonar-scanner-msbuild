@@ -22,7 +22,6 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.Integration.Classic.XamlBuild;
 using SonarQube.TeamBuild.PostProcessor;
 using SonarScanner.Shim;
 using TestUtilities;
@@ -121,13 +120,12 @@ namespace SonarQube.TeamBuild.PostProcessorTests
             var result = new ProjectInfoAnalysisResult();
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
 
-            var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestContext.DeploymentDirectory);
             config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
             var expectedReportPath = Path.Combine(TestContext.TestDeploymentDir, SummaryReportBuilder.SummaryMdFilename);
 
             // Act
-            var builder = new SummaryReportBuilder(new LegacyTeamBuildFactory());
-            builder.GenerateReports(settings, config, result, new TestLogger());
+            var builder = new SummaryReportBuilder();
+            builder.GenerateReports(config, result, new TestLogger());
 
             // Assert
             Assert.IsTrue(File.Exists(expectedReportPath) && (new FileInfo(expectedReportPath)).Length > 0, "The report file cannot be found or is empty");

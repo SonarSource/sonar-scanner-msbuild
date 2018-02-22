@@ -94,7 +94,7 @@ namespace SonarQube.TeamBuild.PostProcessor
             }
 
             var result = InvokeSonarScanner(provider, config);
-            reportBuilder.GenerateReports(settings, config, result, logger);
+            reportBuilder.GenerateReports(config, result, logger);
             return result.RanToCompletion;
         }
 

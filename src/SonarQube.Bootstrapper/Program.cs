@@ -64,8 +64,18 @@ namespace SonarQube.Bootstrapper
                 return ErrorCode;
             }
 
-            var processorFactory = new DefaultProcessorFactory(logger, GetLegacyTeamBuildFactory(),
-                GetCoverageReportConverter());
+            var teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+            if (teamBuildSettings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
+            {
+                logger.LogInfo("The legacy XAML build is no longer supported.");
+                logger.LogInfo("");
+                logger.LogInfo("Consider moving to non-XAML TFS builds, or the Scanner for MSBuild version < 4.0");
+
+                logger.ResumeOutput();
+                return ErrorCode;
+            }
+
+            var processorFactory = new DefaultProcessorFactory(logger, GetCoverageReportConverter());
             var bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
             var exitCode = bootstrapper.Execute();
             Environment.ExitCode = exitCode;
@@ -78,15 +88,6 @@ namespace SonarQube.Bootstrapper
             return new TeamBuild.Integration.Classic.BinaryToXmlCoverageReportConverter();
 #else
             return new NullCoverageReportConverter();
-#endif
-        }
-
-        private static ILegacyTeamBuildFactory GetLegacyTeamBuildFactory()
-        {
-#if IS_NET_FRAMEWORK
-            return new TeamBuild.Integration.Classic.XamlBuild.LegacyTeamBuildFactory();
-#else
-            return new NotSupportedLegacyTeamBuildFactory();
 #endif
         }
     }

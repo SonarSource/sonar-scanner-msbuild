@@ -143,24 +143,6 @@ namespace SonarQube.TeamBuild.Integration.Classic {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connected to {0}.
-        /// </summary>
-        internal static string DOWN_DIAG_ConnectedToTFS {
-            get {
-                return ResourceManager.GetString("DOWN_DIAG_ConnectedToTFS", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Downloading coverage file from {0} to {1}.
-        /// </summary>
-        internal static string DOWN_DIAG_DownloadCoverageReportFromTo {
-            get {
-                return ResourceManager.GetString("DOWN_DIAG_DownloadCoverageReportFromTo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No code coverage reports were found for the current build..
         /// </summary>
         internal static string PROC_DIAG_NoCodeCoverageReportsFound {
@@ -170,83 +152,11 @@ namespace SonarQube.TeamBuild.Integration.Classic {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to download the code coverage report..
-        /// </summary>
-        internal static string PROC_ERROR_FailedToDownloadReport {
-            get {
-                return ResourceManager.GetString("PROC_ERROR_FailedToDownloadReport", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &quot;Failed to download the code coverage report from {0}. The HTTP status code was {1} and the reason \&quot;{2}\&quot;&quot;.
-        /// </summary>
-        internal static string PROC_ERROR_FailedToDownloadReportReason {
-            get {
-                return ResourceManager.GetString("PROC_ERROR_FailedToDownloadReportReason", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to More than one code coverage result file was created. Only one report can be uploaded to SonarQube. Please modify the build definition so either SonarQube analysis is disabled or only one platform/flavor is built.
         /// </summary>
         internal static string PROC_ERROR_MultipleCodeCoverageReportsFound {
             get {
                 return ResourceManager.GetString("PROC_ERROR_MultipleCodeCoverageReportsFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarQube Analysis Summary.
-        /// </summary>
-        internal static string SonarQubeSummarySectionHeader {
-            get {
-                return ResourceManager.GetString("SonarQubeSummarySectionHeader", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Connecting to TFS....
-        /// </summary>
-        internal static string URL_DIAG_ConnectingToTfs {
-            get {
-                return ResourceManager.GetString("URL_DIAG_ConnectingToTfs", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Coverage Id: {0}, Platform {1}, Flavor {2}.
-        /// </summary>
-        internal static string URL_DIAG_CoverageReportInfo {
-            get {
-                return ResourceManager.GetString("URL_DIAG_CoverageReportInfo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fetching build information....
-        /// </summary>
-        internal static string URL_DIAG_FetchingBuildInfo {
-            get {
-                return ResourceManager.GetString("URL_DIAG_FetchingBuildInfo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fetch code coverage report info....
-        /// </summary>
-        internal static string URL_DIAG_FetchingCoverageReportInfo {
-            get {
-                return ResourceManager.GetString("URL_DIAG_FetchingCoverageReportInfo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ...done..
-        /// </summary>
-        internal static string URL_DIAG_Finished {
-            get {
-                return ResourceManager.GetString("URL_DIAG_Finished", resourceCulture);
             }
         }
     }

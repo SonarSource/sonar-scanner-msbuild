@@ -31,14 +31,10 @@ namespace SonarQube.TeamBuild.PostProcessor
         private ICoverageReportProcessor processor;
         private bool initialisedSuccesfully;
 
-        private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
         private readonly ICoverageReportConverter coverageReportConverter;
 
-        public CoverageReportProcessor(ILegacyTeamBuildFactory legacyTeamBuildFactory,
-            ICoverageReportConverter coverageReportConverter)
+        public CoverageReportProcessor(ICoverageReportConverter coverageReportConverter)
         {
-            this.legacyTeamBuildFactory
-                = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
             this.coverageReportConverter
                 = coverageReportConverter ?? throw new ArgumentNullException(nameof(coverageReportConverter));
         }
@@ -71,11 +67,6 @@ namespace SonarQube.TeamBuild.PostProcessor
             if (settings.BuildEnvironment == BuildEnvironment.TeamBuild)
             {
                 processor = new BuildVNextCoverageReportProcessor(coverageReportConverter);
-            }
-            else if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
-                && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
-            {
-                processor = legacyTeamBuildFactory.BuildTfsLegacyCoverageReportProcessor();
             }
         }
     }
