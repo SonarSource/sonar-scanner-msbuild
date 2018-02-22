@@ -39,15 +39,15 @@ namespace SonarQube.Common
         {
             if (string.IsNullOrWhiteSpace(ruleSetFilePath))
             {
-                throw new ArgumentNullException("ruleSetFilePath");
+                throw new ArgumentNullException(nameof(ruleSetFilePath));
             }
             if (analyzerAssemblies == null)
             {
-                throw new ArgumentNullException("analyzerAssemblies");
+                throw new ArgumentNullException(nameof(analyzerAssemblies));
             }
             if (additionalFiles == null)
             {
-                throw new ArgumentNullException("additionalFiles");
+                throw new ArgumentNullException(nameof(additionalFiles));
             }
 
             Language = language;

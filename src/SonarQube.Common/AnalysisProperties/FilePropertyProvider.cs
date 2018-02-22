@@ -53,15 +53,15 @@ namespace SonarQube.Common
         {
             if (commandLineArguments == null)
             {
-                throw new ArgumentNullException("commandLineArguments");
+                throw new ArgumentNullException(nameof(commandLineArguments));
             }
             if (string.IsNullOrWhiteSpace(defaultPropertiesFileDirectory))
             {
-                throw new ArgumentNullException("defaultPropertiesFileDirectory");
+                throw new ArgumentNullException(nameof(defaultPropertiesFileDirectory));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             // If the path to a properties file was specified on the command line, use that.
@@ -91,7 +91,7 @@ namespace SonarQube.Common
         {
             if (string.IsNullOrWhiteSpace(filePath))
             {
-                throw new ArgumentNullException("filePath");
+                throw new ArgumentNullException(nameof(filePath));
             }
             if (!File.Exists(filePath))
             {
@@ -129,7 +129,7 @@ namespace SonarQube.Common
 
         private FilePropertyProvider(AnalysisProperties properties, bool isDefaultPropertiesFile)
         {
-            PropertiesFile = properties ?? throw new ArgumentNullException("properties");
+            PropertiesFile = properties ?? throw new ArgumentNullException(nameof(properties));
             this.isDefaultPropertiesFile = isDefaultPropertiesFile;
         }
 

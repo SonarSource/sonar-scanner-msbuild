@@ -62,7 +62,7 @@ namespace SonarQube.Bootstrapper
             Phase = phase;
             ChildCmdLineArgs = childCmdLineArgs;
             LoggingVerbosity = verbosity;
-            this.logger = logger ?? throw new ArgumentNullException("logger");
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         #endregion Constructor(s)

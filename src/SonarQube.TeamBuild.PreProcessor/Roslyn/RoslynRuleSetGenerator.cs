@@ -45,7 +45,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
         {
             if (activeRules == null || !activeRules.Any())
             {
-                throw new ArgumentNullException("activeRules");
+                throw new ArgumentNullException(nameof(activeRules));
             }
             if (inactiveRules == null)
             {
@@ -150,7 +150,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
         {
             if (propertyKey == null)
             {
-                throw new ArgumentNullException("propertyKey");
+                throw new ArgumentNullException(nameof(propertyKey));
             }
             if (!serverSettings.ContainsKey(propertyKey))
             {

@@ -56,11 +56,11 @@ namespace SonarQube.TeamBuild.Integration.XamlBuild
         {
             if (string.IsNullOrWhiteSpace(tfsUri))
             {
-                throw new ArgumentNullException("tfsUri");
+                throw new ArgumentNullException(nameof(tfsUri));
             }
             if (string.IsNullOrWhiteSpace(buildUri))
             {
-                throw new ArgumentNullException("buildUri");
+                throw new ArgumentNullException(nameof(buildUri));
             }
 
             this.tfsUri = tfsUri;
@@ -74,7 +74,7 @@ namespace SonarQube.TeamBuild.Integration.XamlBuild
         {
             if (string.IsNullOrWhiteSpace(message))
             {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             var finalMessage = message;

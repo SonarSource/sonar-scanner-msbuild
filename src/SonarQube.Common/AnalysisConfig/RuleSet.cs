@@ -42,7 +42,7 @@ namespace SonarQube.Common
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                throw new ArgumentNullException("fileName");
+                throw new ArgumentNullException(nameof(fileName));
             }
 
             Serializer.SaveModel(this, fileName);

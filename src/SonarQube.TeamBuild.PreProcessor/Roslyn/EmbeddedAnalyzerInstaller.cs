@@ -59,11 +59,11 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         {
             if (string.IsNullOrWhiteSpace(localCacheDirectory))
             {
-                throw new ArgumentNullException("localCacheDirectory");
+                throw new ArgumentNullException(nameof(localCacheDirectory));
             }
 
-            this.server = server ?? throw new ArgumentNullException("server");
-            this.logger = logger ?? throw new ArgumentNullException("logger");
+            this.server = server ?? throw new ArgumentNullException(nameof(server));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             this.logger.LogDebug(RoslynResources.EAI_LocalAnalyzerCache, localCacheDirectory);
             Directory.CreateDirectory(localCacheDirectory); // ensure the cache dir exists
@@ -77,7 +77,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
         {
             if (plugins == null)
             {
-                throw new ArgumentNullException("plugins");
+                throw new ArgumentNullException(nameof(plugins));
             }
 
             if (!plugins.Any())

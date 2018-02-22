@@ -63,11 +63,11 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             if (commandLineArgs == null)
             {
-                throw new ArgumentNullException("commandLineArgs");
+                throw new ArgumentNullException(nameof(commandLineArgs));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             provider = null;

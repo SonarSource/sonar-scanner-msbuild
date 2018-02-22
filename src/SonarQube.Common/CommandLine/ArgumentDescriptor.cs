@@ -45,15 +45,15 @@ namespace SonarQube.Common
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
             if (prefixes == null || prefixes.Length == 0)
             {
-                throw new ArgumentNullException("prefixes");
+                throw new ArgumentNullException(nameof(prefixes));
             }
             if (string.IsNullOrWhiteSpace(description))
             {
-                throw new ArgumentNullException("description");
+                throw new ArgumentNullException(nameof(description));
             }
 
             Id = id;

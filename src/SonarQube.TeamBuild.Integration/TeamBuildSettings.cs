@@ -75,7 +75,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             TeamBuildSettings settings;
@@ -277,7 +277,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             if (string.IsNullOrWhiteSpace(analysisBaseDirectory))
             {
-                throw new ArgumentNullException("analysisBaseDirectory");
+                throw new ArgumentNullException(nameof(analysisBaseDirectory));
             }
 
             var settings = new TeamBuildSettings()

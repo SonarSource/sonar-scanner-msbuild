@@ -44,11 +44,11 @@ namespace SonarQube.Common
         {
             if (config == null)
             {
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
             }
             if (string.IsNullOrWhiteSpace(settingId))
             {
-                throw new ArgumentNullException("settingId");
+                throw new ArgumentNullException(nameof(settingId));
             }
 
             var result = defaultValue;
@@ -78,7 +78,7 @@ namespace SonarQube.Common
         {
             if (config == null)
             {
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
             }
 
             var providers = new List<IAnalysisPropertyProvider>();
@@ -133,11 +133,11 @@ namespace SonarQube.Common
         {
             if (config == null)
             {
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
             }
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                throw new ArgumentNullException("fileName");
+                throw new ArgumentNullException(nameof(fileName));
             }
             config.SetValue(SettingsFileKey, fileName);
         }
@@ -146,7 +146,7 @@ namespace SonarQube.Common
         {
             if (config == null)
             {
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
             }
 
             if (config.TryGetConfigSetting(SettingsFileKey, out ConfigSetting setting))
@@ -185,11 +185,11 @@ namespace SonarQube.Common
         {
             if (config == null)
             {
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
             }
             if (string.IsNullOrWhiteSpace(settingId))
             {
-                throw new ArgumentNullException("settingId");
+                throw new ArgumentNullException(nameof(settingId));
             }
 
             if (config.TryGetConfigSetting(settingId, out ConfigSetting setting))

@@ -198,7 +198,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             if (result == null)
             {
-                throw new ArgumentNullException("result");
+                throw new ArgumentNullException(nameof(result));
             }
 
             BuildUtilities.LogMessage("Overall build result: {0}", result.OverallResult.ToString());

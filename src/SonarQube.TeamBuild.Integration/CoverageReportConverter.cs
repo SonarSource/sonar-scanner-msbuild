@@ -75,7 +75,7 @@ namespace SonarQube.TeamBuild.Integration
         {
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             bool success;
@@ -99,15 +99,15 @@ namespace SonarQube.TeamBuild.Integration
         {
             if (string.IsNullOrWhiteSpace(inputFilePath))
             {
-                throw new ArgumentNullException("inputFilePath");
+                throw new ArgumentNullException(nameof(inputFilePath));
             }
             if (string.IsNullOrWhiteSpace(outputFilePath))
             {
-                throw new ArgumentNullException("outputFilePath");
+                throw new ArgumentNullException(nameof(outputFilePath));
             }
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
 
             return ConvertBinaryToXml(conversionToolPath, inputFilePath, outputFilePath, logger);

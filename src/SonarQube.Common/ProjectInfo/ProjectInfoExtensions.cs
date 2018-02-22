@@ -50,7 +50,7 @@ namespace SonarQube.Common
         {
             if (projectInfo == null)
             {
-                throw new ArgumentNullException("projectInfo");
+                throw new ArgumentNullException(nameof(projectInfo));
             }
 
             result = null;
@@ -70,7 +70,7 @@ namespace SonarQube.Common
         {
             if (projectInfo == null)
             {
-                throw new ArgumentNullException("projectInfo");
+                throw new ArgumentNullException(nameof(projectInfo));
             }
 
             result = null;
@@ -99,15 +99,15 @@ namespace SonarQube.Common
         {
             if (projectInfo == null)
             {
-                throw new ArgumentNullException("projectInfo");
+                throw new ArgumentNullException(nameof(projectInfo));
             }
             if (string.IsNullOrWhiteSpace(id))
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
             if (string.IsNullOrWhiteSpace(location))
             {
-                throw new ArgumentNullException("location");
+                throw new ArgumentNullException(nameof(location));
             }
 
             if (projectInfo.AnalysisResults == null)
@@ -126,7 +126,7 @@ namespace SonarQube.Common
         {
             if (projectInfo == null)
             {
-                throw new ArgumentNullException("projectInfo");
+                throw new ArgumentNullException(nameof(projectInfo));
             }
 
             string dir = null;
@@ -144,7 +144,7 @@ namespace SonarQube.Common
         {
             if (projectInfo == null)
             {
-                throw new ArgumentNullException("projectInfo");
+                throw new ArgumentNullException(nameof(projectInfo));
             }
 
             return projectInfo.ProjectGuid.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant();

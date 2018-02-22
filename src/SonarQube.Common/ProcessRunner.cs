@@ -46,7 +46,7 @@ namespace SonarQube.Common
         {
             if (runnerArgs == null)
             {
-                throw new ArgumentNullException("runnerArgs");
+                throw new ArgumentNullException(nameof(runnerArgs));
             }
             Debug.Assert(!string.IsNullOrWhiteSpace(runnerArgs.ExeName), "Process runner exe name should not be null/empty");
             Debug.Assert(runnerArgs.Logger != null, "Process runner logger should not be null/empty");
