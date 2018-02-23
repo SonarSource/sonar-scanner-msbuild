@@ -4,6 +4,9 @@
   <PropertyGroup>
     <CodeAnalysisRuleSet>..\Rules.ruleset</CodeAnalysisRuleSet>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <ScannerNetStandardVersion>netstandard2.0</ScannerNetStandardVersion>
+    <ScannerNetCoreAppVersion>netcoreapp2.0</ScannerNetCoreAppVersion>
+    <ScannerNetFxVersion>net461</ScannerNetFxVersion>
   </PropertyGroup>
 
   <ItemGroup>

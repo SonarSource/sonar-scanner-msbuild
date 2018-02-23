@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.0;net461</TargetFrameworks>
+    <TargetFrameworks>$(ScannerNetCoreVersion);$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>MSBuild.SonarQube.Runner</AssemblyName>
     <RootNamespace>SonarQube.Old.Bootstrapper</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
