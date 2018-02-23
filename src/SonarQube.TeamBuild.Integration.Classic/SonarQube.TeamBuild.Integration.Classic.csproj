@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>$(ScannerNetFxVersion)</TargetFramework>
     <AssemblyName>TeamBuild.SonarQube.Integration.Classic</AssemblyName>
     <RootNamespace>SonarQube.TeamBuild.Integration.Classic</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
