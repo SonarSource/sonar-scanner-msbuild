@@ -38,6 +38,12 @@
     <CodeAnalysisRuleSet>SonarQube.Common.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <!--
+     See https://github.com/dotnet/sdk/issues/901
+     This project is old-style but references a project with new-style packaging (i.e. that uses PackageReference).
+     The nuget references in new-style packaging are transitive, but with old-style are not, which means the
+     referenced projects' dependencies need to be referenced explicitly.
+     -->
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
