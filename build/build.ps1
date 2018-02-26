@@ -10,7 +10,14 @@ function testExitCode(){
 #download MSBuild
 $url = "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/3.0.2.656/sonar-scanner-msbuild-3.0.2.656.zip"
 $output = ".\sonar-scanner-msbuild.zip"    
-Invoke-WebRequest -Uri $url -OutFile $output
+
+# NB: the .Net framework defaults to TLS v1 which is no longer supported by GitHub
+# See https://githubengineering.com/crypto-removal-notice/
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+Write-Debug "Current security protocol: $([System.Net.ServicePointManager]::SecurityProtocol)"
+Write-Host "Attempting to download Scanner for MSBuild from $url"
+(New-Object System.Net.WebClient).DownloadFile($url, $output)
+
 unzip -o .\sonar-scanner-msbuild.zip
 testExitCode
 
