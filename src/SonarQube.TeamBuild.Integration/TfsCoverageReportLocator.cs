@@ -18,43 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.TeamBuild.Integration
 {
-    public class BuildVNextCoverageReportProcessor : CoverageReportProcessorBase
+    public class TfsCoverageReportLocator : ICoverageReportLocator
     {
-        #region Public methods
+        private readonly ILogger logger;
 
-        public BuildVNextCoverageReportProcessor()
-            : this(new CoverageReportConverter())
+        public TfsCoverageReportLocator(ILogger logger)
         {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter)
-            : base(converter)
+        public bool TryGetBinaryCoveragePath(AnalysisConfig config, ITeamBuildSettings settings, out string binaryCoveragePath)
         {
-        }
-
-        #endregion Public methods
-
-        #region Overrides
-
-        protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath)
-        {
-            binaryFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger);
+            binaryCoveragePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger);
 
             return true; // there aren't currently any conditions under which we'd want to stop processing
         }
 
-        protected override bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string trxFilePath)
+        public bool TryGetTestResultsPath(AnalysisConfig config, ITeamBuildSettings settings, out string testResultsPath)
         {
-            trxFilePath = TrxFileReader.FindTrxFile(settings.BuildDirectory, logger);
+            testResultsPath = TrxFileReader.FindTrxFile(settings.BuildDirectory, logger);
 
             return true;
         }
-
-        #endregion Overrides
     }
 }

@@ -43,7 +43,7 @@ namespace SonarQube.Bootstrapper
         public IMSBuildPostProcessor CreatePostProcessor()
         {
             return new MSBuildPostProcessor(
-                new CoverageReportProcessor(legacyTeamBuildFactory),
+                new CoverageReportProcessorFactory(legacyTeamBuildFactory, logger),
                 new SonarScannerWrapper(),
                 new SummaryReportBuilder(legacyTeamBuildFactory),
                 logger,

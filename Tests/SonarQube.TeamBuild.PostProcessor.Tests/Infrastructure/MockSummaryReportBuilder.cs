@@ -20,7 +20,7 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Interfaces;
+using SonarQube.TeamBuild.Integration;
 using SonarScanner.Shim;
 
 namespace SonarQube.TeamBuild.PostProcessor.Tests
