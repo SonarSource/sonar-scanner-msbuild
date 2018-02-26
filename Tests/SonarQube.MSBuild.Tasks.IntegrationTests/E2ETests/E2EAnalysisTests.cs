@@ -101,7 +101,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             // Assert
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
-            ProjectInfoAssertions.AssertNoProjectInfoFilesExists(rootOutputFolder);
+            ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, Path.Combine(rootInputFolder,
+                descriptor.ProjectFolderName, descriptor.ProjectFileName));
 
             logger.AssertExpectedErrorCount(0);
             logger.AssertExpectedWarningCount(1);
@@ -145,7 +146,8 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
 
             // Assert
             BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
-            ProjectInfoAssertions.AssertNoProjectInfoFilesExists(rootOutputFolder);
+            ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, Path.Combine(rootInputFolder,
+                descriptor.ProjectFolderName, descriptor.ProjectFileName));
 
             logger.AssertExpectedErrorCount(0);
             logger.AssertExpectedWarningCount(1);

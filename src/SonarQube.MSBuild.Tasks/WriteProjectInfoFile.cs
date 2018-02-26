@@ -128,16 +128,17 @@ namespace SonarQube.MSBuild.Tasks
             if (guid != null && Guid.TryParse(guid, out Guid projectId))
             {
                 pi.ProjectGuid = projectId;
-                pi.AnalysisResults = TryCreateAnalysisResults(AnalysisResults);
-                pi.AnalysisSettings = TryCreateAnalysisSettings(AnalysisSettings);
-
-                var outputFileName = Path.Combine(OutputFolder, FileConstants.ProjectInfoFileName);
-                pi.Save(outputFileName);
             }
             else
             {
                 Log.LogWarning(Resources.WPIF_MissingOrInvalidProjectGuid, FullProjectPath);
             }
+
+            pi.AnalysisResults = TryCreateAnalysisResults(AnalysisResults);
+            pi.AnalysisSettings = TryCreateAnalysisSettings(AnalysisSettings);
+
+            var outputFileName = Path.Combine(OutputFolder, FileConstants.ProjectInfoFileName);
+            pi.Save(outputFileName);
 
             return true;
         }

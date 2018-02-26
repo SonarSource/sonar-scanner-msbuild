@@ -553,6 +553,28 @@ namespace SonarScanner.Shim.Tests
             provider.AssertSettingDoesNotExist(SonarProperties.SonarPassword);
         }
 
+        [TestMethod]
+        public void FileGen_WhenNoGuid_LogWarnings()
+        {
+            // Arrange
+            var analysisRootDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var logger = new TestLogger();
+
+            CreateProjectWithFiles("project1", analysisRootDir, Guid.Empty);
+            var config = CreateValidConfig(analysisRootDir);
+
+            // Act
+            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+
+            // Assert
+            result.RanToCompletion.Should().BeFalse();
+            AssertExpectedProjectCount(1, result);
+            AssertFailedToCreatePropertiesFiles(result, logger);
+
+            logger.Warnings.Should().HaveCount(1);
+            logger.Warnings[0].Should().StartWith("The following projects do not have a valid ProjectGuid and were not built using a valid solution (.sln) thus will be skipped from analysis...");
+        }
+
         [TestMethod] // Old VS Bootstrapper should be forceably disabled: https://jira.sonarsource.com/browse/SONARMSBRU-122
         public void FileGen_VSBootstrapperIsDisabled()
         {

@@ -152,7 +152,8 @@
 Possible causes:
   1. The project has not been built - the project must be built in between the begin and end steps
   2. An unsupported version of MSBuild has been used to build the project. Currently MSBuild 14.0 upwards are supported
-  3. The begin, build or end steps have not all been launched from the same folder</value>
+  3. The begin, build and end steps have not all been launched from the same folder
+  4. None of the analyzed projects have a valid ProjectGuid and you have not used a solution (.sln)</value>
   </data>
   <data name="ERR_NoValidProjectInfoFiles" xml:space="preserve">
     <value>No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.</value>
@@ -243,5 +244,9 @@ Possible causes:
   </data>
   <data name="WARN_TestResultsNotFound" xml:space="preserve">
     <value>Test result file does not exist at the specified location. Path: {0}</value>
+  </data>
+  <data name="WARN_EmptyProjectGuids" xml:space="preserve">
+    <value>The following projects do not have a valid ProjectGuid and were not built using a valid solution (.sln) thus will be skipped from analysis...
+{0}</value>
   </data>
 </root>

@@ -204,7 +204,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        [Description("Tests that the project info file is not created if a project guid is not supplied")]
+        [Description("Tests that the project info file is created if a project guid is not supplied")]
         [WorkItem(50)] // Regression test for Bug 50:MSBuild projects with missing ProjectGuids cause the build to fail
         public void WriteProjectInfoFile_MissingProjectGuid()
         {
@@ -235,7 +235,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             Assert.IsNotNull(firstWarning.Message, "Warning message should not be null");
 
             var projectInfoFilePath = Path.Combine(testFolder, ExpectedProjectInfoFileName);
-            Assert.IsFalse(File.Exists(projectInfoFilePath), "Not expecting the project info file to have been created");
+            Assert.IsTrue(File.Exists(projectInfoFilePath), "Expecting the project info file to have been created");
         }
 
         [TestMethod]

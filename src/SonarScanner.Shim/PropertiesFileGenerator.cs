@@ -89,17 +89,22 @@ namespace SonarScanner.Shim
         {
             var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir);
 
-            if (projects == null || !projects.Any())
+            if (!projects.Any())
             {
                 logger.LogError(Resources.ERR_NoProjectInfoFilesFound);
                 allProjects = Enumerable.Empty<ProjectData>();
                 return false;
             }
 
+            var projectsWithoutGuid = projects.Where(p => p.ProjectGuid == Guid.Empty).ToList();
+            if (projectsWithoutGuid.Count > 0)
+            {
+                logger.LogWarning(Resources.WARN_EmptyProjectGuids, string.Join(", ", projectsWithoutGuid.Select(p => p.FullPath)));
+            }
+
             var projectDirectories = projects.Select(p => p.GetDirectory()).ToList();
 
             var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
-
             FixSarifAndEncoding(projects, analysisProperties);
 
             allProjects = projects
@@ -108,7 +113,7 @@ namespace SonarScanner.Shim
                 .ToList();
 
             var validProjects = allProjects
-                .Where(d => d.Status == ProjectInfoValidity.Valid)
+                .Where(p => p.Status == ProjectInfoValidity.Valid)
                 .ToList();
 
             if (validProjects.Count == 0)
@@ -128,7 +133,8 @@ namespace SonarScanner.Shim
             var rootModuleFiles = PutFilesToRightModuleOrRoot(validProjects, rootProjectBaseDir);
             PostProcessProjectStatus(validProjects);
 
-            if (rootModuleFiles.Count == 0 && validProjects.All(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze))
+            if (rootModuleFiles.Count == 0 &&
+                validProjects.All(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze))
             {
                 logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
                 return false;
@@ -249,11 +255,11 @@ namespace SonarScanner.Shim
                 : null;
         }
 
-        internal /* for testing */ ProjectData ToProjectData(IGrouping<Guid, ProjectInfo> projects)
+        internal /* for testing */ ProjectData ToProjectData(IGrouping<Guid, ProjectInfo> projectsGroupedByGuid)
         {
             // To ensure consistently sending of metrics from the same configuration we sort the project outputs
             // and use only the first one for metrics.
-            var orderedProjects = projects
+            var orderedProjects = projectsGroupedByGuid
                 .OrderBy(p => $"{p.Configuration}_{p.Platform}_{p.TargetFramework}")
                 .ToList();
 
@@ -262,7 +268,7 @@ namespace SonarScanner.Shim
                 Status = ProjectInfoValidity.ExcludeFlagSet
             };
 
-            if (projects.Key == Guid.Empty)
+            if (projectsGroupedByGuid.Key == Guid.Empty)
             {
                 projectData.Status = ProjectInfoValidity.InvalidGuid;
                 return projectData;
