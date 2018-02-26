@@ -67,6 +67,13 @@ namespace SonarQube.TeamBuild.PreProcessor
                 SonarQubeHostUrl = localSettings.SonarQubeUrl
             };
 
+            // Store whether or not a credential was passed in the command line. This is used to fail-fast when it is provided
+            // in the begin step but not the end step.
+            if (localSettings.CmdLineProperties.TryGetProperty(SonarProperties.SonarUserName, out var _))
+            {
+                config.SetConfigValue(ConfigSettingsExtensions.IsUsingCommandLineCredentialsKey, null);
+            }
+
             config.SetBuildUri(buildSettings.BuildUri);
             config.SetTfsUri(buildSettings.TfsUri);
 

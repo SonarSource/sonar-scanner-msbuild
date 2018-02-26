@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -212,6 +213,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             var context = new PostProcTestContext(TestContext);
+            context.Config.AdditionalConfig = new List<ConfigSetting> { new ConfigSetting { Id = ConfigSettingsExtensions.IsUsingCommandLineCredentialsKey } };
             context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
             {
                 RanToCompletion = true
@@ -252,6 +254,92 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             // Verify that the method was called at least once
             context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
+        }
+
+        [TestMethod]
+        public void PostProc_WhenSettingInFileButNoCommandLineArg_Fail()
+        {
+            // Arrange
+            var context = new PostProcTestContext(TestContext);
+            context.Config.AdditionalConfig = new List<ConfigSetting> { new ConfigSetting { Id = ConfigSettingsExtensions.IsUsingCommandLineCredentialsKey } };
+
+            // Act
+            var success = Execute(context, args: new string[0]);
+
+            // Assert
+            Assert.IsFalse(success);
+            context.Logger.AssertErrorLogged("Credentials must be passed in both begin and end steps or not at all");
+
+            context.CodeCoverage.AssertInitialisedNotCalled();
+            context.CodeCoverage.AssertExecuteNotCalled();
+            context.Scanner.AssertNotExecuted();
+            context.ReportBuilder.AssertNotExecuted();
+
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
+        }
+
+        [TestMethod]
+        public void PostProc_WhenNoSettingInFileAndCommandLineArg_Fail()
+        {
+            // Arrange
+            var context = new PostProcTestContext(TestContext);
+            context.Config.AdditionalConfig = new List<ConfigSetting>();
+            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
+            {
+                RanToCompletion = true
+            };
+
+            // Act
+            var success = Execute(context, args: "/d:sonar.login=foo");
+
+            // Assert
+            Assert.IsFalse(success);
+            context.Logger.AssertErrorLogged("Credentials must be passed in both begin and end steps or not at all");
+
+            context.CodeCoverage.AssertInitialisedNotCalled();
+            context.CodeCoverage.AssertExecuteNotCalled();
+            context.Scanner.AssertNotExecuted();
+            context.ReportBuilder.AssertNotExecuted();
+
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
+        }
+
+        [TestMethod]
+        public void PostProc_WhenNoSettingInFileAndNoCommandLineArg_DoesNotFail()
+        {
+            // Arrange
+            var context = new PostProcTestContext(TestContext);
+            context.Config.AdditionalConfig = new List<ConfigSetting>();
+            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
+            {
+                RanToCompletion = true
+            };
+
+            // Act
+            var success = Execute(context, args: new string[0]);
+
+            // Assert
+            Assert.IsTrue(success);
+            context.Logger.AssertErrorDoesNotExist("Credentials must be passed in both begin and end steps or not at all");
+        }
+
+        [TestMethod]
+        public void PostProc_WhenSettingInFileAndCommandLineArg_DoesNotFail()
+        {
+            // Arrange
+            var context = new PostProcTestContext(TestContext);
+            context.Config.AdditionalConfig = new List<ConfigSetting> { new ConfigSetting { Id = ConfigSettingsExtensions.IsUsingCommandLineCredentialsKey } };
+            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
+            {
+                RanToCompletion = true
+            };
+
+            // Act
+            var success = Execute(context, args: "/d:sonar.login=foo");
+
+            // Assert
+            Assert.IsTrue(success);
+            context.Logger.AssertErrorDoesNotExist("Credentials must be passed in both begin and end steps or not at all");
         }
 
         #endregion Tests

@@ -102,6 +102,15 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Credentials must be passed in both begin and end steps or not at all.
+        /// </summary>
+        internal static string ERROR_CredentialsNotSpecified {
+            get {
+                return ResourceManager.GetString("ERROR_CredentialsNotSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loading the SonarQube analysis config from {0}.
         /// </summary>
         internal static string MSG_LoadingConfig {

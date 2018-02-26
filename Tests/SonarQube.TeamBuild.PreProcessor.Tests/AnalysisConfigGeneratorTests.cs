@@ -217,6 +217,56 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             AssertFileDoesNotContainText(config.FileName, "secret"); // sensitive data should not be in config
         }
 
+        [TestMethod]
+        public void AnalysisConfGen_WhenLoginSpecified_StoresThatItWasSpecified()
+        {
+            // Arrange
+            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+
+            var logger = new TestLogger();
+
+            var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+            Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
+
+            var cmdLineArgs = new ListPropertiesProvider();
+            cmdLineArgs.AddProperty(SonarProperties.SonarUserName, "foo");
+            var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, cmdLineArgs, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
+
+            // Act
+            var config = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), logger);
+
+            // Assert
+            AssertConfigFileExists(config);
+
+            var hasCredentials = config.AdditionalConfig?.Any(c => ConfigSetting.SettingKeyComparer.Equals(c.Id,
+                ConfigSettingsExtensions.IsUsingCommandLineCredentialsKey)) ?? false;
+            Assert.IsTrue(hasCredentials);
+        }
+
+        [TestMethod]
+        public void AnalysisConfGen_WhenLoginNotSpecified_DoesNotStoreThatItWasSpecified()
+        {
+            // Arrange
+            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+
+            var logger = new TestLogger();
+
+            var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+            Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
+
+            var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
+
+            // Act
+            var config = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), logger);
+
+            // Assert
+            AssertConfigFileExists(config);
+
+            var hasCredentials = config.AdditionalConfig?.Any(c => ConfigSetting.SettingKeyComparer.Equals(c.Id,
+                ConfigSettingsExtensions.IsUsingCommandLineCredentialsKey)) ?? false;
+            Assert.IsFalse(hasCredentials);
+        }
+
         #endregion Tests
 
         #region Checks
