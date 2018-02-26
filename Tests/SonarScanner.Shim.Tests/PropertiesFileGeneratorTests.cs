@@ -572,7 +572,7 @@ namespace SonarScanner.Shim.Tests
             AssertFailedToCreatePropertiesFiles(result, logger);
 
             logger.Warnings.Should().HaveCount(1);
-            logger.Warnings[0].Should().StartWith("The following projects don't have any project GUID and will be skipped from the analysis:");
+            logger.Warnings[0].Should().StartWith("The following projects do not have a valid ProjectGuid and were not built using a valid solution (.sln) thus will be skipped from analysis...");
         }
 
         [TestMethod] // Old VS Bootstrapper should be forceably disabled: https://jira.sonarsource.com/browse/SONARMSBRU-122

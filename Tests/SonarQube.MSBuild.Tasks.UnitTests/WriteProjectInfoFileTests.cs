@@ -235,7 +235,7 @@ namespace SonarQube.MSBuild.Tasks.UnitTests
             Assert.IsNotNull(firstWarning.Message, "Warning message should not be null");
 
             var projectInfoFilePath = Path.Combine(testFolder, ExpectedProjectInfoFileName);
-            Assert.IsTrue(File.Exists(projectInfoFilePath), "Not expecting the project info file to have been created");
+            Assert.IsTrue(File.Exists(projectInfoFilePath), "Expecting the project info file to have been created");
         }
 
         [TestMethod]

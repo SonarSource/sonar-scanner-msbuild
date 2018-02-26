@@ -101,8 +101,8 @@ namespace SonarScanner.Shim {
         ///Possible causes:
         ///  1. The project has not been built - the project must be built in between the begin and end steps
         ///  2. An unsupported version of MSBuild has been used to build the project. Currently MSBuild 14.0 upwards are supported
-        ///  3. The begin, build or end steps have not all been launched from the same folder
-        ///  4. None of the analyzed projects have a GUID and you haven&apos;t used  [rest of string was truncated]&quot;;.
+        ///  3. The begin, build and end steps have not all been launched from the same folder
+        ///  4. None of the analyzed projects have a valid ProjectGuid and you [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ERR_NoProjectInfoFilesFound {
             get {
@@ -363,7 +363,8 @@ namespace SonarScanner.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following projects don&apos;t have any project GUID and will be skipped from the analysis: {0}.
+        ///   Looks up a localized string similar to The following projects do not have a valid ProjectGuid and were not built using a valid solution (.sln) thus will be skipped from analysis...
+        ///{0}.
         /// </summary>
         internal static string WARN_EmptyProjectGuids {
             get {

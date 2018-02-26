@@ -89,8 +89,7 @@ namespace SonarScanner.Shim
         {
             var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir);
 
-            if (projects == null ||
-                !projects.Any())
+            if (!projects.Any())
             {
                 logger.LogError(Resources.ERR_NoProjectInfoFilesFound);
                 allProjects = Enumerable.Empty<ProjectData>();
@@ -100,7 +99,7 @@ namespace SonarScanner.Shim
             var projectsWithoutGuid = projects.Where(p => p.ProjectGuid == Guid.Empty).ToList();
             if (projectsWithoutGuid.Count > 0)
             {
-                logger.LogWarning(Resources.WARN_EmptyProjectGuids, string.Join(",", projectsWithoutGuid.Select(p => p.FullPath)));
+                logger.LogWarning(Resources.WARN_EmptyProjectGuids, string.Join(", ", projectsWithoutGuid.Select(p => p.FullPath)));
             }
 
             var projectDirectories = projects.Select(p => p.GetDirectory()).ToList();
