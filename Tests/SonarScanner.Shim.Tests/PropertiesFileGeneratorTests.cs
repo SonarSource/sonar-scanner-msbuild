@@ -968,7 +968,8 @@ namespace SonarScanner.Shim.Tests
         private string ComputeProjectBaseDir(string teamBuildValue, string userValue, string[] projectPaths)
         {
             var config = new AnalysisConfig();
-            var writer = new PropertiesWriter(config);
+            var logger = new TestLogger();
+            var writer = new PropertiesWriter(config, logger);
             config.SonarOutputDir = TestSonarqubeOutputDir;
 
             config.SourcesDirectory = teamBuildValue;
@@ -978,8 +979,6 @@ namespace SonarScanner.Shim.Tests
                 config.LocalSettings = new AnalysisProperties();
             }
             config.LocalSettings.Add(new Property { Id = SonarProperties.ProjectBaseDir, Value = userValue });
-
-            var logger = new TestLogger();
 
             // Act
             return new PropertiesFileGenerator(config, logger)

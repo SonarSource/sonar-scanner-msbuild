@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using TestUtilities;
@@ -97,7 +98,7 @@ namespace SonarScanner.Shim.Tests
             string actual = null;
             using (new AssertIgnoreScope()) // expecting the property writer to complain about the missing file
             {
-                var writer = new PropertiesWriter(config);
+                var writer = new PropertiesWriter(config, new TestLogger());
                 writer.WriteSettingsForProject(productCS);
                 writer.WriteSettingsForProject(productVB);
                 writer.WriteSettingsForProject(test);
@@ -144,8 +145,29 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
         }
 
         [TestMethod]
-        public void PropertiesWriter_InvalidOperations()
+        public void Ctor_WhenAnalysisConfigIsNull_ThrowsArgumentNulLException()
         {
+            // Arrange
+            Action act = () => new PropertiesWriter(null, new TestLogger());
+
+            // Act & Assert
+            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        }
+
+        [TestMethod]
+        public void Ctor_WhenLoggerIsNull_ThrowsArgumentNulLException()
+        {
+            // Arrange
+            Action act = () => new PropertiesWriter(new AnalysisConfig(), null);
+
+            // Act & Assert
+            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
+        public void Flush_WhenCalledTwice_ThrowsInvalidOperationException()
+        {
+            // Arrange
             var validConfig = new AnalysisConfig()
             {
                 SonarProjectKey = "key",
@@ -154,17 +176,29 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
                 SonarOutputDir = TestContext.DeploymentDirectory
             };
 
-            // 1. Must supply an analysis config on construction
-            AssertException.Expects<ArgumentNullException>(() => new PropertiesWriter(null));
-
-            // 2. Can't call WriteSettingsForProject after Flush
-            var writer = new PropertiesWriter(validConfig);
+            var writer = new PropertiesWriter(validConfig, new TestLogger());
             writer.Flush();
+
+            // Act & Assert
             AssertException.Expects<InvalidOperationException>(() => writer.Flush());
+        }
 
-            // 3. Can't call Flush twice
-            writer = new PropertiesWriter(validConfig);
+        [TestMethod]
+        public void WriteSettingsForProject_WhenFlushed_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var validConfig = new AnalysisConfig()
+            {
+                SonarProjectKey = "key",
+                SonarProjectName = "name",
+                SonarProjectVersion = "1.0",
+                SonarOutputDir = TestContext.DeploymentDirectory
+            };
+
+            var writer = new PropertiesWriter(validConfig, new TestLogger());
             writer.Flush();
+
+            // Act & Assert
             using (new AssertIgnoreScope())
             {
                 AssertException.Expects<InvalidOperationException>(
@@ -203,7 +237,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             };
             product.ReferencedFiles.Add(productFile);
             // Act
-            var writer = new PropertiesWriter(config);
+            var writer = new PropertiesWriter(config, new TestLogger());
             writer.WriteSettingsForProject(product);
             var fullActualPath = SaveToResultFile(projectBaseDir, "Actual.txt", writer.Flush());
 
@@ -218,7 +252,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
         [TestMethod]
         public void PropertiesWriter_WorkdirPerModuleExplicitlySet()
         {
-            // Tests that .sonar.working.directory is explicityl set per module
+            // Tests that .sonar.working.directory is explicitly set per module
 
             // Arrange
             var projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_AnalysisSettingsWritten");
@@ -241,7 +275,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             };
 
             // Act
-            var writer = new PropertiesWriter(config);
+            var writer = new PropertiesWriter(config, new TestLogger());
             writer.WriteSettingsForProject(product);
             writer.WriteSonarProjectInfo(new DirectoryInfo("dummy basedir"));
             var s = writer.Flush();
@@ -286,7 +320,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             };
 
             // Act
-            var writer = new PropertiesWriter(config);
+            var writer = new PropertiesWriter(config, new TestLogger());
             writer.WriteGlobalSettings(globalSettings);
             var fullActualPath = SaveToResultFile(projectBaseDir, "Actual.txt", writer.Flush());
 
@@ -298,6 +332,115 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             propertyReader.AssertSettingExists("my.setting.3", @"c:\dir1\dir2\foo.txt");
 
             propertyReader.AssertSettingExists("sonar.branch", "aBranch");
+        }
+
+        [TestMethod]
+        public void JoinAsSonarQubeMultiValueProperty_WhenSQGreaterThanOrEqualTo65_EscapeAndJoinPaths()
+        {
+            // Arrange
+            var config65 = new AnalysisConfig
+            {
+                SonarOutputDir = @"C:\my_folder",
+                SonarQubeVersion = "6.5"
+            };
+            var config66 = new AnalysisConfig
+            {
+                SonarOutputDir = @"C:\my_folder",
+                SonarQubeVersion = "6.6"
+            };
+
+            var testSubject65 = new PropertiesWriter(config65, new TestLogger());
+            var testSubject66 = new PropertiesWriter(config66, new TestLogger());
+
+            var paths = new[] { "C:\\foo.cs", "C:\\foo,bar.cs", "C:\\foo\"bar.cs" };
+
+            // Act
+            var actual65 = testSubject65.JoinAsSonarQubeMultiValueProperty(paths);
+            var actual66 = testSubject65.JoinAsSonarQubeMultiValueProperty(paths);
+
+            // Assert
+            actual65.Should().Be(@"""C:\foo.cs"",\
+""C:\foo,bar.cs"",\
+""C:\foo""""bar.cs""");
+            actual66.Should().Be(actual65);
+        }
+
+        [TestMethod]
+        public void JoinAsSonarQubeMultiValueProperty_WhenSQLessThan65AndNoInvalidPath_JoinPaths()
+        {
+            JoinAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("6.0");
+        }
+
+        [TestMethod]
+        public void JoinAsSonarQubeMultiValueProperty_WhenSQVersionNullAndNoInvalidPath_JoinPaths()
+        {
+            JoinAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(null);
+        }
+
+        [TestMethod]
+        public void JoinAsSonarQubeMultiValueProperty_WhenSQVersionNotAVersionAndNoInvalidPath_JoinPaths()
+        {
+            JoinAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("foo");
+        }
+
+        private void JoinAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(string sonarqubeVersion)
+        {
+            // Arrange
+            var config = new AnalysisConfig
+            {
+                SonarOutputDir = @"C:\my_folder",
+                SonarQubeVersion = sonarqubeVersion
+            };
+
+            var testSubject = new PropertiesWriter(config, new TestLogger());
+            var paths = new[] { "C:\\foo.cs", "C:\\foobar.cs" };
+
+            // Act
+            var actual = testSubject.JoinAsSonarQubeMultiValueProperty(paths);
+
+            // Assert
+            actual.Should().Be(@"C:\foo.cs,\
+C:\foobar.cs");
+        }
+
+        [TestMethod]
+        public void JoinAsSonarQubeMultiValueProperty_WhenSQLessThan65AndInvalidPath_ExcludeInvalidPathAndJoinOthers()
+        {
+            JoinAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("6.0");
+        }
+
+        [TestMethod]
+        public void JoinAsSonarQubeMultiValueProperty_WhenSQVersionIsNullAndInvalidPath_ExcludeInvalidPathAndJoinOthers()
+        {
+            JoinAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(null);
+        }
+
+        [TestMethod]
+        public void JoinAsSonarQubeMultiValueProperty_WhenSQVersionNotAVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers()
+        {
+            JoinAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("foo");
+        }
+
+        private void JoinAsSonarQubeMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(string sonarqubeVersion)
+        {
+            // Arrange
+            var config = new AnalysisConfig
+            {
+                SonarOutputDir = @"C:\my_folder",
+                SonarQubeVersion = sonarqubeVersion
+            };
+
+            var logger = new TestLogger();
+            var testSubject = new PropertiesWriter(config, logger);
+            var paths = new[] { "C:\\foo.cs", "C:\\foo,bar.cs" };
+
+            // Act
+            var actual = testSubject.JoinAsSonarQubeMultiValueProperty(paths);
+
+            // Assert
+            actual.Should().Be(@"C:\foo.cs");
+            logger.Warnings.Should().HaveCount(1);
+            logger.Warnings[0].Should().Be("The following paths contain invalid characters for this version of SonarQube and will be excluded from this analysis: C:\\foo,bar.cs");
         }
 
         #endregion Tests

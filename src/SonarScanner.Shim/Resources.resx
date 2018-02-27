@@ -249,4 +249,7 @@ Possible causes:
     <value>The following projects do not have a valid ProjectGuid and were not built using a valid solution (.sln) thus will be skipped from analysis...
 {0}</value>
   </data>
+  <data name="WARN_InvalidCharacterInPaths" xml:space="preserve">
+    <value>The following paths contain invalid characters for this version of SonarQube and will be excluded from this analysis: {0}</value>
+  </data>
 </root>
