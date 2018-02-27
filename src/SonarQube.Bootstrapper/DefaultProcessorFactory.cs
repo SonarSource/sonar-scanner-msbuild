@@ -31,16 +31,11 @@ namespace SonarQube.Bootstrapper
     public class DefaultProcessorFactory : IProcessorFactory
     {
         private readonly ILogger logger;
-        private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
         private readonly ICoverageReportConverter coverageReportConverter;
 
-        public DefaultProcessorFactory(ILogger logger,
-            ILegacyTeamBuildFactory legacyTeamBuildFactory,
-            ICoverageReportConverter coverageReportConverter)
+        public DefaultProcessorFactory(ILogger logger, ICoverageReportConverter coverageReportConverter)
         {
             this.logger = logger;
-            this.legacyTeamBuildFactory
-                = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
             this.coverageReportConverter
                 = coverageReportConverter ?? throw new ArgumentNullException(nameof(coverageReportConverter));
         }
@@ -48,9 +43,9 @@ namespace SonarQube.Bootstrapper
         public IMSBuildPostProcessor CreatePostProcessor()
         {
             return new MSBuildPostProcessor(
-                new CoverageReportProcessor(legacyTeamBuildFactory, coverageReportConverter),
+                new CoverageReportProcessor(coverageReportConverter),
                 new SonarScannerWrapper(),
-                new SummaryReportBuilder(legacyTeamBuildFactory),
+                new SummaryReportBuilder(),
                 logger,
                 new TargetsUninstaller());
         }

@@ -23,8 +23,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.Integration.Interfaces;
 using SonarScanner.Shim;
 
 namespace SonarQube.TeamBuild.PostProcessor
@@ -53,14 +51,9 @@ namespace SonarQube.TeamBuild.PostProcessor
         private AnalysisConfig config;
         private ILogger logger;
         private ProjectInfoAnalysisResult result;
-        private ITeamBuildSettings settings;
 
-        private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
-
-        public SummaryReportBuilder(ILegacyTeamBuildFactory legacyTeamBuildFactory)
+        public SummaryReportBuilder()
         {
-            this.legacyTeamBuildFactory
-                = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
         }
 
         #region IReportBuilder interface methods
@@ -68,9 +61,8 @@ namespace SonarQube.TeamBuild.PostProcessor
         /// <summary>
         /// Generates summary reports for LegacyTeamBuild and for Build Vnext
         /// </summary>
-        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+        public void GenerateReports(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
-            this.settings = settings ?? throw new ArgumentNullException("settings");
             this.config = config ?? throw new ArgumentNullException("config");
             this.result = result ?? throw new ArgumentNullException("result");
             this.logger = logger ?? throw new ArgumentNullException("logger");
@@ -83,13 +75,6 @@ namespace SonarQube.TeamBuild.PostProcessor
         private void GenerateReports()
         {
             var summaryData = CreateSummaryData(config, result);
-
-            if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
-                && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
-            {
-                UpdateLegacyTeamBuildSummary(summaryData);
-            }
-
             CreateSummaryMdFile(summaryData);
 
             // Write the dashboard link to the output. The sonar-scanner will have written it out earlier,
@@ -190,27 +175,6 @@ namespace SonarQube.TeamBuild.PostProcessor
 
                 sw.WriteLine(Resources.Report_MdSummaryProductAndTestMessage, summaryData.ProductProjects, summaryData.TestProjects);
                 sw.WriteLine(Resources.Report_MdSummaryInvalidSkippedAndExcludedMessage, summaryData.InvalidProjects, summaryData.SkippedProjects, summaryData.ExcludedProjects);
-            }
-        }
-
-        private void UpdateLegacyTeamBuildSummary(SummaryReportData summaryData)
-        {
-            logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
-
-            using (var summaryLogger = legacyTeamBuildFactory.BuildLegacyBuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
-            {
-                // Add a link to SonarQube dashboard if analysis succeeded
-                if (summaryData.Succeeded)
-                {
-                    summaryLogger.WriteMessage(Resources.Report_AnalysisSucceeded, summaryData.ProjectDescription, summaryData.DashboardUrl);
-                }
-                else
-                {
-                    summaryLogger.WriteMessage(Resources.Report_AnalysisFailed, summaryData.ProjectDescription);
-                }
-
-                summaryLogger.WriteMessage(Resources.Report_ProductAndTestMessage, summaryData.ProductProjects, summaryData.TestProjects);
-                summaryLogger.WriteMessage(Resources.Report_InvalidSkippedAndExcludedMessage, summaryData.InvalidProjects, summaryData.SkippedProjects, summaryData.ExcludedProjects);
             }
         }
     }
