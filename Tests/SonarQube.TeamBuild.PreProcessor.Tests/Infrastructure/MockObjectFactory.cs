@@ -57,8 +57,10 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             return server;
         }
 
-        public ITargetsInstaller CreateTargetInstaller()
+        public ITargetsInstaller CreateTargetInstaller(ILogger logger)
         {
+            Assert.IsNotNull(logger);
+
             return targetsInstaller;
         }
 

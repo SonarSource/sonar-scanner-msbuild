@@ -62,9 +62,9 @@ namespace SonarQube.TeamBuild.PreProcessor
             return server;
         }
 
-        public ITargetsInstaller CreateTargetInstaller()
+        public ITargetsInstaller CreateTargetInstaller(ILogger logger)
         {
-            return new TargetsInstaller();
+            return new TargetsInstaller(logger);
         }
 
         public IAnalyzerProvider CreateRoslynAnalyzerProvider(ILogger logger)

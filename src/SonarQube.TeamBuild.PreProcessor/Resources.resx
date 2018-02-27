@@ -195,6 +195,9 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_GeneratingRulesets" xml:space="preserve">
     <value>Generating rulesets...</value>
   </data>
+  <data name="MSG_InstallTargetsLocalSystem" xml:space="preserve">
+    <value>Running the Scanner for MSBuild under Local System or Network Service account is not supported. Please, use a local or domain user account instead.</value>
+  </data>
   <data name="MSG_InstallTargets_Copy" xml:space="preserve">
     <value>Installed {0} to {1}</value>
   </data>

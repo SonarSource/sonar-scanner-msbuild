@@ -142,9 +142,9 @@ namespace SonarQube.TeamBuild.PreProcessor
         {
             if (args.InstallLoaderTargets)
             {
-                var installer = factory.CreateTargetInstaller();
+                var installer = factory.CreateTargetInstaller(logger);
                 Debug.Assert(installer != null, "Factory should not return null");
-                installer.InstallLoaderTargets(logger, Directory.GetCurrentDirectory());
+                installer.InstallLoaderTargets(Directory.GetCurrentDirectory());
             }
             else
             {

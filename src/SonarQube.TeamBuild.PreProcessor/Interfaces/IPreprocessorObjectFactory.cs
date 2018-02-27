@@ -37,7 +37,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <summary>
         /// Creates and returns the component to install the MSBuild targets
         /// </summary>
-        ITargetsInstaller CreateTargetInstaller();
+        ITargetsInstaller CreateTargetInstaller(ILogger logger);
 
         /// <summary>
         /// Creates and returns the component that provisions the Roslyn analyzers
