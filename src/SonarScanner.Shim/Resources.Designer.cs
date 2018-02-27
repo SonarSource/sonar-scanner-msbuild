@@ -61,6 +61,18 @@ namespace SonarScanner.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dumping content of sonar-project.properties
+        ///------------------------------------------------------------------------
+        ///{0}
+        ///------------------------------------------------------------------------.
+        /// </summary>
+        internal static string DEBUG_DumpSonarProjectProperties {
+            get {
+                return ResourceManager.GetString("DEBUG_DumpSonarProjectProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File was referenced by the following projects: &apos;{0}&apos;..
         /// </summary>
         internal static string DEBUG_FileReferencedByProjects {

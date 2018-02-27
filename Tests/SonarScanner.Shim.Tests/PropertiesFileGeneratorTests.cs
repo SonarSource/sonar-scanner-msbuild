@@ -111,6 +111,7 @@ namespace SonarScanner.Shim.Tests
             // Assert
             var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
             Assert.IsTrue(settingsFileContent.Contains("sonar.sourceEncoding=test-encoding-here"), "Command line parameter 'sonar.sourceEncoding' is ignored.");
+            logger.DebugMessages.Should().Contain(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
         }
 
         [TestMethod]
@@ -137,6 +138,7 @@ namespace SonarScanner.Shim.Tests
             var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
             Assert.IsTrue(settingsFileContent.Contains("sonar.cs.vscoveragexml.reportsPaths=coverage-path"));
             Assert.IsTrue(settingsFileContent.Contains("sonar.cs.vstest.reportsPaths=trx-path"));
+            logger.DebugMessages.Should().Contain(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
         }
 
         [TestMethod]
@@ -621,7 +623,7 @@ namespace SonarScanner.Shim.Tests
             // Assert
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
             provider.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-            logger.AssertSingleDebugMessageExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey);
+            logger.AssertDebugMessageExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey);
             logger.AssertWarningsLogged(0); // not expecting a warning if the user has supplied the value we want
         }
 
