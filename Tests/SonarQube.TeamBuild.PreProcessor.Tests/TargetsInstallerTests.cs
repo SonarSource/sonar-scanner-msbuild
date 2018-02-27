@@ -90,7 +90,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             var msBuildPathSettings = new MsBuildPathSettings();
 
             InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
-            Assert.IsTrue(msBuildPathSettings.GetImportBeforePaths().Count() == 2, "Expecting two destination directories");
+            Assert.AreEqual(6, msBuildPathSettings.GetImportBeforePaths().Count(), "Expecting six destination directories");
 
             var path = Path.Combine(msBuildPathSettings.GetImportBeforePaths().First(), FileConstants.ImportBeforeTargetsName);
             File.Delete(path);

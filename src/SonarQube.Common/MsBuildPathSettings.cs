@@ -30,8 +30,12 @@ namespace SonarQube.Common
         {
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
-            yield return GetMsBuildImportBeforePath(appData, "15.0");
+            yield return GetMsBuildImportBeforePath(appData, "4.0");
+            yield return GetMsBuildImportBeforePath(appData, "10.0");
+            yield return GetMsBuildImportBeforePath(appData, "11.0");
+            yield return GetMsBuildImportBeforePath(appData, "12.0");
             yield return GetMsBuildImportBeforePath(appData, "14.0");
+            yield return GetMsBuildImportBeforePath(appData, "15.0");
 
             if (!PlatformHelper.IsWindows())
             {
