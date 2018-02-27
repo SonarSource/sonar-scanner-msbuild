@@ -29,9 +29,11 @@ namespace SonarQube.TeamBuild.PostProcessor
     /// </summary>
     public class TargetsUninstaller : ITargetsUninstaller
     {
+        private readonly IMsBuildPathsSettings msBuildPathsSettings = new MsBuildPathSettings();
+
         public void UninstallTargets(ILogger logger)
         {
-            foreach (var directoryPath in FileConstants.ImportBeforeDestinationDirectoryPaths)
+            foreach (var directoryPath in msBuildPathsSettings.GetImportBeforePaths())
             {
                 var destinationPath = Path.Combine(directoryPath, FileConstants.ImportBeforeTargetsName);
 

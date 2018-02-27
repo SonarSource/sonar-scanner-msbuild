@@ -61,7 +61,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Assert.IsNotNull(actual);
 
             // 2. Now create the targets provider
-            actual = testSubject.CreateTargetInstaller();
+            actual = testSubject.CreateTargetInstaller(logger);
             Assert.IsNotNull(actual);
 
             // 3. Now create the analyzer provider

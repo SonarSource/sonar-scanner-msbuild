@@ -310,6 +310,15 @@ namespace SonarQube.TeamBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Running the Scanner for MSBuild under Local System or Network Service account is not supported. Please, use a local or domain user account instead..
+        /// </summary>
+        internal static string MSG_InstallTargetsLocalSystem {
+            get {
+                return ResourceManager.GetString("MSG_InstallTargetsLocalSystem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Skipping installing the ImportsBefore targets file.
         /// </summary>
         internal static string MSG_NotCopyingTargets {

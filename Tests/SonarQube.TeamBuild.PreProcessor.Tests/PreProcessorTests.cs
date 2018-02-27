@@ -114,7 +114,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Assert
             AssertDirectoriesCreated(settings);
 
-            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(logger, workingDir), Times.Once());
+            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(workingDir), Times.Once());
             mockServer.AssertMethodCalled("GetProperties", 1);
             mockServer.AssertMethodCalled("GetAllLanguages", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
@@ -185,7 +185,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Assert
             AssertDirectoriesCreated(settings);
 
-            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(logger, workingDir), Times.Once());
+            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(workingDir), Times.Once());
             mockServer.AssertMethodCalled("GetProperties", 1);
             mockServer.AssertMethodCalled("GetAllLanguages", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
@@ -239,7 +239,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Assert
             AssertDirectoriesCreated(settings);
 
-            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(logger, workingDir), Times.Once());
+            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(workingDir), Times.Once());
             mockServer.AssertMethodCalled("GetProperties", 1);
             mockServer.AssertMethodCalled("GetAllLanguages", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 0); // No valid plugin
@@ -308,7 +308,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             // Assert
             AssertDirectoriesCreated(settings);
 
-            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(logger, workingDir), Times.Once());
+            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(workingDir), Times.Once());
             mockServer.AssertMethodCalled("GetProperties", 1);
             mockServer.AssertMethodCalled("GetAllLanguages", 1);
             mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet

@@ -18,16 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Common;
+using System.IO;
 
-namespace SonarQube.TeamBuild.PreProcessor
+namespace SonarQube.Common
 {
-    /// <summary>
-    /// Copies the loader targets file - SonarQube.Integration.ImportBefore.targets - to a user specific location
-    /// from where MsBuild can automatically import it. Also gives a warning if such a file is present in the non-user specific directory.
-    /// </summary>
-    public interface ITargetsInstaller
+    public class FileWrapper : IFileWrapper
     {
-        void InstallLoaderTargets(string workDirectory);
+        public void Copy(string sourceFileName, string destFileName, bool overwrite) =>
+            File.Copy(sourceFileName, destFileName, overwrite);
+
+        public bool Exists(string path) =>
+            File.Exists(path);
+
+        public string ReadAllText(string path) =>
+            File.ReadAllText(path);
     }
 }
