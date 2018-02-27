@@ -39,6 +39,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             TeamBuildSettings buildSettings,
             IDictionary<string, string> serverProperties,
             List<AnalyzerSettings> analyzersSettings,
+            ISonarQubeServer sonarQubeServer,
             ILogger logger)
         {
             if (localSettings == null)
@@ -53,7 +54,10 @@ namespace SonarQube.TeamBuild.PreProcessor
             {
                 throw new ArgumentNullException(nameof(serverProperties));
             }
-
+            if (sonarQubeServer == null)
+            {
+                throw new ArgumentNullException(nameof(sonarQubeServer));
+            }
             if (logger == null)
             {
                 throw new ArgumentNullException(nameof(logger));
@@ -65,7 +69,8 @@ namespace SonarQube.TeamBuild.PreProcessor
                 SonarProjectName = localSettings.ProjectName,
                 SonarProjectVersion = localSettings.ProjectVersion,
                 SonarQubeHostUrl = localSettings.SonarQubeUrl,
-                HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName)
+                HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName),
+                SonarQubeVersion = sonarQubeServer.GetServerVersion().ToString()
             };
 
             config.SetBuildUri(buildSettings.BuildUri);
@@ -114,12 +119,12 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private static void AddSetting(AnalysisProperties properties, string id, string value)
         {
-            var property = new Property() { Id = id, Value = value };
+            var property = new Property { Id = id, Value = value };
 
             // Ensure it isn't possible to write sensitive data to the config file
             if (!property.ContainsSensitiveData())
             {
-                properties.Add(new Property() { Id = id, Value = value });
+                properties.Add(new Property { Id = id, Value = value });
             }
         }
     }

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -39,6 +40,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             ServerProperties = new Dictionary<string, string>();
             Languages = new List<string>();
             embeddedFilesMap = new Dictionary<string, byte[]>();
+            SonarQubeVersion = new Version(5, 6);
         }
 
         public IEnumerable<QualityProfile> QualityProfiles { get { return qualityProfiles; } }
@@ -46,6 +48,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public IDictionary<string, string> ServerProperties { get; set; }
 
         public IList<string> Languages { get; set; }
+
+        public Version SonarQubeVersion { get; set; }
 
         #region Builder methods
 

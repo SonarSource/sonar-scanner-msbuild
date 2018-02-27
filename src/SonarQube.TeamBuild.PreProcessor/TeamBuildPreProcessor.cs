@@ -129,7 +129,7 @@ namespace SonarQube.TeamBuild.PreProcessor
             Debug.Assert(analyzersSettings != null, "Not expecting the analyzers settings to be null");
 
             // analyzerSettings can be empty
-            AnalysisConfigGenerator.GenerateFile(localSettings, teamBuildSettings, serverSettings, analyzersSettings, logger);
+            AnalysisConfigGenerator.GenerateFile(localSettings, teamBuildSettings, serverSettings, analyzersSettings, server, logger);
 
             return true;
         }

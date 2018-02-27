@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
 
@@ -54,5 +55,7 @@ namespace SonarQube.TeamBuild.PreProcessor
         /// <param name="embeddedFileName">The name of the file to download</param>
         /// <param name="targetDirectory">The directory to which the file should be downloaded</param>
         bool TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory);
+
+        Version GetServerVersion();
     }
 }

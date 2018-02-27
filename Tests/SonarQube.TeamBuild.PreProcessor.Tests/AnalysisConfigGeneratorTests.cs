@@ -18,9 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
@@ -34,6 +36,73 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
         public TestContext TestContext { get; set; }
 
         #region Tests
+
+        [TestMethod]
+        public void GenerateFile_WhenLocalSettingsNull_ThrowArgumentNullException()
+        {
+            // Arrange
+            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+            Action act = () => AnalysisConfigGenerator.GenerateFile(null, tbSettings, new Dictionary<string, string>(),
+                new List<AnalyzerSettings>(), new MockSonarQubeServer(), new TestLogger());
+
+            // Act & Assert
+            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("localSettings");
+        }
+
+        [TestMethod]
+        public void GenerateFile_WhenBuildSettingsNull_ThrowArgumentNullException()
+        {
+            // Arrange
+            Action act = () => AnalysisConfigGenerator.GenerateFile(new ProcessedArgs("key", "name", "version", "org", false,
+                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance), null,
+                new Dictionary<string, string>(), new List<AnalyzerSettings>(), new MockSonarQubeServer(), new TestLogger());
+
+            // Act & Assert
+            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildSettings");
+        }
+
+        [TestMethod]
+        public void GenerateFile_WhenServerPropertiesNull_ThrowArgumentNullException()
+        {
+            // Arrange
+            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+            Action act = () => AnalysisConfigGenerator.GenerateFile(new ProcessedArgs("key", "name", "version", "org", false,
+                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance), tbSettings,
+                null, new List<AnalyzerSettings>(), new MockSonarQubeServer(), new TestLogger());
+
+            // Act & Assert
+            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverProperties");
+        }
+
+        [TestMethod]
+        public void GenerateFile_WhenSonarQubeServerNull_ThrowArgumentNullException()
+        {
+            // Arrange
+            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+            Action act = () => AnalysisConfigGenerator.GenerateFile(new ProcessedArgs("key", "name", "version", "org", false,
+                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance), tbSettings,
+                new Dictionary<string, string>(), new List<AnalyzerSettings>(), null, new TestLogger());
+
+            // Act & Assert
+            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeServer");
+        }
+
+        [TestMethod]
+        public void GenerateFile_WhenLoggerNull_ThrowArgumentNullException()
+        {
+            // Arrange
+            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+            Action act = () => AnalysisConfigGenerator.GenerateFile(new ProcessedArgs("key", "name", "version", "org", false,
+                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance), tbSettings,
+                new Dictionary<string, string>(), new List<AnalyzerSettings>(), new MockSonarQubeServer(), null);
+
+            // Act & Assert
+            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
 
         [TestMethod]
         public void AnalysisConfGen_Simple()
@@ -72,7 +141,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Directory.CreateDirectory(tbSettings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            var actualConfig = AnalysisConfigGenerator.GenerateFile(args, tbSettings, serverSettings, analyzersSettings, logger);
+            var actualConfig = AnalysisConfigGenerator.GenerateFile(args, tbSettings, serverSettings, analyzersSettings, new MockSonarQubeServer(), logger);
 
             // Assert
             AssertConfigFileExists(actualConfig);
@@ -127,7 +196,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), logger);
+            var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), new MockSonarQubeServer(), logger);
 
             // Assert
             AssertConfigFileExists(actualConfig);
@@ -193,7 +262,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
             // Act
-            var config = AnalysisConfigGenerator.GenerateFile(args, settings, serverProperties, new List<AnalyzerSettings>(), logger);
+            var config = AnalysisConfigGenerator.GenerateFile(args, settings, serverProperties, new List<AnalyzerSettings>(), new MockSonarQubeServer(), logger);
 
             // Assert
             AssertConfigFileExists(config);
@@ -233,7 +302,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, cmdLineArgs, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
 
             // Act
-            var config = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), logger);
+            var config = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), new MockSonarQubeServer(), logger);
 
             // Assert
             AssertConfigFileExists(config);
@@ -254,11 +323,32 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
             var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
 
             // Act
-            var config = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), logger);
+            var config = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), new MockSonarQubeServer(), logger);
 
             // Assert
             AssertConfigFileExists(config);
             Assert.IsFalse(config.HasBeginStepCommandLineCredentials);
+        }
+
+        [TestMethod]
+        public void GenerateFile_WritesSonarQubeVersion()
+        {
+            // Arrange
+            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
+
+            var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
+
+            var sonarqubeServer = new MockSonarQubeServer();
+            sonarqubeServer.Data.SonarQubeVersion = new Version(1, 2, 3, 4);
+
+            Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
+
+            // Act
+            var config = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), sonarqubeServer, new TestLogger());
+
+            // Assert
+            config.SonarQubeVersion.Should().Be("1.2.3.4");
         }
 
         #endregion Tests

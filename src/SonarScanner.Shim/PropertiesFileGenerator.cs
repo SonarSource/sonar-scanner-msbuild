@@ -67,7 +67,7 @@ namespace SonarScanner.Shim
 
             var result = new ProjectInfoAnalysisResult();
 
-            var writer = new PropertiesWriter(analysisConfig);
+            var writer = new PropertiesWriter(analysisConfig, logger);
 
             var success = TryWriteProperties(writer, out IEnumerable<ProjectData> projects);
 

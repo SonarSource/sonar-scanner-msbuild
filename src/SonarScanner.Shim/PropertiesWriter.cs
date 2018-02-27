@@ -31,8 +31,8 @@ namespace SonarScanner.Shim
 {
     public class PropertiesWriter
     {
+        private readonly ILogger logger;
         private readonly StringBuilder sb;
-
         private readonly AnalysisConfig config;
 
         /// <summary>
@@ -73,10 +73,11 @@ namespace SonarScanner.Shim
 
         public static string Escape(FileInfo fileInfo) => Escape(fileInfo.FullName);
 
-        public PropertiesWriter(AnalysisConfig config)
+        public PropertiesWriter(AnalysisConfig config, ILogger logger)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
-            sb = new StringBuilder();
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.sb = new StringBuilder();
             projects = new List<ProjectInfo>();
         }
 
@@ -94,7 +95,7 @@ namespace SonarScanner.Shim
 
             FinishedWriting = true;
 
-            Debug.Assert(projects.Select(p => p.ProjectGuid).Distinct().Count() == projects.Count(),
+            Debug.Assert(projects.Select(p => p.ProjectGuid).Distinct().Count() == projects.Count,
                 "Expecting the project guids to be unique");
 
             AppendKeyValue(sb, "sonar.modules", string.Join(",", projects.Select(p => p.GetProjectGuidAsString())));
@@ -141,9 +142,7 @@ namespace SonarScanner.Shim
                 sb.AppendLine(guid + @".sonar.tests=\");
             }
 
-            var escapedFiles = projectData.SonarQubeModuleFiles.Select(Escape);
-            sb.AppendLine(string.Join(@",\" + Environment.NewLine, escapedFiles));
-
+            sb.AppendLine(EncodeAsSonarQubeMultiValueProperty(projectData.SonarQubeModuleFiles.Select(Escape)));
             sb.AppendLine();
 
             if (projectData.Project.AnalysisSettings != null && projectData.Project.AnalysisSettings.Any())
@@ -163,7 +162,7 @@ namespace SonarScanner.Shim
 
         public void WriteAnalyzerOutputPaths(ProjectData project)
         {
-            if (!project.AnalyzerOutPaths.Any())
+            if (project.AnalyzerOutPaths.Count == 0)
             {
                 return;
             }
@@ -179,7 +178,7 @@ namespace SonarScanner.Shim
             }
 
             sb.AppendLine($"{project.Guid}.{property}=\\");
-            sb.AppendLine(string.Join(@",\" + Environment.NewLine, project.AnalyzerOutPaths.Select(Escape)));
+            sb.AppendLine(EncodeAsSonarQubeMultiValueProperty(project.AnalyzerOutPaths.Select(Escape)));
         }
 
         public void WriteRoslynOutputPaths(ProjectData project)
@@ -200,7 +199,7 @@ namespace SonarScanner.Shim
             }
 
             sb.AppendLine($"{project.Guid}.{property}=\\");
-            sb.AppendLine(string.Join(@",\" + Environment.NewLine, project.RoslynReportFilePaths.Select(Escape)));
+            sb.AppendLine(EncodeAsSonarQubeMultiValueProperty(project.RoslynReportFilePaths.Select(Escape)));
         }
 
         /// <summary>
@@ -245,8 +244,7 @@ namespace SonarScanner.Shim
             if (sharedFiles.Any())
             {
                 sb.AppendLine(@"sonar.sources=\");
-                var escapedFiles = sharedFiles.Select(Escape);
-                sb.AppendLine(string.Join(@",\" + Environment.NewLine, escapedFiles));
+                sb.AppendLine(EncodeAsSonarQubeMultiValueProperty(sharedFiles.Select(Escape)));
             }
 
             sb.AppendLine();
@@ -282,6 +280,28 @@ namespace SonarScanner.Shim
         private static bool IsAscii(char c)
         {
             return c <= sbyte.MaxValue;
+        }
+
+        internal /* for testing purposes */ string EncodeAsSonarQubeMultiValueProperty(IEnumerable<string> paths)
+        {
+            var multiValuesPropertySeparator = $@",\{Environment.NewLine}";
+
+            if (Version.TryParse(this.config.SonarQubeVersion, out var sonarqubeVersion) &&
+                sonarqubeVersion.CompareTo(new Version(6, 5)) >= 0)
+            {
+                return string.Join(multiValuesPropertySeparator, paths.Select(path => $"\"{path.Replace("\"", "\"\"")}\""));
+            }
+            else
+            {
+                Func<string, bool> invalidPathPredicate = path => path.Contains(",");
+                var invalidPaths = paths.Where(invalidPathPredicate);
+                if (invalidPaths.Any())
+                {
+                    this.logger.LogWarning(Resources.WARN_InvalidCharacterInPaths, string.Join(", ", invalidPaths));
+                }
+
+                return string.Join(multiValuesPropertySeparator, paths.Where(path => !invalidPathPredicate(path)));
+            }
         }
 
         #endregion Private methods

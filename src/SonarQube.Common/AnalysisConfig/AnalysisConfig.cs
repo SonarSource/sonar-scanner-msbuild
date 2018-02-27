@@ -62,6 +62,8 @@ namespace SonarQube.Common
 
         public string SonarQubeHostUrl { get; set; }
 
+        public string SonarQubeVersion { get; set; }
+
         public string SonarProjectKey { get; set; }
 
         public string SonarProjectVersion { get; set; }
