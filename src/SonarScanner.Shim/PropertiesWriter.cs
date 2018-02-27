@@ -35,8 +35,6 @@ namespace SonarScanner.Shim
         private readonly StringBuilder sb;
         private readonly AnalysisConfig config;
 
-        private static readonly string MultiValuesPropertySeparator = $@",\{Environment.NewLine}";
-
         /// <summary>
         /// List of projects that for which settings have been written
         /// </summary>
@@ -144,7 +142,7 @@ namespace SonarScanner.Shim
                 sb.AppendLine(guid + @".sonar.tests=\");
             }
 
-            sb.AppendLine(JoinAsSonarQubeMultiValueProperty(projectData.SonarQubeModuleFiles.Select(Escape)));
+            sb.AppendLine(EncodeAsSonarQubeMultiValueProperty(projectData.SonarQubeModuleFiles.Select(Escape)));
             sb.AppendLine();
 
             if (projectData.Project.AnalysisSettings != null && projectData.Project.AnalysisSettings.Any())
@@ -180,7 +178,7 @@ namespace SonarScanner.Shim
             }
 
             sb.AppendLine($"{project.Guid}.{property}=\\");
-            sb.AppendLine(JoinAsSonarQubeMultiValueProperty(project.AnalyzerOutPaths.Select(Escape)));
+            sb.AppendLine(EncodeAsSonarQubeMultiValueProperty(project.AnalyzerOutPaths.Select(Escape)));
         }
 
         public void WriteRoslynOutputPaths(ProjectData project)
@@ -201,7 +199,7 @@ namespace SonarScanner.Shim
             }
 
             sb.AppendLine($"{project.Guid}.{property}=\\");
-            sb.AppendLine(JoinAsSonarQubeMultiValueProperty(project.RoslynReportFilePaths.Select(Escape)));
+            sb.AppendLine(EncodeAsSonarQubeMultiValueProperty(project.RoslynReportFilePaths.Select(Escape)));
         }
 
         /// <summary>
@@ -246,7 +244,7 @@ namespace SonarScanner.Shim
             if (sharedFiles.Any())
             {
                 sb.AppendLine(@"sonar.sources=\");
-                sb.AppendLine(JoinAsSonarQubeMultiValueProperty(sharedFiles.Select(Escape)));
+                sb.AppendLine(EncodeAsSonarQubeMultiValueProperty(sharedFiles.Select(Escape)));
             }
 
             sb.AppendLine();
@@ -284,12 +282,14 @@ namespace SonarScanner.Shim
             return c <= sbyte.MaxValue;
         }
 
-        internal /* for testing purposes */ string JoinAsSonarQubeMultiValueProperty(IEnumerable<string> paths)
+        internal /* for testing purposes */ string EncodeAsSonarQubeMultiValueProperty(IEnumerable<string> paths)
         {
+            var multiValuesPropertySeparator = $@",\{Environment.NewLine}";
+
             if (Version.TryParse(this.config.SonarQubeVersion, out var sonarqubeVersion) &&
                 sonarqubeVersion.CompareTo(new Version(6, 5)) >= 0)
             {
-                return string.Join(MultiValuesPropertySeparator, paths.Select(path => $"\"{path.Replace("\"", "\"\"")}\""));
+                return string.Join(multiValuesPropertySeparator, paths.Select(path => $"\"{path.Replace("\"", "\"\"")}\""));
             }
             else
             {
@@ -298,10 +298,9 @@ namespace SonarScanner.Shim
                 if (invalidPaths.Any())
                 {
                     this.logger.LogWarning(Resources.WARN_InvalidCharacterInPaths, string.Join(", ", invalidPaths));
-                    return string.Join(MultiValuesPropertySeparator, paths.Where(path => !invalidPathPredicate(path)));
                 }
 
-                return string.Join(MultiValuesPropertySeparator, paths);
+                return string.Join(multiValuesPropertySeparator, paths.Where(path => !invalidPathPredicate(path)));
             }
         }
 
