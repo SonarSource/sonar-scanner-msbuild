@@ -122,6 +122,8 @@ namespace SonarQube.TeamBuild.PreProcessor
 
         private void WarnOnAppDataInsideSystem32()
         {
+            var windowsSystem32Part = Path.Combine("windows", "system32");
+
             // When the scanner is running under Local System or Network Service the AppData folder is under
             // C:\Windows\System32\... and is ignored by MSBuild and dotnet.
             if (msBuildPathsSettings.GetImportBeforePaths().Any(IsInsideSystem32))
@@ -130,7 +132,9 @@ namespace SonarQube.TeamBuild.PreProcessor
             }
 
             bool IsInsideSystem32(string path) =>
-                path.IndexOf("windows\\system32", StringComparison.InvariantCultureIgnoreCase) >= 0;
+                new DirectoryInfo(path)
+                    .FullName
+                    .IndexOf(windowsSystem32Part, StringComparison.InvariantCultureIgnoreCase) >= 0;
         }
 
         private void WarnOnGlobalTargetsFile()

@@ -47,7 +47,6 @@ namespace SonarQube.Common
             var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
 
             yield return Path.Combine(programFiles, "MSBuild", "14.0", "Microsoft.Common.Targets", "ImportBefore");
-            yield return Path.Combine(programFiles, "MSBuild", "12.0", "Microsoft.Common.Targets", "ImportBefore");
         }
 
         private static string GetMsBuildImportBeforePath(string basePath, string msBuildVersion) =>
