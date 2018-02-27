@@ -252,4 +252,10 @@ Possible causes:
   <data name="WARN_InvalidCharacterInPaths" xml:space="preserve">
     <value>The following paths contain invalid characters for this version of SonarQube and will be excluded from this analysis: {0}</value>
   </data>
+  <data name="DEBUG_DumpSonarProjectProperties" xml:space="preserve">
+    <value>Dumping content of sonar-project.properties
+------------------------------------------------------------------------
+{0}
+------------------------------------------------------------------------</value>
+  </data>
 </root>

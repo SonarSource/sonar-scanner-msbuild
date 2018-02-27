@@ -76,6 +76,7 @@ namespace SonarScanner.Shim
                 var contents = writer.Flush();
 
                 File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
+                logger.LogDebug(Resources.DEBUG_DumpSonarProjectProperties, contents);
 
                 result.FullPropertiesFilePath = projectPropertiesPath;
             }
