@@ -77,16 +77,16 @@ namespace SonarQube.TeamBuild.PostProcessor
             logger.ResumeOutput();
             LogStartupSettings(config, settings);
 
-            if (!CheckEnvironmentConsistency(config, settings))
+            if (!CheckCredentialsInCommandLineArgs(config, provider) ||
+                !CheckEnvironmentConsistency(config, settings))
             {
                 // logging already done
                 return false;
             }
 
-
             var codeCoverageProcessor = codeCoverageProcessorFactory.Create(settings);
 
-            // if initialisation fails a warning will have been logged at the source of the failure
+            // if initialization fails a warning will have been logged at the source of the failure
             var initializedSuccessfully =
                 codeCoverageProcessor != null &&
                 codeCoverageProcessor.Initialise(config, settings);
@@ -155,9 +155,27 @@ namespace SonarQube.TeamBuild.PostProcessor
             var configUri = config.GetBuildUri();
             var environmentUi = settings.BuildUri;
 
-            if (!string.Equals(configUri, environmentUi, System.StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(configUri, environmentUi, StringComparison.OrdinalIgnoreCase))
             {
                 logger.LogError(Resources.ERROR_BuildUrisDontMatch, environmentUi, configUri, settings.AnalysisConfigFilePath);
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Credentials must be passed to both begin and end step (or not passed at all). If the credentials are passed to only
+        /// one of the steps the analysis will fail so let's fail-fast with an explicit message.
+        /// </summary>
+        private bool CheckCredentialsInCommandLineArgs(AnalysisConfig config, IAnalysisPropertyProvider provider)
+        {
+            var hasCredentialsInBeginStep = config.HasBeginStepCommandLineCredentials;
+            var hasCredentialsInEndStep = provider.TryGetProperty(SonarProperties.SonarUserName, out var _);
+
+            if (hasCredentialsInBeginStep ^ hasCredentialsInEndStep)
+            {
+                logger.LogError(Resources.ERROR_CredentialsNotSpecified);
                 return false;
             }
 

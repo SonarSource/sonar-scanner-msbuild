@@ -64,7 +64,8 @@ namespace SonarQube.TeamBuild.PreProcessor
                 SonarProjectKey = localSettings.ProjectKey,
                 SonarProjectName = localSettings.ProjectName,
                 SonarProjectVersion = localSettings.ProjectVersion,
-                SonarQubeHostUrl = localSettings.SonarQubeUrl
+                SonarQubeHostUrl = localSettings.SonarQubeUrl,
+                HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName)
             };
 
             config.SetBuildUri(buildSettings.BuildUri);
