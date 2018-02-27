@@ -32,6 +32,8 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
     [TestClass]
     public class MSBuildPostProcessorTests
     {
+        private const string CredentialsErrorMessage = "Credentials must be passed in both begin and end steps or not at all";
+
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -213,7 +215,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             var context = new PostProcTestContext(TestContext);
-            context.Config.AdditionalConfig = new List<ConfigSetting> { new ConfigSetting { Id = ConfigSettingsExtensions.IsUsingCommandLineCredentialsKey } };
+            context.Config.HasBeginStepCommandLineCredentials = true;
             context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
             {
                 RanToCompletion = true
@@ -261,14 +263,14 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             var context = new PostProcTestContext(TestContext);
-            context.Config.AdditionalConfig = new List<ConfigSetting> { new ConfigSetting { Id = ConfigSettingsExtensions.IsUsingCommandLineCredentialsKey } };
+            context.Config.HasBeginStepCommandLineCredentials = true;
 
             // Act
             var success = Execute(context, args: new string[0]);
 
             // Assert
             Assert.IsFalse(success);
-            context.Logger.AssertErrorLogged("Credentials must be passed in both begin and end steps or not at all");
+            context.Logger.AssertErrorLogged(CredentialsErrorMessage);
 
             context.CodeCoverage.AssertInitialisedNotCalled();
             context.CodeCoverage.AssertExecuteNotCalled();
@@ -294,7 +296,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             // Assert
             Assert.IsFalse(success);
-            context.Logger.AssertErrorLogged("Credentials must be passed in both begin and end steps or not at all");
+            context.Logger.AssertErrorLogged(CredentialsErrorMessage);
 
             context.CodeCoverage.AssertInitialisedNotCalled();
             context.CodeCoverage.AssertExecuteNotCalled();
@@ -320,7 +322,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             // Assert
             Assert.IsTrue(success);
-            context.Logger.AssertErrorDoesNotExist("Credentials must be passed in both begin and end steps or not at all");
+            context.Logger.AssertErrorDoesNotExist(CredentialsErrorMessage);
         }
 
         [TestMethod]
@@ -328,7 +330,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
         {
             // Arrange
             var context = new PostProcTestContext(TestContext);
-            context.Config.AdditionalConfig = new List<ConfigSetting> { new ConfigSetting { Id = ConfigSettingsExtensions.IsUsingCommandLineCredentialsKey } };
+            context.Config.HasBeginStepCommandLineCredentials = true;
             context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
             {
                 RanToCompletion = true
@@ -339,7 +341,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             // Assert
             Assert.IsTrue(success);
-            context.Logger.AssertErrorDoesNotExist("Credentials must be passed in both begin and end steps or not at all");
+            context.Logger.AssertErrorDoesNotExist(CredentialsErrorMessage);
         }
 
         #endregion Tests

@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.PostProcessor.Interfaces;
@@ -78,13 +77,8 @@ namespace SonarQube.TeamBuild.PostProcessor
             logger.ResumeOutput();
             LogStartupSettings(config, settings);
 
-            if (!CheckEnvironmentConsistency(config, settings))
-            {
-                // logging already done
-                return false;
-            }
-
-            if (!CheckCredentialsInCommandLineArgs(config, provider))
+            if (!CheckCredentialsInCommandLineArgs(config, provider) ||
+                !CheckEnvironmentConsistency(config, settings))
             {
                 // logging already done
                 return false;
@@ -176,12 +170,10 @@ namespace SonarQube.TeamBuild.PostProcessor
         /// </summary>
         private bool CheckCredentialsInCommandLineArgs(AnalysisConfig config, IAnalysisPropertyProvider provider)
         {
-            var hasCredentialsInBegin = config.AdditionalConfig?.Any(c => ConfigSetting.SettingKeyComparer.Equals(c.Id,
-                ConfigSettingsExtensions.IsUsingCommandLineCredentialsKey)) ?? false;
+            var hasCredentialsInBeginStep = config.HasBeginStepCommandLineCredentials;
+            var hasCredentialsInEndStep = provider.TryGetProperty(SonarProperties.SonarUserName, out var _);
 
-            var hasCredentialsInEnd = provider.TryGetProperty(SonarProperties.SonarUserName, out var _);
-
-            if (hasCredentialsInBegin ^ hasCredentialsInEnd)
+            if (hasCredentialsInBeginStep ^ hasCredentialsInEndStep)
             {
                 logger.LogError(Resources.ERROR_CredentialsNotSpecified);
                 return false;

@@ -237,10 +237,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // Assert
             AssertConfigFileExists(config);
-
-            var hasCredentials = config.AdditionalConfig?.Any(c => ConfigSetting.SettingKeyComparer.Equals(c.Id,
-                ConfigSettingsExtensions.IsUsingCommandLineCredentialsKey)) ?? false;
-            Assert.IsTrue(hasCredentials);
+            Assert.IsTrue(config.HasBeginStepCommandLineCredentials);
         }
 
         [TestMethod]
@@ -261,10 +258,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests
 
             // Assert
             AssertConfigFileExists(config);
-
-            var hasCredentials = config.AdditionalConfig?.Any(c => ConfigSetting.SettingKeyComparer.Equals(c.Id,
-                ConfigSettingsExtensions.IsUsingCommandLineCredentialsKey)) ?? false;
-            Assert.IsFalse(hasCredentials);
+            Assert.IsFalse(config.HasBeginStepCommandLineCredentials);
         }
 
         #endregion Tests

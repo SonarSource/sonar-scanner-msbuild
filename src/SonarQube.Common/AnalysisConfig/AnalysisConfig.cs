@@ -53,6 +53,11 @@ namespace SonarQube.Common
         /// in order to and provide annotations. </remarks>
         public string SourcesDirectory { get; set; }
 
+        /// <summary>
+        /// Indicates whether or not credentials were passed as command line argument during the begin step.
+        /// </summary>
+        public bool HasBeginStepCommandLineCredentials { get; set; }
+
         #region SonarQube project properties
 
         public string SonarQubeHostUrl { get; set; }

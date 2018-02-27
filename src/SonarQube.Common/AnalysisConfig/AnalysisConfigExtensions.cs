@@ -35,8 +35,6 @@ namespace SonarQube.Common
         /// </summary>
         private const string SettingsFileKey = "settings.file.path";
 
-        public const string IsUsingCommandLineCredentialsKey = "begin.hasCredentials";
-
         #region Public methods
 
         /// <summary>

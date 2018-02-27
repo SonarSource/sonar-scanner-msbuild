@@ -58,5 +58,19 @@ namespace SonarQube.Common
                 return false;
             }
         }
+
+        public static bool HasProperty(this IAnalysisPropertyProvider provider, string key)
+        {
+            if (provider == null)
+            {
+                throw new ArgumentNullException(nameof(provider));
+            }
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            return provider.TryGetProperty(key, out var _);
+        }
     }
 }
