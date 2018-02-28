@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -30,6 +32,146 @@ namespace SonarQube.Common.UnitTests
         public TestContext TestContext { get; set; }
 
         #region Tests
+
+        [TestMethod]
+        public void GetConfigValue_WhenConfigIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.GetConfigValue(null, "foo", "bar");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        }
+
+        [TestMethod]
+        public void GetConfigValue_WhenSettingIdIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.GetConfigValue(new AnalysisConfig(), null, "bar");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
+        }
+
+        [TestMethod]
+        public void GetConfigValue_WhenSettingIdIsEmpty_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.GetConfigValue(new AnalysisConfig(), "", "bar");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
+        }
+
+        [TestMethod]
+        public void GetConfigValue_WhenSettingIdIsWhitespace_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.GetConfigValue(new AnalysisConfig(), "   ", "bar");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
+        }
+
+        [TestMethod]
+        public void GetAnalysisSettings_WhenConfigIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.GetAnalysisSettings(null, false);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        }
+
+        [TestMethod]
+        public void SetSettingsFilePath_WhenConfigIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.SetSettingsFilePath(null, "foo");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        }
+
+        [TestMethod]
+        public void SetSettingsFilePath_WhenFileNameIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.SetSettingsFilePath(new AnalysisConfig(), null);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+        }
+
+        [TestMethod]
+        public void SetSettingsFilePath_WhenFileNameIsEmpty_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.SetSettingsFilePath(new AnalysisConfig(), "");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+        }
+
+        [TestMethod]
+        public void SetSettingsFilePath_WhenFileNameIsWhitespace_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.SetSettingsFilePath(new AnalysisConfig(), "   ");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+        }
+
+        [TestMethod]
+        public void GetSettingsFilePath_WhenConfigIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.GetSettingsFilePath(null);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        }
+
+        [TestMethod]
+        public void SetConfigValue_WhenConfigIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.SetConfigValue(null, "foo", "bar");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        }
+
+        [TestMethod]
+        public void SetConfigValue_WhenSettingIdIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.SetConfigValue(new AnalysisConfig(), null, "bar");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
+        }
+
+        [TestMethod]
+        public void SetConfigValue_WhenSettingIdIsEmpty_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.SetConfigValue(new AnalysisConfig(), "", "bar");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
+        }
+
+        [TestMethod]
+        public void SetConfigValue_WhenSettingIdIsWhitespace_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ConfigSettingsExtensions.SetConfigValue(new AnalysisConfig(), "   ", "bar");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
+        }
 
         [TestMethod]
         [Description("Checks the extension methods for getting and setting values")]

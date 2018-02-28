@@ -38,7 +38,15 @@
     <CodeAnalysisRuleSet>SonarQube.Common.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FluentAssertions, Version=4.19.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\FluentAssertions.4.19.0\lib\net45\FluentAssertions.dll</HintPath>
+    </Reference>
+    <Reference Include="FluentAssertions.Core, Version=4.19.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\FluentAssertions.4.19.0\lib\net45\FluentAssertions.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -57,11 +65,15 @@
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
     <Compile Include="AggregatePropertiesProviderTests.cs" />
-    <Compile Include="AnalysisConfigExtensionsTests.cs" />
+    <Compile Include="AnalysisConfig\AnalysisConfigExtensionsTests.cs" />
+    <Compile Include="AnalysisConfig\AnalyzerSettingsTests.cs" />
+    <Compile Include="AnalysisProperties\AnalysisPropertiesTests.cs" />
+    <Compile Include="AnalysisProperties\ListPropertiesProviderTests.cs" />
     <Compile Include="CmdLineArgsPropertiesProviderTests.cs" />
-    <Compile Include="CommandLineParserTests.cs" />
+    <Compile Include="CommandLine\ArgumentDescriptorTests.cs" />
+    <Compile Include="CommandLine\CommandLineParserTests.cs" />
     <Compile Include="ConsoleLoggerTests.cs" />
-    <Compile Include="AnalysisConfigTests.cs" />
+    <Compile Include="AnalysisConfig\AnalysisConfigTests.cs" />
     <Compile Include="EnvScannerPropertiesProviderTest.cs" />
     <Compile Include="FilePropertyProviderTests.cs" />
     <Compile Include="Infrastructure\OutputCaptureScope.cs" />
@@ -91,6 +103,7 @@
     <Content Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="SonarQube.Common.UnitTests.ruleset" />
   </ItemGroup>
   <Choose>

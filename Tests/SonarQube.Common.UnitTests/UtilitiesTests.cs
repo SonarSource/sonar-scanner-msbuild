@@ -19,7 +19,9 @@
  */
 
 using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TestUtilities;
 
 namespace SonarQube.Common.UnitTests
 {
@@ -46,6 +48,126 @@ namespace SonarQube.Common.UnitTests
             var actualVersionString = actualVersion.ToDisplayString();
 
             Assert.AreEqual(expectedDisplayString, actualVersionString);
+        }
+
+        [TestMethod]
+        public void Retry_WhenTimeoutInMillisecondsIsLessThan1_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            Action action = () => Utilities.Retry(0, 1, new TestLogger(), () => true);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("timeoutInMilliseconds");
+        }
+
+        [TestMethod]
+        public void Retry_WhenPauseBetweenTriesInMillisecondsIsLessThan1_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            Action action = () => Utilities.Retry(1, 0, new TestLogger(), () => true);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("pauseBetweenTriesInMilliseconds");
+        }
+
+        [TestMethod]
+        public void Retry_WhenLoggerIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => Utilities.Retry(1, 1, null, () => true);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
+        public void Retry_WhenOperationIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => Utilities.Retry(1, 1, new TestLogger(), null);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("op");
+        }
+
+        [TestMethod]
+        public void EnsureDirectoryExists_WhenLoggerIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => Utilities.EnsureDirectoryExists("directory", null);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
+        public void EnsureDirectoryExists_WhenDirectoryIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => Utilities.EnsureDirectoryExists(null, new TestLogger());
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("directory");
+        }
+
+        [TestMethod]
+        public void EnsureDirectoryExists_WhenDirectoryIsEmpty_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => Utilities.EnsureDirectoryExists("", new TestLogger());
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("directory");
+        }
+
+        [TestMethod]
+        public void EnsureDirectoryExists_WhenDirectoryIsWhitespaces_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => Utilities.EnsureDirectoryExists("   ", new TestLogger());
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("directory");
+        }
+
+        [TestMethod]
+        public void LogAssemblyVersion_WhenLoggerIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => Utilities.LogAssemblyVersion(null, "foo");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
+        public void LogAssemblyVersion_WhenDescriptionIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => Utilities.LogAssemblyVersion(new TestLogger(), null);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
+        }
+
+        [TestMethod]
+        public void LogAssemblyVersion_WhenDescriptionIsEmpty_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => Utilities.LogAssemblyVersion(new TestLogger(), "");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
+        }
+
+        [TestMethod]
+        public void LogAssemblyVersion_WhenDescriptionIsWhitespaces_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => Utilities.LogAssemblyVersion(new TestLogger(), "   ");
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
         }
     }
 }
