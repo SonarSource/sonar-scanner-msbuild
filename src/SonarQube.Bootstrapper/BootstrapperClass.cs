@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.Bootstrapper
 {

@@ -23,31 +23,40 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.TeamBuild.Integration.XamlBuild
 {
-    public class TfsLegacyCoverageReportLocator : ICoverageReportLocator
+    public class TfsLegacyCoverageReportProcessor : CoverageReportProcessorBase
     {
         public const string DownloadFileName = "VSCodeCoverageReport.coverage"; // was internal
 
         private readonly ICoverageUrlProvider urlProvider;
         private readonly ICoverageReportDownloader downloader;
-        private readonly ILogger logger;
 
-        public TfsLegacyCoverageReportLocator(ICoverageUrlProvider urlProvider, ICoverageReportDownloader downloader, ILogger logger)
+        public TfsLegacyCoverageReportProcessor()
+            : this(new CoverageReportUrlProvider(), new CoverageReportDownloader(), new CoverageReportConverter())
+        {
+        }
+
+        public TfsLegacyCoverageReportProcessor(ICoverageUrlProvider urlProvider, ICoverageReportDownloader downloader,
+            ICoverageReportConverter converter) // was internal
+            : base(converter)
         {
             this.urlProvider = urlProvider ?? throw new ArgumentNullException(nameof(urlProvider));
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public bool TryGetBinaryCoveragePath(AnalysisConfig config, ITeamBuildSettings settings, out string binaryCoveragePath)
+        #region Virtual methods
+
+        protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger,
+            out string binaryFilePath)
         {
             var urls = urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri(), logger);
             Debug.Assert(urls != null, "Not expecting the returned list of urls to be null");
 
             var continueProcessing = true;
-            binaryCoveragePath = null;
+            binaryFilePath = null;
 
             switch (urls.Count())
             {
@@ -63,7 +72,7 @@ namespace SonarQube.TeamBuild.Integration.XamlBuild
 
                     if (result)
                     {
-                        binaryCoveragePath = targetFileName;
+                        binaryFilePath = targetFileName;
                     }
                     else
                     {
@@ -81,10 +90,12 @@ namespace SonarQube.TeamBuild.Integration.XamlBuild
             return continueProcessing;
         }
 
-        public bool TryGetTestResultsPath(AnalysisConfig config, ITeamBuildSettings settings, out string testResultsPath)
+        protected override bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string trxFilePath)
         {
-            testResultsPath = null;
+            trxFilePath = null;
             return false;
         }
+
+        #endregion Virtual methods
     }
 }

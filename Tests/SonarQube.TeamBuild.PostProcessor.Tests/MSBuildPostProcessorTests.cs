@@ -396,21 +396,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
         private static bool Execute(PostProcTestContext context, params string[] args)
         {
-            var proc = new MSBuildPostProcessor(new MockCodeCoverageProcessorFactory(context.CodeCoverage), context.Scanner, context.ReportBuilder, context.Logger, context.TargetsUninstaller.Object);
+            var proc = new MSBuildPostProcessor(context.CodeCoverage, context.Scanner, context.ReportBuilder, context.Logger, context.TargetsUninstaller.Object);
             var success = proc.Execute(args, context.Config, context.Settings);
             return success;
-        }
-
-        private class MockCodeCoverageProcessorFactory : ICoverageReportProcessorFactory
-        {
-            private readonly ICoverageReportProcessor processor;
-
-            public MockCodeCoverageProcessorFactory(ICoverageReportProcessor processor)
-            {
-                this.processor = processor;
-            }
-
-            public ICoverageReportProcessor Create(ITeamBuildSettings settings) => processor;
         }
 
         #endregion Private methods

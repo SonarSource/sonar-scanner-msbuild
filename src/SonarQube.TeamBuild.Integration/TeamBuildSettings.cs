@@ -21,6 +21,7 @@
 using System;
 using System.IO;
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.TeamBuild.Integration
 {

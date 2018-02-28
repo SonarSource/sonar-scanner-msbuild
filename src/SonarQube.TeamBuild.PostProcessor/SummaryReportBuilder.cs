@@ -24,6 +24,7 @@ using System.IO;
 using System.Linq;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.Integration.Interfaces;
 using SonarScanner.Shim;
 
 namespace SonarQube.TeamBuild.PostProcessor
