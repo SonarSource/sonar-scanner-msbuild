@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>$(ScannerNetStandardVersion)</TargetFrameworks>
+    <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>SonarScanner.Shim</AssemblyName>
     <RootNamespace>SonarScanner.Shim</RootNamespace>
   </PropertyGroup>
