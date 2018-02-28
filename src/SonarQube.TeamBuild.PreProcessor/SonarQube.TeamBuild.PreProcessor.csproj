@@ -17,10 +17,4 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
-  <!-- Dll from this nuget is required at runtime. -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Security.Permissions">
-      <Version>4.4.1</Version>
-    </PackageReference>
-  </ItemGroup>
 </Project>
