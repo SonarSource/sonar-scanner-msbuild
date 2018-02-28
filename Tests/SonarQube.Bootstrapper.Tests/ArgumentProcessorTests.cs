@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using TestUtilities;
@@ -43,6 +45,26 @@ namespace SonarQube.Bootstrapper.Tests
         public TestContext TestContext { get; set; }
 
         #region Tests
+
+        [TestMethod]
+        public void TryProcessArgs_WhenCommandLineArgsIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ArgumentProcessor.TryProcessArgs(null, new TestLogger(), out var settings);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("commandLineArgs");
+        }
+
+        [TestMethod]
+        public void TryProcessArgs_WhenLoggerIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ArgumentProcessor.TryProcessArgs(new string[0], null, out var settings);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
 
         [TestMethod]
         public void ArgProc_Help()

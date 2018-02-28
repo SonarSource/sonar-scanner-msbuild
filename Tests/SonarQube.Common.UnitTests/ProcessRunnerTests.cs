@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -33,6 +34,16 @@ namespace SonarQube.Common.UnitTests
         public TestContext TestContext { get; set; }
 
         #region Tests
+
+        [TestMethod]
+        public void Execute_WhenRunnerArgsIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => new ProcessRunner().Execute(null);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("runnerArgs");
+        }
 
         [TestMethod]
         public void ProcRunner_ExecutionFailed()
