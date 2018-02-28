@@ -43,7 +43,5 @@ namespace SonarQube.TeamBuild.Integration
 
             return true;
         }
-
-        #endregion Overrides
     }
 }
