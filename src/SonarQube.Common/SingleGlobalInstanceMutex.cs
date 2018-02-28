@@ -25,23 +25,22 @@ using System.Threading;
 
 namespace SonarQube.Common
 {
-    public sealed class MutexWrapper : IDisposable
+    public sealed class SingleGlobalInstanceMutex : IDisposable
     {
         private Mutex mutex;
 
-        public MutexWrapper(string name)
+        public SingleGlobalInstanceMutex(string name)
             : this(name, TimeSpan.FromSeconds(5))
         {
         }
 
-        public MutexWrapper(string name, TimeSpan acquireTimeout)
+        public SingleGlobalInstanceMutex(string name, TimeSpan acquireTimeout)
         {
-            mutex = new Mutex(false, name);
-            var allowEveryoneRule = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
-                MutexRights.FullControl, AccessControlType.Allow);
+            // Concurrent builds could be run under different user accounts, so we need to allow all users to wait on the mutex
             var mutexSecurity = new MutexSecurity();
-            mutexSecurity.AddAccessRule(allowEveryoneRule);
-            mutex.SetAccessControl(mutexSecurity);
+            mutexSecurity.AddAccessRule(new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
+                  MutexRights.FullControl, AccessControlType.Allow));
+            mutex = new Mutex(false, name, out var createdNew, mutexSecurity);
 
             try
             {
