@@ -43,7 +43,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
 
         public string GetOrCreatePath(string key)
         {
-            using (new MutexWrapper(mutexName))
+            using (new SingleGlobalInstanceMutex(mutexName))
             {
                 var mapping = ReadMapping();
                 if (!mapping.TryGetValue(key, out string path))

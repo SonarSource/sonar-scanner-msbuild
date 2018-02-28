@@ -32,7 +32,7 @@ namespace SonarQube.Common.UnitTests
         [TestMethod]
         public void MultipleDispose_DoesntThrow()
         {
-            var m = new MutexWrapper("test_00");
+            var m = new SingleGlobalInstanceMutex("test_00");
             m.Dispose();
             m.Dispose();
             m.Dispose();
@@ -57,7 +57,7 @@ namespace SonarQube.Common.UnitTests
             var t1 = new Thread(() =>
             {
                 steps.Add(101);
-                using (var m = new MutexWrapper(mutexName, oneMinute))
+                using (var m = new SingleGlobalInstanceMutex(mutexName, oneMinute))
                 {
                     steps.Add(102);
                 }
@@ -68,7 +68,7 @@ namespace SonarQube.Common.UnitTests
                 {
                     try
                     {
-                        new MutexWrapper(mutexName, oneMinute);
+                        new SingleGlobalInstanceMutex(mutexName, oneMinute);
                         steps.Add(201);
                         Thread.Sleep(oneMinute);
                         steps.Add(202);
@@ -83,7 +83,7 @@ namespace SonarQube.Common.UnitTests
             var t3 = new Thread(() =>
                 {
                     steps.Add(301);
-                    using (var m = new MutexWrapper(mutexName, oneMinute))
+                    using (var m = new SingleGlobalInstanceMutex(mutexName, oneMinute))
                     {
                         Thread.Sleep(500);
                         steps.Add(302);
