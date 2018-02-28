@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>$(ScannerNetStandardVersion)</TargetFrameworks>
+    <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>SonarQube.Common</AssemblyName>
     <RootNamespace>SonarQube.Common</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
