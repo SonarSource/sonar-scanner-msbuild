@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Threading;
 
 namespace SonarQube.Common
@@ -35,6 +37,11 @@ namespace SonarQube.Common
         public MutexWrapper(string name, TimeSpan acquireTimeout)
         {
             mutex = new Mutex(false, name);
+            var allowEveryoneRule = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
+                MutexRights.FullControl, AccessControlType.Allow);
+            var mutexSecurity = new MutexSecurity();
+            mutexSecurity.AddAccessRule(allowEveryoneRule);
+            mutex.SetAccessControl(mutexSecurity);
 
             try
             {
