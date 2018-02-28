@@ -19,10 +19,7 @@
  */
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 [assembly: AssemblyTitle("SonarQube.Integration.Tasks")]
 [assembly: AssemblyProduct("SonarQube.Integration.Tasks")]
 [assembly: AssemblyDescription("")]
-
-[assembly: InternalsVisibleTo("SonarQube.Integration.Tasks.UnitTests")]
