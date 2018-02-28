@@ -27,6 +27,7 @@
     <!-- External dependencies -->
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\net46\Newtonsoft.Json.dll" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration.Classic\bin\$(Configuration)\net46\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" />
+    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net46\System.ValueTuple.dll" />
 
     <!-- .NET Framework entry points-->
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net46\SonarQube.Scanner.MSBuild.exe" />
@@ -63,8 +64,8 @@
     <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\netcoreapp2.0\SonarQube.Scanner.MSBuild.dll" />
 
     <!-- Target files. -->
-    <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\Targets\SonarQube.Integration.targets" />
-    <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\Targets\SonarQube.Integration.ImportBefore.targets" />
+    <TargetsToCopyDotnet Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\Targets\SonarQube.Integration.targets" />
+    <TargetsToCopyDotnet Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\Targets\SonarQube.Integration.ImportBefore.targets" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration) == 'Debug'">
     <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\netcoreapp2.0\SonarQube.Scanner.MSBuild.pdb" />
@@ -109,8 +110,6 @@
 
     <Copy SourceFiles="@(FilesToCopyDotnet)" DestinationFolder="$(WorkDestinationDir)\dotnet\%(RecursiveDir)" />
     <Copy SourceFiles="@(TargetsToCopyDotnet)" DestinationFolder="$(WorkDestinationDir)\dotnet\Targets\" />
-
-    <Copy SourceFiles="$(WorkDestinationDir)\$(ScannerCliArtifact)" DestinationFolder="$(WorkDestinationDir)\dotnet\$(ScannerCliArtifact)\" />
   </Target>
   <Target Name="DownloadScannerCli" Condition="!Exists('$(OutputPath)\$(ScannerCliArtifact)')">
     <Message Text="Downloading: $(MavenCentralUrl)" />
@@ -119,6 +118,7 @@
   <Target Name="UnzipScannerCli">
     <RemoveDir Directories="$(OutputPath)$(ScannerCliDirectory)" />
     <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; [io.compression.zipfile]::ExtractToDirectory('$(OutputPath)$(ScannerCliArtifact)', '$(WorkDestinationDir)')&quot;" />
+    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; [io.compression.zipfile]::ExtractToDirectory('$(OutputPath)$(ScannerCliArtifact)', '$(WorkDestinationDir)/dotnet')&quot;" />
   </Target>
   <Target Name="ZipPayloadFiles">
     <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; Add-Type -assembly system.text.encoding; Add-Type -TypeDefinition 'public class MyEncoder : System.Text.UTF8Encoding { public MyEncoder() : base(true) {} public override byte[] GetBytes(string s) { return base.GetBytes(s.Replace((char) 92, (char) 47)); } }'; $enc = New-Object MyEncoder; [io.compression.zipfile]::CreateFromDirectory('$(WorkDestinationDir)', '$(DestinationDir)\SonarQube.Scanner.MSBuild.zip', [io.compression.compressionlevel]::fastest, $false, $enc)&quot;" />
