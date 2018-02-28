@@ -19,6 +19,7 @@
  */
 
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.TeamBuild.Integration
 {
@@ -28,7 +29,7 @@ namespace SonarQube.TeamBuild.Integration
         /// Initializes the converter
         /// </summary>
         /// <returns>Operation success</returns>
-        bool Initialise(AnalysisConfig config, ITeamBuildSettings settings);
+        bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger);
 
         /// <summary>
         /// Locate, download and convert the code coverage report

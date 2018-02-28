@@ -19,43 +19,60 @@
  */
 
 using System;
+using System.Diagnostics;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.TeamBuild.PostProcessor
 {
-    public class CoverageReportProcessorFactory : ICoverageReportProcessorFactory
+    public class CoverageReportProcessor : ICoverageReportProcessor
     {
-        private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
-        private readonly ILogger logger;
+        private ICoverageReportProcessor processor;
+        private bool initialisedSuccesfully;
 
-        public CoverageReportProcessorFactory(ILegacyTeamBuildFactory legacyTeamBuildFactory, ILogger logger)
+        private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
+
+        public CoverageReportProcessor(ILegacyTeamBuildFactory legacyTeamBuildFactory)
         {
-            this.legacyTeamBuildFactory = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.legacyTeamBuildFactory
+                = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
+        }
+
+        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger)
+        {
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
+            TryCreateCoverageReportProcessor(settings);
+
+            initialisedSuccesfully = (processor != null && processor.Initialise(config, settings, logger));
+            return initialisedSuccesfully;
+        }
+
+        public bool ProcessCoverageReports()
+        {
+            Debug.Assert(initialisedSuccesfully, "Initialization failed, cannot process coverage reports");
+
+            return processor.ProcessCoverageReports();
         }
 
         /// <summary>
         /// Factory method to create a coverage report processor for the current build environment.
         /// </summary>
-        public ICoverageReportProcessor Create(ITeamBuildSettings settings)
+        private void TryCreateCoverageReportProcessor(ITeamBuildSettings settings)
         {
             if (settings.BuildEnvironment == BuildEnvironment.TeamBuild)
             {
-                return new CoverageReportProcessor(
-                    new CoverageReportConverter(),
-                    new TfsCoverageReportLocator(logger),
-                    logger);
+                processor = new BuildVNextCoverageReportProcessor();
             }
             else if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
                 && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
             {
-                return new CoverageReportProcessor(
-                    new CoverageReportConverter(),
-                    legacyTeamBuildFactory.BuildTfsLegacyCoverageReportLocator(logger),
-                    logger);
+                processor = legacyTeamBuildFactory.BuildTfsLegacyCoverageReportProcessor();
             }
-            return null;
         }
     }
 }
