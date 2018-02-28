@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 
@@ -33,6 +34,11 @@ namespace SonarQube.Bootstrapper
         {
             var logger = new ConsoleLogger(includeTimestamp: false);
             Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
+#if IS_NET_FRAMEWORK
+            logger.LogInfo("Executing the .NET Framework build of the Scanner for MSBuild");
+#else
+            logger.LogInfo("Executing the .NET Core build of the Scanner for MSBuild");
+#endif
             return Execute(args, logger);
         }
 
@@ -56,20 +62,27 @@ namespace SonarQube.Bootstrapper
                 return SuccessCode;
             }
 
-            if (!ArgumentProcessor.TryProcessArgs(args, logger, out IBootstrapperSettings settings))
+            try
             {
-                logger.ResumeOutput();
-                // The argument processor will have logged errors
-                Environment.ExitCode = ErrorCode;
-                return ErrorCode;
-            }
+                if (!ArgumentProcessor.TryProcessArgs(args, logger, out IBootstrapperSettings settings))
+                {
+                    logger.ResumeOutput();
+                    // The argument processor will have logged errors
+                    Environment.ExitCode = ErrorCode;
+                    return ErrorCode;
+                }
 
-            var processorFactory = new DefaultProcessorFactory(logger, GetLegacyTeamBuildFactory(),
-                GetCoverageReportConverter());
-            var bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
-            var exitCode = bootstrapper.Execute();
-            Environment.ExitCode = exitCode;
-            return exitCode;
+                var processorFactory = new DefaultProcessorFactory(logger, GetLegacyTeamBuildFactory(),
+                    GetCoverageReportConverter());
+                var bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
+                var exitCode = bootstrapper.Execute();
+                Environment.ExitCode = exitCode;
+                return exitCode;
+            }
+            finally
+            {
+                DumpLoadedAssemblies(logger);
+            }
         }
 
         private static ICoverageReportConverter GetCoverageReportConverter()
@@ -88,6 +101,31 @@ namespace SonarQube.Bootstrapper
 #else
             return new NotSupportedLegacyTeamBuildFactory();
 #endif
+        }
+
+        [Conditional("DEBUG")]
+        private static void DumpLoadedAssemblies(ILogger logger)
+        {
+            try
+            {
+                logger.IncludeTimestamp = false;
+                logger.LogDebug("");
+                logger.LogDebug("**************************************************************");
+                logger.LogDebug("*** Loaded assemblies");
+                logger.LogDebug("");
+
+                // Note: the information is dumped in a format that can be cut and pasted into a CSV file
+                logger.LogDebug("Name,Version, Culture,Public Key,Location");
+                foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    var location = asm.IsDynamic ? "{dynamically generated}" : asm.Location;
+                    logger.LogDebug($"{asm.FullName},{location}");
+                }                
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug($"Error dumping assembly information: {ex.ToString()}");
+            }
         }
     }
 }
