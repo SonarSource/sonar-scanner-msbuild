@@ -15,6 +15,8 @@
     <!-- OutputPath is required by the Clean and Rebuild tasks -->
     <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
+
+  <!-- Binaries for dotnet framework scanner -->
   <ItemGroup>
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net46\SonarQube.Analysis.xml" />
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Common\bin\$(Configuration)\net46\SonarQube.Common.dll" />
@@ -45,8 +47,7 @@
     <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\net46\MSBuild.SonarQube.Runner.pdb" />
   </ItemGroup>
 
-
-<!-- MB TODO -->
+  <!-- Binaries for dotnet core scanner -->
   <ItemGroup>
     <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\netcoreapp2.0\SonarQube.Analysis.xml" />
     <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.Common\bin\$(Configuration)\netstandard2.0\SonarQube.Common.dll" />
@@ -70,7 +71,6 @@
   <ItemGroup Condition="$(Configuration) == 'Debug'">
     <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\netcoreapp2.0\SonarQube.Scanner.MSBuild.pdb" />
   </ItemGroup>
-
 
   <!-- Reference to dependencies to ensure the build order is correct -->
   <ItemGroup>
