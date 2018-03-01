@@ -18,16 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
 
-namespace SonarQube.TeamBuild.Integration.XamlBuild
+namespace SonarQube.Bootstrapper
 {
-    public class LegacyTeamBuildFactory : ILegacyTeamBuildFactory
+    public class NullCoverageReportConverter : ICoverageReportConverter
     {
-        public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri) =>
-            new LegacyBuildSummaryLogger(tfsUri, buildUri);
+        public bool ConvertToXml(string inputFilePath, string outputFilePath, ILogger logger)
+            => false;
 
-        public ICoverageReportLocator BuildTfsLegacyCoverageReportLocator(ILogger logger) =>
-            new TfsLegacyCoverageReportLocator(new CoverageReportUrlProvider(), new CoverageReportDownloader(), logger);
+        public bool Initialize(ILogger logger) => true;
     }
 }

@@ -18,30 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration.Interfaces;
 
 namespace SonarQube.TeamBuild.Integration
 {
-    public class TfsCoverageReportLocator : ICoverageReportLocator
+    public class BuildVNextCoverageReportProcessor : CoverageReportProcessorBase
     {
-        private readonly ILogger logger;
-
-        public TfsCoverageReportLocator(ILogger logger)
+        public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter)
+            : base(converter)
         {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public bool TryGetBinaryCoveragePath(AnalysisConfig config, ITeamBuildSettings settings, out string binaryCoveragePath)
+        protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath)
         {
-            binaryCoveragePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger);
+            binaryFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger);
 
             return true; // there aren't currently any conditions under which we'd want to stop processing
         }
 
-        public bool TryGetTestResultsPath(AnalysisConfig config, ITeamBuildSettings settings, out string testResultsPath)
+        protected override bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string trxFilePath)
         {
-            testResultsPath = TrxFileReader.FindTrxFile(settings.BuildDirectory, logger);
+            trxFilePath = TrxFileReader.FindTrxFile(settings.BuildDirectory, logger);
 
             return true;
         }

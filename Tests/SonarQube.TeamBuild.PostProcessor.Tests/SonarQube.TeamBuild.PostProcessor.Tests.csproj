@@ -8,7 +8,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SonarQube.TeamBuild.PostProcessor.Tests</RootNamespace>
     <AssemblyName>MSBuild.SonarQube.Internal.PostProcess.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -77,9 +77,9 @@
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>SonarQube.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\SonarQube.TeamBuild.Integration.XamlBuild\SonarQube.TeamBuild.Integration.XamlBuild.csproj">
+    <ProjectReference Include="..\..\src\SonarQube.TeamBuild.Integration.Classic\SonarQube.TeamBuild.Integration.Classic.csproj">
       <Project>{C3466723-5499-4FAD-B236-5C96094DE276}</Project>
-      <Name>SonarQube.TeamBuild.Integration.XamlBuild</Name>
+      <Name>SonarQube.TeamBuild.Integration.Classic</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj">
       <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>

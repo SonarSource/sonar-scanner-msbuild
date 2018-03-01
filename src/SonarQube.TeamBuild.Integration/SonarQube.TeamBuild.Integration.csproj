@@ -1,33 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>TeamBuild.SonarQube.Integration</AssemblyName>
     <RootNamespace>SonarQube.TeamBuild.Integration</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Services.Client" version="14.102.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" version="14.102.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" version="1.14.114" />
-    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" version="1.7.0.0" />
-    <PackageReference Include="Newtonsoft.Json" version="10.0.3" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" version="4.0.2.206221351" />
-    <PackageReference Include="WindowsAzure.ServiceBus" version="3.3.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 </Project>

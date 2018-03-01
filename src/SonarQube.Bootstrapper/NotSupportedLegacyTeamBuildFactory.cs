@@ -19,7 +19,6 @@
  */
 
 using System;
-using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 
 namespace SonarQube.Bootstrapper
@@ -33,7 +32,7 @@ namespace SonarQube.Bootstrapper
         public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri)
             => throw new NotSupportedException(message);
 
-        public ICoverageReportLocator BuildTfsLegacyCoverageReportLocator(ILogger logger)
+        public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
             => throw new NotSupportedException(message);
     }
 }

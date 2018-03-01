@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration.Classic;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.Integration.Tests
@@ -39,7 +40,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
         [TestMethod]
         public void Conv_Initialize_InvalidArgs_Throws()
         {
-            var testSubject = new CoverageReportConverter();
+            var testSubject = new BinaryToXmlCoverageReportConverter();
             Action op = () => testSubject.Initialize(null);
 
             op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
@@ -49,7 +50,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
         public void Conv_ConvertToXml_InvalidArgs_Throws()
         {
             ILogger loggerMock = new Mock<ILogger>().Object;
-            var testSubject = new CoverageReportConverter();
+            var testSubject = new BinaryToXmlCoverageReportConverter();
 
             // 1. Null input path
             Action op = () => testSubject.ConvertToXml(null, "dummypath", loggerMock);
@@ -92,7 +93,7 @@ echo Create a new file using the output parameter
 echo foo > """ + outputFilePath + @"""");
 
             // Act
-            var success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
 
             // Assert
             Assert.IsTrue(success, "Expecting the process to succeed");
@@ -121,7 +122,7 @@ echo foo > """ + outputFilePath + @"""");
             File.WriteAllText(converterFilePath, @"REM Do nothing - don't create a file");
 
             // Act
-            var success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
 
             // Assert
             Assert.IsFalse(success, "Expecting the process to fail");
@@ -148,7 +149,7 @@ echo foo > """ + outputFilePath + @"""");
             File.WriteAllText(converterFilePath, @"exit -1");
 
             // Act
-            var success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
 
             // Assert
             Assert.IsFalse(success, "Expecting the process to fail");
@@ -180,7 +181,7 @@ echo Converter called with %argC% args
 echo success > """ + outputFilePath + @"""");
 
             // Act
-            var success = CoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
+            var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
 
             // Assert
             Assert.IsTrue(success, "Expecting the process to succeed");
@@ -196,7 +197,7 @@ echo success > """ + outputFilePath + @"""");
 
             var factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage");
 
-            var reporter = new CoverageReportConverter(factory);
+            var reporter = new BinaryToXmlCoverageReportConverter(factory);
 
             // Act
             var result = reporter.Initialize(logger);
@@ -215,7 +216,7 @@ echo success > """ + outputFilePath + @"""");
 
             var factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage.Msi");
 
-            var reporter = new CoverageReportConverter(factory);
+            var reporter = new BinaryToXmlCoverageReportConverter(factory);
 
             // Act
             var result = reporter.Initialize(logger);

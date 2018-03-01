@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration.Classic.XamlBuild;
 
 namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
 {

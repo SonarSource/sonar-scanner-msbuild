@@ -1,10 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>SonarQube.Common</AssemblyName>
     <RootNamespace>SonarQube.Common</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
+    <!-- Define a constant if the framework is classic .NET Framework. -->
+  <Target Name="AddNetFrameworkMacro" BeforeTargets="CoreCompile" Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework')">
+    <PropertyGroup>
+      <DefineConstants>$(DefineConstants);IS_NET_FRAMEWORK</DefineConstants>
+    </PropertyGroup>
+  </Target>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>

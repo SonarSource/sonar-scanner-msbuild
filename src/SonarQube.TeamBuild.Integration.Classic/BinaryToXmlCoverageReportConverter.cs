@@ -29,9 +29,9 @@ using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.Win32;
 using SonarQube.Common;
 
-namespace SonarQube.TeamBuild.Integration
+namespace SonarQube.TeamBuild.Integration.Classic
 {
-    public class CoverageReportConverter : ICoverageReportConverter
+    public class BinaryToXmlCoverageReportConverter : ICoverageReportConverter
     {
         private const int ConversionTimeoutInMs = 60000;
         private readonly IVisualStudioSetupConfigurationFactory setupConfigurationFactory;
@@ -58,11 +58,11 @@ namespace SonarQube.TeamBuild.Integration
 
         #region Public methods
 
-        public CoverageReportConverter()
+        public BinaryToXmlCoverageReportConverter()
             : this(new VisualStudioSetupConfigurationFactory())
         { }
 
-        public CoverageReportConverter(IVisualStudioSetupConfigurationFactory setupConfigurationFactory)
+        public BinaryToXmlCoverageReportConverter(IVisualStudioSetupConfigurationFactory setupConfigurationFactory)
         {
             this.setupConfigurationFactory = setupConfigurationFactory;
         }

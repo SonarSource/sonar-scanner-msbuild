@@ -22,7 +22,7 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Setup.Configuration;
 
-namespace SonarQube.TeamBuild.Integration
+namespace SonarQube.TeamBuild.Integration.Classic
 {
     public class VisualStudioSetupConfigurationFactory : IVisualStudioSetupConfigurationFactory
     {

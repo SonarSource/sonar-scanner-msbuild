@@ -21,8 +21,8 @@
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
+using SonarQube.TeamBuild.Integration.Classic.XamlBuild;
 using SonarQube.TeamBuild.Integration.Tests.Infrastructure;
-using SonarQube.TeamBuild.Integration.XamlBuild;
 using TestUtilities;
 
 namespace SonarQube.TeamBuild.Integration.Tests
@@ -62,13 +62,10 @@ namespace SonarQube.TeamBuild.Integration.Tests
             var settings = CreateValidSettings();
             var logger = new TestLogger();
 
-            var processor = new CoverageReportProcessor(
-                converter,
-                new TfsLegacyCoverageReportLocator(urlProvider, downloader, logger),
-                logger);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            var initResult = processor.Initialise(context, settings);
+            var initResult = processor.Initialise(context, settings, logger);
 
             // Assert
             Assert.IsFalse(initResult, "Expecting false: processor should not have been initialized successfully");
@@ -93,14 +90,11 @@ namespace SonarQube.TeamBuild.Integration.Tests
             var settings = CreateValidSettings();
             var logger = new TestLogger();
 
-            var processor = new CoverageReportProcessor(
-                converter,
-                new TfsLegacyCoverageReportLocator(urlProvider, downloader, logger),
-                logger);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            var initResult = processor.Initialise(context, settings);
-            Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
+            var initResult = processor.Initialise(context, settings, logger);
+            Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
             // Assert
@@ -126,14 +120,11 @@ namespace SonarQube.TeamBuild.Integration.Tests
             var settings = CreateValidSettings();
             var logger = new TestLogger();
 
-            var processor = new CoverageReportProcessor(
-                converter,
-                new TfsLegacyCoverageReportLocator(urlProvider, downloader, logger),
-                logger);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            var initResult = processor.Initialise(context, settings);
-            Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
+            var initResult = processor.Initialise(context, settings, logger);
+            Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
             // Assert
@@ -158,14 +149,11 @@ namespace SonarQube.TeamBuild.Integration.Tests
             var settings = CreateValidSettings();
             var logger = new TestLogger();
 
-            var processor = new CoverageReportProcessor(
-                converter,
-                new TfsLegacyCoverageReportLocator(urlProvider, downloader, logger),
-                logger);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            var initResult = processor.Initialise(context, settings);
-            Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
+            var initResult = processor.Initialise(context, settings, logger);
+            Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
             // Assert
@@ -195,14 +183,11 @@ namespace SonarQube.TeamBuild.Integration.Tests
 
             downloader.CreateFileOnDownloadRequest = true;
 
-            var processor = new CoverageReportProcessor(
-                converter,
-                new TfsLegacyCoverageReportLocator(urlProvider, downloader, logger),
-                logger);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
 
             // Act
-            var initResult = processor.Initialise(context, settings);
-            Assert.IsTrue(initResult, "Expecting true: processor should have been initialised successfully");
+            var initResult = processor.Initialise(context, settings, logger);
+            Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
             // Assert
@@ -211,7 +196,7 @@ namespace SonarQube.TeamBuild.Integration.Tests
             converter.AssertExpectedNumberOfConversions(1);
 
             downloader.AssertExpectedUrlsRequested(ValidUrl2);
-            downloader.AssertExpectedTargetFileNamesSupplied(Path.Combine(context.SonarOutputDir, TfsLegacyCoverageReportLocator.DownloadFileName));
+            downloader.AssertExpectedTargetFileNamesSupplied(Path.Combine(context.SonarOutputDir, TfsLegacyCoverageReportProcessor.DownloadFileName));
             Assert.IsTrue(result, "Expecting true: happy path");
 
             logger.AssertWarningsLogged(0);

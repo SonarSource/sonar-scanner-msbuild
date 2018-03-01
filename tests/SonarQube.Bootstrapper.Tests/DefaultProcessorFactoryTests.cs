@@ -32,10 +32,21 @@ namespace SonarQube.Bootstrapper.Tests
         public void Ctor_WhenLegacyTeamBuildFactoryIsNull_ThrowsArgumentNullException()
         {
             // Arrange
-            Action action = () => new DefaultProcessorFactory(new TestLogger(), null);
+            Action action = () => new DefaultProcessorFactory(new TestLogger(), null, new NullCoverageReportConverter());
 
             // Act & Assert
             action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
         }
+
+        [TestMethod]
+        public void Ctor_WhenCoverageReportConverterIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => new DefaultProcessorFactory(new TestLogger(), new NotSupportedLegacyTeamBuildFactory(), null);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("coverageReportConverter");
+        }
+
     }
 }

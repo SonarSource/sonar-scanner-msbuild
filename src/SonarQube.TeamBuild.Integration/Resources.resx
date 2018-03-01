@@ -117,35 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CONV_DIAG_CommandLineToolInfo" xml:space="preserve">
-    <value>Code coverage command line tool: {0}</value>
-  </data>
-  <data name="CONV_DIAG_LocatingCodeCoverageTool" xml:space="preserve">
-    <value>Attempting to locate the CodeCoverage.exe tool...</value>
-  </data>
-  <data name="CONV_DIAG_LocatingCodeCoverageToolRegistry" xml:space="preserve">
-    <value>Attempting to locate the CodeCoverage.exe tool using registry...</value>
-  </data>
-  <data name="CONV_DIAG_LocatingCodeCoverageToolSetupConfiguration" xml:space="preserve">
-    <value>Attempting to locate the CodeCoverage.exe tool using setup configuration...</value>
-  </data>
-  <data name="CONV_DIAG_MultipleVsVersionsInstalled" xml:space="preserve">
-    <value>Multiple versions of VS are installed: {0}</value>
-    <comment>First parameter: a list of VS versions</comment>
-  </data>
-  <data name="CONV_DIAG_SetupConfigurationNotSupported" xml:space="preserve">
-    <value>Visual Studio setup configuration was not found.</value>
-  </data>
-  <data name="CONV_ERROR_ConversionToolFailed" xml:space="preserve">
-    <value>Failed to convert the downloaded code coverage tool to XML. No code coverage information will be uploaded to SonarQube.
-Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.</value>
-  </data>
-  <data name="CONV_ERROR_OutputFileNotFound" xml:space="preserve">
-    <value>Failed to convert the binary coverage file to XML. The expected output file was not found: {0}</value>
-  </data>
-  <data name="CONV_WARN_FailToFindConversionTool" xml:space="preserve">
-    <value>Failed to find the code coverage command line tool. Possible cause: Visual Studio is not installed, or the installed version does not support code coverage.</value>
-  </data>
   <data name="EX_CoverageReportProcessorNotInitialised" xml:space="preserve">
     <value>The Coverage Report Processor was not initialized before use.</value>
   </data>
