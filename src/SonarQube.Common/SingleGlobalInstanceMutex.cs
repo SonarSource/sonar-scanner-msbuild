@@ -36,11 +36,7 @@ namespace SonarQube.Common
 
         public SingleGlobalInstanceMutex(string name, TimeSpan acquireTimeout)
         {
-            // Concurrent builds could be run under different user accounts, so we need to allow all users to wait on the mutex
-            var mutexSecurity = new MutexSecurity();
-            mutexSecurity.AddAccessRule(new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
-                  MutexRights.FullControl, AccessControlType.Allow));
-            mutex = new Mutex(false, name, out var createdNew, mutexSecurity);
+            mutex = CreateMutex(name);
 
             try
             {
@@ -59,5 +55,19 @@ namespace SonarQube.Common
             mutex?.Dispose();
             mutex = null;
         }
+
+        private static Mutex CreateMutex(string name)
+        {
+#if IS_NET_FRAMEWORK
+            // Concurrent builds could be run under different user accounts, so we need to allow all users to wait on the mutex
+            var mutexSecurity = new MutexSecurity();
+            mutexSecurity.AddAccessRule(new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),
+                  MutexRights.FullControl, AccessControlType.Allow));
+            return new Mutex(false, name, out var _, mutexSecurity);
+#else
+            return new Mutex(false, name);
+#endif
+        }
+
     }
 }
