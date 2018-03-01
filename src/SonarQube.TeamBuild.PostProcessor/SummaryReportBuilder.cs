@@ -199,6 +199,8 @@ namespace SonarQube.TeamBuild.PostProcessor
 
             using (var summaryLogger = legacyTeamBuildFactory.BuildLegacyBuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
             {
+                summaryLogger.WriteMessage(Resources.WARN_XamlBuildDeprecated);
+
                 // Add a link to SonarQube dashboard if analysis succeeded
                 if (summaryData.Succeeded)
                 {
