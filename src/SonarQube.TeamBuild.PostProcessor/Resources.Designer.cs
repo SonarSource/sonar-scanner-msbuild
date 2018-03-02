@@ -296,7 +296,7 @@ namespace SonarQube.TeamBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WARNING: Support for XAML builds is deprecated and will be removed in a future release of the Scanner for MSBuild.
+        ///   Looks up a localized string similar to ** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for MSBuild **.
         /// </summary>
         internal static string WARN_XamlBuildDeprecated {
             get {
