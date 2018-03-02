@@ -58,6 +58,26 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
+        public void Ctor_NullServer_Throws()
+        {
+            // Arrange
+            Action act = () => new SonarWebService(new TestDownloader(), null, new TestLogger());
+
+            // Act & Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("server");
+        }
+
+        [TestMethod]
+        public void Ctor_NullLogger_Throws()
+        {
+            // Arrange
+            Action act = () => new SonarWebService(new TestDownloader(), "http://localhost:9000", null);
+
+            // Act & Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
         public void LogWSOnError()
         {
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] = "trash";
@@ -300,6 +320,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
                 key: ""common-vbnet:InsufficientCommentDensity"",
                 repo: ""common-vbnet"",
                 internalKey: ""InsufficientCommentDensity.internal"",
+                templateKey: ""dummy.template.key"",
                 name: ""Source files should have a sufficient density of comment lines"",
                 severity: ""MAJOR"",
                 lang: ""vbnet"",
@@ -374,7 +395,7 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             Assert.AreEqual("common-vbnet", actual[1].RepoKey);
             Assert.AreEqual("InsufficientCommentDensity", actual[1].RuleKey);
             Assert.AreEqual("InsufficientCommentDensity.internal", actual[1].InternalKeyOrKey);
-            Assert.AreEqual(null, actual[1].TemplateKey);
+            Assert.AreEqual("dummy.template.key", actual[1].TemplateKey);
             Assert.AreEqual(1, actual[1].Parameters.Count());
             Assert.IsTrue(actual[1].Parameters.First().Equals(new KeyValuePair<string, string>("minimumCommentDensity", "50")));
 
@@ -411,6 +432,17 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             var rules = ws.GetInactiveRules("my#qp", "cs");
             string[] expected = { "csharpsquid:S2757", "csharpsquid:S1117", "csharpsquid:S1764" };
             CollectionAssert.AreEqual(rules.ToArray(), expected);
+        }
+
+        [TestMethod]
+        public void GetProperties_NullProjectKey_Throws()
+        {
+            // Arrange
+            var testSubject =new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
+            Action act = () => testSubject.GetProperties(null, null);
+
+            // Act & Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
         }
 
         [TestMethod]
@@ -459,6 +491,39 @@ namespace SonarQube.TeamBuild.PreProcessor.UnitTests
             var actual = new List<string>(ws.GetAllLanguages());
 
             Assert.AreEqual(true, expected.SequenceEqual(actual));
+        }
+
+        [TestMethod]
+        public void TryDownloadEmbeddedFile_NullPluginKey_Throws()
+        {
+            // Arrange
+            var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
+            Action act = () => testSubject.TryDownloadEmbeddedFile(null, "filename", "targetDir");
+
+            // Act & Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("pluginKey");
+        }
+
+        [TestMethod]
+        public void TryDownloadEmbeddedFile_NullEmbeddedFileName_Throws()
+        {
+            // Arrange
+            var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
+            Action act = () => testSubject.TryDownloadEmbeddedFile("key", null, "targetDir");
+
+            // Act & Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("embeddedFileName");
+        }
+
+        [TestMethod]
+        public void TryDownloadEmbeddedFile_NullTargetDirectory_Throws()
+        {
+            // Arrange
+            var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
+            Action act = () => testSubject.TryDownloadEmbeddedFile("pluginKey", "filename", null);
+
+            // Act & Assert
+            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("targetDirectory");
         }
 
         [TestMethod]

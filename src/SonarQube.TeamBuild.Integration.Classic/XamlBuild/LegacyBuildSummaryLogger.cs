@@ -54,17 +54,8 @@ namespace SonarQube.TeamBuild.Integration.Classic.XamlBuild
 
         public LegacyBuildSummaryLogger(string tfsUri, string buildUri)
         {
-            if (string.IsNullOrWhiteSpace(tfsUri))
-            {
-                throw new ArgumentNullException(nameof(tfsUri));
-            }
-            if (string.IsNullOrWhiteSpace(buildUri))
-            {
-                throw new ArgumentNullException(nameof(buildUri));
-            }
-
-            this.tfsUri = tfsUri;
-            this.buildUri = buildUri;
+            this.tfsUri = tfsUri ?? throw new ArgumentNullException(nameof(tfsUri));
+            this.buildUri = buildUri ?? throw new ArgumentNullException(nameof(buildUri));
         }
 
         /// <summary>

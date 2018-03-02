@@ -31,7 +31,7 @@ using TestUtilities;
 namespace SonarQube.TeamBuild.Integration.Tests
 {
     [TestClass]
-    public class CoverageReportConverterTests
+    public class BinaryToXmlCoverageReportConverterTests
     {
         public TestContext TestContext { get; set; }
 
