@@ -78,6 +78,7 @@
     <Compile Include="AnalysisConfig\AnalyzerSettingsTests.cs" />
     <Compile Include="AnalysisConfig\RuleSetTests.cs" />
     <Compile Include="AnalysisProperties\AnalysisPropertiesTests.cs" />
+    <Compile Include="AnalysisProperties\AnalysisPropertyProviderExtensionsTests.cs" />
     <Compile Include="AnalysisProperties\ListPropertiesProviderTests.cs" />
     <Compile Include="AnalysisProperties\PropertyTests.cs" />
     <Compile Include="CmdLineArgsPropertiesProviderTests.cs" />

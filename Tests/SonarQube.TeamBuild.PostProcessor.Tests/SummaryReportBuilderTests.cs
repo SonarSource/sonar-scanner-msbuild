@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
@@ -33,6 +35,38 @@ namespace SonarQube.TeamBuild.PostProcessorTests
     public class SummaryReportBuilderTests
     {
         public TestContext TestContext { get; set; }
+
+        [TestMethod]
+        public void Ctor_FactoryIsNull_Throws()
+        {
+            // Arrange
+            Action action = () => new SummaryReportBuilder(null);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
+        }
+
+        [TestMethod]
+        public void CreateSummaryData_ConfigIsNull_Throws()
+        {
+            // Arrange
+            var result = new ProjectInfoAnalysisResult { RanToCompletion = false };
+            Action action = () => SummaryReportBuilder.CreateSummaryData(null, result);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        }
+
+        [TestMethod]
+        public void CreateSummaryData_ResultIsNull_Throws()
+        {
+            // Arrange
+            var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = "http://foo" };
+            Action action = () => SummaryReportBuilder.CreateSummaryData(config, null);
+
+            // Act & Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("result");
+        }
 
         [TestMethod]
         public void SummaryReport_NoProjects()
