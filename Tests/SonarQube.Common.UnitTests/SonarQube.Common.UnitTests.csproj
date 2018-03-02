@@ -76,10 +76,13 @@
     <Compile Include="AggregatePropertiesProviderTests.cs" />
     <Compile Include="AnalysisConfig\AnalysisConfigExtensionsTests.cs" />
     <Compile Include="AnalysisConfig\AnalyzerSettingsTests.cs" />
+    <Compile Include="AnalysisConfig\RuleSetTests.cs" />
     <Compile Include="AnalysisProperties\AnalysisPropertiesTests.cs" />
     <Compile Include="AnalysisProperties\ListPropertiesProviderTests.cs" />
+    <Compile Include="AnalysisProperties\PropertyTests.cs" />
     <Compile Include="CmdLineArgsPropertiesProviderTests.cs" />
     <Compile Include="CommandLine\ArgumentDescriptorTests.cs" />
+    <Compile Include="CommandLine\ArgumentInstanceTests.cs" />
     <Compile Include="CommandLine\CommandLineParserTests.cs" />
     <Compile Include="ConsoleLoggerTests.cs" />
     <Compile Include="AnalysisConfig\AnalysisConfigTests.cs" />
@@ -89,6 +92,7 @@
     <Compile Include="Infrastructure\OutputRecorder.cs" />
     <Compile Include="ProcessRunnerTests.cs" />
     <Compile Include="ProjectInfoTests.cs" />
+    <Compile Include="ProjectInfo\ProjectInfoExtensionsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MutexWrapperTests.cs" />
     <Compile Include="SerializerTests.cs" />
