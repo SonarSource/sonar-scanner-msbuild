@@ -294,5 +294,14 @@ namespace SonarQube.TeamBuild.PostProcessor {
                 return ResourceManager.GetString("WARN_CannotProcessCoverage", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for MSBuild **.
+        /// </summary>
+        internal static string WARN_XamlBuildDeprecated {
+            get {
+                return ResourceManager.GetString("WARN_XamlBuildDeprecated", resourceCulture);
+            }
+        }
     }
 }

@@ -202,4 +202,7 @@ Config file: {5}</value>
   <data name="WARN_CannotProcessCoverage" xml:space="preserve">
     <value>Cannot process the code coverage information. Look at the previous warnings for details.</value>
   </data>
+  <data name="WARN_XamlBuildDeprecated" xml:space="preserve">
+    <value>** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for MSBuild **</value>
+  </data>
 </root>
