@@ -25,14 +25,12 @@ namespace TestUtilities
 {
     public static class AssertException
     {
-        #region Public methods
-
         /// <summary>
         /// Asserts that the expected exception is thrown
         /// </summary>
         public static TException Expects<TException>(Action op) where TException : Exception
         {
-            Assert.IsNotNull("Test error: supplied operation cannot be null");
+            Assert.IsNotNull(op, "Test error: supplied operation cannot be null");
 
             var expectedType = typeof(TException);
             Exception caught = null;
@@ -51,6 +49,21 @@ namespace TestUtilities
             return (TException)caught;
         }
 
-        #endregion Public methods
+        public static void ExpectsNullArgumentException(Action op, string parameterName)
+        {
+            Assert.IsNotNull(op, "Test error: supplied operation cannot be null");
+
+            try
+            {
+                op();
+            }
+            catch (ArgumentNullException ex)
+            {
+                Assert.AreEqual(parameterName, ex.ParamName);
+                return;
+            }
+
+            Assert.Fail("expected exception not thrown");
+        }
     }
 }

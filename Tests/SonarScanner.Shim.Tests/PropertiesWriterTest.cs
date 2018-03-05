@@ -46,6 +46,43 @@ namespace SonarScanner.Shim.Tests
         }
 
         [TestMethod]
+        public void WriteSettingsForProject_ThrowsOnNullArgument()
+        {
+            var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+
+            AssertException.ExpectsNullArgumentException(
+                () => propertiesWriter.WriteSettingsForProject(null),
+                "projectData");
+        }
+
+        [TestMethod]
+        public void WriteGlobalSettings_ThrowsOnNullArgument()
+        {
+            var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+
+            AssertException.ExpectsNullArgumentException(
+                () => propertiesWriter.WriteGlobalSettings(null),
+                "properties");
+        }
+
+        [TestMethod]
+        public void WriteAnalyzerOutputPaths_ThrowsOnNullArgument()
+        {
+            var config = new AnalysisConfig();
+            var propertiesWriter = new PropertiesWriter(config, new TestLogger());
+            var someGuid = new Guid("5762C17D-1DDF-4C77-86AC-E2B4940926A9");
+
+            var projectInfo = new ProjectInfo() { ProjectGuid = someGuid };
+            var projectData = new ProjectData(projectInfo);
+            projectData.AnalyzerOutPaths.Add(new FileInfo(@"c:\dir1\dir2"));
+
+            propertiesWriter.WriteAnalyzerOutputPaths(projectData);
+
+            propertiesWriter.Flush().Should()
+                .Be("5762C17D-1DDF-4C77-86AC-E2B4940926A9.=\\\r\nc:\\\\dir1\\\\dir2\r\nsonar.modules=\r\n\r\n");
+        }
+
+        [TestMethod]
         public void PropertiesWriterToString()
         {
             var productBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_ProductBaseDir");

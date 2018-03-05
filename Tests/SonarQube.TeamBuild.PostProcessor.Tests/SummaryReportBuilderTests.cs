@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -26,6 +27,7 @@ using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.Integration.Classic.XamlBuild;
 using SonarQube.TeamBuild.PostProcessor;
+using SonarQube.TeamBuild.PostProcessor.Tests;
 using SonarScanner.Shim;
 using TestUtilities;
 
@@ -165,6 +167,47 @@ namespace SonarQube.TeamBuild.PostProcessorTests
 
             // Assert
             Assert.IsTrue(File.Exists(expectedReportPath) && (new FileInfo(expectedReportPath)).Length > 0, "The report file cannot be found or is empty");
+        }
+
+        [TestMethod]
+        public void Deprecated_Warning_Logged_On_XAML_Build()
+        {
+            var hostUrl = "http://mySonarQube:9000";
+            var result = new ProjectInfoAnalysisResult();
+            var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
+
+            // Arrange
+            var settings = new MockTeamBuildSettings
+            {
+                BuildEnvironment = BuildEnvironment.LegacyTeamBuild
+            };
+
+            var summaryLogger = new MockLegacyBuildSummaryLogger();
+            var builder = new SummaryReportBuilder(
+                new MockLegacyTeamBuildFactory(summaryLogger, null));
+
+            config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
+
+            // Act
+            builder.GenerateReports(settings, config, result, new TestLogger());
+
+            // Assert
+            summaryLogger.Messages[0].Should().Be("** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for MSBuild **");
+        }
+
+        private sealed class MockLegacyBuildSummaryLogger : ILegacyBuildSummaryLogger
+        {
+            public List<string> Messages { get; private set; } = new List<string>();
+
+            public void WriteMessage(string message, params object[] args)
+            {
+                Messages.Add(string.Format(message, args));
+            }
+
+            public void Dispose()
+            {
+                // Not needed for test
+            }
         }
 
         private static void VerifySummaryReportData(

@@ -28,6 +28,16 @@ namespace SonarQube.Common.UnitTests
     public class ProjectInfoExtensionsTests
     {
         [TestMethod]
+        public void TryGetAnalysisSetting_WhenProjectInfoIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => ProjectInfoExtensions.TryGetAnalyzerResult(null, "foo", out var result);
+
+            // Assert
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
+        }
+
+        [TestMethod]
         public void TryGetAnalyzerResult_WhenProjectInfoIsNull_ThrowsArgumentNullException()
         {
             // Arrange

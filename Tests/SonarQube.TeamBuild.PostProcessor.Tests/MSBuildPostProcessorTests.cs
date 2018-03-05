@@ -24,6 +24,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.Integration.Interfaces;
+using SonarQube.TeamBuild.PostProcessorTests;
 using SonarScanner.Shim;
 using TestUtilities;
 
@@ -177,7 +179,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             context.Scanner.AssertExecuted();
             context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-scanner fails
 
-            CollectionAssert.AreEqual(new string[] {"-Dsonar.scanAllFiles=true" }, context.Scanner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-scanner");
+            CollectionAssert.AreEqual(new string[] { "-Dsonar.scanAllFiles=true" }, context.Scanner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-scanner");
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
@@ -344,6 +346,30 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             context.Logger.AssertErrorDoesNotExist(CredentialsErrorMessage);
         }
 
+        [TestMethod]
+        public void Execute_NullArgs_Throws()
+        {
+            AssertException.ExpectsNullArgumentException(
+                () => DummyPostProcessorExecute(null, new AnalysisConfig(), new MockTeamBuildSettings()),
+                "args");
+        }
+
+        [TestMethod]
+        public void Execute_NullAnalysisConfig_Throws()
+        {
+            AssertException.ExpectsNullArgumentException(
+                () => DummyPostProcessorExecute(new string[0], null, new MockTeamBuildSettings()),
+                "config");
+        }
+
+        [TestMethod]
+        public void Execute_NullTeamBuildSettings_Throws()
+        {
+            AssertException.ExpectsNullArgumentException(
+                () => DummyPostProcessorExecute(new string[0], new AnalysisConfig(), null),
+                "settings");
+        }
+
         #endregion Tests
 
         /// <summary>
@@ -399,6 +425,13 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             var proc = new MSBuildPostProcessor(context.CodeCoverage, context.Scanner, context.ReportBuilder, context.Logger, context.TargetsUninstaller.Object);
             var success = proc.Execute(args, context.Config, context.Settings);
             return success;
+        }
+
+        private void DummyPostProcessorExecute(string[] args, AnalysisConfig config, ITeamBuildSettings settings)
+        {
+            var context = new PostProcTestContext(TestContext);
+            var proc = new MSBuildPostProcessor(context.CodeCoverage, context.Scanner, context.ReportBuilder, context.Logger, context.TargetsUninstaller.Object);
+            proc.Execute(args, config, settings);
         }
 
         #endregion Private methods
