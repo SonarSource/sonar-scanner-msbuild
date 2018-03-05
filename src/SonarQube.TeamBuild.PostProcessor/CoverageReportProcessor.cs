@@ -60,7 +60,8 @@ namespace SonarQube.TeamBuild.PostProcessor
         {
             Debug.Assert(initialisedSuccesfully, "Initialization failed, cannot process coverage reports");
 
-            return processor.ProcessCoverageReports();
+            // If we return false then processing will stop so if in doubt return true
+            return processor?.ProcessCoverageReports() ?? true;
         }
 
         /// <summary>
