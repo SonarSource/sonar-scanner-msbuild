@@ -78,6 +78,7 @@
     <Compile Include="Infrastructure\MockSonarScanner.cs" />
     <Compile Include="Infrastructure\MockSummaryReportBuilder.cs" />
     <Compile Include="Infrastructure\MockTeamBuildSettings.cs" />
+    <Compile Include="Infrastructure\MockLegacyTeamBuildFactory.cs" />
     <Compile Include="MSBuildPostProcessorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SummaryReportBuilderTests.cs" />

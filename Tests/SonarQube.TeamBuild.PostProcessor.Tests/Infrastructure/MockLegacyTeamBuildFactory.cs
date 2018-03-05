@@ -18,35 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.TeamBuild.Integration;
 
-namespace TestUtilities
+namespace SonarQube.TeamBuild.PostProcessorTests
 {
-    public static class AssertException
+    internal class MockLegacyTeamBuildFactory : ILegacyTeamBuildFactory
     {
-        /// <summary>
-        /// Asserts that the expected exception is thrown
-        /// </summary>
-        public static TException Expects<TException>(Action op) where TException : Exception
+        private readonly ILegacyBuildSummaryLogger logger;
+        private readonly ICoverageReportProcessor processor;
+
+        public MockLegacyTeamBuildFactory(ILegacyBuildSummaryLogger logger,
+            ICoverageReportProcessor processor)
         {
-            Assert.IsNotNull(op, "Test error: supplied operation cannot be null");
-
-            var expectedType = typeof(TException);
-            Exception caught = null;
-            try
-            {
-                op();
-            }
-            catch(Exception ex)
-            {
-                caught = ex;
-            }
-
-            Assert.IsNotNull(caught, "Expecting an exception to be thrown. Expected: {0}", expectedType.FullName);
-            Assert.IsInstanceOfType(caught, expectedType, "Unexpected exception thrown");
-
-            return (TException)caught;
+            this.logger = logger;
+            this.processor = processor;
         }
+
+        public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri)
+            => logger;
+
+        public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
+            => processor;
     }
 }
