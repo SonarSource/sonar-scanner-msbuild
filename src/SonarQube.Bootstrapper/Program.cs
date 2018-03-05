@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Diagnostics;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 
@@ -81,7 +80,9 @@ namespace SonarQube.Bootstrapper
             }
             finally
             {
-                DumpLoadedAssemblies(logger);
+#if DEBUG
+                DEBUG_DumpLoadedAssemblies(logger);
+#endif
             }
         }
 
@@ -103,8 +104,8 @@ namespace SonarQube.Bootstrapper
 #endif
         }
 
-        [Conditional("DEBUG")]
-        private static void DumpLoadedAssemblies(ILogger logger)
+#if DEBUG
+        private static void DEBUG_DumpLoadedAssemblies(ILogger logger)
         {
             try
             {
@@ -127,5 +128,7 @@ namespace SonarQube.Bootstrapper
                 logger.LogDebug($"Error dumping assembly information: {ex.ToString()}");
             }
         }
+#endif
+
     }
 }
