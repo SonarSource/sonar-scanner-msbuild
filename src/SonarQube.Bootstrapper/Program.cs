@@ -32,17 +32,18 @@ namespace SonarQube.Bootstrapper
         public static int Main(string[] args)
         {
             var logger = new ConsoleLogger(includeTimestamp: false);
+            return Execute(args, logger);
+        }
+
+        public static int Execute(string[] args, ILogger logger)
+        {
             Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
 #if IS_NET_FRAMEWORK
             logger.LogInfo("Using the .NET Framework version of the Scanner for MSBuild");
 #else
             logger.LogInfo("Using the .NET Core version of the Scanner for MSBuild");
 #endif
-            return Execute(args, logger);
-        }
 
-        public static int Execute(string[] args, ILogger logger)
-        {
             logger.SuspendOutput();
 
             if (ArgumentProcessor.IsHelp(args))

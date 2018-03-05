@@ -78,6 +78,7 @@
     <Compile Include="DefaultProcessorFactoryTests.cs" />
     <Compile Include="Infrastructure\BootstrapperTestUtils.cs" />
     <Compile Include="DefaultPropertiesFileTests.cs" />
+    <Compile Include="ProgramTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
