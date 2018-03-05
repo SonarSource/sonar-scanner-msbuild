@@ -49,24 +49,22 @@ namespace SonarScanner.Shim.Tests
         public void WriteSettingsForProject_ThrowsOnNullArgument()
         {
             var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+            Action action = () => propertiesWriter.WriteSettingsForProject(null);
 
-            AssertException.ExpectsNullArgumentException(
-                () => propertiesWriter.WriteSettingsForProject(null),
-                "projectData");
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectData");
         }
 
         [TestMethod]
         public void WriteGlobalSettings_ThrowsOnNullArgument()
         {
             var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+            Action action = () => propertiesWriter.WriteGlobalSettings(null);
 
-            AssertException.ExpectsNullArgumentException(
-                () => propertiesWriter.WriteGlobalSettings(null),
-                "properties");
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
         }
 
         [TestMethod]
-        public void WriteAnalyzerOutputPaths_ThrowsOnNullArgument()
+        public void WriteAnalyzerOutputPaths_WritesEncodedAnalyzerOutPaths()
         {
             var config = new AnalysisConfig();
             var propertiesWriter = new PropertiesWriter(config, new TestLogger());

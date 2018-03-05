@@ -48,22 +48,5 @@ namespace TestUtilities
 
             return (TException)caught;
         }
-
-        public static void ExpectsNullArgumentException(Action op, string parameterName)
-        {
-            Assert.IsNotNull(op, "Test error: supplied operation cannot be null");
-
-            try
-            {
-                op();
-            }
-            catch (ArgumentNullException ex)
-            {
-                Assert.AreEqual(parameterName, ex.ParamName);
-                return;
-            }
-
-            Assert.Fail("expected exception not thrown");
-        }
     }
 }

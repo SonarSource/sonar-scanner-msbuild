@@ -18,14 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Common;
 using SonarQube.TeamBuild.Integration;
 using SonarQube.TeamBuild.Integration.Interfaces;
-using SonarQube.TeamBuild.PostProcessorTests;
 using SonarScanner.Shim;
 using TestUtilities;
 
@@ -52,7 +52,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             var success = Execute(context);
 
             // Assert
-            Assert.IsFalse(success, "Not expecting post-processor to have succeeded");
+            success.Should().BeFalse("Not expecting post-processor to have succeeded");
 
             context.CodeCoverage.AssertInitializedCalled();
             context.CodeCoverage.AssertExecuteCalled();
@@ -80,7 +80,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             var success = Execute(context);
 
             // Assert
-            Assert.IsFalse(success, "Not expecting post-processor to have succeeded");
+            success.Should().BeFalse("Not expecting post-processor to have succeeded");
 
             context.CodeCoverage.AssertExecuteCalled();
             context.Scanner.AssertExecuted();
@@ -107,7 +107,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             var success = Execute(context);
 
             // Assert
-            Assert.IsTrue(success, "Expecting post-processor to have succeeded");
+            success.Should().BeTrue("Expecting post-processor to have succeeded");
 
             context.CodeCoverage.AssertInitializedCalled();
             context.CodeCoverage.AssertExecuteCalled();
@@ -115,7 +115,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-scanner fails
 
-            CollectionAssert.AreEqual(new string[] { "-Dsonar.scanAllFiles=true" }, context.Scanner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-scanner");
+            context.Scanner.SuppliedCommandLineArgs.Should().Equal(
+                new string[] { "-Dsonar.scanAllFiles=true" },
+                "Unexpected command line args passed to the sonar-scanner");
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
@@ -139,7 +141,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             var success = Execute(context);
 
             // Assert
-            Assert.IsTrue(success, "Expecting post-processor to have succeeded");
+            success.Should().BeTrue("Expecting post-processor to have succeeded");
 
             context.CodeCoverage.AssertInitializedCalled();
             context.CodeCoverage.AssertExecuteCalled();
@@ -147,7 +149,9 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
 
             context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-scanner fails
 
-            CollectionAssert.AreEqual(new string[] { "-Dsonar.scanAllFiles=true" }, context.Scanner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-scanner");
+            context.Scanner.SuppliedCommandLineArgs.Should().Equal(
+                new string[] { "-Dsonar.scanAllFiles=true" },
+                "Unexpected command line args passed to the sonar-scanner");
 
             context.Logger.AssertErrorsLogged(1);
             context.Logger.AssertWarningsLogged(0);
@@ -172,14 +176,16 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             var success = Execute(context);
 
             // Assert
-            Assert.IsTrue(success, "Expecting post-processor to have succeeded");
+            success.Should().BeTrue("Expecting post-processor to have succeeded");
 
             context.CodeCoverage.AssertInitializedCalled();
             context.CodeCoverage.AssertExecuteNotCalled();
             context.Scanner.AssertExecuted();
             context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-scanner fails
 
-            CollectionAssert.AreEqual(new string[] { "-Dsonar.scanAllFiles=true" }, context.Scanner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-scanner");
+            context.Scanner.SuppliedCommandLineArgs.Should().Equal(
+                new string[] { "-Dsonar.scanAllFiles=true" },
+                "Unexpected command line args passed to the sonar-scanner");
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
@@ -198,7 +204,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             var success = Execute(context, "/d:sonar.foo=bar");
 
             // Assert
-            Assert.IsFalse(success, "Expecting post-processor to have failed");
+            success.Should().BeFalse("Expecting post-processor to have failed");
 
             context.CodeCoverage.AssertInitialisedNotCalled();
             context.CodeCoverage.AssertExecuteNotCalled();
@@ -244,14 +250,17 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             var success = Execute(context, suppliedArgs);
 
             // Assert
-            Assert.IsTrue(success, "Expecting post-processor to have succeeded");
+            success.Should().BeTrue("Expecting post-processor to have succeeded");
 
             context.CodeCoverage.AssertExecuteCalled();
             context.CodeCoverage.AssertInitializedCalled();
             context.Scanner.AssertExecuted();
             context.ReportBuilder.AssertExecuted();
 
-            CollectionAssert.AreEqual(expectedArgs, context.Scanner.SuppliedCommandLineArgs.ToArray(), "Unexpected command line args passed to the sonar-runner");
+
+            context.Scanner.SuppliedCommandLineArgs.Should().Equal(
+                expectedArgs,
+                "Unexpected command line args passed to the sonar-scanner");
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
@@ -271,7 +280,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             var success = Execute(context, args: new string[0]);
 
             // Assert
-            Assert.IsFalse(success);
+            success.Should().BeFalse();
             context.Logger.AssertErrorLogged(CredentialsErrorMessage);
 
             context.CodeCoverage.AssertInitialisedNotCalled();
@@ -297,7 +306,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             var success = Execute(context, args: "/d:sonar.login=foo");
 
             // Assert
-            Assert.IsFalse(success);
+            success.Should().BeFalse();
             context.Logger.AssertErrorLogged(CredentialsErrorMessage);
 
             context.CodeCoverage.AssertInitialisedNotCalled();
@@ -323,7 +332,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             var success = Execute(context, args: new string[0]);
 
             // Assert
-            Assert.IsTrue(success);
+            success.Should().BeTrue();
             context.Logger.AssertErrorDoesNotExist(CredentialsErrorMessage);
         }
 
@@ -342,32 +351,29 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
             var success = Execute(context, args: "/d:sonar.login=foo");
 
             // Assert
-            Assert.IsTrue(success);
+            success.Should().BeTrue();
             context.Logger.AssertErrorDoesNotExist(CredentialsErrorMessage);
         }
 
         [TestMethod]
         public void Execute_NullArgs_Throws()
         {
-            AssertException.ExpectsNullArgumentException(
-                () => DummyPostProcessorExecute(null, new AnalysisConfig(), new MockTeamBuildSettings()),
-                "args");
+            Action action = () => DummyPostProcessorExecute(null, new AnalysisConfig(), new MockTeamBuildSettings());
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
         }
 
         [TestMethod]
         public void Execute_NullAnalysisConfig_Throws()
         {
-            AssertException.ExpectsNullArgumentException(
-                () => DummyPostProcessorExecute(new string[0], null, new MockTeamBuildSettings()),
-                "config");
+            Action action = () => DummyPostProcessorExecute(new string[0], null, new MockTeamBuildSettings());
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
         }
 
         [TestMethod]
         public void Execute_NullTeamBuildSettings_Throws()
         {
-            AssertException.ExpectsNullArgumentException(
-                () => DummyPostProcessorExecute(new string[0], new AnalysisConfig(), null),
-                "settings");
+            Action action = () => DummyPostProcessorExecute(new string[0], new AnalysisConfig(), null);
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
         }
 
         #endregion Tests
@@ -402,7 +408,7 @@ namespace SonarQube.TeamBuild.PostProcessor.Tests
                     .Callback(() =>
                     {
                         // Verify that the method was called maximum once
-                        Assert.IsTrue(callCount == 0, "Method should be called exactly once");
+                        callCount.Should().Be(0, "Method should be called exactly once");
                         callCount++;
                     });
 
