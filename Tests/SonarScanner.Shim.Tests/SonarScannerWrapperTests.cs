@@ -18,9 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
 using TestUtilities;
@@ -38,6 +40,39 @@ namespace SonarScanner.Shim.Tests
         private const int FailureExitCode = 4;
 
         #region Tests
+
+        [TestMethod]
+        public void Execute_WhenConfigIsNull_Throws()
+        {
+            // Arrange
+            var testSubject = new SonarScannerWrapper();
+            Action act = () => testSubject.Execute(null, new string[] { }, new TestLogger());
+
+            // Act & Assert
+            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        }
+
+        [TestMethod]
+        public void Execute_WhenUserCmdLineArgumentsIsNull_Throws()
+        {
+            // Arrange
+            var testSubject = new SonarScannerWrapper();
+            Action act = () => testSubject.Execute(new AnalysisConfig(), null, new TestLogger());
+
+            // Act & Assert
+            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userCmdLineArguments");
+        }
+
+        [TestMethod]
+        public void Execute_WhenLoggerIsNull_Throws()
+        {
+            // Arrange
+            var testSubject = new SonarScannerWrapper();
+            Action act = () => testSubject.Execute(new AnalysisConfig(), new string[] { }, null);
+
+            // Act & Assert
+            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
 
         [TestMethod]
         public void SonarScannerHome_NoMessageIfNotAlreadySet()

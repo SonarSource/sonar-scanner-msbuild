@@ -71,6 +71,9 @@ namespace SonarQube.Bootstrapper.Tests
         {
             Assert.IsTrue(ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/h" }));
             Assert.IsFalse(ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/hr" }));
+
+            Assert.IsTrue(ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/?" }));
+            Assert.IsFalse(ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/??" }));
         }
 
         [TestMethod]
