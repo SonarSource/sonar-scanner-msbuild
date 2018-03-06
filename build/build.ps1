@@ -44,11 +44,13 @@ function restore() {
 }
 
 function deploy([string] $version) {
-    #DeployOnRepox $scannerZipPath "" $version
-    $scannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\SonarQube.Scanner.MSBuild.zip
+    #DeployOnRepox $classicScannerZipPath "" $version
+    $classicScannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\SonarQube.Scanner.MSBuild-net46.zip
+    $dotnetScannerZipPath  = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\SonarQube.Scanner.MSBuild-netcoreapp2.0.zip
     
     write-host -f green  "replace zip filenames in pom.xml"
-    (Get-Content .\pom.xml) -replace 'scannerZipPath', "$scannerZipPath" | Set-Content .\pom.xml
+    (Get-Content .\pom.xml) -replace 'classicScannerZipPath', "$classicScannerZipPath" | Set-Content .\pom.xml
+    (Get-Content .\pom.xml) -replace 'dotnetScannerZipPath',  "$dotnetScannerZipPath"  | Set-Content .\pom.xml
         
     write-host -f green  "set version $version in pom.xml"
     $command = "mvn versions:set -DgenerateBackupPoms=false -DnewVersion='$version'"
