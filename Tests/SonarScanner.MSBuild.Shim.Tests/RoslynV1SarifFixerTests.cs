@@ -417,7 +417,7 @@ It features ""quoted text""."",
             var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
+            var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage);
 
             // Assert
             // fixable -> no change to file, file path in return value, file contents as expected
@@ -486,7 +486,7 @@ It features ""quoted text""."",
             var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
+            var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage);
             Assert.IsNull(returnedSarifPath);
         }
 
