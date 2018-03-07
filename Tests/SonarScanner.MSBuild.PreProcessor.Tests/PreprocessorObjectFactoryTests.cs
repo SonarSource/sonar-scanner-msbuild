@@ -38,14 +38,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             // Arrange
             var logger = new TestLogger();
             var validArgs = CreateValidArguments();
-            IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory();
+            IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory(logger);
+
+            // 1. Ctor
+            AssertException.Expects<ArgumentNullException>(() => new PreprocessorObjectFactory(null));
 
             // 1. CreateSonarQubeServer method
-            AssertException.Expects<ArgumentNullException>(() => testSubject.CreateSonarQubeServer(null, logger));
-            AssertException.Expects<ArgumentNullException>(() => testSubject.CreateSonarQubeServer(validArgs, null));
-
-            // 2. CreateAnalyzerProvider method
-            AssertException.Expects<ArgumentNullException>(() => testSubject.CreateRoslynAnalyzerProvider(null));
+            AssertException.Expects<ArgumentNullException>(() => testSubject.CreateSonarQubeServer(null));
         }
 
         [TestMethod]
@@ -54,18 +53,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             // Arrange
             var logger = new TestLogger();
             var validArgs = CreateValidArguments();
-            IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory();
+            IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory(logger);
 
             // 1. Create the SonarQube server...
-            object actual = testSubject.CreateSonarQubeServer(validArgs, logger);
+            object actual = testSubject.CreateSonarQubeServer(validArgs);
             Assert.IsNotNull(actual);
 
             // 2. Now create the targets provider
-            actual = testSubject.CreateTargetInstaller(logger);
+            actual = testSubject.CreateTargetInstaller();
             Assert.IsNotNull(actual);
 
             // 3. Now create the analyzer provider
-            actual = testSubject.CreateRoslynAnalyzerProvider(logger);
+            actual = testSubject.CreateRoslynAnalyzerProvider();
             Assert.IsNotNull(actual);
         }
 
@@ -74,10 +73,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             // Arrange
             var logger = new TestLogger();
-            IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory();
+            IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory(logger);
 
             // 2. Act and assert
-            AssertException.Expects<InvalidOperationException>(() => testSubject.CreateRoslynAnalyzerProvider(logger));
+            AssertException.Expects<InvalidOperationException>(() => testSubject.CreateRoslynAnalyzerProvider());
         }
 
         #endregion Tests

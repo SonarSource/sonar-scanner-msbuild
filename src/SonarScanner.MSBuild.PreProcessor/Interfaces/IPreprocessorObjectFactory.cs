@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.PreProcessor
 {
     /// <summary>
@@ -32,16 +30,16 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </summary>
         /// <param name="args">Validated arguments</param>
         /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary</remarks>
-        ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args, ILogger logger);
+        ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args);
 
         /// <summary>
         /// Creates and returns the component to install the MSBuild targets
         /// </summary>
-        ITargetsInstaller CreateTargetInstaller(ILogger logger);
+        ITargetsInstaller CreateTargetInstaller();
 
         /// <summary>
         /// Creates and returns the component that provisions the Roslyn analyzers
         /// </summary>
-        IAnalyzerProvider CreateRoslynAnalyzerProvider(ILogger logger);
+        IAnalyzerProvider CreateRoslynAnalyzerProvider();
     }
 }
