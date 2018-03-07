@@ -39,7 +39,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
@@ -59,7 +59,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
@@ -79,7 +79,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
@@ -109,7 +109,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
@@ -141,7 +141,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
@@ -192,7 +192,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
@@ -235,7 +235,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
             Assert.AreEqual(null, coverageFilePath);
@@ -281,7 +281,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             File.Create(expectedFilePath);
 
             // Act
-            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
             Assert.AreEqual(expectedFilePath, coverageFilePath);
@@ -327,7 +327,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             File.Create(expectedFilePath);
 
             // Act
-            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
             Assert.AreEqual(expectedFilePath, coverageFilePath);
@@ -369,7 +369,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = TrxFileReader.LocateCodeCoverageFile(testDir, logger);
+            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
             Assert.AreEqual(coverageFilePath, coverageFilePath);

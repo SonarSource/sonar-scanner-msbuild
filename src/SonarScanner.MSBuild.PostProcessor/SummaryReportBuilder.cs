@@ -50,12 +50,13 @@ namespace SonarScanner.MSBuild.PostProcessor
         public /* for test purposes */ const string DashboardUrlFormatWithBranch = "{0}/dashboard/index/{1}:{2}";
         public /* for test purposes */ const string SummaryMdFilename = "summary.md";
 
+        private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
+        private readonly ILogger logger;
+
         private AnalysisConfig config;
-        private ILogger logger;
         private ProjectInfoAnalysisResult result;
         private ITeamBuildSettings settings;
 
-        private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
 
         public SummaryReportBuilder(ILegacyTeamBuildFactory legacyTeamBuildFactory, ILogger logger)
         {

@@ -104,10 +104,6 @@ namespace SonarScanner.MSBuild.TFS.Classic
             {
                 throw new ArgumentNullException(nameof(outputFilePath));
             }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
 
             return ConvertBinaryToXml(conversionToolPath, inputFilePath, outputFilePath, logger);
         }
