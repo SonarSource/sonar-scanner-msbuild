@@ -30,8 +30,14 @@ namespace SonarScanner.MSBuild.PostProcessor
     public class TargetsUninstaller : ITargetsUninstaller
     {
         private readonly IMsBuildPathsSettings msBuildPathsSettings = new MsBuildPathSettings();
+        private readonly ILogger logger;
 
-        public void UninstallTargets(ILogger logger)
+        public TargetsUninstaller(ILogger logger)
+        {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public void UninstallTargets()
         {
             foreach (var directoryPath in msBuildPathsSettings.GetImportBeforePaths())
             {

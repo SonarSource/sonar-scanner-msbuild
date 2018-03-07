@@ -82,8 +82,8 @@ namespace SonarScanner.MSBuild
                     return ErrorCode;
                 }
 
-                var processorFactory = new DefaultProcessorFactory(logger, GetLegacyTeamBuildFactory(),
-                    GetCoverageReportConverter());
+                var processorFactory = new DefaultProcessorFactory(logger, GetLegacyTeamBuildFactory(logger),
+                    GetCoverageReportConverter(logger));
                 var bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
                 var exitCode = bootstrapper.Execute();
                 Environment.ExitCode = exitCode;
@@ -97,19 +97,19 @@ namespace SonarScanner.MSBuild
             }
         }
 
-        private static ICoverageReportConverter GetCoverageReportConverter()
+        private static ICoverageReportConverter GetCoverageReportConverter(ILogger logger)
         {
 #if IS_NET_FRAMEWORK
-            return new SonarScanner.MSBuild.TFS.Classic.BinaryToXmlCoverageReportConverter();
+            return new SonarScanner.MSBuild.TFS.Classic.BinaryToXmlCoverageReportConverter(logger);
 #else
             return new NullCoverageReportConverter();
 #endif
         }
 
-        private static ILegacyTeamBuildFactory GetLegacyTeamBuildFactory()
+        private static ILegacyTeamBuildFactory GetLegacyTeamBuildFactory(ILogger logger)
         {
 #if IS_NET_FRAMEWORK
-            return new SonarScanner.MSBuild.TFS.Classic.XamlBuild.LegacyTeamBuildFactory();
+            return new SonarScanner.MSBuild.TFS.Classic.XamlBuild.LegacyTeamBuildFactory(logger);
 #else
             return new NotSupportedLegacyTeamBuildFactory();
 #endif

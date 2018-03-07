@@ -63,7 +63,7 @@ namespace SonarScanner.MSBuild.PostProcessor
                 throw new ArgumentNullException(nameof(settings));
             }
 
-            targetUninstaller.UninstallTargets(logger);
+            targetUninstaller.UninstallTargets();
 
             logger.SuspendOutput();
 
@@ -95,7 +95,7 @@ namespace SonarScanner.MSBuild.PostProcessor
             }
 
             var result = InvokeSonarScanner(provider, config);
-            reportBuilder.GenerateReports(settings, config, result, logger);
+            reportBuilder.GenerateReports(settings, config, result);
             return result.RanToCompletion;
         }
 

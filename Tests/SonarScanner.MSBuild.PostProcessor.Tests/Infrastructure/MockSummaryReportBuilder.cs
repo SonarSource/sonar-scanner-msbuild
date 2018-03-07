@@ -31,7 +31,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
         #region ISummaryReportBuilder interface
 
-        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result)
         {
             Assert.IsFalse(methodCalled, "Generate reports has already been called");
 

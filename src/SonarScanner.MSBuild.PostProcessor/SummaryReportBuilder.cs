@@ -57,10 +57,11 @@ namespace SonarScanner.MSBuild.PostProcessor
 
         private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
 
-        public SummaryReportBuilder(ILegacyTeamBuildFactory legacyTeamBuildFactory)
+        public SummaryReportBuilder(ILegacyTeamBuildFactory legacyTeamBuildFactory, ILogger logger)
         {
             this.legacyTeamBuildFactory
                 = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         #region IReportBuilder interface methods
@@ -68,12 +69,11 @@ namespace SonarScanner.MSBuild.PostProcessor
         /// <summary>
         /// Generates summary reports for LegacyTeamBuild and for Build Vnext
         /// </summary>
-        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.result = result ?? throw new ArgumentNullException(nameof(result));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             GenerateReports();
         }

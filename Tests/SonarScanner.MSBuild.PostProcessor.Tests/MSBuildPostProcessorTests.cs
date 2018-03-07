@@ -63,7 +63,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             context.Logger.AssertWarningsLogged(0);
 
             // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -90,7 +90,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             context.Logger.AssertWarningsLogged(0);
 
             // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -123,7 +123,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             context.Logger.AssertWarningsLogged(0);
 
             // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -157,7 +157,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             context.Logger.AssertWarningsLogged(0);
 
             // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -191,7 +191,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             context.Logger.AssertWarningsLogged(0);
 
             // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -215,7 +215,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             context.Logger.AssertWarningsLogged(0);
 
             // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -266,7 +266,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             context.Logger.AssertWarningsLogged(0);
 
             // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -288,7 +288,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             context.Scanner.AssertNotExecuted();
             context.ReportBuilder.AssertNotExecuted();
 
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -314,7 +314,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             context.Scanner.AssertNotExecuted();
             context.ReportBuilder.AssertNotExecuted();
 
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets(context.Logger));
+            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -404,7 +404,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
                 TargetsUninstaller = new Mock<ITargetsUninstaller>();
                 var callCount = 0;
                 TargetsUninstaller
-                    .Setup(m => m.UninstallTargets(Logger))
+                    .Setup(m => m.UninstallTargets())
                     .Callback(() =>
                     {
                         // Verify that the method was called maximum once
