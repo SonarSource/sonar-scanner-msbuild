@@ -32,14 +32,14 @@ namespace SonarScanner.MSBuild.TFS
 
         protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, out string binaryFilePath)
         {
-            binaryFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, Logger);
+            binaryFilePath = new TrxFileReader(Logger).LocateCodeCoverageFile(settings.BuildDirectory);
 
             return true; // there aren't currently any conditions under which we'd want to stop processing
         }
 
         protected override bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, out string trxFilePath)
         {
-            trxFilePath = TrxFileReader.FindTrxFile(settings.BuildDirectory, Logger);
+            trxFilePath = new TrxFileReader(Logger).FindTrxFile(settings.BuildDirectory);
 
             return true;
         }

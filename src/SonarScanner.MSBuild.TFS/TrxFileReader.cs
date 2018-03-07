@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.TFS
     /// <summary>
     /// Extracts coverage information from a TRX file
     /// </summary>
-    public static class TrxFileReader
+    public class TrxFileReader
     {
         /// <summary>
         /// XML namespace of the .trx file
@@ -67,7 +67,12 @@ namespace SonarScanner.MSBuild.TFS
         /// </summary>
         private const string TestResultsFolderName = "TestResults";
 
-        #region Public methods
+        private readonly ILogger logger;
+
+        public TrxFileReader(ILogger logger)
+        {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
 
         /// <summary>
         /// Attempts to locate a code coverage file under the specified build directory
@@ -77,36 +82,28 @@ namespace SonarScanner.MSBuild.TFS
         /// * look for a test results file (*.trx) in a default location under the supplied build directory.
         /// * parse the trx file looking for a code coverage attachment entry
         /// * resolve the attachment entry to an absolute path</remarks>
-        public static string LocateCodeCoverageFile(string buildRootDirectory, ILogger logger)
+        public string LocateCodeCoverageFile(string buildRootDirectory)
         {
             if (string.IsNullOrWhiteSpace(buildRootDirectory))
             {
                 throw new ArgumentNullException(nameof(buildRootDirectory));
             }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
 
             string coverageFilePath = null;
 
-            var trxFilePath = FindTrxFile(buildRootDirectory, logger);
+            var trxFilePath = FindTrxFile(buildRootDirectory);
 
             if (!string.IsNullOrEmpty(trxFilePath))
             {
                 Debug.Assert(File.Exists(trxFilePath), "Expecting the specified trx file to exist: " + trxFilePath);
 
-                coverageFilePath = TryGetCoverageFilePath(trxFilePath, logger);
+                coverageFilePath = TryGetCoverageFilePath(trxFilePath);
             }
 
             return coverageFilePath;
         }
 
-        #endregion Public methods
-
-        #region Private methods
-
-        public static string FindTrxFile(string buildRootDirectory, ILogger logger)
+        public string FindTrxFile(string buildRootDirectory)
         {
             Debug.Assert(!string.IsNullOrEmpty(buildRootDirectory));
             Debug.Assert(Directory.Exists(buildRootDirectory), "The specified build root directory should exist: " + buildRootDirectory);
@@ -147,11 +144,11 @@ namespace SonarScanner.MSBuild.TFS
             return trxFilePath;
         }
 
-        private static string TryGetCoverageFilePath(string trxFilePath, ILogger logger)
+        private string TryGetCoverageFilePath(string trxFilePath)
         {
             Debug.Assert(File.Exists(trxFilePath));
 
-            if (!TryExtractCoverageFilePaths(trxFilePath, logger, out var attachmentUris))
+            if (!TryExtractCoverageFilePaths(trxFilePath, out var attachmentUris))
             {
                 return null;
             }
@@ -197,7 +194,7 @@ namespace SonarScanner.MSBuild.TFS
             }
         }
 
-        private static bool TryExtractCoverageFilePaths(string trxFilePath, ILogger logger, out IEnumerable<string> coverageFilePaths)
+        private bool TryExtractCoverageFilePaths(string trxFilePath, out IEnumerable<string> coverageFilePaths)
         {
             Debug.Assert(File.Exists(trxFilePath));
 
@@ -233,7 +230,5 @@ namespace SonarScanner.MSBuild.TFS
 
             return continueProcessing;
         }
-
-        #endregion Private methods
     }
 }
