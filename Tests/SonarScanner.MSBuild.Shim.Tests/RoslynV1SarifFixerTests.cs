@@ -76,7 +76,7 @@ namespace SonarQube.Shim.Tests
             var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
             // Assert
             // already valid -> no change to file, same file path returned
@@ -125,7 +125,7 @@ namespace SonarQube.Shim.Tests
             var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
             // Assert
             // unfixable -> no change to file, null return
@@ -171,7 +171,7 @@ It features ""quoted text""."",
             var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
             // Assert
             // unfixable -> no change to file, null return
@@ -213,7 +213,7 @@ It features ""quoted text""."",
             var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
             // Assert
             // fixable -> no change to file, file path in return value, file contents as expected
@@ -275,7 +275,7 @@ It features ""quoted text""."",
             var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
             // Assert
             // fixable -> no change to file, file path in return value, file contents as expected
@@ -344,7 +344,7 @@ It features ""quoted text""."",
             var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
             // Assert
             // fixable -> no change to file, file path in return value, file contents as expected
@@ -417,7 +417,7 @@ It features ""quoted text""."",
             var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
             // Assert
             // fixable -> no change to file, file path in return value, file contents as expected
@@ -486,7 +486,7 @@ It features ""quoted text""."",
             var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
-            var returnedSarifPath = new RoslynV1SarifFixer().LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage, logger);
+            var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
             Assert.IsNull(returnedSarifPath);
         }
 
