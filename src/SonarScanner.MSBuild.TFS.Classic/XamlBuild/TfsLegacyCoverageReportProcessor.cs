@@ -34,14 +34,15 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
         private readonly ICoverageUrlProvider urlProvider;
         private readonly ICoverageReportDownloader downloader;
 
-        public TfsLegacyCoverageReportProcessor()
-            : this(new CoverageReportUrlProvider(), new CoverageReportDownloader(), new BinaryToXmlCoverageReportConverter())
+        public TfsLegacyCoverageReportProcessor(ILogger logger)
+            : this(new CoverageReportUrlProvider(), new CoverageReportDownloader(),
+                  new BinaryToXmlCoverageReportConverter(logger), logger)
         {
         }
 
         public TfsLegacyCoverageReportProcessor(ICoverageUrlProvider urlProvider, ICoverageReportDownloader downloader,
-            ICoverageReportConverter converter) // was internal
-            : base(converter)
+            ICoverageReportConverter converter, ILogger logger) // was internal
+            : base(converter, logger)
         {
             this.urlProvider = urlProvider ?? throw new ArgumentNullException(nameof(urlProvider));
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
@@ -49,10 +50,9 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 
         #region Virtual methods
 
-        protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger,
-            out string binaryFilePath)
+        protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, out string binaryFilePath)
         {
-            var urls = urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri(), logger);
+            var urls = urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri(), Logger);
             Debug.Assert(urls != null, "Not expecting the returned list of urls to be null");
 
             var continueProcessing = true;
@@ -61,14 +61,14 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             switch (urls.Count())
             {
                 case 0:
-                    logger.LogInfo(Resources.PROC_DIAG_NoCodeCoverageReportsFound);
+                    Logger.LogInfo(Resources.PROC_DIAG_NoCodeCoverageReportsFound);
                     break;
 
                 case 1:
                     var url = urls.First();
 
                     var targetFileName = Path.Combine(config.SonarOutputDir, DownloadFileName);
-                    var result = downloader.DownloadReport(config.GetTfsUri(), url, targetFileName, logger);
+                    var result = downloader.DownloadReport(config.GetTfsUri(), url, targetFileName, Logger);
 
                     if (result)
                     {
@@ -77,20 +77,20 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
                     else
                     {
                         continueProcessing = false;
-                        logger.LogError(Resources.PROC_ERROR_FailedToDownloadReport);
+                        Logger.LogError(Resources.PROC_ERROR_FailedToDownloadReport);
                     }
                     break;
 
                 default: // More than one
                     continueProcessing = false;
-                    logger.LogError(Resources.PROC_ERROR_MultipleCodeCoverageReportsFound);
+                    Logger.LogError(Resources.PROC_ERROR_MultipleCodeCoverageReportsFound);
                     break;
             }
 
             return continueProcessing;
         }
 
-        protected override bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string trxFilePath)
+        protected override bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, out string trxFilePath)
         {
             trxFilePath = null;
             return false;

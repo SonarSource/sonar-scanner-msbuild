@@ -28,7 +28,7 @@ namespace SonarScanner.MSBuild.TFS
         /// Initializes the converter
         /// </summary>
         /// <returns>True if the converter was initialized successfully, otherwise false</returns>
-        bool Initialize(ILogger logger);
+        bool Initialize();
 
         /// <summary>
         /// Converts the supplied binary code coverage report file to XML
@@ -36,6 +36,6 @@ namespace SonarScanner.MSBuild.TFS
         /// <param name="inputFilePath">The full path to the binary file to be converted</param>
         /// <param name="outputFilePath">The name of the XML file to be created</param>
         /// <returns>True if the conversion was successful, otherwise false</returns>
-        bool ConvertToXml(string inputFilePath, string outputFilePath, ILogger logger);
+        bool ConvertToXml(string inputFilePath, string outputFilePath);
     }
 }

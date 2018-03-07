@@ -26,9 +26,9 @@ namespace SonarScanner.MSBuild
 {
     public class NullCoverageReportConverter : ICoverageReportConverter
     {
-        public bool ConvertToXml(string inputFilePath, string outputFilePath, ILogger logger)
+        public bool ConvertToXml(string inputFilePath, string outputFilePath)
             => false;
 
-        public bool Initialize(ILogger logger) => true;
+        public bool Initialize() => true;
     }
 }

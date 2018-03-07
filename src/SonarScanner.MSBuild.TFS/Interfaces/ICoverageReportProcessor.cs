@@ -29,7 +29,7 @@ namespace SonarScanner.MSBuild.TFS
         /// Initializes the converter
         /// </summary>
         /// <returns>Operation success</returns>
-        bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger);
+        bool Initialise(AnalysisConfig config, ITeamBuildSettings settings);
 
         /// <summary>
         /// Locate, download and convert the code coverage report

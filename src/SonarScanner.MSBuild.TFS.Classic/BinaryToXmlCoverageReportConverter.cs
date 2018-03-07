@@ -35,6 +35,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
     {
         private const int ConversionTimeoutInMs = 60000;
         private readonly IVisualStudioSetupConfigurationFactory setupConfigurationFactory;
+        private readonly ILogger logger;
 
         /// <summary>
         /// Registry containing information about installed VS versions
@@ -59,26 +60,23 @@ namespace SonarScanner.MSBuild.TFS.Classic
 
         #region Public methods
 
-        public BinaryToXmlCoverageReportConverter()
-            : this(new VisualStudioSetupConfigurationFactory())
+        public BinaryToXmlCoverageReportConverter(ILogger logger)
+            : this(new VisualStudioSetupConfigurationFactory(), logger)
         { }
 
-        public BinaryToXmlCoverageReportConverter(IVisualStudioSetupConfigurationFactory setupConfigurationFactory)
+        public BinaryToXmlCoverageReportConverter(IVisualStudioSetupConfigurationFactory setupConfigurationFactory,
+            ILogger logger)
         {
             this.setupConfigurationFactory = setupConfigurationFactory;
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         #endregion Public methods
 
         #region IReportConverter interface
 
-        public bool Initialize(ILogger logger)
+        public bool Initialize()
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
             bool success;
 
             conversionToolPath = GetExeToolPath(logger);
@@ -96,7 +94,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
             return success;
         }
 
-        public bool ConvertToXml(string inputFilePath, string outputFilePath, ILogger logger)
+        public bool ConvertToXml(string inputFilePath, string outputFilePath)
         {
             if (string.IsNullOrWhiteSpace(inputFilePath))
             {

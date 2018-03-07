@@ -41,13 +41,13 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         {
             converterMock = new Mock<ICoverageReportConverter>(MockBehavior.Strict);
             legacyFactoryMock = new Mock<ILegacyTeamBuildFactory>(MockBehavior.Strict);
-            processor = new CoverageReportProcessor(legacyFactoryMock.Object, converterMock.Object);
+            processor = new CoverageReportProcessor(legacyFactoryMock.Object, converterMock.Object, new TestLogger());
         }
 
         public void Ctor_WhenLegacyFactoryIsNull_Throws()
         {
             // Arrange
-            Action act = () => new CoverageReportProcessor(null, converterMock.Object);
+            Action act = () => new CoverageReportProcessor(null, converterMock.Object, new TestLogger());
 
             // Act & Assert
             act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legactTeamBuildFactory");
@@ -56,10 +56,19 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         public void Ctor_WhenConverterIsNull_Throws()
         {
             // Arrange
-            Action act = () => new CoverageReportProcessor(legacyFactoryMock.Object, null);
+            Action act = () => new CoverageReportProcessor(legacyFactoryMock.Object, null, new TestLogger());
 
             // Act & Assert
             act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("coverageReportConverter");
+        }
+
+        public void Ctor_WhenLoggerIsNull_Throws()
+        {
+            // Arrange
+            Action act = () => new CoverageReportProcessor(legacyFactoryMock.Object, converterMock.Object, null);
+
+            // Act & Assert
+            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -68,7 +77,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             // Arrange
             var analysisConfig = new AnalysisConfig();
             var settingsMock = new Mock<ITeamBuildSettings>();
-            Action act = () => processor.Initialise(analysisConfig, null, new TestLogger());
+            Action act = () => processor.Initialise(analysisConfig, null);
 
             // Act & Assert
             act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
@@ -84,16 +93,16 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
             // Set up the factory to return a processor that returns success
             var processorMock = new Mock<ICoverageReportProcessor>();
-            processorMock.Setup(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>(), It.IsAny<ILogger>())).Returns(true);
+            processorMock.Setup(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>())).Returns(true);
             processorMock.Setup(x => x.ProcessCoverageReports()).Returns(true);
             legacyFactoryMock.Setup(x => x.BuildTfsLegacyCoverageReportProcessor()).Returns(processorMock.Object);
-            
+
             using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "false");
 
-                var testSubject = new CoverageReportProcessor(legacyFactoryMock.Object, converterMock.Object);
-                testSubject.Initialise(analysisConfig, settingsMock, logger);
+                var testSubject = new CoverageReportProcessor(legacyFactoryMock.Object, converterMock.Object, logger);
+                testSubject.Initialise(analysisConfig, settingsMock);
 
                 // Act
                 var result = testSubject.ProcessCoverageReports();
@@ -101,7 +110,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
                 // Assert
                 result.Should().BeTrue();
                 legacyFactoryMock.Verify(x => x.BuildTfsLegacyCoverageReportProcessor(), Times.Once);
-                processorMock.Verify(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>(), It.IsAny<ILogger>()), Times.Once);
+                processorMock.Verify(x => x.Initialise(It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()), Times.Once);
                 processorMock.Verify(x => x.ProcessCoverageReports(), Times.Once);
             }
         }
@@ -118,8 +127,8 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "true");
 
-                var testSubject = new CoverageReportProcessor(legacyFactoryMock.Object, converterMock.Object);
-                testSubject.Initialise(analysisConfig, settingsMock, logger);
+                var testSubject = new CoverageReportProcessor(legacyFactoryMock.Object, converterMock.Object, logger);
+                testSubject.Initialise(analysisConfig, settingsMock);
 
                 // Act
                 var result = false;
@@ -142,8 +151,8 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             var settings = new MockTeamBuildSettings { BuildEnvironment = BuildEnvironment.NotTeamBuild };
             var logger = new TestLogger();
 
-            var testSubject = new CoverageReportProcessor(legacyFactoryMock.Object, converterMock.Object);
-            testSubject.Initialise(analysisConfig, settings, logger);
+            var testSubject = new CoverageReportProcessor(legacyFactoryMock.Object, converterMock.Object, logger);
+            testSubject.Initialise(analysisConfig, settings);
 
             // Act
             var result = false;

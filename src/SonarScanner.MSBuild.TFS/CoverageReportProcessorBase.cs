@@ -34,22 +34,23 @@ namespace SonarScanner.MSBuild.TFS
 
         private AnalysisConfig config;
         private ITeamBuildSettings settings;
-        private ILogger logger;
 
         private bool succesfullyInitialised = false;
 
-        protected CoverageReportProcessorBase(ICoverageReportConverter converter)
+        protected ILogger Logger { get; }
+
+        protected CoverageReportProcessorBase(ICoverageReportConverter converter, ILogger logger)
         {
+            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
-        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger)
+        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            succesfullyInitialised = converter.Initialize(logger);
+            succesfullyInitialised = converter.Initialize();
             return succesfullyInitialised;
         }
 
@@ -63,9 +64,9 @@ namespace SonarScanner.MSBuild.TFS
             Debug.Assert(config != null, "Expecting the config to not be null. Did you call Initialize() ?");
 
             // Fetch all of the report URLs
-            logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
+            Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
 
-            var success = TryGetBinaryReportFile(config, settings, logger, out string binaryFilePath);
+            var success = TryGetBinaryReportFile(config, settings, out string binaryFilePath);
 
             if (success &&
                 binaryFilePath != null &&
@@ -76,7 +77,7 @@ namespace SonarScanner.MSBuild.TFS
                 config.LocalSettings.Add( new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = coverageReportPath });
             }
 
-            if (TryGetTrxFile(config, settings, logger, out var trxPath) &&
+            if (TryGetTrxFile(config, settings, out var trxPath) &&
                 !string.IsNullOrEmpty(trxPath) &&
                 !config.LocalSettings.Any(IsVsTestReportsPaths))
             {
@@ -92,9 +93,9 @@ namespace SonarScanner.MSBuild.TFS
         private static bool IsVsTestReportsPaths(Property property) =>
             Property.AreKeysEqual(property.Id, SonarProperties.VsTestReportsPaths);
 
-        protected abstract bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath);
+        protected abstract bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, out string binaryFilePath);
 
-        protected abstract bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string trxFilePath);
+        protected abstract bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, out string trxFilePath);
 
         private bool TryConvertCoverageReport(string binaryCoverageFilePath, out string coverageReportFileName)
         {
@@ -104,7 +105,7 @@ namespace SonarScanner.MSBuild.TFS
             Debug.Assert(!File.Exists(xmlFileName),
                 "Not expecting a file with the name of the binary-to-XML conversion output to already exist: " + xmlFileName);
 
-            if (converter.ConvertToXml(binaryCoverageFilePath, xmlFileName, logger))
+            if (converter.ConvertToXml(binaryCoverageFilePath, xmlFileName))
             {
                 coverageReportFileName = xmlFileName;
                 return true;

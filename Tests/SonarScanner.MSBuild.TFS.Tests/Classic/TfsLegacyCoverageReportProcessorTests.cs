@@ -62,10 +62,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var settings = CreateValidSettings();
             var logger = new TestLogger();
 
-            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
-            var initResult = processor.Initialise(context, settings, logger);
+            var initResult = processor.Initialise(context, settings);
 
             // Assert
             Assert.IsFalse(initResult, "Expecting false: processor should not have been initialized successfully");
@@ -90,10 +90,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var settings = CreateValidSettings();
             var logger = new TestLogger();
 
-            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
-            var initResult = processor.Initialise(context, settings, logger);
+            var initResult = processor.Initialise(context, settings);
             Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
@@ -120,10 +120,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var settings = CreateValidSettings();
             var logger = new TestLogger();
 
-            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
-            var initResult = processor.Initialise(context, settings, logger);
+            var initResult = processor.Initialise(context, settings);
             Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
@@ -149,10 +149,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var settings = CreateValidSettings();
             var logger = new TestLogger();
 
-            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
-            var initResult = processor.Initialise(context, settings, logger);
+            var initResult = processor.Initialise(context, settings);
             Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
@@ -183,10 +183,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             downloader.CreateFileOnDownloadRequest = true;
 
-            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter);
+            var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
-            var initResult = processor.Initialise(context, settings, logger);
+            var initResult = processor.Initialise(context, settings);
             Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 

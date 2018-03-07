@@ -25,21 +25,21 @@ namespace SonarScanner.MSBuild.TFS
 {
     public class BuildVNextCoverageReportProcessor : CoverageReportProcessorBase
     {
-        public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter)
-            : base(converter)
+        public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter, ILogger logger)
+            : base(converter, logger)
         {
         }
 
-        protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string binaryFilePath)
+        protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, out string binaryFilePath)
         {
-            binaryFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, logger);
+            binaryFilePath = TrxFileReader.LocateCodeCoverageFile(settings.BuildDirectory, Logger);
 
             return true; // there aren't currently any conditions under which we'd want to stop processing
         }
 
-        protected override bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger, out string trxFilePath)
+        protected override bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, out string trxFilePath)
         {
-            trxFilePath = TrxFileReader.FindTrxFile(settings.BuildDirectory, logger);
+            trxFilePath = TrxFileReader.FindTrxFile(settings.BuildDirectory, Logger);
 
             return true;
         }

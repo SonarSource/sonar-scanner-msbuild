@@ -86,7 +86,7 @@ namespace SonarScanner.MSBuild.PostProcessor
             }
 
             // if initialization fails a warning will have been logged at the source of the failure
-            var initialised = codeCoverageProcessor.Initialise(config, settings, logger);
+            var initialised = codeCoverageProcessor.Initialise(config, settings);
 
             if (initialised && !codeCoverageProcessor.ProcessCoverageReports())
             {
