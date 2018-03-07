@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
         private readonly ICoverageReportDownloader downloader;
 
         public TfsLegacyCoverageReportProcessor(ILogger logger)
-            : this(new CoverageReportUrlProvider(), new CoverageReportDownloader(logger),
+            : this(new CoverageReportUrlProvider(logger), new CoverageReportDownloader(logger),
                   new BinaryToXmlCoverageReportConverter(logger), logger)
         {
         }
@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 
         protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, out string binaryFilePath)
         {
-            var urls = urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri(), Logger);
+            var urls = urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri());
             Debug.Assert(urls != null, "Not expecting the returned list of urls to be null");
 
             var continueProcessing = true;

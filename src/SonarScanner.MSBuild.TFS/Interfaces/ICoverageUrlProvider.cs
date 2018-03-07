@@ -30,6 +30,6 @@ namespace SonarScanner.MSBuild.TFS
         /// </summary>
         /// <param name="tfsUri">The URI of the TFS collection</param>
         /// <parparam name="buildUri">The URI of the build for which data should be retrieved</parparam>
-        IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri, ILogger logger);
+        IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri);
     }
 }

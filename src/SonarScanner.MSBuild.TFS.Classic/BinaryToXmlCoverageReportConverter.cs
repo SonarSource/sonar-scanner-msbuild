@@ -79,7 +79,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
         {
             bool success;
 
-            conversionToolPath = GetExeToolPath(logger);
+            conversionToolPath = GetExeToolPath();
 
             if (conversionToolPath == null)
             {
@@ -116,16 +116,17 @@ namespace SonarScanner.MSBuild.TFS.Classic
 
         #region Private methods
 
-        private string GetExeToolPath(ILogger logger)
+        private string GetExeToolPath()
         {
             logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageTool);
-            return GetExeToolPathFromSetupConfiguration(logger) ??
-                   GetExeToolPathFromRegistry(logger);
+
+            return GetExeToolPathFromSetupConfiguration()
+                ?? GetExeToolPathFromRegistry();
         }
 
         #region Code Coverage Tool path from setup configuration
 
-        private string GetExeToolPathFromSetupConfiguration(ILogger logger)
+        private string GetExeToolPathFromSetupConfiguration()
         {
             string toolPath = null;
 
@@ -182,7 +183,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
 
         #region Code Coverage Tool path from registry
 
-        private static string GetExeToolPathFromRegistry(ILogger logger)
+        private string GetExeToolPathFromRegistry()
         {
             string toolPath = null;
 
