@@ -36,7 +36,7 @@ namespace SonarScanner.MSBuild.Shim
         internal const string ReportFileName = "ProjectInfo.log";
 
         private readonly AnalysisConfig config;
-        private readonly ProjectInfoAnalysisResult analysisResult;
+        private readonly ProjectInfoAnalysisResult result;
         private readonly ILogger logger;
 
         private readonly StringBuilder sb;
@@ -53,17 +53,17 @@ namespace SonarScanner.MSBuild.Shim
 
         #region Private methods
 
-        private ProjectInfoReportBuilder(AnalysisConfig config, ProjectInfoAnalysisResult analysisResult, ILogger logger)
+        private ProjectInfoReportBuilder(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
-            this.analysisResult = analysisResult ?? throw new ArgumentNullException(nameof(analysisResult));
+            this.result = result ?? throw new ArgumentNullException(nameof(result));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             sb = new StringBuilder();
         }
 
         private void Generate()
         {
-            IEnumerable<ProjectInfo> validProjects = analysisResult.GetProjectsByStatus(ProjectInfoValidity.Valid);
+            IEnumerable<ProjectInfo> validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
 
             WriteTitle(Resources.REPORT_ProductProjectsTitle);
             WriteFileList(validProjects.Where(p => p.ProjectType == ProjectType.Product));
@@ -108,7 +108,7 @@ namespace SonarScanner.MSBuild.Shim
 
             foreach (var status in statuses)
             {
-                projects = projects.Concat(analysisResult.GetProjectsByStatus(status));
+                projects = projects.Concat(result.GetProjectsByStatus(status));
             }
 
             if (!projects.Any())

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
@@ -28,6 +29,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
     internal class MockSonarScanner : ISonarScanner
     {
         private bool methodCalled;
+        private readonly ILogger logger;
 
         #region Test Helpers
 
@@ -39,9 +41,14 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
         #endregion Test Helpers
 
+        public MockSonarScanner(ILogger logger)
+        {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
         #region ISonarScanner interface
 
-        public ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger)
+        public ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
         {
             Assert.IsFalse(methodCalled, "Scanner should only be called once");
             methodCalled = true;

@@ -45,8 +45,8 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void Execute_WhenConfigIsNull_Throws()
         {
             // Arrange
-            var testSubject = new SonarScannerWrapper();
-            Action act = () => testSubject.Execute(null, new string[] { }, new TestLogger());
+            var testSubject = new SonarScannerWrapper(new TestLogger());
+            Action act = () => testSubject.Execute(null, new string[] { });
 
             // Act & Assert
             act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
@@ -56,19 +56,18 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void Execute_WhenUserCmdLineArgumentsIsNull_Throws()
         {
             // Arrange
-            var testSubject = new SonarScannerWrapper();
-            Action act = () => testSubject.Execute(new AnalysisConfig(), null, new TestLogger());
+            var testSubject = new SonarScannerWrapper(new TestLogger());
+            Action act = () => testSubject.Execute(new AnalysisConfig(), null);
 
             // Act & Assert
             act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userCmdLineArguments");
         }
 
         [TestMethod]
-        public void Execute_WhenLoggerIsNull_Throws()
+        public void Ctor_WhenLoggerIsNull_Throws()
         {
             // Arrange
-            var testSubject = new SonarScannerWrapper();
-            Action act = () => testSubject.Execute(new AnalysisConfig(), new string[] { }, null);
+            Action act = () => new SonarScannerWrapper(null);
 
             // Act & Assert
             act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");

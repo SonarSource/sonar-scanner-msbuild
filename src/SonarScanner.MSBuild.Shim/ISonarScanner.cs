@@ -30,6 +30,6 @@ namespace SonarScanner.MSBuild.Shim
     /// file from them, then executes the Java sonar-scanner</remarks>
     public interface ISonarScanner
     {
-        ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger);
+        ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments);
     }
 }
