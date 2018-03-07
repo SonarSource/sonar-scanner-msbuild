@@ -41,10 +41,17 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
         /// </summary>
         private const int RetryPeriodInMs = 2000;
 
+        private readonly ILogger logger;
+
+        public CoverageReportUrlProvider(ILogger logger)
+        {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
         /// <summary>
         /// Builds and returns the download URLs for all code coverage reports for the specified build
         /// </summary>
-        public IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri, ILogger logger)
+        public IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri)
         {
             if (string.IsNullOrWhiteSpace(tfsUri))
             {
@@ -53,10 +60,6 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             if (string.IsNullOrWhiteSpace(buildUri))
             {
                 throw new ArgumentNullException(nameof(buildUri));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
             }
 
             var urls = new List<string>();

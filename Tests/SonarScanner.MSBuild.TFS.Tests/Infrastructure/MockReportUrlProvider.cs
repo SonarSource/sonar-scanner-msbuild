@@ -50,7 +50,7 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 
         #region ICoverageUrlProvider interface
 
-        public IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri, ILogger logger)
+        public IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri)
         {
             getUrlsCalled = true;
             return UrlsToReturn;
