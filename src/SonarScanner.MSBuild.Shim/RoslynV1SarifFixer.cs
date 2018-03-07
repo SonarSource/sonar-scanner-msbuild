@@ -33,7 +33,12 @@ namespace SonarScanner.MSBuild.Shim
         public const string CSharpLanguage = "cs";
         public const string VBNetLanguage = "vbnet";
 
-        #region Private Methods
+        private readonly ILogger logger;
+
+        public RoslynV1SarifFixer(ILogger logger)
+        {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
 
         /// <summary>
         /// Returns true if the given SARIF came from the VS 2015 RTM Roslyn, which does not provide correct output.
@@ -114,11 +119,7 @@ namespace SonarScanner.MSBuild.Shim
             return string.Join(Environment.NewLine, inputLines);
         }
 
-        #endregion Private Methods
-
-        #region IRoslynV1SarifFixer
-
-        public string LoadAndFixFile(string sarifFilePath, string language, ILogger logger)
+        public string LoadAndFixFile(string sarifFilePath, string language)
         {
             if (!File.Exists(sarifFilePath))
             {
@@ -166,7 +167,5 @@ namespace SonarScanner.MSBuild.Shim
                 return newSarifFilePath;
             }
         }
-
-    #endregion IRoslynV1SarifFixer
     }
 }

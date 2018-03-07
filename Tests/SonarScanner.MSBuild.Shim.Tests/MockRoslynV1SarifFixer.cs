@@ -24,8 +24,6 @@ namespace SonarScanner.MSBuild.Shim.Tests
 {
     internal class MockRoslynV1SarifFixer : IRoslynV1SarifFixer
     {
-        #region Test Hooks
-
         public string ReturnVal { get; set; }
 
         public int CallCount { get; set; }
@@ -38,17 +36,11 @@ namespace SonarScanner.MSBuild.Shim.Tests
             CallCount = 0;
         }
 
-        #endregion Test Hooks
-
-        #region IRoslynV1SarifFixer
-
-        public string LoadAndFixFile(string sarifPath, string language, ILogger logger)
+        public string LoadAndFixFile(string sarifPath, string language)
         {
             CallCount++;
             LastLanguage = language;
             return ReturnVal;
         }
-
-        #endregion IRoslynV1SarifFixer
     }
 }

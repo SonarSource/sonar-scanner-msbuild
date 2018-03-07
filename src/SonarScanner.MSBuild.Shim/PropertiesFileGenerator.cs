@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.Shim
         }
 
         public PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger)
-            : this(analysisConfig, logger, new RoslynV1SarifFixer())
+            : this(analysisConfig, logger, new RoslynV1SarifFixer(logger))
         {
         }
 
@@ -396,7 +396,7 @@ namespace SonarScanner.MSBuild.Shim
             if (tryResult)
             {
                 var reportPath = reportPathProperty.Value;
-                var fixedPath = fixer.LoadAndFixFile(reportPath, language, logger);
+                var fixedPath = fixer.LoadAndFixFile(reportPath, language);
 
                 if (!reportPath.Equals(fixedPath)) // only need to alter the property if there was no change
                 {

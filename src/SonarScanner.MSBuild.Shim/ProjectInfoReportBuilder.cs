@@ -45,19 +45,6 @@ namespace SonarScanner.MSBuild.Shim
 
         public static void WriteSummaryReport(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-            if (result == null)
-            {
-                throw new ArgumentNullException(nameof(result));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
             var builder = new ProjectInfoReportBuilder(config, result, logger);
             builder.Generate();
         }
@@ -66,11 +53,11 @@ namespace SonarScanner.MSBuild.Shim
 
         #region Private methods
 
-        private ProjectInfoReportBuilder(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+        private ProjectInfoReportBuilder(AnalysisConfig config, ProjectInfoAnalysisResult analysisResult, ILogger logger)
         {
-            this.config = config;
-            analysisResult = result;
-            this.logger = logger;
+            this.config = config ?? throw new ArgumentNullException(nameof(config));
+            this.analysisResult = analysisResult ?? throw new ArgumentNullException(nameof(analysisResult));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             sb = new StringBuilder();
         }
 
