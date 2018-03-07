@@ -50,9 +50,9 @@ namespace SonarScanner.MSBuild
             return new MSBuildPostProcessor(
                 new CoverageReportProcessor(legacyTeamBuildFactory, coverageReportConverter, logger),
                 new SonarScannerWrapper(logger),
-                new SummaryReportBuilder(legacyTeamBuildFactory),
+                new SummaryReportBuilder(legacyTeamBuildFactory, logger),
                 logger,
-                new TargetsUninstaller());
+                new TargetsUninstaller(logger));
         }
 
         public ITeamBuildPreProcessor CreatePreProcessor()

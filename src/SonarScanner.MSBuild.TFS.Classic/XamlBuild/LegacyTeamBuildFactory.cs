@@ -19,7 +19,7 @@
  */
 
 using System;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 {

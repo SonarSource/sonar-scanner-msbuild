@@ -30,6 +30,6 @@ namespace SonarScanner.MSBuild.PostProcessor
     /// <remarks>Interface added for testability</remarks>
     public interface ISummaryReportBuilder
     {
-        void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger);
+        void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result);
     }
 }

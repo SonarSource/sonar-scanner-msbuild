@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
@@ -41,11 +42,14 @@ namespace SonarScanner.MSBuild.PostProcessorTests
         [TestMethod]
         public void Ctor_FactoryIsNull_Throws()
         {
-            // Arrange
-            Action action = () => new SummaryReportBuilder(null);
+            // Act & Assert
+            Action action = () => new SummaryReportBuilder(null, new TestLogger());
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
+
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
+            action = () => new SummaryReportBuilder(new Mock<ILegacyTeamBuildFactory>().Object, null);
+            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -163,9 +167,11 @@ namespace SonarScanner.MSBuild.PostProcessorTests
             config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
             var expectedReportPath = Path.Combine(TestContext.TestDeploymentDir, SummaryReportBuilder.SummaryMdFilename);
 
+            var logger = new TestLogger();
+
             // Act
-            var builder = new SummaryReportBuilder(new LegacyTeamBuildFactory(new TestLogger()));
-            builder.GenerateReports(settings, config, result, new TestLogger());
+            var builder = new SummaryReportBuilder(new LegacyTeamBuildFactory(logger), logger);
+            builder.GenerateReports(settings, config, result);
 
             // Assert
             Assert.IsTrue(File.Exists(expectedReportPath) && (new FileInfo(expectedReportPath)).Length > 0, "The report file cannot be found or is empty");
@@ -186,12 +192,12 @@ namespace SonarScanner.MSBuild.PostProcessorTests
 
             var summaryLogger = new MockLegacyBuildSummaryLogger();
             var builder = new SummaryReportBuilder(
-                new MockLegacyTeamBuildFactory(summaryLogger, null));
+                new MockLegacyTeamBuildFactory(summaryLogger, null), new TestLogger());
 
             config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
 
             // Act
-            builder.GenerateReports(settings, config, result, new TestLogger());
+            builder.GenerateReports(settings, config, result);
 
             // Assert
             summaryLogger.Messages[0].Should().Be("** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for MSBuild **");

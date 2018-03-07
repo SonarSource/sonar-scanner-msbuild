@@ -27,6 +27,6 @@ namespace SonarScanner.MSBuild.PostProcessor
     /// </summary>
     public interface ITargetsUninstaller
     {
-        void UninstallTargets(ILogger logger);
+        void UninstallTargets();
     }
 }
