@@ -30,7 +30,14 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 {
     internal class CoverageReportDownloader : ICoverageReportDownloader
     {
-        public bool DownloadReport(string tfsUri, string reportUrl, string newFullFileName, ILogger logger)
+        private readonly ILogger logger;
+
+        public CoverageReportDownloader(ILogger logger)
+        {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public bool DownloadReport(string tfsUri, string reportUrl, string newFullFileName)
         {
             if (string.IsNullOrWhiteSpace(tfsUri))
             {
@@ -44,22 +51,18 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             {
                 throw new ArgumentNullException(nameof(newFullFileName));
             }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
 
             var downloadDir = Path.GetDirectoryName(newFullFileName);
             Utilities.EnsureDirectoryExists(downloadDir, logger);
 
-            InternalDownloadReport(tfsUri, reportUrl, newFullFileName, logger);
+            InternalDownloadReport(tfsUri, reportUrl, newFullFileName);
 
             return true;
         }
 
-        private void InternalDownloadReport(string tfsUri, string reportUrl, string reportDestinationPath, ILogger logger)
+        private void InternalDownloadReport(string tfsUri, string reportUrl, string reportDestinationPath)
         {
-            var vssHttpMessageHandler = GetHttpHandler(tfsUri, logger);
+            var vssHttpMessageHandler = GetHttpHandler(tfsUri);
 
             logger.LogInfo(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, reportDestinationPath);
 
@@ -80,7 +83,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             }
         }
 
-        private VssHttpMessageHandler GetHttpHandler(string tfsUri, ILogger logger)
+        private VssHttpMessageHandler GetHttpHandler(string tfsUri)
         {
             VssCredentials vssCreds;
             var tfsCollectionUri = new Uri(tfsUri);
