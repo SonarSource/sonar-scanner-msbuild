@@ -19,7 +19,6 @@
  */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
@@ -43,24 +42,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         #region PreprocessorObjectFactory methods
 
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ILogger logger)
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider()
         {
-            Assert.IsNotNull(logger);
             return analyzerProvider;
         }
 
-        public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args, ILogger logger)
+        public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args)
         {
             Assert.IsNotNull(args);
-            Assert.IsNotNull(logger);
 
             return server;
         }
 
-        public ITargetsInstaller CreateTargetInstaller(ILogger logger)
+        public ITargetsInstaller CreateTargetInstaller()
         {
-            Assert.IsNotNull(logger);
-
             return targetsInstaller;
         }
 

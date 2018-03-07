@@ -57,8 +57,7 @@ namespace SonarScanner.MSBuild
 
         public ITeamBuildPreProcessor CreatePreProcessor()
         {
-            IPreprocessorObjectFactory factory = new PreprocessorObjectFactory();
-            return new TeamBuildPreProcessor(factory, logger);
+            return new TeamBuildPreProcessor(new PreprocessorObjectFactory(logger), logger);
         }
     }
 }

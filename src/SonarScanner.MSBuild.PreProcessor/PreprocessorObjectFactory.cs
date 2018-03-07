@@ -40,18 +40,20 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// Once it has been created, it is stored so the factory can use the same instance when
         /// constructing the analyzer provider</remarks>
         private ISonarQubeServer server;
+        private readonly ILogger logger;
+
+        public PreprocessorObjectFactory(ILogger logger)
+        {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
 
         #region IPreprocessorObjectFactory methods
 
-        public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args, ILogger logger)
+        public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args)
         {
             if (args == null)
             {
                 throw new ArgumentNullException(nameof(args));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
             }
 
             var username = args.GetSetting(SonarProperties.SonarUserName, null);
@@ -62,18 +64,13 @@ namespace SonarScanner.MSBuild.PreProcessor
             return server;
         }
 
-        public ITargetsInstaller CreateTargetInstaller(ILogger logger)
+        public ITargetsInstaller CreateTargetInstaller()
         {
             return new TargetsInstaller(logger);
         }
 
-        public IAnalyzerProvider CreateRoslynAnalyzerProvider(ILogger logger)
+        public IAnalyzerProvider CreateRoslynAnalyzerProvider()
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
             if (server == null)
             {
                 throw new InvalidOperationException(Resources.FACTORY_InternalError_MissingServer);

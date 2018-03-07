@@ -121,7 +121,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return false;
             }
 
-            var server = factory.CreateSonarQubeServer(localSettings, logger);
+            var server = factory.CreateSonarQubeServer(localSettings);
             if (!FetchArgumentsAndRulesets(server, localSettings, teamBuildSettings, out IDictionary<string, string> serverSettings, out List<AnalyzerSettings> analyzersSettings))
             {
                 return false;
@@ -142,7 +142,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             if (args.InstallLoaderTargets)
             {
-                var installer = factory.CreateTargetInstaller(logger);
+                var installer = factory.CreateTargetInstaller();
                 Debug.Assert(installer != null, "Factory should not return null");
                 installer.InstallLoaderTargets(Directory.GetCurrentDirectory());
             }
@@ -196,7 +196,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     var inactiveRules = server.GetInactiveRules(qualityProfile, plugin.Language);
 
                     // Generate Roslyn analyzers settings and rulesets
-                    var analyzerProvider = factory.CreateRoslynAnalyzerProvider(logger);
+                    var analyzerProvider = factory.CreateRoslynAnalyzerProvider();
                     Debug.Assert(analyzerProvider != null, "Factory should not return null");
 
                     // Will be null if the processing of server settings and active rules resulted in an empty ruleset
