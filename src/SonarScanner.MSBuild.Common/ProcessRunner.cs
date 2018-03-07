@@ -32,7 +32,12 @@ namespace SonarScanner.MSBuild.Common
     {
         public const int ErrorCode = 1;
 
-        private ILogger outputLogger;
+        private readonly ILogger logger;
+
+        public ProcessRunner(ILogger logger)
+        {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
 
         #region Public methods
 
@@ -49,13 +54,10 @@ namespace SonarScanner.MSBuild.Common
                 throw new ArgumentNullException(nameof(runnerArgs));
             }
             Debug.Assert(!string.IsNullOrWhiteSpace(runnerArgs.ExeName), "Process runner exe name should not be null/empty");
-            Debug.Assert(runnerArgs.Logger != null, "Process runner logger should not be null/empty");
-
-            outputLogger = runnerArgs.Logger;
 
             if (!File.Exists(runnerArgs.ExeName))
             {
-                outputLogger.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
+                logger.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
                 ExitCode = ErrorCode;
                 return false;
             }
@@ -72,7 +74,7 @@ namespace SonarScanner.MSBuild.Common
                 WorkingDirectory = runnerArgs.WorkingDirectory
             };
 
-            SetEnvironmentVariables(psi, runnerArgs.EnvironmentVariables, runnerArgs.Logger);
+            SetEnvironmentVariables(psi, runnerArgs.EnvironmentVariables);
 
             bool succeeded;
             using (var process = new Process())
@@ -87,7 +89,7 @@ namespace SonarScanner.MSBuild.Common
 
                 // Warning: do not log the raw command line args as they
                 // may contain sensitive data
-                outputLogger.LogDebug(Resources.MSG_ExecutingFile,
+                logger.LogDebug(Resources.MSG_ExecutingFile,
                     runnerArgs.ExeName,
                     runnerArgs.AsLogText(),
                     runnerArgs.WorkingDirectory,
@@ -104,7 +106,7 @@ namespace SonarScanner.MSBuild.Common
                 // true: we might still have timed out, but the process ended when we asked it to
                 if (succeeded)
                 {
-                    outputLogger.LogDebug(Resources.MSG_ExecutionExitCode, process.ExitCode);
+                    logger.LogDebug(Resources.MSG_ExecutionExitCode, process.ExitCode);
                     ExitCode = process.ExitCode;
                 }
                 else
@@ -114,11 +116,11 @@ namespace SonarScanner.MSBuild.Common
                     try
                     {
                         process.Kill();
-                        outputLogger.LogWarning(Resources.WARN_ExecutionTimedOutKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+                        logger.LogWarning(Resources.WARN_ExecutionTimedOutKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
                     }
                     catch
                     {
-                        outputLogger.LogWarning(Resources.WARN_ExecutionTimedOutNotKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+                        logger.LogWarning(Resources.WARN_ExecutionTimedOutNotKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
                     }
                 }
 
@@ -132,7 +134,7 @@ namespace SonarScanner.MSBuild.Common
 
         #region Private methods
 
-        private static void SetEnvironmentVariables(ProcessStartInfo psi, IDictionary<string, string> envVariables, ILogger logger)
+        private void SetEnvironmentVariables(ProcessStartInfo psi, IDictionary<string, string> envVariables)
         {
             if (envVariables == null)
             {
@@ -161,7 +163,7 @@ namespace SonarScanner.MSBuild.Common
             {
                 // It's important to log this as an important message because
                 // this the log redirection pipeline of the child process
-                outputLogger.LogInfo(e.Data);
+                logger.LogInfo(e.Data);
             }
         }
 
@@ -171,11 +173,11 @@ namespace SonarScanner.MSBuild.Common
             {
                 if (e.Data.StartsWith("WARN"))
                 {
-                    outputLogger.LogWarning(e.Data);
+                    logger.LogWarning(e.Data);
                 }
                 else
                 {
-                    outputLogger.LogError(e.Data);
+                    logger.LogError(e.Data);
                 }
             }
         }
