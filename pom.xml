@@ -44,7 +44,7 @@
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <gitRepositoryName>sonar-scanner-msbuild</gitRepositoryName>
     <!-- Release: enable publication to Bintray -->
-    <artifactsToPublish>${project.groupId}:${project.artifactId}:${project.classifier}:zip</artifactsToPublish>
+    <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net46,${project.groupId}:${project.artifactId}:zip:netcoreapp2.0</artifactsToPublish>
   </properties>
 
   <build>
