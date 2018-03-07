@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using Microsoft.Win32;
+////using System;
+////using Microsoft.Win32;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
@@ -34,16 +34,18 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
     {
         public static void Enable()
         {
-            var registryKey = $@"SOFTWARE{(Environment.Is64BitProcess ? @"\Wow6432Node" : string.Empty)}\Microsoft\VisualStudio\SxS\VS7";
-            using (var subKey = Registry.LocalMachine.OpenSubKey(registryKey))
-            {
-                var visualStudioPath = subKey?.GetValue("15.0") as string;
-                if (!string.IsNullOrEmpty(visualStudioPath))
-                {
-                    Environment.SetEnvironmentVariable("VSINSTALLDIR", visualStudioPath);
-                    Environment.SetEnvironmentVariable("VisualStudioVersion", @"15.0");
-                }
-            }
+            // This hack does not seem to be needed anymore.
+
+            ////var registryKey = $@"SOFTWARE{(Environment.Is64BitProcess ? @"\Wow6432Node" : string.Empty)}\Microsoft\VisualStudio\SxS\VS7";
+            ////using (var subKey = Registry.LocalMachine.OpenSubKey(registryKey))
+            ////{
+            ////    var visualStudioPath = subKey?.GetValue("15.0") as string;
+            ////    if (!string.IsNullOrEmpty(visualStudioPath))
+            ////    {
+            ////        Environment.SetEnvironmentVariable("VSINSTALLDIR", visualStudioPath);
+            ////        Environment.SetEnvironmentVariable("VisualStudioVersion", @"15.0");
+            ////    }
+            ////}
         }
     }
 }
