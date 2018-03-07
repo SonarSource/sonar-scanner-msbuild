@@ -32,8 +32,6 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 
         public bool CanConvert { get; set; }
 
-        public Func<string, string, ILogger, bool> ConversionOp { get; set; }
-
         public bool ConversionResult { get; set; }
 
         #endregion Test helpers
@@ -54,23 +52,11 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 
         #region ICoverageReportConverter interface
 
-        bool ICoverageReportConverter.Initialize(ILogger logger)
+        bool ICoverageReportConverter.Initialize() => CanConvert;
+
+        bool ICoverageReportConverter.ConvertToXml(string fullBinaryFileName, string fullXmlFileName)
         {
-            Assert.IsNotNull(logger, "Supplied logger should not be null");
-
-            return CanConvert;
-        }
-
-        bool ICoverageReportConverter.ConvertToXml(string fullBinaryFileName, string fullXmlFileName, ILogger logger)
-        {
-            Assert.IsNotNull(logger, "Supplied logger should not be null");
-
             convertCallCount++;
-
-            if (ConversionOp != null)
-            {
-                return ConversionOp(fullBinaryFileName, fullBinaryFileName, logger);
-            }
 
             return true;
         }

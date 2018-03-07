@@ -48,7 +48,7 @@ namespace SonarScanner.MSBuild
         public IMSBuildPostProcessor CreatePostProcessor()
         {
             return new MSBuildPostProcessor(
-                new CoverageReportProcessor(legacyTeamBuildFactory, coverageReportConverter),
+                new CoverageReportProcessor(legacyTeamBuildFactory, coverageReportConverter, logger),
                 new SonarScannerWrapper(logger),
                 new SummaryReportBuilder(legacyTeamBuildFactory),
                 logger,

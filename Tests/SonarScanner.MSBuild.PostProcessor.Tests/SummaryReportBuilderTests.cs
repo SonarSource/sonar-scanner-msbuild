@@ -164,7 +164,7 @@ namespace SonarScanner.MSBuild.PostProcessorTests
             var expectedReportPath = Path.Combine(TestContext.TestDeploymentDir, SummaryReportBuilder.SummaryMdFilename);
 
             // Act
-            var builder = new SummaryReportBuilder(new LegacyTeamBuildFactory());
+            var builder = new SummaryReportBuilder(new LegacyTeamBuildFactory(new TestLogger()));
             builder.GenerateReports(settings, config, result, new TestLogger());
 
             // Assert

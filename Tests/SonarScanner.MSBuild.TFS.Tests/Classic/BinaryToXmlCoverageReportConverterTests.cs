@@ -38,10 +38,9 @@ namespace SonarScanner.MSBuild.TFS.Tests
         #region Tests
 
         [TestMethod]
-        public void Conv_Initialize_InvalidArgs_Throws()
+        public void Conv_Ctor_InvalidArgs_Throws()
         {
-            var testSubject = new BinaryToXmlCoverageReportConverter();
-            Action op = () => testSubject.Initialize(null);
+            Action op = () => new BinaryToXmlCoverageReportConverter(null);
 
             op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
@@ -50,25 +49,21 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void Conv_ConvertToXml_InvalidArgs_Throws()
         {
             ILogger loggerMock = new Mock<ILogger>().Object;
-            var testSubject = new BinaryToXmlCoverageReportConverter();
+            var testSubject = new BinaryToXmlCoverageReportConverter(loggerMock);
 
             // 1. Null input path
-            Action op = () => testSubject.ConvertToXml(null, "dummypath", loggerMock);
+            Action op = () => testSubject.ConvertToXml(null, "dummypath");
             op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("inputFilePath");
 
-            op = () => testSubject.ConvertToXml("\t\n", "dummypath", loggerMock);
+            op = () => testSubject.ConvertToXml("\t\n", "dummypath");
             op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("inputFilePath");
 
             // 2. Null output path
-            op = () => testSubject.ConvertToXml("dummypath", null, loggerMock);
+            op = () => testSubject.ConvertToXml("dummypath", null);
             op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("outputFilePath");
 
-            op = () => testSubject.ConvertToXml("dummypath", "   ", loggerMock);
+            op = () => testSubject.ConvertToXml("dummypath", "   ");
             op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("outputFilePath");
-
-            // 3. Null logger
-            op = () => testSubject.ConvertToXml("dummyInput", "dummyOutput", null);
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -197,10 +192,10 @@ echo success > """ + outputFilePath + @"""");
 
             var factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage");
 
-            var reporter = new BinaryToXmlCoverageReportConverter(factory);
+            var reporter = new BinaryToXmlCoverageReportConverter(factory, logger);
 
             // Act
-            var result = reporter.Initialize(logger);
+            var result = reporter.Initialize();
 
             // Assert
             Assert.IsTrue(result);
@@ -216,10 +211,10 @@ echo success > """ + outputFilePath + @"""");
 
             var factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage.Msi");
 
-            var reporter = new BinaryToXmlCoverageReportConverter(factory);
+            var reporter = new BinaryToXmlCoverageReportConverter(factory, logger);
 
             // Act
-            var result = reporter.Initialize(logger);
+            var result = reporter.Initialize();
 
             // Assert
             Assert.IsTrue(result);

@@ -33,17 +33,19 @@ namespace SonarScanner.MSBuild.PostProcessor
 
         private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
         private readonly ICoverageReportConverter coverageReportConverter;
+        private readonly ILogger logger;
 
         public CoverageReportProcessor(ILegacyTeamBuildFactory legacyTeamBuildFactory,
-            ICoverageReportConverter coverageReportConverter)
+            ICoverageReportConverter coverageReportConverter, ILogger logger)
         {
             this.legacyTeamBuildFactory
                 = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
             this.coverageReportConverter
                 = coverageReportConverter ?? throw new ArgumentNullException(nameof(coverageReportConverter));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, ILogger logger)
+        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings)
         {
             if (settings == null)
             {
@@ -52,7 +54,7 @@ namespace SonarScanner.MSBuild.PostProcessor
 
             TryCreateCoverageReportProcessor(settings);
 
-            initialisedSuccesfully = (processor != null && processor.Initialise(config, settings, logger));
+            initialisedSuccesfully = (processor != null && processor.Initialise(config, settings));
             return initialisedSuccesfully;
         }
 
@@ -71,7 +73,7 @@ namespace SonarScanner.MSBuild.PostProcessor
         {
             if (settings.BuildEnvironment == BuildEnvironment.TeamBuild)
             {
-                processor = new BuildVNextCoverageReportProcessor(coverageReportConverter);
+                processor = new BuildVNextCoverageReportProcessor(coverageReportConverter, logger);
             }
             else if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild
                 && !TeamBuildSettings.SkipLegacyCodeCoverageProcessing)
