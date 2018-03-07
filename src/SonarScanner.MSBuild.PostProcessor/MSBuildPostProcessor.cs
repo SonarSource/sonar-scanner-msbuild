@@ -184,7 +184,7 @@ namespace SonarScanner.MSBuild.PostProcessor
             var args = GetSonarScannerArgs(cmdLineArgs);
 
             logger.IncludeTimestamp = false;
-            var result = sonarScanner.Execute(config, args, logger);
+            var result = sonarScanner.Execute(config, args);
             logger.IncludeTimestamp = true;
             return result;
         }

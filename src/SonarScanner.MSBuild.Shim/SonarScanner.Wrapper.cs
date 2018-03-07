@@ -57,9 +57,16 @@ namespace SonarScanner.MSBuild.Shim
         // This version needs to be in sync with version in src/Packaging/Directory.Build.props.
         private const string SonarScannerVersion = "3.1.0.1141";
 
+        private readonly ILogger logger;
+
+        public SonarScannerWrapper(ILogger logger)
+        {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
         #region ISonarScanner interface
 
-        public ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger)
+        public ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
         {
             if (config == null)
             {
@@ -68,10 +75,6 @@ namespace SonarScanner.MSBuild.Shim
             if (userCmdLineArguments == null)
             {
                 throw new ArgumentNullException(nameof(userCmdLineArguments));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
             }
 
             var result = new PropertiesFileGenerator(config, logger).GenerateFile();

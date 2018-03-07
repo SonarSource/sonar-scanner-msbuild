@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild
         {
             return new MSBuildPostProcessor(
                 new CoverageReportProcessor(legacyTeamBuildFactory, coverageReportConverter),
-                new SonarScannerWrapper(),
+                new SonarScannerWrapper(logger),
                 new SummaryReportBuilder(legacyTeamBuildFactory),
                 logger,
                 new TargetsUninstaller());

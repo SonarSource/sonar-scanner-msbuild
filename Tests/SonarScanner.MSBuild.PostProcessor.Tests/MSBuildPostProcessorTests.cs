@@ -399,7 +399,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
                 logger = new TestLogger();
                 codeCoverage = new MockCodeCoverageProcessor();
-                scanner = new MockSonarScanner();
+                scanner = new MockSonarScanner(logger);
                 reportBuilder = new MockSummaryReportBuilder();
                 TargetsUninstaller = new Mock<ITargetsUninstaller>();
                 var callCount = 0;
