@@ -65,7 +65,7 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 
         #region ICoverageReportDownloader interface
 
-        bool ICoverageReportDownloader.DownloadReport(string tfsUri, string reportUrl, string newFullFileName, ILogger logger)
+        bool ICoverageReportDownloader.DownloadReport(string tfsUri, string reportUrl, string newFullFileName)
         {
             callCount++;
             requestedUrls.Add(reportUrl);

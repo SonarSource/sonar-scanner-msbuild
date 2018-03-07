@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
         private readonly ICoverageReportDownloader downloader;
 
         public TfsLegacyCoverageReportProcessor(ILogger logger)
-            : this(new CoverageReportUrlProvider(), new CoverageReportDownloader(),
+            : this(new CoverageReportUrlProvider(), new CoverageReportDownloader(logger),
                   new BinaryToXmlCoverageReportConverter(logger), logger)
         {
         }
@@ -68,7 +68,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
                     var url = urls.First();
 
                     var targetFileName = Path.Combine(config.SonarOutputDir, DownloadFileName);
-                    var result = downloader.DownloadReport(config.GetTfsUri(), url, targetFileName, Logger);
+                    var result = downloader.DownloadReport(config.GetTfsUri(), url, targetFileName);
 
                     if (result)
                     {
