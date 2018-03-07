@@ -138,14 +138,14 @@ namespace SonarScanner.MSBuild.Shim
             Debug.Assert(!string.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
             Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
 
-            var scannerArgs = new ProcessRunnerArguments(exeFileName, PlatformHelper.IsWindows(), logger)
+            var scannerArgs = new ProcessRunnerArguments(exeFileName, PlatformHelper.IsWindows())
             {
                 CmdLineArgs = allCmdLineArgs,
                 WorkingDirectory = config.SonarScannerWorkingDirectory,
                 EnvironmentVariables = envVarsDictionary
             };
 
-            var runner = new ProcessRunner();
+            var runner = new ProcessRunner(logger);
 
             // SONARMSBRU-202 Note that the Sonar Scanner may write warnings to stderr so
             // we should only rely on the exit code when deciding if it ran successfully

@@ -39,7 +39,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void Execute_WhenRunnerArgsIsNull_ThrowsArgumentNullException()
         {
             // Arrange
-            Action action = () => new ProcessRunner().Execute(null);
+            Action action = () => new ProcessRunner(new TestLogger()).Execute(null);
 
             // Act & Assert
             action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("runnerArgs");
@@ -52,8 +52,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var exeName = TestUtils.WriteBatchFileForTest(TestContext, "exit -2");
 
             var logger = new TestLogger();
-            var args = new ProcessRunnerArguments(exeName, true, logger);
-            var runner = new ProcessRunner();
+            var args = new ProcessRunnerArguments(exeName, true);
+            var runner = new ProcessRunner(logger);
 
             // Act
             var success = runner.Execute(args);
@@ -74,8 +74,8 @@ xxx yyy
 ");
 
             var logger = new TestLogger();
-            var args = new ProcessRunnerArguments(exeName, true, logger);
-            var runner = new ProcessRunner();
+            var args = new ProcessRunnerArguments(exeName, true);
+            var runner = new ProcessRunner(logger);
 
             // Act
             var success = runner.Execute(args);
@@ -103,11 +103,11 @@ xxx yyy
 ");
 
             var logger = new TestLogger();
-            var args = new ProcessRunnerArguments(exeName, true, logger)
+            var args = new ProcessRunnerArguments(exeName, true)
             {
                 TimeoutInMilliseconds = 100
             };
-            var runner = new ProcessRunner();
+            var runner = new ProcessRunner(logger);
 
             var timer = Stopwatch.StartNew();
 
@@ -132,7 +132,7 @@ xxx yyy
         {
             // Arrange
             var logger = new TestLogger();
-            var runner = new ProcessRunner();
+            var runner = new ProcessRunner(logger);
 
             var exeName = TestUtils.WriteBatchFileForTest(TestContext,
 @"echo %PROCESS_VAR%
@@ -144,7 +144,7 @@ xxx yyy
                 { "PROCESS_VAR2", "PROCESS_VAR2 value" },
                 { "PROCESS_VAR3", "PROCESS_VAR3 value" } };
 
-            var args = new ProcessRunnerArguments(exeName, true, logger)
+            var args = new ProcessRunnerArguments(exeName, true)
             {
                 EnvironmentVariables = envVariables
             };
@@ -168,7 +168,7 @@ xxx yyy
 
             // Arrange
             var logger = new TestLogger();
-            var runner = new ProcessRunner();
+            var runner = new ProcessRunner(logger);
 
             try
             {
@@ -189,7 +189,7 @@ xxx yyy
                     { "proc.runner.test.process", "process override" },
                     { "proc.runner.test.user", "user override" } };
 
-                var args = new ProcessRunnerArguments(exeName, true, logger)
+                var args = new ProcessRunnerArguments(exeName, true)
                 {
                     EnvironmentVariables = envVariables
                 };
@@ -226,8 +226,8 @@ xxx yyy
 
             // Arrange
             var logger = new TestLogger();
-            var args = new ProcessRunnerArguments("missingExe.foo", false, logger);
-            var runner = new ProcessRunner();
+            var args = new ProcessRunnerArguments("missingExe.foo", false);
+            var runner = new ProcessRunner(logger);
 
             // Act
             var success = runner.Execute(args);
@@ -249,7 +249,7 @@ xxx yyy
             var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
 
             var logger = new TestLogger();
-            var args = new ProcessRunnerArguments(exeName, false, logger);
+            var args = new ProcessRunnerArguments(exeName, false);
 
             var expected = new[] {
                 "unquoted",
@@ -269,7 +269,7 @@ xxx yyy
 
             args.CmdLineArgs = expected;
 
-            var runner = new ProcessRunner();
+            var runner = new ProcessRunner(logger);
 
             // Act
             var success = runner.Execute(args);
@@ -296,7 +296,7 @@ xxx yyy
             var batchName = TestUtils.WriteBatchFileForTest(TestContext, "\"" + exeName + "\" %*");
 
             var logger = new TestLogger();
-            var args = new ProcessRunnerArguments(batchName, true, logger);
+            var args = new ProcessRunnerArguments(batchName, true);
 
             var expected = new[] {
                 "unquoted",
@@ -316,7 +316,7 @@ xxx yyy
 
             args.CmdLineArgs = expected;
 
-            var runner = new ProcessRunner();
+            var runner = new ProcessRunner(logger);
 
             // Act
             var success = runner.Execute(args);
@@ -370,11 +370,11 @@ xxx yyy
 
             var allArgs = sensitiveArgs.Union(publicArgs).ToArray();
 
-            var runnerArgs = new ProcessRunnerArguments(exeName, false, logger)
+            var runnerArgs = new ProcessRunnerArguments(exeName, false)
             {
                 CmdLineArgs = allArgs
             };
-            var runner = new ProcessRunner();
+            var runner = new ProcessRunner(logger);
 
             // Act
             var success = runner.Execute(runnerArgs);

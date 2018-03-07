@@ -313,14 +313,14 @@ namespace SonarScanner.MSBuild.TFS.Classic
                 inputBinaryFilePath
             };
 
-            var scannerArgs = new ProcessRunnerArguments(converterExeFilePath, false, logger)
+            var scannerArgs = new ProcessRunnerArguments(converterExeFilePath, false)
             {
                 WorkingDirectory = Path.GetDirectoryName(outputXmlFilePath),
                 CmdLineArgs = args,
                 TimeoutInMilliseconds = ConversionTimeoutInMs
             };
 
-            var runner = new ProcessRunner();
+            var runner = new ProcessRunner(logger);
             var success = runner.Execute(scannerArgs);
 
             if (success)

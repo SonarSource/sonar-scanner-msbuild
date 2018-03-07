@@ -44,7 +44,7 @@ namespace SonarScanner.MSBuild.Common
             SonarProperties.DbUserName
         };
 
-        public ProcessRunnerArguments(string exeName, bool isBatchScript, ILogger logger)
+        public ProcessRunnerArguments(string exeName, bool isBatchScript)
         {
             if (string.IsNullOrWhiteSpace(exeName))
             {
@@ -52,7 +52,6 @@ namespace SonarScanner.MSBuild.Common
             }
 
             ExeName = exeName;
-            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
             IsBatchScript = isBatchScript;
 
             TimeoutInMilliseconds = Timeout.Infinite;
@@ -77,8 +76,6 @@ namespace SonarScanner.MSBuild.Common
         /// Additional environments variables that should be set/overridden for the process. Can be null.
         /// </summary>
         public IDictionary<string, string> EnvironmentVariables { get; set; }
-
-        public ILogger Logger { get; }
 
         public string GetEscapedArguments()
         {
