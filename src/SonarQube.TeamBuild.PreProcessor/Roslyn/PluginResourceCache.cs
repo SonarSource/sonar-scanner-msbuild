@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using Newtonsoft.Json;
 using SonarQube.Common;
 
@@ -30,7 +29,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn
     public class SubdirIndex
     {
         // global locking, to ensure synchronized access to index file by multiple processes
-        private const string mutexName = @"Global\90CD3CFF-A12C-4013-A44A-199B8C26818B";
+        private const string mutexName = @"Global\D63DF69F-BC65-4E00-87ED-A922B7CC623D";
 
         private readonly string basedir;
         private readonly string indexPath;
