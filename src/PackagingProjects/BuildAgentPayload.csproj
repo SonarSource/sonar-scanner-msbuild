@@ -12,64 +12,65 @@
     <SourcesRoot>$(MSBuildThisFileFullPath)\..\..</SourcesRoot>
     <DestinationDir>$(SourcesRoot)\..\DeploymentArtifacts\BuildAgentPayload\$(Configuration)\</DestinationDir>
     <WorkDestinationDir>$(DestinationDir)Work</WorkDestinationDir>
+    <ClassicDestinationDir>$(DestinationDir)Work\$(ScannerNetFxVersion)</ClassicDestinationDir>
+    <DotnetDestinationDir>$(DestinationDir)Work\$(ScannerNetCoreAppVersion)</DotnetDestinationDir>
+
     <!-- OutputPath is required by the Clean and Rebuild tasks -->
     <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
 
+  <!-- Target files. The same files are used in both classic framework and dotnet scanners. -->
+  <ItemGroup>
+    <TargetFiles Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\$(ScannerNetStandardVersion)\Targets\SonarQube.Integration.targets" />
+    <TargetFiles Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\$(ScannerNetStandardVersion)\Targets\SonarQube.Integration.ImportBefore.targets" />
+  </ItemGroup>
+
   <!-- Binaries for dotnet framework scanner -->
   <ItemGroup>
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net46\SonarQube.Analysis.xml" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Common\bin\$(Configuration)\net46\SonarQube.Common.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\net46\MSBuild.SonarQube.Internal.PreProcess.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\net46\MSBuild.SonarQube.Internal.PostProcess.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\net46\TeamBuild.SonarQube.Integration.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\net46\SonarQube.Integration.Tasks.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\net46\SonarScanner.Shim.dll" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarQube.Analysis.xml" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Common\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarQube.Common.dll" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\$(ScannerNetFxVersion)\MSBuild.SonarQube.Internal.PreProcess.dll" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\$(ScannerNetFxVersion)\MSBuild.SonarQube.Internal.PostProcess.dll" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\$(ScannerNetFxVersion)\TeamBuild.SonarQube.Integration.dll" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarQube.Integration.Tasks.dll" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarScanner.Shim.dll" />
 
     <!-- External dependencies -->
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\net46\Newtonsoft.Json.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration.Classic\bin\$(Configuration)\net46\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net46\System.ValueTuple.dll" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\$(ScannerNetFxVersion)\Newtonsoft.Json.dll" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration.Classic\bin\$(Configuration)\$(ScannerNetFxVersion)\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\System.ValueTuple.dll" />
 
     <!-- .NET Framework entry points-->
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net46\SonarQube.Scanner.MSBuild.exe" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\net46\MSBuild.SonarQube.Runner.exe" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarQube.Scanner.MSBuild.exe" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\MSBuild.SonarQube.Runner.exe" />
 
     <!-- XAML Support (only for "classic" .NET Framework). -->
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration.Classic\bin\$(Configuration)\net46\TeamBuild.SonarQube.Integration.Classic.dll" />
-
-    <!-- Target files. -->
-    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\net46\Targets\SonarQube.Integration.targets" />
-    <TargetsToCopy Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\net46\Targets\SonarQube.Integration.ImportBefore.targets" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration.Classic\bin\$(Configuration)\$(ScannerNetFxVersion)\TeamBuild.SonarQube.Integration.Classic.dll" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration) == 'Debug'">
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\net46\SonarQube.Scanner.MSBuild.pdb" />
-    <FilesToCopy Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\net46\MSBuild.SonarQube.Runner.pdb" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarQube.Scanner.MSBuild.pdb" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\MSBuild.SonarQube.Runner.pdb" />
   </ItemGroup>
 
   <!-- Binaries for dotnet core scanner -->
   <ItemGroup>
-    <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\netcoreapp2.0\SonarQube.Analysis.xml" />
-    <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.Common\bin\$(Configuration)\netstandard2.0\SonarQube.Common.dll" />
-    <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\netstandard2.0\MSBuild.SonarQube.Internal.PreProcess.dll" />
-    <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\netstandard2.0\MSBuild.SonarQube.Internal.PostProcess.dll" />
-    <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\netstandard2.0\TeamBuild.SonarQube.Integration.dll" />
-    <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\SonarQube.Integration.Tasks.dll" />
-    <FilesToCopyDotnet Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\netstandard2.0\SonarScanner.Shim.dll" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarQube.Analysis.xml" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.Common\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarQube.Common.dll" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\$(ScannerNetStandardVersion)\MSBuild.SonarQube.Internal.PreProcess.dll" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.PostProcessor\bin\$(Configuration)\$(ScannerNetStandardVersion)\MSBuild.SonarQube.Internal.PostProcess.dll" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\$(ScannerNetStandardVersion)\TeamBuild.SonarQube.Integration.dll" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarQube.Integration.Tasks.dll" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarScanner.Shim.dll" />
 
     <!-- External dependencies -->
-    <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\netstandard2.0\Newtonsoft.Json.dll" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.PreProcessor\bin\$(Configuration)\$(ScannerNetStandardVersion)\Newtonsoft.Json.dll" />
 
     <!-- .NET Core entry points-->
-    <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\netcoreapp2.0\SonarQube.Scanner.MSBuild.runtimeconfig.json" />
-    <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\netcoreapp2.0\SonarQube.Scanner.MSBuild.dll" />
-
-    <!-- Target files. -->
-    <TargetsToCopyDotnet Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\Targets\SonarQube.Integration.targets" />
-    <TargetsToCopyDotnet Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\netstandard2.0\Targets\SonarQube.Integration.ImportBefore.targets" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarQube.Scanner.MSBuild.runtimeconfig.json" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarQube.Scanner.MSBuild.dll" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration) == 'Debug'">
-    <FilesToCopyDotnet Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\netcoreapp2.0\SonarQube.Scanner.MSBuild.pdb" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarQube.Scanner.MSBuild.pdb" />
   </ItemGroup>
 
   <!-- Reference to dependencies to ensure the build order is correct -->
@@ -105,11 +106,11 @@
     <CallTarget Targets="ZipPayloadFiles" />
   </Target>
   <Target Name="CopyPayloadFiles">
-    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(WorkDestinationDir)\%(RecursiveDir)" />
-    <Copy SourceFiles="@(TargetsToCopy)" DestinationFolder="$(WorkDestinationDir)\Targets" />
+    <Copy SourceFiles="@(ClassicScannerFiles)" DestinationFolder="$(ClassicDestinationDir)\%(RecursiveDir)" />
+    <Copy SourceFiles="@(TargetFiles)" DestinationFolder="$(ClassicDestinationDir)\Targets" />
 
-    <Copy SourceFiles="@(FilesToCopyDotnet)" DestinationFolder="$(WorkDestinationDir)\dotnet\%(RecursiveDir)" />
-    <Copy SourceFiles="@(TargetsToCopyDotnet)" DestinationFolder="$(WorkDestinationDir)\dotnet\Targets\" />
+    <Copy SourceFiles="@(DotnetScannerFiles)" DestinationFolder="$(DotnetDestinationDir)\%(RecursiveDir)" />
+    <Copy SourceFiles="@(TargetFiles)" DestinationFolder="$(DotnetDestinationDir)\Targets\" />
   </Target>
   <Target Name="DownloadScannerCli" Condition="!Exists('$(OutputPath)\$(ScannerCliArtifact)')">
     <Message Text="Downloading: $(MavenCentralUrl)" />
@@ -117,11 +118,12 @@
   </Target>
   <Target Name="UnzipScannerCli">
     <RemoveDir Directories="$(OutputPath)$(ScannerCliDirectory)" />
-    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; [io.compression.zipfile]::ExtractToDirectory('$(OutputPath)$(ScannerCliArtifact)', '$(WorkDestinationDir)')&quot;" />
-    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; [io.compression.zipfile]::ExtractToDirectory('$(OutputPath)$(ScannerCliArtifact)', '$(WorkDestinationDir)/dotnet')&quot;" />
+    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; [io.compression.zipfile]::ExtractToDirectory('$(OutputPath)$(ScannerCliArtifact)', '$(ClassicDestinationDir)')&quot;" />
+    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; [io.compression.zipfile]::ExtractToDirectory('$(OutputPath)$(ScannerCliArtifact)', '$(DotnetDestinationDir)')&quot;" />
   </Target>
   <Target Name="ZipPayloadFiles">
-    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; Add-Type -assembly system.text.encoding; Add-Type -TypeDefinition 'public class MyEncoder : System.Text.UTF8Encoding { public MyEncoder() : base(true) {} public override byte[] GetBytes(string s) { return base.GetBytes(s.Replace((char) 92, (char) 47)); } }'; $enc = New-Object MyEncoder; [io.compression.zipfile]::CreateFromDirectory('$(WorkDestinationDir)', '$(DestinationDir)\SonarQube.Scanner.MSBuild.zip', [io.compression.compressionlevel]::fastest, $false, $enc)&quot;" />
+    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; Add-Type -assembly system.text.encoding; Add-Type -TypeDefinition 'public class MyEncoder : System.Text.UTF8Encoding { public MyEncoder() : base(true) {} public override byte[] GetBytes(string s) { return base.GetBytes(s.Replace((char) 92, (char) 47)); } }'; $enc = New-Object MyEncoder; [io.compression.zipfile]::CreateFromDirectory('$(ClassicDestinationDir)', '$(DestinationDir)\sonarqube-scanner-msbuild-$(ScannerNetFxVersion).zip',      [io.compression.compressionlevel]::fastest, $false, $enc)&quot;" />
+    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; Add-Type -assembly system.text.encoding; Add-Type -TypeDefinition 'public class MyEncoder : System.Text.UTF8Encoding { public MyEncoder() : base(true) {} public override byte[] GetBytes(string s) { return base.GetBytes(s.Replace((char) 92, (char) 47)); } }'; $enc = New-Object MyEncoder; [io.compression.zipfile]::CreateFromDirectory('$(DotnetDestinationDir)',  '$(DestinationDir)\sonarqube-scanner-msbuild-$(ScannerNetCoreAppVersion).zip', [io.compression.compressionlevel]::fastest, $false, $enc)&quot;" />
   </Target>
   <Target Name="CleanExistingPayload" AfterTargets="Clean">
     <RemoveDir Directories="$(DestinationDir)" />

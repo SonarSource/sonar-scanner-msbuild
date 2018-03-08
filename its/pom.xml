@@ -100,7 +100,7 @@
                   <goal>get</goal>
                 </goals>
                 <configuration>
-                  <artifact>org.sonarsource.scanner.msbuild:sonar-scanner-msbuild:${scannerForMSBuild.version}:zip</artifact>
+                  <artifact>org.sonarsource.scanner.msbuild:sonar-scanner-msbuild:${scannerForMSBuild.version}:zip:net46</artifact>
                 </configuration>
               </execution>
             </executions>

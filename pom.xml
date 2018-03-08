@@ -28,7 +28,7 @@
     </license>
   </licenses>
 
-  <scm> 
+  <scm>
     <connection>scm:git:git@github.com:SonarSource-VisualStudio/sonar-scanner-msbuild.git</connection>
     <developerConnection>scm:git:git@github.com:SonarSource-VisualStudio/sonar-scanner-msbuild.git</developerConnection>
     <url>https://github.com/SonarSource-VisualStudio/sonar-scanner-msbuild</url>
@@ -44,7 +44,7 @@
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <gitRepositoryName>sonar-scanner-msbuild</gitRepositoryName>
     <!-- Release: enable publication to Bintray -->
-    <artifactsToPublish>${project.groupId}:${project.artifactId}:zip</artifactsToPublish>
+    <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net46,${project.groupId}:${project.artifactId}:zip:netcoreapp2.0</artifactsToPublish>
   </properties>
 
   <build>
@@ -63,9 +63,14 @@
             <configuration>
               <artifacts>
                 <artifact>
-                  <file>scannerZipPath</file>
+                  <file>classicScannerZipPath</file>
                   <type>zip</type>
-                  <classifier></classifier>
+                  <classifier>net46</classifier>
+                </artifact>
+                <artifact>
+                  <file>dotnetScannerZipPath</file>
+                  <type>zip</type>
+                  <classifier>netcoreapp2.0</classifier>
                 </artifact>
               </artifacts>
             </configuration>
