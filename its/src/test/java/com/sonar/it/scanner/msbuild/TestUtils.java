@@ -24,6 +24,7 @@ import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
@@ -55,13 +56,25 @@ public class TestUtils {
     return configuration.getString("scannerForMSBuild.version");
   }
 
+  private static MavenLocation mavenLocation(String scannerVersion) {
+    String groupId = "org.sonarsource.scanner.msbuild";
+    String artifactId = "sonar-scanner-msbuild";
+    return MavenLocation.builder()
+      .setGroupId(groupId)
+      .setArtifactId(artifactId)
+      .setVersion(scannerVersion)
+      .setClassifier("net46")
+      .withPackaging("zip")
+      .build();
+  }
+
   public static ScannerForMSBuild newScanner(Path projectDir) {
     String scannerVersion = getScannerVersion();
 
     if (scannerVersion != null) {
       LOG.info("Using Scanner for MSBuild " + scannerVersion);
       return ScannerForMSBuild.create(projectDir.toFile())
-        .setScannerVersion(scannerVersion);
+        .setScannerLocation(mavenLocation(scannerVersion));
     } else {
       // run locally
       LOG.info("Using Scanner for MSBuild from the local build");
