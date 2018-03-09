@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
-    <AssemblyName>MSBuild.SonarQube.Internal.PreProcess</AssemblyName>
+    <AssemblyName>SonarScanner.MSBuild.PreProcessor</AssemblyName>
     <RootNamespace>SonarQube.TeamBuild.PreProcessor</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
      <!--

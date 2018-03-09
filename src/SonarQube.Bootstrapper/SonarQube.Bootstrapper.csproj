@@ -15,7 +15,7 @@
     <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
     <ProjectReference Include="..\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj" />
     <ProjectReference Include="..\SonarScanner.MSBuild.PostProcessor\SonarScanner.MSBuild.PostProcessor.csproj" />
-    <ProjectReference Include="..\SonarQube.TeamBuild.PreProcessor\SonarQube.TeamBuild.PreProcessor.csproj" />
+    <ProjectReference Include="..\SonarScanner.MSBuild.PreProcessor\SonarScanner.MSBuild.PreProcessor.csproj" />
     <ProjectReference Include="..\SonarScanner.Shim\SonarScanner.Shim.csproj" />
   </ItemGroup>
 

@@ -6,8 +6,8 @@
     <ProjectGuid>{81E8D103-270F-4363-87D1-72BE7FC4F94A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarQube.TeamBuild.PreProcessor.Tests</RootNamespace>
-    <AssemblyName>MSBuild.SonarQube.Internal.PreProcess.Tests</AssemblyName>
+    <RootNamespace>SonarQube.TeamBuild.PreProcessor</RootNamespace>
+    <AssemblyName>SonarScanner.MSBuild.PreProcessor.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -26,7 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>SonarQube.TeamBuild.PreProcessor.Tests.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SonarScanner.MSBuild.PreProcessor.Tests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,7 +35,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>SonarQube.TeamBuild.PreProcessor.Tests.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SonarScanner.MSBuild.PreProcessor.Tests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Castle.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
@@ -106,9 +106,9 @@
       <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>
       <Name>SonarQube.TeamBuild.Integration</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\SonarQube.TeamBuild.PreProcessor\SonarQube.TeamBuild.PreProcessor.csproj">
+    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.PreProcessor\SonarScanner.MSBuild.PreProcessor.csproj">
       <Project>{f43364bb-e460-4ac4-87e9-de460a9f55f5}</Project>
-      <Name>SonarQube.TeamBuild.PreProcessor</Name>
+      <Name>SonarScanner.MSBuild.PreProcessor</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj">
       <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>
@@ -123,7 +123,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="SonarQube.TeamBuild.PreProcessor.Tests.ruleset" />
+    <None Include="SonarScanner.MSBuild.PreProcessor.Tests.ruleset" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

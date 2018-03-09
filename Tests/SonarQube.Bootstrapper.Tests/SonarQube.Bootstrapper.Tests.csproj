@@ -98,9 +98,9 @@
       <Project>{80f02fad-fe7e-41b6-9151-bb650fdd6103}</Project>
       <Name>SonarQube.TeamBuild.PostProcessor</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\SonarQube.TeamBuild.PreProcessor\SonarQube.TeamBuild.PreProcessor.csproj">
+    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.PreProcessor\SonarScanner.MSBuild.PreProcessor.csproj">
       <Project>{f43364bb-e460-4ac4-87e9-de460a9f55f5}</Project>
-      <Name>SonarQube.TeamBuild.PreProcessor</Name>
+      <Name>SonarScanner.MSBuild.PreProcessor</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\SonarScanner.Shim\SonarScanner.Shim.csproj">
       <Project>{c28a09bf-6025-4ea1-90d7-4d5ec0af815d}</Project>
