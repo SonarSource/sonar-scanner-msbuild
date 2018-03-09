@@ -26,7 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>SonarQube.TeamBuild.PostProcessor.Tests.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SonarScanner.MSBuild.PostProcessor.Tests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,7 +35,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>SonarQube.TeamBuild.PostProcessor.Tests.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SonarScanner.MSBuild.PostProcessor.Tests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Castle.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
@@ -96,9 +96,9 @@
       <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>
       <Name>SonarQube.TeamBuild.Integration</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\SonarQube.TeamBuild.PostProcessor\SonarQube.TeamBuild.PostProcessor.csproj">
+    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.PostProcessor\SonarScanner.MSBuild.PostProcessor.csproj">
       <Project>{80f02fad-fe7e-41b6-9151-bb650fdd6103}</Project>
-      <Name>SonarQube.TeamBuild.PostProcessor</Name>
+      <Name>SonarScanner.MSBuild.PostProcessor</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\SonarScanner.Shim\SonarScanner.Shim.csproj">
       <Project>{C28A09BF-6025-4EA1-90D7-4D5EC0AF815D}</Project>
@@ -111,7 +111,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="SonarQube.TeamBuild.PostProcessor.Tests.ruleset" />
+    <None Include="SonarScanner.MSBuild.PostProcessor.Tests.ruleset" />
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="..\..\SonarLint.xml">

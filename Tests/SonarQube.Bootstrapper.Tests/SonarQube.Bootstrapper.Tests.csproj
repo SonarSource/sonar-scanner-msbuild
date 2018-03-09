@@ -94,7 +94,7 @@
       <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>
       <Name>SonarQube.TeamBuild.Integration</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\SonarQube.TeamBuild.PostProcessor\SonarQube.TeamBuild.PostProcessor.csproj">
+    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.PostProcessor\SonarScanner.MSBuild.PostProcessor.csproj">
       <Project>{80f02fad-fe7e-41b6-9151-bb650fdd6103}</Project>
       <Name>SonarQube.TeamBuild.PostProcessor</Name>
     </ProjectReference>
