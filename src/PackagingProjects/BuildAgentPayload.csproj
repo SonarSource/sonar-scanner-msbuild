@@ -37,7 +37,7 @@
 
     <!-- External dependencies -->
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\bin\$(Configuration)\$(ScannerNetFxVersion)\Newtonsoft.Json.dll" />
-    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration.Classic\bin\$(Configuration)\$(ScannerNetFxVersion)\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.TFS.Classic\bin\$(Configuration)\$(ScannerNetFxVersion)\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" />
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\System.ValueTuple.dll" />
 
     <!-- .NET Framework entry points-->
@@ -45,7 +45,7 @@
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\MSBuild.SonarQube.Runner.exe" />
 
     <!-- XAML Support (only for "classic" .NET Framework). -->
-    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration.Classic\bin\$(Configuration)\$(ScannerNetFxVersion)\TeamBuild.SonarQube.Integration.Classic.dll" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.TFS.Classic\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarScanner.MSBuild.TFS.Classic.dll" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration) == 'Debug'">
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarQube.Scanner.MSBuild.pdb" />
