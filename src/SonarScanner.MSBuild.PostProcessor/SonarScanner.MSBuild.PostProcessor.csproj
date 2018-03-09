@@ -7,6 +7,6 @@
   <ItemGroup>
     <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
     <ProjectReference Include="..\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj" />
-    <ProjectReference Include="..\SonarScanner.Shim\SonarScanner.Shim.csproj" />
+    <ProjectReference Include="..\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj" />
   </ItemGroup>
 </Project>

@@ -33,7 +33,7 @@
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PostProcessor\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarScanner.MSBuild.PostProcessor.dll" />
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\$(ScannerNetFxVersion)\TeamBuild.SonarQube.Integration.dll" />
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarQube.Integration.Tasks.dll" />
-    <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarScanner.Shim.dll" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.Shim\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarScanner.MSBuild.Shim.dll" />
 
     <!-- External dependencies -->
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\bin\$(Configuration)\$(ScannerNetFxVersion)\Newtonsoft.Json.dll" />
@@ -60,7 +60,7 @@
     <DotnetScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PostProcessor\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarScanner.MSBuild.PostProcessor.dll" />
     <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\bin\$(Configuration)\$(ScannerNetStandardVersion)\TeamBuild.SonarQube.Integration.dll" />
     <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.MSBuild.Tasks\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarQube.Integration.Tasks.dll" />
-    <DotnetScannerFiles Include="$(SourcesRoot)\SonarScanner.Shim\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarScanner.Shim.dll" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.Shim\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarScanner.MSBuild.Shim.dll" />
 
     <!-- External dependencies -->
     <DotnetScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\bin\$(Configuration)\$(ScannerNetStandardVersion)\Newtonsoft.Json.dll" />
@@ -82,7 +82,7 @@
     <ProjectReference Include="$(SourcesRoot)\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj" />
     <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.PostProcessor\SonarScanner.MSBuild.PostProcessor.csproj" />
     <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\SonarScanner.MSBuild.PreProcessor.csproj" />
-    <ProjectReference Include="$(SourcesRoot)\SonarScanner.Shim\SonarScanner.Shim.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj" />
   </ItemGroup>
   <UsingTask TaskName="DownloadFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
     <ParameterGroup>

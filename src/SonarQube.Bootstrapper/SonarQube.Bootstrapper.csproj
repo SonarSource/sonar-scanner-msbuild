@@ -16,7 +16,7 @@
     <ProjectReference Include="..\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj" />
     <ProjectReference Include="..\SonarScanner.MSBuild.PostProcessor\SonarScanner.MSBuild.PostProcessor.csproj" />
     <ProjectReference Include="..\SonarScanner.MSBuild.PreProcessor\SonarScanner.MSBuild.PreProcessor.csproj" />
-    <ProjectReference Include="..\SonarScanner.Shim\SonarScanner.Shim.csproj" />
+    <ProjectReference Include="..\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj" />
   </ItemGroup>
 
   <!-- Conditionally reference project only if the framework is classic .NET Framework (not core or standard). -->
