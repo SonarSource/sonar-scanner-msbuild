@@ -20,6 +20,6 @@
 
 using System.Reflection;
 
-[assembly: AssemblyTitle("MSBuild.SonarQube.Internal.PostProcess")]
-[assembly: AssemblyProduct("MSBuild.SonarQube.Internal.PostProcess")]
+[assembly: AssemblyTitle("SonarScanner.MSBuild.PostProcessor")]
+[assembly: AssemblyProduct("SonarScanner.MSBuild.PostProcessor")]
 [assembly: AssemblyDescription("")]
