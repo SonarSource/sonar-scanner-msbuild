@@ -93,10 +93,10 @@
     <Content Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\src\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets">
+    <EmbeddedResource Include="..\..\src\SonarScanner.MSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets">
       <Link>Embedded\SonarQube.Integration.ImportBefore.targets</Link>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\..\src\SonarQube.MSBuild.Tasks\Targets\SonarQube.Integration.targets">
+    <EmbeddedResource Include="..\..\src\SonarScanner.MSBuild.Tasks\Targets\SonarQube.Integration.targets">
       <Link>Embedded\SonarQube.Integration.targets</Link>
     </EmbeddedResource>
     <EmbeddedResource Include="..\..\src\SonarQube.Bootstrapper\SonarQube.Analysis.xml">

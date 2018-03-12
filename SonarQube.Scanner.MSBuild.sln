@@ -3,19 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.MSBuild.Tasks", "src\SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarScanner.MSBuild.Tasks", "src\SonarScanner.MSBuild.Tasks\SonarScanner.MSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{E04A4D31-AC10-4F56-9678-5D538932578C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtilities", "tests\TestUtilities\TestUtilities.csproj", "{2FA8E679-3BEC-4679-A543-8CADB117C9EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.MSBuild.Tasks.UnitTests", "tests\SonarQube.MSBuild.Tasks.Unittests\SonarQube.MSBuild.Tasks.UnitTests.csproj", "{9921D017-AAFC-48E3-8F48-E45DC084CEA4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.Tasks.UnitTests", "tests\SonarScanner.MSBuild.Tasks.Unittests\SonarScanner.MSBuild.Tasks.UnitTests.csproj", "{9921D017-AAFC-48E3-8F48-E45DC084CEA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.MSBuild.Tasks.IntegrationTests", "tests\SonarQube.MSBuild.Tasks.Integrationtests\SonarQube.MSBuild.Tasks.IntegrationTests.csproj", "{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.Tasks.IntegrationTests", "tests\SonarScanner.MSBuild.Tasks.Integrationtests\SonarScanner.MSBuild.Tasks.IntegrationTests.csproj", "{943D1B4C-578E-4A4D-ADB3-F823E13FBE28}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarScanner.MSBuild.Common", "src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj", "{E312FDBB-BC13-4559-8F21-76CA5B88EBC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.Common.UnitTests", "tests\SonarScanner.MSBuild.Common.Unittests\SonarScanner.MSBuild.Common.UnitTests.csproj", "{A74AA08B-58D3-4B52-BC40-3A4F9A997705}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.Common.UnitTests", "tests\SonarScanner.MSBuild.Common.UnitTests\SonarScanner.MSBuild.Common.UnitTests.csproj", "{A74AA08B-58D3-4B52-BC40-3A4F9A997705}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.TeamBuild.Integration", "src\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj", "{66CE9491-1C14-45D2-BEB6-A0695C63EBB2}"
 EndProject

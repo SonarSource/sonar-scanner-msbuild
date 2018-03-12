@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SonarQube.MSBuild.Tasks.UnitTests</RootNamespace>
-    <AssemblyName>SonarQube.Integration.Tasks.UnitTests</AssemblyName>
+    <AssemblyName>SonarScanner.Integration.Tasks.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -26,7 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>SonarQube.MSBuild.Tasks.UnitTests.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SonarScanner.MSBuild.Tasks.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,7 +35,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>SonarQube.MSBuild.Tasks.UnitTests.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SonarScanner.MSBuild.Tasks.UnitTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="FluentAssertions, Version=4.19.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
@@ -92,9 +92,9 @@
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>SonarScanner.MSBuild.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\SonarQube.MSBuild.Tasks\SonarQube.MSBuild.Tasks.csproj">
+    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Tasks\SonarScanner.MSBuild.Tasks.csproj">
       <Project>{ab14d4f9-f7b9-4cab-a0dd-54068b236a6d}</Project>
-      <Name>SonarQube.MSBuild.Tasks</Name>
+      <Name>SonarScanner.MSBuild.Tasks</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj">
       <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>
@@ -109,7 +109,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="SonarQube.MSBuild.Tasks.UnitTests.ruleset" />
+    <None Include="SonarScanner.MSBuild.Tasks.UnitTests.ruleset" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
