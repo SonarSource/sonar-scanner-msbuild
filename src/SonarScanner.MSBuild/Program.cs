@@ -35,6 +35,12 @@ namespace SonarScanner.MSBuild
             return Execute(args, logger);
         }
 
+        public static void PrintDeprecatedWarning()
+        {
+            var logger = new ConsoleLogger(includeTimestamp: false);
+            logger.LogWarning(Resources.WARN_Deprecated_Entry_Point);
+        }
+
         public static int Execute(string[] args, ILogger logger)
         {
             Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
