@@ -21,7 +21,7 @@
 using System.Collections.Generic;
 using SonarQube.Common;
 
-namespace SonarQube.Bootstrapper
+namespace SonarScanner.MSBuild
 {
     public enum AnalysisPhase
     {

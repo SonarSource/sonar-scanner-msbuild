@@ -2,11 +2,11 @@
   <PropertyGroup>
     <TargetFrameworks>$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>MSBuild.SonarQube.Runner</AssemblyName>
-    <RootNamespace>SonarQube.Old.Bootstrapper</RootNamespace>
+    <RootNamespace>MSBuild.SonarQube.Runner</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj" />
+    <ProjectReference Include="..\SonarScanner.MSBuild\SonarScanner.MSBuild.csproj" />
   </ItemGroup>
 </Project>

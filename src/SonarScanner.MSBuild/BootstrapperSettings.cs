@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using SonarQube.Common;
 
-namespace SonarQube.Bootstrapper
+namespace SonarScanner.MSBuild
 {
     public class BootstrapperSettings : IBootstrapperSettings
     {

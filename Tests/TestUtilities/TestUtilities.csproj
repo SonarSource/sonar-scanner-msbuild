@@ -99,7 +99,7 @@
     <EmbeddedResource Include="..\..\src\SonarScanner.MSBuild.Tasks\Targets\SonarQube.Integration.targets">
       <Link>Embedded\SonarQube.Integration.targets</Link>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\..\src\SonarQube.Bootstrapper\SonarQube.Analysis.xml">
+    <EmbeddedResource Include="..\..\src\SonarScanner.MSBuild\SonarQube.Analysis.xml">
       <Link>Embedded\SonarQube.Analysis.xml</Link>
     </EmbeddedResource>
   </ItemGroup>

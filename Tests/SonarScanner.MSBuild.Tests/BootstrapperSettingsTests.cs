@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Common;
+using SonarScanner.MSBuild;
 using TestUtilities;
 
 namespace SonarQube.Bootstrapper.Tests

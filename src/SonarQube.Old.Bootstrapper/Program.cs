@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.Old.Bootstrapper
+namespace MSBuild.SonarQube.Runner
 {
     internal static class Program
     {
         private static int Main(string[] args) =>
-            SonarQube.Bootstrapper.Program.Main(args);
+            SonarScanner.MSBuild.Program.Main(args);
     }
 }

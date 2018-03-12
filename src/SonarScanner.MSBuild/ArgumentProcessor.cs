@@ -25,7 +25,7 @@ using System.IO;
 using System.Linq;
 using SonarQube.Common;
 
-namespace SonarQube.Bootstrapper
+namespace SonarScanner.MSBuild
 {
     /// <summary>
     /// Processes the command line arguments.
@@ -102,7 +102,7 @@ namespace SonarQube.Bootstrapper
             parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out IAnalysisPropertyProvider cmdLineProperties);
 
             // Handler for property file
-            var asmPath = Path.GetDirectoryName(typeof(Bootstrapper.ArgumentProcessor).Assembly.Location);
+            var asmPath = Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location);
             parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out IAnalysisPropertyProvider globalFileProperties);
 
             parsedOk &= TryGetPhase(commandLineArgs.Length, arguments, logger, out AnalysisPhase phase);

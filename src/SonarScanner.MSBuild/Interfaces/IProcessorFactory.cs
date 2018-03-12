@@ -18,21 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarQube.TeamBuild.Integration;
+using SonarQube.TeamBuild.PostProcessor.Interfaces;
+using SonarQube.TeamBuild.PreProcessor;
 
-namespace SonarQube.Bootstrapper
+namespace SonarScanner.MSBuild
 {
-    public class NotSupportedLegacyTeamBuildFactory : ILegacyTeamBuildFactory
+    public interface IProcessorFactory
     {
-        private const string message
-            = "Legacy XAML builds are not supported by .NET Core version of Scanner for MSBuild. " +
-              "Please use the .NET Framework executable instead.";
+        IMSBuildPostProcessor CreatePostProcessor();
 
-        public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri)
-            => throw new NotSupportedException(message);
-
-        public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
-            => throw new NotSupportedException(message);
+        ITeamBuildPreProcessor CreatePreProcessor();
     }
 }

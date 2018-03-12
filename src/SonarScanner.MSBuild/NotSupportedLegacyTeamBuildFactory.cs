@@ -18,26 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
-using SonarQube.Common;
+using System;
+using SonarQube.TeamBuild.Integration;
 
-namespace SonarQube.Bootstrapper.Tests
+namespace SonarScanner.MSBuild
 {
-    internal static class BootstrapperTestUtils
+    public class NotSupportedLegacyTeamBuildFactory : ILegacyTeamBuildFactory
     {
-        public static string GetDefaultPropertiesFilePath()
-        {
-            var defaultPropertiesFilePath = Path.Combine(Path.GetDirectoryName(typeof(Bootstrapper.Program).Assembly.Location), FilePropertyProvider.DefaultFileName);
-            return defaultPropertiesFilePath;
-        }
+        private const string message
+            = "Legacy XAML builds are not supported by .NET Core version of Scanner for MSBuild. " +
+              "Please use the .NET Framework executable instead.";
 
-        public static void EnsureDefaultPropertiesFileDoesNotExist()
-        {
-            var defaultPropertiesFilePath = GetDefaultPropertiesFilePath();
-            if (File.Exists(defaultPropertiesFilePath))
-            {
-                File.Delete(defaultPropertiesFilePath);
-            };
-        }
+        public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri)
+            => throw new NotSupportedException(message);
+
+        public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
+            => throw new NotSupportedException(message);
     }
 }

@@ -27,7 +27,7 @@
 
   <!-- Binaries for dotnet framework scanner -->
   <ItemGroup>
-    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarQube.Analysis.xml" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarQube.Analysis.xml" />
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.Common\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarScanner.MSBuild.Common.dll" />
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarScanner.MSBuild.PreProcessor.dll" />
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PostProcessor\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarScanner.MSBuild.PostProcessor.dll" />
@@ -40,7 +40,10 @@
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.TFS.Classic\bin\$(Configuration)\$(ScannerNetFxVersion)\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" />
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\System.ValueTuple.dll" />
 
-    <!-- .NET Framework entry points-->
+    <!-- .NET Framework entry point-->
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarScanner.MSBuild.exe" />
+
+    <!-- .NET Framework legacy entry points-->
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarQube.Scanner.MSBuild.exe" />
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\MSBuild.SonarQube.Runner.exe" />
 
@@ -48,13 +51,12 @@
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.TFS.Classic\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarScanner.MSBuild.TFS.Classic.dll" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration) == 'Debug'">
-    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarQube.Scanner.MSBuild.pdb" />
-    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\MSBuild.SonarQube.Runner.pdb" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarScanner.MSBuild.pdb" />
   </ItemGroup>
 
   <!-- Binaries for dotnet core scanner -->
   <ItemGroup>
-    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarQube.Analysis.xml" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarQube.Analysis.xml" />
     <DotnetScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.Common\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarScanner.MSBuild.Common.dll" />
     <DotnetScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarScanner.MSBuild.PreProcessor.dll" />
     <DotnetScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PostProcessor\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarScanner.MSBuild.PostProcessor.dll" />
@@ -66,11 +68,11 @@
     <DotnetScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\bin\$(Configuration)\$(ScannerNetStandardVersion)\Newtonsoft.Json.dll" />
 
     <!-- .NET Core entry points-->
-    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarQube.Scanner.MSBuild.runtimeconfig.json" />
-    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarQube.Scanner.MSBuild.dll" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarScanner.MSBuild.runtimeconfig.json" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarScanner.MSBuild.dll" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration) == 'Debug'">
-    <DotnetScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarQube.Scanner.MSBuild.pdb" />
+    <DotnetScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarScanner.MSBuild.pdb" />
   </ItemGroup>
 
   <!-- Reference to dependencies to ensure the build order is correct -->

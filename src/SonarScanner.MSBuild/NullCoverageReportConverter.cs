@@ -18,15 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.TeamBuild.PostProcessor.Interfaces;
-using SonarQube.TeamBuild.PreProcessor;
+using System;
+using SonarQube.Common;
+using SonarQube.TeamBuild.Integration;
 
-namespace SonarQube.Bootstrapper
+namespace SonarScanner.MSBuild
 {
-    public interface IProcessorFactory
+    public class NullCoverageReportConverter : ICoverageReportConverter
     {
-        IMSBuildPostProcessor CreatePostProcessor();
+        public bool ConvertToXml(string inputFilePath, string outputFilePath, ILogger logger)
+            => false;
 
-        ITeamBuildPreProcessor CreatePreProcessor();
+        public bool Initialize(ILogger logger) => true;
     }
 }

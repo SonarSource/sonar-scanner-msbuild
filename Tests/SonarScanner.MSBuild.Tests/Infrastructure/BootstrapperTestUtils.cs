@@ -18,17 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.IO;
 using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
 
-namespace SonarQube.Bootstrapper
+namespace SonarQube.Bootstrapper.Tests
 {
-    public class NullCoverageReportConverter : ICoverageReportConverter
+    internal static class BootstrapperTestUtils
     {
-        public bool ConvertToXml(string inputFilePath, string outputFilePath, ILogger logger)
-            => false;
+        public static string GetDefaultPropertiesFilePath()
+        {
+            var defaultPropertiesFilePath = Path.Combine(
+                Path.GetDirectoryName(typeof(SonarScanner.MSBuild.Program).Assembly.Location),
+                FilePropertyProvider.DefaultFileName);
+            return defaultPropertiesFilePath;
+        }
 
-        public bool Initialize(ILogger logger) => true;
+        public static void EnsureDefaultPropertiesFileDoesNotExist()
+        {
+            var defaultPropertiesFilePath = GetDefaultPropertiesFilePath();
+            if (File.Exists(defaultPropertiesFilePath))
+            {
+                File.Delete(defaultPropertiesFilePath);
+            };
+        }
     }
 }

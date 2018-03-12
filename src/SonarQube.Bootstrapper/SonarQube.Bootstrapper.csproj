@@ -1,33 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>$(ScannerNetCoreAppVersion);$(ScannerNetFxVersion)</TargetFrameworks>
+    <TargetFrameworks>$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>SonarQube.Scanner.MSBuild</AssemblyName>
-    <RootNamespace>SonarQube.Bootstrapper</RootNamespace>
+    <RootNamespace>SonarQube.Scanner.MSBuild</RootNamespace>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="SonarQube.Analysis.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
+    <ProjectReference Include="..\SonarScanner.MSBuild\SonarScanner.MSBuild.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
-    <ProjectReference Include="..\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj" />
-    <ProjectReference Include="..\SonarScanner.MSBuild.PostProcessor\SonarScanner.MSBuild.PostProcessor.csproj" />
-    <ProjectReference Include="..\SonarScanner.MSBuild.PreProcessor\SonarScanner.MSBuild.PreProcessor.csproj" />
-    <ProjectReference Include="..\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj" />
-  </ItemGroup>
-
-  <!-- Conditionally reference project only if the framework is classic .NET Framework (not core or standard). -->
-  <ItemGroup Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework')">
-    <ProjectReference Include="..\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj" />
-  </ItemGroup>
-
-  <!-- Define a constant if the framework is classic .NET Framework. -->
-  <Target Name="AddNetFrameworkMacro" BeforeTargets="CoreCompile" Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework')">
-    <PropertyGroup>
-      <DefineConstants>$(DefineConstants);IS_NET_FRAMEWORK</DefineConstants>
-    </PropertyGroup>
-  </Target>
 </Project>

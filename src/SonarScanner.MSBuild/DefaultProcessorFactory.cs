@@ -26,7 +26,7 @@ using SonarQube.TeamBuild.PostProcessor.Interfaces;
 using SonarQube.TeamBuild.PreProcessor;
 using SonarScanner.Shim;
 
-namespace SonarQube.Bootstrapper
+namespace SonarScanner.MSBuild
 {
     public class DefaultProcessorFactory : IProcessorFactory
     {

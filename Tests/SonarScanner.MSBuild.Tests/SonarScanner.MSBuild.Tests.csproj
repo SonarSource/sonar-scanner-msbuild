@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SonarQube.Bootstrapper.Tests</RootNamespace>
-    <AssemblyName>SonarQube.MSBuild.Runner.Tests</AssemblyName>
+    <AssemblyName>SonarScanner.MSBuild.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -26,7 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>SonarQube.Bootstrapper.Tests.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SonarScanner.MSBuild.Tests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,7 +35,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>SonarQube.Bootstrapper.Tests.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SonarScanner.MSBuild.Tests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Castle.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
@@ -82,10 +82,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj">
-      <Project>{60aacbb4-1661-4eeb-a029-91289c1d3f7e}</Project>
-      <Name>SonarQube.Bootstrapper</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj">
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>SonarScanner.MSBuild.Common</Name>
@@ -106,6 +102,10 @@
       <Project>{c28a09bf-6025-4ea1-90d7-4d5ec0af815d}</Project>
       <Name>SonarScanner.MSBuild.Shim</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\SonarScanner.MSBuild\SonarScanner.MSBuild.csproj">
+      <Project>{b9f6fca4-cd6c-4426-9835-d86160b30072}</Project>
+      <Name>SonarScanner.MSBuild</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj">
       <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>
       <Name>TestUtilities</Name>
@@ -119,7 +119,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="SonarQube.Bootstrapper.Tests.ruleset" />
+    <None Include="SonarScanner.MSBuild.Tests.ruleset" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

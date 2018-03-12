@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2027
+VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarScanner.MSBuild.Tasks", "src\SonarScanner.MSBuild.Tasks\SonarScanner.MSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
 EndProject
@@ -33,13 +33,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.Shim.T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Bootstrapper", "src\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj", "{60AACBB4-1661-4EEB-A029-91289C1D3F7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Bootstrapper.Tests", "tests\SonarQube.Bootstrapper.tests\SonarQube.Bootstrapper.Tests.csproj", "{3410EA30-5F7A-4E0F-B5F6-8E83077A20DB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.Tests", "tests\SonarScanner.MSBuild.Tests\SonarScanner.MSBuild.Tests.csproj", "{3410EA30-5F7A-4E0F-B5F6-8E83077A20DB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packaging", "Packaging", "{37FB4C72-0F3D-4BF2-9F78-2780A76746A2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.PostProcessor.Tests", "tests\SonarScanner.MSBuild.PostProcessor.Tests\SonarScanner.MSBuild.PostProcessor.Tests.csproj", "{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildAgentPayload", "src\PackagingProjects\BuildAgentPayload.csproj", "{ECEADD3A-5992-420F-950D-510BBDDC06E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildAgentPayload", "src\PackagingProjects\BuildAgentPayload.csproj", "{ECEADD3A-5992-420F-950D-510BBDDC06E1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Old.Bootstrapper", "src\SonarQube.Old.Bootstrapper\SonarQube.Old.Bootstrapper.csproj", "{35848C6E-2018-4831-94FA-40D7E45B5A09}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -53,7 +53,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{
 		SonarLint.xml = SonarLint.xml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.TFS.Classic", "src\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj", "{C3466723-5499-4FAD-B236-5C96094DE276}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarScanner.MSBuild.TFS.Classic", "src\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj", "{C3466723-5499-4FAD-B236-5C96094DE276}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarScanner.MSBuild", "src\SonarScanner.MSBuild\SonarScanner.MSBuild.csproj", "{B9F6FCA4-CD6C-4426-9835-D86160B30072}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -261,6 +263,18 @@ Global
 		{C3466723-5499-4FAD-B236-5C96094DE276}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{C3466723-5499-4FAD-B236-5C96094DE276}.Release|x86.ActiveCfg = Release|Any CPU
 		{C3466723-5499-4FAD-B236-5C96094DE276}.Release|x86.Build.0 = Release|Any CPU
+		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Debug|x86.Build.0 = Debug|Any CPU
+		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Release|x86.ActiveCfg = Release|Any CPU
+		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

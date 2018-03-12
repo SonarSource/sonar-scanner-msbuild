@@ -23,6 +23,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Common;
+using SonarScanner.MSBuild;
 using SonarQube.TeamBuild.Integration.Interfaces;
 using SonarQube.TeamBuild.PostProcessor.Interfaces;
 using SonarQube.TeamBuild.PreProcessor;
@@ -262,7 +263,7 @@ namespace SonarQube.Bootstrapper.Tests
             var bootstrapper = new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
             var exitCode = bootstrapper.Execute();
 
-            Assert.AreEqual(Bootstrapper.Program.ErrorCode, exitCode, "Bootstrapper did not return the expected exit code");
+            Assert.AreEqual(SonarScanner.MSBuild.Program.ErrorCode, exitCode, "Bootstrapper did not return the expected exit code");
             logger.AssertErrorsLogged();
 
             return logger;
