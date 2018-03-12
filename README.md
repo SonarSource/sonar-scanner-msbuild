@@ -5,7 +5,7 @@
 [![Coverage](https://next.sonarqube.com/sonarqube/api/badges/measure?key=sonarlint-visualstudio&metric=coverage)](https://next.sonarqube.com/sonarqube/component_measures/domain/Coverage?id=sonar-scanner-msbuild)
 
 
-The SonarQube Scanner for MSBuild is the recommended way to launch a SonarQube analysis for projects/solutions using
+The Sonar Scanner for MSBuild is the recommended way to launch SonarQube and SonarCloud analysis for projects/solutions using
 MSBuild or dotnet command as build tool. It is the result of a
 [collaboration between SonarSource and Microsoft.](http://www.sonarqube.org/announcing-sonarqube-integration-with-msbuild-and-team-build/)
 
