@@ -133,7 +133,7 @@ namespace SonarScanner.MSBuild
         {
             var binDirPath = Path.Combine(bootstrapSettings.TempDirectory, "bin");
             Directory.CreateDirectory(binDirPath);
-            string[] dllsToCopy = { "SonarScanner.MSBuild.Common.dll", "SonarQube.Integration.Tasks.dll" };
+            string[] dllsToCopy = { "SonarScanner.MSBuild.Common.dll", "SonarScanner.MSBuild.Tasks.dll" };
 
             foreach (var dll in dllsToCopy)
             {

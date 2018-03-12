@@ -118,7 +118,7 @@ namespace SonarQube.Bootstrapper.Tests
 
                 // Assert
                 Assert.IsTrue(File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")));
-                Assert.IsTrue(File.Exists(Path.Combine(TempDir, "bin", "SonarQube.Integration.Tasks.dll")));
+                Assert.IsTrue(File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")));
             }
         }
 
@@ -287,7 +287,7 @@ namespace SonarQube.Bootstrapper.Tests
             Mock<IBootstrapperSettings> mockBootstrapSettings;
 
             File.Create(Path.Combine(RootDir, "SonarScanner.MSBuild.Common.dll")).Close();
-            File.Create(Path.Combine(RootDir, "SonarQube.Integration.Tasks.dll")).Close();
+            File.Create(Path.Combine(RootDir, "SonarScanner.MSBuild.Tasks.dll")).Close();
 
             mockBootstrapSettings = new Mock<IBootstrapperSettings>();
             mockBootstrapSettings.SetupGet(x => x.ChildCmdLineArgs).Returns(args.ToArray);
