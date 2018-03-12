@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AssemblyDescription" xml:space="preserve">
-    <value>SonarQube Scanner for MSBuild Begin Step</value>
+    <value>SonarScanner for MSBuild Begin Step</value>
   </data>
   <data name="CmdLine_ArgDescription_InstallTargets" xml:space="preserve">
     <value>/install:[true|false] - install standard MSBuild targets required for analysis (default true)</value>
@@ -256,7 +256,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Writing Roslyn analyzer additional file to {0}...</value>
   </data>
   <data name="WARN_ExistingGlobalTargets" xml:space="preserve">
-    <value>This version of the SonarQube Scanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional.</value>
+    <value>This version of the SonarScanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional.</value>
   </data>
   <data name="WCD_UserNameCannotContainColon" xml:space="preserve">
     <value>username cannot contain the ':' character due to basic authentication limitations</value>

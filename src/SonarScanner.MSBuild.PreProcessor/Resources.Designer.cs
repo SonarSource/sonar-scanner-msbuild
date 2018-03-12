@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube Scanner for MSBuild Begin Step.
+        ///   Looks up a localized string similar to SonarScanner for MSBuild Begin Step.
         /// </summary>
         internal static string AssemblyDescription {
             get {
@@ -463,7 +463,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This version of the SonarQube Scanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
+        ///   Looks up a localized string similar to This version of the SonarScanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
         /// </summary>
         internal static string WARN_ExistingGlobalTargets {
             get {

@@ -118,7 +118,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             // Assert
             Assert.IsTrue(logger.Warnings.Any(m =>
-                m.StartsWith("This version of the SonarQube Scanner for MSBuild automatically deploys")));
+                m.StartsWith("This version of the SonarScanner for MSBuild automatically deploys")));
         }
 
         [TestMethod]
@@ -139,7 +139,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             // Assert
             Assert.IsFalse(logger.Warnings.Any(m =>
-                m.StartsWith("This version of the SonarQube Scanner for MSBuild automatically deploys")));
+                m.StartsWith("This version of the SonarScanner for MSBuild automatically deploys")));
         }
 
         [TestMethod]

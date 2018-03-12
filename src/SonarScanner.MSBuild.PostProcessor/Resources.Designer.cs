@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube Scanner for MSBuild End Step.
+        ///   Looks up a localized string similar to SonarScanner for MSBuild End Step.
         /// </summary>
         internal static string AssemblyDescription {
             get {

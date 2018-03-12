@@ -213,7 +213,7 @@ Possible causes:
     <value>No analysable projects were found but some duplicate project IDs were found. Possible cause: you are building multiple configurations (e.g. DEBUG|x86 and RELEASE|x64) at the same time, which is not supported by the SonarQube integration. Please build and analyze each configuration individually.</value>
   </data>
   <data name="ERR_ConflictingSonarProjectProperties" xml:space="preserve">
-    <value>sonar-project.properties files are not understood by the SonarQube Scanner for MSBuild. Remove those files from the following folders: {0}</value>
+    <value>sonar-project.properties files are not understood by the SonarScanner for MSBuild. Remove those files from the following folders: {0}</value>
   </data>
   <data name="MSG_SarifFileNotFound" xml:space="preserve">
     <value>No Code Analysis ErrorLog file found at {0}.</value>

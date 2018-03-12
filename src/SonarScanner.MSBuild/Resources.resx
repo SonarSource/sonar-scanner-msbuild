@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AssemblyDescription" xml:space="preserve">
-    <value>SonarQube Scanner for MSBuild</value>
+    <value>SonarScanner for MSBuild</value>
   </data>
   <data name="CmdLine_ArgDescription_Begin" xml:space="preserve">
     <value>begin - perform pre-MSBuild analysis steps</value>

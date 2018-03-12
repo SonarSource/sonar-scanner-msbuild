@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube Scanner for MSBuild.
+        ///   Looks up a localized string similar to SonarScanner for MSBuild.
         /// </summary>
         internal static string AssemblyDescription {
             get {
