@@ -22,12 +22,12 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.Integration.Interfaces;
-using SonarScanner.Shim;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS;
+using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Shim;
 
-namespace SonarQube.TeamBuild.PostProcessor
+namespace SonarScanner.MSBuild.PostProcessor
 {
     /// <summary>
     /// Generates summary reports for various build systems

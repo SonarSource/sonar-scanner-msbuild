@@ -20,7 +20,7 @@
 
 using System.Text;
 
-namespace SonarQube.Common.Interfaces
+namespace SonarScanner.MSBuild.Common.Interfaces
 {
     public interface IEncodingProvider
     {

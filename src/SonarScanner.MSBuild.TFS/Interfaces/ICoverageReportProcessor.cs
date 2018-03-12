@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Interfaces;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS.Interfaces;
 
-namespace SonarQube.TeamBuild.Integration
+namespace SonarScanner.MSBuild.TFS
 {
     public interface ICoverageReportProcessor
     {

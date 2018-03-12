@@ -23,9 +23,9 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.MSBuild.Tasks
+namespace SonarScanner.MSBuild.Tasks
 {
     /// <summary>
     /// MSBuild task that determines whether a file should be treated as a

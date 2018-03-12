@@ -24,10 +24,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS;
 
-namespace SonarQube.TeamBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor
 {
     public class TeamBuildPreProcessor : ITeamBuildPreProcessor
     {

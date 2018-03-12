@@ -19,8 +19,8 @@
  */
 
 using System;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild
 {
@@ -90,7 +90,7 @@ namespace SonarScanner.MSBuild
         private static ICoverageReportConverter GetCoverageReportConverter()
         {
 #if IS_NET_FRAMEWORK
-            return new SonarQube.TeamBuild.Integration.Classic.BinaryToXmlCoverageReportConverter();
+            return new SonarScanner.MSBuild.TFS.Classic.BinaryToXmlCoverageReportConverter();
 #else
             return new NullCoverageReportConverter();
 #endif
@@ -99,7 +99,7 @@ namespace SonarScanner.MSBuild
         private static ILegacyTeamBuildFactory GetLegacyTeamBuildFactory()
         {
 #if IS_NET_FRAMEWORK
-            return new SonarQube.TeamBuild.Integration.Classic.XamlBuild.LegacyTeamBuildFactory();
+            return new SonarScanner.MSBuild.TFS.Classic.XamlBuild.LegacyTeamBuildFactory();
 #else
             return new NotSupportedLegacyTeamBuildFactory();
 #endif

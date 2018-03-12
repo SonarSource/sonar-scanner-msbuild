@@ -20,7 +20,7 @@
 
 using System.Collections.Generic;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     public interface IMsBuildPathsSettings
     {

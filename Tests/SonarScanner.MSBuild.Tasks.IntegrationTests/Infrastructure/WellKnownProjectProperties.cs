@@ -20,7 +20,7 @@
 
 using System.Collections.Generic;
 
-namespace SonarQube.MSBuild.Tasks.IntegrationTests
+namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
     /// <summary>
     /// Dictionary with strongly-typed accessors for some well-known properties

@@ -22,7 +22,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarQube.Common.UnitTests
+namespace SonarScanner.MSBuild.Common.UnitTests
 {
     [TestClass]
     public class AnalyzerSettingsTests

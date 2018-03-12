@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// Process and validates the command line arguments and reports any errors

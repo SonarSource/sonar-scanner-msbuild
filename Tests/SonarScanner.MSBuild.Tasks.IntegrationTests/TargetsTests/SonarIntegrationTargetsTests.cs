@@ -22,7 +22,7 @@ using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
+namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 {
     [TestClass]
     public class SonarIntegrationTargetsTests

@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.Shim
+namespace SonarScanner.MSBuild.Shim
 {
     /// <summary>
     /// Enumeration listing processing status codes that indicate whether a project

@@ -26,11 +26,11 @@ using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarQube.Common.Interfaces;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.Interfaces;
 using TestUtilities;
 
-namespace SonarQube.MSBuild.Tasks.UnitTests
+namespace SonarScanner.MSBuild.Tasks.UnitTests
 {
     [TestClass]
     public class WriteProjectInfoFileTests

@@ -23,9 +23,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.Shim
+namespace SonarScanner.MSBuild.Shim
 {
     public class SonarScannerWrapper : ISonarScanner
     {

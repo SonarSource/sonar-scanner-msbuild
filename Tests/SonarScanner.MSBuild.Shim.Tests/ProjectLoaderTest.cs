@@ -23,10 +23,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.Shim.Tests
+namespace SonarScanner.MSBuild.Shim.Tests
 {
     [TestClass]
     public class ProjectLoaderTest
@@ -83,7 +83,7 @@ namespace SonarScanner.Shim.Tests
             CreateFilesFromDescriptor(validNonTestNoReportsProject, "SomeList.txt", null);
 
             // Act
-            IEnumerable<ProjectInfo> projects = SonarScanner.Shim.ProjectLoader.LoadFrom(testSourcePath);
+            IEnumerable<ProjectInfo> projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(testSourcePath);
 
             // Assert
             Assert.AreEqual(3, projects.Count());
@@ -117,11 +117,11 @@ namespace SonarScanner.Shim.Tests
             CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt", null);
 
             // 1. Run against the root dir -> not expecting the project to be found
-            IEnumerable<ProjectInfo> projects = SonarScanner.Shim.ProjectLoader.LoadFrom(rootTestDir);
+            IEnumerable<ProjectInfo> projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(rootTestDir);
             Assert.AreEqual(0, projects.Count());
 
             // 2. Run against the child dir -> project should be found
-            projects = SonarScanner.Shim.ProjectLoader.LoadFrom(childDir);
+            projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(childDir);
             Assert.AreEqual(1, projects.Count());
         }
 

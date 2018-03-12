@@ -19,9 +19,9 @@
  */
 
 using System.Collections.Generic;
-using SonarQube.TeamBuild.PreProcessor.Roslyn;
+using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
-namespace SonarQube.TeamBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor
 {
     public interface IAnalyzerInstaller
     {

@@ -20,10 +20,10 @@
 
 using System;
 using System.Collections.Generic;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS;
 
-namespace SonarQube.TeamBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor
 {
     public static class AnalysisConfigGenerator
     {

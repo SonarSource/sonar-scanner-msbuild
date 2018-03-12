@@ -21,7 +21,7 @@
 using System;
 using System.Xml.Serialization;
 
-namespace SonarQube.TeamBuild.PreProcessor.Roslyn
+namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 {
     /// <summary>
     /// XML-serializable data class for a single SonarQube plugin containing an analyzer

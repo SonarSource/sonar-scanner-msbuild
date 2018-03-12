@@ -21,7 +21,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     public class EmptyPropertyProvider : IAnalysisPropertyProvider
     {

@@ -24,9 +24,9 @@ using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.MSBuild.Tasks
+namespace SonarScanner.MSBuild.Tasks
 {
     /// <summary>
     /// Build task to return the Roslyn analyzer settings from the analysis config file

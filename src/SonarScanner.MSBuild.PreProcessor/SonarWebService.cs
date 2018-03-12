@@ -24,10 +24,10 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using Newtonsoft.Json.Linq;
-using SonarQube.Common;
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarQube.TeamBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor
 {
     public sealed class SonarWebService : ISonarQubeServer, IDisposable
     {

@@ -20,9 +20,9 @@
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
+namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 {
     internal class MockReportConverter : ICoverageReportConverter
     {

@@ -22,7 +22,7 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarQube.MSBuild.Tasks.UnitTests
+namespace SonarScanner.MSBuild.Tasks.UnitTests
 {
     [TestClass]
     public class MakeUniqueDirTests

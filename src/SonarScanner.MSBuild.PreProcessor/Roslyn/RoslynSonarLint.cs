@@ -21,10 +21,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using SonarQube.Common;
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarQube.TeamBuild.PreProcessor.Roslyn
+namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 {
     internal static class RoslynSonarLint
     {

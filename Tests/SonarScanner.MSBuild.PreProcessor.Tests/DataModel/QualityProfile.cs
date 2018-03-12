@@ -19,9 +19,9 @@
  */
 
 using System.Collections.Generic;
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
+using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarQube.TeamBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     internal class QualityProfile
     {

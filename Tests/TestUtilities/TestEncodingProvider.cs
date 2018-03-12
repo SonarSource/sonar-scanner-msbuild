@@ -20,7 +20,7 @@
 
 using System;
 using System.Text;
-using SonarQube.Common.Interfaces;
+using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace TestUtilities
 {

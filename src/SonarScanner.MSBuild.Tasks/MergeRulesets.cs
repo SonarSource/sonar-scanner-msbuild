@@ -26,7 +26,7 @@ using System.Xml.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-namespace SonarQube.MSBuild.Tasks
+namespace SonarScanner.MSBuild.Tasks
 {
     /// <summary>
     /// MSBuild task to merge rulesets by adding "Include" references to a

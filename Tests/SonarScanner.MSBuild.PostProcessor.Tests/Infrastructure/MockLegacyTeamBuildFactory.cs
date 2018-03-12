@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.TeamBuild.Integration;
+using SonarScanner.MSBuild.TFS;
 
-namespace SonarQube.TeamBuild.PostProcessorTests
+namespace SonarScanner.MSBuild.PostProcessorTests
 {
     internal class MockLegacyTeamBuildFactory : ILegacyTeamBuildFactory
     {

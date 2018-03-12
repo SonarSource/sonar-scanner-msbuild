@@ -22,9 +22,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.PostProcessor
+namespace SonarScanner.MSBuild.PostProcessor
 {
     /// <summary>
     /// Processes the command line arguments.

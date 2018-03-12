@@ -19,9 +19,9 @@
  */
 
 using System.Collections.Generic;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.Shim
+namespace SonarScanner.MSBuild.Shim
 {
     /// <summary>
     /// Encapsulate the interaction with the sonar-scanner

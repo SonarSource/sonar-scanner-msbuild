@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     /* If we move to a plug-in model (i.e. so handlers for new types of analyzers
        can be plugged in at runtime e.g. using MEF) then this enum would be removed.

@@ -25,10 +25,10 @@ using System.Linq;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarQube.MSBuild.Tasks.IntegrationTests.TargetsTests
+namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 {
     [TestClass]
     public class RoslynTargetsTests

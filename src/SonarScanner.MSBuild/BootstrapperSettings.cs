@@ -21,7 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild
 {

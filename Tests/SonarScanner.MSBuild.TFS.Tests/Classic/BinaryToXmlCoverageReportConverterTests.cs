@@ -24,11 +24,11 @@ using FluentAssertions;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Classic;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS.Classic;
 using TestUtilities;
 
-namespace SonarQube.TeamBuild.Integration.Tests
+namespace SonarScanner.MSBuild.TFS.Tests
 {
     [TestClass]
     public class BinaryToXmlCoverageReportConverterTests

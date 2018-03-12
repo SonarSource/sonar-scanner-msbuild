@@ -19,7 +19,7 @@
  */
 
 using System;
-using SonarQube.TeamBuild.Integration;
+using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild
 {

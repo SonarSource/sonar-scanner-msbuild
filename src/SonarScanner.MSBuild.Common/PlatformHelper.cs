@@ -20,7 +20,7 @@
 
 using System;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     public static class PlatformHelper
     {

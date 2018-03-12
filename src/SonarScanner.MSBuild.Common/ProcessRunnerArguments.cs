@@ -25,7 +25,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// Data class containing parameters required to execute a new process

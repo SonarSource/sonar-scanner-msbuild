@@ -24,9 +24,9 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.PreProcessor.Roslyn
+namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 {
     /// <summary>
     /// Handles fetching embedded resources from SonarQube plugins

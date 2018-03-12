@@ -23,10 +23,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarQube.MSBuild.Tasks.IntegrationTests.E2E
+namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 {
     [TestClass]
     public class E2EAnalysisTests

@@ -23,11 +23,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS;
+using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarQube.TeamBuild.PreProcessor.Roslyn
+namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 {
     public class RoslynAnalyzerProvider : IAnalyzerProvider
     {

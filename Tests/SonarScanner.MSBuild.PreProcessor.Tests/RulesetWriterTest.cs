@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarQube.TeamBuild.PreProcessor.UnitTests
+namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 {
     [TestClass]
     public class RulesetWriterTest

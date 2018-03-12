@@ -19,11 +19,11 @@
  */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.Integration.Interfaces;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS;
+using SonarScanner.MSBuild.TFS.Interfaces;
 
-namespace SonarQube.TeamBuild.PostProcessor.Tests
+namespace SonarScanner.MSBuild.PostProcessor.Tests
 {
     internal class MockCodeCoverageProcessor : ICoverageReportProcessor
     {

@@ -21,7 +21,7 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     public class Rules
     {

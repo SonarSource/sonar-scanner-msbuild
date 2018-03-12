@@ -24,9 +24,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor
 {
     /// <summary>
     /// Process and validates the pre-processor command line arguments and reports any errors

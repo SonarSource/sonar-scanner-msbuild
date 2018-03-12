@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.TeamBuild.PostProcessor.Interfaces;
-using SonarQube.TeamBuild.PreProcessor;
+using SonarScanner.MSBuild.PostProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor;
 
 namespace SonarScanner.MSBuild
 {

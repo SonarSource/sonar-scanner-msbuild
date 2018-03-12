@@ -22,9 +22,9 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Text;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor
 {
     public class WebClientDownloader : IDownloader
     {

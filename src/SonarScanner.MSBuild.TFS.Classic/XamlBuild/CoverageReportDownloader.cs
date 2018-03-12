@@ -24,9 +24,9 @@ using System.IO;
 using System.Net.Http;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.VisualStudio.Services.Common;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.Integration.Classic.XamlBuild
+namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 {
     internal class CoverageReportDownloader : ICoverageReportDownloader
     {

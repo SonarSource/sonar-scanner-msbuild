@@ -23,10 +23,10 @@ using System.IO;
 using System.Linq;
 using Microsoft.Build.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarQube.MSBuild.Tasks.UnitTests
+namespace SonarScanner.MSBuild.Tasks.UnitTests
 {
     [TestClass]
     public class GetAnalyzerSettingsTests

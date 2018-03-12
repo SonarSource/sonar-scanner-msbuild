@@ -20,11 +20,11 @@
 
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS;
+using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarQube.TeamBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     internal class MockRoslynAnalyzerProvider : IAnalyzerProvider
     {

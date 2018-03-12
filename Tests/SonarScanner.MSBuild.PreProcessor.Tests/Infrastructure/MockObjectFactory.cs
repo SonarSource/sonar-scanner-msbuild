@@ -19,9 +19,9 @@
  */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     internal class MockObjectFactory : IPreprocessorObjectFactory
     {

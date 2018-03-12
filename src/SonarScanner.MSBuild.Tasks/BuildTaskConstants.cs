@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.MSBuild.Tasks
+namespace SonarScanner.MSBuild.Tasks
 {
     public static class BuildTaskConstants
     {

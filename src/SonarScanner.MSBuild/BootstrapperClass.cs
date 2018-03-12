@@ -21,9 +21,9 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.Integration.Interfaces;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS;
+using SonarScanner.MSBuild.TFS.Interfaces;
 
 namespace SonarScanner.MSBuild
 {
@@ -133,7 +133,7 @@ namespace SonarScanner.MSBuild
         {
             var binDirPath = Path.Combine(bootstrapSettings.TempDirectory, "bin");
             Directory.CreateDirectory(binDirPath);
-            string[] dllsToCopy = { "SonarQube.Common.dll", "SonarQube.Integration.Tasks.dll" };
+            string[] dllsToCopy = { "SonarScanner.MSBuild.Common.dll", "SonarQube.Integration.Tasks.dll" };
 
             foreach (var dll in dllsToCopy)
             {

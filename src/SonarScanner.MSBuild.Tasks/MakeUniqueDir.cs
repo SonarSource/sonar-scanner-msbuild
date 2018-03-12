@@ -24,7 +24,7 @@ using Microsoft.Build.Utilities;
 
 using Mutex = System.Threading.Mutex;
 
-namespace SonarQube.MSBuild.Tasks
+namespace SonarScanner.MSBuild.Tasks
 {
     public class MakeUniqueDir : Task
     {

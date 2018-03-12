@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.TeamBuild.Integration;
+using SonarScanner.MSBuild.TFS;
 using TestUtilities;
 
-namespace SonarQube.TeamBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     internal static class PreprocessTestUtils
     {

@@ -21,7 +21,7 @@
 using System;
 using Microsoft.Win32;
 
-namespace SonarQube.MSBuild.Tasks.IntegrationTests
+namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
     /// <summary>
     /// Fix for:

@@ -20,10 +20,10 @@
 
 using System;
 using System.IO;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Interfaces;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS.Interfaces;
 
-namespace SonarQube.TeamBuild.Integration
+namespace SonarScanner.MSBuild.TFS
 {
     /// <summary>
     /// Provides access to TeamBuild-specific settings and settings calculated

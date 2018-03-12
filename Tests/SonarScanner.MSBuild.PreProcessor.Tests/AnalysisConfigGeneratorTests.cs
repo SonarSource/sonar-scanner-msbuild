@@ -24,11 +24,11 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS;
 using TestUtilities;
 
-namespace SonarQube.TeamBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     [TestClass]
     public class AnalysisConfigGeneratorTests

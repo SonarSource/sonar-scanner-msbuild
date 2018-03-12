@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarQube.Common.UnitTests
+namespace SonarScanner.MSBuild.Common.UnitTests
 {
     /// <summary>
     /// Test implementation of <see cref="IOutputWriter"/> that records the output messages

@@ -19,9 +19,9 @@
  */
 
 using System;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.Shim
+namespace SonarScanner.MSBuild.Shim
 {
     public static class ProjectInfoExtensions
     {

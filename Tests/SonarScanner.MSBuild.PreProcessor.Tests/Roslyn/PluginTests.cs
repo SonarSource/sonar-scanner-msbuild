@@ -22,9 +22,9 @@ using System;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.TeamBuild.PreProcessor.Roslyn;
+using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
-namespace SonarQube.TeamBuild.PreProcessor.Tests.Roslyn
+namespace SonarScanner.MSBuild.PreProcessor.Tests.Roslyn
 {
     [TestClass]
     public class PluginTests
@@ -85,8 +85,8 @@ namespace SonarQube.TeamBuild.PreProcessor.Tests.Roslyn
             var original = new Plugin("my key", "MY VERSION", "my resource");
 
             // Act - save and reload
-            SonarQube.Common.Serializer.SaveModel<Plugin>(original, tempFileName);
-            var reloaded = SonarQube.Common.Serializer.LoadModel<Plugin>(tempFileName);
+            SonarScanner.MSBuild.Common.Serializer.SaveModel<Plugin>(original, tempFileName);
+            var reloaded = SonarScanner.MSBuild.Common.Serializer.LoadModel<Plugin>(tempFileName);
 
             // Assert
             reloaded.Key.Should().Be("my key");

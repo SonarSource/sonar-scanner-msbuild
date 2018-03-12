@@ -20,10 +20,10 @@
 
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarScanner.Shim;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Shim;
 
-namespace SonarQube.TeamBuild.PostProcessor.Tests
+namespace SonarScanner.MSBuild.PostProcessor.Tests
 {
     internal class MockSonarScanner : ISonarScanner
     {

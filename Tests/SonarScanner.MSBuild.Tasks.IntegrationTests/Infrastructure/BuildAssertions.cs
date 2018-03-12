@@ -24,7 +24,7 @@ using System.Linq;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarQube.MSBuild.Tasks.IntegrationTests
+namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
     public static class BuildAssertions
     {

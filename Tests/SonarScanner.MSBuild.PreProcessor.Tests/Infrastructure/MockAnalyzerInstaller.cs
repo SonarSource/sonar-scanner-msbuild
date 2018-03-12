@@ -22,9 +22,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.TeamBuild.PreProcessor.Roslyn;
+using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
-namespace SonarQube.TeamBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     internal class MockAnalyzerInstaller : IAnalyzerInstaller
     {

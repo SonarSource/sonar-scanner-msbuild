@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SonarQube.TeamBuild.PreProcessor.Roslyn {
+namespace SonarScanner.MSBuild.PreProcessor.Roslyn {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace SonarQube.TeamBuild.PreProcessor.Roslyn {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarQube.TeamBuild.PreProcessor.Roslyn.RoslynResources", typeof(RoslynResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarScanner.MSBuild.PreProcessor.Roslyn.RoslynResources", typeof(RoslynResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

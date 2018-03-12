@@ -21,7 +21,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// Simple settings provider that returns values from a list

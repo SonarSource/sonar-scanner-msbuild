@@ -23,7 +23,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     public sealed class SingleGlobalInstanceMutex : IDisposable
     {

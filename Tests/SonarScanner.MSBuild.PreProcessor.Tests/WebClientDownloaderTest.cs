@@ -21,10 +21,10 @@
 using System;
 using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarQube.TeamBuild.PreProcessor.UnitTests
+namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 {
     [TestClass]
     public class WebClientDownloaderTest

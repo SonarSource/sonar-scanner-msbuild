@@ -23,10 +23,10 @@ using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.Shim.Tests
+namespace SonarScanner.MSBuild.Shim.Tests
 {
     [TestClass]
     public class ProjectInfoReportBuilderTests

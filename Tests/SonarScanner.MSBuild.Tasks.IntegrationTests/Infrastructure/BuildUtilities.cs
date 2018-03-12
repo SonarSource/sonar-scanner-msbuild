@@ -28,7 +28,7 @@ using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarQube.MSBuild.Tasks.IntegrationTests
+namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
     internal static class BuildUtilities
     {
@@ -50,7 +50,7 @@ namespace SonarQube.MSBuild.Tasks.IntegrationTests
         {
             var descriptor = new ProjectDescriptor()
             {
-                ProjectLanguage = isVBProject ? SonarQube.Common.ProjectLanguages.VisualBasic : SonarQube.Common.ProjectLanguages.CSharp,
+                ProjectLanguage = isVBProject ? SonarScanner.MSBuild.Common.ProjectLanguages.VisualBasic : SonarScanner.MSBuild.Common.ProjectLanguages.CSharp,
                 ProjectGuid = Guid.NewGuid(),
                 IsTestProject = false,
                 ParentDirectoryPath = parentDirectory,

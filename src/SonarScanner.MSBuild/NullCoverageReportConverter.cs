@@ -19,8 +19,8 @@
  */
 
 using System;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild
 {

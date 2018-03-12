@@ -20,10 +20,10 @@
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarQube.TeamBuild.PostProcessor.Tests
+namespace SonarScanner.MSBuild.PostProcessor.Tests
 {
     [TestClass]
     public class ArgumentProcessorTests

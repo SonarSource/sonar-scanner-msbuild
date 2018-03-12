@@ -117,7 +117,7 @@ namespace TestUtilities
         /// </summary>
         public static string EnsureDefaultPropertiesFileExists(string targetDir, TestContext testContext)
         {
-            var filePath = Path.Combine(targetDir, SonarQube.Common.FilePropertyProvider.DefaultFileName);
+            var filePath = Path.Combine(targetDir, SonarScanner.MSBuild.Common.FilePropertyProvider.DefaultFileName);
             if (File.Exists(filePath))
             {
                 testContext.WriteLine("Default properties file already exists: {0}", filePath);

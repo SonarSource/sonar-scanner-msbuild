@@ -21,7 +21,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// Provides analysis property properties

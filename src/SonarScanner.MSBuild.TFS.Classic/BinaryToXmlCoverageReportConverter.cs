@@ -27,9 +27,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.Win32;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.Integration.Classic
+namespace SonarScanner.MSBuild.TFS.Classic
 {
     public class BinaryToXmlCoverageReportConverter : ICoverageReportConverter
     {

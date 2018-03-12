@@ -19,9 +19,9 @@
  */
 
 using System;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor
 {
     /// <summary>
     /// Default implementation of the object factory interface that returns the

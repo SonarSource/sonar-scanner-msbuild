@@ -22,11 +22,11 @@ using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild;
-using SonarQube.TeamBuild.Integration.Interfaces;
-using SonarQube.TeamBuild.PostProcessor.Interfaces;
-using SonarQube.TeamBuild.PreProcessor;
+using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.PostProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor;
 using TestUtilities;
 
 namespace SonarQube.Bootstrapper.Tests
@@ -117,7 +117,7 @@ namespace SonarQube.Bootstrapper.Tests
                 var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
-                Assert.IsTrue(File.Exists(Path.Combine(TempDir, "bin", "SonarQube.Common.dll")));
+                Assert.IsTrue(File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")));
                 Assert.IsTrue(File.Exists(Path.Combine(TempDir, "bin", "SonarQube.Integration.Tasks.dll")));
             }
         }
@@ -286,7 +286,7 @@ namespace SonarQube.Bootstrapper.Tests
         {
             Mock<IBootstrapperSettings> mockBootstrapSettings;
 
-            File.Create(Path.Combine(RootDir, "SonarQube.Common.dll")).Close();
+            File.Create(Path.Combine(RootDir, "SonarScanner.MSBuild.Common.dll")).Close();
             File.Create(Path.Combine(RootDir, "SonarQube.Integration.Tasks.dll")).Close();
 
             mockBootstrapSettings = new Mock<IBootstrapperSettings>();

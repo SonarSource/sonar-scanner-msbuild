@@ -23,9 +23,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.Shim
+namespace SonarScanner.MSBuild.Shim
 {
     /// <summary>
     /// Outputs a report summarizing the project info files that were found.

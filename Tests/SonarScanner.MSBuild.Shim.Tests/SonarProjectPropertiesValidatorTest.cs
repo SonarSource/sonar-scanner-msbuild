@@ -21,10 +21,10 @@
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.Shim.Tests
+namespace SonarScanner.MSBuild.Shim.Tests
 {
     #region Tests
 

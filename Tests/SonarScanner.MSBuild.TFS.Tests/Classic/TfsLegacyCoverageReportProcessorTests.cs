@@ -20,12 +20,12 @@
 
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Classic.XamlBuild;
-using SonarQube.TeamBuild.Integration.Tests.Infrastructure;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
+using SonarScanner.MSBuild.TFS.Tests.Infrastructure;
 using TestUtilities;
 
-namespace SonarQube.TeamBuild.Integration.Tests
+namespace SonarScanner.MSBuild.TFS.Tests
 {
     /*
      * Scenarios:

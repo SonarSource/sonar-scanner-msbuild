@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     public class MsBuildPathSettings : IMsBuildPathsSettings
     {

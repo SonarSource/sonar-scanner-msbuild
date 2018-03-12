@@ -20,9 +20,9 @@
 
 using System;
 using System.Collections.Generic;
-using SonarQube.TeamBuild.PreProcessor.Roslyn.Model;
+using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarQube.TeamBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor
 {
     /// <summary>
     /// Provides an abstraction for the interactions with the SonarQube server

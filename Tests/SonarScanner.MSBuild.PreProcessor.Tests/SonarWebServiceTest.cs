@@ -28,7 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using TestUtilities;
 
-namespace SonarQube.TeamBuild.PreProcessor.UnitTests
+namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 {
     [TestClass]
     public class SonarWebServiceTest

@@ -23,10 +23,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using SonarQube.Common;
-using SonarQube.Common.Interfaces;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.Interfaces;
 
-namespace SonarScanner.Shim
+namespace SonarScanner.MSBuild.Shim
 {
     public class PropertiesFileGenerator
     {
@@ -316,7 +316,7 @@ namespace SonarScanner.Shim
 
         private void FixSarifAndEncoding(IList<ProjectInfo> projects, AnalysisProperties analysisProperties)
         {
-            var globalSourceEncoding = GetSourceEncoding(analysisProperties, new SonarQube.Common.EncodingProvider());
+            var globalSourceEncoding = GetSourceEncoding(analysisProperties, new SonarScanner.MSBuild.Common.EncodingProvider());
 
             foreach (var project in projects)
             {

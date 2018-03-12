@@ -24,9 +24,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.Integration
+namespace SonarScanner.MSBuild.TFS
 {
     /* Build vNext code coverage processing:
     * -------------------------------------

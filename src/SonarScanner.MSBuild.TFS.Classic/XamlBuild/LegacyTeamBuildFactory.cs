@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.TeamBuild.Integration.Classic.XamlBuild
+namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 {
     public class LegacyTeamBuildFactory : ILegacyTeamBuildFactory
     {

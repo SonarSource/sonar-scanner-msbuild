@@ -21,7 +21,7 @@
 using System;
 using System.Diagnostics;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// Utility class that changes the console text color for the lifetime of the instance

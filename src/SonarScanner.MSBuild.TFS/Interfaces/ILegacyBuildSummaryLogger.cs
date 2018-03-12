@@ -20,7 +20,7 @@
 
 using System;
 
-namespace SonarQube.TeamBuild.Integration
+namespace SonarScanner.MSBuild.TFS
 {
     public interface ILegacyBuildSummaryLogger : IDisposable
     {

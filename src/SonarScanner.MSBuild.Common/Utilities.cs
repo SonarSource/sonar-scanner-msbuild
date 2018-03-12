@@ -24,7 +24,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     public static class Utilities
     {

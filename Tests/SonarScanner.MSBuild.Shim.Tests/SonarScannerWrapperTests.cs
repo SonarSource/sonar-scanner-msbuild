@@ -24,10 +24,10 @@ using System.Linq;
 using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarScanner.Shim.Tests
+namespace SonarScanner.MSBuild.Shim.Tests
 {
     [TestClass]
     public class SonarScannerWrapperTests
@@ -92,7 +92,7 @@ namespace SonarScanner.Shim.Tests
 
                 // Assert
                 VerifyProcessRunOutcome(testLogger, TestContext.DeploymentDirectory, success, true);
-                testLogger.AssertMessageNotLogged(SonarScanner.Shim.Resources.MSG_SonarScannerHomeIsSet);
+                testLogger.AssertMessageNotLogged(SonarScanner.MSBuild.Shim.Resources.MSG_SonarScannerHomeIsSet);
             }
         }
 

@@ -22,10 +22,10 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Interfaces;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS.Interfaces;
 
-namespace SonarQube.TeamBuild.Integration.Classic.XamlBuild
+namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 {
     public class TfsLegacyCoverageReportProcessor : CoverageReportProcessorBase
     {

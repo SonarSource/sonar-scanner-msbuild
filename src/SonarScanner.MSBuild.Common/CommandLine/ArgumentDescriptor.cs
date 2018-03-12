@@ -21,7 +21,7 @@
 using System;
 using System.Diagnostics;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// Data class that describes a single valid command line argument - id, prefixes, multiplicity etc

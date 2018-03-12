@@ -19,9 +19,9 @@
  */
 
 using System.Collections.Generic;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.Integration
+namespace SonarScanner.MSBuild.TFS
 {
     public interface ICoverageUrlProvider // was internal
     {

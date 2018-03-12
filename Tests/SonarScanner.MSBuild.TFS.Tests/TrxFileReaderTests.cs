@@ -22,7 +22,7 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarQube.TeamBuild.Integration.Tests
+namespace SonarScanner.MSBuild.TFS.Tests
 {
     [TestClass]
     public class TrxFileReaderTests

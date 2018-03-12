@@ -19,12 +19,12 @@
  */
 
 using System;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.PostProcessor;
-using SonarQube.TeamBuild.PostProcessor.Interfaces;
-using SonarQube.TeamBuild.PreProcessor;
-using SonarScanner.Shim;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS;
+using SonarScanner.MSBuild.PostProcessor;
+using SonarScanner.MSBuild.PostProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor;
+using SonarScanner.MSBuild.Shim;
 
 namespace SonarScanner.MSBuild
 {

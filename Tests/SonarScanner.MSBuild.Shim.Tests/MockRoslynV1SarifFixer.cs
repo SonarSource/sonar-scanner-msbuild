@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.Shim.Tests
+namespace SonarScanner.MSBuild.Shim.Tests
 {
     internal class MockRoslynV1SarifFixer : IRoslynV1SarifFixer
     {

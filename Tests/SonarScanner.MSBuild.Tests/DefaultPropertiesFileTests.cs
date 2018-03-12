@@ -20,7 +20,7 @@
 
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
 namespace SonarQube.Bootstrapper.Tests

@@ -21,9 +21,9 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.MSBuild.Tasks
+namespace SonarScanner.MSBuild.Tasks
 {
     /// <summary>
     /// Helper methods used by multiple tasks

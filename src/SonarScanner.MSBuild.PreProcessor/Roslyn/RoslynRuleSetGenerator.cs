@@ -21,9 +21,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
+namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
 {
     public class RoslynRuleSetGenerator
     {

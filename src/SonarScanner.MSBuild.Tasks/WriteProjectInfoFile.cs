@@ -28,10 +28,10 @@ using System.Text;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using SonarQube.Common;
-using SonarQube.Common.Interfaces;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.Interfaces;
 
-namespace SonarQube.MSBuild.Tasks
+namespace SonarScanner.MSBuild.Tasks
 {
     /// <summary>
     /// MSBuild task to write a ProjectInfo file to disk in XML format

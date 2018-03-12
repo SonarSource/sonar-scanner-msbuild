@@ -22,7 +22,7 @@ using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarQube.Common.UnitTests
+namespace SonarScanner.MSBuild.Common.UnitTests
 {
     /// <summary>
     /// Utility class to capture the standard console output and error streams.

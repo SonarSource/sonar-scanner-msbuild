@@ -24,7 +24,7 @@ using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarQube.MSBuild.Tasks.IntegrationTests
+namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
     /// <summary>
     /// Simple implementation of <see cref="ILogger"/> that writes all

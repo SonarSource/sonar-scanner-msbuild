@@ -22,10 +22,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Classic.XamlBuild;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 
-namespace SonarQube.TeamBuild.Integration.Tests.Infrastructure
+namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 {
     internal class MockReportDownloader : ICoverageReportDownloader
     {

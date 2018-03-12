@@ -19,7 +19,7 @@
  */
 
 using System.IO;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
 namespace SonarQube.Bootstrapper.Tests
 {

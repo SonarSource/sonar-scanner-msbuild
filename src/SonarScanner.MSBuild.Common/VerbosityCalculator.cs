@@ -21,7 +21,7 @@
 using System;
 using System.Linq;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// The integration assemblies use the SonarQube log specific settings to determine verbosity. These settings are:

@@ -21,9 +21,9 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.TeamBuild.Integration.Classic.XamlBuild;
+using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 
-namespace SonarQube.TeamBuild.Integration.Tests
+namespace SonarScanner.MSBuild.TFS.Tests
 {
     [TestClass]
     public class LegacyBuildSummaryLoggerTests

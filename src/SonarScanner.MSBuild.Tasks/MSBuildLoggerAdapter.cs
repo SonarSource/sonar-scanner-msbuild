@@ -20,9 +20,9 @@
 
 using System;
 using Microsoft.Build.Utilities;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.MSBuild.Tasks
+namespace SonarScanner.MSBuild.Tasks
 {
     /// <summary>
     /// Adapter that converts between the SonarQube and MSBuild logging interfaces
@@ -36,7 +36,7 @@ namespace SonarQube.MSBuild.Tasks
             this.msBuildLogger = msBuildLogger ?? throw new ArgumentNullException(nameof(msBuildLogger));
         }
 
-        #region SonarQube.Common.ILogger methods
+        #region SonarScanner.MSBuild.Common.ILogger methods
 
         bool ILogger.IncludeTimestamp { get; set; }
 
@@ -72,7 +72,7 @@ namespace SonarQube.MSBuild.Tasks
             // no-op
         }
 
-        #endregion SonarQube.Common.ILogger methods
+        #endregion SonarScanner.MSBuild.Common.ILogger methods
 
         #region Private methods
 

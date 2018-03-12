@@ -20,7 +20,7 @@
 
 using System.IO;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     public class DirectoryWrapper : IDirectoryWrapper
     {

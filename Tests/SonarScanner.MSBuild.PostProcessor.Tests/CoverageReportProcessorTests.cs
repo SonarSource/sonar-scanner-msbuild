@@ -22,12 +22,12 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.Integration.Interfaces;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS;
+using SonarScanner.MSBuild.TFS.Interfaces;
 using TestUtilities;
 
-namespace SonarQube.TeamBuild.PostProcessor.Tests
+namespace SonarScanner.MSBuild.PostProcessor.Tests
 {
     [TestClass]
     public class CoverageReportProcessorTests

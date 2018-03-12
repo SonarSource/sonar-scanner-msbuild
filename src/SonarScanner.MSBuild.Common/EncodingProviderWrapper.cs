@@ -19,9 +19,9 @@
  */
 
 using System.Text;
-using SonarQube.Common.Interfaces;
+using SonarScanner.MSBuild.Common.Interfaces;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     public class EncodingProvider : IEncodingProvider
     {

@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.PostProcessor
+namespace SonarScanner.MSBuild.PostProcessor
 {
     /// <summary>
     /// Deletes the loader targets file - SonarQube.Integration.ImportBefore.targets - from the user specific location

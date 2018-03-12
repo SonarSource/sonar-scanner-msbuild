@@ -26,7 +26,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// Helper class to serialize objects to and from XML

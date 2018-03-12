@@ -21,7 +21,7 @@
 using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.Shim;
+using SonarScanner.MSBuild.Shim;
 using TestUtilities;
 
 namespace SonarQube.Shim.Tests

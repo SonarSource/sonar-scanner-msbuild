@@ -23,15 +23,15 @@ using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.Integration.Classic.XamlBuild;
-using SonarQube.TeamBuild.PostProcessor;
-using SonarQube.TeamBuild.PostProcessor.Tests;
-using SonarScanner.Shim;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS;
+using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
+using SonarScanner.MSBuild.PostProcessor;
+using SonarScanner.MSBuild.PostProcessor.Tests;
+using SonarScanner.MSBuild.Shim;
 using TestUtilities;
 
-namespace SonarQube.TeamBuild.PostProcessorTests
+namespace SonarScanner.MSBuild.PostProcessorTests
 {
     [TestClass]
     public class SummaryReportBuilderTests

@@ -22,9 +22,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.Shim
+namespace SonarScanner.MSBuild.Shim
 {
     public static class SonarProjectPropertiesValidator
     {

@@ -25,7 +25,7 @@ using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarQube.MSBuild.Tasks.UnitTests
+namespace SonarScanner.MSBuild.Tasks.UnitTests
 {
     public sealed class DummyBuildEngine : IBuildEngine
     {

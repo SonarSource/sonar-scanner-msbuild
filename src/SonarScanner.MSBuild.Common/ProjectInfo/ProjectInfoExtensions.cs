@@ -24,7 +24,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// Extension methods for <see cref="ProjectInfo"/>

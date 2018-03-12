@@ -24,7 +24,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
-namespace SonarQube.Common.UnitTests
+namespace SonarScanner.MSBuild.Common.UnitTests
 {
     [TestClass]
     public class CmdLineArgsPropertiesProviderTests

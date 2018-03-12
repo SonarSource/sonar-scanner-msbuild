@@ -23,10 +23,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.TeamBuild.PreProcessor.Roslyn;
+using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using TestUtilities;
 
-namespace SonarQube.TeamBuild.PreProcessor.Tests
+namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     [TestClass]
     public class EmbeddedAnalyzerInstallerTests

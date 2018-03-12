@@ -20,7 +20,7 @@
 
 using System;
 
-namespace SonarQube.TeamBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor
 {
     /// <summary>
     /// Interface introduced for testability

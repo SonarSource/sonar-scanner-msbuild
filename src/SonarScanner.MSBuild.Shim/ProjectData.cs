@@ -20,9 +20,9 @@
 
 using System.Collections.Generic;
 using System.IO;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.Shim
+namespace SonarScanner.MSBuild.Shim
 {
     /// <summary>
     /// Contains the aggregated data from multiple ProjectInfos sharing the same GUID

@@ -20,9 +20,9 @@
 
 using System;
 using System.IO;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.PostProcessor
+namespace SonarScanner.MSBuild.PostProcessor
 {
     /// <summary>
     /// Handles removing targets from well known locations

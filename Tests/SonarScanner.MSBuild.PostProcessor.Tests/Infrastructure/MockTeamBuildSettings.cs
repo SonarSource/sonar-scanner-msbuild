@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.TeamBuild.Integration;
-using SonarQube.TeamBuild.Integration.Interfaces;
+using SonarScanner.MSBuild.TFS;
+using SonarScanner.MSBuild.TFS.Interfaces;
 
-namespace SonarQube.TeamBuild.PostProcessor.Tests
+namespace SonarScanner.MSBuild.PostProcessor.Tests
 {
     internal class MockTeamBuildSettings : ITeamBuildSettings
     {

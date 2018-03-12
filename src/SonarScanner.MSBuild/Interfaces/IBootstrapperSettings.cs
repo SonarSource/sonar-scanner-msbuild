@@ -19,7 +19,7 @@
  */
 
 using System.Collections.Generic;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild
 {

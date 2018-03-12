@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// Handles validating and fetch analysis properties from the command line

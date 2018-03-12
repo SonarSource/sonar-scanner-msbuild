@@ -21,7 +21,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace SonarQube.Common
+namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// Thrown when a there is an error that is well handled and should cause the process to exit in a clean way.

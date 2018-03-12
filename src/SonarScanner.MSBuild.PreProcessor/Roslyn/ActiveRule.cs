@@ -20,7 +20,7 @@
 
 using System.Collections.Generic;
 
-namespace SonarQube.TeamBuild.PreProcessor.Roslyn.Model
+namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
 {
     public class ActiveRule
     {

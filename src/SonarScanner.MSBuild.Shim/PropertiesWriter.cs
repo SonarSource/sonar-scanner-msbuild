@@ -25,9 +25,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.Shim
+namespace SonarScanner.MSBuild.Shim
 {
     public class PropertiesWriter
     {

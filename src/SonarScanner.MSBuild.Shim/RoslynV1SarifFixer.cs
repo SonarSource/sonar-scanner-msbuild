@@ -22,9 +22,9 @@ using System;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.Shim
+namespace SonarScanner.MSBuild.Shim
 {
     public class RoslynV1SarifFixer : IRoslynV1SarifFixer
     {

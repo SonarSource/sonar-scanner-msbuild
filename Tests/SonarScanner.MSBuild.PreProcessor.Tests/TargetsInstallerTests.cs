@@ -26,10 +26,10 @@ using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarQube.TeamBuild.PreProcessor.UnitTests
+namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 {
     // TODO: The tests should be made platform-aware.
     // They currently assume the running platform is Windows.

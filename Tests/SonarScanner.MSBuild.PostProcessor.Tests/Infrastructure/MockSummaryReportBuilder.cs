@@ -19,11 +19,11 @@
  */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Interfaces;
-using SonarScanner.Shim;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Shim;
 
-namespace SonarQube.TeamBuild.PostProcessor.Tests
+namespace SonarScanner.MSBuild.PostProcessor.Tests
 {
     internal class MockSummaryReportBuilder : ISummaryReportBuilder
     {

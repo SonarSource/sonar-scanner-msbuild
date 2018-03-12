@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.Integration.Classic.XamlBuild
+namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 {
     public interface ICoverageReportDownloader // was internal
     {

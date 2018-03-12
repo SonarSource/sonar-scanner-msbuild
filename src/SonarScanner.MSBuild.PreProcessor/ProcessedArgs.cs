@@ -21,9 +21,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.TeamBuild.PreProcessor
+namespace SonarScanner.MSBuild.PreProcessor
 {
     /// <summary>
     /// Data class to hold validated command line arguments required by the pre-processor

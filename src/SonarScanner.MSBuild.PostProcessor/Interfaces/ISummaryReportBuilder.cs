@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Common;
-using SonarQube.TeamBuild.Integration.Interfaces;
-using SonarScanner.Shim;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Shim;
 
-namespace SonarQube.TeamBuild.PostProcessor
+namespace SonarScanner.MSBuild.PostProcessor
 {
     /// <summary>
     /// Encapsulates summary report building functionality
