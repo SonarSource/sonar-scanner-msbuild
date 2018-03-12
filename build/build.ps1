@@ -45,8 +45,8 @@ function restore() {
 
 function deploy([string] $version) {
     #DeployOnRepox $classicScannerZipPath "" $version
-    $classicScannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarqube-scanner-msbuild-net46.zip
-    $dotnetScannerZipPath  = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarqube-scanner-msbuild-netcoreapp2.0.zip
+    $classicScannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarscanner-msbuild-net46.zip
+    $dotnetScannerZipPath  = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarscanner-msbuild-netcoreapp2.0.zip
     
     write-host -f green  "replace zip filenames in pom.xml"
     (Get-Content .\pom.xml) -replace 'classicScannerZipPath', "$classicScannerZipPath" | Set-Content .\pom.xml

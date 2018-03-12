@@ -58,7 +58,7 @@ public class TestUtils {
 
   private static MavenLocation mavenLocation(String scannerVersion) {
     String groupId = "org.sonarsource.scanner.msbuild";
-    String artifactId = "sonar-scanner-msbuild";
+    String artifactId = "sonarscanner-msbuild";
     return MavenLocation.builder()
       .setGroupId(groupId)
       .setArtifactId(artifactId)
@@ -78,7 +78,7 @@ public class TestUtils {
     } else {
       // run locally
       LOG.info("Using Scanner for MSBuild from the local build");
-      Path scannerZip = Paths.get("../DeploymentArtifacts/BuildAgentPayload/Release/sonarqube-scanner-msbuild-net46.zip");
+      Path scannerZip = Paths.get("../DeploymentArtifacts/BuildAgentPayload/Release/sonarscanner-msbuild-net46.zip");
       return ScannerForMSBuild.create(projectDir.toFile())
         .setScannerLocation(FileLocation.of(scannerZip.toFile()));
     }
