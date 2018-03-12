@@ -6,7 +6,7 @@
     <ProjectGuid>{9921D017-AAFC-48E3-8F48-E45DC084CEA4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarQube.MSBuild.Tasks.UnitTests</RootNamespace>
+    <RootNamespace>SonarScanner.Integration.Tasks.UnitTests</RootNamespace>
     <AssemblyName>SonarScanner.Integration.Tasks.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

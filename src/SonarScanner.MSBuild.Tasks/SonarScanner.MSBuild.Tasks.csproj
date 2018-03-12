@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>SonarScanner.MSBuild.Tasks</AssemblyName>
-    <RootNamespace>SonarQube.MSBuild.Tasks</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <None Include="Docs\IntegrationTargetDependencies.dgml" />

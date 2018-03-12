@@ -6,7 +6,7 @@
     <ProjectGuid>{BF55995C-B05B-44D0-B80E-2366CC5ACCDE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarQube.TeamBuild.PostProcessor.Tests</RootNamespace>
+    <RootNamespace>MSBuild.SonarQube.Internal.PostProcess.Tests</RootNamespace>
     <AssemblyName>MSBuild.SonarQube.Internal.PostProcess.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

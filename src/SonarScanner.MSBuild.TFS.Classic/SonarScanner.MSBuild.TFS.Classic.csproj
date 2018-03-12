@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFramework>$(ScannerNetFxVersion)</TargetFramework>
     <AssemblyName>SonarScanner.MSBuild.TFS.Classic</AssemblyName>
-    <RootNamespace>SonarQube.TeamBuild.Integration.Classic</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>

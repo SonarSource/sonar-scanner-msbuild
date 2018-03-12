@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>SonarScanner.MSBuild.PreProcessor</AssemblyName>
-    <RootNamespace>SonarQube.TeamBuild.PreProcessor</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
      <!--
        Copy the referenced dlls to the bin folder (same as copylocal for nuget references).

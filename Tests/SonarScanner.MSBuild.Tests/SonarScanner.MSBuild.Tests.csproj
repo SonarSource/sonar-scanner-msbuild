@@ -6,7 +6,7 @@
     <ProjectGuid>{3410EA30-5F7A-4E0F-B5F6-8E83077A20DB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarQube.Bootstrapper.Tests</RootNamespace>
+    <RootNamespace>SonarScanner.MSBuild.Tests</RootNamespace>
     <AssemblyName>SonarScanner.MSBuild.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

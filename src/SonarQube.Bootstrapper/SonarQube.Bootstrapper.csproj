@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFrameworks>$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>SonarQube.Scanner.MSBuild</AssemblyName>
-    <RootNamespace>SonarQube.Scanner.MSBuild</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <OutputType>Exe</OutputType>
   </PropertyGroup>

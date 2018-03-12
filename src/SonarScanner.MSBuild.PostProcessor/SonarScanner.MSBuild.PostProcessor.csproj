@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>SonarScanner.MSBuild.PostProcessor</AssemblyName>
-    <RootNamespace>SonarQube.TeamBuild.PostProcessor</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />

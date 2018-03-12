@@ -6,7 +6,7 @@
     <ProjectGuid>{D46E5A94-A9DD-4337-ADD7-2D79CB9D640A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SonarQube.TeamBuild.Integration.Tests</RootNamespace>
+    <RootNamespace>SonarScanner.MSBuild.TFS.Tests</RootNamespace>
     <AssemblyName>SonarScanner.MSBuild.TFS.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
