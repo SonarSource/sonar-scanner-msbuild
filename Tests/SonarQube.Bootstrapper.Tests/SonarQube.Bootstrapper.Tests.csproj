@@ -90,9 +90,9 @@
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>SonarScanner.MSBuild.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj">
+    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj">
       <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>
-      <Name>SonarQube.TeamBuild.Integration</Name>
+      <Name>SonarScanner.MSBuild.TFS</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.PostProcessor\SonarScanner.MSBuild.PostProcessor.csproj">
       <Project>{80f02fad-fe7e-41b6-9151-bb650fdd6103}</Project>
