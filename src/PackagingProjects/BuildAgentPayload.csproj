@@ -38,7 +38,7 @@
     <!-- External dependencies -->
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\bin\$(Configuration)\$(ScannerNetFxVersion)\Newtonsoft.Json.dll" />
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.TFS.Classic\bin\$(Configuration)\$(ScannerNetFxVersion)\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" />
-    <ClassicScannerFiles Include="$(SourcesRoot)\SonarQube.Bootstrapper\bin\$(Configuration)\$(ScannerNetFxVersion)\System.ValueTuple.dll" />
+    <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetFxVersion)\System.ValueTuple.dll" />
 
     <!-- .NET Framework entry point-->
     <ClassicScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetFxVersion)\SonarScanner.MSBuild.exe" />
