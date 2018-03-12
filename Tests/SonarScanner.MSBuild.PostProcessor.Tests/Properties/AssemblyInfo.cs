@@ -22,6 +22,6 @@ using System.Reflection;
 
 // General Information about an assembly is controlled through the following
 
-[assembly: AssemblyTitle("SonarQube.TeamBuild.PostProcessor.Tests")]
-[assembly: AssemblyProduct("SonarQube.TeamBuild.PostProcessor.Tests")]
+[assembly: AssemblyTitle("SonarScanner.MSBuild.PostProcessor.Tests")]
+[assembly: AssemblyProduct("SonarScanner.MSBuild.PostProcessor.Tests")]
 [assembly: AssemblyDescription("")]
