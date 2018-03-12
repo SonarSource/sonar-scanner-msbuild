@@ -86,9 +86,9 @@
       <Project>{60aacbb4-1661-4eeb-a029-91289c1d3f7e}</Project>
       <Name>SonarQube.Bootstrapper</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\SonarQube.Common\SonarQube.Common.csproj">
+    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj">
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
-      <Name>SonarQube.Common</Name>
+      <Name>SonarScanner.MSBuild.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj">
       <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>

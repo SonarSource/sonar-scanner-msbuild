@@ -92,9 +92,9 @@
     <Compile Include="SonarScannerWrapperTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SonarQube.Common\SonarQube.Common.csproj">
+    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj">
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
-      <Name>SonarQube.Common</Name>
+      <Name>SonarScanner.MSBuild.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj">
       <Project>{c28a09bf-6025-4ea1-90d7-4d5ec0af815d}</Project>

@@ -84,9 +84,9 @@
     <Compile Include="SummaryReportBuilderTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SonarQube.Common\SonarQube.Common.csproj">
+    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj">
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
-      <Name>SonarQube.Common</Name>
+      <Name>SonarScanner.MSBuild.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj">
       <Project>{C3466723-5499-4FAD-B236-5C96094DE276}</Project>

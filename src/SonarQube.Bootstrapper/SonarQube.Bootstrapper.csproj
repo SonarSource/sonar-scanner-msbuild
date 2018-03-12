@@ -12,7 +12,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
+    <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
     <ProjectReference Include="..\SonarQube.TeamBuild.Integration\SonarQube.TeamBuild.Integration.csproj" />
     <ProjectReference Include="..\SonarScanner.MSBuild.PostProcessor\SonarScanner.MSBuild.PostProcessor.csproj" />
     <ProjectReference Include="..\SonarScanner.MSBuild.PreProcessor\SonarScanner.MSBuild.PreProcessor.csproj" />

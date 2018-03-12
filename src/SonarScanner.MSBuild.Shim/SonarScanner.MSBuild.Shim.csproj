@@ -5,7 +5,7 @@
     <RootNamespace>SonarScanner.Shim</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SonarQube.Common\SonarQube.Common.csproj" />
+    <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
