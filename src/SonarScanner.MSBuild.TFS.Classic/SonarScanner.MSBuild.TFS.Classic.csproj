@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>$(ScannerNetFxVersion)</TargetFramework>
+    <AssemblyName>SonarScanner.MSBuild.TFS.Classic</AssemblyName>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
+    <ProjectReference Include="..\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj" />
+  </ItemGroup>
+
+  <!-- ***************************************************************** -->
+  <!-- Team Foundation references -->
+  <!-- ***************************************************************** -->
+  <!-- We are deliberately using an old version of the TFS assemblies to maintain compatiblity
+       with older versions of TFS. See the ReadMe in the TfsXamlDependencies folder for more
+       information. -->
+  <ItemGroup>
+    <Reference Include="Microsoft.TeamFoundation.Build.Client">
+      <HintPath>..\..\TfsXamlDependencies\TFS2013_U4\Microsoft.TeamFoundation.Build.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Client">
+      <HintPath>..\..\TfsXamlDependencies\TFS2013_U4\Microsoft.TeamFoundation.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.TestManagement.Client">
+      <HintPath>..\..\TfsXamlDependencies\TFS2013_U4\Microsoft.TeamFoundation.TestManagement.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.WorkItemTracking.Client">
+      <HintPath>..\..\TfsXamlDependencies\TFS2013_U4\Microsoft.TeamFoundation.WorkItemTracking.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Services.Common">
+      <HintPath>..\..\TfsXamlDependencies\TFS2013_U4\Microsoft.VisualStudio.Services.Common.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <!-- ***************************************************************** -->
+  <!-- End of Team Foundation references -->
+  <!-- ***************************************************************** -->
+
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
+    <PackageReference Include="Newtonsoft.Json" version="10.0.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.14.114" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>
