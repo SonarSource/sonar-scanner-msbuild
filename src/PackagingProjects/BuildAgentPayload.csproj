@@ -113,7 +113,7 @@
     <Copy SourceFiles="@(ClassicScannerFiles)" DestinationFolder="$(ClassicDestinationDir)\%(RecursiveDir)" />
     <Copy SourceFiles="@(TargetFiles)" DestinationFolder="$(ClassicDestinationDir)\Targets" />
 
-    <Copy SourceFiles="@(DotnetScannerFiles)" DestinationFolder="$(DotnetDestinationDir)\%(RecursiveDir)" ContinueOnError="true" />
+    <Copy SourceFiles="@(DotnetScannerFiles)" DestinationFolder="$(DotnetDestinationDir)\%(RecursiveDir)" />
     <Copy SourceFiles="@(TargetFiles)" DestinationFolder="$(DotnetDestinationDir)\Targets\" />
   </Target>
   <Target Name="DownloadScannerCli" Condition="!Exists('$(OutputPath)\$(ScannerCliArtifact)')">
