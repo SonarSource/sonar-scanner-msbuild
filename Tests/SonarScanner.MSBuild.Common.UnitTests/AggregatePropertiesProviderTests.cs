@@ -1,0 +1,100 @@
+﻿/*
+ * SonarScanner for MSBuild
+ * Copyright (C) 2016-2018 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TestUtilities;
+
+namespace SonarScanner.MSBuild.Common.UnitTests
+{
+    [TestClass]
+    public class AggregatePropertiesProviderTests
+    {
+        public TestContext TestContext { get; set; }
+
+        #region Tests
+
+        [TestMethod]
+        [TestCategory("Properties")]
+        public void AggProperties_NullOrEmptyList()
+        {
+            // 1. Null -> error
+            AssertException.Expects<ArgumentNullException>(() => new AggregatePropertiesProvider(null));
+
+            // 2. Empty list of providers -> valid but returns nothing
+            var provider = new AggregatePropertiesProvider(new IAnalysisPropertyProvider[] { });
+
+            Assert.AreEqual(0, provider.GetAllProperties().Count());
+            var success = provider.TryGetProperty("any key", out Property actualProperty);
+
+            Assert.IsFalse(success, "Not expecting a property to be returned");
+            Assert.IsNull(actualProperty, "Returned property should be null");
+        }
+
+        [TestMethod]
+        [TestCategory("Properties")]
+        public void AggProperties_Aggregation()
+        {
+            // Checks the aggregation works as expected
+
+            // 0. Setup
+            var provider1 = new ListPropertiesProvider();
+            provider1.AddProperty("shared.key.A", "value A from one");
+            provider1.AddProperty("shared.key.B", "value B from one");
+            provider1.AddProperty("p1.unique.key.1", "p1 unique value 1");
+
+            var provider2 = new ListPropertiesProvider();
+            provider2.AddProperty("shared.key.A", "value A from two");
+            provider2.AddProperty("shared.key.B", "value B from two");
+            provider2.AddProperty("p2.unique.key.1", "p2 unique value 1");
+
+            var provider3 = new ListPropertiesProvider();
+            provider3.AddProperty("shared.key.A", "value A from three"); // this provider only has one of the shared values
+            provider3.AddProperty("p3.unique.key.1", "p3 unique value 1");
+
+            // 1. Ordering
+            var aggProvider = new AggregatePropertiesProvider(provider1, provider2, provider3);
+
+            aggProvider.AssertExpectedPropertyCount(5);
+
+            aggProvider.AssertExpectedPropertyValue("shared.key.A", "value A from one");
+            aggProvider.AssertExpectedPropertyValue("shared.key.B", "value B from one");
+
+            aggProvider.AssertExpectedPropertyValue("p1.unique.key.1", "p1 unique value 1");
+            aggProvider.AssertExpectedPropertyValue("p2.unique.key.1", "p2 unique value 1");
+            aggProvider.AssertExpectedPropertyValue("p3.unique.key.1", "p3 unique value 1");
+
+            // 2. Reverse the order and try again
+            aggProvider = new AggregatePropertiesProvider(provider3, provider2, provider1);
+
+            aggProvider.AssertExpectedPropertyCount(5);
+
+            aggProvider.AssertExpectedPropertyValue("shared.key.A", "value A from three");
+            aggProvider.AssertExpectedPropertyValue("shared.key.B", "value B from two");
+
+            aggProvider.AssertExpectedPropertyValue("p1.unique.key.1", "p1 unique value 1");
+            aggProvider.AssertExpectedPropertyValue("p2.unique.key.1", "p2 unique value 1");
+            aggProvider.AssertExpectedPropertyValue("p3.unique.key.1", "p3 unique value 1");
+        }
+
+        #endregion Tests
+    }
+}

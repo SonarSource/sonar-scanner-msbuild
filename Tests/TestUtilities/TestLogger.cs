@@ -1,5 +1,5 @@
 ﻿/*
- * SonarQube Scanner for MSBuild
+ * SonarScanner for MSBuild
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
 namespace TestUtilities
 {

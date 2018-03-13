@@ -1,5 +1,5 @@
 ﻿/*
- * SonarQube Scanner for MSBuild
+ * SonarScanner for MSBuild
  * Copyright (C) 2016-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Common;
+using SonarScanner.MSBuild.Common;
 
 namespace TestUtilities
 {
@@ -107,14 +107,14 @@ namespace TestUtilities
         public static void AssertAnalysisResultDoesNotExists(ProjectInfo projectInfo, string resultId)
         {
             Assert.IsNotNull(projectInfo.AnalysisResults, "AnalysisResults should not be null");
-            var found = SonarQube.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
+            var found = SonarScanner.MSBuild.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
             Assert.IsFalse(found, "Not expecting to find an analysis result for id. Id: {0}", resultId);
         }
 
         public static AnalysisResult AssertAnalysisResultExists(ProjectInfo projectInfo, string resultId)
         {
             Assert.IsNotNull(projectInfo.AnalysisResults, "AnalysisResults should not be null");
-            var found = SonarQube.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
+            var found = SonarScanner.MSBuild.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
             Assert.IsTrue(found, "Failed to find an analysis result with the expected id. Id: {0}", resultId);
             Assert.IsNotNull(result, "Returned analysis result should not be null. Id: {0}", resultId);
             return result;

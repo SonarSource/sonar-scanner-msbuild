@@ -1,6 +1,6 @@
 The assemblies in this folder are required for the Scanner for MSBuild when being called from
 TFS XAML builds (now deprecated by Microsoft). They are only referenced by
-SonarQube.TeamBuild.Integration.Classic.csproj project.
+SonarScanner.MSBuild.TFS.Classic.csproj project.
 
 The assemblies are not distributed with the Scanner for MSBuild. They are included here so that
 we can control exactly which version is used in the build and CI builds.

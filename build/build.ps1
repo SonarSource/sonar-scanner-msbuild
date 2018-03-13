@@ -45,8 +45,8 @@ function restore() {
 
 function deploy([string] $version) {
     #DeployOnRepox $classicScannerZipPath "" $version
-    $classicScannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarqube-scanner-msbuild-net46.zip
-    $dotnetScannerZipPath  = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarqube-scanner-msbuild-netcoreapp2.0.zip
+    $classicScannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarscanner-msbuild-net46.zip
+    $dotnetScannerZipPath  = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarscanner-msbuild-netcoreapp2.0.zip
     
     write-host -f green  "replace zip filenames in pom.xml"
     (Get-Content .\pom.xml) -replace 'classicScannerZipPath', "$classicScannerZipPath" | Set-Content .\pom.xml
@@ -92,7 +92,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
 
     restore
     testExitCode
-    & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /t:rebuild /p:Configuration=Release
+    & $env:MSBUILD_PATH SonarScanner.MSBuild.sln /t:rebuild /p:Configuration=Release
     testExitCode
     #run tests
     runTests
@@ -120,13 +120,13 @@ if ($env:IS_PULLREQUEST -eq "true") {
         #build
         restore
         testExitCode
-        & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH /p:defineConstants="SignAssembly"
+        & $env:MSBUILD_PATH SonarScanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH /p:defineConstants="SignAssembly"
         testExitCode
 
         runTests
 
         #end analysis
-        .\SonarQube.Scanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
+        .\SonarScanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
         testExitCode
        
        deploy -version $version
@@ -137,7 +137,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         #build
         restore
         testExitCode
-        & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH /p:defineConstants="SignAssembly"
+        & $env:MSBUILD_PATH SonarScanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH /p:defineConstants="SignAssembly"
         testExitCode
 
         runTests

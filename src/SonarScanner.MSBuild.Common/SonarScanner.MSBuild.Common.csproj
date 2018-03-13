@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
+    <AssemblyName>SonarScanner.MSBuild.Common</AssemblyName>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+    <!-- Define a constant if the framework is classic .NET Framework. -->
+  <Target Name="AddNetFrameworkMacro" BeforeTargets="CoreCompile" Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework')">
+    <PropertyGroup>
+      <DefineConstants>$(DefineConstants);IS_NET_FRAMEWORK</DefineConstants>
+    </PropertyGroup>
+  </Target>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>
