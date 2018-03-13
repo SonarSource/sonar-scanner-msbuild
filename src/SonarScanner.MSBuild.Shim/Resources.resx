@@ -189,7 +189,7 @@ Possible causes:
     <value>Code coverage report does not exist at the specified location. Path: {0}</value>
   </data>
   <data name="WARN_DuplicateProjectGuid" xml:space="preserve">
-    <value>Duplicate project GUID: "{0}". Check that the project is only being built for a single platform/configuration and that that the project guid is unique. The project will not be analyzed by SonarQube. Project file: {1}</value>
+    <value>Duplicate ProjectGuid: "{0}". The project will not be analyzed by SonarQube. Project file: "{1}"</value>
   </data>
   <data name="WARN_FileDoesNotExist" xml:space="preserve">
     <value>File '{0}' does not exist.</value>

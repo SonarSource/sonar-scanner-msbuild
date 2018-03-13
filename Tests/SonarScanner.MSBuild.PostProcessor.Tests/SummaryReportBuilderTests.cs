@@ -134,6 +134,8 @@ namespace SonarScanner.MSBuild.PostProcessorTests
             AddProjectInfoToResult(result, ProjectInfoValidity.NoFilesToAnalyze, count: 11);
             AddProjectInfoToResult(result, ProjectInfoValidity.Valid, type: ProjectType.Product, count: 13);
             AddProjectInfoToResult(result, ProjectInfoValidity.Valid, type: ProjectType.Test, count: 17);
+            AddProjectInfoToResult(result, ProjectInfoValidity.DuplicateGuid, type: ProjectType.Product, count: 5);
+            AddProjectInfoToResult(result, ProjectInfoValidity.DuplicateGuid, type: ProjectType.Test, count: 3);
 
             // Act
             var summaryReportData = SummaryReportBuilder.CreateSummaryData(config, result);
@@ -143,7 +145,7 @@ namespace SonarScanner.MSBuild.PostProcessorTests
             VerifySummaryProjectCounts(
                 summaryReportData,
                 expectedExcludedProjects: 5, // ExcludeFlagSet
-                expectedInvalidProjects: 15, // InvalidGuid, DuplicateGuid is not possible anymore
+                expectedInvalidProjects: 23, // InvalidGuid, DuplicateGuid
                 expectedSkippedProjects: 11, // No files to analyze
                 expectedProductProjects: 13,
                 expectedTestProjects: 17);

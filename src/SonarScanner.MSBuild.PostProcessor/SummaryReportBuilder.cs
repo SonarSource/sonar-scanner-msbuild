@@ -119,7 +119,7 @@ namespace SonarScanner.MSBuild.PostProcessor
             var summaryData = new SummaryReportData
             {
                 SkippedProjects = result.Projects.Count(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze),
-                InvalidProjects = result.Projects.Count(p => p.Status == ProjectInfoValidity.InvalidGuid),
+                InvalidProjects = result.Projects.Count(p => p.Status == ProjectInfoValidity.InvalidGuid || p.Status == ProjectInfoValidity.DuplicateGuid),
                 ExcludedProjects = result.Projects.Count(p => p.Status == ProjectInfoValidity.ExcludeFlagSet),
                 ProductProjects = validProjects.Count(p => p.ProjectType == ProjectType.Product),
                 TestProjects = validProjects.Count(p => p.ProjectType == ProjectType.Test),
