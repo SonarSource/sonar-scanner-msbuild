@@ -269,6 +269,18 @@ namespace SonarScanner.MSBuild.Shim
                 Status = ProjectInfoValidity.ExcludeFlagSet
             };
 
+            // Find projects with different paths withing the same group
+            var projectPathsInGroup = projectsGroupedByGuid
+                .Select(x => x.FullPath)
+                .Distinct()
+                .ToList();
+            if (projectPathsInGroup.Count > 1)
+            {
+                projectData.Status = ProjectInfoValidity.DuplicateGuid;
+                projectPathsInGroup.ForEach(path => LogDuplicateGuidWarning(projectsGroupedByGuid.Key, path));
+                return projectData;
+            }
+
             if (projectsGroupedByGuid.Key == Guid.Empty)
             {
                 projectData.Status = ProjectInfoValidity.InvalidGuid;
@@ -295,6 +307,9 @@ namespace SonarScanner.MSBuild.Shim
 
             return projectData;
         }
+
+        private void LogDuplicateGuidWarning(Guid projectGuid, string projectPath) =>
+            logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectGuid, projectPath);
 
         private void AddAnalyzerOutputFilePath(ProjectInfo project, ProjectData projectData)
         {

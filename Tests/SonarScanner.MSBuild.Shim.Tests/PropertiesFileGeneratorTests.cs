@@ -758,6 +758,39 @@ namespace SonarScanner.MSBuild.Shim.Tests
         }
 
         [TestMethod]
+        public void ToProjectData_ProjectsWithDuplicateGuid()
+        {
+            var guid = Guid.NewGuid();
+
+            var projectInfos = new[]
+            {
+                new ProjectInfo
+                {
+                    ProjectGuid = guid,
+                    FullPath = "path1"
+                },
+                new ProjectInfo
+                {
+                    ProjectGuid = guid,
+                    FullPath = "path2"
+                },
+            };
+
+            var logger = new TestLogger();
+            var analysisRootDir = TestUtils.CreateTestSpecificFolder(TestContext, "project");
+            var propertiesFileGenerator = new PropertiesFileGenerator(CreateValidConfig(analysisRootDir), logger);
+            var result = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First());
+
+            result.Status.Should().Be(ProjectInfoValidity.DuplicateGuid);
+            logger.Warnings.Should().BeEquivalentTo(
+                new[]
+                {
+                    $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed by SonarQube. Project file: \"path1\"",
+                    $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed by SonarQube. Project file: \"path2\"",
+                });
+        }
+
+        [TestMethod]
         public void GetClosestProjectOrDefault_WhenNoProjects_ReturnsNull()
         {
             // Arrange & Act
