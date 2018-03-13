@@ -78,10 +78,12 @@
   <!-- Reference to dependencies to ensure the build order is correct -->
   <ItemGroup>
     <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild\SonarScanner.MSBuild.csproj" />
     <ProjectReference Include="$(SourcesRoot)\SonarQube.Bootstrapper\SonarQube.Bootstrapper.csproj" />
     <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.Tasks\SonarScanner.MSBuild.Tasks.csproj" />
     <ProjectReference Include="$(SourcesRoot)\SonarQube.Old.Bootstrapper\SonarQube.Old.Bootstrapper.csproj" />
     <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj" />
     <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.PostProcessor\SonarScanner.MSBuild.PostProcessor.csproj" />
     <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\SonarScanner.MSBuild.PreProcessor.csproj" />
     <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj" />
@@ -111,7 +113,7 @@
     <Copy SourceFiles="@(ClassicScannerFiles)" DestinationFolder="$(ClassicDestinationDir)\%(RecursiveDir)" />
     <Copy SourceFiles="@(TargetFiles)" DestinationFolder="$(ClassicDestinationDir)\Targets" />
 
-    <Copy SourceFiles="@(DotnetScannerFiles)" DestinationFolder="$(DotnetDestinationDir)\%(RecursiveDir)" />
+    <Copy SourceFiles="@(DotnetScannerFiles)" DestinationFolder="$(DotnetDestinationDir)\%(RecursiveDir)" ContinueOnError="true" />
     <Copy SourceFiles="@(TargetFiles)" DestinationFolder="$(DotnetDestinationDir)\Targets\" />
   </Target>
   <Target Name="DownloadScannerCli" Condition="!Exists('$(OutputPath)\$(ScannerCliArtifact)')">
