@@ -58,7 +58,7 @@ public class TestUtils {
 
   private static MavenLocation mavenLocation(String scannerVersion) {
     String groupId = "org.sonarsource.scanner.msbuild";
-    String artifactId = "sonarscanner-msbuild";
+    String artifactId = "sonar-scanner-msbuild";
     return MavenLocation.builder()
       .setGroupId(groupId)
       .setArtifactId(artifactId)
