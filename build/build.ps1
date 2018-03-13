@@ -76,7 +76,7 @@ function runTests() {
 if ($env:IS_PULLREQUEST -eq "true") { 
     write-host -f green "in a pull request"
 
-    .\SonarScanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:latest `
+    .\SonarQube.Scanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:latest `
         /d:sonar.host.url=$env:SONAR_HOST_URL `
         /d:sonar.login=$env:SONAR_TOKEN `
         /d:sonar.github.pullRequest=$env:PULL_REQUEST `
@@ -97,7 +97,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
     #run tests
     runTests
 
-    .\SonarScanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
+    .\SonarQube.Scanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
     testExitCode
 
     deploy -version $version
@@ -107,7 +107,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         write-host -f green "Building master branch"
 
         #start analysis
-        .\SonarScanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:master `
+        .\SonarQube.Scanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:master `
             /d:sonar.host.url=$env:SONAR_HOST_URL `
             /d:sonar.login=$env:SONAR_TOKEN `
             /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" `
