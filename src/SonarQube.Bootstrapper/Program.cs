@@ -23,9 +23,6 @@ namespace SonarQube.Scanner.MSBuild
     internal static class Program
     {
         private static int Main(string[] args)
-        {
-            SonarScanner.MSBuild.Program.PrintDeprecatedWarning();
-            return SonarScanner.MSBuild.Program.Main(args);
-        }
+            => SonarScanner.MSBuild.Program.ExecuteFromLegacyEntryPoint(args);
     }
 }

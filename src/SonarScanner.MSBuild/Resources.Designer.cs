@@ -232,7 +232,9 @@ namespace SonarScanner.MSBuild {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This executable is deprecated and may be removed in next major version of the SonarScanner for MSBuild. Please use &apos;SonarScanner.MSBuild.exe&apos; instead..
+        ///   Looks up a localized string similar to ------------------------------------------------------------------------
+        ///This executable is deprecated and may be removed in next major version of the SonarScanner for MSBuild. Please use &apos;SonarScanner.MSBuild.exe&apos; instead.
+        ///------------------------------------------------------------------------.
         /// </summary>
         internal static string WARN_Deprecated_Entry_Point {
             get {

@@ -29,16 +29,20 @@ namespace SonarScanner.MSBuild
         public const int ErrorCode = 1;
         public const int SuccessCode = 0;
 
-        public static int Main(string[] args)
-        {
-            var logger = new ConsoleLogger(includeTimestamp: false);
-            return Execute(args, logger);
-        }
+        private static int Main(string[] args)
+            => Execute(args, false);
 
-        public static void PrintDeprecatedWarning()
+        public static int ExecuteFromLegacyEntryPoint(string[] args)
+            => Execute(args, true);
+
+        private static int Execute(string[] args, bool showDeprecatedWarning)
         {
             var logger = new ConsoleLogger(includeTimestamp: false);
-            logger.LogWarning(Resources.WARN_Deprecated_Entry_Point);
+            if (showDeprecatedWarning)
+            {
+                logger.LogWarning(Resources.WARN_Deprecated_Entry_Point);
+            }
+            return Execute(args, logger);
         }
 
         public static int Execute(string[] args, ILogger logger)
