@@ -76,7 +76,7 @@ function runTests() {
 if ($env:IS_PULLREQUEST -eq "true") { 
     write-host -f green "in a pull request"
 
-    .\SonarQube.Scanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:latest `
+    .\SonarScanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:latest `
         /d:sonar.host.url=$env:SONAR_HOST_URL `
         /d:sonar.login=$env:SONAR_TOKEN `
         /d:sonar.github.pullRequest=$env:PULL_REQUEST `
@@ -92,12 +92,12 @@ if ($env:IS_PULLREQUEST -eq "true") {
 
     restore
     testExitCode
-    & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /t:rebuild /p:Configuration=Release
+    & $env:MSBUILD_PATH SonarScanner.MSBuild.sln /t:rebuild /p:Configuration=Release
     testExitCode
     #run tests
     runTests
 
-    .\SonarQube.Scanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
+    .\SonarScanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
     testExitCode
 
     deploy -version $version
@@ -107,7 +107,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         write-host -f green "Building master branch"
 
         #start analysis
-        .\SonarQube.Scanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:master `
+        .\SonarScanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:master `
             /d:sonar.host.url=$env:SONAR_HOST_URL `
             /d:sonar.login=$env:SONAR_TOKEN `
             /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" `
@@ -120,13 +120,13 @@ if ($env:IS_PULLREQUEST -eq "true") {
         #build
         restore
         testExitCode
-        & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH /p:defineConstants="SignAssembly"
+        & $env:MSBUILD_PATH SonarScanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH /p:defineConstants="SignAssembly"
         testExitCode
 
         runTests
 
         #end analysis
-        .\SonarQube.Scanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
+        .\SonarScanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
         testExitCode
        
        deploy -version $version
@@ -137,7 +137,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         #build
         restore
         testExitCode
-        & $env:MSBUILD_PATH SonarQube.Scanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH /p:defineConstants="SignAssembly"
+        & $env:MSBUILD_PATH SonarScanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH /p:defineConstants="SignAssembly"
         testExitCode
 
         runTests
