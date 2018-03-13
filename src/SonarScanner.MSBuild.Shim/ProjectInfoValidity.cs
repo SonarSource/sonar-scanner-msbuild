@@ -29,6 +29,7 @@ namespace SonarScanner.MSBuild.Shim
         Valid,
         InvalidGuid,
         ExcludeFlagSet,
-        NoFilesToAnalyze
+        NoFilesToAnalyze,
+        DuplicateGuid
     }
 }
