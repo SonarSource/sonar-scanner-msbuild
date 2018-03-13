@@ -174,4 +174,9 @@
   <data name="WARN_CmdLine_v09_Compat" xml:space="preserve">
     <value>Please specify the command 'begin' or 'end' to indicate whether pre- or post-processing is required. These parameters will become mandatory in a later release.</value>
   </data>
+  <data name="WARN_Deprecated_Entry_Point" xml:space="preserve">
+    <value>------------------------------------------------------------------------
+This executable is deprecated and may be removed in next major version of the SonarScanner for MSBuild. Please use 'SonarScanner.MSBuild.exe' instead.
+------------------------------------------------------------------------</value>
+  </data>
 </root>
