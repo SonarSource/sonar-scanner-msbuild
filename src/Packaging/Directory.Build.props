@@ -8,6 +8,7 @@
 
   <PropertyGroup>
     <SonarQubeExclude>True</SonarQubeExclude>
+    <!-- This version needs to be in sync with version in src/SonarScanner.MSBuild.Shim/SonarScanner.Wrapper.cs -->
     <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.1.0.1141</ScannerCliVersion>
     <ScannerCliArtifact>sonar-scanner-cli-$(ScannerCliVersion).zip</ScannerCliArtifact>
     <ScannerCliDirectory>sonar-scanner-$(ScannerCliVersion)</ScannerCliDirectory>
