@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
+  <!--
+      This file is used to extract the common logic for packaging dotnet Framework and Core artifacts.
+      It is also used to prevent the parent folder's Directory.Build.props from being imported.
+      We do not want that to be imported, as it adds elements that are not desired for packaging projects.
+  -->
 
   <PropertyGroup>
     <SonarQubeExclude>True</SonarQubeExclude>
