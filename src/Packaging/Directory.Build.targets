@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!--
+      This file is used to extract the common logic for packaging dotnet Framework and Core artifacts.
+      It is also used to prevent the parent folder's Directory.Build.targets from being imported.
+      We do not want that to be imported, as it adds elements that are not desired for packaging projects.
+  -->
+
+  <UsingTask TaskName="DownloadFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+    <ParameterGroup>
+      <Url ParameterType="System.String" Required="true" />
+      <File ParameterType="System.String" Required="false" />
+      <OutputFolder ParameterType="System.String" Required="false" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Web" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        using (var client = new System.Net.WebClient())
+            { client.DownloadFile(Url, (OutputFolder != null ? OutputFolder + "/" : "") + (File ?? System.IO.Path.GetFileName(new Uri(Url).LocalPath))); }
+        ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="CreatePayload" AfterTargets="Build">
+    <CallTarget Targets="CleanExistingPayload" />
+    <CallTarget Targets="DownloadScannerCli" />
+    <CallTarget Targets="UnzipScannerCli" />
+    <CallTarget Targets="CopyPayloadFiles" />
+    <CallTarget Targets="ZipPayloadFiles" />
+  </Target>
+
+  <Target Name="CopyPayloadFiles">
+    <Copy SourceFiles="@(ScannerFiles)" DestinationFolder="$(WorkDestinationDir)\%(RecursiveDir)" />
+    <Copy SourceFiles="@(TargetFiles)" DestinationFolder="$(WorkDestinationDir)\Targets" />
+  </Target>
+
+  <Target Name="DownloadScannerCli" Condition="!Exists('$(OutputPath)\$(ScannerCliArtifact)')">
+    <Message Text="Downloading: $(MavenCentralUrl)" />
+    <DownloadFile Url="$(MavenCentralUrl)" OutputFolder="$(OutputPath)" />
+  </Target>
+
+  <Target Name="UnzipScannerCli">
+    <RemoveDir Directories="$(OutputPath)$(ScannerCliDirectory)" />
+    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; [io.compression.zipfile]::ExtractToDirectory('$(OutputPath)$(ScannerCliArtifact)', '$(WorkDestinationDir)')&quot;" />
+  </Target>
+
+  <Target Name="ZipPayloadFiles">
+    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; Add-Type -assembly system.text.encoding; Add-Type -TypeDefinition 'public class MyEncoder : System.Text.UTF8Encoding { public MyEncoder() : base(true) {} public override byte[] GetBytes(string s) { return base.GetBytes(s.Replace((char) 92, (char) 47)); } }'; $enc = New-Object MyEncoder; [io.compression.zipfile]::CreateFromDirectory('$(WorkDestinationDir)', '$(DestinationArtifactPath)', [io.compression.compressionlevel]::fastest, $false, $enc)&quot;" />
+  </Target>
+
+  <Target Name="CleanExistingPayload" AfterTargets="Clean">
+    <RemoveDir Directories="$(WorkDestinationDir)" />
+    <Delete Files="$(DestinationArtifactPath)" />
+  </Target>
+
+</Project>

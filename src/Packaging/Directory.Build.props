@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!--
+      This file is used to extract the common logic for packaging dotnet Framework and Core artifacts.
+      It is also used to prevent the parent folder's Directory.Build.props from being imported.
+      We do not want that to be imported, as it adds elements that are not desired for packaging projects.
+  -->
+
+  <PropertyGroup>
+    <SonarQubeExclude>True</SonarQubeExclude>
+    <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.0.3.778</ScannerCliVersion>
+    <ScannerCliArtifact>sonar-scanner-cli-$(ScannerCliVersion).zip</ScannerCliArtifact>
+    <ScannerCliDirectory>sonar-scanner-$(ScannerCliVersion)</ScannerCliDirectory>
+    <MavenCentralUrl>https://repox.sonarsource.com/sonarsource-public-releases/org/sonarsource/scanner/cli/sonar-scanner-cli/$(ScannerCliVersion)/$(ScannerCliArtifact)</MavenCentralUrl>
+    <SourcesRoot>$(MSBuildThisFileDirectory)..</SourcesRoot>
+    <WorkDestinationRootDir>$(SourcesRoot)\..\DeploymentArtifacts\BuildAgentPayload\$(Configuration)\</WorkDestinationRootDir>
+
+    <!-- OutputPath is required by the Clean and Rebuild tasks -->
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+  </PropertyGroup>
+
+  <!-- Target files. The same files are used in both classic framework and dotnet scanners. -->
+  <ItemGroup>
+    <TargetFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.Tasks\Targets\SonarQube.Integration.targets" />
+    <TargetFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets" />
+  </ItemGroup>
+
+  <!-- Reference to dependencies to ensure this project is built last. -->
+  <ItemGroup>
+    <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild\SonarScanner.MSBuild.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.Tasks\SonarScanner.MSBuild.Tasks.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.PostProcessor\SonarScanner.MSBuild.PostProcessor.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\SonarScanner.MSBuild.PreProcessor.csproj" />
+    <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj" />
+  </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)\..\DotnetVersions.props" />
+
+</Project>

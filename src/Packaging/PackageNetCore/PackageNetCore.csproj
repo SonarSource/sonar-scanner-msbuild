@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>$(ScannerNetCoreAppVersion)</TargetFramework>
+    <WorkDestinationDir>$(WorkDestinationRootDir)\$(ScannerNetCoreAppVersion)</WorkDestinationDir>
+    <DestinationArtifactPath>$(WorkDestinationRootDir)\sonarscanner-msbuild-$(ScannerNetCoreAppVersion).zip</DestinationArtifactPath>
+  </PropertyGroup>
+
+  <!-- Binaries for dotnet core scanner -->
+  <ItemGroup>
+    <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarQube.Analysis.xml" />
+    <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.Common\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarScanner.MSBuild.Common.dll" />
+    <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarScanner.MSBuild.PreProcessor.dll" />
+    <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PostProcessor\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarScanner.MSBuild.PostProcessor.dll" />
+    <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.TFS\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarScanner.MSBuild.TFS.dll" />
+    <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.Tasks\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarScanner.MSBuild.Tasks.dll" />
+    <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.Shim\bin\$(Configuration)\$(ScannerNetStandardVersion)\SonarScanner.MSBuild.Shim.dll" />
+
+    <!-- External dependencies -->
+    <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\bin\$(Configuration)\$(ScannerNetStandardVersion)\Newtonsoft.Json.dll" />
+
+    <!-- .NET Core entry points-->
+    <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarScanner.MSBuild.runtimeconfig.json" />
+    <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarScanner.MSBuild.dll" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(Configuration) == 'Debug'">
+    <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetCoreAppVersion)\SonarScanner.MSBuild.pdb" />
+  </ItemGroup>
+
+</Project>

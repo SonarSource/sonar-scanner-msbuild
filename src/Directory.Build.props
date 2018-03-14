@@ -4,9 +4,6 @@
   <PropertyGroup>
     <CodeAnalysisRuleSet>..\Rules.ruleset</CodeAnalysisRuleSet>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <ScannerNetStandardVersion>netstandard2.0</ScannerNetStandardVersion>
-    <ScannerNetCoreAppVersion>netcoreapp2.0</ScannerNetCoreAppVersion>
-    <ScannerNetFxVersion>net46</ScannerNetFxVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,5 +32,7 @@
   <ItemGroup>
     <PackageReference Include="SonarAnalyzer.CSharp" Version="6.6.0.3969" />
   </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)\DotnetVersions.props" />
 
 </Project>
