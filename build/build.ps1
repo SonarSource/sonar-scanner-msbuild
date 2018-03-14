@@ -126,7 +126,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         runTests
 
         #end analysis
-        & $env:MSBUILD_PATH end /d:sonar.login=$env:SONAR_TOKEN
+        .\SonarQube.Scanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
         testExitCode
        
        deploy -version $version
