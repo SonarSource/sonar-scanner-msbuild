@@ -39,6 +39,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '14.0' or '$(VisualStudioVersion)' == '10.0'">
@@ -105,11 +106,24 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Reference Include="FluentAssertions, Version=4.19.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\FluentAssertions.4.19.0\lib\net45\FluentAssertions.dll</HintPath>
+    </Reference>
+    <Reference Include="FluentAssertions.Core, Version=4.19.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\FluentAssertions.4.19.0\lib\net45\FluentAssertions.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
     <Compile Include="HackForVs2017Update3.cs" />
     <Compile Include="Infrastructure\BuildAssertions.cs" />
+    <Compile Include="MSBuildExecution\BuildLog.cs" />
+    <Compile Include="MSBuildExecution\BuildLogAssertions.cs" />
+    <Compile Include="MSBuildExecution\BuildRunner.cs" />
+    <Compile Include="MSBuildExecution\MSBuildLocator.cs" />
+    <Compile Include="MSBuildExecution\SimpleXmlLogger.cs" />
     <Compile Include="Infrastructure\BuildUtilities.cs" />
     <Compile Include="E2ETests\E2EAnalysisTests.cs" />
     <Compile Include="Infrastructure\BuildLogger.cs" />
