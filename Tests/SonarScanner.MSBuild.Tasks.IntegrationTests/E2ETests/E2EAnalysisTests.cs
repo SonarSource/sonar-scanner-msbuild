@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -393,8 +394,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
 
-            var logger = new BuildLogger();
-
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
             var projectGuid = Guid.NewGuid();
@@ -444,13 +443,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                 );
 
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger,
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
                 TargetConstants.DefaultBuildTarget);
 
             // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+            result.BuildSucceeded.Should().BeTrue();
 
-            logger.AssertExpectedTargetOrdering(
+            result.AssertExpectedTargetOrdering(
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
@@ -481,8 +480,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            var logger = new BuildLogger();
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
@@ -524,13 +521,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                 );
 
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger,
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
                 TargetConstants.DefaultBuildTarget);
 
             // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+            result.BuildSucceeded.Should().BeTrue();
 
-            logger.AssertExpectedTargetOrdering(
+            result.AssertExpectedTargetOrdering(
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
