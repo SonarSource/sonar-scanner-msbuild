@@ -169,76 +169,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
         #endregion Project creation helpers
 
-        #region Build helper methods
-
-        /// <summary>
-        /// Builds the specified target and returns the build result.
-        /// </summary>
-        /// <param name="project">The project to build</param>
-        /// <param name="logger">The build logger to use. If null then a default logger will be used that dumps the build output to the console.</param>
-        /// <param name="targets">Optional list of targets to execute</param>
-        public static BuildResult BuildTargets(ProjectRootElement projectRoot, ILogger logger, params string[] targets)
-        {
-            if (projectRoot == null)
-            {
-                throw new ArgumentNullException(nameof(projectRoot));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            var projectInstance = new ProjectInstance(projectRoot);
-            return BuildTargets(projectInstance, logger, targets);
-        }
-
-        /// <summary>
-        /// Builds the specified target and returns the build result.
-        /// </summary>
-        /// <param name="project">The project to build</param>
-        /// <param name="logger">The build logger to use. If null then a default logger will be used that dumps the build output to the console.</param>
-        /// <param name="targets">Optional list of targets to execute</param>
-        public static BuildResult BuildTargets(ProjectInstance projectInstance, ILogger logger, params string[] targets)
-        {
-            if (projectInstance == null)
-            {
-                throw new ArgumentNullException(nameof(projectInstance));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            var parameters = new BuildParameters
-            {
-                Loggers = new ILogger[] { logger ?? new BuildLogger() },
-                UseSynchronousLogging = true,
-                ShutdownInProcNodeOnBuildFinish = true // required, other we can get an "Attempted to access an unloaded AppDomain" exception when the test finishes.
-            };
-
-            var requestData = new BuildRequestData(projectInstance, targets);
-
-            BuildResult result = null;
-            var mgr = new BuildManager();
-            try
-            {
-                result = mgr.Build(parameters, requestData);
-
-                result.ProjectStateAfterBuild = projectInstance;
-                BuildUtilities.DumpProjectProperties(projectInstance, "Project properties post-build");
-            }
-            finally
-            {
-                mgr.ShutdownAllNodes();
-                mgr.ResetCaches();
-                mgr.Dispose();
-            }
-
-            return result;
-        }
-
-        #endregion Build helper methods
-
         #region Miscellaneous public methods
 
         /// <summary>
@@ -335,32 +265,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             }
 
             return root;
-        }
-
-        /// <summary>
-        /// Dumps the project properties to the console
-        /// </summary>
-        /// <param name="projectInstance">The owning project</param>
-        /// <param name="title">Optional title to be written to the console</param>
-        private static void DumpProjectProperties(ProjectInstance projectInstance, string title)
-        {
-            if (projectInstance == null)
-            {
-                throw new ArgumentNullException(nameof(projectInstance));
-            }
-
-            LogMessage();
-            LogMessage("******************************************************");
-            LogMessage(title ?? "Project properties");
-            foreach (var property in projectInstance.Properties ?? Enumerable.Empty<ProjectPropertyInstance>())
-            {
-                LogMessage("{0} = {1}{2}",
-                    property.Name,
-                    property.EvaluatedValue,
-                    property.IsImmutable ? ", IMMUTABLE" : null);
-            }
-            LogMessage("******************************************************");
-            LogMessage();
         }
 
         #endregion Private methods

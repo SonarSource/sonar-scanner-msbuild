@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -133,6 +134,44 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public static void AssertExpectedWarningCount(this BuildLog log, int expected)
         {
             log.Warnings.Count.Should().Be(expected);
+        }
+
+        public static string GetCapturedPropertyValue(this BuildLog log, string propertyName)
+        {
+            var capturedData = log.CapturedProperties.SingleOrDefault(
+                p => p.Name.Equals(propertyName, System.StringComparison.OrdinalIgnoreCase));
+
+            capturedData.Should().NotBeNull($"Test logger error: failed to find captured property '{propertyName}'");
+
+            return capturedData.Value;
+        }
+
+        public static void AssertExpectedCapturedPropertyValue(this BuildLog log, string propertyName, string expectedValue)
+        {
+            var capturedValue = GetCapturedPropertyValue(log, propertyName);
+            capturedValue.Should().Be(expectedValue, "Captured property '{0}' does not have the expected value", propertyName);
+        }
+
+        public static IList<BuildItem> GetCapturedItemValues(this BuildLog log, string itemName)
+        {
+            return log.CapturedItemValues.Where(
+                p => p.Name.Equals(itemName, System.StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        public static void AssertSingleItemExists(this BuildLog log, string itemName, string expectedValue)
+        {
+            var capturedData = log.CapturedItemValues.SingleOrDefault(
+                p => p.Name.Equals(itemName, System.StringComparison.OrdinalIgnoreCase) &&
+                        p.Value.Equals(expectedValue, System.StringComparison.Ordinal));
+
+            capturedData.Should().NotBeNull($"Test logger error: failed to expected captured item value. " 
+                + $"Item name: '{itemName}', expected value: {expectedValue}");
+        }
+
+        public static void AssertExpectedItemGroupCount(this BuildLog log, string itemName, int expectedCount)
+        {
+            log.CapturedItemValues.Count(p => p.Name.Equals(itemName, System.StringComparison.OrdinalIgnoreCase))
+                .Should().Be(expectedCount);
         }
     }
 }

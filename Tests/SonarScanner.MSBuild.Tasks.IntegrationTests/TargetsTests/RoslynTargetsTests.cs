@@ -22,8 +22,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.Build.Construction;
-using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -52,7 +52,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Roslyn_Settings_ValidSetup()
         {
             // Arrange
-            var logger = new BuildLogger();
 
             // Set the config directory so the targets know where to look for the analysis config file
             var confDir = TestUtils.CreateTestSpecificFolder(TestContext, "config");
@@ -97,19 +96,22 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, notRemovedAdditionalFile);
             }
 
-            // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
+            projectRoot.Save(); // re-save the modified project
 
-            var projectSpecificConfFilePath = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.ProjectConfFilePath);
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
+                TargetConstants.OverrideRoslynAnalysisTarget);
+
+            var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
             var expectedRoslynAdditionalFiles = new string[] { projectSpecificConfFilePath }
                 .Concat(analyzerAdditionalFiles)
                 .Concat(notRemovedAdditionalFiles)
                 .ToArray();
 
             // Assert
-            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
-            logger.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
+            result.BuildSucceeded.Should().BeTrue();
 
             // Check the error log and ruleset properties are set
             AssertErrorLogIsSetBySonarQubeTargets(result);
@@ -117,7 +119,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expectedRoslynAdditionalFiles);
             AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, expectedAssemblies);
 
-            BuildAssertions.AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
+            AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
         }
 
         [TestMethod]
@@ -125,7 +127,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Roslyn_Settings_ValidSetup_Override_AdditionalFiles()
         {
             // Arrange
-            var logger = new BuildLogger();
 
             // Set the config directory so the targets know where to look for the analysis config file
             var confDir = TestUtils.CreateTestSpecificFolder(TestContext, "config");
@@ -173,19 +174,21 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "DummyPath\\" + analyzer1ExpectedFileName.ToUpperInvariant());
 
-            // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
+            projectRoot.Save(); // re-save the modified file
 
-            var projectSpecificConfFilePath = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.ProjectConfFilePath);
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.OverrideRoslynAnalysisTarget);
+            
+            var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
             var expectedRoslynAdditionalFiles = new string[] { projectSpecificConfFilePath }
                 .Concat(analyzerAdditionalFiles)
                 .Concat(notRemovedAdditionalFiles)
                 .ToArray();
 
             // Assert
-            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
-            logger.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
+            result.BuildSucceeded.Should().BeTrue();
 
             // Check the error log and ruleset properties are set
             AssertErrorLogIsSetBySonarQubeTargets(result);
@@ -193,7 +196,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expectedRoslynAdditionalFiles);
             AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, expectedAssemblies);
 
-            BuildAssertions.AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
+            AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
         }
 
         [TestMethod]
@@ -201,7 +204,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Roslyn_Settings_SettingsMissing_NoError()
         {
             // Arrange
-            var logger = new BuildLogger();
 
             // Set the config directory so the targets know where to look for the analysis config file
             var confDir = TestUtils.CreateTestSpecificFolder(TestContext, "config");
@@ -224,10 +226,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             const string additionalFileName = "should.not.be.removed.additional1.txt";
             projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, additionalFileName);
 
-            // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
+            projectRoot.Save(); // re-save the modified project
 
-            var projectSpecificConfFilePath = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.ProjectConfFilePath);
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.OverrideRoslynAnalysisTarget);
+
+            var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
 
             var expectedRoslynAdditionalFiles = new string[] {
                 projectSpecificConfFilePath,
@@ -235,14 +239,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             };
 
             // Assert
-            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
-            logger.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
+            result.BuildSucceeded.Should().BeTrue();
 
             // Check the error log and ruleset properties are set
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertExpectedResolvedRuleset(result, string.Empty);
-            BuildAssertions.AssertExpectedItemGroupCount(result, TargetProperties.AnalyzerItemType, 0);
+            result.AssertExpectedItemGroupCount(TargetProperties.AnalyzerItemType, 0);
             AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expectedRoslynAdditionalFiles);
         }
 
@@ -251,7 +255,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Roslyn_Settings_TempFolderIsNotSet()
         {
             // Arrange
-            var logger = new BuildLogger();
 
             var properties = new WellKnownProjectProperties
             {
@@ -264,21 +267,23 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectRoot = CreateValidProjectSetup(properties);
             projectRoot.AddProperty(TargetProperties.SonarQubeTempPath, string.Empty); // needs to overwritten once the valid project has been created
 
+            projectRoot.Save(); // re-save the modified project
+
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
-            logger.AssertTargetNotExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
-            logger.AssertTargetNotExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
+            result.AssertTargetNotExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetNotExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
 
             // Existing properties should not be changed
             AssertExpectedErrorLog(result, "pre-existing.log");
             AssertExpectedResolvedRuleset(result, "pre-existing.ruleset");
-            BuildAssertions.AssertExpectedItemGroupCount(result, TargetProperties.AnalyzerItemType, 0);
-            BuildAssertions.AssertExpectedItemGroupCount(result, TargetProperties.AdditionalFilesItemType, 0);
+            result.AssertExpectedItemGroupCount(TargetProperties.AnalyzerItemType, 0);
+            result.AssertExpectedItemGroupCount(TargetProperties.AdditionalFilesItemType, 0);
 
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.TreatWarningsAsErrors, "true");
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.WarningsAsErrors, "CS101");
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.TreatWarningsAsErrors, "true");
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.WarningsAsErrors, "CS101");
         }
 
         [TestMethod]
@@ -286,7 +291,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Roslyn_Settings_ErrorLogAlreadySet()
         {
             // Arrange
-            var logger = new BuildLogger();
             var properties = new WellKnownProjectProperties
             {
                 [TargetProperties.ErrorLog] = "already.set.txt"
@@ -295,14 +299,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectRoot = CreateValidProjectSetup(properties);
 
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
-            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
-            logger.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
+            result.BuildSucceeded.Should().BeTrue();
 
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, "already.set.txt");
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, "already.set.txt");
         }
 
         [TestMethod]
@@ -310,7 +314,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Roslyn_Settings_NotRunForTestProject()
         {
             // Arrange
-            var logger = new BuildLogger();
             var properties = new WellKnownProjectProperties
             {
                 ProjectTypeGuids = TargetConstants.MsTestProjectTypeGuid // mark the project as a test project
@@ -319,14 +322,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectRoot = CreateValidProjectSetup(properties);
 
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
-            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
-            logger.AssertTargetNotExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetNotExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
+            result.BuildSucceeded.Should().BeTrue();
 
-            AssertCodeAnalysisIsDisabled(result, null);
+            AssertCodeAnalysisIsDisabled(result, string.Empty);
         }
 
         [TestMethod]
@@ -334,7 +337,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Roslyn_Settings_NotRunForExcludedProject()
         {
             // Arrange
-            var logger = new BuildLogger();
             var properties = new WellKnownProjectProperties
             {
                 SonarQubeExclude = "TRUE", // mark the project as excluded
@@ -344,12 +346,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectRoot = CreateValidProjectSetup(properties);
 
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.OverrideRoslynAnalysisTarget);
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
-            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
-            logger.AssertTargetNotExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetNotExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
+            result.BuildSucceeded.Should().BeTrue();
 
             AssertCodeAnalysisIsDisabled(result, properties.ResolvedCodeAnalysisRuleset);
         }
@@ -372,13 +374,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             var projectRoot = BuildUtilities.CreateValidProjectRoot(TestContext, rootInputFolder, properties);
 
-            var logger = new BuildLogger();
-
             // Act
-            BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetRoslynResultsTarget);
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
+                TargetConstants.SetRoslynResultsTarget);
 
             // Assert
-            logger.AssertTargetNotExecuted(TargetConstants.SetRoslynResultsTarget);
+            result.AssertTargetNotExecuted(TargetConstants.SetRoslynResultsTarget);
         }
 
         [TestMethod]
@@ -395,14 +396,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             var projectRoot = BuildUtilities.CreateValidProjectRoot(TestContext, rootInputFolder, properties);
 
-            var logger = new BuildLogger();
-
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.SetRoslynResultsTarget);
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.SetRoslynResultsTarget);
 
             // Assert
-            logger.AssertTargetExecuted(TargetConstants.SetRoslynResultsTarget);
-            BuildAssertions.AssertAnalysisSettingDoesNotExist(result, RoslynAnalysisResultsSettingName);
+            result.AssertTargetExecuted(TargetConstants.SetRoslynResultsTarget);
+            AssertAnalysisSettingDoesNotExist(result, RoslynAnalysisResultsSettingName);
         }
 
         [TestMethod]
@@ -421,19 +420,21 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             properties[TargetProperties.ErrorLog] = resultsFile;
 
             var projectRoot = BuildUtilities.CreateValidProjectRoot(TestContext, rootInputFolder, properties);
-
-            var logger = new BuildLogger();
+            AddCaptureTargetsImport(rootInputFolder, projectRoot);
+            projectRoot.Save();
 
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
+            var result = BuildRunner.BuildTargets(TestContext,
+                projectRoot.FullPath,
+                TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
 
-            var projectSpecificOutDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.ProjectSpecificOutDir);
+            var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
 
             // Assert
-            logger.AssertTargetExecuted(TargetConstants.CreateProjectSpecificDirs);
-            logger.AssertTargetExecuted(TargetConstants.SetRoslynResultsTarget);
-            BuildAssertions.AssertExpectedAnalysisSetting(result, RoslynAnalysisResultsSettingName, resultsFile);
-            BuildAssertions.AssertExpectedAnalysisSetting(result, AnalyzerWorkDirectoryResultsSettingName, projectSpecificOutDir);
+            result.AssertTargetExecuted(TargetConstants.CreateProjectSpecificDirs);
+            result.AssertTargetExecuted(TargetConstants.SetRoslynResultsTarget);
+            AssertExpectedAnalysisSetting(result, RoslynAnalysisResultsSettingName, resultsFile);
+            AssertExpectedAnalysisSetting(result, AnalyzerWorkDirectoryResultsSettingName, projectSpecificOutDir);
         }
 
         #endregion AddAnalysisResults tests
@@ -494,7 +495,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #region Checks
 
-        private static void AssertCodeAnalysisIsDisabled(BuildResult result, string expectedResolvedCodeAnalysisRuleset)
+        private static void AssertCodeAnalysisIsDisabled(BuildLog result, string expectedResolvedCodeAnalysisRuleset)
         {
             // Check the ruleset and error log are not set
             AssertExpectedErrorLog(result, string.Empty);
@@ -504,37 +505,37 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// <summary>
         /// Checks the error log property has been set to the value supplied in the targets file
         /// </summary>
-        private static void AssertErrorLogIsSetBySonarQubeTargets(BuildResult result)
+        private static void AssertErrorLogIsSetBySonarQubeTargets(BuildLog result)
         {
-            var targetDir = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetDir);
-            var targetFileName = result.ProjectStateAfterBuild.GetPropertyValue(TargetProperties.TargetFileName);
+            var targetDir = result.GetCapturedPropertyValue(TargetProperties.TargetDir);
+            var targetFileName = result.GetCapturedPropertyValue(TargetProperties.TargetFileName);
 
             var expectedErrorLog = Path.Combine(targetDir, string.Format(CultureInfo.InvariantCulture, ErrorLogFilePattern, targetFileName));
 
             AssertExpectedErrorLog(result, expectedErrorLog);
         }
 
-        private static void AssertExpectedErrorLog(BuildResult result, string expectedErrorLog)
+        private static void AssertExpectedErrorLog(BuildLog result, string expectedErrorLog)
         {
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ErrorLog, expectedErrorLog);
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.ErrorLog, expectedErrorLog);
         }
 
-        private static void AssertExpectedResolvedRuleset(BuildResult result, string expectedResolvedRuleset)
+        private static void AssertExpectedResolvedRuleset(BuildLog result, string expectedResolvedRuleset)
         {
-            BuildAssertions.AssertExpectedPropertyValue(result.ProjectStateAfterBuild, TargetProperties.ResolvedCodeAnalysisRuleset, expectedResolvedRuleset);
+            result.AssertExpectedCapturedPropertyValue(TargetProperties.ResolvedCodeAnalysisRuleset, expectedResolvedRuleset);
         }
 
-        private void AssertExpectedItemValuesExists(BuildResult result, string itemType, params string[] expectedValues)
+        private void AssertExpectedItemValuesExists(BuildLog result, string itemType, params string[] expectedValues)
         {
             DumpLists(result, itemType, expectedValues);
             foreach (var expectedValue in expectedValues)
             {
-                BuildAssertions.AssertSingleItemExists(result, itemType, expectedValue);
+                result.AssertSingleItemExists(itemType, expectedValue);
             }
-            BuildAssertions.AssertExpectedItemGroupCount(result, itemType, expectedValues.Length);
+            result.AssertExpectedItemGroupCount(itemType, expectedValues.Length);
         }
 
-        private void DumpLists(BuildResult actualResult, string itemType, string[] expected)
+        private void DumpLists(BuildLog actualResult, string itemType, string[] expected)
         {
             TestContext.WriteLine("");
             TestContext.WriteLine("Dumping <" + itemType + "> list: expected");
@@ -546,11 +547,57 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             TestContext.WriteLine("");
             TestContext.WriteLine("Dumping <" + itemType + "> list: actual");
-            foreach (var item in actualResult.ProjectStateAfterBuild.GetItems(itemType))
+            foreach (var item in actualResult.GetCapturedItemValues(itemType))
             {
-                TestContext.WriteLine("\t{0}", item.EvaluatedInclude);
+                TestContext.WriteLine("\t{0}", item);
             }
             TestContext.WriteLine("");
+        }
+
+        /// <summary>
+        /// Checks that no analysis warnings will be treated as errors nor will they be ignored
+        /// </summary>
+        private static void AssertWarningsAreNotTreatedAsErrorsNorIgnored(BuildLog actualResult)
+        {
+            actualResult.AssertExpectedCapturedPropertyValue(TargetProperties.TreatWarningsAsErrors, "false");
+            actualResult.AssertExpectedCapturedPropertyValue(TargetProperties.WarningsAsErrors, "");
+            actualResult.AssertExpectedCapturedPropertyValue(TargetProperties.WarningLevel, "4");
+        }
+
+        /// <summary>
+        /// Checks that a SonarQubeSetting does not exist
+        /// </summary>
+        private static void AssertAnalysisSettingDoesNotExist(BuildLog actualResult, string settingName)
+        {
+            var matches = actualResult.GetCapturedItemValues(BuildTaskConstants.SettingItemName);
+
+            Assert.AreEqual(0, matches.Count(), "Not expected SonarQubeSetting with include value of '{0}' to exist. Actual occurrences: {1}", settingName, matches.Count());
+        }
+
+        /// <summary>
+        /// Checks whether there is a single "SonarQubeSetting" item with the expected name and setting value
+        /// </summary>
+        private static void AssertExpectedAnalysisSetting(BuildLog actualResult, string settingName, string expectedValue)
+        {
+            /* The equivalent XML would look like this:
+            <ItemGroup>
+              <SonarQubeSetting Include="settingName">
+                <Value>expectedValue</Value
+              </SonarQubeSetting>
+            </ItemGroup>
+            */
+
+            var matches = actualResult.GetCapturedItemValues(BuildTaskConstants.SettingItemName)
+                .Where(v => v.Value.Equals(settingName, System.StringComparison.Ordinal));
+
+            matches.Count().Should().NotBe(0, "Expected SonarQubeSetting with include value of '{0}' does not exist", settingName);
+            matches.Count().Should().Be(1, "Only expecting one SonarQubeSetting with include value of '{0}' to exist", settingName);
+
+            var item = matches.Single();
+            var value = item.Metadata.SingleOrDefault(v => v.Name.Equals(BuildTaskConstants.SettingValueMetadataName));
+
+            value.Should().NotBeNull();
+            value.Value.Should().Be(expectedValue, "SonarQubeSetting with include value '{0}' does not have the expected value", settingName);
         }
 
         #endregion Checks
@@ -573,9 +620,72 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             var projectRoot = BuildUtilities.CreateValidProjectRoot(TestContext, projectFolder, projectProperties);
 
+            AddCaptureTargetsImport(projectFolder, projectRoot);
+
             var projectFilePath = Path.Combine(projectFolder, "valid.project.proj");
             projectRoot.Save(projectFilePath);
             return projectRoot;
+        }
+
+        private void AddCaptureTargetsImport(string projectFolder, ProjectRootElement projectRoot)
+        {
+            // Add an additional import that will dump data we are interested in to the build log
+            var captureTargetsFilePath = CreateCaptureDataTargetsFile(projectFolder);
+            var captureTarget = projectRoot.AddImport(captureTargetsFilePath);
+
+            var projectFilePath = Path.Combine(projectFolder, "valid.project.proj");
+            projectRoot.Save(projectFilePath);
+        }
+
+        private string CreateCaptureDataTargetsFile(string directory)
+        {
+            // Most of the tests above want to check the value of build property
+            // or item group after a target has been executed. However, this
+            // information is not available through the buildlogger interface.
+            // So, we'll add a special target that writes the properties/items
+            // we are interested in to the message log.
+            // The SimpleXmlLogger has special handling to extract the data
+            // from the message and add it to the BuildLog.
+
+            // Make sure that the target is run after all of the targets
+            // used by the any of the tests.
+            string afterTargets = string.Join(";",
+                TargetConstants.SetRoslynResultsTarget,
+                TargetConstants.OverrideRoslynAnalysisTarget,
+                TargetConstants.SetRoslynAnalysisPropertiesTarget
+                );
+
+            string xml = $@"<?xml version='1.0' encoding='utf-8'?>
+<Project ToolsVersion='15.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+  
+  <Target Name='CaptureValues' AfterTargets='{afterTargets}'>
+    <Message Importance='high' Text='CAPTURE::PROPERTY::TargetDir::$(TargetDir)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::TargetFileName::$(TargetFileName)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::ErrorLog::$(ErrorLog)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::ProjectConfFilePath::$(ProjectConfFilePath)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::ResolvedCodeAnalysisRuleSet::$(ResolvedCodeAnalysisRuleSet)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::TreatWarningsAsErrors::$(TreatWarningsAsErrors)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::WarningsAsErrors::$(WarningsAsErrors)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::WarningLevel::$(WarningLevel)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::ProjectSpecificOutDir::$(ProjectSpecificOutDir)' />
+
+    <!-- Item group values will be written out one per line -->
+    <Message Importance='high' Text='CAPTURE::ITEM::AdditionalFiles::%(AdditionalFiles.Identity)' Condition="" @(AdditionalFiles) != '' ""/>
+    <Message Importance='high' Text='CAPTURE::ITEM::Analyzer::%(Analyzer.Identity)'  Condition="" @(Analyzer) != '' "" />
+
+    <!-- For the SonarQubeSetting items, we also want to capture the Value metadata item -->
+    <Message Importance='high' Text='CAPTURE::ITEM::SonarQubeSetting::%(SonarQubeSetting.Identity)::Value::%(SonarQubeSetting.Value)'  Condition="" @(SonarQubeSetting) != '' "" />
+  </Target>
+</Project>";
+
+            // We're using :: as a separator here: replace it with whatever
+            // whatever the logger is using as a separator
+            xml = xml.Replace("::", SimpleXmlLogger.CapturedDataSeparator);
+
+            var filePath = Path.Combine(directory, "Capture.targets");
+            File.WriteAllText(filePath, xml);
+            TestContext.AddResultFile(filePath);
+            return filePath;
         }
 
         #endregion Setup

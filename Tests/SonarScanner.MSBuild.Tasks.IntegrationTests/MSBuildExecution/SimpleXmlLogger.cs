@@ -28,6 +28,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
     public class SimpleXmlLogger : ILogger
     {
+        public const string CapturedDataSeparator = "___";
+
         private IEventSource eventSource;
 
         private BuildLog log;
@@ -78,6 +80,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
             eventSource.WarningRaised += EventSource_WarningRaised;
             eventSource.ErrorRaised += EventSource_ErrorRaised;
+            eventSource.MessageRaised += EventSource_MessageRaised;
         }
 
         private void UnregisterEvents()
@@ -90,6 +93,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
             eventSource.WarningRaised -= EventSource_WarningRaised;
             eventSource.ErrorRaised -= EventSource_ErrorRaised;
+            eventSource.MessageRaised -= EventSource_MessageRaised;
         }
 
         private void EventSource_BuildStarted(object sender, BuildStartedEventArgs e)
@@ -122,6 +126,85 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         private void EventSource_WarningRaised(object sender, BuildWarningEventArgs e)
         {
             log.Warnings.Add(e.Message);
+        }
+
+        private void EventSource_MessageRaised(object sender, BuildMessageEventArgs e)
+        {
+            // We're not interested in all messages, just those in a specific format
+            // that indicate that we should extract and store data
+
+            // The message formats are:
+            // 1. for property data
+            // CAPTURE___PROPERTY___[Name]___[Value]
+            // and 
+            // 2. for item data
+            // CAPTURE___ITEM___[Name]___[Value]
+            //      ... then optionally further ___[Name]___[Value] pairs for any metadata items
+            var msg = e.Message;
+
+            if (!msg.StartsWith($"CAPTURE{CapturedDataSeparator}"))
+            {
+                return;
+            }
+
+            var propertyData = msg.Split(new string[] { CapturedDataSeparator }, System.StringSplitOptions.None);
+
+            switch (propertyData[1])
+            {
+                case "PROPERTY":
+                    ProcessPropertyMessage(e.Message, propertyData);
+                    break;
+                case "ITEM":
+                    ProcessItemMessage(e.Message, propertyData);
+                    break;
+                default:
+                    log.Errors.Add($"Test logger error: unexpected value for captured data type: {propertyData[1]}. Expecting PROPERTY or ITEM");
+                    break;
+            }
+        }
+
+        private void ProcessPropertyMessage(string message, string[] data)
+        {
+            if (data.Length != 4)
+            {
+                log.Errors.Add($"Test logger error: unexpected value for captured property data message: {message}. Expecting a four part message: CAPTURE{CapturedDataSeparator}PROPERTY{CapturedDataSeparator}[Name]{CapturedDataSeparator}[Value]");
+                return;
+            }
+
+            var capturedData = new BuildKeyValue
+            {
+                Name = data[2],
+                Value = data[3]
+            };
+            log.CapturedProperties.Add(capturedData);
+        }
+
+        private void ProcessItemMessage(string message, string[] data)
+        {
+            if (data.Length % 2 != 0)
+            {
+                log.Errors.Add($"Test logger error: unexpected value for captured item data message: {message}. Expecting a four part message: CAPTURE{CapturedDataSeparator}ITEM{CapturedDataSeparator}[Name]{CapturedDataSeparator}[Value]");
+                return;
+            }
+
+            var itemData = new BuildItem
+            {
+                Name = data[2],
+                Value = data[3],
+                Metadata = new List<BuildKeyValue>()
+            };
+            log.CapturedItemValues.Add(itemData);
+
+            // Process any metadata items
+            for (var i = 4; i < data.Length; i = i + 2)
+            {
+                var metadataItem = new BuildKeyValue
+                {
+                    Name = data[i],
+                    Value = data[i + 1]
+                };
+                itemData.Metadata.Add(metadataItem);
+            }
         }
 
         public void Shutdown()
