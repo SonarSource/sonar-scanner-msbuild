@@ -39,7 +39,8 @@ namespace SonarScanner.MSBuild.TFS.Classic
         /// <summary>
         /// Registry containing information about installed VS versions
         /// </summary>
-        private const string VisualStudioRegistryPath = @"SOFTWARE\Microsoft\VisualStudio";
+        private const string VisualStudioRegistryPath_32Bit = @"SOFTWARE\Microsoft\VisualStudio";
+        private const string VisualStudioRegistryPath_64Bit = @"SOFTWARE\Wow6432Node\Microsoft\VisualStudio";
 
         /// <summary>
         /// Partial path to the code coverage exe, from the Visual Studio shell folder
@@ -188,7 +189,10 @@ namespace SonarScanner.MSBuild.TFS.Classic
             string toolPath = null;
 
             logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageToolRegistry);
-            using (var key = Registry.LocalMachine.OpenSubKey(VisualStudioRegistryPath, false))
+
+            var regPath = GetVsRegistryPath(Environment.Is64BitProcess);
+
+            using (var key = Registry.LocalMachine.OpenSubKey(regPath, false))
             {
                 // i.e. no VS installed
                 if (key == null)
@@ -219,6 +223,19 @@ namespace SonarScanner.MSBuild.TFS.Classic
             }
 
             return toolPath;
+        }
+
+        public static string GetVsRegistryPath(bool is64BitProcess)
+        {
+            // Bug #461: https://github.com/SonarSource/sonar-scanner-msbuild/issues/461
+            // The registry path to return depends on whether the OS is 32- or 64-bit, and
+            // whether the calling process is 32- or 64-bit.
+            // VS is (currently) still a 32-bit process. In most cases we should just return
+            // the 32-bit registry path, and rely on registry redirection to re-direct the
+            // path to the Wow6432Node if necessary.
+            // However, if we are running under a 64-bit process registry redirection won't
+            // happen, so we need to supply the full path ourselves.
+            return is64BitProcess ? VisualStudioRegistryPath_64Bit : VisualStudioRegistryPath_32Bit;
         }
 
         /// <summary>

@@ -227,6 +227,18 @@ echo success > """ + outputFilePath + @"""");
             logger.AssertDebugLogged("Code coverage command line tool: x:\\foo\\Team Tools\\Dynamic Code Coverage Tools\\CodeCoverage.exe");
         }
 
+        [TestMethod]
+        public void GetRegistryPath_When64BitProcess_Returns64BitPath()
+        {
+            BinaryToXmlCoverageReportConverter.GetVsRegistryPath(true).Should().Be(@"SOFTWARE\Wow6432Node\Microsoft\VisualStudio");
+        }
+
+        [TestMethod]
+        public void GetRegistryPath_When32BitProcess_Returns32BitPath()
+        {
+            BinaryToXmlCoverageReportConverter.GetVsRegistryPath(false).Should().Be(@"SOFTWARE\Microsoft\VisualStudio");
+        }
+
         private static IVisualStudioSetupConfigurationFactory CreateVisualStudioSetupConfigurationFactory(string packageId)
         {
             var calls = 0;
