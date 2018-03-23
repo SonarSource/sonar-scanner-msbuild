@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -94,21 +95,19 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             var projectRoot = BuildUtilities.CreateInitializedProjectRoot(TestContext, descriptor, preImportProperties);
 
-            var logger = new BuildLogger();
-
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger);
+            var result = BuildRunner.BuildTargets(TestContext, descriptor.FullFilePath);
 
             // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
             ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, Path.Combine(rootInputFolder,
                 descriptor.ProjectFolderName, descriptor.ProjectFileName));
 
-            logger.AssertExpectedErrorCount(0);
-            logger.AssertExpectedWarningCount(1);
+            result.AssertExpectedErrorCount(0);
+            result.AssertExpectedWarningCount(1);
 
-            var warning = logger.Warnings[0];
-            Assert.IsTrue(warning.Message.Contains(descriptor.FullFilePath),
+            var warning = result.Warnings[0];
+            Assert.IsTrue(warning.Contains(descriptor.FullFilePath),
                 "Expecting the warning to contain the full path to the bad project file");
         }
 
@@ -139,21 +138,24 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var projectRoot = BuildUtilities.CreateInitializedProjectRoot(TestContext, descriptor, preImportProperties);
             projectRoot.AddProperty("ProjectGuid", "Invalid guid");
 
-            var logger = new BuildLogger();
+            string projectFilePath = Path.Combine(rootInputFolder,
+                descriptor.ProjectFolderName, descriptor.ProjectFileName);
+
+            projectRoot.Save(projectFilePath);
+            TestContext.AddResultFile(projectFilePath);
 
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger);
+            var buildLog = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
             // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
-            ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, Path.Combine(rootInputFolder,
-                descriptor.ProjectFolderName, descriptor.ProjectFileName));
+            buildLog.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectFilePath);
 
-            logger.AssertExpectedErrorCount(0);
-            logger.AssertExpectedWarningCount(1);
+            buildLog.AssertExpectedErrorCount(0);
+            buildLog.AssertExpectedWarningCount(1);
 
-            var warning = logger.Warnings[0];
-            Assert.IsTrue(warning.Message.Contains(descriptor.FullFilePath),
+            var warning = buildLog.Warnings[0];
+            Assert.IsTrue(warning.Contains(descriptor.FullFilePath),
                 "Expecting the warning to contain the full path to the bad project file");
         }
 
@@ -392,8 +394,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
 
-            var logger = new BuildLogger();
-
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
             var projectGuid = Guid.NewGuid();
@@ -443,13 +443,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                 );
 
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger,
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
                 TargetConstants.DefaultBuildTarget);
 
             // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+            result.BuildSucceeded.Should().BeTrue();
 
-            logger.AssertExpectedTargetOrdering(
+            result.AssertExpectedTargetOrdering(
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
@@ -480,8 +480,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            var logger = new BuildLogger();
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
@@ -523,13 +521,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                 );
 
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger,
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
                 TargetConstants.DefaultBuildTarget);
 
             // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+            result.BuildSucceeded.Should().BeTrue();
 
-            logger.AssertExpectedTargetOrdering(
+            result.AssertExpectedTargetOrdering(
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
@@ -601,20 +599,19 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
         {
             var projectRoot = BuildUtilities.CreateInitializedProjectRoot(TestContext, descriptor, preImportProperties);
 
-            var logger = new BuildLogger();
-
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger);
+            var result = BuildRunner.BuildTargets(TestContext, descriptor.FullFilePath);
+            TestContext.AddResultFile(result.FilePath);
 
             // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget);
 
             // We expect the compiler to warn if there are no compiler inputs
             var expectedWarnings = (descriptor.ManagedSourceFiles.Any()) ? 0 : 1;
-            logger.AssertExpectedErrorCount(0);
-            logger.AssertExpectedWarningCount(expectedWarnings);
+            result.AssertExpectedErrorCount(0);
+            result.AssertExpectedWarningCount(expectedWarnings);
 
-            logger.AssertExpectedTargetOrdering(
+            result.AssertExpectedTargetOrdering(
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.DefaultBuildTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
@@ -625,7 +622,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             // Check expected project outputs
             Assert.AreEqual(1, Directory.EnumerateDirectories(rootOutputFolder).Count(), "Only expecting one child directory to exist under the root analysis output folder");
-            ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+            ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, descriptor.FullFilePath);
 
             return Directory.EnumerateDirectories(rootOutputFolder).Single();
         }
