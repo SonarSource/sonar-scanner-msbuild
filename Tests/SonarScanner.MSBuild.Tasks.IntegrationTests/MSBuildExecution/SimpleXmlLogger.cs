@@ -100,7 +100,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         {
             foreach (KeyValuePair<string, string> kvp in e.BuildEnvironment)
             {
-                log.BuildProperties.Add(new BuildProperty { Name = kvp.Key, Value = kvp.Value });
+                log.BuildProperties.Add(new BuildKeyValue { Name = kvp.Key, Value = kvp.Value });
             }
         }
 

@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
     /// </summary>
     public class BuildLog
     {
-        public List<BuildProperty> BuildProperties { get; set; } = new List<BuildProperty>();
+        public List<BuildKeyValue> BuildProperties { get; set; } = new List<BuildKeyValue>();
 
         public List<BuildKeyValue> CapturedProperties { get; set; } = new List<BuildKeyValue>();
 
