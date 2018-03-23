@@ -46,6 +46,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             // Expecting a path like "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\msbuild.exe"
             var exePath = MSBuildLocator.GetMSBuildPath(msBuildVersion, testContext);
             exePath.Should().NotBeNull($"Test setup failure - failed to locate MSBuild.exe for version {msBuildVersion}");
+            File.Exists(exePath).Should().BeTrue($"expecting the returned msbuild.exe file to exist. File path: {exePath}");
 
             // The build is being run in a separate process so we can't directly
             // capture the property values or which tasks/targets were executed.

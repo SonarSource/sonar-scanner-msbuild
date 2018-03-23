@@ -28,7 +28,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
     /// <summary>
     /// Utility class that locates MSBuild executables
     /// </summary>
-    internal class MSBuildLocator
+    internal static class MSBuildLocator
     {
         /// <summary>
         /// Returns the path to the specified version of msbuild.exe or
@@ -40,19 +40,18 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             testContext.WriteLine($"Test setup: attempting to location MSBuild instance. Version: {msBuildMajorVersion}");
             ISetupConfiguration config = new SetupConfiguration();
 
-            string partialExePath = Path.Combine("MSBuild", msBuildMajorVersion, "Bin", "msbuild.exe");
-
-            var enumerator = config.EnumInstances();
-
             var instances = new ISetupInstance[100];
+            var enumerator = config.EnumInstances();
             enumerator.Next(100, instances, out int fetched);
 
             if (fetched == 0)
             {
                 throw new InvalidOperationException("Test setup error: no instances of Visual Studio could be located on this machine");
             }
-            
-            for(int i = 0; i < fetched; i++)
+
+            string partialExePath = Path.Combine("MSBuild", msBuildMajorVersion, "Bin", "msbuild.exe");
+
+            for (int i = 0; i < fetched; i++)
             {
                 var instance = instances[i];
                 testContext.WriteLine($"\t\tVS instance: {instance.GetDisplayName()}, {instance.GetInstallationVersion()}, {instance.GetInstallationPath()}");

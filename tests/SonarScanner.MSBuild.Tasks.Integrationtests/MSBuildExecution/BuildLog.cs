@@ -33,24 +33,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
     /// </summary>
     public class BuildLog
     {
-        public BuildLog()
-        {
-            Targets = new List<string>();
-            Tasks = new List<string>();
-            Warnings = new List<string>();
-            Errors = new List<string>();
-            BuildProperties = new List<BuildProperty>();
-        }
+        public List<BuildProperty> BuildProperties { get; set; } = new List<BuildProperty>();
 
-        public List<BuildProperty> BuildProperties { get; set; }
+        public List<string> Targets { get; set; } = new List<string>();
 
-        public List<string> Targets { get; set; }
+        public List<string> Tasks { get; set; } = new List<string>();
 
-        public List<string> Tasks { get; set; }
+        public List<string> Warnings { get; set; } = new List<string>();
 
-        public List<string> Warnings { get; set; }
-
-        public List<string> Errors { get; set; }
+        public List<string> Errors { get; set; } = new List<string>();
 
         public bool BuildSucceeded { get; set; }
 

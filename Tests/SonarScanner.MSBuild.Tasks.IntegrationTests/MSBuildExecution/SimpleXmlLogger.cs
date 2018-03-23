@@ -64,7 +64,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             fileName = logFile;
 
             this.eventSource = eventSource;
+            RegisterEvents();
+            log = new BuildLog();
+        }
 
+        private void RegisterEvents()
+        {
             eventSource.BuildFinished += EventSource_BuildFinished;
             eventSource.BuildStarted += EventSource_BuildStarted;
 
@@ -73,15 +78,25 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
             eventSource.WarningRaised += EventSource_WarningRaised;
             eventSource.ErrorRaised += EventSource_ErrorRaised;
+        }
 
-            log = new BuildLog();
+        private void UnregisterEvents()
+        {
+            eventSource.BuildFinished -= EventSource_BuildFinished;
+            eventSource.BuildStarted -= EventSource_BuildStarted;
+
+            eventSource.TargetStarted -= EventSource_TargetStarted;
+            eventSource.TaskStarted += EventSource_TaskStarted;
+
+            eventSource.WarningRaised -= EventSource_WarningRaised;
+            eventSource.ErrorRaised -= EventSource_ErrorRaised;
         }
 
         private void EventSource_BuildStarted(object sender, BuildStartedEventArgs e)
         {
-            foreach(KeyValuePair<string, string> kvp in e.BuildEnvironment)
+            foreach (KeyValuePair<string, string> kvp in e.BuildEnvironment)
             {
-                log.BuildProperties.Add(new BuildProperty() { Name = kvp.Key, Value = kvp.Value });
+                log.BuildProperties.Add(new BuildProperty { Name = kvp.Key, Value = kvp.Value });
             }
         }
 
@@ -112,6 +127,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public void Shutdown()
         {
             log.Save(fileName);
+            UnregisterEvents();
+            eventSource = null;
         }
     }
 }
