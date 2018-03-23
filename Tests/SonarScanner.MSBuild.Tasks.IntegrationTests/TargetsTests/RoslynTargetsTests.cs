@@ -461,17 +461,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AddAnalysisSetting("sonar.other.setting", "other value", projectRoot);
             projectRoot.Save();
 
-            var logger = new BuildLogger();
-
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger, TargetConstants.DefaultBuildTarget);
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.DefaultBuildTarget);
 
             // Assert
             // Checks that should succeed irrespective of the MSBuild version
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
-            logger.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget);
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
 
-            logger.AssertExpectedTargetOrdering(
+            result.AssertExpectedTargetOrdering(
                 TargetConstants.ResolveCodeAnalysisRuleSet,
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.OverrideRoslynAnalysisTarget,

@@ -605,8 +605,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
 
-            var logger = new BuildLogger();
-
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
             var projectGuid = Guid.NewGuid();
@@ -632,11 +630,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 sqTargetFile);
 
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger,
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
                 TargetConstants.WriteProjectDataTarget);
 
             // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.WriteProjectDataTarget);
+            result.AssertTargetSucceeded(TargetConstants.WriteProjectDataTarget);
 
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
 
@@ -655,8 +653,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            var logger = new BuildLogger();
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "unrecognisedLanguage.proj.txt");
@@ -682,11 +678,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 sqTargetFile);
 
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger,
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
                 TargetConstants.WriteProjectDataTarget);
 
             // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.WriteProjectDataTarget);
+            result.AssertTargetSucceeded(TargetConstants.WriteProjectDataTarget);
 
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
 
@@ -744,10 +740,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         private ProjectInfo ExecuteWriteProjectInfo(ProjectRootElement projectRoot, string rootOutputFolder, bool noWarningOrErrors = true)
         {
             projectRoot.Save();
-            var logger = new BuildLogger();
-
             // Act
-            var result = BuildUtilities.BuildTargets(projectRoot, logger,
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
                 // The "write" target depends on a couple of other targets having executed first to set properties appropriately
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
@@ -755,15 +749,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 TargetConstants.WriteProjectDataTarget);
 
             // Assert
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.CalculateFilesToAnalyzeTarget);
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.CreateProjectSpecificDirs);
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.WriteProjectDataTarget);
+            result.AssertTargetSucceeded(TargetConstants.CalculateFilesToAnalyzeTarget);
+            result.AssertTargetSucceeded(TargetConstants.CreateProjectSpecificDirs);
+            result.AssertTargetSucceeded(TargetConstants.WriteProjectDataTarget);
 
-            logger.AssertTargetExecuted(TargetConstants.WriteProjectDataTarget);
+            result.AssertTargetExecuted(TargetConstants.WriteProjectDataTarget);
 
             if (noWarningOrErrors)
             {
-                logger.AssertNoWarningsOrErrors();
+                result.AssertNoWarningsOrErrors();
             }
 
             // Check expected project outputs

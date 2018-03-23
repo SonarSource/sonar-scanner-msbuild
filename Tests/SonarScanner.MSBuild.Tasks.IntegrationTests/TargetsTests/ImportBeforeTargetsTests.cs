@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using FluentAssertions;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -74,11 +75,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // 2. Now build -> succeeds. Info target not executed
             var logger = new BuildLogger();
 
-            var result = BuildUtilities.BuildTargets(projectInstance, logger);
+            var result = BuildRunner.BuildTargets(TestContext, projectInstance.FullPath);
 
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
-            logger.AssertTargetNotExecuted(TargetConstants.ImportBeforeInfoTarget);
-            logger.AssertExpectedErrorCount(0);
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget);
+            result.AssertTargetNotExecuted(TargetConstants.ImportBeforeInfoTarget);
+            result.AssertExpectedErrorCount(0);
         }
 
         [TestMethod]
@@ -104,13 +105,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertAnalysisTargetsAreNotImported(projectInstance);
 
             // 2. Now build -> succeeds
-            var logger = new BuildLogger();
+            var result = BuildRunner.BuildTargets(TestContext, projectInstance.FullPath);
 
-            var result = BuildUtilities.BuildTargets(projectInstance, logger);
-
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
-            logger.AssertTargetNotExecuted(TargetConstants.ImportBeforeInfoTarget);
-            logger.AssertExpectedErrorCount(0);
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget);
+            result.AssertTargetNotExecuted(TargetConstants.ImportBeforeInfoTarget);
+            result.AssertExpectedErrorCount(0);
         }
 
         [TestMethod]
@@ -137,16 +136,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertAnalysisTargetsAreNotImported(projectInstance); // Targets should not be imported
 
             // 2. Now build -> fails with an error message
-            var logger = new BuildLogger();
+            var result = BuildRunner.BuildTargets(TestContext, projectInstance.FullPath, buildShouldSucceed: false);
 
-            var result = BuildUtilities.BuildTargets(projectInstance, logger);
-
-            BuildAssertions.AssertTargetFailed(result, TargetConstants.DefaultBuildTarget);
-            logger.AssertTargetExecuted(TargetConstants.ImportBeforeInfoTarget);
-            logger.AssertExpectedErrorCount(1);
+            result.BuildSucceeded.Should().BeFalse();
+            result.AssertTargetExecuted(TargetConstants.ImportBeforeInfoTarget);
+            result.AssertExpectedErrorCount(1);
 
             var projectName = Path.GetFileName(projectInstance.FullPath);
-            Assert.IsTrue(logger.Errors[0].Message.Contains(projectName), "Expecting the error message to contain the project file name");
+            Assert.IsTrue(result.Errors[0].Contains(projectName), "Expecting the error message to contain the project file name");
         }
 
         [TestMethod]
@@ -173,13 +170,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertAnalysisTargetsAreImported(projectInstance);
 
             // 2. Now build -> succeeds
-            var logger = new BuildLogger();
+            var result = BuildRunner.BuildTargets(TestContext, projectInstance.FullPath);
 
-            var result = BuildUtilities.BuildTargets(projectInstance, logger);
-
-            BuildAssertions.AssertTargetSucceeded(result, TargetConstants.DefaultBuildTarget);
-            logger.AssertTargetExecuted(TargetConstants.ImportBeforeInfoTarget);
-            logger.AssertExpectedErrorCount(0);
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget);
+            result.AssertTargetExecuted(TargetConstants.ImportBeforeInfoTarget);
+            result.AssertExpectedErrorCount(0);
         }
 
         #endregion Tests
