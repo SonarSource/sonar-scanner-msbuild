@@ -73,8 +73,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertAnalysisTargetsAreNotImported(projectInstance);
 
             // 2. Now build -> succeeds. Info target not executed
-            var logger = new BuildLogger();
-
             var result = BuildRunner.BuildTargets(TestContext, projectInstance.FullPath);
 
             result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget);

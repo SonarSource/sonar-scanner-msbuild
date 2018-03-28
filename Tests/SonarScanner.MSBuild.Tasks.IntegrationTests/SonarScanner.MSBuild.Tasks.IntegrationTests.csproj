@@ -126,7 +126,6 @@
     <Compile Include="MSBuildExecution\SimpleXmlLogger.cs" />
     <Compile Include="Infrastructure\BuildUtilities.cs" />
     <Compile Include="E2ETests\E2EAnalysisTests.cs" />
-    <Compile Include="Infrastructure\BuildLogger.cs" />
     <Compile Include="Infrastructure\TargetConstants.cs" />
     <Compile Include="Infrastructure\WellKnownProjectProperties.cs" />
     <Compile Include="TargetsTests\ImportBeforeTargetsTests.cs" />
