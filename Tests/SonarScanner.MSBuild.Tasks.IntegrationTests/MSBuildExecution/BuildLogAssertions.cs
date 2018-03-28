@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
@@ -109,7 +108,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         {
             foreach (var target in expected)
             {
-                AssertTargetExecuted(log,target);
+                AssertTargetExecuted(log, target);
             }
 
             var actual = log.Targets.Where(t => expected.Contains(t, StringComparer.Ordinal)).ToArray();
@@ -117,7 +116,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             Console.WriteLine("Expected target order: {0}", string.Join(", ", expected));
             Console.WriteLine("Actual target order: {0}", string.Join(", ", actual));
 
-            CollectionAssert.AreEqual(expected, actual, "Targets were not executed in the expected order");
+            actual.ShouldBeEquivalentTo(expected, options => options.WithStrictOrdering());
         }
 
         public static void AssertNoWarningsOrErrors(this BuildLog log)
