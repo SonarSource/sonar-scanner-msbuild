@@ -149,6 +149,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
             var propertyData = msg.Split(new string[] { CapturedDataSeparator }, System.StringSplitOptions.None);
 
+            if (propertyData.Length < 3)
+            {
+                log.Errors.Add($"Test logger error: unexpected value for captured property data message: {e.Message}. Expecting at least a three part message: CAPTURE{CapturedDataSeparator}[PROPERTY or ITEM]{CapturedDataSeparator}...");
+                return;
+            }
+
             switch (propertyData[1])
             {
                 case "PROPERTY":

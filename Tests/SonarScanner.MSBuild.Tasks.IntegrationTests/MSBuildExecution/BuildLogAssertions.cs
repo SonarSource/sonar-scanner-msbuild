@@ -152,7 +152,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             capturedValue.Should().Be(expectedValue, "Captured property '{0}' does not have the expected value", propertyName);
         }
 
-        public static IList<BuildItem> GetCapturedItemValues(this BuildLog log, string itemName)
+        public static IEnumerable<BuildItem> GetCapturedItemValues(this BuildLog log, string itemName)
         {
             return log.CapturedItemValues.Where(
                 p => p.Name.Equals(itemName, System.StringComparison.OrdinalIgnoreCase)).ToList();
@@ -164,7 +164,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
                 p => p.Name.Equals(itemName, System.StringComparison.OrdinalIgnoreCase) &&
                         p.Value.Equals(expectedValue, System.StringComparison.Ordinal));
 
-            capturedData.Should().NotBeNull($"Test logger error: failed to expected captured item value. " 
+            capturedData.Should().NotBeNull("Test logger error: failed to expected captured item value. " 
                 + $"Item name: '{itemName}', expected value: {expectedValue}");
         }
 
