@@ -571,7 +571,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             var matches = actualResult.GetCapturedItemValues(BuildTaskConstants.SettingItemName);
 
-            Assert.AreEqual(0, matches.Count(), "Not expected SonarQubeSetting with include value of '{0}' to exist. Actual occurrences: {1}", settingName, matches.Count());
+            matches.Count().Should().Be(0, "Not expected SonarQubeSetting with include value of '{0}' to exist. Actual occurrences: {1}", settingName, matches.Count());
         }
 
         /// <summary>
@@ -587,13 +587,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             </ItemGroup>
             */
 
-            var matches = actualResult.GetCapturedItemValues(BuildTaskConstants.SettingItemName)
-                .Where(v => v.Value.Equals(settingName, System.StringComparison.Ordinal));
+            var settings = actualResult.GetCapturedItemValues(BuildTaskConstants.SettingItemName);
+            settings.Any().Should().BeTrue();
 
-            matches.Count().Should().NotBe(0, "Expected SonarQubeSetting with include value of '{0}' does not exist", settingName);
-            matches.Count().Should().Be(1, "Only expecting one SonarQubeSetting with include value of '{0}' to exist", settingName);
+            var matches = settings.Where(v => v.Value.Equals(settingName, System.StringComparison.Ordinal)).ToList();
+            matches.Count.Should().Be(1, $"Only one and only expecting one SonarQubeSetting with include value of '{0}' to exist. Count: {matches.Count}", settingName);
 
-            var item = matches.Single();
+            var item = matches[0];
             var value = item.Metadata.SingleOrDefault(v => v.Name.Equals(BuildTaskConstants.SettingValueMetadataName));
 
             value.Should().NotBeNull();
