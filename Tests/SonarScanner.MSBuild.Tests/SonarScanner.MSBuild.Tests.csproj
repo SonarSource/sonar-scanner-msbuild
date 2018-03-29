@@ -75,6 +75,7 @@
     <Compile Include="ArgumentProcessorTests.cs" />
     <Compile Include="BootstrapperClassTests.cs" />
     <Compile Include="BootstrapperSettingsTests.cs" />
+    <Compile Include="NullCoverageReportConverterTests.cs" />
     <Compile Include="DefaultProcessorFactoryTests.cs" />
     <Compile Include="Infrastructure\BootstrapperTestUtils.cs" />
     <Compile Include="DefaultPropertiesFileTests.cs" />

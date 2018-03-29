@@ -22,6 +22,8 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild;
+using SonarScanner.MSBuild.PostProcessor;
+using SonarScanner.MSBuild.PreProcessor;
 using TestUtilities;
 
 namespace SonarQube.Bootstrapper.Tests
@@ -49,5 +51,26 @@ namespace SonarQube.Bootstrapper.Tests
             action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("coverageReportConverter");
         }
 
+        [TestMethod]
+        public void CreatePreProcessor_Returns_New_Instance()
+        {
+            var factory = new DefaultProcessorFactory(
+                new TestLogger(),
+                new NotSupportedLegacyTeamBuildFactory(),
+                new NullCoverageReportConverter());
+
+            factory.CreatePreProcessor().Should().BeOfType<TeamBuildPreProcessor>();
+        }
+
+        [TestMethod]
+        public void CreatePostProcessor_Returns_New_Instance()
+        {
+            var factory = new DefaultProcessorFactory(
+                new TestLogger(),
+                new NotSupportedLegacyTeamBuildFactory(),
+                new NullCoverageReportConverter());
+
+            factory.CreatePostProcessor().Should().BeOfType<MSBuildPostProcessor>();
+        }
     }
 }

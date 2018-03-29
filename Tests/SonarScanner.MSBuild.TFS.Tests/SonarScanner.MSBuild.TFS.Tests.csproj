@@ -77,6 +77,9 @@
     <Compile Include="..\..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
+    <Compile Include="Classic\LegacyTeamBuildFactoryTests.cs" />
+    <Compile Include="Classic\CoverageReportUrlProviderTests.cs" />
+    <Compile Include="Classic\CoverageReportDownloaderTests.cs" />
     <Compile Include="Classic\LegacyBuildSummaryLoggerTests.cs" />
     <Compile Include="Classic\TfsLegacyCoverageReportProcessorTests.cs" />
     <Compile Include="Classic\BinaryToXmlCoverageReportConverterTests.cs" />
