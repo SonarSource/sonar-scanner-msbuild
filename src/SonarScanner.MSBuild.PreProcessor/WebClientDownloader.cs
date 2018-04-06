@@ -29,7 +29,27 @@ namespace SonarScanner.MSBuild.PreProcessor
     public class WebClientDownloader : IDownloader
     {
         private readonly ILogger logger;
-        private readonly WebClient client;
+        private readonly PersistentUserAgentWebClient client;
+
+        // WebClient resets certain headers after each request: Accept, Connection, Content-Type, Expect, Referer, User-Agent.
+        // This class keeps the User Agent across requests.
+        // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/459
+        private class PersistentUserAgentWebClient : WebClient
+        {
+            public string UserAgent { get; private set; }
+
+            public PersistentUserAgentWebClient(string userAgent)
+            {
+                UserAgent = userAgent;
+            }
+
+            protected override WebRequest GetWebRequest(Uri address)
+            {
+                var request = base.GetWebRequest(address) as HttpWebRequest;
+                request.UserAgent = UserAgent;
+                return request;
+            }
+        }
 
         public WebClientDownloader(string userName, string password, ILogger logger)
         {
@@ -43,8 +63,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 password = "";
             }
 
-            client = new WebClient();
-            client.Headers[HttpRequestHeader.UserAgent] = $"ScannerMSBuild/{Utilities.ScannerVersion}";
+            client = new PersistentUserAgentWebClient($"ScannerMSBuild/{Utilities.ScannerVersion}");
 
             if (userName != null)
             {
@@ -65,7 +84,9 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public string GetHeader(HttpRequestHeader header)
         {
-            return client.Headers[header];
+            return header == HttpRequestHeader.UserAgent
+                ? client.UserAgent
+                : client.Headers[header];
         }
 
         #region IDownloaderMethods
