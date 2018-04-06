@@ -448,7 +448,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
 
             // Assert
-            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, managed1, content1, embedded1, none1, nativeCompile1, page1, typeScript1);
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, managed1, content1, embedded1, none1, nativeCompile1, typeScript1);
 
             projectRoot.AddProperty("SQAnalysisFileItemTypes", "$(SQAnalysisFileItemTypes);fooType;barType;");
         }
