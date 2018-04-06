@@ -71,6 +71,22 @@
 
     Settings specified in the project file will override those specified on the SonarQube server.
 
+
+    Specifying additional types of file to be analysed
+    **************************************************
+
+    The Scanner for MSBuild will automatically collect all of the common
+    file types that can be analysed by the various Sonar language plugins
+    (e.g. C# files, TypeScript, TSQL, C++ include and source files etc).
+    The full list of item types that will be included for analysis is
+    specified in $(SQAnalysisFileItemTypes) property below.
+
+    If you have any additional item types that you want to have analyzed,
+    you can specify them setting the property $(SQAdditionalAnalysisFileItemTypes)
+    in the project being analysed e.g.
+
+    <SQAdditionalAnalysisFileItemTypes>MyCustomFileType1;MyCustomFileType</SQAdditionalAnalysisFileItemTypes>
+
 -->
 
   <!-- **************************************************************************** -->
@@ -93,7 +109,7 @@
     <SonarQubeOutputPath Condition=" $(SonarQubeOutputPath) == '' ">$(SonarQubeTempPath)\out</SonarQubeOutputPath>
 
     <!-- Specify the ItemGroups to be analyzed -->
-    <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">AndroidEnvironment;AndroidJavaSource;AndroidResource;Build;ClCompile;ClInclude;Compile;Content;DeploymentExtensionConfiguration;EmbeddedResource;EntityDeploy;None;PostDeploy;PRIResource;PreDeploy;RefactorLog;Resource;Script;ScriptCode;TypeScriptCompile</SQAnalysisFileItemTypes>
+    <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">AndroidEnvironment;AndroidJavaSource;AndroidResource;Build;ClCompile;ClInclude;Compile;Content;DeploymentExtensionConfiguration;EmbeddedResource;EntityDeploy;None;PostDeploy;PRIResource;PreDeploy;RefactorLog;Resource;Script;ScriptCode;TypeScriptCompile;$(SQAdditionalAnalysisFileItemTypes)</SQAnalysisFileItemTypes>
   </PropertyGroup>
 
   <!-- **************************************************************************** -->
