@@ -63,6 +63,32 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
+        public void UserAgent_OnSubsequentCalls()
+        {
+            // Arrange
+            var expectedUserAgent = string.Format("ScannerMSBuild/{0}",
+                typeof(WebClientDownloaderTest).Assembly.GetName().Version.ToDisplayString());
+            var downloader = new WebClientDownloader(null, null, new TestLogger());
+
+            // Act & Assert
+            var userAgent = downloader.GetHeader(HttpRequestHeader.UserAgent);
+            Assert.AreEqual(expectedUserAgent, userAgent);
+
+            try
+            {
+                downloader.Download("http://DoesntMatterThisMayNotExistAndItsFine.com");
+            }
+            catch (Exception)
+            {
+                // It doesn't matter if the request is successful or not.
+            }
+
+            // Check if the user agent is still present after the request.
+            userAgent = downloader.GetHeader(HttpRequestHeader.UserAgent);
+            Assert.AreEqual(expectedUserAgent, userAgent);
+        }
+
+        [TestMethod]
         public void SemicolonInUsername()
         {
             var actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("user:name", "", new TestLogger()));
