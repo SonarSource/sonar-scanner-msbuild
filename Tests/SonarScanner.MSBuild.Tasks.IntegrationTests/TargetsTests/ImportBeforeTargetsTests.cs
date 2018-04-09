@@ -44,7 +44,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         [TestInitialize]
         public void TestInitialize()
         {
-            HackForVs2017Update3.Enable();
             TestUtils.EnsureImportBeforeTargetsExists(TestContext);
         }
 

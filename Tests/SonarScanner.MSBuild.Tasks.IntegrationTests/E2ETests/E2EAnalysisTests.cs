@@ -36,12 +36,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
         public TestContext TestContext { get; set; }
 
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            HackForVs2017Update3.Enable();
-        }
-
         #region Tests
 
         [TestMethod]
