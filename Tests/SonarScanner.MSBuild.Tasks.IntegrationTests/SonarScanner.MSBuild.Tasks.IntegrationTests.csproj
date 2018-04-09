@@ -117,7 +117,6 @@
     <Compile Include="..\..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-    <Compile Include="HackForVs2017Update3.cs" />
     <Compile Include="Infrastructure\BuildAssertions.cs" />
     <Compile Include="MSBuildExecution\BuildLog.cs" />
     <Compile Include="MSBuildExecution\BuildLogAssertions.cs" />

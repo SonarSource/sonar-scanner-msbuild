@@ -39,12 +39,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         public TestContext TestContext { get; set; }
 
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            HackForVs2017Update3.Enable();
-        }
-
         #region SetRoslynSettingsTarget tests
 
         [TestMethod]
@@ -178,7 +172,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.OverrideRoslynAnalysisTarget);
-            
+
             var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
             var expectedRoslynAdditionalFiles = new string[] { projectSpecificConfFilePath }
                 .Concat(analyzerAdditionalFiles)
