@@ -7,20 +7,6 @@ function testExitCode(){
     }
 }
 
-#download MSBuild
-$url = "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/3.0.2.656/sonar-scanner-msbuild-3.0.2.656.zip"
-$output = ".\sonar-scanner-msbuild.zip"    
-
-# NB: the .Net framework defaults to TLS v1 which is no longer supported by GitHub
-# See https://githubengineering.com/crypto-removal-notice/
-[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-Write-Debug "Current security protocol: $([System.Net.ServicePointManager]::SecurityProtocol)"
-Write-Host "Attempting to download Scanner for MSBuild from $url"
-(New-Object System.Net.WebClient).DownloadFile($url, $output)
-
-unzip -o .\sonar-scanner-msbuild.zip
-testExitCode
-
 #generate build version from the build number
 $buildversion="$env:BUILD_NUMBER"
 $branchName = "$env:GITHUB_BRANCH"
@@ -80,20 +66,6 @@ function runTests() {
 if ($env:IS_PULLREQUEST -eq "true") { 
     write-host -f green "in a pull request"
 
-    .\SonarQube.Scanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:latest `
-        /d:sonar.host.url=$env:SONAR_HOST_URL `
-        /d:sonar.login=$env:SONAR_TOKEN `
-        /d:sonar.github.pullRequest=$env:PULL_REQUEST `
-        /d:sonar.github.repository=$env:GITHUB_REPO `
-        /d:sonar.github.oauth=$env:GITHUB_TOKEN `
-        /d:sonar.analysis.mode=issues `
-        /d:sonar.scanAllFiles=true `
-        /d:sonar.analysis.buildNumber=$env:BUILD_NUMBER `
-        /d:sonar.analysis.pipeline=$env:BUILD_NUMBER `
-        /d:sonar.analysis.sha1=$env:GIT_SHA1 `
-        /d:sonar.analysis.repository=$env:GITHUB_REPO
-    testExitCode
-
     restore
     testExitCode
     & $env:MSBUILD_PATH SonarScanner.MSBuild.sln /t:rebuild /p:Configuration=Release
@@ -101,25 +73,11 @@ if ($env:IS_PULLREQUEST -eq "true") {
     #run tests
     runTests
 
-    .\SonarQube.Scanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
-    testExitCode
-
     deploy -version $version
 
 } else {
     if (($env:GITHUB_BRANCH -eq "master") -or ($env:GITHUB_BRANCH -eq "refs/heads/master")) {
         write-host -f green "Building master branch"
-
-        #start analysis
-        .\SonarQube.Scanner.MSBuild begin /k:sonar-scanner-msbuild /n:"SonarQube Scanner for MSBuild" /v:master `
-            /d:sonar.host.url=$env:SONAR_HOST_URL `
-            /d:sonar.login=$env:SONAR_TOKEN `
-            /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" `
-            /d:sonar.analysis.buildNumber=$env:BUILD_NUMBER `
-            /d:sonar.analysis.pipeline=$env:BUILD_NUMBER `
-            /d:sonar.analysis.sha1=$env:GIT_SHA1 `
-            /d:sonar.analysis.repository=$env:GITHUB_REPO    
-        testExitCode
 
         #build
         restore
@@ -128,10 +86,6 @@ if ($env:IS_PULLREQUEST -eq "true") {
         testExitCode
 
         runTests
-
-        #end analysis
-        .\SonarQube.Scanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
-        testExitCode
        
        deploy -version $version
 		
