@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -41,14 +42,24 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var config = new AnalysisConfig();
 
             // 1a. Missing file name - save
-            AssertException.Expects<ArgumentNullException>(() => config.Save(null));
-            AssertException.Expects<ArgumentNullException>(() => config.Save(string.Empty));
-            AssertException.Expects<ArgumentNullException>(() => config.Save("\r\t "));
+            Action act = () => config.Save(null);
+            act.ShouldThrowExactly<ArgumentNullException>();
+
+            act = () => config.Save(string.Empty);
+            act.ShouldThrowExactly<ArgumentNullException>();
+
+            act = () => config.Save("\r\t ");
+            act.ShouldThrowExactly<ArgumentNullException>();
 
             // 1b. Missing file name - load
-            AssertException.Expects<ArgumentNullException>(() => ProjectInfo.Load(null));
-            AssertException.Expects<ArgumentNullException>(() => ProjectInfo.Load(string.Empty));
-            AssertException.Expects<ArgumentNullException>(() => ProjectInfo.Load("\r\t "));
+            act = () => ProjectInfo.Load(null);
+            act.ShouldThrowExactly<ArgumentNullException>();
+
+            act = () => ProjectInfo.Load(string.Empty);
+            act.ShouldThrowExactly<ArgumentNullException>();
+
+            act = () => ProjectInfo.Load("\r\t ");
+            act.ShouldThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -242,13 +253,13 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         private AnalysisConfig SaveAndReloadConfig(AnalysisConfig original, string outputFileName)
         {
-            Assert.IsFalse(File.Exists(outputFileName), "Test error: file should not exist at the start of the test. File: {0}", outputFileName);
+            File.Exists(outputFileName).Should().BeFalse("Test error: file should not exist at the start of the test. File: {0}", outputFileName);
             original.Save(outputFileName);
-            Assert.IsTrue(File.Exists(outputFileName), "Failed to create the output file. File: {0}", outputFileName);
+            File.Exists(outputFileName).Should().BeTrue("Failed to create the output file. File: {0}", outputFileName);
             TestContext.AddResultFile(outputFileName);
 
             var reloaded = AnalysisConfig.Load(outputFileName);
-            Assert.IsNotNull(reloaded, "Reloaded analysis config should not be null");
+            reloaded.Should().NotBeNull("Reloaded analysis config should not be null");
 
             AssertExpectedValues(original, reloaded);
             return reloaded;
@@ -256,12 +267,12 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         private static void AssertExpectedValues(AnalysisConfig expected, AnalysisConfig actual)
         {
-            Assert.AreEqual(expected.SonarProjectKey, actual.SonarProjectKey, "Unexpected project key");
-            Assert.AreEqual(expected.SonarProjectName, actual.SonarProjectName, "Unexpected project name");
-            Assert.AreEqual(expected.SonarProjectVersion, actual.SonarProjectVersion, "Unexpected project version");
+            actual.SonarProjectKey.Should().Be(expected.SonarProjectKey, "Unexpected project key");
+            actual.SonarProjectName.Should().Be(expected.SonarProjectName, "Unexpected project name");
+            actual.SonarProjectVersion.Should().Be(expected.SonarProjectVersion, "Unexpected project version");
 
-            Assert.AreEqual(expected.SonarConfigDir, actual.SonarConfigDir, "Unexpected config directory");
-            Assert.AreEqual(expected.SonarOutputDir, actual.SonarOutputDir, "Unexpected output directory");
+            actual.SonarConfigDir.Should().Be(expected.SonarConfigDir, "Unexpected config directory");
+            actual.SonarOutputDir.Should().Be(expected.SonarOutputDir, "Unexpected output directory");
 
             CompareAdditionalSettings(expected, actual);
 
@@ -271,53 +282,53 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         private static void CompareAdditionalSettings(AnalysisConfig expected, AnalysisConfig actual)
         {
             // The XmlSerializer should create an empty list
-            Assert.IsNotNull(actual.AdditionalConfig, "Not expecting the AdditionalSettings to be null for a reloaded file");
+            actual.AdditionalConfig.Should().NotBeNull("Not expecting the AdditionalSettings to be null for a reloaded file");
 
             if (expected.AdditionalConfig == null || expected.AdditionalConfig.Count == 0)
             {
-                Assert.AreEqual(0, actual.AdditionalConfig.Count, "Not expecting any additional items. Count: {0}", actual.AdditionalConfig.Count);
+                actual.AdditionalConfig.Should().BeEmpty("Not expecting any additional items. Count: {0}", actual.AdditionalConfig.Count);
                 return;
             }
 
-            foreach(var expectedSetting in expected.AdditionalConfig)
+            foreach (var expectedSetting in expected.AdditionalConfig)
             {
                 AssertSettingExists(expectedSetting.Id, expectedSetting.Value, actual);
             }
-            Assert.AreEqual(expected.AdditionalConfig.Count, actual.AdditionalConfig.Count, "Unexpected number of additional settings");
+            actual.AdditionalConfig.Should().HaveCount(expected.AdditionalConfig.Count, "Unexpected number of additional settings");
         }
 
         private static void AssertSettingExists(string settingId, string expectedValue, AnalysisConfig actual)
         {
-            Assert.IsNotNull(actual.AdditionalConfig, "Not expecting the additional settings to be null");
+            actual.AdditionalConfig.Should().NotBeNull("Not expecting the additional settings to be null");
 
             var actualSetting = actual.AdditionalConfig.FirstOrDefault(s => string.Equals(settingId, s.Id, StringComparison.InvariantCultureIgnoreCase));
-            Assert.IsNotNull(actualSetting, "Expected setting not found: {0}", settingId);
-            Assert.AreEqual(expectedValue, actualSetting.Value, "Setting does not have the expected value. SettingId: {0}", settingId);
+            actualSetting.Should().NotBeNull("Expected setting not found: {0}", settingId);
+            actualSetting.Value.Should().Be(expectedValue, "Setting does not have the expected value. SettingId: {0}", settingId);
         }
 
         private static void CompareAnalyzerSettings(IList<AnalyzerSettings> expectedList, IList<AnalyzerSettings> actualList)
         {
-            Assert.IsNotNull(actualList, "Not expecting the AnalyzersSettings to be null for a reloaded file");
+            actualList.Should().NotBeNull("Not expecting the AnalyzersSettings to be null for a reloaded file");
 
             if (expectedList == null)
             {
-                Assert.IsTrue(actualList.Count == 0, "Expecting the reloaded analyzers settings to be empty");
+                actualList.Should().BeEmpty("Expecting the reloaded analyzers settings to be empty");
                 return;
             }
 
-            Assert.IsNotNull(actualList, "Not expecting the actual analyzers settings to be null for a reloaded file");
+            actualList.Should().NotBeNull("Not expecting the actual analyzers settings to be null for a reloaded file");
 
-            Assert.AreEqual(expectedList.Count, actualList.Count, "Expecting number of analyzer settings to be the same");
+            actualList.Should().HaveCount(expectedList.Count, "Expecting number of analyzer settings to be the same");
 
-            for(var i = 0; i < actualList.Count; i++)
+            for (var i = 0; i < actualList.Count; i++)
             {
                 var actual = actualList[i];
                 var expected = expectedList[i];
 
-                Assert.AreEqual(expected.RuleSetFilePath, actual.RuleSetFilePath, "Unexpected Ruleset value");
+                actual.RuleSetFilePath.Should().Be(expected.RuleSetFilePath, "Unexpected Ruleset value");
 
-                CollectionAssert.AreEqual(expected.AnalyzerAssemblyPaths, actual.AnalyzerAssemblyPaths, "Analyzer assembly paths do not match");
-                CollectionAssert.AreEqual(expected.AdditionalFilePaths, actual.AdditionalFilePaths, "Additional file paths do not match");
+                actual.AnalyzerAssemblyPaths.Should().BeEquivalentTo(expected.AnalyzerAssemblyPaths, "Analyzer assembly paths do not match");
+                actual.AdditionalFilePaths.Should().BeEquivalentTo(expected.AdditionalFilePaths, "Additional file paths do not match");
             }
         }
 

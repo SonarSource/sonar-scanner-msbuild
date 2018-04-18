@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 
@@ -61,14 +62,14 @@ namespace TestUtilities
         /// </summary>
         public static void AssertExpectedValues(ProjectInfo expected, ProjectInfo actual)
         {
-            Assert.IsNotNull(actual, "Supplied ProjectInfo should not be null");
+            actual.Should().NotBeNull("Supplied ProjectInfo should not be null");
 
-            Assert.AreEqual(expected.FullPath, actual.FullPath, "Unexpected FullPath");
-            Assert.AreEqual(expected.ProjectLanguage, actual.ProjectLanguage, "Unexpected ProjectLanguage");
-            Assert.AreEqual(expected.ProjectType, actual.ProjectType, "Unexpected ProjectType");
-            Assert.AreEqual(expected.ProjectGuid, actual.ProjectGuid, "Unexpected ProjectGuid");
-            Assert.AreEqual(expected.ProjectName, actual.ProjectName, "Unexpected ProjectName");
-            Assert.AreEqual(expected.IsExcluded, actual.IsExcluded, "Unexpected IsExcluded");
+            actual.FullPath.Should().Be(expected.FullPath, "Unexpected FullPath");
+            actual.ProjectLanguage.Should().Be(expected.ProjectLanguage, "Unexpected ProjectLanguage");
+            actual.ProjectType.Should().Be(expected.ProjectType, "Unexpected ProjectType");
+            actual.ProjectGuid.Should().Be(expected.ProjectGuid, "Unexpected ProjectGuid");
+            actual.ProjectName.Should().Be(expected.ProjectName, "Unexpected ProjectName");
+            actual.IsExcluded.Should().Be(expected.IsExcluded, "Unexpected IsExcluded");
 
             CompareAnalysisResults(expected, actual);
         }
@@ -80,7 +81,7 @@ namespace TestUtilities
         public static void AssertNoProjectInfoFilesExists(string rootOutputFolder)
         {
             var items = GetProjectInfosFromOutputFolder(rootOutputFolder);
-            Assert.AreEqual(0, items.Count, "Not expecting any project info files to exist");
+            items.Should().BeEmpty("Not expecting any project info files to exist");
         }
 
         /// <summary>
@@ -91,39 +92,38 @@ namespace TestUtilities
         public static ProjectInfo AssertProjectInfoExists(string rootOutputFolder, string fullProjectFileName)
         {
             var items = GetProjectInfosFromOutputFolder(rootOutputFolder);
-            Assert.AreNotEqual(0, items.Count, "Failed to locate any project info files under the specified root folder");
+            items.Should().NotBeEmpty("Failed to locate any project info files under the specified root folder");
 
             var match = GetProjectInfosFromOutputFolder(rootOutputFolder).FirstOrDefault(pi => fullProjectFileName.Equals(pi.FullPath, StringComparison.OrdinalIgnoreCase));
-            Assert.IsNotNull(match, "Failed to retrieve a project info file for the specified project: {0}", fullProjectFileName);
+            match.Should().NotBeNull("Failed to retrieve a project info file for the specified project: {0}", fullProjectFileName);
             return match;
         }
 
         public static void AssertNoAnalysisResultsExist(ProjectInfo projectInfo)
         {
-            Assert.IsTrue(projectInfo.AnalysisResults == null || projectInfo.AnalysisResults.Count == 0,
-                "Not expecting analysis results to exist. Count: {0}", projectInfo.AnalysisResults.Count);
+            projectInfo.AnalysisResults.Should().BeNullOrEmpty("Not expecting analysis results to exist. Count: {0}", projectInfo.AnalysisResults.Count);
         }
 
         public static void AssertAnalysisResultDoesNotExists(ProjectInfo projectInfo, string resultId)
         {
-            Assert.IsNotNull(projectInfo.AnalysisResults, "AnalysisResults should not be null");
-            var found = SonarScanner.MSBuild.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
-            Assert.IsFalse(found, "Not expecting to find an analysis result for id. Id: {0}", resultId);
+            projectInfo.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
+            var found = ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
+            found.Should().BeFalse("Not expecting to find an analysis result for id. Id: {0}", resultId);
         }
 
         public static AnalysisResult AssertAnalysisResultExists(ProjectInfo projectInfo, string resultId)
         {
-            Assert.IsNotNull(projectInfo.AnalysisResults, "AnalysisResults should not be null");
-            var found = SonarScanner.MSBuild.Common.ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
-            Assert.IsTrue(found, "Failed to find an analysis result with the expected id. Id: {0}", resultId);
-            Assert.IsNotNull(result, "Returned analysis result should not be null. Id: {0}", resultId);
+            projectInfo.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
+            var found = ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
+            found.Should().BeTrue("Failed to find an analysis result with the expected id. Id: {0}", resultId);
+            result.Should().NotBeNull("Returned analysis result should not be null. Id: {0}", resultId);
             return result;
         }
 
         public static AnalysisResult AssertAnalysisResultExists(ProjectInfo projectInfo, string resultId, string expectedLocation)
         {
             var result = AssertAnalysisResultExists(projectInfo, resultId);
-            Assert.AreEqual(expectedLocation, result.Location,
+            result.Location.Should().Be(expectedLocation,
                 "Analysis result exists but does not have the expected location. Id: {0}, expected: {1}, actual: {2}",
                     resultId, expectedLocation, result.Location);
             return result;
@@ -137,11 +137,11 @@ namespace TestUtilities
         {
             // We're assuming the actual analysis results have been reloaded by the serializer
             // so they should never be null
-            Assert.IsNotNull(actual.AnalysisResults, "actual AnalysisResults should not be null");
+            actual.AnalysisResults.Should().NotBeNull("actual AnalysisResults should not be null");
 
             if (expected.AnalysisResults == null || !expected.AnalysisResults.Any())
             {
-                Assert.AreEqual(0, actual.AnalysisResults.Count, "actual AnalysisResults should be empty");
+                actual.AnalysisResults.Should().BeEmpty("actual AnalysisResults should be empty");
             }
             else
             {
@@ -149,7 +149,8 @@ namespace TestUtilities
                 {
                     AssertAnalysisResultExists(actual, expectedResult.Id, expectedResult.Location);
                 }
-                Assert.AreEqual(expected.AnalysisResults.Count, actual.AnalysisResults.Count, "Unexpected additional analysis results found");
+
+                actual.AnalysisResults.Should().HaveCount(expected.AnalysisResults.Count, "Unexpected additional analysis results found");
             }
         }
 

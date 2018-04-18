@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 
 namespace TestUtilities
 {
@@ -46,21 +46,21 @@ namespace TestUtilities
                 AssertExpectedIncludeAction(includeElement, WarningActionValue);
             }
 
-            Assert.AreEqual(expectedIncludePaths.Length, includeElements.Count(), "Unexpected number of Includes");
+            includeElements.Should().HaveCount(expectedIncludePaths.Length, "Unexpected number of Includes");
         }
 
         private static void AssertExpectedIncludeAction(XElement includeElement, string expectedAction)
         {
             var actionAttr = includeElement.Attribute(ActionAttrName);
 
-            Assert.IsNotNull(actionAttr, "Include element does not have an Action attribute: {0}", includeElement);
-            Assert.AreEqual(expectedAction, actionAttr.Value, "Unexpected Action value");
+            actionAttr.Should().NotBeNull("Include element does not have an Action attribute: {0}", includeElement);
+            actionAttr.Value.Should().Be(expectedAction, "Unexpected Action value");
         }
 
         private static XElement AssertSingleIncludeExists(IEnumerable<XElement> includeElements, string expectedPath)
         {
             var matches = includeElements.Where(i => HasIncludePath(i, expectedPath));
-            Assert.AreEqual(1, matches.Count(), "Expecting one and only Include with Path '{0}'", expectedPath);
+            matches.Should().HaveCount(1, "Expecting one and only Include with Path '{0}'", expectedPath);
             return matches.First();
         }
 

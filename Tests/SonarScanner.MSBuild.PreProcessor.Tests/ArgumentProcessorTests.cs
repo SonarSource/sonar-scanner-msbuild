@@ -21,6 +21,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -41,7 +42,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             TestLogger logger;
 
             // 1. Null logger
-            AssertException.Expects<ArgumentNullException>(() => ArgumentProcessor.TryProcessArgs(null, null));
+            Action act = () => ArgumentProcessor.TryProcessArgs(null, null);
+            act.ShouldThrowExactly<ArgumentNullException>();
 
             // 2. required argument missing
             logger = CheckProcessingFails(/* no command line args */);
@@ -50,8 +52,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             // 3. Only key and host URL are required
             var args = CheckProcessingSucceeds("/k:key", "/d:sonar.host.url=myurl");
-            Assert.AreEqual(args.ProjectKey, "key");
-            Assert.AreEqual(args.SonarQubeUrl, "myurl");
+            "key".Should().Be(args.ProjectKey);
+            "myurl".Should().Be(args.SonarQubeUrl);
 
             // 4. Argument is present but has no value
             logger = CheckProcessingFails("/key:");
@@ -63,7 +65,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void PreArgProc_DefaultHostUrl()
         {
             var args = CheckProcessingSucceeds("/k:key");
-            Assert.AreEqual(args.SonarQubeUrl, "http://localhost:9000");
+            "http://localhost:9000".Should().Be(args.SonarQubeUrl);
         }
 
         [TestMethod]
@@ -298,8 +300,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             AssertExpectedPropertyValue("key1", "value1", result);
             AssertExpectedPropertyValue("key2", "value two with spaces", result);
 
-            Assert.IsNotNull(result.GetAllProperties(), "GetAllProperties should not return null");
-            Assert.AreEqual(3, result.GetAllProperties().Count(), "Unexpected number of properties");
+            result.GetAllProperties().Should().NotBeNull("GetAllProperties should not return null");
+            result.GetAllProperties().Should().HaveCount(3, "Unexpected number of properties");
         }
 
         [TestMethod]
@@ -375,14 +377,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         [TestMethod]
         public void PreArgProc_Organization()
         {
-            var args = CheckProcessingSucceeds( "/key:my.key", "/organization:my_org");
-            Assert.AreEqual(args.Organization, "my_org");
+            var args = CheckProcessingSucceeds("/key:my.key", "/organization:my_org");
+            args.Organization.Should().Be("my_org");
 
             args = CheckProcessingSucceeds("/key:my.key", "/o:my_org");
-            Assert.AreEqual(args.Organization, "my_org");
+            args.Organization.Should().Be("my_org");
 
             args = CheckProcessingSucceeds("/key:my.key");
-            Assert.AreEqual(args.Organization, null);
+            args.Organization.Should().BeNull();
         }
 
         #endregion Tests
@@ -395,7 +397,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
 
-            Assert.IsNull(result, "Not expecting the arguments to be processed successfully");
+            result.Should().BeNull("Not expecting the arguments to be processed successfully");
             logger.AssertErrorsLogged();
             return logger;
         }
@@ -414,7 +416,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         private static void CheckProjectKeyIsValid(string projectKey)
         {
             var result = CheckProcessingSucceeds("/key:" + projectKey, "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid");
-            Assert.AreEqual(projectKey, result.ProjectKey, "Unexpected project key");
+            result.ProjectKey.Should().Be(projectKey, "Unexpected project key");
         }
 
         private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs)
@@ -422,7 +424,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var logger = new TestLogger();
             var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
 
-            Assert.IsNotNull(result, "Expecting the arguments to be processed successfully");
+            result.Should().NotBeNull("Expecting the arguments to be processed successfully");
 
             logger.AssertErrorsLogged(0);
 
@@ -431,28 +433,28 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         private static void AssertExpectedValues(string key, string name, string version, ProcessedArgs actual)
         {
-            Assert.AreEqual(key, actual.ProjectKey, "Unexpected project key");
-            Assert.AreEqual(name, actual.ProjectName, "Unexpected project name");
-            Assert.AreEqual(version, actual.ProjectVersion, "Unexpected project version");
+            actual.ProjectKey.Should().Be(key, "Unexpected project key");
+            actual.ProjectName.Should().Be(name, "Unexpected project name");
+            actual.ProjectVersion.Should().Be(version, "Unexpected project version");
         }
 
         private static void AssertExpectedPropertyValue(string key, string value, ProcessedArgs actual)
         {
             // Test the GetSetting method
             var actualValue = actual.GetSetting(key);
-            Assert.IsNotNull(actualValue, "Expected dynamic settings does not exist. Key: {0}", key);
-            Assert.AreEqual(value, actualValue, "Dynamic setting does not have the expected value");
+            actualValue.Should().NotBeNull("Expected dynamic settings does not exist. Key: {0}", key);
+            actualValue.Should().Be(value, "Dynamic setting does not have the expected value");
 
             // Check the public list of properties
             var found = Property.TryGetProperty(key, actual.GetAllProperties(), out Property match);
-            Assert.IsTrue(found, "Failed to find the expected property. Key: {0}", key);
-            Assert.IsNotNull(match, "Returned property should not be null. Key: {0}", key);
-            Assert.AreEqual(value, match.Value, "Property does not have the expected value");
+            found.Should().BeTrue("Failed to find the expected property. Key: {0}", key);
+            match.Should().NotBeNull("Returned property should not be null. Key: {0}", key);
+            match.Value.Should().Be(value, "Property does not have the expected value");
         }
 
         private static void AssertExpectedInstallTargets(bool expected, ProcessedArgs actual)
         {
-            Assert.AreEqual(expected, actual.InstallLoaderTargets);
+            actual.InstallLoaderTargets.Should().Be(expected);
         }
 
         #endregion Checks

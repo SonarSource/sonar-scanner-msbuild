@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -42,9 +43,9 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             task.Execute(); // create "0"
 
             // Assert
-            Assert.IsTrue(Directory.Exists(Path.Combine(root, "0")));
-            Assert.AreEqual("0", task.UniqueName);
-            Assert.AreEqual(Path.Combine(root, "0"), task.UniquePath);
+            Directory.Exists(Path.Combine(root, "0")).Should().BeTrue();
+            task.UniqueName.Should().Be("0");
+            task.UniquePath.Should().Be(Path.Combine(root, "0"));
         }
 
         [TestMethod]
@@ -66,9 +67,9 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             task.Execute(); // create "3"
 
             // Assert
-            Assert.IsTrue(Directory.Exists(Path.Combine(root, "3")));
-            Assert.AreEqual("3", task.UniqueName);
-            Assert.AreEqual(Path.Combine(root, "3"), task.UniquePath);
+            Directory.Exists(Path.Combine(root, "3")).Should().BeTrue();
+            task.UniqueName.Should().Be("3");
+            task.UniquePath.Should().Be(Path.Combine(root, "3"));
         }
     }
 }

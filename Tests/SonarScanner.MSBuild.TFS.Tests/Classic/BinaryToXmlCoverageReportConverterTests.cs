@@ -91,9 +91,9 @@ echo foo > """ + outputFilePath + @"""");
             var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
 
             // Assert
-            Assert.IsTrue(success, "Expecting the process to succeed");
+            success.Should().BeTrue("Expecting the process to succeed");
 
-            Assert.IsTrue(File.Exists(outputFilePath), "Expecting the output file to exist");
+            File.Exists(outputFilePath).Should().BeTrue("Expecting the output file to exist");
             TestContext.AddResultFile(outputFilePath);
 
             logger.AssertMessageLogged("Normal output...");
@@ -120,11 +120,11 @@ echo foo > """ + outputFilePath + @"""");
             var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
 
             // Assert
-            Assert.IsFalse(success, "Expecting the process to fail");
+            success.Should().BeFalse("Expecting the process to fail");
             logger.AssertErrorsLogged();
             logger.AssertSingleErrorExists(outputFilePath); // error message should refer to the output file
 
-            Assert.IsFalse(File.Exists(outputFilePath), "Not expecting the output file to exist");
+            File.Exists(outputFilePath).Should().BeFalse("Not expecting the output file to exist");
         }
 
         [TestMethod]
@@ -147,11 +147,11 @@ echo foo > """ + outputFilePath + @"""");
             var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
 
             // Assert
-            Assert.IsFalse(success, "Expecting the process to fail");
+            success.Should().BeFalse("Expecting the process to fail");
             logger.AssertErrorsLogged();
             logger.AssertSingleErrorExists(inputFilePath); // error message should refer to the input file
 
-            Assert.IsFalse(File.Exists(outputFilePath), "Not expecting the output file to exist");
+            File.Exists(outputFilePath).Should().BeFalse("Not expecting the output file to exist");
         }
 
         [TestMethod]
@@ -179,7 +179,7 @@ echo success > """ + outputFilePath + @"""");
             var success = BinaryToXmlCoverageReportConverter.ConvertBinaryToXml(converterFilePath, inputFilePath, outputFilePath, logger);
 
             // Assert
-            Assert.IsTrue(success, "Expecting the process to succeed");
+            success.Should().BeTrue("Expecting the process to succeed");
 
             logger.AssertMessageLogged("Converter called with 3 args");
         }
@@ -198,7 +198,7 @@ echo success > """ + outputFilePath + @"""");
             var result = reporter.Initialize();
 
             // Assert
-            Assert.IsTrue(result);
+            result.Should().BeTrue();
 
             logger.AssertDebugLogged("Code coverage command line tool: x:\\foo\\Team Tools\\Dynamic Code Coverage Tools\\CodeCoverage.exe");
         }
@@ -217,7 +217,7 @@ echo success > """ + outputFilePath + @"""");
             var result = reporter.Initialize();
 
             // Assert
-            Assert.IsTrue(result);
+            result.Should().BeTrue();
 
             logger.AssertDebugLogged("Code coverage command line tool: x:\\foo\\Team Tools\\Dynamic Code Coverage Tools\\CodeCoverage.exe");
         }

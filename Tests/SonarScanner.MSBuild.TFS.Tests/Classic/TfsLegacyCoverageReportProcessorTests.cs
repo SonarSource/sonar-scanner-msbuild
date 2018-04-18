@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
@@ -68,7 +69,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var initResult = processor.Initialise(context, settings);
 
             // Assert
-            Assert.IsFalse(initResult, "Expecting false: processor should not have been initialized successfully");
+            initResult.Should().BeFalse("Expecting false: processor should not have been initialized successfully");
 
             urlProvider.AssertGetUrlsNotCalled();
             downloader.AssertDownloadNotCalled();
@@ -94,14 +95,14 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Act
             var initResult = processor.Initialise(context, settings);
-            Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
+            initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
             downloader.AssertDownloadNotCalled(); // no urls returned, so should go any further
             converter.AssertConvertNotCalled();
-            Assert.IsTrue(result, "Expecting true: no coverage reports is a valid scenario");
+            result.Should().BeTrue("Expecting true: no coverage reports is a valid scenario");
 
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
@@ -124,14 +125,14 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Act
             var initResult = processor.Initialise(context, settings);
-            Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
+            initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
             downloader.AssertDownloadNotCalled(); // Multiple urls so should early out
             converter.AssertConvertNotCalled();
-            Assert.IsFalse(result, "Expecting false: can't process multiple coverage reports");
+            result.Should().BeFalse("Expecting false: can't process multiple coverage reports");
 
             logger.AssertErrorsLogged(1);
             logger.AssertWarningsLogged(0);
@@ -153,7 +154,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Act
             var initResult = processor.Initialise(context, settings);
-            Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
+            initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
             // Assert
@@ -163,7 +164,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             downloader.AssertExpectedUrlsRequested(ValidUrl1);
 
-            Assert.IsFalse(result, "Expecting false: report could not be downloaded");
+            result.Should().BeFalse("Expecting false: report could not be downloaded");
 
             logger.AssertErrorsLogged(1);
             logger.AssertWarningsLogged(0);
@@ -187,7 +188,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Act
             var initResult = processor.Initialise(context, settings);
-            Assert.IsTrue(initResult, "Expecting true: processor should have been initialized successfully");
+            initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
             // Assert
@@ -197,7 +198,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             downloader.AssertExpectedUrlsRequested(ValidUrl2);
             downloader.AssertExpectedTargetFileNamesSupplied(Path.Combine(context.SonarOutputDir, TfsLegacyCoverageReportProcessor.DownloadFileName));
-            Assert.IsTrue(result, "Expecting true: happy path");
+            result.Should().BeTrue("Expecting true: happy path");
 
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);

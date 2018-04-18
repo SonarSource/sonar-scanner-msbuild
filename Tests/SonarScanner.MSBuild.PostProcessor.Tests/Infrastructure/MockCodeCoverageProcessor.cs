@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS;
 using SonarScanner.MSBuild.TFS.Interfaces;
@@ -41,15 +41,15 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
         public bool Initialise(AnalysisConfig context, ITeamBuildSettings settings)
         {
-            Assert.IsFalse(initalisedCalled, "Expecting Initialize to be called only once");
+            initalisedCalled.Should().BeFalse("Expecting Initialize to be called only once");
             initalisedCalled = true;
             return InitialiseValueToReturn;
         }
 
         public bool ProcessCoverageReports()
         {
-            Assert.IsFalse(processCoverageMethodCalled, "Expecting ProcessCoverageReports to be called only once");
-            Assert.IsTrue(initalisedCalled, "Expecting Initialize to be called first");
+            processCoverageMethodCalled.Should().BeFalse("Expecting ProcessCoverageReports to be called only once");
+            initalisedCalled.Should().BeTrue("Expecting Initialize to be called first");
             processCoverageMethodCalled = true;
             return ProcessValueToReturn;
         }
@@ -60,22 +60,22 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
         public void AssertExecuteCalled()
         {
-            Assert.IsTrue(processCoverageMethodCalled, "Expecting the sonar-scanner to have been called");
+            processCoverageMethodCalled.Should().BeTrue("Expecting the sonar-scanner to have been called");
         }
 
         public void AssertExecuteNotCalled()
         {
-            Assert.IsFalse(processCoverageMethodCalled, "Not expecting the sonar-scanner to have been called");
+            processCoverageMethodCalled.Should().BeFalse("Not expecting the sonar-scanner to have been called");
         }
 
         public void AssertInitializedCalled()
         {
-            Assert.IsTrue(initalisedCalled, "Expecting the sonar-scanner to have been called");
+            initalisedCalled.Should().BeTrue("Expecting the sonar-scanner to have been called");
         }
 
         public void AssertInitialisedNotCalled()
         {
-            Assert.IsFalse(initalisedCalled, "Not expecting the sonar-scanner to have been called");
+            initalisedCalled.Should().BeFalse("Not expecting the sonar-scanner to have been called");
         }
 
         #endregion Checks

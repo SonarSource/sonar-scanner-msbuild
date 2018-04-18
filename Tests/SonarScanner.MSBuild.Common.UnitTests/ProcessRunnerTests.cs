@@ -59,8 +59,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var success = runner.Execute(args);
 
             // Assert
-            Assert.IsFalse(success, "Expecting the process to have failed");
-            Assert.AreEqual(-2, runner.ExitCode, "Unexpected exit code");
+            success.Should().BeFalse("Expecting the process to have failed");
+            runner.ExitCode.Should().Be(-2, "Unexpected exit code");
         }
 
         [TestMethod]
@@ -81,8 +81,8 @@ xxx yyy
             var success = runner.Execute(args);
 
             // Assert
-            Assert.IsTrue(success, "Expecting the process to have succeeded");
-            Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
+            success.Should().BeTrue("Expecting the process to have succeeded");
+            runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             logger.AssertMessageLogged("Hello world"); // Check output message are passed to the logger
             logger.AssertErrorLogged("Testing 1,2,3..."); // Check error messages are passed to the logger
@@ -118,13 +118,13 @@ xxx yyy
             timer.Stop(); // Sanity check that the process actually timed out
             logger.LogInfo("Test output: test ran for {0}ms", timer.ElapsedMilliseconds);
             // TODO: the following line throws regularly on the CI machines (elapsed time is around 97ms);
-            // Assert.IsTrue(timer.ElapsedMilliseconds >= 100, "Test error: batch process exited too early. Elapsed time(ms): {0}", timer.ElapsedMilliseconds);
+            // timer.ElapsedMilliseconds >= 100.Should().BeTrue("Test error: batch process exited too early. Elapsed time(ms): {0}", timer.ElapsedMilliseconds);
 
-            Assert.IsFalse(success, "Expecting the process to have failed");
-            Assert.AreEqual(ProcessRunner.ErrorCode, runner.ExitCode, "Unexpected exit code");
+            success.Should().BeFalse("Expecting the process to have failed");
+            runner.ExitCode.Should().Be(ProcessRunner.ErrorCode, "Unexpected exit code");
             logger.AssertMessageNotLogged("Hello world");
             logger.AssertWarningsLogged(1); // expecting a warning about the timeout
-            Assert.IsTrue(logger.Warnings.Single().Contains("has been terminated"));
+            logger.Warnings.Single().Contains("has been terminated").Should().BeTrue();
         }
 
         [TestMethod]
@@ -153,8 +153,8 @@ xxx yyy
             var success = runner.Execute(args);
 
             // Assert
-            Assert.IsTrue(success, "Expecting the process to have succeeded");
-            Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
+            success.Should().BeTrue("Expecting the process to have succeeded");
+            runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             logger.AssertMessageLogged("PROCESS_VAR value");
             logger.AssertMessageLogged("PROCESS_VAR2 value");
@@ -198,8 +198,8 @@ xxx yyy
                 var success = runner.Execute(args);
 
                 // Assert
-                Assert.IsTrue(success, "Expecting the process to have succeeded");
-                Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
+                success.Should().BeTrue("Expecting the process to have succeeded");
+                runner.ExitCode.Should().Be(0, "Unexpected exit code");
             }
             finally
             {
@@ -233,8 +233,8 @@ xxx yyy
             var success = runner.Execute(args);
 
             // Assert
-            Assert.IsFalse(success, "Expecting the process to have failed");
-            Assert.AreEqual(ProcessRunner.ErrorCode, runner.ExitCode, "Unexpected exit code");
+            success.Should().BeFalse("Expecting the process to have failed");
+            runner.ExitCode.Should().Be(ProcessRunner.ErrorCode, "Unexpected exit code");
             logger.AssertSingleErrorExists("missingExe.foo");
         }
 
@@ -275,8 +275,8 @@ xxx yyy
             var success = runner.Execute(args);
 
             // Assert
-            Assert.IsTrue(success, "Expecting the process to have succeeded");
-            Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
+            success.Should().BeTrue("Expecting the process to have succeeded");
+            runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             // Check that the public and private arguments are passed to the child process
             var exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, TestContext);
@@ -322,8 +322,8 @@ xxx yyy
             var success = runner.Execute(args);
 
             // Assert
-            Assert.IsTrue(success, "Expecting the process to have succeeded");
-            Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
+            success.Should().BeTrue("Expecting the process to have succeeded");
+            runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             // Check that the public and private arguments are passed to the child process
             var exeLogFile = DummyExeHelper.AssertDummyPostProcLogExists(testDir, TestContext);
@@ -380,8 +380,8 @@ xxx yyy
             var success = runner.Execute(runnerArgs);
 
             // Assert
-            Assert.IsTrue(success, "Expecting the process to have succeeded");
-            Assert.AreEqual(0, runner.ExitCode, "Unexpected exit code");
+            success.Should().BeTrue("Expecting the process to have succeeded");
+            runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             // Check public arguments are logged but private ones are not
             foreach(var arg in publicArgs)
@@ -423,7 +423,7 @@ xxx yyy
 
         private static void AssertTextDoesNotAppearInLog(string text, IList<string> logEntries)
         {
-            Assert.IsFalse(logEntries.Any(e => e.IndexOf(text, StringComparison.OrdinalIgnoreCase) > -1), "Specified text should not appear anywhere in the log file: {0}", text);
+            logEntries.Any(e => e.IndexOf(text, StringComparison.OrdinalIgnoreCase) > -1).Should().BeFalse("Specified text should not appear anywhere in the log file: {0}", text);
         }
 
         #endregion Private methods

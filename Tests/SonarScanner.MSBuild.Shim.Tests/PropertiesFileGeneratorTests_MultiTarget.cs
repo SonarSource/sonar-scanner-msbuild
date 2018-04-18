@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -306,29 +307,29 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var index = content.IndexOf(formattedPath);
             if (times == 0)
             {
-                Assert.AreEqual(-1, index, $"File should not be referenced: {formattedPath}");
+                index.Should().Be(-1, $"File should not be referenced: {formattedPath}");
             }
             else
             {
-                Assert.AreNotEqual(-1, index, $"File should be referenced: {formattedPath}");
+                index.Should().NotBe(-1, $"File should be referenced: {formattedPath}");
 
                 for (var i = 0; i < times - 1; i++)
                 {
                     index = content.IndexOf(formattedPath, index + 1);
-                    Assert.AreNotEqual(-1, index, $"File should be referenced exactly {times} times: {formattedPath}");
+                    index.Should().NotBe(-1, $"File should be referenced exactly {times} times: {formattedPath}");
                 }
 
                 index = content.IndexOf(formattedPath, index + 1);
-                Assert.AreEqual(-1, index, $"File should be referenced exactly {times} times: {formattedPath}");
+                index.Should().Be(-1, $"File should be referenced exactly {times} times: {formattedPath}");
             }
         }
 
         private void AssertPropertiesFilesCreated(ProjectInfoAnalysisResult result, TestLogger logger)
         {
-            Assert.IsNotNull(result.FullPropertiesFilePath, "Expecting the sonar-scanner properties file to have been set");
+            result.FullPropertiesFilePath.Should().NotBeNull("Expecting the sonar-scanner properties file to have been set");
 
             var matches = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
-            Assert.AreNotEqual(0, matches.Count(), "Expecting at least one valid ProjectInfo file to exist");
+            matches.Should().NotBeEmpty("Expecting at least one valid ProjectInfo file to exist");
 
             TestContext.AddResultFile(result.FullPropertiesFilePath);
 
@@ -337,17 +338,17 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
         private void AssertPropertiesFilesNotCreated(ProjectInfoAnalysisResult result, TestLogger logger)
         {
-            Assert.IsNull(result.FullPropertiesFilePath, "Expecting the sonar-scanner properties file to have been set");
+            result.FullPropertiesFilePath.Should().BeNull("Expecting the sonar-scanner properties file to have been set");
 
             var matches = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
-            Assert.AreEqual(0, matches.Count(), "Expecting no valid ProjectInfo files to exist");
+            matches.Should().BeEmpty("Expecting no valid ProjectInfo files to exist");
 
             logger.AssertErrorsLogged(1);
         }
 
         private static void AssertExpectedProjectCount(int expected, ProjectInfoAnalysisResult actual)
         {
-            Assert.AreEqual(expected, actual.Projects.Count, "Unexpected number of projects in the result");
+            actual.Projects.Should().HaveCount(expected, "Unexpected number of projects in the result");
         }
 
         private static string CreateFile(string parentDir, string fileName, string content = "")

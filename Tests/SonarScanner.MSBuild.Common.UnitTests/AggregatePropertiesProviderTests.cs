@@ -19,7 +19,7 @@
  */
 
 using System;
-using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -37,16 +37,16 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void AggProperties_NullOrEmptyList()
         {
             // 1. Null -> error
-            AssertException.Expects<ArgumentNullException>(() => new AggregatePropertiesProvider(null));
+            Action act = () => new AggregatePropertiesProvider(null); act.ShouldThrowExactly<ArgumentNullException>();
 
             // 2. Empty list of providers -> valid but returns nothing
             var provider = new AggregatePropertiesProvider(new IAnalysisPropertyProvider[] { });
 
-            Assert.AreEqual(0, provider.GetAllProperties().Count());
+            provider.GetAllProperties().Should().BeEmpty();
             var success = provider.TryGetProperty("any key", out Property actualProperty);
 
-            Assert.IsFalse(success, "Not expecting a property to be returned");
-            Assert.IsNull(actualProperty, "Returned property should be null");
+            success.Should().BeFalse("Not expecting a property to be returned");
+            actualProperty.Should().BeNull("Returned property should be null");
         }
 
         [TestMethod]

@@ -20,9 +20,10 @@
 
 using System;
 using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
 namespace SonarQube.Bootstrapper.Tests
@@ -40,7 +41,8 @@ namespace SonarQube.Bootstrapper.Tests
             ILogger validLogger = new TestLogger();
             IList<string> validArgs = null;
 
-            AssertException.Expects<ArgumentNullException>(() => new BootstrapperSettings(AnalysisPhase.PreProcessing, validArgs, LoggerVerbosity.Debug, null));
+            Action act = () => new BootstrapperSettings(AnalysisPhase.PreProcessing, validArgs, LoggerVerbosity.Debug, null);
+            act.ShouldThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]

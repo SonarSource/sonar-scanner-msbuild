@@ -162,9 +162,9 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var pwdIndex = CheckArgExists("-Dsonar.password=my.pwd", actualCmdLineArgs);
 
             var propertiesFileIndex = CheckArgExists(SonarScannerWrapper.ProjectSettingsFileArgName, actualCmdLineArgs);
-
-            Assert.IsTrue(loginIndex < propertiesFileIndex, "User arguments should appear first");
-            Assert.IsTrue(pwdIndex < propertiesFileIndex, "User arguments should appear first");
+            
+            propertiesFileIndex.Should().BeGreaterThan(loginIndex, "User arguments should appear first");
+            propertiesFileIndex.Should().BeGreaterThan(pwdIndex, "User arguments should appear first");
         }
 
         [TestMethod]
@@ -210,8 +210,8 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             var propertiesFileIndex = CheckArgExists(SonarScannerWrapper.ProjectSettingsFileArgName, actualCmdLineArgs);
 
-            Assert.IsTrue(dbPwdIndex < propertiesFileIndex, "User arguments should appear first");
-            Assert.IsTrue(userPwdIndex < propertiesFileIndex, "User arguments should appear first");
+            propertiesFileIndex.Should().BeGreaterThan(dbPwdIndex, "User arguments should appear first");
+            propertiesFileIndex.Should().BeGreaterThan(userPwdIndex, "User arguments should appear first");
         }
 
         [TestMethod]
@@ -277,7 +277,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var testDir = TestUtils.EnsureTestSpecificFolder(TestContext);
             var exePath = Path.Combine(testDir, "dummy.scanner.bat");
 
-            Assert.IsFalse(File.Exists(exePath), "Not expecting a batch file to already exist: {0}", exePath);
+            File.Exists(exePath).Should().BeFalse("Not expecting a batch file to already exist: {0}", exePath);
 
             var sb = new StringBuilder();
             sb.AppendLine("@echo " + ExpectedConsoleMessagePrefix + " %* \n @echo WorkingDir: %cd%");
@@ -310,7 +310,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
         private static void VerifyProcessRunOutcome(TestLogger testLogger, string expectedWorkingDir, bool actualOutcome, bool expectedOutcome)
         {
-            Assert.AreEqual(actualOutcome, expectedOutcome, "Expecting execution to succeed");
+            actualOutcome.Should().Be(expectedOutcome, "Expecting execution to succeed");
             testLogger.AssertInfoMessageExists(ExpectedConsoleMessagePrefix);
             testLogger.AssertInfoMessageExists(expectedWorkingDir);
 
@@ -332,14 +332,14 @@ namespace SonarScanner.MSBuild.Shim.Tests
         private static int CheckArgExists(string expectedArg, string allArgs)
         {
             var index = allArgs.IndexOf(expectedArg);
-            Assert.IsTrue(index > -1, "Expected argument was not found. Arg: '{0}', all args: '{1}'", expectedArg, allArgs);
+            index.Should().BeGreaterThan(-1, "Expected argument was not found. Arg: '{0}', all args: '{1}'", expectedArg, allArgs);
             return index;
         }
 
         private static void CheckArgDoesNotExist(string argToCheck, string allArgs)
         {
             var index = allArgs.IndexOf(argToCheck);
-            Assert.IsTrue(index == -1, "Not expecting to find the argument. Arg: '{0}', all args: '{1}'", argToCheck, allArgs);
+            index.Should().Be(-1, "Not expecting to find the argument. Arg: '{0}', all args: '{1}'", argToCheck, allArgs);
         }
 
         #endregion Checks

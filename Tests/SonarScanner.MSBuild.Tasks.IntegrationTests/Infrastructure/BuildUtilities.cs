@@ -22,9 +22,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.Build.Construction;
-using Microsoft.Build.Execution;
-using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -111,7 +110,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
             foreach(var importTarget in importsBeforeTargets)
             {
-                Assert.IsTrue(File.Exists(importTarget), "Test error: the specified target file does not exist. Path: {0}", importTarget);
+                File.Exists(importTarget).Should().BeTrue("Test error: the specified target file does not exist. Path: {0}", importTarget);
                 root.AddImport(importTarget);
             }
 
@@ -224,7 +223,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             }
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(testContext);
-            Assert.IsTrue(File.Exists(sqTargetFile), "Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
+            File.Exists(sqTargetFile).Should().BeTrue("Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
             testContext.AddResultFile(sqTargetFile);
 
             var properties = preImportProperties ?? new Dictionary<string, string>();

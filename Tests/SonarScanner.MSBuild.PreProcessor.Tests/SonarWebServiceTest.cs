@@ -107,52 +107,52 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             // main
             result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profile1k", qualityProfile);
+            result.Should().BeTrue();
+            qualityProfile.Should().Be("profile1k");
 
             // branch specific
             result = ws.TryGetQualityProfile("foo bar", "aBranch", null, "cs", out qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profile2k", qualityProfile);
+            result.Should().BeTrue();
+            qualityProfile.Should().Be("profile2k");
 
             result = ws.TryGetQualityProfile("foo bar", "anotherBranch", null, "cs", out qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profile3k", qualityProfile);
+            result.Should().BeTrue();
+            qualityProfile.Should().Be("profile3k");
 
             // with organizations
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar&organization=my+org"] =
                "{ profiles: [{\"key\":\"profileOrganization\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
             result = ws.TryGetQualityProfile("foo bar", null, "my org", "cs", out qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profileOrganization", qualityProfile);
+            result.Should().BeTrue();
+            qualityProfile.Should().Be("profileOrganization");
 
             // fallback to defaults
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?defaults=true"] =
                 "{ profiles: [{\"key\":\"profileDefault\",\"name\":\"profileDefault\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
             result = ws.TryGetQualityProfile("non existing", null, null, "cs", out qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profileDefault", qualityProfile);
+            result.Should().BeTrue();
+            qualityProfile.Should().Be("profileDefault");
 
             // defaults with organizations
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?defaults=true&organization=my+org"] =
                        "{ profiles: [{\"key\":\"profileOrganizationDefault\",\"name\":\"profileDefault\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
             result = ws.TryGetQualityProfile("non existing", null, "my org", "cs", out qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profileOrganizationDefault", qualityProfile);
+            result.Should().BeTrue();
+            qualityProfile.Should().Be("profileOrganizationDefault");
 
             // no cs in list of profiles
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=java+foo+bar"] =
                 "{ profiles: [{\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
             result = ws.TryGetQualityProfile("java foo bar", null, null, "cs", out qualityProfile);
-            Assert.IsFalse(result);
-            Assert.IsNull(qualityProfile);
+            result.Should().BeFalse();
+            qualityProfile.Should().BeNull();
 
             // empty
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=empty+foo+bar"] =
                 "{ profiles: []}";
             result = ws.TryGetQualityProfile("empty foo bar", null, null, "cs", out qualityProfile);
-            Assert.IsFalse(result);
-            Assert.IsNull(qualityProfile);
+            result.Should().BeFalse();
+            qualityProfile.Should().BeNull();
         }
 
         [TestMethod]
@@ -169,48 +169,48 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             // main
             result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profile1k", qualityProfile);
+            result.Should().BeTrue();
+            qualityProfile.Should().Be("profile1k");
 
             // branch specific
             result = ws.TryGetQualityProfile("foo bar", "aBranch", null, "cs", out qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profile2k", qualityProfile);
+            result.Should().BeTrue();
+            qualityProfile.Should().Be("profile2k");
 
             result = ws.TryGetQualityProfile("foo bar", "anotherBranch", null, "cs", out qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profile3k", qualityProfile);
+            result.Should().BeTrue();
+            qualityProfile.Should().Be("profile3k");
 
             // with organizations
             result = ws.TryGetQualityProfile("foo bar", null, "my org", "cs", out qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profile1k", qualityProfile);
+            result.Should().BeTrue();
+            qualityProfile.Should().Be("profile1k");
 
             // fallback to defaults
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?defaults=true"] =
                 "{ profiles: [{\"key\":\"profileDefault\",\"name\":\"profileDefault\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
             result = ws.TryGetQualityProfile("non existing", null, null, "cs", out qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profileDefault", qualityProfile);
+            result.Should().BeTrue();
+            qualityProfile.Should().Be("profileDefault");
 
             // defaults with organizations
             result = ws.TryGetQualityProfile("non existing", null, "my org", "cs", out qualityProfile);
-            Assert.IsTrue(result);
-            Assert.AreEqual("profileDefault", qualityProfile);
+            result.Should().BeTrue();
+            qualityProfile.Should().Be("profileDefault");
 
             // no cs in list of profiles
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=java+foo+bar"] =
                 "{ profiles: [{\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
             result = ws.TryGetQualityProfile("java foo bar", null, null, "cs", out qualityProfile);
-            Assert.IsFalse(result);
-            Assert.IsNull(qualityProfile);
+            result.Should().BeFalse();
+            qualityProfile.Should().BeNull();
 
             // empty
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=empty+foo+bar"] =
                 "{ profiles: []}";
             result = ws.TryGetQualityProfile("empty foo bar", null, null, "cs", out qualityProfile);
-            Assert.IsFalse(result);
-            Assert.IsNull(qualityProfile);
+            result.Should().BeFalse();
+            qualityProfile.Should().BeNull();
         }
 
         [TestMethod]
@@ -250,13 +250,13 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                   }
                 ]}";
             var result = ws.GetProperties("comp");
-            Assert.AreEqual(7, result.Count);
-            Assert.AreEqual("myfile,myfile2", result["sonar.exclusions"]);
-            Assert.AreEqual("testing.xml", result["sonar.junit.reportsPath"]);
-            Assert.AreEqual("prop1", result["sonar.issue.ignore.multicriteria.1.resourceKey"]);
-            Assert.AreEqual("", result["sonar.issue.ignore.multicriteria.1.ruleKey"]);
-            Assert.AreEqual("prop2", result["sonar.issue.ignore.multicriteria.2.resourceKey"]);
-            Assert.AreEqual("", result["sonar.issue.ignore.multicriteria.2.ruleKey"]);
+            result.Count.Should().Be(7);
+            result["sonar.exclusions"].Should().Be("myfile,myfile2");
+            result["sonar.junit.reportsPath"].Should().Be("testing.xml");
+            result["sonar.issue.ignore.multicriteria.1.resourceKey"].Should().Be("prop1");
+            result["sonar.issue.ignore.multicriteria.1.ruleKey"].Should().Be("");
+            result["sonar.issue.ignore.multicriteria.2.resourceKey"].Should().Be("prop2");
+            result["sonar.issue.ignore.multicriteria.2.ruleKey"].Should().Be("");
         }
 
         [TestMethod]
@@ -293,13 +293,13 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }";
 
             var actual = ws.GetActiveRules("qp");
-            Assert.AreEqual(1, actual.Count());
+            actual.Should().HaveCount(1);
 
-            Assert.AreEqual("vbnet", actual[0].RepoKey);
-            Assert.AreEqual("OverwrittenId", actual[0].RuleKey);
-            Assert.AreEqual("OverwrittenId", actual[0].InternalKeyOrKey);
-            Assert.AreEqual(null, actual[0].TemplateKey);
-            Assert.AreEqual(1, actual[0].Parameters.Count());
+            actual[0].RepoKey.Should().Be("vbnet");
+            actual[0].RuleKey.Should().Be("OverwrittenId");
+            actual[0].InternalKeyOrKey.Should().Be("OverwrittenId");
+            actual[0].TemplateKey.Should().BeNull();
+            actual[0].Parameters.Should().HaveCount(1);
         }
 
         [TestMethod]
@@ -384,26 +384,26 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }";
 
             var actual = ws.GetActiveRules("qp");
-            Assert.AreEqual(3, actual.Count());
+            actual.Should().HaveCount(3);
 
-            Assert.AreEqual("vbnet", actual[0].RepoKey);
-            Assert.AreEqual("S2368", actual[0].RuleKey);
-            Assert.AreEqual("S2368", actual[0].InternalKeyOrKey);
-            Assert.AreEqual(null, actual[0].TemplateKey);
-            Assert.AreEqual(0, actual[0].Parameters.Count());
+            actual[0].RepoKey.Should().Be("vbnet");
+            actual[0].RuleKey.Should().Be("S2368");
+            actual[0].InternalKeyOrKey.Should().Be("S2368");
+            actual[0].TemplateKey.Should().BeNull();
+            actual[0].Parameters.Should().HaveCount(0);
 
-            Assert.AreEqual("common-vbnet", actual[1].RepoKey);
-            Assert.AreEqual("InsufficientCommentDensity", actual[1].RuleKey);
-            Assert.AreEqual("InsufficientCommentDensity.internal", actual[1].InternalKeyOrKey);
-            Assert.AreEqual("dummy.template.key", actual[1].TemplateKey);
-            Assert.AreEqual(1, actual[1].Parameters.Count());
-            Assert.IsTrue(actual[1].Parameters.First().Equals(new KeyValuePair<string, string>("minimumCommentDensity", "50")));
+            actual[1].RepoKey.Should().Be("common-vbnet");
+            actual[1].RuleKey.Should().Be("InsufficientCommentDensity");
+            actual[1].InternalKeyOrKey.Should().Be("InsufficientCommentDensity.internal");
+            actual[1].TemplateKey.Should().Be("dummy.template.key");
+            actual[1].Parameters.Should().HaveCount(1);
+            actual[1].Parameters.First().Should().Be(new KeyValuePair<string, string>("minimumCommentDensity", "50"));
 
-            Assert.AreEqual("vbnet", actual[2].RepoKey);
-            Assert.AreEqual("S2346", actual[2].RuleKey);
-            Assert.AreEqual("S2346", actual[2].InternalKeyOrKey);
-            Assert.AreEqual(null, actual[2].TemplateKey);
-            Assert.AreEqual(0, actual[2].Parameters.Count());
+            actual[2].RepoKey.Should().Be("vbnet");
+            actual[2].RuleKey.Should().Be("S2346");
+            actual[2].InternalKeyOrKey.Should().Be("S2346");
+            actual[2].TemplateKey.Should().BeNull();
+            actual[2].Parameters.Should().HaveCount(0);
         }
 
         [TestMethod]
@@ -431,14 +431,14 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             var rules = ws.GetInactiveRules("my#qp", "cs");
             string[] expected = { "csharpsquid:S2757", "csharpsquid:S1117", "csharpsquid:S1764" };
-            CollectionAssert.AreEqual(rules.ToArray(), expected);
+            rules.Should().BeEquivalentTo(expected);
         }
 
         [TestMethod]
         public void GetProperties_NullProjectKey_Throws()
         {
             // Arrange
-            var testSubject =new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
+            var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
             Action act = () => testSubject.GetProperties(null, null);
 
             // Act & Assert
@@ -466,7 +466,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             };
             var actual1 = ws.GetProperties("foo bar");
 
-            Assert.AreEqual(true, expected1.Count == actual1.Count && !expected1.Except(actual1).Any());
+            actual1.Should().HaveCount(expected1.Count);
+            actual1.Should().NotBeSameAs(expected1);
 
             // branch specific
             var expected2 = new Dictionary<string, string>
@@ -476,7 +477,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             };
             var actual2 = ws.GetProperties("foo bar", "aBranch");
 
-            Assert.AreEqual(true, expected2.Count == actual2.Count && !expected2.Except(actual2).Any());
+            actual2.Should().HaveCount(expected2.Count);
+            actual2.Should().NotBeSameAs(expected2);
         }
 
         [TestMethod]
@@ -490,7 +492,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             };
             var actual = new List<string>(ws.GetAllLanguages());
 
-            Assert.AreEqual(true, expected.SequenceEqual(actual));
+            expected.SequenceEqual(actual).Should().BeTrue();
         }
 
         [TestMethod]
@@ -537,9 +539,9 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             var success = ws.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir);
 
             // Assert
-            Assert.IsTrue(success, "Expected success");
+            success.Should().BeTrue("Expected success");
             var expectedFilePath = Path.Combine(testDir, "dummy.txt");
-            Assert.IsTrue(File.Exists(expectedFilePath), "Failed to download the expected file");
+            File.Exists(expectedFilePath).Should().BeTrue("Failed to download the expected file");
         }
 
         [TestMethod]
@@ -552,9 +554,9 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             var success = ws.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir);
 
             // Assert
-            Assert.IsFalse(success, "Expected failure");
+            success.Should().BeFalse("Expected failure");
             var expectedFilePath = Path.Combine(testDir, "dummy.txt");
-            Assert.IsFalse(File.Exists(expectedFilePath), "File should not be created");
+            File.Exists(expectedFilePath).Should().BeFalse("File should not be created");
         }
 
         [TestMethod]

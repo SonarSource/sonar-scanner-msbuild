@@ -20,7 +20,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 
 namespace TestUtilities
 {
@@ -50,7 +50,7 @@ namespace TestUtilities
         private static void AssertEnvironmentVariableDoesNotExist(string name)
         {
             var vars = Environment.GetEnvironmentVariables();
-            Assert.IsFalse(vars.Contains(name), "Test setup error: environment variable already exists. Name: {0}", name);
+            vars.Contains(name).Should().BeFalse("Test setup error: environment variable already exists. Name: {0}", name);
         }
 
         #region IDispose implementation

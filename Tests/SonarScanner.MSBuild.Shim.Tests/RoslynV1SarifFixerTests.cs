@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Shim;
 using TestUtilities;
@@ -81,7 +82,7 @@ namespace SonarQube.Shim.Tests
             // Assert
             // already valid -> no change to file, same file path returned
             AssertFileUnchanged(testSarifPath, originalWriteTime);
-            Assert.AreEqual(testSarifPath, returnedSarifPath);
+            returnedSarifPath.Should().Be(testSarifPath);
         }
 
         [TestMethod]
@@ -130,7 +131,7 @@ namespace SonarQube.Shim.Tests
             // Assert
             // unfixable -> no change to file, null return
             AssertFileUnchanged(testSarifPath, originalWriteTime);
-            Assert.IsNull(returnedSarifPath);
+            returnedSarifPath.Should().BeNull();
         }
 
         /// <summary>
@@ -176,7 +177,7 @@ It features ""quoted text""."",
             // Assert
             // unfixable -> no change to file, null return
             AssertFileUnchanged(testSarifPath, originalWriteTime);
-            Assert.IsNull(returnedSarifPath);
+            returnedSarifPath.Should().BeNull();
         }
 
         [TestMethod]
@@ -218,10 +219,10 @@ It features ""quoted text""."",
             // Assert
             // fixable -> no change to file, file path in return value, file contents as expected
             AssertFileUnchanged(testSarifPath, originalWriteTime);
-            Assert.IsNotNull(returnedSarifPath);
+            returnedSarifPath.Should().NotBeNull();
 
             var returnedSarifString = File.ReadAllText(returnedSarifPath);
-            Assert.AreEqual(@"{
+            returnedSarifString.Should().Be(@"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -242,7 +243,7 @@ It features ""quoted text""."",
       ],
     }
   ]
-}", returnedSarifString);
+}");
         }
 
         [TestMethod]
@@ -280,10 +281,10 @@ It features ""quoted text""."",
             // Assert
             // fixable -> no change to file, file path in return value, file contents as expected
             AssertFileUnchanged(testSarifPath, originalWriteTime);
-            Assert.IsNotNull(returnedSarifPath);
+            returnedSarifPath.Should().NotBeNull();
 
             var returnedSarifString = File.ReadAllText(returnedSarifPath);
-            Assert.AreEqual(@"{
+            returnedSarifString.Should().Be(@"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -300,7 +301,7 @@ It features ""quoted text""."",
       }
     }
   ]
-}", returnedSarifString);
+}");
         }
 
         [TestMethod]
@@ -349,10 +350,10 @@ It features ""quoted text""."",
             // Assert
             // fixable -> no change to file, file path in return value, file contents as expected
             AssertFileUnchanged(testSarifPath, originalWriteTime);
-            Assert.IsNotNull(returnedSarifPath);
+            returnedSarifPath.Should().NotBeNull();
 
             var returnedSarifString = File.ReadAllText(returnedSarifPath);
-            Assert.AreEqual(@"{
+            returnedSarifString.Should().Be(@"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual C# Compiler"",
@@ -380,7 +381,7 @@ It features ""quoted text""."",
       }
     }
   ]
-}", returnedSarifString);
+}");
         }
 
         [TestMethod]
@@ -422,10 +423,10 @@ It features ""quoted text""."",
             // Assert
             // fixable -> no change to file, file path in return value, file contents as expected
             AssertFileUnchanged(testSarifPath, originalWriteTime);
-            Assert.IsNotNull(returnedSarifPath);
+            returnedSarifPath.Should().NotBeNull();
 
             var returnedSarifString = File.ReadAllText(returnedSarifPath);
-            Assert.AreEqual(@"{
+            returnedSarifString.Should().Be(@"{
   ""version"": ""0.1"",
   ""toolInfo"": {
                 ""toolName"": ""Microsoft (R) Visual Basic Compiler"",
@@ -446,7 +447,7 @@ It features ""quoted text""."",
       ],
     }
   ]
-}", returnedSarifString);
+}");
         }
 
         /// <summary>
@@ -487,7 +488,7 @@ It features ""quoted text""."",
 
             // Act
             var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage);
-            Assert.IsNull(returnedSarifPath);
+            returnedSarifPath.Should().BeNull();
         }
 
         #endregion Tests
@@ -496,7 +497,7 @@ It features ""quoted text""."",
 
         private void AssertFileUnchanged(string filePath, DateTime originalWriteTime)
         {
-            Assert.AreEqual(originalWriteTime, new FileInfo(filePath).LastWriteTime);
+            new FileInfo(filePath).LastWriteTime.Should().Be(originalWriteTime);
         }
 
         #endregion Private Methods

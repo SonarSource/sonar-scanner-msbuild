@@ -20,9 +20,7 @@
 
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
+using FluentAssertions;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 
 namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
@@ -43,22 +41,22 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 
         public void AssertExpectedDownloads(int expected)
         {
-            Assert.AreEqual(expected, callCount, "DownloadReport called an unexpected number of times");
+            callCount.Should().Be(expected, "DownloadReport called an unexpected number of times");
         }
 
         public void AssertDownloadNotCalled()
         {
-            Assert.AreEqual(0, callCount, "Not expecting DownloadReport to have been called");
+            callCount.Should().Be(0, "Not expecting DownloadReport to have been called");
         }
 
         public void AssertExpectedUrlsRequested(params string[] urls)
         {
-            CollectionAssert.AreEqual(urls, requestedUrls.ToArray(), "Unexpected urls requested");
+            requestedUrls.Should().BeEquivalentTo(urls, "Unexpected urls requested");
         }
 
         public void AssertExpectedTargetFileNamesSupplied(params string[] urls)
         {
-            CollectionAssert.AreEqual(urls, targetFileNames.ToArray(), "Unexpected target files names supplied");
+            targetFileNames.Should().BeEquivalentTo(urls, "Unexpected target files names supplied");
         }
 
         #endregion Assertions

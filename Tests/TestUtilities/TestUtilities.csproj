@@ -65,7 +65,6 @@
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
     <Compile Include="AnalysisPropertyAssertions.cs" />
-    <Compile Include="AssertException.cs" />
     <Compile Include="AssertIgnoreScope.cs" />
     <EmbeddedResource Include="EmbeddedCode\DummyExe.cs" />
     <Compile Include="DummyExeHelper.cs" />

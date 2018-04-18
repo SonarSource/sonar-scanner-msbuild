@@ -174,7 +174,8 @@ namespace SonarScanner.MSBuild.PostProcessorTests
             builder.GenerateReports(settings, config, result);
 
             // Assert
-            Assert.IsTrue(File.Exists(expectedReportPath) && (new FileInfo(expectedReportPath)).Length > 0, "The report file cannot be found or is empty");
+            File.Exists(expectedReportPath).Should().BeTrue();
+            (new FileInfo(expectedReportPath)).Length.Should().BeGreaterThan(0, "The report file cannot be found or is empty");
         }
 
         [TestMethod]
@@ -244,8 +245,8 @@ namespace SonarScanner.MSBuild.PostProcessorTests
                     branch);
             }
 
-            Assert.AreEqual(expectedUrl, summaryReportData.DashboardUrl, "Invalid dashboard url");
-            Assert.AreEqual(analysisResult.RanToCompletion, summaryReportData.Succeeded, "Invalid outcome");
+            summaryReportData.DashboardUrl.Should().Be(expectedUrl, "Invalid dashboard url");
+            summaryReportData.Succeeded.Should().Be(analysisResult.RanToCompletion, "Invalid outcome");
         }
 
         private static void VerifySummaryProjectCounts(
@@ -256,11 +257,11 @@ namespace SonarScanner.MSBuild.PostProcessorTests
             int expectedTestProjects,
             int expectedExcludedProjects)
         {
-            Assert.AreEqual(expectedInvalidProjects, summaryReportData.InvalidProjects);
-            Assert.AreEqual(expectedProductProjects, summaryReportData.ProductProjects);
-            Assert.AreEqual(expectedSkippedProjects, summaryReportData.SkippedProjects);
-            Assert.AreEqual(expectedTestProjects, summaryReportData.TestProjects);
-            Assert.AreEqual(expectedExcludedProjects, summaryReportData.ExcludedProjects);
+             summaryReportData.InvalidProjects.Should().Be(expectedInvalidProjects);
+             summaryReportData.ProductProjects.Should().Be(expectedProductProjects);
+             summaryReportData.SkippedProjects.Should().Be(expectedSkippedProjects);
+             summaryReportData.TestProjects.Should().Be(expectedTestProjects);
+             summaryReportData.ExcludedProjects.Should().Be(expectedExcludedProjects);
         }
 
         private static void AddProjectInfoToResult(ProjectInfoAnalysisResult result, ProjectInfoValidity validity, ProjectType type = ProjectType.Product, uint count = 1)

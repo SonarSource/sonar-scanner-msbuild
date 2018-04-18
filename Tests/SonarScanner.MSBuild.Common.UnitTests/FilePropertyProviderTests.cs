@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -44,13 +45,16 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             IAnalysisPropertyProvider provider;
 
             // 1. Null command line arguments
-            AssertException.Expects<ArgumentNullException>(() => FilePropertyProvider.TryCreateProvider(null, string.Empty, new TestLogger(), out provider));
+            Action act = () => FilePropertyProvider.TryCreateProvider(null, string.Empty, new TestLogger(), out provider);
+            act.ShouldThrowExactly<ArgumentNullException>();
 
             // 2. Null directory
-            AssertException.Expects<ArgumentNullException>(() => FilePropertyProvider.TryCreateProvider(Enumerable.Empty<ArgumentInstance>(), null, new TestLogger(), out provider));
+            act = () => FilePropertyProvider.TryCreateProvider(Enumerable.Empty<ArgumentInstance>(), null, new TestLogger(), out provider);
+            act.ShouldThrowExactly<ArgumentNullException>();
 
             // 3. Null logger
-            AssertException.Expects<ArgumentNullException>(() => FilePropertyProvider.TryCreateProvider(Enumerable.Empty<ArgumentInstance>(), string.Empty, null, out provider));
+            act = () => FilePropertyProvider.TryCreateProvider(Enumerable.Empty<ArgumentInstance>(), string.Empty, null, out provider);
+            act.ShouldThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -66,8 +70,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             provider = CheckProcessingSucceeds(Enumerable.Empty<ArgumentInstance>(), defaultPropertiesDir, logger);
 
             // Assert
-            Assert.IsNotNull(provider, "Expecting a provider to have been created");
-            Assert.AreEqual(0, provider.GetAllProperties().Count(), "Not expecting the provider to return any properties");
+            provider.Should().NotBeNull("Expecting a provider to have been created");
+            provider.GetAllProperties().Should().BeEmpty("Not expecting the provider to return any properties");
         }
 
         [TestMethod]
@@ -219,8 +223,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             var isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out IAnalysisPropertyProvider provider);
 
-            Assert.IsTrue(isValid, "Expecting the provider to be initialized successfully");
-            Assert.IsNotNull(provider, "Not expecting a null provider if the function returned true");
+            isValid.Should().BeTrue("Expecting the provider to be initialized successfully");
+            provider.Should().NotBeNull("Not expecting a null provider if the function returned true");
             logger.AssertErrorsLogged(0);
 
             return provider;
@@ -230,8 +234,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             var isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out IAnalysisPropertyProvider provider);
 
-            Assert.IsFalse(isValid, "Not expecting the provider to be initialized successfully");
-            Assert.IsNull(provider, "Not expecting a provider instance if the function returned true");
+            isValid.Should().BeFalse("Not expecting the provider to be initialized successfully");
+            provider.Should().BeNull("Not expecting a provider instance if the function returned true");
             logger.AssertErrorsLogged();
         }
 
@@ -239,26 +243,26 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             var fileProvider = AssertIsFilePropertyProvider(actualProvider);
 
-            Assert.IsNotNull(fileProvider.PropertiesFile, "Properties file object should not be null");
-            Assert.AreEqual(expectedFilePath, fileProvider.PropertiesFile.FilePath, "Properties were not loaded from the expected location");
+            fileProvider.PropertiesFile.Should().NotBeNull("Properties file object should not be null");
+            fileProvider.PropertiesFile.FilePath.Should().Be(expectedFilePath, "Properties were not loaded from the expected location");
         }
 
         private static void AssertIsDefaultPropertiesFile(IAnalysisPropertyProvider actualProvider)
         {
             var fileProvider = AssertIsFilePropertyProvider(actualProvider);
-            Assert.IsTrue(fileProvider.IsDefaultSettingsFile, "Expecting the provider to be marked as using the default properties file");
+            fileProvider.IsDefaultSettingsFile.Should().BeTrue("Expecting the provider to be marked as using the default properties file");
         }
 
         private static void AssertIsNotDefaultPropertiesFile(IAnalysisPropertyProvider actualProvider)
         {
             var fileProvider = AssertIsFilePropertyProvider(actualProvider);
-            Assert.IsFalse(fileProvider.IsDefaultSettingsFile, "Not expecting the provider to be marked as using the default properties file");
+            fileProvider.IsDefaultSettingsFile.Should().BeFalse("Not expecting the provider to be marked as using the default properties file");
         }
 
         private static FilePropertyProvider AssertIsFilePropertyProvider(IAnalysisPropertyProvider actualProvider)
         {
-            Assert.IsNotNull(actualProvider, "Supplied provider should not be null");
-            Assert.IsInstanceOfType(actualProvider, typeof(FilePropertyProvider), "Expecting a file provider");
+            actualProvider.Should().NotBeNull("Supplied provider should not be null");
+            actualProvider.Should().BeOfType<FilePropertyProvider>("Expecting a file provider");
 
             return (FilePropertyProvider)actualProvider;
         }

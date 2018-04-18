@@ -20,11 +20,10 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
 namespace SonarQube.Bootstrapper.Tests
@@ -70,11 +69,11 @@ namespace SonarQube.Bootstrapper.Tests
         [TestMethod]
         public void ArgProc_Help()
         {
-            Assert.IsTrue(ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/h" }));
-            Assert.IsFalse(ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/hr" }));
+            ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/h" }).Should().BeTrue();
+            ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/hr" }).Should().BeFalse();
 
-            Assert.IsTrue(ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/?" }));
-            Assert.IsFalse(ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/??" }));
+            ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/?" }).Should().BeTrue();
+            ArgumentProcessor.IsHelp(new string[] { "sad", "/d:s=r", "/??" }).Should().BeFalse();
         }
 
         [TestMethod]
@@ -117,15 +116,15 @@ namespace SonarQube.Bootstrapper.Tests
 
             // 1. Settings file only
             var settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath);
-            Assert.AreEqual(settings.LoggingVerbosity, LoggerVerbosity.Debug);
+             LoggerVerbosity.Debug.Should().Be(settings.LoggingVerbosity);
 
             //// 2. Both file and cmd line
             settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath, "/d:sonar.verbose=false");
-            Assert.AreEqual(settings.LoggingVerbosity, LoggerVerbosity.Info);
+             LoggerVerbosity.Info.Should().Be(settings.LoggingVerbosity);
 
             //// 3. Cmd line only
             settings = CheckProcessingSucceeds(logger, "/d:sonar.verbose=false", "/d:other=property", "/d:a=b c");
-            Assert.AreEqual(settings.LoggingVerbosity, LoggerVerbosity.Info); // cmd line wins
+             LoggerVerbosity.Info.Should().Be(settings.LoggingVerbosity); // cmd line wins
         }
 
         [TestMethod]
@@ -276,7 +275,7 @@ namespace SonarQube.Bootstrapper.Tests
             var logger = new TestLogger();
 
             var settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "/d:sonar.verbose=yes");
-            Assert.AreEqual(VerbosityCalculator.DefaultLoggingVerbosity, settings.LoggingVerbosity, "Only expecting true or false");
+            settings.LoggingVerbosity.Should().Be(VerbosityCalculator.DefaultLoggingVerbosity, "Only expecting true or false");
 
             logger.AssertErrorsLogged(0);
             logger.AssertSingleWarningExists("yes");
@@ -298,11 +297,11 @@ namespace SonarQube.Bootstrapper.Tests
             var logger = new TestLogger();
 
             var settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath);
-            CollectionAssert.Contains(settings.ChildCmdLineArgs.ToList(), "/s: " + fullPropertiesPath);
-            Assert.AreEqual(LoggerVerbosity.Debug, settings.LoggingVerbosity);
+            settings.ChildCmdLineArgs.Should().Contain("/s: " + fullPropertiesPath);
+            settings.LoggingVerbosity.Should().Be(LoggerVerbosity.Debug);
 
             settings = CheckProcessingSucceeds(logger, "/s: " + fullPropertiesPath, "/d:sonar.verbose=false");
-            Assert.AreEqual(LoggerVerbosity.Info, settings.LoggingVerbosity, "sonar.verbose takes precedence");
+            settings.LoggingVerbosity.Should().Be(LoggerVerbosity.Info, "sonar.verbose takes precedence");
         }
 
         #endregion Tests
@@ -313,8 +312,8 @@ namespace SonarQube.Bootstrapper.Tests
         {
             var success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, logger, out IBootstrapperSettings settings);
 
-            Assert.IsTrue(success, "Expecting processing to succeed");
-            Assert.IsNotNull(settings, "Settings should not be null if processing succeeds");
+            success.Should().BeTrue("Expecting processing to succeed");
+            settings.Should().NotBeNull("Settings should not be null if processing succeeds");
             logger.AssertErrorsLogged(0);
 
             return settings;
@@ -325,8 +324,8 @@ namespace SonarQube.Bootstrapper.Tests
             var logger = new TestLogger();
             var success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, logger, out IBootstrapperSettings settings);
 
-            Assert.IsFalse(success, "Expecting processing to fail");
-            Assert.IsNull(settings, "Settings should be null if processing fails");
+            success.Should().BeFalse("Expecting processing to fail");
+            settings.Should().BeNull("Settings should be null if processing fails");
             logger.AssertErrorsLogged();
 
             return logger;
@@ -334,17 +333,17 @@ namespace SonarQube.Bootstrapper.Tests
 
         private static void AssertUrlAndChildCmdLineArgs(IBootstrapperSettings settings, string expectedUrl, params string[] expectedCmdLineArgs)
         {
-            CollectionAssert.AreEqual(expectedCmdLineArgs, settings.ChildCmdLineArgs.ToList(), "Unexpected child command line arguments");
+            settings.ChildCmdLineArgs.Should().BeEquivalentTo(expectedCmdLineArgs, "Unexpected child command line arguments");
         }
 
         private static void AssertExpectedPhase(AnalysisPhase expected, IBootstrapperSettings settings)
         {
-            Assert.AreEqual(expected, settings.Phase, "Unexpected analysis phase");
+            settings.Phase.Should().Be(expected, "Unexpected analysis phase");
         }
 
         private static void AssertExpectedChildArguments(IBootstrapperSettings actualSettings, params string[] expected)
         {
-            CollectionAssert.AreEqual(expected, actualSettings.ChildCmdLineArgs.ToList(), "Unexpected child command line arguments");
+            actualSettings.ChildCmdLineArgs.Should().BeEquivalentTo(expected, "Unexpected child command line arguments");
         }
 
         #endregion Checks

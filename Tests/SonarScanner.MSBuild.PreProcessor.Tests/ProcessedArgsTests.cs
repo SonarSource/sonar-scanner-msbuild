@@ -19,9 +19,9 @@
  */
 
 using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
@@ -56,48 +56,49 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         [TestMethod]
         public void ProcArgs_Organization()
         {
-            Assert.IsNull(args.Organization);
+            args.Organization.Should().BeNull();
             args = new ProcessedArgs("key", "branch", "ver", "organization", true, new ListPropertiesProvider(), new ListPropertiesProvider(), new ListPropertiesProvider());
-            Assert.AreEqual("organization", args.Organization);
+            args.Organization.Should().Be("organization");
         }
 
         [TestMethod]
         public void ProcArgs_GetSetting()
         {
             // 1. Throws on missing value
-            AssertException.Expects<InvalidOperationException>(() => args.GetSetting("missing.property"));
+            Action act = () => args.GetSetting("missing.property");
+            act.ShouldThrowExactly<InvalidOperationException>();
 
             // 2. Returns existing values
-            Assert.AreEqual("cmd value 1", args.GetSetting("cmd.key.1"));
-            Assert.AreEqual("file value 1", args.GetSetting("file.key.1"));
-            Assert.AreEqual("env value 1", args.GetSetting("env.key.1"));
+            args.GetSetting("cmd.key.1").Should().Be("cmd value 1");
+            args.GetSetting("file.key.1").Should().Be("file value 1");
+            args.GetSetting("env.key.1").Should().Be("env value 1");
 
             // 3. Precedence - command line properties should win
-            Assert.AreEqual("shared cmd value", args.GetSetting("shared.key.1"));
+            args.GetSetting("shared.key.1").Should().Be("shared cmd value");
 
             // 4. Precedence - file wins over env
-            Assert.AreEqual("shared file value", args.GetSetting("shared.key.2"));
+            args.GetSetting("shared.key.2").Should().Be("shared file value");
 
             // 5. Preprocessor only settings
-            Assert.AreEqual(true, args.InstallLoaderTargets);
+            args.InstallLoaderTargets.Should().BeTrue();
         }
 
         [TestMethod]
         public void ProcArgs_TryGetSetting()
         {
             // 1. Missing key -> null
-            Assert.IsFalse(args.TryGetSetting("missing.property", out string result), "Expecting false when the specified key does not exist");
-            Assert.IsNull(result, "Expecting the value to be null when the specified key does not exist");
+            args.TryGetSetting("missing.property", out string result).Should().BeFalse("Expecting false when the specified key does not exist");
+            result.Should().BeNull("Expecting the value to be null when the specified key does not exist");
 
             // 2. Returns existing values
-            Assert.IsTrue(args.TryGetSetting("cmd.key.1", out result));
-            Assert.AreEqual("cmd value 1", result);
+            args.TryGetSetting("cmd.key.1", out result).Should().BeTrue();
+            result.Should().Be("cmd value 1");
 
             // 3. Precedence - command line properties should win
-            Assert.AreEqual("shared cmd value", args.GetSetting("shared.key.1"));
+            args.GetSetting("shared.key.1").Should().Be("shared cmd value");
 
             // 4. Preprocessor only settings
-            Assert.AreEqual(true, args.InstallLoaderTargets);
+            args.InstallLoaderTargets.Should().BeTrue();
         }
 
         [TestMethod]
@@ -105,17 +106,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             // 1. Missing key -> default returned
             var result = args.GetSetting("missing.property", "default value");
-            Assert.AreEqual("default value", result);
+            result.Should().Be("default value");
 
             // 2. Returns existing values
             result = args.GetSetting("file.key.1", "default value");
-            Assert.AreEqual("file value 1", result);
+            result.Should().Be("file value 1");
 
             // 3. Precedence - command line properties should win
-            Assert.AreEqual("shared cmd value", args.GetSetting("shared.key.1", "default ValueType"));
+            args.GetSetting("shared.key.1", "default ValueType").Should().Be("shared cmd value");
 
             // 4. Preprocessor only settings
-            Assert.AreEqual(true, args.InstallLoaderTargets);
+            args.InstallLoaderTargets.Should().BeTrue();
         }
 
         [TestMethod]
@@ -156,8 +157,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             var found = args.TryGetSetting(key, out string actualValue);
 
-            Assert.IsTrue(found, "Expected setting was not found. Key: {0}", key);
-            Assert.AreEqual(expectedValue, actualValue, "Setting does not have the expected value. Key: {0}", key);
+            found.Should().BeTrue("Expected setting was not found. Key: {0}", key);
+            actualValue.Should().Be(expectedValue, "Setting does not have the expected value. Key: {0}", key);
         }
 
         #endregion Checks

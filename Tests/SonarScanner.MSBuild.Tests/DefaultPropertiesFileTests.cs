@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -42,7 +43,7 @@ namespace SonarQube.Bootstrapper.Tests
             // Act - will error if the file is badly-formed
             var defaultProps = AnalysisProperties.Load(propertiesFile);
 
-            Assert.AreEqual(0, defaultProps.Count, "Unexpected number of properties defined in the default properties file");
+            defaultProps.Should().BeEmpty("Unexpected number of properties defined in the default properties file");
         }
 
         [TestMethod]
@@ -60,13 +61,13 @@ namespace SonarQube.Bootstrapper.Tests
             // Act - will error if the file is badly-formed
             var properties = AnalysisProperties.Load(propertiesFile);
 
-            Assert.AreEqual(3, properties.Count, "Unexpected number of properties defined in the default properties file");
-            Assert.AreEqual("sonar.host.url", properties[0].Id);
-            Assert.AreEqual("sonar.login", properties[1].Id);
-            Assert.AreEqual("sonar.password", properties[2].Id);
-            Assert.AreEqual("http://localhost:9000", properties[0].Value);
-            Assert.AreEqual("SomeLogin", properties[1].Value);
-            Assert.AreEqual("SomePassword", properties[2].Value);
+            properties.Should().HaveCount(3, "Unexpected number of properties defined in the default properties file");
+             properties[0].Id.Should().Be("sonar.host.url");
+             properties[1].Id.Should().Be("sonar.login");
+             properties[2].Id.Should().Be("sonar.password");
+             properties[0].Value.Should().Be("http://localhost:9000");
+             properties[1].Value.Should().Be("SomeLogin");
+             properties[2].Value.Should().Be("SomePassword");
         }
 
         [TestMethod]
@@ -88,8 +89,7 @@ namespace SonarQube.Bootstrapper.Tests
             }
             catch (System.Xml.XmlException e)
             {
-                Assert.AreEqual("At least one property name is missing. Please check that the settings file is valid.",
-                    e.Message);
+                e.Message.Should().Be("At least one property name is missing. Please check that the settings file is valid.");
             }
         }
 

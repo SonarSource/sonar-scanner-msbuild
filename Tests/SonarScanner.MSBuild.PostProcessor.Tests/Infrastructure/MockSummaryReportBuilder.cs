@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS.Interfaces;
 using SonarScanner.MSBuild.Shim;
+using SonarScanner.MSBuild.TFS.Interfaces;
 
 namespace SonarScanner.MSBuild.PostProcessor.Tests
 {
@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
         public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result)
         {
-            Assert.IsFalse(methodCalled, "Generate reports has already been called");
+            methodCalled.Should().BeFalse("Generate reports has already been called");
 
             methodCalled = true;
         }
@@ -44,12 +44,12 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
         public void AssertExecuted()
         {
-            Assert.IsTrue(methodCalled, "Expecting ISummaryReportBuilder.GenerateReports to have been called");
+            methodCalled.Should().BeTrue("Expecting ISummaryReportBuilder.GenerateReports to have been called");
         }
 
         public void AssertNotExecuted()
         {
-            Assert.IsFalse(methodCalled, "Not expecting ISummaryReportBuilder.GenerateReports to have been called");
+            methodCalled.Should().BeFalse("Not expecting ISummaryReportBuilder.GenerateReports to have been called");
         }
 
         #endregion Checks

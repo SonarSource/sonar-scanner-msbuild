@@ -50,7 +50,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var actualVersion = new Version(version);
             var actualVersionString = actualVersion.ToDisplayString();
 
-            Assert.AreEqual(expectedDisplayString, actualVersionString);
+             actualVersionString.Should().Be(expectedDisplayString);
         }
 
         [TestMethod]
@@ -146,8 +146,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             // Assert
             Directory.Exists(newDir).Should().BeTrue();
-            logger.Warnings.Count.Should().Be(0);
-            logger.Errors.Count.Should().Be(0);
+            logger.Warnings.Should().BeEmpty();
+            logger.Errors.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -162,8 +162,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             // Assert
             Directory.Exists(baseDir).Should().BeTrue();
-            logger.Warnings.Count.Should().Be(0);
-            logger.Errors.Count.Should().Be(0);
+            logger.Warnings.Should().BeEmpty();
+            logger.Errors.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -211,8 +211,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             // Assert
             Directory.Exists(newDir).Should().BeTrue();
-            logger.Warnings.Count.Should().Be(0);
-            logger.Errors.Count.Should().Be(0);
+            logger.Warnings.Should().BeEmpty();
+            logger.Errors.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -230,9 +230,9 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             // Assert
             Directory.Exists(baseDir).Should().BeTrue();
-            Directory.GetFiles(baseDir).Length.Should().Be(0);
-            logger.Warnings.Count.Should().Be(0);
-            logger.Errors.Count.Should().Be(0);
+            Directory.GetFiles(baseDir).Should().BeEmpty();
+            logger.Warnings.Should().BeEmpty();
+            logger.Errors.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -270,16 +270,16 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             result.Should().BeTrue();
 
             Directory.Exists(baseDir1).Should().BeTrue();
-            Directory.GetFiles(baseDir1).Length.Should().Be(0);
+            Directory.GetFiles(baseDir1).Should().BeEmpty();
 
             Directory.Exists(baseDir2).Should().BeTrue();
-            Directory.GetFiles(baseDir2).Length.Should().Be(0);
+            Directory.GetFiles(baseDir2).Should().BeEmpty();
 
             Directory.Exists(baseDir3).Should().BeTrue();
-            Directory.GetFiles(baseDir3).Length.Should().Be(0);
+            Directory.GetFiles(baseDir3).Should().BeEmpty();
 
-            logger.Warnings.Count.Should().Be(0);
-            logger.Errors.Count.Should().Be(0);
+            logger.Warnings.Should().BeEmpty();
+            logger.Errors.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -313,8 +313,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Directory.Exists(baseDir2).Should().BeTrue();
             Directory.GetFiles(baseDir2).Length.Should().Be(1);
 
-            logger.Warnings.Count.Should().Be(0);
-            logger.Errors.Count.Should().Be(1);
+            logger.Warnings.Should().BeEmpty();
+            logger.Errors.Should().HaveCount(1);
             logger.AssertSingleErrorExists(baseDir1); // expecting the directory name to be in the message
         }
 

@@ -21,7 +21,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
@@ -48,9 +48,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public void AssertExpectedPluginRequested(string key)
         {
-            Assert.IsFalse(SuppliedPlugins == null || !SuppliedPlugins.Any(), "No plugins have been requested");
+            SuppliedPlugins.Should().NotBeEmpty("No plugins have been requested");
+
             var found = SuppliedPlugins.Any(p => string.Equals(key, p.Key, System.StringComparison.Ordinal));
-            Assert.IsTrue(found, "Expected plugin was not requested. Id: {0}", key);
+            found.Should().BeTrue("Expected plugin was not requested. Id: {0}", key);
         }
 
         #endregion Checks
@@ -59,7 +60,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         IEnumerable<string> IAnalyzerInstaller.InstallAssemblies(IEnumerable<Plugin> plugins)
         {
-            Assert.IsNotNull(plugins, "Supplied list of plugins should not be null");
+            plugins.Should().NotBeNull("Supplied list of plugins should not be null");
             foreach(var p in plugins)
             {
                 Debug.WriteLine(p.StaticResourceName);

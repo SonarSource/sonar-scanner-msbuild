@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
+using FluentAssertions;
 
 namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 {
@@ -40,12 +38,12 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 
         public void AssertExpectedNumberOfConversions(int expected)
         {
-            Assert.AreEqual(expected, convertCallCount, "ConvertToXml called an unexpected number of times");
+            convertCallCount.Should().Be(expected, "ConvertToXml called an unexpected number of times");
         }
 
         public void AssertConvertNotCalled()
         {
-            Assert.AreEqual(0, convertCallCount, "Not expecting ConvertToXml to have been called");
+            convertCallCount.Should().Be(0, "Not expecting ConvertToXml to have been called");
         }
 
         #endregion Assertions

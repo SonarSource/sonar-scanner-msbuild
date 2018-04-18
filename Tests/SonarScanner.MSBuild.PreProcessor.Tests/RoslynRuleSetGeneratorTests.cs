@@ -21,10 +21,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
@@ -38,7 +38,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         [TestMethod]
         public void RoslynRuleSet_ConstructorArgumentChecks()
         {
-            AssertException.Expects<ArgumentNullException>(() => new RoslynRuleSetGenerator(null));
+            Action act = () => new RoslynRuleSetGenerator(null);
+            act.ShouldThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -50,9 +51,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             IEnumerable<string> inactiveRules = new List<string>();
             var language = "cs";
 
-            AssertException.Expects<ArgumentNullException>(() => generator.Generate(activeRules, inactiveRules, null));
-            AssertException.Expects<ArgumentNullException>(() => generator.Generate(activeRules, null, language));
-            AssertException.Expects<ArgumentNullException>(() => generator.Generate(null, inactiveRules, language));
+            Action act1 = () => generator.Generate(activeRules, inactiveRules, null);
+            act1.ShouldThrowExactly<ArgumentNullException>();
+
+            Action act2 = () => generator.Generate(activeRules, null, language);
+            act2.ShouldThrowExactly<ArgumentNullException>();
+
+            Action act3 = () => generator.Generate(null, inactiveRules, language);
+            act3.ShouldThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -67,11 +73,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             var ruleSet = generator.Generate(activeRules, inactiveRules, language);
             // No analyzer
-            Assert.IsFalse(ruleSet.Rules.Any());
+            ruleSet.Rules.Any().Should().BeFalse();
 
-            Assert.AreEqual(ruleSet.Description, "This rule set was automatically generated from SonarQube");
-            Assert.AreEqual(ruleSet.ToolsVersion, "14.0");
-            Assert.AreEqual(ruleSet.Name, "Rules for SonarQube");
+            ruleSet.Description.Should().Be("This rule set was automatically generated from SonarQube");
+            ruleSet.ToolsVersion.Should().Be("14.0");
+            ruleSet.Name.Should().Be("Rules for SonarQube");
         }
 
         [TestMethod]
@@ -111,13 +117,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             string[] inactivatedCSharp = { "S1002" };
             string[] inactivatedCustom = { "S1005" };
 
-            Assert.AreEqual(2, ruleSet.Rules.Count());
+            ruleSet.Rules.Should().HaveCount(2);
             AssertAnalyzerRules(ruleSet, "SonarAnalyzer.Custom", activatedCustom, inactivatedCustom);
             AssertAnalyzerRules(ruleSet, "SonarAnalyzer.CSharp", activatedCSharp, inactivatedCSharp);
 
-            Assert.AreEqual(ruleSet.Description, "This rule set was automatically generated from SonarQube");
-            Assert.AreEqual(ruleSet.ToolsVersion, "14.0");
-            Assert.AreEqual(ruleSet.Name, "Rules for SonarQube");
+            ruleSet.Description.Should().Be("This rule set was automatically generated from SonarQube");
+            ruleSet.ToolsVersion.Should().Be("14.0");
+            ruleSet.Name.Should().Be("Rules for SonarQube");
         }
 
         #endregion Tests
@@ -127,21 +133,21 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         private void AssertAnalyzerRules(RuleSet ruleSet, string analyzerId, string[] activatedRuleIds, string[] inactivatedRuleIds)
         {
             var rules = ruleSet.Rules.First(r => r.AnalyzerId.Equals(analyzerId));
-            Assert.AreEqual(analyzerId, rules.RuleNamespace);
-            Assert.AreEqual(rules.RuleList.Count, activatedRuleIds.Count() + inactivatedRuleIds.Count());
+            rules.RuleNamespace.Should().Be(analyzerId);
+            rules.RuleList.Should().HaveCount(activatedRuleIds.Count() + inactivatedRuleIds.Count());
 
             // No repeated ids
-            Assert.IsFalse(rules.RuleList.GroupBy(x => x.Id).Any(g => g.Count() > 1));
+            rules.RuleList.GroupBy(x => x.Id).Any(g => g.Count() > 1).Should().BeFalse();
 
             // Active correspond to Warning, inactive to None
             foreach (var id in activatedRuleIds)
             {
-                Assert.IsTrue(rules.RuleList.Exists(r => r.Id.Equals(id) && r.Action.Equals("Warning")));
+                rules.RuleList.Exists(r => r.Id.Equals(id) && r.Action.Equals("Warning")).Should().BeTrue();
             }
 
             foreach (var id in inactivatedRuleIds)
             {
-                Assert.IsTrue(rules.RuleList.Exists(r => r.Id.Equals(id) && r.Action.Equals("None")));
+                rules.RuleList.Exists(r => r.Id.Equals(id) && r.Action.Equals("None")).Should().BeTrue();
             }
         }
 

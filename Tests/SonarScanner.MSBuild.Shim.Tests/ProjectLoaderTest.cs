@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -86,7 +87,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             IEnumerable<ProjectInfo> projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(testSourcePath);
 
             // Assert
-            Assert.AreEqual(3, projects.Count());
+             projects.Should().HaveCount(3);
 
             AssertProjectResultExists(validTestProject.ProjectName, projects);
 
@@ -118,11 +119,11 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             // 1. Run against the root dir -> not expecting the project to be found
             IEnumerable<ProjectInfo> projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(rootTestDir);
-            Assert.AreEqual(0, projects.Count());
+             projects.Should().HaveCount(0);
 
             // 2. Run against the child dir -> project should be found
             projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(childDir);
-            Assert.AreEqual(1, projects.Count());
+             projects.Should().HaveCount(1);
         }
 
         #endregion Tests
@@ -175,7 +176,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         private static ProjectInfo AssertProjectResultExists(string expectedProjectName, IEnumerable<ProjectInfo> actualProjects)
         {
             var actual = actualProjects.FirstOrDefault(p => expectedProjectName.Equals(p.ProjectName));
-            Assert.IsNotNull(actual, "Failed to find project with the expected name: {0}", expectedProjectName);
+            actual.Should().NotBeNull("Failed to find project with the expected name: {0}", expectedProjectName);
             return actual;
         }
 

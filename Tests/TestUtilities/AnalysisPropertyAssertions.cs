@@ -18,8 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 
 namespace TestUtilities
@@ -29,23 +28,23 @@ namespace TestUtilities
         public static void AssertExpectedPropertyCount(this IAnalysisPropertyProvider provider, int expected)
         {
             var allProperties = provider.GetAllProperties();
-            Assert.IsNotNull(allProperties, "Returned list of properties should not be null");
-            Assert.AreEqual(expected, allProperties.Count(), "Unexpected number of properties returned");
+            allProperties.Should().NotBeNull("Returned list of properties should not be null");
+            allProperties.Should().HaveCount(expected, "Unexpected number of properties returned");
         }
 
         public static void AssertExpectedPropertyValue(this IAnalysisPropertyProvider provider, string key, string expectedValue)
         {
             var found = provider.TryGetProperty(key, out Property property);
 
-            Assert.IsTrue(found, "Expected property was not found. Key: {0}", key);
-            Assert.AreEqual(expectedValue, property.Value, "");
+            found.Should().BeTrue("Expected property was not found. Key: {0}", key);
+            property.Value.Should().Be(expectedValue, "");
         }
 
         public static void AssertPropertyDoesNotExist(this IAnalysisPropertyProvider provider, string key)
         {
             var found = provider.TryGetProperty(key, out Property property);
 
-            Assert.IsFalse(found, "Not expecting the property to exist. Key: {0}, value: {1}", key);
+            found.Should().BeFalse("Not expecting the property to exist. Key: {0}", key);
         }
     }
 }

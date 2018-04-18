@@ -20,6 +20,7 @@
 
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TestUtilities
@@ -61,7 +62,7 @@ namespace TestUtilities
         /// <returns>Returns the full path to the created file</returns>
         public static string CreateTextFile(string parentDir, string fileName, string content, params string[] substitutionArgs)
         {
-            Assert.IsTrue(Directory.Exists(parentDir), "Test setup error: expecting the parent directory to exist: {0}", parentDir);
+            Directory.Exists(parentDir).Should().BeTrue("Test setup error: expecting the parent directory to exist: {0}", parentDir);
             var fullPath = Path.Combine(parentDir, fileName);
 
             var formattedContent = content;
@@ -144,7 +145,7 @@ namespace TestUtilities
         public static string WriteBatchFileForTest(TestContext context, string content)
         {
             var fileName = Path.Combine(context.DeploymentDirectory, context.TestName + ".bat");
-            Assert.IsFalse(File.Exists(fileName), "Not expecting a batch file to already exist: {0}", fileName);
+            File.Exists(fileName).Should().BeFalse("Not expecting a batch file to already exist: {0}", fileName);
             File.WriteAllText(fileName, content);
             return fileName;
         }
@@ -166,10 +167,7 @@ namespace TestUtilities
 
             if (exists)
             {
-                if (throwIfExists)
-                {
-                    Assert.Fail("Test-specific test folder should not already exist: {0}", fullPath);
-                }
+                throwIfExists.Should().BeFalse("Test-specific test folder should not already exist: {0}", fullPath);
             }
             else
             {

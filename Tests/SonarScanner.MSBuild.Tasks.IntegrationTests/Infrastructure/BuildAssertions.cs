@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using FluentAssertions;
 using Microsoft.Build.Execution;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
@@ -36,8 +36,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
                 return;
             }
 
-            Assert.IsNotNull(propertyInstance, "The expected property does not exist: {0}", propertyName);
-            Assert.AreEqual(expectedValue, propertyInstance.EvaluatedValue, "Property '{0}' does not have the expected value", propertyName);
+            propertyInstance.Should().NotBeNull("The expected property does not exist: {0}", propertyName);
+            propertyInstance.EvaluatedValue.Should().Be(expectedValue, "Property '{0}' does not have the expected value", propertyName);
         }
 
         public static void AssertPropertyDoesNotExist(ProjectInstance projectInstance, string propertyName)
@@ -46,7 +46,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
             var value = propertyInstance?.EvaluatedValue;
 
-            Assert.IsNull(propertyInstance, "Not expecting the property to exist. Property: {0}, Value: {1}", propertyName, value);
+            propertyInstance.Should().BeNull("Not expecting the property to exist. Property: {0}, Value: {1}", propertyName, value);
         }
 
         #endregion Assertions

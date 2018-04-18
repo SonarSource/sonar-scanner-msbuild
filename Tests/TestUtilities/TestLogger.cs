@@ -64,27 +64,27 @@ namespace TestUtilities
 
         public void AssertErrorsLogged()
         {
-            Assert.IsTrue(Errors.Count > 0, "Expecting at least one error to be logged");
+            Errors.Count.Should().BeGreaterThan(0, "Expecting at least one error to be logged");
         }
 
         public void AssertMessagesLogged()
         {
-            Assert.IsTrue(InfoMessages.Count > 0, "Expecting at least one message to be logged");
+            InfoMessages.Count.Should().BeGreaterThan(0, "Expecting at least one message to be logged");
         }
 
         public void AssertErrorsLogged(int expectedCount)
         {
-            Assert.AreEqual(expectedCount, Errors.Count, "Unexpected number of errors logged");
+            Errors.Count.Should().Be(expectedCount, "Unexpected number of errors logged");
         }
 
         public void AssertWarningsLogged(int expectedCount)
         {
-            Assert.AreEqual(expectedCount, Warnings.Count, "Unexpected number of warnings logged");
+            Warnings.Count.Should().Be(expectedCount, "Unexpected number of warnings logged");
         }
 
         public void AssertMessagesLogged(int expectedCount)
         {
-            Assert.AreEqual(expectedCount, InfoMessages.Count, "Unexpected number of messages logged");
+            InfoMessages.Count.Should().Be(expectedCount, "Unexpected number of messages logged");
         }
 
         public void AssertDebugLogged(string expected)
@@ -105,13 +105,13 @@ namespace TestUtilities
         public void AssertMessageNotLogged(string message)
         {
             var found = InfoMessages.Any(s => message.Equals(s, System.StringComparison.CurrentCulture));
-            Assert.IsFalse(found, "Not expecting the message to have been logged: '{0}'", message);
+            found.Should().BeFalse("Not expecting the message to have been logged: '{0}'", message);
         }
 
         public void AssertWarningNotLogged(string warning)
         {
             var found = Warnings.Any(s => warning.Equals(s, System.StringComparison.CurrentCulture));
-            Assert.IsFalse(found, "Not expecting the warning to have been logged: '{0}'", warning);
+            found.Should().BeFalse("Not expecting the warning to have been logged: '{0}'", warning);
         }
 
         /// <summary>
@@ -120,8 +120,7 @@ namespace TestUtilities
         public void AssertSingleErrorExists(params string[] expected)
         {
             var matches = Errors.Where(w => expected.All(e => w.Contains(e)));
-            Assert.AreNotEqual(0, matches.Count(), "No error contains the expected strings: {0}", string.Join(",", expected));
-            Assert.AreEqual(1, matches.Count(), "More than one error contains the expected strings: {0}", string.Join(",", expected));
+            matches.Should().HaveCount(1, "More than one error contains the expected strings: {0}", string.Join(",", expected));
         }
 
         /// <summary>
@@ -130,8 +129,7 @@ namespace TestUtilities
         public void AssertSingleWarningExists(params string[] expected)
         {
             var matches = Warnings.Where(w => expected.All(e => w.Contains(e)));
-            Assert.AreNotEqual(0, matches.Count(), "No warning contains the expected strings: {0}", string.Join(",", expected));
-            Assert.AreEqual(1, matches.Count(), "More than one warning contains the expected strings: {0}", string.Join(",", expected));
+            matches.Should().HaveCount(1, "More than one warning contains the expected strings: {0}", string.Join(",", expected));
         }
 
         /// <summary>
@@ -140,8 +138,7 @@ namespace TestUtilities
         public string AssertSingleInfoMessageExists(params string[] expected)
         {
             var matches = InfoMessages.Where(m => expected.All(e => m.Contains(e)));
-            Assert.AreNotEqual(0, matches.Count(), "No INFO message contains the expected strings: {0}", string.Join(",", expected));
-            Assert.AreEqual(1, matches.Count(), "More than one INFO message contains the expected strings: {0}", string.Join(",", expected));
+            matches.Should().HaveCount(1, "More than one INFO message contains the expected strings: {0}", string.Join(",", expected));
             return matches.First();
         }
 
@@ -151,8 +148,7 @@ namespace TestUtilities
         public string AssertSingleDebugMessageExists(params string[] expected)
         {
             var matches = DebugMessages.Where(m => expected.All(e => m.Contains(e)));
-            Assert.AreNotEqual(0, matches.Count(), "No debug message contains the expected strings: {0}", string.Join(",", expected));
-            Assert.AreEqual(1, matches.Count(), "More than one DEBUG message contains the expected strings: {0}", string.Join(",", expected));
+            matches.Should().HaveCount(1, "More than one DEBUG message contains the expected strings: {0}", string.Join(",", expected));
             return matches.First();
         }
 
@@ -162,7 +158,7 @@ namespace TestUtilities
         public void AssertInfoMessageExists(params string[] expected)
         {
             var matches = InfoMessages.Where(m => expected.All(e => m.Contains(e)));
-            Assert.AreNotEqual(0, matches.Count(), "No INFO message contains the expected strings: {0}", string.Join(",", expected));
+            matches.Should().NotBeEmpty("No INFO message contains the expected strings: {0}", string.Join(",", expected));
         }
 
         /// <summary>
@@ -171,7 +167,7 @@ namespace TestUtilities
         public void AssertDebugMessageExists(params string[] expected)
         {
             var matches = DebugMessages.Where(m => expected.All(e => m.Contains(e)));
-            Assert.AreNotEqual(0, matches.Count(), "No DEBUG message contains the expected strings: {0}", string.Join(",", expected));
+            matches.Should().NotBeEmpty("No DEBUG message contains the expected strings: {0}", string.Join(",", expected));
         }
 
         /// <summary>
@@ -180,12 +176,12 @@ namespace TestUtilities
         public void AssertErrorDoesNotExist(params string[] expected)
         {
             var matches = Errors.Where(w => expected.All(e => w.Contains(e)));
-            Assert.AreEqual(0, matches.Count(), "Not expecting any errors to contain the specified strings: {0}", string.Join(",", expected));
+            matches.Should().BeEmpty("Not expecting any errors to contain the specified strings: {0}", string.Join(",", expected));
         }
 
         public void AssertVerbosity(LoggerVerbosity expected)
         {
-            Assert.AreEqual(expected, Verbosity, "Logger verbosity mismatch");
+            Verbosity.Should().Be(expected, "Logger verbosity mismatch");
         }
 
         #endregion Public methods

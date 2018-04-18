@@ -19,10 +19,10 @@
  */
 
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
+using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
@@ -39,9 +39,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings,
             IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules, string pluginKey)
         {
-            Assert.IsNotNull(settings);
-            Assert.IsNotNull(serverSettings);
-            Assert.IsFalse(string.IsNullOrWhiteSpace(pluginKey));
+            settings.Should().NotBeNull();
+            serverSettings.Should().NotBeNull();
+            string.IsNullOrWhiteSpace(pluginKey).Should().BeFalse();
 
             return SettingsToReturn;
         }

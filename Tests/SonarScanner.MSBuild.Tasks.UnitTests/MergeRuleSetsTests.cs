@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -42,11 +43,11 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var targetRulesetFilePath = Path.Combine(projectDir, "merged.ruleset.txt");
 
             var dummyEngine = new DummyBuildEngine();
-            var task = CreateTask(dummyEngine,projectDir, "missing.ruleset", targetRulesetFilePath);
+            var task = CreateTask(dummyEngine, projectDir, "missing.ruleset", targetRulesetFilePath);
 
             // Act and Assert
-            var ex = AssertException.Expects<FileNotFoundException>(() => task.Execute());
-            Assert.AreEqual("missing.ruleset", ex.FileName);
+            Action act = () => task.Execute();
+            act.ShouldThrowExactly<FileNotFoundException>().And.FileName.Should().Be("missing.ruleset");
         }
 
         [TestMethod]
@@ -62,8 +63,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var task = CreateTask(dummyEngine, projectDir, primaryRuleset, targetRulesetFilePath);
 
             // Act and Assert
-            var ex = AssertException.Expects<InvalidOperationException>(() => task.Execute());
-            Assert.IsTrue(ex.Message.Contains(targetRulesetFilePath));
+            Action act = () => task.Execute();
+            act.ShouldThrowExactly<InvalidOperationException>().And.Message.Contains(targetRulesetFilePath).Should().BeTrue();
         }
 
         [TestMethod]
@@ -178,11 +179,11 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var task = CreateTask(dummyEngine, projectDirectory, primaryRuleset, mergedRulesetFileName, rulesetsToInclude);
 
             var taskSucess = task.Execute();
-            Assert.IsTrue(taskSucess, "Expecting the task to succeed");
+            taskSucess.Should().BeTrue("Expecting the task to succeed");
             dummyEngine.AssertNoErrors();
             dummyEngine.AssertNoWarnings();
 
-            Assert.IsTrue(File.Exists(mergedRulesetFileName), "Expecting the merged ruleset to have been created: {0}", mergedRulesetFileName);
+            File.Exists(mergedRulesetFileName).Should().BeTrue("Expecting the merged ruleset to have been created: {0}", mergedRulesetFileName);
             TestContext.AddResultFile(primaryRuleset);
             TestContext.AddResultFile(mergedRulesetFileName);
 

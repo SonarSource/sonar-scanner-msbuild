@@ -21,7 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 
 namespace SonarScanner.MSBuild.Common.UnitTests
 {
@@ -50,23 +50,23 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         public void AssertNoOutput()
         {
-            Assert.AreEqual(0, outputMessages.Count, "Not expecting any output to have been written to the console");
+            outputMessages.Should().BeEmpty("Not expecting any output to have been written to the console");
         }
 
         public void AssertExpectedLastOutput(string message, ConsoleColor textColor, bool isError)
         {
-            Assert.IsTrue(outputMessages.Any(), "Expecting some output to have been written to the console");
+            outputMessages.Any().Should().BeTrue("Expecting some output to have been written to the console");
 
             var lastMessage = outputMessages.Last();
 
-            Assert.AreEqual(message, lastMessage.Message, "Unexpected message content");
-            Assert.AreEqual(textColor, lastMessage.TextColor, "Unexpected text color");
-            Assert.AreEqual(isError, lastMessage.IsError, "Unexpected output stream");
+            lastMessage.Message.Should().Be(message, "Unexpected message content");
+            lastMessage.TextColor.Should().Be(textColor, "Unexpected text color");
+            lastMessage.IsError.Should().Be(isError, "Unexpected output stream");
         }
 
         public void AssertExpectedOutputText(params string[] messages)
         {
-            CollectionAssert.AreEqual(messages, outputMessages.Select(om => om.Message).ToArray(), "Unexpected output messages");
+            outputMessages.Select(om => om.Message).Should().BeEquivalentTo(messages, "Unexpected output messages");
         }
 
         #endregion Checks

@@ -127,12 +127,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
         public static void AssertExpectedErrorCount(this BuildLog log, int expected)
         {
-            log.Errors.Count.Should().Be(expected);
+            log.Errors.Should().HaveCount(expected);
         }
 
         public static void AssertExpectedWarningCount(this BuildLog log, int expected)
         {
-            log.Warnings.Count.Should().Be(expected);
+            log.Warnings.Should().HaveCount(expected);
         }
 
         public static string GetCapturedPropertyValue(this BuildLog log, string propertyName)

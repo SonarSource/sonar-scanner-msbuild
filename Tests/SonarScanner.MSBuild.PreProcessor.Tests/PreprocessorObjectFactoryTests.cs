@@ -19,6 +19,7 @@
  */
 
 using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -41,10 +42,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory(logger);
 
             // 1. Ctor
-            AssertException.Expects<ArgumentNullException>(() => new PreprocessorObjectFactory(null));
+            Action act1 = () => new PreprocessorObjectFactory(null);
+            act1.ShouldThrowExactly<ArgumentNullException>();
 
             // 1. CreateSonarQubeServer method
-            AssertException.Expects<ArgumentNullException>(() => testSubject.CreateSonarQubeServer(null));
+            Action act2 = () => testSubject.CreateSonarQubeServer(null);
+            act2.ShouldThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -57,15 +60,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             // 1. Create the SonarQube server...
             object actual = testSubject.CreateSonarQubeServer(validArgs);
-            Assert.IsNotNull(actual);
+            actual.Should().NotBeNull();
 
             // 2. Now create the targets provider
             actual = testSubject.CreateTargetInstaller();
-            Assert.IsNotNull(actual);
+            actual.Should().NotBeNull();
 
             // 3. Now create the analyzer provider
             actual = testSubject.CreateRoslynAnalyzerProvider();
-            Assert.IsNotNull(actual);
+            actual.Should().NotBeNull();
         }
 
         [TestMethod]
@@ -76,7 +79,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory(logger);
 
             // 2. Act and assert
-            AssertException.Expects<InvalidOperationException>(() => testSubject.CreateRoslynAnalyzerProvider());
+            Action act = () => testSubject.CreateRoslynAnalyzerProvider();
+            act.ShouldThrowExactly<InvalidOperationException>();
         }
 
         #endregion Tests

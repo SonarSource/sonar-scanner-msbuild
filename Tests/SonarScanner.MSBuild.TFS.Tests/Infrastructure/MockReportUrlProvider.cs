@@ -19,8 +19,7 @@
  */
 
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
+using FluentAssertions;
 
 namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 {
@@ -38,12 +37,12 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 
         public void AssertGetUrlsCalled()
         {
-            Assert.IsTrue(getUrlsCalled, "Expecting GetCodeCoverageReportUrls to have been called");
+            getUrlsCalled.Should().BeTrue("Expecting GetCodeCoverageReportUrls to have been called");
         }
 
         public void AssertGetUrlsNotCalled()
         {
-            Assert.IsFalse(getUrlsCalled, "Not expecting GetCodeCoverageReportUrls to have been called");
+            getUrlsCalled.Should().BeFalse("Not expecting GetCodeCoverageReportUrls to have been called");
         }
 
         #endregion Assertions

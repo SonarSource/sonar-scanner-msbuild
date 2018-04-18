@@ -22,8 +22,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text.RegularExpressions;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
@@ -90,7 +90,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             var msBuildPathSettings = new MsBuildPathSettings();
 
             InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
-            Assert.AreEqual(6, msBuildPathSettings.GetImportBeforePaths().Count(), "Expecting six destination directories");
+            msBuildPathSettings.GetImportBeforePaths().Should().HaveCount(6, "Expecting six destination directories");
 
             var path = Path.Combine(msBuildPathSettings.GetImportBeforePaths().First(), FileConstants.ImportBeforeTargetsName);
             File.Delete(path);
@@ -117,8 +117,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
 
             // Assert
-            Assert.IsTrue(logger.Warnings.Any(m =>
-                m.StartsWith("This version of the SonarScanner for MSBuild automatically deploys")));
+            logger.Warnings.Should().Contain(m =>
+                m.StartsWith("This version of the SonarScanner for MSBuild automatically deploys"));
         }
 
         [TestMethod]
@@ -138,8 +138,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
 
             // Assert
-            Assert.IsFalse(logger.Warnings.Any(m =>
-                m.StartsWith("This version of the SonarScanner for MSBuild automatically deploys")));
+            logger.Warnings.Should().NotContain(m =>
+                m.StartsWith("This version of the SonarScanner for MSBuild automatically deploys"));
         }
 
         [TestMethod]
@@ -158,8 +158,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
 
             // Assert
-            Assert.IsTrue(logger.Warnings.Any(m =>
-                m.StartsWith("Running the Scanner for MSBuild under Local System or Network Service account is not supported.")));
+            logger.Warnings.Should().Contain(m =>
+                m.StartsWith("Running the Scanner for MSBuild under Local System or Network Service account is not supported."));
         }
 
         [TestMethod]
@@ -170,8 +170,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 destinationExists: true,
                 destinationContent: "target content");
 
-            Assert.IsTrue(logger.DebugMessages.Any(m =>
-                m.Equals("The file SonarQube.Integration.targets is up to date at c:\\project\\bin\\targets")));
+            logger.DebugMessages.Should().Contain(m =>
+                m.Equals("The file SonarQube.Integration.targets is up to date at c:\\project\\bin\\targets"));
         }
 
         [TestMethod]
@@ -182,8 +182,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 destinationExists: true,
                 destinationContent: "different content");
 
-            Assert.IsTrue(logger.DebugMessages.Any(m =>
-                m.Equals("The file SonarQube.Integration.targets was overwritten at c:\\project\\bin\\targets")));
+            logger.DebugMessages.Should().Contain(m =>
+                m.Equals("The file SonarQube.Integration.targets was overwritten at c:\\project\\bin\\targets"));
         }
 
         [TestMethod]
@@ -193,8 +193,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 sourceContent: "target content",
                 destinationExists: false);
 
-            Assert.IsTrue(logger.DebugMessages.Any(m =>
-                m.Equals("Installed SonarQube.Integration.targets to c:\\project\\bin\\targets")));
+            logger.DebugMessages.Should().Contain(m =>
+                m.Equals("Installed SonarQube.Integration.targets to c:\\project\\bin\\targets"));
         }
 
         [TestMethod]
@@ -205,8 +205,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 destinationExists: true,
                 destinationContent: "target content");
 
-            Assert.IsTrue(logger.DebugMessages.Any(m =>
-                m.Equals("The file SonarQube.Integration.ImportBefore.targets is up to date at c:\\global paths")));
+            logger.DebugMessages.Should().Contain(m =>
+                m.Equals("The file SonarQube.Integration.ImportBefore.targets is up to date at c:\\global paths"));
         }
 
         [TestMethod]
@@ -217,8 +217,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 destinationExists: true,
                 destinationContent: "different content");
 
-            Assert.IsTrue(logger.DebugMessages.Any(m =>
-                m.Equals("The file SonarQube.Integration.ImportBefore.targets was overwritten at c:\\global paths")));
+            logger.DebugMessages.Should().Contain(m =>
+                m.Equals("The file SonarQube.Integration.ImportBefore.targets was overwritten at c:\\global paths"));
         }
 
         [TestMethod]
@@ -228,8 +228,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 sourceContent: "target content",
                 destinationExists: false);
 
-            Assert.IsTrue(logger.DebugMessages.Any(m =>
-                m.Equals("Installed SonarQube.Integration.ImportBefore.targets to c:\\global paths")));
+            logger.DebugMessages.Should().Contain(m =>
+                m.Equals("Installed SonarQube.Integration.ImportBefore.targets to c:\\global paths"));
         }
 
         private void InstallLoaderTargets_InternalCopyTargetFileToProject(string sourceContent, bool destinationExists, string destinationContent = null)
@@ -376,23 +376,19 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             foreach (var destinationDir in msBuildPathSettings.GetImportBeforePaths())
             {
                 var path = Path.Combine(destinationDir, FileConstants.ImportBeforeTargetsName);
-                Assert.IsTrue(File.Exists(path), ".targets file not found at: " + path);
-                Assert.AreEqual(
-                    expectedContent,
-                    File.ReadAllText(path),
+                File.Exists(path).Should().BeTrue(".targets file not found at: " + path);
+                File.ReadAllText(path).Should().Be(expectedContent,
                     ".targets does not have expected content at " + path);
 
-                Assert.IsTrue(localLogger.DebugMessages.Any(m => m.Contains(destinationDir)));
+                localLogger.DebugMessages.Any(m => m.Contains(destinationDir)).Should().BeTrue();
             }
 
             var targetsPath = Path.Combine(WorkingDirectory, "bin", "targets", FileConstants.IntegrationTargetsName);
-            Assert.IsTrue(File.Exists(targetsPath), ".targets file not found at: " + targetsPath);
+            File.Exists(targetsPath).Should().BeTrue(".targets file not found at: " + targetsPath);
 
             if (expectCopy)
             {
-                Assert.AreEqual(
-                    msBuildPathSettings.GetImportBeforePaths().Count() + 1,
-                    localLogger.DebugMessages.Count,
+                localLogger.DebugMessages.Should().HaveCount(msBuildPathSettings.GetImportBeforePaths().Count() + 1,
                     "All destinations should have been covered");
             }
         }

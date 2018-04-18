@@ -22,8 +22,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.Build.Framework;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarScanner.MSBuild.Tasks.UnitTests
 {
@@ -105,12 +105,12 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
         public void AssertNoErrors()
         {
-            Assert.AreEqual(0, errors.Count, "Not expecting any errors to have been logged");
+            errors.Should().BeEmpty("Not expecting any errors to have been logged");
         }
 
         public void AssertNoWarnings()
         {
-            Assert.AreEqual(0, warnings.Count, "Not expecting any warnings to have been logged");
+            warnings.Should().BeEmpty("Not expecting any warnings to have been logged");
         }
 
         /// <summary>
@@ -118,9 +118,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         /// </summary>
         public void AssertSingleErrorExists(params string[] expected)
         {
-            var matches = errors.Where(w => expected.All(e => w.Message.Contains(e)));
-            Assert.AreNotEqual(0, matches.Count(), "No error contains the expected strings: {0}", string.Join(",", expected));
-            Assert.AreEqual(1, matches.Count(), "More than one error contains the expected strings: {0}", string.Join(",", expected));
+            errors.Where(w => expected.All(e => w.Message.Contains(e)))
+                .Should().HaveCount(1, "More than one error contains the expected strings: {0}", string.Join(",", expected));
         }
 
         /// <summary>
@@ -128,9 +127,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         /// </summary>
         public void AssertSingleMessageExists(params string[] expected)
         {
-            var matches = messages.Where(m => expected.All(e => m.Message.Contains(e)));
-            Assert.AreNotEqual(0, matches.Count(), "No message contains the expected strings: {0}", string.Join(",", expected));
-            Assert.AreEqual(1, matches.Count(), "More than one message contains the expected strings: {0}", string.Join(",", expected));
+            messages.Where(m => expected.All(e => m.Message.Contains(e)))
+                .Should().HaveCount(1, "More than one message contains the expected strings: {0}", string.Join(",", expected));
         }
 
         /// <summary>
@@ -138,9 +136,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         /// </summary>
         public void AssertSingleWarningExists(params string[] expected)
         {
-            var matches = warnings.Where(w => expected.All(e => w.Message.Contains(e)));
-            Assert.AreNotEqual(0, matches.Count(), "No warning contains the expected strings: {0}", string.Join(",", expected));
-            Assert.AreEqual(1, matches.Count(), "More than one warning contains the expected strings: {0}", string.Join(",", expected));
+            warnings.Where(w => expected.All(e => w.Message.Contains(e)))
+                .Should().HaveCount(1, "More than one warning contains the expected strings: {0}", string.Join(",", expected));
         }
 
         #endregion Assertions

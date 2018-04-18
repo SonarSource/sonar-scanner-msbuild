@@ -101,8 +101,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             result.AssertExpectedWarningCount(1);
 
             var warning = result.Warnings[0];
-            Assert.IsTrue(warning.Contains(descriptor.FullFilePath),
-                "Expecting the warning to contain the full path to the bad project file");
+            warning.Should().Contain(descriptor.FullFilePath, "Expecting the warning to contain the full path to the bad project file");
         }
 
         [TestMethod]
@@ -149,8 +148,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             buildLog.AssertExpectedWarningCount(1);
 
             var warning = buildLog.Warnings[0];
-            Assert.IsTrue(warning.Contains(descriptor.FullFilePath),
-                "Expecting the warning to contain the full path to the bad project file");
+            warning.Should().Contain(descriptor.FullFilePath, "Expecting the warning to contain the full path to the bad project file");
         }
 
         [TestMethod]
@@ -452,16 +450,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Check the content of the project info xml
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
 
-            Assert.AreEqual(projectGuid, projectInfo.ProjectGuid, "Unexpected project guid");
-            Assert.IsNull(projectInfo.ProjectLanguage, "Expecting the project language to be null");
-            Assert.IsFalse(projectInfo.IsExcluded, "Project should not be marked as excluded");
-            Assert.AreEqual(ProjectType.Product, projectInfo.ProjectType, "Project should be marked as a product project");
-            Assert.AreEqual(1, projectInfo.AnalysisResults.Count, "Unexpected number of analysis results created");
+            projectInfo.ProjectGuid.Should().Be(projectGuid, "Unexpected project guid");
+            projectInfo.ProjectLanguage.Should().BeNull("Expecting the project language to be null");
+            projectInfo.IsExcluded.Should().BeFalse("Project should not be marked as excluded");
+            projectInfo.ProjectType.Should().Be(ProjectType.Product, "Project should be marked as a product project");
+            projectInfo.AnalysisResults.Should().HaveCount(1, "Unexpected number of analysis results created");
 
             // Check the correct list of files to analyze were returned
             var filesToAnalyse = ProjectInfoAssertions.AssertAnalysisResultExists(projectInfo, AnalysisType.FilesToAnalyze.ToString());
             var actualFilesToAnalyse = File.ReadAllLines(filesToAnalyse.Location);
-            CollectionAssert.AreEquivalent(new string[] { codeFile, contentFile }, actualFilesToAnalyse, "Unexpected list of files to analyze");
+            actualFilesToAnalyse.Should().BeEquivalentTo(new string[] { codeFile, contentFile }, "Unexpected list of files to analyze");
         }
 
         [TestMethod]
@@ -530,10 +528,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Check the project info
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
 
-            Assert.IsTrue(projectInfo.IsExcluded, "Expecting the project to be marked as excluded");
-            Assert.AreEqual("my.language", projectInfo.ProjectLanguage, "Unexpected project language");
-            Assert.AreEqual(ProjectType.Test, projectInfo.ProjectType, "Project should be marked as a test project");
-            Assert.AreEqual(0, projectInfo.AnalysisResults.Count, "Unexpected number of analysis results created");
+            projectInfo.IsExcluded.Should().BeTrue("Expecting the project to be marked as excluded");
+            projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
+            projectInfo.ProjectType.Should().Be(ProjectType.Test, "Project should be marked as a test project");
+            projectInfo.AnalysisResults.Should().BeEmpty("Unexpected number of analysis results created");
         }
 
         #endregion Tests
@@ -615,7 +613,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             CheckRootOutputFolder(rootOutputFolder);
 
             // Check expected project outputs
-            Assert.AreEqual(1, Directory.EnumerateDirectories(rootOutputFolder).Count(), "Only expecting one child directory to exist under the root analysis output folder");
+            Directory.EnumerateDirectories(rootOutputFolder).Should().HaveCount(1, "Only expecting one child directory to exist under the root analysis output folder");
             ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, descriptor.FullFilePath);
 
             return Directory.EnumerateDirectories(rootOutputFolder).Single();
@@ -627,20 +625,20 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
         private static void CheckRootOutputFolder(string rootOutputFolder)
         {
-            Assert.IsTrue(Directory.Exists(rootOutputFolder), "Expected root output folder does not exist");
+            Directory.Exists(rootOutputFolder).Should().BeTrue("Expected root output folder does not exist");
 
             var fileCount = Directory.GetFiles(rootOutputFolder, "*.*", SearchOption.TopDirectoryOnly).Count();
-            Assert.AreEqual(0, fileCount, "Not expecting the top-level output folder to contain any files");
+            fileCount.Should().Be(0, "Not expecting the top-level output folder to contain any files");
         }
 
         private void CheckProjectOutputFolder(ProjectDescriptor expected, string projectOutputFolder)
         {
-            Assert.IsFalse(string.IsNullOrEmpty(projectOutputFolder), "Test error: projectOutputFolder should not be null/empty");
-            Assert.IsTrue(Directory.Exists(projectOutputFolder), "Expected project folder does not exist: {0}", projectOutputFolder);
+            string.IsNullOrEmpty(projectOutputFolder).Should().BeFalse("Test error: projectOutputFolder should not be null/empty");
+            Directory.Exists(projectOutputFolder).Should().BeTrue("Expected project folder does not exist: {0}", projectOutputFolder);
 
             // Check folder naming
             var folderName = Path.GetFileName(projectOutputFolder);
-            Assert.IsFalse(folderName.StartsWith(expected.ProjectName), "Project output folder starts with the project name. Expected: {0}, actual: {1}",
+            folderName.StartsWith(expected.ProjectName).Should().BeFalse("Project output folder starts with the project name. Expected: {0}, actual: {1}",
                 expected.ProjectFolderName, folderName);
 
             // Check specific files
@@ -677,7 +675,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
                 // The actual files might contain extra compiler generated files, so check the expected files
                 // we expected is a subset of the actual
-                CollectionAssert.IsSubsetOf(expectedFiles, actualFiles, "Analysis file does not contain the expected entries");
+                expectedFiles.Should().BeSubsetOf(actualFiles, "Analysis file does not contain the expected entries");
 
                 // Check that any files that should not be analyzed are not included
                 if (expected.FilesNotToAnalyse != null && expected.FilesNotToAnalyse.Any())
@@ -690,7 +688,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                             // Assume paths are relative to the project directory
                             filePathToCheck = Path.Combine(expected.FullDirectoryPath, filePathToCheck);
                         }
-                        CollectionAssert.DoesNotContain(actualFiles, filePathToCheck, "Not expecting file to be included for analysis: {0}", filePathToCheck);
+                        actualFiles.Should().NotContain(filePathToCheck, "Not expecting file to be included for analysis: {0}", filePathToCheck);
                     }
                 }
             }
@@ -698,13 +696,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
         private static void AssertFileIsNotAnalysed(string analysisFileListPath, string unanalysedPath)
         {
-            var actualFiles = GetAnalysedFiles(analysisFileListPath); CollectionAssert.DoesNotContain(actualFiles, unanalysedPath, "File should not be analyzed: {0}", unanalysedPath);
+            var actualFiles = GetAnalysedFiles(analysisFileListPath);
+            actualFiles.Should().NotContain(unanalysedPath, "File should not be analyzed: {0}", unanalysedPath);
         }
 
         private static void AssertFileIsAnalysed(string analysisFileListPath, string unanalysedPath)
         {
             var actualFiles = GetAnalysedFiles(analysisFileListPath);
-            CollectionAssert.Contains(actualFiles, unanalysedPath, "File should not be analyzed: {0}", unanalysedPath);
+            actualFiles.Should().Contain(unanalysedPath, "File should not be analyzed: {0}", unanalysedPath);
         }
 
         private static string[] GetAnalysedFiles(string analysisFileListPath)
@@ -750,7 +749,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var fullPath = Path.Combine(projectOutputFolder, fileName);
             var exists = CheckExistenceAndAddToResults(fullPath);
 
-            Assert.IsTrue(exists, "Expected file does not exist: {0}", fullPath);
+            exists.Should().BeTrue("Expected file does not exist: {0}", fullPath);
             return fullPath;
         }
 
@@ -759,7 +758,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var fullPath = Path.Combine(projectOutputFolder, fileName);
             var exists = CheckExistenceAndAddToResults(fullPath);
 
-            Assert.IsFalse(exists, "Not expecting file to exist: {0}", fullPath);
+            exists.Should().BeFalse("Not expecting file to exist: {0}", fullPath);
         }
 
         private bool CheckExistenceAndAddToResults(string fullPath)

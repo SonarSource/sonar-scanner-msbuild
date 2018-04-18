@@ -21,6 +21,7 @@
 using System;
 using System.CodeDom.Compiler;
 using System.IO;
+using FluentAssertions;
 using Microsoft.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -97,16 +98,16 @@ namespace TestUtilities
 
         public static void AssertExpectedLogContents(string logPath, params string[] expected)
         {
-            Assert.IsTrue(File.Exists(logPath), "Expected log file does not exist: {0}", logPath);
+            File.Exists(logPath).Should().BeTrue("Expected log file does not exist: {0}", logPath);
 
             var actualLines = File.ReadAllLines(logPath);
 
-            CollectionAssert.AreEqual(expected ?? new string[] { }, actualLines, "Log file does not have the expected content");
+            (expected ?? new string[] { }).Should().BeEquivalentTo(actualLines, "Log file does not have the expected content");
         }
 
         public static string AssertLogFileExists(string logFilePath, TestContext testContext)
         {
-            Assert.IsTrue(File.Exists(logFilePath), "Expecting the dummy exe log to exist. File: {0}", logFilePath);
+            File.Exists(logFilePath).Should().BeTrue("Expecting the dummy exe log to exist. File: {0}", logFilePath);
             testContext.AddResultFile(logFilePath);
             return logFilePath;
         }
@@ -115,7 +116,7 @@ namespace TestUtilities
         {
             var logFilePath = GetLogFilePath(dummyBinDir, exeName);
 
-            Assert.IsFalse(File.Exists(logFilePath), "Not expecting the dummy exe log to exist. File: {0}", logFilePath);
+            File.Exists(logFilePath).Should().BeFalse("Not expecting the dummy exe log to exist. File: {0}", logFilePath);
             return logFilePath;
         }
 
@@ -161,6 +162,7 @@ namespace TestUtilities
                 {
                     Console.WriteLine(item);
                 }
+
                 Assert.Fail("Test setup error: failed to create dynamic assembly. See the test output for compiler output");
             }
         }

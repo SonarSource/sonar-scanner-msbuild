@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using FluentAssertions;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -70,16 +71,16 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var reloadedProjectInfo = ExecuteAndCheckSucceeds(task, testFolder);
 
             // Addition assertions
-            Assert.IsNotNull(reloadedProjectInfo, "Supplied ProjectInfo should not be null");
-            Assert.AreEqual("c:\\fullPath\\project.proj", reloadedProjectInfo.FullPath, "Unexpected FullPath");
-            Assert.AreEqual(ProjectLanguages.CSharp, reloadedProjectInfo.ProjectLanguage, "Unexpected ProjectLanguage");
-            Assert.AreEqual(ProjectType.Test, reloadedProjectInfo.ProjectType, "Unexpected ProjectType");
-            Assert.AreEqual(projectGuid, reloadedProjectInfo.ProjectGuid, "Unexpected ProjectGuid");
-            Assert.AreEqual("MyProject", reloadedProjectInfo.ProjectName, "Unexpected ProjectName");
-            Assert.IsFalse(reloadedProjectInfo.IsExcluded, "Unexpected IsExcluded");
-            Assert.AreEqual("conf-1", reloadedProjectInfo.Configuration);
-            Assert.AreEqual("plat-1", reloadedProjectInfo.Platform);
-            Assert.AreEqual("target-1", reloadedProjectInfo.TargetFramework);
+            reloadedProjectInfo.Should().NotBeNull("Supplied ProjectInfo should not be null");
+            reloadedProjectInfo.FullPath.Should().Be("c:\\fullPath\\project.proj", "Unexpected FullPath");
+            reloadedProjectInfo.ProjectLanguage.Should().Be(ProjectLanguages.CSharp, "Unexpected ProjectLanguage");
+            reloadedProjectInfo.ProjectType.Should().Be(ProjectType.Test, "Unexpected ProjectType");
+            reloadedProjectInfo.ProjectGuid.Should().Be(projectGuid, "Unexpected ProjectGuid");
+            reloadedProjectInfo.ProjectName.Should().Be("MyProject", "Unexpected ProjectName");
+            reloadedProjectInfo.IsExcluded.Should().BeFalse("Unexpected IsExcluded");
+            reloadedProjectInfo.Configuration.Should().Be("conf-1");
+            reloadedProjectInfo.Platform.Should().Be("plat-1");
+            reloadedProjectInfo.TargetFramework.Should().Be("target-1");
         }
 
         [TestMethod]
@@ -227,15 +228,15 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var success = task.Execute();
 
             // Assert
-            Assert.IsTrue(success, "Not expecting the task to fail as this would fail the build");
+            success.Should().BeTrue("Not expecting the task to fail as this would fail the build");
             engine.AssertNoErrors();
-            Assert.AreEqual(1, engine.Warnings.Count, "Expecting a build warning as the ProjectGuid is missing");
+            engine.Warnings.Should().HaveCount(1, "Expecting a build warning as the ProjectGuid is missing");
 
             var firstWarning = engine.Warnings[0];
-            Assert.IsNotNull(firstWarning.Message, "Warning message should not be null");
+            firstWarning.Message.Should().NotBeNull("Warning message should not be null");
 
             var projectInfoFilePath = Path.Combine(testFolder, ExpectedProjectInfoFileName);
-            Assert.IsTrue(File.Exists(projectInfoFilePath), "Expecting the project info file to have been created");
+            File.Exists(projectInfoFilePath).Should().BeTrue("Expecting the project info file to have been created");
         }
 
         [TestMethod]
@@ -264,16 +265,16 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var reloadedProjectInfo = ExecuteAndCheckSucceeds(task, testFolder);
 
             // Addition assertions
-            Assert.IsNotNull(reloadedProjectInfo, "Supplied ProjectInfo should not be null");
-            Assert.AreEqual("c:\\fullPath\\project.proj", reloadedProjectInfo.FullPath, "Unexpected FullPath");
-            Assert.AreEqual(ProjectLanguages.CSharp, reloadedProjectInfo.ProjectLanguage, "Unexpected ProjectLanguage");
-            Assert.AreEqual(ProjectType.Test, reloadedProjectInfo.ProjectType, "Unexpected ProjectType");
-            Assert.AreEqual(projectGuid, reloadedProjectInfo.ProjectGuid, "Unexpected ProjectGuid");
-            Assert.AreEqual("ProjectWithoutProjectGuid", reloadedProjectInfo.ProjectName, "Unexpected ProjectName");
-            Assert.IsFalse(reloadedProjectInfo.IsExcluded, "Unexpected IsExcluded");
-            Assert.IsNull(reloadedProjectInfo.Configuration);
-            Assert.IsNull(reloadedProjectInfo.Platform);
-            Assert.IsNull(reloadedProjectInfo.TargetFramework);
+            reloadedProjectInfo.Should().NotBeNull("Supplied ProjectInfo should not be null");
+            reloadedProjectInfo.FullPath.Should().Be("c:\\fullPath\\project.proj", "Unexpected FullPath");
+            reloadedProjectInfo.ProjectLanguage.Should().Be(ProjectLanguages.CSharp, "Unexpected ProjectLanguage");
+            reloadedProjectInfo.ProjectType.Should().Be(ProjectType.Test, "Unexpected ProjectType");
+            reloadedProjectInfo.ProjectGuid.Should().Be(projectGuid, "Unexpected ProjectGuid");
+            reloadedProjectInfo.ProjectName.Should().Be("ProjectWithoutProjectGuid", "Unexpected ProjectName");
+            reloadedProjectInfo.IsExcluded.Should().BeFalse("Unexpected IsExcluded");
+            reloadedProjectInfo.Configuration.Should().BeNull();
+            reloadedProjectInfo.Platform.Should().BeNull();
+            reloadedProjectInfo.TargetFramework.Should().BeNull();
         }
 
         [TestMethod]
@@ -294,14 +295,14 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             };
 
             var actual = ExecuteAndCheckSucceeds(task, task.OutputFolder);
-            Assert.IsNull(actual.ProjectLanguage, "Expecting the language to be null");
+            actual.ProjectLanguage.Should().BeNull("Expecting the language to be null");
 
             // 2. Unrecognized language
             task.ProjectLanguage = "unrecognized language";
             task.OutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "unrecog.language");
 
             actual = ExecuteAndCheckSucceeds(task, task.OutputFolder);
-            Assert.AreEqual("unrecognized language", actual.ProjectLanguage, "Unexpected value for project language");
+            actual.ProjectLanguage.Should().Be("unrecognized language", "Unexpected value for project language");
         }
 
         [TestMethod]
@@ -332,7 +333,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var actual = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, expectedEncoding.CodePage, "whatever", "foo");
 
             // Assert
-            Assert.AreEqual(actual.Encoding, expectedEncoding.WebName, "unexpected encoding");
+            expectedEncoding.WebName.Should().Be(actual.Encoding, "unexpected encoding");
         }
 
         [TestMethod]
@@ -356,7 +357,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var actual = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "whatever", "foo9");
 
             // Assert
-            Assert.AreEqual(null, actual.Encoding, "unexpected encoding");
+            actual.Encoding.Should().BeNull("unexpected encoding");
         }
 
         [TestMethod]
@@ -380,7 +381,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var actual = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "whatever", "foo10");
 
             // Assert
-            Assert.AreEqual(null, actual.Encoding, "unexpected encoding");
+            actual.Encoding.Should().BeNull("unexpected encoding");
         }
 
         [TestMethod]
@@ -405,7 +406,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var actual = WriteProjectInfoFile_ExecuteAndReturn(encodingProvider, codePage, "whatever", "foo11");
 
             // Assert
-            Assert.AreEqual(null, actual.Encoding, "unexpected encoding");
+            actual.Encoding.Should().BeNull("unexpected encoding");
         }
 
         private ProjectInfo WriteProjectInfoFile_ExecuteAndReturn(IEncodingProvider encodingProvider, decimal? codePage, string projectLanguage, string folderName)
@@ -463,7 +464,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var actual = testSubject.GetProjectGuid();
 
             // Assert
-            Assert.AreEqual(null, actual);
+            actual.Should().BeNull();
         }
 
         [TestMethod]
@@ -477,7 +478,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var actual = testSubject.GetProjectGuid();
 
             // Assert
-            Assert.AreEqual(expectedGuid, actual);
+            actual.Should().Be(expectedGuid);
         }
 
         [TestMethod]
@@ -510,7 +511,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var actual = testSubject.GetProjectGuid();
 
             // Assert
-            Assert.AreEqual(expectedGuid, actual);
+            actual.Should().Be(expectedGuid);
         }
 
         [TestMethod]
@@ -530,7 +531,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var actual = testSubject.GetProjectGuid();
 
             // Assert
-            Assert.AreEqual(null, actual);
+            actual.Should().BeNull();
         }
 
         [TestMethod]
@@ -550,7 +551,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var actual = testSubject.GetProjectGuid();
 
             // Assert
-            Assert.AreEqual(null, actual);
+            actual.Should().BeNull();
         }
 
         [TestMethod]
@@ -572,7 +573,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var actual = testSubject.GetProjectGuid();
 
             // Assert
-            Assert.AreEqual(expectedGuid, actual);
+            actual.Should().Be(expectedGuid);
         }
 
         #endregion Tests
@@ -597,7 +598,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         {
             ITaskItem item = new TaskItem(itemSpec);
             Math.DivRem(idAndValuePairs.Length, 2, out int remainder);
-            Assert.AreEqual(0, remainder, "Test setup error: the supplied list should contain id-location pairs");
+            remainder.Should().Be(0, "Test setup error: the supplied list should contain id-location pairs");
 
             for (var index = 0; index < idAndValuePairs.Length; index += 2)
             {
@@ -613,55 +614,55 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         private ProjectInfo ExecuteAndCheckSucceeds(Task task, string testFolder)
         {
             var expectedOutputFile = Path.Combine(testFolder, ExpectedProjectInfoFileName);
-            Assert.IsFalse(File.Exists(expectedOutputFile), "Test error: output file should not exist before the task is executed");
+            File.Exists(expectedOutputFile).Should().BeFalse("Test error: output file should not exist before the task is executed");
 
             var result = task.Execute();
 
-            Assert.IsTrue(result, "Expecting the task execution to succeed");
-            Assert.IsTrue(File.Exists(expectedOutputFile), "Expected output file was not created by the task. Expected: {0}", expectedOutputFile);
+            result.Should().BeTrue("Expecting the task execution to succeed");
+            File.Exists(expectedOutputFile).Should().BeTrue("Expected output file was not created by the task. Expected: {0}", expectedOutputFile);
             TestContext.AddResultFile(expectedOutputFile);
 
             var reloadedProjectInfo = ProjectInfo.Load(expectedOutputFile);
-            Assert.IsNotNull(reloadedProjectInfo, "Not expecting the reloaded project info file to be null");
+            reloadedProjectInfo.Should().NotBeNull("Not expecting the reloaded project info file to be null");
             return reloadedProjectInfo;
         }
 
         private static void AssertAnalysisResultExists(ProjectInfo actual, string expectedId, string expectedLocation)
         {
-            Assert.IsNotNull(actual, "Supplied project info should not be null");
-            Assert.IsNotNull(actual.AnalysisResults, "AnalysisResults should not be null");
+            actual.Should().NotBeNull("Supplied project info should not be null");
+            actual.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
 
             var result = actual.AnalysisResults.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
-            Assert.IsNotNull(result, "AnalysisResult with the expected id does not exist. Id: {0}", expectedId);
+            result.Should().NotBeNull("AnalysisResult with the expected id does not exist. Id: {0}", expectedId);
 
-            Assert.AreEqual(expectedLocation, result.Location, "Analysis result does not have the expected location");
+            result.Location.Should().Be(expectedLocation, "Analysis result does not have the expected location");
         }
 
         private static void AssertExpectedAnalysisResultCount(int count, ProjectInfo actual)
         {
-            Assert.IsNotNull(actual, "Supplied project info should not be null");
-            Assert.IsNotNull(actual.AnalysisResults, "AnalysisResults should not be null");
+            actual.Should().NotBeNull("Supplied project info should not be null");
+            actual.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
 
-            Assert.AreEqual(count, actual.AnalysisResults.Count, "Unexpected number of AnalysisResult items");
+            actual.AnalysisResults.Should().HaveCount(count, "Unexpected number of AnalysisResult items");
         }
 
         private static void AssertAnalysisSettingExists(ProjectInfo actual, string expectedId, string expectedValue)
         {
-            Assert.IsNotNull(actual, "Supplied project info should not be null");
-            Assert.IsNotNull(actual.AnalysisSettings, "AnalysisSettings should not be null");
+            actual.Should().NotBeNull("Supplied project info should not be null");
+            actual.AnalysisSettings.Should().NotBeNull("AnalysisSettings should not be null");
 
             var setting = actual.AnalysisSettings.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
-            Assert.IsNotNull(setting, "AnalysisSetting with the expected id does not exist. Id: {0}", expectedId);
+            setting.Should().NotBeNull("AnalysisSetting with the expected id does not exist. Id: {0}", expectedId);
 
-            Assert.AreEqual(expectedValue, setting.Value, "Setting does not have the expected value");
+            setting.Value.Should().Be(expectedValue, "Setting does not have the expected value");
         }
 
         private static void AssertExpectedAnalysisSettingsCount(int count, ProjectInfo actual)
         {
-            Assert.IsNotNull(actual, "Supplied project info should not be null");
-            Assert.IsNotNull(actual.AnalysisSettings, "AnalysisSettings should not be null");
+            actual.Should().NotBeNull("Supplied project info should not be null");
+            actual.AnalysisSettings.Should().NotBeNull("AnalysisSettings should not be null");
 
-            Assert.AreEqual(count, actual.AnalysisSettings.Count, "Unexpected number of AnalysisSettings items");
+            actual.AnalysisSettings.Should().HaveCount(count, "Unexpected number of AnalysisSettings items");
         }
 
         #endregion Checks
