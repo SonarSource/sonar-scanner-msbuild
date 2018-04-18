@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -39,8 +40,11 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             IAnalysisPropertyProvider provider;
 
-            AssertException.Expects<ArgumentNullException>(() => CmdLineArgPropertyProvider.TryCreateProvider(null, new TestLogger(), out provider));
-            AssertException.Expects<ArgumentNullException>(() => CmdLineArgPropertyProvider.TryCreateProvider(Enumerable.Empty<ArgumentInstance>(), null, out provider));
+            Action act = () => CmdLineArgPropertyProvider.TryCreateProvider(null, new TestLogger(), out provider);
+            act.ShouldThrowExactly<ArgumentNullException>();
+
+            act = () => CmdLineArgPropertyProvider.TryCreateProvider(Enumerable.Empty<ArgumentInstance>(), null, out provider);
+            act.ShouldThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -49,7 +53,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             var provider = CheckProcessingSucceeds(Enumerable.Empty<ArgumentInstance>(), new TestLogger());
 
-            Assert.AreEqual(0, provider.GetAllProperties().Count(), "Not expecting any properties");
+            provider.GetAllProperties().Should().BeEmpty("Not expecting any properties");
         }
 
         [TestMethod]
@@ -187,8 +191,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var logger = new TestLogger();
 
             var success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out IAnalysisPropertyProvider provider);
-            Assert.IsFalse(success, "Not expecting the provider to be created");
-            Assert.IsNull(provider, "Expecting the provider to be null is processing fails");
+            success.Should().BeFalse("Not expecting the provider to be created");
+            provider.Should().BeNull("Expecting the provider to be null is processing fails");
             logger.AssertErrorsLogged();
 
             return logger;
@@ -198,8 +202,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             var success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out IAnalysisPropertyProvider provider);
 
-            Assert.IsTrue(success, "Expected processing to succeed");
-            Assert.IsNotNull(provider, "Not expecting a null provider when processing succeeds");
+            success.Should().BeTrue("Expected processing to succeed");
+            provider.Should().NotBeNull("Not expecting a null provider when processing succeeds");
             logger.AssertErrorsLogged(0);
 
             return provider;

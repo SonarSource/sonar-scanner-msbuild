@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarScanner.MSBuild.PreProcessor.UnitTests
@@ -76,7 +77,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             expected.AppendLine("  </Rules>");
             expected.AppendLine("</RuleSet>");
 
-            Assert.AreEqual(expected.ToString(), actual);
+            actual.Should().Be(expected.ToString());
         }
     }
 }

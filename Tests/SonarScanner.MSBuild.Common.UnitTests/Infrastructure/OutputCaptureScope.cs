@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarScanner.MSBuild.Common.UnitTests
@@ -60,29 +61,29 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void AssertExpectedLastMessage(string expected)
         {
             var lastMessage = GetLastMessage(outputWriter);
-            Assert.AreEqual(expected, lastMessage, "Expected message was not logged");
+            lastMessage.Should().Be(expected, "Expected message was not logged");
         }
 
         public void AssertLastMessageEndsWith(string expected)
         {
             var lastMessage = GetLastMessage(outputWriter);
 
-            Assert.IsTrue(lastMessage.EndsWith(expected, StringComparison.CurrentCulture), "Message does not end with the expected string: '{0}'", lastMessage);
-            Assert.IsTrue(lastMessage.Length > expected.Length, "Expecting the message to be prefixed with timestamps text");
+            lastMessage.EndsWith(expected, StringComparison.CurrentCulture).Should().BeTrue("Message does not end with the expected string: '{0}'", lastMessage);
+            lastMessage.Length.Should().BeGreaterThan(expected.Length, "Expecting the message to be prefixed with timestamps text");
         }
 
         public void AssertExpectedLastError(string expected)
         {
             var last = GetLastMessage(errorWriter);
-            Assert.AreEqual(expected, last, "Expected error was not logged");
+            last.Should().Be(expected, "Expected error was not logged");
         }
 
         public void AssertLastErrorEndsWith(string expected)
         {
             var last = GetLastMessage(errorWriter);
 
-            Assert.IsTrue(last.EndsWith(expected, StringComparison.CurrentCulture), "Error does not end with the expected string: '{0}'", last);
-            Assert.IsTrue(last.Length > expected.Length, "Expecting the error to be prefixed with timestamps text");
+            last.EndsWith(expected, StringComparison.CurrentCulture).Should().BeTrue("Error does not end with the expected string: '{0}'", last);
+            last.Length.Should().BeGreaterThan(expected.Length, "Expecting the error to be prefixed with timestamps text");
         }
 
         #endregion Assertions
@@ -133,11 +134,11 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var allText = writer.GetStringBuilder().ToString();
             var lines = allText.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
 
-            Assert.IsTrue(lines.Length > 1, "No output written");
+            lines.Length.Should().BeGreaterThan(1, "No output written");
 
             // There will always be at least one entry in the array, even in an empty string.
             // The last line should be an empty string that follows the final new line character.
-            Assert.AreEqual(string.Empty, lines[lines.Length - 1], "Test logic error: expecting the last array entry to be an empty string");
+            lines[lines.Length - 1].Should().Be(string.Empty, "Test logic error: expecting the last array entry to be an empty string");
 
             return lines[lines.Length - 2];
         }

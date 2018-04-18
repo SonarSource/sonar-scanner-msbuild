@@ -148,24 +148,24 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
 
-            Assert.AreEqual("valid.key", actualConfig.SonarProjectKey);
-            Assert.AreEqual("valid.name", actualConfig.SonarProjectName);
-            Assert.AreEqual("1.0", actualConfig.SonarProjectVersion);
+            actualConfig.SonarProjectKey.Should().Be("valid.key");
+            actualConfig.SonarProjectName.Should().Be("valid.name");
+            actualConfig.SonarProjectVersion.Should().Be("1.0");
 
-            Assert.AreEqual("http://foo", actualConfig.SonarQubeHostUrl);
+            actualConfig.SonarQubeHostUrl.Should().Be("http://foo");
 
-            Assert.AreEqual(tbSettings.SonarBinDirectory, actualConfig.SonarBinDir);
-            Assert.AreEqual(tbSettings.SonarConfigDirectory, actualConfig.SonarConfigDir);
-            Assert.AreEqual(tbSettings.SonarOutputDirectory, actualConfig.SonarOutputDir);
-            Assert.AreEqual(tbSettings.SonarScannerWorkingDirectory, actualConfig.SonarScannerWorkingDirectory);
-            Assert.AreEqual(tbSettings.BuildUri, actualConfig.GetBuildUri());
-            Assert.AreEqual(tbSettings.TfsUri, actualConfig.GetTfsUri());
+            actualConfig.SonarBinDir.Should().Be(tbSettings.SonarBinDirectory);
+            actualConfig.SonarConfigDir.Should().Be(tbSettings.SonarConfigDirectory);
+            actualConfig.SonarOutputDir.Should().Be(tbSettings.SonarOutputDirectory);
+            actualConfig.SonarScannerWorkingDirectory.Should().Be(tbSettings.SonarScannerWorkingDirectory);
+            actualConfig.GetBuildUri().Should().Be(tbSettings.BuildUri);
+            actualConfig.GetTfsUri().Should().Be(tbSettings.TfsUri);
 
-            Assert.IsNotNull(actualConfig.ServerSettings);
+            actualConfig.ServerSettings.Should().NotBeNull();
             var serverProperty = actualConfig.ServerSettings.SingleOrDefault(s => string.Equals(s.Id, "server.key.1", System.StringComparison.Ordinal));
-            Assert.IsNotNull(serverProperty);
-            Assert.AreEqual("server.value.1", serverProperty.Value);
-            Assert.AreSame(analyzerSettings, actualConfig.AnalyzersSettings[0]);
+            serverProperty.Should().NotBeNull();
+            serverProperty.Value.Should().Be("server.value.1");
+            actualConfig.AnalyzersSettings[0].Should().Be(analyzerSettings);
         }
 
         [TestMethod]
@@ -204,13 +204,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             logger.AssertWarningsLogged(0);
 
             var actualSettingsFilePath = actualConfig.GetSettingsFilePath();
-            Assert.AreEqual(settingsFilePath, actualSettingsFilePath, "Unexpected settings file path");
+            actualSettingsFilePath.Should().Be(settingsFilePath, "Unexpected settings file path");
 
             // Check the file setting value do not appear in the config file
             AssertFileDoesNotContainText(actualConfig.FileName, "file.only");
 
-            Assert.AreEqual(settings.SourcesDirectory, actualConfig.SourcesDirectory);
-            Assert.AreEqual(settings.SonarScannerWorkingDirectory, actualConfig.SonarScannerWorkingDirectory);
+            actualConfig.SourcesDirectory.Should().Be(settings.SourcesDirectory);
+            actualConfig.SonarScannerWorkingDirectory.Should().Be(settings.SonarScannerWorkingDirectory);
             AssertExpectedLocalSetting(SonarProperties.Organization, "organization", actualConfig);
         }
 
@@ -272,9 +272,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             // Check the config
 
             // "Public" arguments should be in the file
-            Assert.AreEqual("key", config.SonarProjectKey, "Unexpected project key");
-            Assert.AreEqual("name", config.SonarProjectName, "Unexpected project name");
-            Assert.AreEqual("1.0", config.SonarProjectVersion, "Unexpected project version");
+            config.SonarProjectKey.Should().Be("key", "Unexpected project key");
+            config.SonarProjectName.Should().Be("name", "Unexpected project name");
+            config.SonarProjectVersion.Should().Be("1.0", "Unexpected project version");
 
             AssertExpectedLocalSetting(SonarProperties.HostUrl, "http://host", config);
             AssertExpectedLocalSetting("sonar.user.license.secured", "user input license", config); // we only filter out *.secured server settings
@@ -306,7 +306,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             // Assert
             AssertConfigFileExists(config);
-            Assert.IsTrue(config.HasBeginStepCommandLineCredentials);
+            config.HasBeginStepCommandLineCredentials.Should().BeTrue();
         }
 
         [TestMethod]
@@ -327,7 +327,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             // Assert
             AssertConfigFileExists(config);
-            Assert.IsFalse(config.HasBeginStepCommandLineCredentials);
+            config.HasBeginStepCommandLineCredentials.Should().BeFalse();
         }
 
         [TestMethod]
@@ -357,10 +357,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         private void AssertConfigFileExists(AnalysisConfig config)
         {
-            Assert.IsNotNull(config, "Supplied config should not be null");
+            config.Should().NotBeNull("Supplied config should not be null");
 
-            Assert.IsFalse(string.IsNullOrWhiteSpace(config.FileName), "Config file name should be set");
-            Assert.IsTrue(File.Exists(config.FileName), "Expecting the analysis config file to exist. Path: {0}", config.FileName);
+            string.IsNullOrWhiteSpace(config.FileName).Should().BeFalse("Config file name should be set");
+            File.Exists(config.FileName).Should().BeTrue("Expecting the analysis config file to exist. Path: {0}", config.FileName);
 
             TestContext.AddResultFile(config.FileName);
         }
@@ -368,31 +368,31 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         private static void AssertSettingDoesNotExist(string key, AnalysisConfig actualConfig)
         {
             var found = actualConfig.GetAnalysisSettings(true).TryGetProperty(key, out Property setting);
-            Assert.IsFalse(found, "The setting should not exist. Key: {0}", key);
+            found.Should().BeFalse("The setting should not exist. Key: {0}", key);
         }
 
         private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
             var found = Property.TryGetProperty(key, actualConfig.ServerSettings, out Property property);
 
-            Assert.IsTrue(found, "Expected server property was not found. Key: {0}", key);
-            Assert.AreEqual(expectedValue, property.Value, "Unexpected server value. Key: {0}", key);
+            found.Should().BeTrue("Expected server property was not found. Key: {0}", key);
+            property.Value.Should().Be(expectedValue, "Unexpected server value. Key: {0}", key);
         }
 
         private static void AssertExpectedLocalSetting(string key, string expectedValue, AnalysisConfig acutalConfig)
         {
             var found = Property.TryGetProperty(key, acutalConfig.LocalSettings, out Property property);
 
-            Assert.IsTrue(found, "Expected local property was not found. Key: {0}", key);
-            Assert.AreEqual(expectedValue, property.Value, "Unexpected local value. Key: {0}", key);
+            found.Should().BeTrue("Expected local property was not found. Key: {0}", key);
+            property.Value.Should().Be(expectedValue, "Unexpected local value. Key: {0}", key);
         }
 
         private static void AssertFileDoesNotContainText(string filePath, string text)
         {
-            Assert.IsTrue(File.Exists(filePath), "File should exist: {0}", filePath);
+            File.Exists(filePath).Should().BeTrue("File should exist: {0}", filePath);
 
             var content = File.ReadAllText(filePath);
-            Assert.IsTrue(content.IndexOf(text, System.StringComparison.InvariantCultureIgnoreCase) < 0, "Not expecting text to be found in the file. Text: '{0}', file: {1}",
+            content.IndexOf(text, System.StringComparison.InvariantCultureIgnoreCase).Should().BeLessThan(0, "Not expecting text to be found in the file. Text: '{0}', file: {1}",
                 text, filePath);
         }
 

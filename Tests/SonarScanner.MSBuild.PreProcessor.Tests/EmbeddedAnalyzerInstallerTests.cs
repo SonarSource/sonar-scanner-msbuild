@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using TestUtilities;
@@ -56,7 +57,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
 
             // Assert
-            Assert.IsNotNull(actualFiles, "Returned list should not be null");
+            actualFiles.Should().NotBeNull("Returned list should not be null");
             AssertExpectedFilesReturned(expectedFilePaths, actualFiles);
             AssertExpectedFilesExist(expectedFilePaths);
             AssertExpectedFilesInCache(4, localCacheDir); // one zip containing two files
@@ -87,10 +88,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
 
             // Act
-            var actualFiles = testSubject.InstallAssemblies(new Plugin[] { request1, request2, request3, request4});
+            var actualFiles = testSubject.InstallAssemblies(new Plugin[] { request1, request2, request3, request4 });
 
             // Assert
-            Assert.IsNotNull(actualFiles, "Returned list should not be null");
+            actualFiles.Should().NotBeNull("Returned list should not be null");
             AssertExpectedFilesReturned(expectedPaths, actualFiles);
             AssertExpectedFilesExist(expectedPaths);
             // 4 = zip files + index file
@@ -114,7 +115,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
 
             // Assert
-            Assert.IsNotNull(actualFiles, "Returned list should not be null");
+            actualFiles.Should().NotBeNull("Returned list should not be null");
             AssertExpectedFilesReturned(Enumerable.Empty<string>(), actualFiles);
             AssertExpectedFilesInCache(1, localCacheDir);  // the index file
 
@@ -136,7 +137,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var actualFiles = testSubject.InstallAssemblies(new Plugin[] { });
 
             // Assert
-            Assert.IsNotNull(actualFiles, "Returned list should not be null");
+            actualFiles.Should().NotBeNull("Returned list should not be null");
             AssertExpectedFilesReturned(Enumerable.Empty<string>(), actualFiles);
             AssertExpectedFilesInCache(0, localCacheDir);
         }
@@ -192,7 +193,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             // 4. Clear the cache and request both -> cache miss -> multiple requests
             Directory.Delete(localCacheDir, true);
-            Assert.IsFalse(Directory.Exists(localCacheDir), "Test error: failed to delete the local cache directory");
+            Directory.Exists(localCacheDir).Should().BeFalse("Test error: failed to delete the local cache directory");
 
             actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
             mockServer.AssertMethodCalled(DownloadEmbeddedFileMethodName, 4); // two new requests
@@ -243,10 +244,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             foreach (var expected in expectedFileNames)
             {
-                Assert.IsTrue(actualFilePaths.Contains(expected, StringComparer.OrdinalIgnoreCase), "Expected file does not exist: {0}", expected);
+                actualFilePaths.Contains(expected, StringComparer.OrdinalIgnoreCase).Should().BeTrue("Expected file does not exist: {0}", expected);
             }
 
-            Assert.AreEqual(expectedFileNames.Count(), actualFilePaths.Count(), "Too many files returned");
+            actualFilePaths.Should().HaveSameCount(expectedFileNames, "Too many files returned");
         }
 
         private void DumpFileList(string title, IEnumerable<string> files)
@@ -265,14 +266,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             foreach (var expected in expectedFileNames)
             {
-                Assert.IsTrue(File.Exists(expected), "Expected file does not exist: {0}", expected);
+                File.Exists(expected).Should().BeTrue("Expected file does not exist: {0}", expected);
             }
         }
 
         private static void AssertExpectedFilesInCache(int expected, string localCacheDir)
         {
             var allActualFiles = Directory.GetFiles(localCacheDir, "*.*", SearchOption.AllDirectories);
-            Assert.AreEqual(expected, allActualFiles.Count(), "Too many files found in the cache directory");
+            allActualFiles.Should().HaveCount(expected, "Too many files found in the cache directory");
         }
 
         #endregion Private methods

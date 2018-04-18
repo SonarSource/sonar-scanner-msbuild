@@ -20,6 +20,7 @@
 
 using System.Diagnostics;
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -46,7 +47,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             AnalysisConfig result = null;
             PerformOpOnLockedFile(configFile, () => result = TaskUtilities.TryGetConfig(testFolder, logger), shouldTimeoutReadingConfig: false);
 
-            Assert.IsNotNull(result, "Expecting the config to have been loaded");
+            result.Should().NotBeNull("Expecting the config to have been loaded");
 
             AssertRetryAttempted(logger);
             logger.AssertWarningsLogged(0);
@@ -68,7 +69,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             PerformOpOnLockedFile(configFile, () => result = TaskUtilities.TryGetConfig(testFolder, logger), shouldTimeoutReadingConfig: true);
 
-            Assert.IsNull(result, "Not expecting the config to be retrieved");
+            result.Should().BeNull("Not expecting the config to be retrieved");
 
             AssertRetryAttempted(logger);
             logger.AssertWarningsLogged(0);
@@ -83,15 +84,15 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             // 1. Null -> no error
             var actual = TaskUtilities.TryGetConfig(null, logger);
-            Assert.IsNull(actual);
+            actual.Should().BeNull();
 
             // 2. Empty -> no error
             actual = TaskUtilities.TryGetConfig(string.Empty, logger);
-            Assert.IsNull(actual);
+            actual.Should().BeNull();
 
             // 3. Missing -> no error
             actual = TaskUtilities.TryGetConfig("c:\\missing\\dir", logger);
-            Assert.IsNull(actual);
+            actual.Should().BeNull();
         }
 
         #endregion Tests
@@ -106,7 +107,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         /// <param name="shouldTimeoutReadingConfig">When the operation should timeout or not</param>
         public static void PerformOpOnLockedFile(string configFile, System.Action op, bool shouldTimeoutReadingConfig)
         {
-            Assert.IsTrue(File.Exists(configFile), "Test setup error: specified config file should exist: {0}", configFile);
+            File.Exists(configFile).Should().BeTrue("Test setup error: specified config file should exist: {0}", configFile);
 
             int lockPeriodInMilliseconds;
             if (shouldTimeoutReadingConfig)
@@ -118,7 +119,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 // We'll lock the file and sleep for long enough for the retry period to occur, but
                 // not so long that the task times out
                 lockPeriodInMilliseconds = 1000;
-                Assert.IsTrue(lockPeriodInMilliseconds < TaskUtilities.MaxConfigRetryPeriodInMilliseconds, "Test setup error: the test is sleeping for too long");
+                lockPeriodInMilliseconds.Should().BeLessThan(TaskUtilities.MaxConfigRetryPeriodInMilliseconds, "Test setup error: the test is sleeping for too long");
             }
 
             var testDuration = Stopwatch.StartNew();
@@ -138,7 +139,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Sanity check for our test code
             testDuration.Stop();
             var expectedMinimumLockPeriod = System.Math.Min(TaskUtilities.MaxConfigRetryPeriodInMilliseconds, lockPeriodInMilliseconds);
-            Assert.IsTrue(testDuration.ElapsedMilliseconds >= expectedMinimumLockPeriod, "Test error: expecting the test to have taken at least {0} milliseconds to run. Actual: {1}",
+            testDuration.ElapsedMilliseconds.Should().BeGreaterOrEqualTo(expectedMinimumLockPeriod, "Test error: expecting the test to have taken at least {0} milliseconds to run. Actual: {1}",
                 expectedMinimumLockPeriod, testDuration.ElapsedMilliseconds);
         }
 

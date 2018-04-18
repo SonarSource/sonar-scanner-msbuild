@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
@@ -45,7 +46,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void AssertMethodCalled(string methodName, int callCount)
         {
             var actualCalls = calledMethods.Count(n => string.Equals(methodName, n));
-            Assert.AreEqual(callCount, actualCalls, "Method was not called the expected number of times");
+            actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
         }
 
         #endregion Assertions
@@ -56,7 +57,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             LogMethodCalled();
 
-            Assert.IsFalse(string.IsNullOrEmpty(qprofile), "Quality profile is required");
+            string.IsNullOrEmpty(qprofile).Should().BeFalse("Quality profile is required");
 
             var profile = Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qprofile));
             if (profile == null)
@@ -69,7 +70,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         IList<string> ISonarQubeServer.GetInactiveRules(string qprofile, string language)
         {
             LogMethodCalled();
-            Assert.IsFalse(string.IsNullOrEmpty(qprofile), "Quality profile is required");
+            string.IsNullOrEmpty(qprofile).Should().BeFalse("Quality profile is required");
             var profile = Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qprofile));
             if (profile == null)
             {
@@ -89,7 +90,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             LogMethodCalled();
 
-            Assert.IsFalse(string.IsNullOrEmpty(projectKey), "Project key is required");
+            string.IsNullOrEmpty(projectKey).Should().BeFalse("Project key is required");
 
             return Data.ServerProperties;
         }
@@ -98,8 +99,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             LogMethodCalled();
 
-            Assert.IsFalse(string.IsNullOrEmpty(projectKey), "Project key is required");
-            Assert.IsFalse(string.IsNullOrEmpty(language), "Language is required");
+            string.IsNullOrEmpty(projectKey).Should().BeFalse("Project key is required");
+            string.IsNullOrEmpty(language).Should().BeFalse("Language is required");
 
             var projectId = projectKey;
             if (!string.IsNullOrWhiteSpace(projectBranch))
@@ -118,9 +119,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             LogMethodCalled();
 
-            Assert.IsFalse(string.IsNullOrEmpty(pluginKey), "plugin key is required");
-            Assert.IsFalse(string.IsNullOrEmpty(embeddedFileName), "embeddedFileName is required");
-            Assert.IsFalse(string.IsNullOrEmpty(targetDirectory), "targetDirectory is required");
+            string.IsNullOrEmpty(pluginKey).Should().BeFalse("plugin key is required");
+            string.IsNullOrEmpty(embeddedFileName).Should().BeFalse("embeddedFileName is required");
+            string.IsNullOrEmpty(targetDirectory).Should().BeFalse("targetDirectory is required");
 
             var data = Data.FindEmbeddedFile(pluginKey, embeddedFileName);
             if (data == null)

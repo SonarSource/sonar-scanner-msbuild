@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args)
         {
-            Assert.IsNotNull(args);
+            args.Should().NotBeNull();
 
             return server;
         }

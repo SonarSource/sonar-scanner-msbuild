@@ -110,7 +110,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             // Assert
             var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
-            Assert.IsTrue(settingsFileContent.Contains("sonar.sourceEncoding=test-encoding-here"), "Command line parameter 'sonar.sourceEncoding' is ignored.");
+            settingsFileContent.Should().Contain("sonar.sourceEncoding=test-encoding-here", "Command line parameter 'sonar.sourceEncoding' is ignored.");
             logger.DebugMessages.Should().Contain(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
         }
 
@@ -136,8 +136,8 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             // Assert
             var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
-            Assert.IsTrue(settingsFileContent.Contains("sonar.cs.vscoveragexml.reportsPaths=coverage-path"));
-            Assert.IsTrue(settingsFileContent.Contains("sonar.cs.vstest.reportsPaths=trx-path"));
+            settingsFileContent.Should().Contain("sonar.cs.vscoveragexml.reportsPaths=coverage-path");
+            settingsFileContent.Should().Contain("sonar.cs.vstest.reportsPaths=trx-path");
             logger.DebugMessages.Should().Contain(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
         }
 
@@ -169,7 +169,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var result = new PropertiesFileGenerator(config, logger, mockSarifFixer).GenerateFile();
 
             // Assert
-            Assert.AreEqual(1, mockSarifFixer.CallCount);
+             mockSarifFixer.CallCount.Should().Be(1);
 
             // Already valid SARIF -> no change in file -> unchanged property
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
@@ -208,8 +208,8 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var result = new PropertiesFileGenerator(config, logger, mockSarifFixer).GenerateFile();
 
             // Assert
-            Assert.AreEqual(1, mockSarifFixer.CallCount);
-            Assert.AreEqual(RoslynV1SarifFixer.CSharpLanguage, mockSarifFixer.LastLanguage);
+             mockSarifFixer.CallCount.Should().Be(1);
+             mockSarifFixer.LastLanguage.Should().Be(RoslynV1SarifFixer.CSharpLanguage);
 
             // Fixable SARIF -> new file saved -> changed property
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
@@ -248,8 +248,8 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var result = new PropertiesFileGenerator(config, logger, mockSarifFixer).GenerateFile();
 
             // Assert
-            Assert.AreEqual(1, mockSarifFixer.CallCount);
-            Assert.AreEqual(RoslynV1SarifFixer.VBNetLanguage, mockSarifFixer.LastLanguage);
+             mockSarifFixer.CallCount.Should().Be(1);
+             mockSarifFixer.LastLanguage.Should().Be(RoslynV1SarifFixer.VBNetLanguage);
 
             // Fixable SARIF -> new file saved -> changed property
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
@@ -284,7 +284,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var result = new PropertiesFileGenerator(config, logger, mockSarifFixer).GenerateFile();
 
             // Assert
-            Assert.AreEqual(1, mockSarifFixer.CallCount);
+             mockSarifFixer.CallCount.Should().Be(1);
 
             // One valid project info file -> file created
             AssertPropertiesFilesCreated(result, logger);
@@ -947,8 +947,8 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
         private static void AssertFailedToCreatePropertiesFiles(ProjectInfoAnalysisResult result, TestLogger logger)
         {
-            Assert.IsNull(result.FullPropertiesFilePath, "Not expecting the sonar-scanner properties file to have been set");
-            Assert.AreEqual(false, result.RanToCompletion, "Expecting the property file generation to have failed");
+            result.FullPropertiesFilePath.Should().BeNull("Not expecting the sonar-scanner properties file to have been set");
+            result.RanToCompletion.Should().BeFalse("Expecting the property file generation to have failed");
 
             AssertNoValidProjects(result);
 
@@ -957,7 +957,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
         private void AssertPropertiesFilesCreated(ProjectInfoAnalysisResult result, TestLogger logger)
         {
-            Assert.IsNotNull(result.FullPropertiesFilePath, "Expecting the sonar-scanner properties file to have been set");
+            result.FullPropertiesFilePath.Should().NotBeNull("Expecting the sonar-scanner properties file to have been set");
 
             AssertValidProjectsExist(result);
             TestContext.AddResultFile(result.FullPropertiesFilePath);
@@ -968,37 +968,36 @@ namespace SonarScanner.MSBuild.Shim.Tests
         private static void AssertExpectedStatus(string expectedProjectName, ProjectInfoValidity expectedStatus, ProjectInfoAnalysisResult actual)
         {
             var matches = actual.GetProjectsByStatus(expectedStatus).Where(p => p.ProjectName.Equals(expectedProjectName));
-            Assert.IsFalse(matches.Count() > 2, "ProjectName is reported more than once: {0}", expectedProjectName);
-            Assert.AreEqual(1, matches.Count(), "ProjectInfo was not classified as expected. Project name: {0}, expected status: {1}", expectedProjectName, expectedStatus);
+            matches.Should().HaveCount(1, "ProjectInfo was not classified as expected. Project name: {0}, expected status: {1}", expectedProjectName, expectedStatus);
         }
 
         private static void AssertNoValidProjects(ProjectInfoAnalysisResult actual)
         {
             IEnumerable<ProjectInfo> matches = actual.GetProjectsByStatus(ProjectInfoValidity.Valid);
-            Assert.AreEqual(0, matches.Count(), "Not expecting to find any valid ProjectInfo files");
+            matches.Should().BeEmpty("Not expecting to find any valid ProjectInfo files");
         }
 
         private static void AssertValidProjectsExist(ProjectInfoAnalysisResult actual)
         {
             IEnumerable<ProjectInfo> matches = actual.GetProjectsByStatus(ProjectInfoValidity.Valid);
-            Assert.AreNotEqual(0, matches.Count(), "Expecting at least one valid ProjectInfo file to exist");
+            matches.Should().NotBeEmpty("Expecting at least one valid ProjectInfo file to exist");
         }
 
         private static void AssertExpectedProjectCount(int expected, ProjectInfoAnalysisResult actual)
         {
-            Assert.AreEqual(expected, actual.Projects.Count, "Unexpected number of projects in the result");
+            actual.Projects.Should().HaveCount(expected, "Unexpected number of projects in the result");
         }
 
         private static void AssertFileIsReferenced(string fullFilePath, string content)
         {
             var formattedPath = PropertiesWriter.Escape(fullFilePath);
-            Assert.IsTrue(content.Contains(formattedPath), "Files should be referenced: {0}", formattedPath);
+            content.Should().Contain(formattedPath, "Files should be referenced: {0}", formattedPath);
         }
 
         private static void AssertFileIsNotReferenced(string fullFilePath, string content)
         {
             var formattedPath = PropertiesWriter.Escape(fullFilePath);
-            Assert.IsFalse(content.Contains(formattedPath), "File should not be referenced: {0}", formattedPath);
+            content.Should().NotContain(formattedPath, "File should not be referenced: {0}", formattedPath);
         }
 
         #endregion Assertions

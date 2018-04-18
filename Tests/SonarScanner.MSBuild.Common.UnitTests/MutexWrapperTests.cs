@@ -20,8 +20,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Security.Principal;
 using System.Threading;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarScanner.MSBuild.Common.UnitTests
@@ -94,22 +94,22 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             // Act & Assert
             t1.Start();
             WaitForStep(steps, 103);
-            CollectionAssert.AreEqual(new[] { 101, 102, 103 }, steps);
+            steps.Should().BeEquivalentTo(new[] { 101, 102, 103 });
 
             t2.Start();
             WaitForStep(steps, 201);
-            CollectionAssert.AreEqual(new[] { 101, 102, 103, 201 }, steps);
+            steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201 });
 
             t3.Start();
             WaitForStep(steps, 301);
-            CollectionAssert.AreEqual(new[] { 101, 102, 103, 201, 301 }, steps);
+            steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201, 301 });
 
             t2.Abort();
             WaitForStep(steps, 203);
-            CollectionAssert.AreEqual(new[] { 101, 102, 103, 201, 301, 203 }, steps);
+            steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201, 301, 203 });
 
             WaitForStep(steps, 303);
-            CollectionAssert.AreEqual(new[] { 101, 102, 103, 201, 301, 203, 302, 303 }, steps);
+            steps.Should().BeEquivalentTo(new[] { 101, 102, 103, 201, 301, 203, 302, 303 });
         }
     }
 }

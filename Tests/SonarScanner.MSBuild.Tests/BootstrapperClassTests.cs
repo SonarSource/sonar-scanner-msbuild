@@ -20,13 +20,14 @@
 
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild;
-using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor;
+using SonarScanner.MSBuild.TFS.Interfaces;
 using TestUtilities;
 
 namespace SonarQube.Bootstrapper.Tests
@@ -117,8 +118,8 @@ namespace SonarQube.Bootstrapper.Tests
                 var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
-                Assert.IsTrue(File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")));
-                Assert.IsTrue(File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")));
+                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
             }
         }
 
@@ -154,13 +155,13 @@ namespace SonarQube.Bootstrapper.Tests
                 Directory.CreateDirectory(TempDir);
                 var stream = File.Create(filePath);
                 stream.Close();
-                Assert.IsTrue(File.Exists(filePath));
+                File.Exists(filePath).Should().BeTrue();
 
                 // Act
                 var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
-                Assert.IsFalse(File.Exists(filePath));
+                File.Exists(filePath).Should().BeFalse();
             }
         }
 
@@ -263,7 +264,7 @@ namespace SonarQube.Bootstrapper.Tests
             var bootstrapper = new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
             var exitCode = bootstrapper.Execute();
 
-            Assert.AreEqual(SonarScanner.MSBuild.Program.ErrorCode, exitCode, "Bootstrapper did not return the expected exit code");
+            exitCode.Should().Be(Program.ErrorCode, "Bootstrapper did not return the expected exit code");
             logger.AssertErrorsLogged();
 
             return logger;
@@ -276,7 +277,7 @@ namespace SonarQube.Bootstrapper.Tests
             var bootstrapper = new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
             var exitCode = bootstrapper.Execute();
 
-            Assert.AreEqual(0, exitCode, "Bootstrapper did not return the expected exit code");
+            exitCode.Should().Be(0, "Bootstrapper did not return the expected exit code");
             logger.AssertErrorsLogged(0);
 
             return logger;

@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -40,14 +41,20 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var pi = new ProjectInfo();
 
             // 1a. Missing file name - save
-            AssertException.Expects<ArgumentNullException>(() => pi.Save(null));
-            AssertException.Expects<ArgumentNullException>(() => pi.Save(string.Empty));
-            AssertException.Expects<ArgumentNullException>(() => pi.Save("\r\t "));
+            Action act = () => pi.Save(null);
+            act.ShouldThrowExactly<ArgumentNullException>();
+            act = () => pi.Save(string.Empty);
+            act.ShouldThrowExactly<ArgumentNullException>();
+            act = () => pi.Save("\r\t ");
+            act.ShouldThrowExactly<ArgumentNullException>();
 
             // 1b. Missing file name - load
-            AssertException.Expects<ArgumentNullException>(() => ProjectInfo.Load(null));
-            AssertException.Expects<ArgumentNullException>(() => ProjectInfo.Load(string.Empty));
-            AssertException.Expects<ArgumentNullException>(() => ProjectInfo.Load("\r\t "));
+            act = () => ProjectInfo.Load(null);
+            act.ShouldThrowExactly<ArgumentNullException>();
+            act = () => ProjectInfo.Load(string.Empty);
+            act.ShouldThrowExactly<ArgumentNullException>();
+            act = () => ProjectInfo.Load("\r\t ");
+            act.ShouldThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -108,13 +115,13 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         private ProjectInfo SaveAndReloadProjectInfo(ProjectInfo original, string outputFileName)
         {
-            Assert.IsFalse(File.Exists(outputFileName), "Test error: file should not exist at the start of the test. File: {0}", outputFileName);
+            File.Exists(outputFileName).Should().BeFalse("Test error: file should not exist at the start of the test. File: {0}", outputFileName);
             original.Save(outputFileName);
-            Assert.IsTrue(File.Exists(outputFileName), "Failed to create the output file. File: {0}", outputFileName);
+            File.Exists(outputFileName).Should().BeTrue("Failed to create the output file. File: {0}", outputFileName);
             TestContext.AddResultFile(outputFileName);
 
             var reloadedProjectInfo = ProjectInfo.Load(outputFileName);
-            Assert.IsNotNull(reloadedProjectInfo, "Reloaded project info should not be null");
+            reloadedProjectInfo.Should().NotBeNull("Reloaded project info should not be null");
 
             ProjectInfoAssertions.AssertExpectedValues(original, reloadedProjectInfo);
             return reloadedProjectInfo;

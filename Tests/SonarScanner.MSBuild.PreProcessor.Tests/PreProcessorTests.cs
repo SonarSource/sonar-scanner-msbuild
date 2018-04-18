@@ -21,11 +21,12 @@
 using System;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
+using SonarScanner.MSBuild.TFS;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
@@ -50,7 +51,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 new TestLogger());
 
             // Act and assert
-            AssertException.Expects<ArgumentNullException>(() => preprocessor.Execute(null));
+            Action act = () => preprocessor.Execute(null); act.ShouldThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -101,14 +102,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             using (new WorkingDirectoryScope(workingDir))
             {
                 settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
-                Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
-                Assert.AreEqual(BuildEnvironment.NotTeamBuild, settings.BuildEnvironment, "Test setup error: build environment was not set correctly");
+                settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
+                settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
 
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
                 var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
-                Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
+                success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
             // Assert
@@ -172,14 +173,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             using (new WorkingDirectoryScope(workingDir))
             {
                 settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
-                Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
-                Assert.AreEqual(BuildEnvironment.NotTeamBuild, settings.BuildEnvironment, "Test setup error: build environment was not set correctly");
+                settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
+                settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
 
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
                 var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization"));
-                Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
+                success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
             // Assert
@@ -226,14 +227,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             using (new WorkingDirectoryScope(workingDir))
             {
                 settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
-                Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
-                Assert.AreEqual(BuildEnvironment.NotTeamBuild, settings.BuildEnvironment, "Test setup error: build environment was not set correctly");
+                settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
+                settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
 
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
                 var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
-                Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
+                success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
             // Assert
@@ -295,14 +296,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             using (new WorkingDirectoryScope(workingDir))
             {
                 settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
-                Assert.IsNotNull(settings, "Test setup error: TFS environment variables have not been set correctly");
-                Assert.AreEqual(BuildEnvironment.NotTeamBuild, settings.BuildEnvironment, "Test setup error: build environment was not set correctly");
+                settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
+                settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
 
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
                 var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", null));
-                Assert.IsTrue(success, "Expecting the pre-processing to complete successfully");
+                success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
             // Assert
@@ -364,12 +365,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             AssertConfigFileExists(filePath);
             var actualConfig = AnalysisConfig.Load(filePath);
 
-            Assert.AreEqual("key", actualConfig.SonarProjectKey, "Unexpected project key");
-            Assert.AreEqual("name", actualConfig.SonarProjectName, "Unexpected project name");
-            Assert.AreEqual("1.0", actualConfig.SonarProjectVersion, "Unexpected project version");
+            actualConfig.SonarProjectKey.Should().Be("key", "Unexpected project key");
+            actualConfig.SonarProjectName.Should().Be("name", "Unexpected project name");
+            actualConfig.SonarProjectVersion.Should().Be("1.0", "Unexpected project version");
 
-            Assert.IsNotNull(actualConfig.AnalyzersSettings, "Analyzer settings should not be null");
-            Assert.AreEqual(actualConfig.AnalyzersSettings.Count, noAnalyzers);
+            actualConfig.AnalyzersSettings.Should().NotBeNull("Analyzer settings should not be null");
+            actualConfig.AnalyzersSettings.Should().HaveCount(noAnalyzers);
 
             AssertExpectedLocalSetting(SonarProperties.HostUrl, "http://host", actualConfig);
             AssertExpectedLocalSetting("cmd.line1", "cmdline.value.1", actualConfig);
@@ -378,7 +379,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         private void AssertConfigFileExists(string filePath)
         {
-            Assert.IsTrue(File.Exists(filePath), "Expecting the analysis config file to exist. Path: {0}", filePath);
+            File.Exists(filePath).Should().BeTrue("Expecting the analysis config file to exist. Path: {0}", filePath);
             TestContext.AddResultFile(filePath);
         }
 
@@ -386,34 +387,34 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             Directory.Exists(dirPath);
             var actualFileNames = Directory.GetFiles(dirPath).Select(f => Path.GetFileName(f));
-            CollectionAssert.AreEqual(fileNames, actualFileNames.ToArray());
+            actualFileNames.Should().BeEquivalentTo(fileNames);
         }
 
         private static void AssertExpectedLocalSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
             var found = Property.TryGetProperty(key, actualConfig.LocalSettings, out Property actualProperty);
 
-            Assert.IsTrue(found, "Failed to find the expected local setting: {0}", key);
-            Assert.AreEqual(expectedValue, actualProperty.Value, "Unexpected property value. Key: {0}", key);
+            found.Should().BeTrue("Failed to find the expected local setting: {0}", key);
+            actualProperty.Value.Should().Be(expectedValue, "Unexpected property value. Key: {0}", key);
         }
 
         private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
             var found = Property.TryGetProperty(key, actualConfig.ServerSettings, out Property actualProperty);
 
-            Assert.IsTrue(found, "Failed to find the expected server setting: {0}", key);
-            Assert.AreEqual(expectedValue, actualProperty.Value, "Unexpected property value. Key: {0}", key);
+            found.Should().BeTrue("Failed to find the expected server setting: {0}", key);
+            actualProperty.Value.Should().Be(expectedValue, "Unexpected property value. Key: {0}", key);
         }
 
         private static void AssertDirectoryExists(string path)
         {
-            Assert.IsTrue(Directory.Exists(path), "Expected directory does not exist: {0}", path);
+            Directory.Exists(path).Should().BeTrue("Expected directory does not exist: {0}", path);
         }
 
         private static string AssertFileExists(string directory, string fileName)
         {
             var fullPath = Path.Combine(directory, fileName);
-            Assert.IsTrue(File.Exists(fullPath), "Expected file does not exist");
+            File.Exists(fullPath).Should().BeTrue("Expected file does not exist");
             return fullPath;
         }
 

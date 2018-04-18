@@ -20,6 +20,7 @@
 
 using System;
 using System.Net;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -36,16 +37,16 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             WebClientDownloader downloader;
             downloader = new WebClientDownloader(null, null, logger);
-            Assert.AreEqual(null, downloader.GetHeader(HttpRequestHeader.Authorization));
+            downloader.GetHeader(HttpRequestHeader.Authorization).Should().BeNull();
 
             downloader = new WebClientDownloader("da39a3ee5e6b4b0d3255bfef95601890afd80709", null, logger);
-            Assert.AreEqual("Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=", downloader.GetHeader(HttpRequestHeader.Authorization));
+            downloader.GetHeader(HttpRequestHeader.Authorization).Should().Be("Basic ZGEzOWEzZWU1ZTZiNGIwZDMyNTViZmVmOTU2MDE4OTBhZmQ4MDcwOTo=");
 
             downloader = new WebClientDownloader(null, "password", logger);
-            Assert.AreEqual(null, downloader.GetHeader(HttpRequestHeader.Authorization));
+            downloader.GetHeader(HttpRequestHeader.Authorization).Should().BeNull();
 
             downloader = new WebClientDownloader("admin", "password", logger);
-            Assert.AreEqual("Basic YWRtaW46cGFzc3dvcmQ=", downloader.GetHeader(HttpRequestHeader.Authorization));
+            downloader.GetHeader(HttpRequestHeader.Authorization).Should().Be("Basic YWRtaW46cGFzc3dvcmQ=");
         }
 
         [TestMethod]
@@ -59,7 +60,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             // Assert
             var scannerVersion = typeof(WebClientDownloaderTest).Assembly.GetName().Version.ToDisplayString();
-            Assert.AreEqual($"ScannerMSBuild/{scannerVersion}", userAgent);
+            userAgent.Should().Be($"ScannerMSBuild/{scannerVersion}");
         }
 
         [TestMethod]
@@ -72,7 +73,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             // Act & Assert
             var userAgent = downloader.GetHeader(HttpRequestHeader.UserAgent);
-            Assert.AreEqual(expectedUserAgent, userAgent);
+            userAgent.Should().Be(expectedUserAgent);
 
             try
             {
@@ -85,28 +86,28 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             // Check if the user agent is still present after the request.
             userAgent = downloader.GetHeader(HttpRequestHeader.UserAgent);
-            Assert.AreEqual(expectedUserAgent, userAgent);
+            userAgent.Should().Be(expectedUserAgent);
         }
 
         [TestMethod]
         public void SemicolonInUsername()
         {
-            var actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("user:name", "", new TestLogger()));
-            Assert.AreEqual("username cannot contain the ':' character due to basic authentication limitations", actual.Message);
+            Action act = () => new WebClientDownloader("user:name", "", new TestLogger());
+            act.ShouldThrowExactly<ArgumentException>().And.Message.Should().Be("username cannot contain the ':' character due to basic authentication limitations");
         }
 
         [TestMethod]
         public void AccentsInUsername()
         {
-            var actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("héhé", "password", new TestLogger()));
-            Assert.AreEqual("username and password should contain only ASCII characters due to basic authentication limitations", actual.Message);
+            Action act = () => new WebClientDownloader("héhé", "password", new TestLogger());
+            act.ShouldThrowExactly<ArgumentException>().And.Message.Should().Be("username and password should contain only ASCII characters due to basic authentication limitations");
         }
 
         [TestMethod]
         public void AccentsInPassword()
         {
-            var actual = AssertException.Expects<ArgumentException>(() => new WebClientDownloader("username", "héhé", new TestLogger()));
-            Assert.AreEqual("username and password should contain only ASCII characters due to basic authentication limitations", actual.Message);
+            Action act = () => new WebClientDownloader("username", "héhé", new TestLogger());
+            act.ShouldThrowExactly<ArgumentException>().And.Message.Should().Be("username and password should contain only ASCII characters due to basic authentication limitations");
         }
     }
 }

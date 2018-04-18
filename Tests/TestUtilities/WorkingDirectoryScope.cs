@@ -20,7 +20,7 @@
 
 using System;
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 
 namespace TestUtilities
 {
@@ -37,7 +37,7 @@ namespace TestUtilities
 
         public WorkingDirectoryScope(string workingDirectory)
         {
-            Assert.IsTrue(Directory.Exists(workingDirectory), "Test setup error: specified directory should exist - " + workingDirectory);
+            Directory.Exists(workingDirectory).Should().BeTrue("Test setup error: specified directory should exist - " + workingDirectory);
 
             originalDirectory = Directory.GetCurrentDirectory();
             Directory.SetCurrentDirectory(workingDirectory);

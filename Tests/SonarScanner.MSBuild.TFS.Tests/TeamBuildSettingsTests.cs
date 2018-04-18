@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -41,7 +42,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
                 result = TeamBuildSettings.IsInTeamBuild;
-                Assert.IsFalse(result);
+                result.Should().BeFalse();
             }
 
             // 2. Env var set to a non-boolean -> false
@@ -49,7 +50,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
                 result = TeamBuildSettings.IsInTeamBuild;
-                Assert.IsFalse(result);
+                result.Should().BeFalse();
             }
 
             // 3. Env var set to false -> false
@@ -57,7 +58,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "false");
                 result = TeamBuildSettings.IsInTeamBuild;
-                Assert.IsFalse(result);
+                result.Should().BeFalse();
             }
 
             // 4. Env var set to true -> true
@@ -65,7 +66,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
                 result = TeamBuildSettings.IsInTeamBuild;
-                Assert.IsTrue(result);
+                result.Should().BeTrue();
             }
         }
 
@@ -80,7 +81,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, null);
                 result = TeamBuildSettings.SkipLegacyCodeCoverageProcessing;
-                Assert.IsFalse(result);
+                result.Should().BeFalse();
             }
 
             // 2. Env var set to a non-boolean -> false
@@ -88,7 +89,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "wibble");
                 result = TeamBuildSettings.SkipLegacyCodeCoverageProcessing;
-                Assert.IsFalse(result);
+                result.Should().BeFalse();
             }
 
             // 3. Env var set to false -> false
@@ -96,7 +97,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "false");
                 result = TeamBuildSettings.SkipLegacyCodeCoverageProcessing;
-                Assert.IsFalse(result);
+                result.Should().BeFalse();
             }
 
             // 4. Env var set to true -> true
@@ -104,7 +105,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "TRUE");
                 result = TeamBuildSettings.SkipLegacyCodeCoverageProcessing;
-                Assert.IsTrue(result);
+                result.Should().BeTrue();
             }
         }
 
@@ -198,7 +199,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             }
 
             // Assert
-            Assert.IsNotNull(settings, "Failed to create the TeamBuildSettings");
+            settings.Should().NotBeNull("Failed to create the TeamBuildSettings");
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
 
@@ -233,7 +234,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             }
 
             // Assert
-            Assert.IsNotNull(settings, "Failed to create the TeamBuildSettings");
+            settings.Should().NotBeNull("Failed to create the TeamBuildSettings");
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
 
@@ -261,30 +262,30 @@ namespace SonarScanner.MSBuild.TFS.Tests
             string expectedBuildDir,
             string expectedSourcesDir)
         {
-            Assert.IsNotNull(actual, "Returned settings should never be null");
+            actual.Should().NotBeNull("Returned settings should never be null");
 
-            Assert.AreEqual(expectedEnvironment, actual.BuildEnvironment, "Unexpected build environment returned");
-            Assert.AreEqual(expectedAnalysisDir, actual.AnalysisBaseDirectory, "Unexpected analysis base directory returned");
-            Assert.AreEqual(expectedBuildDir, actual.BuildDirectory, "Unexpected build directory returned");
-            Assert.AreEqual(expectedBuildUri, actual.BuildUri, "Unexpected build uri returned");
-            Assert.AreEqual(expectedCollectionUri, actual.TfsUri, "Unexpected tfs uri returned");
+            actual.BuildEnvironment.Should().Be(expectedEnvironment, "Unexpected build environment returned");
+            actual.AnalysisBaseDirectory.Should().Be(expectedAnalysisDir, "Unexpected analysis base directory returned");
+            actual.BuildDirectory.Should().Be(expectedBuildDir, "Unexpected build directory returned");
+            actual.BuildUri.Should().Be(expectedBuildUri, "Unexpected build uri returned");
+            actual.TfsUri.Should().Be(expectedCollectionUri, "Unexpected tfs uri returned");
 
             if (actual.BuildEnvironment == BuildEnvironment.NotTeamBuild)
             {
-                Assert.IsNull(actual.SourcesDirectory, "Should not be able to set the sources directory");
+                actual.SourcesDirectory.Should().BeNull("Should not be able to set the sources directory");
             }
             else
             {
-                Assert.AreEqual(expectedSourcesDir, actual.SourcesDirectory, "Unexpected sources directory returned");
+                actual.SourcesDirectory.Should().Be(expectedSourcesDir, "Unexpected sources directory returned");
             }
 
             // Check the calculated values
-            Assert.AreEqual(Path.Combine(expectedAnalysisDir, "conf"), actual.SonarConfigDirectory, "Unexpected config dir");
-            Assert.AreEqual(Path.Combine(expectedAnalysisDir, "out"), actual.SonarOutputDirectory, "Unexpected output dir");
-            Assert.AreEqual(Path.Combine(expectedAnalysisDir, "bin"), actual.SonarBinDirectory, "Unexpected bin dir");
-            Assert.AreEqual(Path.Combine(expectedAnalysisDir, "conf", FileConstants.ConfigFileName), actual.AnalysisConfigFilePath, "Unexpected analysis file path");
+            actual.SonarConfigDirectory.Should().Be(Path.Combine(expectedAnalysisDir, "conf"), "Unexpected config dir");
+            actual.SonarOutputDirectory.Should().Be(Path.Combine(expectedAnalysisDir, "out"), "Unexpected output dir");
+            actual.SonarBinDirectory.Should().Be(Path.Combine(expectedAnalysisDir, "bin"), "Unexpected bin dir");
+            actual.AnalysisConfigFilePath.Should().Be(Path.Combine(expectedAnalysisDir, "conf", FileConstants.ConfigFileName), "Unexpected analysis file path");
 
-            Assert.AreEqual(Directory.GetParent(expectedAnalysisDir).FullName, actual.SonarScannerWorkingDirectory, "Unexpected sonar-scanner working dir");
+            actual.SonarScannerWorkingDirectory.Should().Be(Directory.GetParent(expectedAnalysisDir).FullName, "Unexpected sonar-scanner working dir");
         }
 
         private static void CheckExpectedTimeoutReturned(string envValue, int expected)
@@ -293,7 +294,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             {
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, envValue);
                 var result = TeamBuildSettings.LegacyCodeCoverageProcessingTimeout;
-                Assert.AreEqual(expected, result, "Unexpected timeout value returned. Environment value: {0}", envValue);
+                result.Should().Be(expected, "Unexpected timeout value returned. Environment value: {0}", envValue);
             }
         }
 

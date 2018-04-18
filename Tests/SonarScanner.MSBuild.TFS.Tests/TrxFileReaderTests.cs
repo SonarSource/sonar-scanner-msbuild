@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -42,7 +43,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
-            Assert.AreEqual(null, coverageFilePath);
+             coverageFilePath.Should().BeNull();
 
             // Not expecting errors or warnings: we assume it means that tests have not been executed
             logger.AssertErrorsLogged(0);
@@ -62,7 +63,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
-            Assert.AreEqual(null, coverageFilePath);
+             coverageFilePath.Should().BeNull();
 
             logger.AssertSingleWarningExists("dummy.trx"); // expecting a warning about the invalid file
             logger.AssertErrorsLogged(0); // should be a warning, not an error
@@ -82,7 +83,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
-            Assert.AreEqual(null, coverageFilePath);
+             coverageFilePath.Should().BeNull();
 
             logger.AssertSingleWarningExists(trx1, trx2); // expecting a warning referring the log files
             logger.AssertErrorsLogged(0);
@@ -97,7 +98,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var trxFile = TestUtils.CreateTextFile(resultsDir, "no_attachments.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE"" xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
+    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE"" xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
   <TestSettings name=""default"" id=""bf0f0911-87a2-4413-aa12-36e177a9c5b3"" />
   <ResultSummary outcome=""Completed"">
     <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
@@ -112,7 +113,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
-            Assert.AreEqual(null, coverageFilePath);
+             coverageFilePath.Should().BeNull();
 
             // Not finding attachment info in the file shouldn't cause a warning/error
             logger.AssertErrorsLogged(0);
@@ -129,7 +130,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var trxFile = TestUtils.CreateTextFile(resultsDir, "no_attachments.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE"" xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
+    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE"" xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
   <TestSettings name=""default"" id=""bf0f0911-87a2-4413-aa12-36e177a9c5b3"" />
   <ResultSummary outcome=""Completed"">
     <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
@@ -144,7 +145,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
-            Assert.AreEqual(null, coverageFilePath);
+             coverageFilePath.Should().BeNull();
 
             // Not finding attachment info in the file shouldn't cause a warning/error
             logger.AssertErrorsLogged(0);
@@ -163,8 +164,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
             TestUtils.CreateTextFile(resultsDir, "multiple_attachments.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
-	xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
+    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
+    xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
   <ResultSummary outcome=""Completed"">
     <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
     <RunInfos />
@@ -195,7 +196,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
-            Assert.AreEqual(null, coverageFilePath);
+             coverageFilePath.Should().BeNull();
 
             logger.AssertSingleWarningExists(@"MACHINENAME\AAA.coverage", @"XXX.coverage"); // the warning should refer to both of the coverage files
             logger.AssertErrorsLogged(0);
@@ -213,8 +214,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
             TestUtils.CreateTextFile(resultsDir, "single_attachment.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
-	xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
+    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
+    xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
   <ResultSummary outcome=""Completed"">
     <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
     <RunInfos />
@@ -238,7 +239,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
-            Assert.AreEqual(null, coverageFilePath);
+             coverageFilePath.Should().BeNull();
 
             logger.AssertDebugMessageExists(coverageFileName);
         }
@@ -255,8 +256,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
             TestUtils.CreateTextFile(resultsDir, "single attachment.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
-	xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
+    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
+    xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
   <ResultSummary outcome=""Completed"">
     <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
     <RunInfos />
@@ -284,7 +285,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
-            Assert.AreEqual(expectedFilePath, coverageFilePath);
+             coverageFilePath.Should().Be(expectedFilePath);
 
             logger.AssertDebugMessageExists(coverageFileName);
         }
@@ -301,8 +302,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
             TestUtils.CreateTextFile(resultsDir, "single_attachment.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
-	xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
+    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
+    xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
   <ResultSummary outcome=""Completed"">
     <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
     <RunInfos />
@@ -330,7 +331,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
-            Assert.AreEqual(expectedFilePath, coverageFilePath);
+             coverageFilePath.Should().Be(expectedFilePath);
 
             logger.AssertDebugMessageExists(coverageFileName);
         }
@@ -347,8 +348,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
             TestUtils.CreateTextFile(resultsDir, "single_attachment.trx",
 @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-	name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
-	xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
+    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
+    xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
   <ResultSummary outcome=""Completed"">
     <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
     <RunInfos />
@@ -372,7 +373,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
 
             // Assert
-            Assert.AreEqual(coverageFilePath, coverageFilePath);
+             coverageFilePath.Should().Be(coverageFilePath);
             logger.AssertDebugMessageExists(coverageFileName);
         }
 

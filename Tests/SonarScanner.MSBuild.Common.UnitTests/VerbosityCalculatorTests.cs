@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -61,7 +62,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             var actualVerbosity = VerbosityCalculator.ComputeVerbosity(provider, logger);
 
-            Assert.AreEqual(expectedVerbosity, actualVerbosity, errorMessage);
+            actualVerbosity.Should().Be(expectedVerbosity, errorMessage);
 
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(expectedNumberOfWarnings);

@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -125,7 +126,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             var result = task.Execute();
 
-            Assert.IsFalse(result, "Expecting the task to fail");
+            result.Should().BeFalse("Expecting the task to fail");
             dummyEngine.AssertSingleErrorExists(invalidRegEx); // expecting the invalid expression to appear in the error
         }
 
@@ -149,7 +150,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var result = true;
             TaskUtilitiesTests.PerformOpOnLockedFile(configFile, () => result = task.Execute(), shouldTimeoutReadingConfig: true);
 
-            Assert.IsFalse(result, "Expecting the task to fail if the config file could not be read");
+            result.Should().BeFalse("Expecting the task to fail if the config file could not be read");
             dummyEngine.AssertNoWarnings();
             dummyEngine.AssertSingleErrorExists();
         }
@@ -224,13 +225,13 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         private static void CheckFilePathIsTest(string analysisDir, string fullFileName)
         {
             var isTest = ExecuteAndCheckSuccess(analysisDir, fullFileName);
-            Assert.IsTrue(isTest, "Expecting the file name to be recognized as a test file. Name: {0}", fullFileName);
+            isTest.Should().BeTrue("Expecting the file name to be recognized as a test file. Name: {0}", fullFileName);
         }
 
         private static void CheckFilePathIsNotTest(string analysisDir, string fullFileName)
         {
             var isTest = ExecuteAndCheckSuccess(analysisDir, fullFileName);
-            Assert.IsFalse(isTest, "Not expecting the file name to be recognized as a test file. Name: {0}", fullFileName);
+            isTest.Should().BeFalse("Not expecting the file name to be recognized as a test file. Name: {0}", fullFileName);
         }
 
         private static bool ExecuteAndCheckSuccess(string analysisDir, string fullFileName)
@@ -244,7 +245,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             };
 
             var taskSucess = task.Execute();
-            Assert.IsTrue(taskSucess, "Expecting the task to succeed");
+            taskSucess.Should().BeTrue("Expecting the task to succeed");
             dummyEngine.AssertNoErrors();
             dummyEngine.AssertNoWarnings();
 

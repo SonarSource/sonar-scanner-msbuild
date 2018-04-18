@@ -39,10 +39,10 @@ namespace SonarScanner.MSBuild.Shim.Tests
         [TestMethod]
         public void PropertiesWriterEscape()
         {
-            Assert.AreEqual("foo", PropertiesWriter.Escape("foo"));
-            Assert.AreEqual(@"C:\\File.cs", PropertiesWriter.Escape(@"C:\File.cs"));
-            Assert.AreEqual(@"\u4F60\u597D", PropertiesWriter.Escape("你好"));
-            Assert.AreEqual(@"\u000A", PropertiesWriter.Escape("\n"));
+             PropertiesWriter.Escape("foo").Should().Be("foo");
+             PropertiesWriter.Escape(@"C:\File.cs").Should().Be(@"C:\\File.cs");
+             PropertiesWriter.Escape("你好").Should().Be(@"\u4F60\u597D");
+             PropertiesWriter.Escape("\n").Should().Be(@"\u000A");
         }
 
         [TestMethod]
@@ -176,7 +176,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             SaveToResultFile(productBaseDir, "Expected.txt", expected.ToString());
             SaveToResultFile(productBaseDir, "Actual.txt", actual);
 
-            Assert.AreEqual(expected, actual);
+             actual.Should().Be(expected);
         }
 
         [TestMethod]
@@ -215,7 +215,8 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             writer.Flush();
 
             // Act & Assert
-            AssertException.Expects<InvalidOperationException>(() => writer.Flush());
+            Action act = () => writer.Flush();
+            act.ShouldThrowExactly<InvalidOperationException>();
         }
 
         [TestMethod]
@@ -236,8 +237,8 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             // Act & Assert
             using (new AssertIgnoreScope())
             {
-                AssertException.Expects<InvalidOperationException>(
-                    () => writer.WriteSettingsForProject(new ProjectData(new ProjectInfo())));
+                Action act = () => writer.WriteSettingsForProject(new ProjectData(new ProjectInfo()));
+                act.ShouldThrowExactly<InvalidOperationException>();
             }
         }
 
@@ -318,7 +319,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             var props = new JavaProperties();
             props.Load(GenerateStreamFromString(s));
             var key = projectKey + "." + SonarProperties.WorkingDirectory;
-            Assert.IsTrue(props.ContainsKey(key));
+            props.ContainsKey(key).Should().BeTrue();
         }
 
         public static Stream GenerateStreamFromString(string s)
@@ -503,7 +504,7 @@ C:\foobar.cs");
 
             if (files != null && files.Any())
             {
-                Assert.IsTrue(!string.IsNullOrWhiteSpace(fileListFilePath), "Test setup error: must supply the managedFileListFilePath as a list of files has been supplied");
+                string.IsNullOrWhiteSpace(fileListFilePath).Should().BeFalse("Test setup error: must supply the managedFileListFilePath as a list of files has been supplied");
                 File.WriteAllLines(fileListFilePath, files.Select(x => x.FullName));
 
                 projectInfo.AddAnalyzerResult(AnalysisType.FilesToAnalyze, fileListFilePath);

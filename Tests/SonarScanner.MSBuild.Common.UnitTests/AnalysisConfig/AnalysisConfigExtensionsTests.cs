@@ -184,15 +184,15 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             // 1. Get missing setting -> default returned
             result = config.GetConfigValue("missing", "123");
-            Assert.AreEqual("123", result, "Unexpected config value returned");
+            result.Should().Be("123", "Unexpected config value returned");
 
             // 2. Set and get a new setting
             config.SetConfigValue("id1", "value1");
-            Assert.AreEqual("value1", config.GetConfigValue("id1", "XXX"), "Unexpected config value returned");
+            config.GetConfigValue("id1", "XXX").Should().Be("value1", "Unexpected config value returned");
 
             // 3. Update an existing setting
             config.SetConfigValue("id1", "value2");
-            Assert.AreEqual("value2", config.GetConfigValue("id1", "XXX"), "Unexpected config value returned");
+            config.GetConfigValue("id1", "XXX").Should().Be("value2", "Unexpected config value returned");
         }
 
         [TestMethod]
@@ -270,11 +270,11 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             fileSettings.Save(settingsFilePath);
 
             // 1. Get path when not set -> null
-            Assert.IsNull(config.GetSettingsFilePath(), "Expecting the settings file path to be null");
+            config.GetSettingsFilePath().Should().BeNull("Expecting the settings file path to be null");
 
             // 2. Set and get
             config.SetSettingsFilePath(settingsFilePath);
-            Assert.AreEqual(settingsFilePath, config.GetSettingsFilePath(), "Unexpected settings file path value returned");
+            config.GetSettingsFilePath().Should().Be(settingsFilePath, "Unexpected settings file path value returned");
 
             // 3. Check file properties are retrieved
             var provider = config.GetAnalysisSettings(false);
@@ -353,12 +353,12 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             // 1. No server settings
             var provider = config.GetAnalysisSettings(false);
-            Assert.IsNotNull(provider, "Returned provider should not be null");
+            provider.Should().NotBeNull("Returned provider should not be null");
             provider.AssertExpectedPropertyCount(0);
 
             // 2. With server settings
             provider = config.GetAnalysisSettings(true);
-            Assert.IsNotNull(provider, "Returned provider should not be null");
+            provider.Should().NotBeNull("Returned provider should not be null");
             provider.AssertExpectedPropertyCount(0);
         }
 

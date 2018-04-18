@@ -20,7 +20,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim;
 
@@ -50,7 +50,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
         public ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
         {
-            Assert.IsFalse(methodCalled, "Scanner should only be called once");
+            methodCalled.Should().BeFalse("Scanner should only be called once");
             methodCalled = true;
             SuppliedCommandLineArgs = userCmdLineArguments;
             if (ErrorToLog != null)
@@ -67,12 +67,12 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
         public void AssertExecuted()
         {
-            Assert.IsTrue(methodCalled, "Expecting the sonar-scanner to have been called");
+            methodCalled.Should().BeTrue("Expecting the sonar-scanner to have been called");
         }
 
         public void AssertNotExecuted()
         {
-            Assert.IsFalse(methodCalled, "Not expecting the sonar-scanner to have been called");
+            methodCalled.Should().BeFalse("Not expecting the sonar-scanner to have been called");
         }
 
         #endregion Checks

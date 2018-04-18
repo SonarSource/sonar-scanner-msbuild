@@ -19,6 +19,7 @@
  */
 
 using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -40,7 +41,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             IAnalysisPropertyProvider provider;
 
             // 1. Null input
-            AssertException.Expects<ArgumentNullException>(() => ArgumentProcessor.TryProcessArgs(null, logger, out provider));
+            Action act = () => ArgumentProcessor.TryProcessArgs(null, logger, out provider); act.ShouldThrowExactly<ArgumentNullException>();
 
             // 2. Empty array input
             provider = CheckProcessingSucceeds(logger, new string[] { });
@@ -119,8 +120,8 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         {
             var success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
 
-            Assert.IsTrue(success, "Expecting processing to have succeeded");
-            Assert.IsNotNull(provider, "Returned provider should not be null");
+            success.Should().BeTrue("Expecting processing to have succeeded");
+            provider.Should().NotBeNull("Returned provider should not be null");
             logger.AssertErrorsLogged(0);
 
             return provider;
@@ -132,8 +133,8 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
             var success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
 
-            Assert.IsFalse(success, "Not expecting processing to have succeeded");
-            Assert.IsNull(provider, "Provider should be null if processing fails");
+            success.Should().BeFalse("Not expecting processing to have succeeded");
+            provider.Should().BeNull("Provider should be null if processing fails");
             logger.AssertErrorsLogged(); // expecting errors if processing failed
 
             return logger;

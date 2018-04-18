@@ -36,8 +36,8 @@ namespace SonarQube.Bootstrapper.Tests
 
             // Assert
             result.Should().Be(0);
-            logger.Warnings.Count.Should().Be(0);
-            logger.Errors.Count.Should().Be(0);
+            logger.Warnings.Should().BeEmpty();
+            logger.Errors.Should().BeEmpty();
             logger.InfoMessages.Count.Should().BeGreaterThan(4); // expecting multiple lines of help output
         }
 
@@ -49,7 +49,7 @@ namespace SonarQube.Bootstrapper.Tests
 
             // Assert
             result.Should().Be(1);
-            logger.Errors.Count.Should().Be(1);
+            logger.Errors.Should().HaveCount(1);
         }
     }
 }

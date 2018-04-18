@@ -20,8 +20,8 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
+using FluentAssertions;
 using Microsoft.Build.Construction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
@@ -533,7 +533,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
 
             // Assert
-            Assert.AreEqual(descriptor.Encoding.WebName, projectInfo.Encoding);
+            projectInfo.Encoding.Should().Be(descriptor.Encoding.WebName);
         }
 
         [TestMethod]
@@ -552,7 +552,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
 
             // Assert
-            Assert.AreEqual(null, projectInfo.Encoding);
+            projectInfo.Encoding.Should().BeNull();
         }
 
         [TestMethod]
@@ -632,11 +632,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
 
-            Assert.AreEqual(projectGuid, projectInfo.ProjectGuid, "Unexpected project guid");
-            Assert.IsNull(projectInfo.ProjectLanguage, "Expecting the project language to be null");
-            Assert.IsFalse(projectInfo.IsExcluded, "Project should not be marked as excluded");
-            Assert.AreEqual(ProjectType.Product, projectInfo.ProjectType, "Project should be marked as a product project");
-            Assert.AreEqual(0, projectInfo.AnalysisResults.Count, "Not expecting any analysis results to have been created");
+            projectInfo.ProjectGuid.Should().Be(projectGuid, "Unexpected project guid");
+            projectInfo.ProjectLanguage.Should().BeNull("Expecting the project language to be null");
+            projectInfo.IsExcluded.Should().BeFalse("Project should not be marked as excluded");
+            projectInfo.ProjectType.Should().Be(ProjectType.Product, "Project should be marked as a product project");
+            projectInfo.AnalysisResults.Should().BeEmpty("Not expecting any analysis results to have been created");
         }
 
         [TestMethod]
@@ -680,8 +680,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
 
-            Assert.AreEqual("my.special.language", projectInfo.ProjectLanguage, "Unexpected project language");
-            Assert.AreEqual(0, projectInfo.AnalysisResults.Count, "Not expecting any analysis results to have been created");
+            projectInfo.ProjectLanguage.Should().Be("my.special.language", "Unexpected project language");
+            projectInfo.AnalysisResults.Should().BeEmpty("Not expecting any analysis results to have been created");
         }
 
         #endregion Miscellaneous tests
@@ -755,7 +755,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             }
 
             // Check expected project outputs
-            Assert.AreEqual(1, Directory.EnumerateDirectories(rootOutputFolder).Count(), "Only expecting one child directory to exist under the root analysis output folder");
+            Directory.EnumerateDirectories(rootOutputFolder).Should().HaveCount(1, "Only expecting one child directory to exist under the root analysis output folder");
             var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
 
             return projectInfo;
@@ -867,7 +867,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var item = projectRoot.AddItem(itemTypeName, include);
 
             Math.DivRem(idAndValuePairs.Length, 2, out int remainder);
-            Assert.AreEqual(0, remainder, "Test setup error: the supplied list should contain id-location pairs");
+            remainder.Should().Be(0, "Test setup error: the supplied list should contain id-location pairs");
 
             for (var index = 0; index < idAndValuePairs.Length; index += 2)
             {
@@ -883,22 +883,22 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         private static void AssertIsProductProject(ProjectInfo projectInfo)
         {
-            Assert.AreEqual(ProjectType.Product, projectInfo.ProjectType, "Should be a product (i.e. non-test) project");
+            projectInfo.ProjectType.Should().Be(ProjectType.Product, "Should be a product (i.e. non-test) project");
         }
 
         private static void AssertIsTestProject(ProjectInfo projectInfo)
         {
-            Assert.AreEqual(ProjectType.Test, projectInfo.ProjectType, "Should be a test project");
+            projectInfo.ProjectType.Should().Be(ProjectType.Test, "Should be a test project");
         }
 
         private static void AssertProjectIsExcluded(ProjectInfo projectInfo)
         {
-            Assert.IsTrue(projectInfo.IsExcluded, "Expecting the project to be excluded");
+            projectInfo.IsExcluded.Should().BeTrue("Expecting the project to be excluded");
         }
 
         private static void AssertProjectIsNotExcluded(ProjectInfo projectInfo)
         {
-            Assert.IsFalse(projectInfo.IsExcluded, "Not expecting the project to be excluded");
+            projectInfo.IsExcluded.Should().BeFalse("Not expecting the project to be excluded");
         }
 
         private void AssertResultFileDoesNotExist(ProjectInfo projectInfo, AnalysisType resultType)
@@ -910,15 +910,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 TestContext.AddResultFile(result.Location);
             }
 
-            Assert.IsFalse(found, "Analysis result found unexpectedly. Result type: {0}", resultType);
+            found.Should().BeFalse("Analysis result found unexpectedly. Result type: {0}", resultType);
         }
 
         private void AssertResultFileExists(ProjectInfo projectInfo, AnalysisType resultType, params string[] expected)
         {
             var found = projectInfo.TryGetAnalyzerResult(resultType, out AnalysisResult result);
 
-            Assert.IsTrue(found, "Analysis result not found: {0}", resultType);
-            Assert.IsTrue(File.Exists(result.Location), "Analysis result file not found");
+            found.Should().BeTrue("Analysis result not found: {0}", resultType);
+            File.Exists(result.Location).Should().BeTrue("Analysis result file not found");
 
             TestContext.AddResultFile(result.Location);
 
@@ -926,7 +926,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             try
             {
-                CollectionAssert.AreEquivalent(expected, actualFiles, "The analysis result file does not contain the expected entries");
+                actualFiles.Should().BeEquivalentTo(expected, "The analysis result file does not contain the expected entries");
             }
             catch (AssertFailedException)
             {
@@ -939,13 +939,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         private void AssertSettingExists(ProjectInfo projectInfo, string expectedId, string expectedValue)
         {
             var found = projectInfo.TryGetAnalysisSetting(expectedId, out Property actualSetting);
-            Assert.IsTrue(found, "Expecting the analysis setting to be found. Id: {0}", expectedId);
+            found.Should().BeTrue("Expecting the analysis setting to be found. Id: {0}", expectedId);
 
             // Check the implementation of TryGetAnalysisSetting
-            Assert.IsNotNull(actualSetting, "The returned setting should not be null if the function returned true");
-            Assert.AreEqual(expectedId, actualSetting.Id, "TryGetAnalysisSetting returned a setting with an unexpected id");
+            actualSetting.Should().NotBeNull("The returned setting should not be null if the function returned true");
+            actualSetting.Id.Should().Be(expectedId, "TryGetAnalysisSetting returned a setting with an unexpected id");
 
-            Assert.AreEqual(expectedValue, actualSetting.Value, "Setting has an unexpected value. Id: {0}", expectedId);
+            actualSetting.Value.Should().Be(expectedValue, "Setting has an unexpected value. Id: {0}", expectedId);
         }
 
         #endregion Assertions

@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -42,14 +43,19 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void Serializer_ArgumentValidation()
         {
             // Load
-            AssertException.Expects<ArgumentNullException>(() => Serializer.LoadModel<MyDataClass>(null));
+            Action act1 = () => Serializer.LoadModel<MyDataClass>(null);
+            act1.ShouldThrowExactly<ArgumentNullException>();
 
             // Save
-            AssertException.Expects<ArgumentNullException>(() => Serializer.SaveModel<MyDataClass>(null, "c:\\data.txt"));
-            AssertException.Expects<ArgumentNullException>(() => Serializer.SaveModel<MyDataClass>(new MyDataClass(), null));
+            Action act2 = () => Serializer.SaveModel<MyDataClass>(null, "c:\\data.txt");
+            act2.ShouldThrowExactly<ArgumentNullException>();
+
+            Action act3 = () => Serializer.SaveModel<MyDataClass>(new MyDataClass(), null);
+            act3.ShouldThrowExactly<ArgumentNullException>();
 
             // ToString
-            AssertException.Expects<ArgumentNullException>(() => Serializer.ToString<MyDataClass>(null));
+            Action act4 = () => Serializer.ToString<MyDataClass>(null);
+            act4.ShouldThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -66,9 +72,9 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var reloaded = Serializer.LoadModel<MyDataClass>(filePath);
 
             // Assert
-            Assert.IsNotNull(reloaded);
-            Assert.AreEqual(original.Value1, reloaded.Value1);
-            Assert.AreEqual(original.Value2, reloaded.Value2);
+            reloaded.Should().NotBeNull();
+            reloaded.Value1.Should().Be(original.Value1);
+            reloaded.Value2.Should().Be(original.Value2);
         }
 
         [TestMethod]
@@ -87,7 +93,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
   <Value2>22</Value2>
 </MyDataClass>";
 
-            Assert.AreEqual(expected, actual);
+            actual.Should().Be(expected);
         }
 
         #endregion Tests

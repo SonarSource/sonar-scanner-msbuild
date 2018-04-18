@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -46,10 +47,10 @@ namespace SonarScanner.MSBuild.Shim.Tests
                 onInvalid: (paths) =>
                 {
                     called = true;
-                    Assert.AreEqual(1, paths.Count);
-                    Assert.AreEqual(folder, paths[0]);
+                     paths.Count.Should().Be(1);
+                     paths[0].Should().Be(folder);
                 });
-            Assert.IsTrue(called, "Callback not called");
+            called.Should().BeTrue("Callback not called");
         }
 
         [TestMethod]
@@ -78,11 +79,11 @@ namespace SonarScanner.MSBuild.Shim.Tests
                 onInvalid: (paths) =>
                 {
                     called = true;
-                    Assert.AreEqual(2, paths.Count);
-                    Assert.AreEqual(Path.GetDirectoryName(p1.Project.FullPath), paths[0]);
-                    Assert.AreEqual(Path.GetDirectoryName(p3.Project.FullPath), paths[1]);
+                     paths.Count.Should().Be(2);
+                     paths[0].Should().Be(Path.GetDirectoryName(p1.Project.FullPath));
+                     paths[1].Should().Be(Path.GetDirectoryName(p3.Project.FullPath));
                 });
-            Assert.IsTrue(called, "Callback not called");
+            called.Should().BeTrue("Callback not called");
         }
 
         [TestMethod]
@@ -115,7 +116,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
                 {
                     Assert.Fail("Expected to succeed");
                 });
-            Assert.IsTrue(called, "Callback not called");
+            called.Should().BeTrue("Callback not called");
         }
 
         #endregion Tests

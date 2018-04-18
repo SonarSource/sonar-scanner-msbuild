@@ -19,6 +19,7 @@
  */
 
 using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarScanner.MSBuild.Common.UnitTests
@@ -237,7 +238,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void CLogger_Verbosity()
         {
             var logger = new ConsoleLogger(includeTimestamp: false);
-            Assert.AreEqual(logger.Verbosity, LoggerVerbosity.Debug, "Default verbosity should be Debug");
+            logger.Verbosity.Should().Be(LoggerVerbosity.Debug, "Default verbosity should be Debug");
 
             using (var output = new OutputCaptureScope())
             {

@@ -140,7 +140,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             result.AssertExpectedErrorCount(1);
 
             var projectName = Path.GetFileName(projectInstance.FullPath);
-            Assert.IsTrue(result.Errors[0].Contains(projectName), "Expecting the error message to contain the project file name");
+            result.Errors[0].Contains(projectName).Should().BeTrue("Expecting the error message to contain the project file name");
         }
 
         [TestMethod]
@@ -205,7 +205,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Locate the real "ImportsBefore" target file
             var importsBeforeTargets = Path.Combine(TestUtils.GetTestSpecificFolderName(TestContext), TargetConstants.ImportsBeforeFile);
-            Assert.IsTrue(File.Exists(importsBeforeTargets), "Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
+            File.Exists(importsBeforeTargets).Should().BeTrue("Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
 
             var projectName = TestContext.TestName + ".proj";
             var testSpecificFolder = TestUtils.EnsureTestSpecificFolder(TestContext);
@@ -279,13 +279,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         private static void AssertAnalysisTargetsAreNotImported(ProjectInstance projectInstance)
         {
             var propertyInstance = projectInstance.GetProperty(DummyAnalysisTargetsMarkerProperty);
-            Assert.IsNull(propertyInstance, "SonarQube Analysis targets should not have been imported");
+            propertyInstance.Should().BeNull("SonarQube Analysis targets should not have been imported");
         }
 
         private static void AssertAnalysisTargetsAreImported(ProjectInstance projectInstance)
         {
             var propertyInstance = projectInstance.GetProperty(DummyAnalysisTargetsMarkerProperty);
-            Assert.IsNotNull(propertyInstance, "Failed to import the SonarQube Analysis targets");
+            propertyInstance.Should().NotBeNull("Failed to import the SonarQube Analysis targets");
         }
 
         #endregion Assertions

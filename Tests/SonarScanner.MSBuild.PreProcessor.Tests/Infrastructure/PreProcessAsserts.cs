@@ -22,7 +22,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
@@ -32,7 +32,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public static void AssertRuleSetContainsRules(string filePath, params string[] expectedRuleIds)
         {
-            Assert.IsTrue(File.Exists(filePath), "Expected ruleset file does not exist: {0}", filePath);
+            File.Exists(filePath).Should().BeTrue("Expected ruleset file does not exist: {0}", filePath);
 
             var doc = XDocument.Load(filePath);
 
@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             Debug.WriteLine(doc.ToString());
             var element = doc.Descendants().Single(e => e.Name == "Rule" && HasRuleIdAttribute(e, ruleId));
-            Assert.IsNotNull(element, "Could not find ruleId with expected id: {0}", ruleId);
+            element.Should().NotBeNull("Could not find ruleId with expected id: {0}", ruleId);
         }
 
         private static bool HasRuleIdAttribute(XElement element, string ruleId)
@@ -63,7 +63,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         private static void AssertExpectedRuleCount(XDocument doc, int expectedCount)
         {
             var rules = doc.Descendants().Where(e => e.Name == "Rule");
-            Assert.AreEqual(expectedCount, rules.Count(), "Unexpected number of rules");
+            rules.Should().HaveCount(expectedCount, "Unexpected number of rules");
         }
 
         #endregion Private methods

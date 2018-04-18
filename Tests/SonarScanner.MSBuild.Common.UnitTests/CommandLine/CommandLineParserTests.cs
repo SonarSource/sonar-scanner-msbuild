@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -36,7 +37,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         [TestMethod]
         public void Parser_InvalidArguments()
         {
-            AssertException.Expects<ArgumentNullException>(() => new CommandLineParser(null, true));
+            Action act = () => new CommandLineParser(null, true);
+            act.ShouldThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -45,8 +47,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var d1 = new ArgumentDescriptor("id1", new string[] { "a" }, true, "desc1", false);
             var d2 = new ArgumentDescriptor("id1", new string[] { "b" }, true, "desc2", false);
 
-            AssertException.Expects<ArgumentException>(() => new CommandLineParser(
-                new ArgumentDescriptor[] { d1, d2 }, true));
+            Action act = () => new CommandLineParser(new ArgumentDescriptor[] { d1, d2 }, true);
+            act.ShouldThrowExactly<ArgumentException>();
         }
 
         [TestMethod]
@@ -129,7 +131,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             IEnumerable<ArgumentInstance> instances;
             TestLogger logger;
 
-            var args = new string[] {  };
+            var args = new string[] { };
 
             // 1. Argument is required
             var d1 = new ArgumentDescriptor("id", new string[] { "AAA" }, true /* required */, "desc1", false /* no multiples */);
@@ -174,7 +176,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             // 3. Combination -> only exact matches matched
             logger = new TestLogger();
             instances = CheckProcessingSucceeds(parser, logger, "beginX", "begin", "beginY");
-            Assert.AreEqual(string.Empty, instances.First().Value, "Value for verb should be empty");
+            instances.First().Value.Should().Be(string.Empty, "Value for verb should be empty");
             AssertExpectedInstancesCount(1, instances);
             AssertExpectedValue("v1", "", instances);
         }
@@ -284,8 +286,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         private static IEnumerable<ArgumentInstance> CheckProcessingSucceeds(CommandLineParser parser, TestLogger logger, params string[] args)
         {
             var success = parser.ParseArguments(args, logger, out IEnumerable<ArgumentInstance> instances);
-            Assert.IsTrue(success, "Expecting parsing to succeed");
-            Assert.IsNotNull(instances, "Instances should not be null if parsing succeeds");
+            success.Should().BeTrue("Expecting parsing to succeed");
+            instances.Should().NotBeNull("Instances should not be null if parsing succeeds");
             logger.AssertErrorsLogged(0);
             return instances;
         }
@@ -295,8 +297,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var logger = new TestLogger();
             var success = parser.ParseArguments(args, logger, out IEnumerable<ArgumentInstance> instances);
 
-            Assert.IsFalse(success, "Expecting parsing to fail");
-            Assert.IsNotNull(instances, "Instances should not be null even if parsing fails");
+            success.Should().BeFalse("Expecting parsing to fail");
+            instances.Should().NotBeNull("Instances should not be null even if parsing fails");
             AssertExpectedInstancesCount(0, instances);
 
             logger.AssertErrorsLogged();
@@ -306,28 +308,28 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         private static void AssertExpectedInstancesCount(int expected, IEnumerable<ArgumentInstance> actual)
         {
-            Assert.AreEqual(expected, actual.Count(), "Unexpected number of arguments recognized");
+            actual.Should().HaveCount(expected, "Unexpected number of arguments recognized");
         }
 
         private static void AssertExpectedValue(string id, string expectedValue, IEnumerable<ArgumentInstance> actual)
         {
             var found = ArgumentInstance.TryGetArgument(id, actual, out ArgumentInstance actualInstance);
-            Assert.IsTrue(found, "Expected argument was not found. Id: {0}", id);
-            Assert.IsNotNull(actual);
+            found.Should().BeTrue("Expected argument was not found. Id: {0}", id);
+            actual.Should().NotBeNull();
 
-            Assert.AreEqual(expectedValue, actualInstance.Value, "Unexpected instance value. Id: {0}", id);
+            actualInstance.Value.Should().Be(expectedValue, "Unexpected instance value. Id: {0}", id);
 
             var actualValues = actual.Where(a => ArgumentDescriptor.IdComparer.Equals(a.Descriptor.Id, id)).Select(a => a.Value).ToArray();
-            Assert.AreEqual(1, actualValues.Length, "Not expecting to find multiple values. Id: {0}", id);
+            actualValues.Length.Should().Be(1, "Not expecting to find multiple values. Id: {0}", id);
         }
 
         private static void AssertExpectedValues(string id, IEnumerable<ArgumentInstance> actual, params string[] expectedValues)
         {
             var actualValues = actual.Where(a => ArgumentDescriptor.IdComparer.Equals(a.Descriptor.Id, id)).Select(a => a.Value).ToArray();
 
-            CollectionAssert.AreEqual(expectedValues, actualValues);
+            actualValues.Should().BeEquivalentTo(expectedValues);
         }
 
-            #endregion Checks
-        }
+        #endregion Checks
     }
+}

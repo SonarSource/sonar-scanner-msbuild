@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.Build.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
@@ -140,9 +141,9 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             ExecuteAndCheckSuccess(testSubject);
 
             // Assert
-            Assert.AreEqual("f:\\yyy.ruleset", testSubject.RuleSetFilePath);
-            CollectionAssert.AreEquivalent(expectedAnalyzers, testSubject.AnalyzerFilePaths);
-            CollectionAssert.AreEquivalent(expectedAdditionalFiles, testSubject.AdditionalFiles);
+            testSubject.RuleSetFilePath.Should().Be("f:\\yyy.ruleset");
+            testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(expectedAnalyzers);
+            testSubject.AdditionalFiles.Should().BeEquivalentTo(expectedAdditionalFiles);
         }
 
         #endregion Tests
@@ -155,16 +156,16 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             task.BuildEngine = dummyEngine;
 
             var taskSucess = task.Execute();
-            Assert.IsTrue(taskSucess, "Expecting the task to succeed");
+            taskSucess.Should().BeTrue("Expecting the task to succeed");
             dummyEngine.AssertNoErrors();
             dummyEngine.AssertNoWarnings();
         }
 
         private static void CheckNoAnalyzerSettings(GetAnalyzerSettings executedTask)
         {
-            Assert.IsNull(executedTask.RuleSetFilePath);
-            Assert.IsNull(executedTask.AdditionalFiles);
-            Assert.IsNull(executedTask.AnalyzerFilePaths);
+            executedTask.RuleSetFilePath.Should().BeNull();
+            executedTask.AdditionalFiles.Should().BeNull();
+            executedTask.AnalyzerFilePaths.Should().BeNull();
         }
 
         #endregion Checks methods

@@ -20,6 +20,7 @@
 
 using System;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -32,9 +33,9 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void ParseValidJson()
         {
             var provider = new EnvScannerPropertiesProvider("{ \"sonar.host.url\": \"http://myhost\"}");
-            Assert.AreEqual(provider.GetAllProperties().First().Id, "sonar.host.url");
-            Assert.AreEqual(provider.GetAllProperties().First().Value, "http://myhost");
-            Assert.AreEqual(1, provider.GetAllProperties().Count());
+            provider.GetAllProperties().Should().HaveCount(1);
+            provider.GetAllProperties().First().Id.Should().Be("sonar.host.url");
+            provider.GetAllProperties().First().Value.Should().Be("http://myhost");
         }
 
         [TestCleanup]
@@ -49,7 +50,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var logger = new TestLogger();
             Environment.SetEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "trash");
             var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out IAnalysisPropertyProvider provider);
-            Assert.IsFalse(result);
+            result.Should().BeFalse();
             logger.AssertErrorLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
         }
 
@@ -57,7 +58,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void NonExistingEnvVar()
         {
             var provider = new EnvScannerPropertiesProvider(null);
-            Assert.AreEqual(0, provider.GetAllProperties().Count());
+            provider.GetAllProperties().Should().BeEmpty();
         }
     }
 }

@@ -21,7 +21,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 
 namespace TestUtilities
 {
@@ -65,8 +65,8 @@ namespace TestUtilities
             var actualValue = properties.GetProperty(key);
             var found = actualValue != null;
 
-            Assert.IsTrue(found, "Expected setting was not found. Key: {0}", key);
-            Assert.AreEqual(expectedValue, actualValue, "Property does not have the expected value. Key: {0}", key);
+            found.Should().BeTrue("Expected setting was not found. Key: {0}", key);
+            actualValue.Should().Be(expectedValue, "Property does not have the expected value. Key: {0}", key);
         }
 
         public void AssertSettingDoesNotExist(string key)
@@ -74,7 +74,7 @@ namespace TestUtilities
             var actualValue = properties.GetProperty(key);
             var found = actualValue != null;
 
-            Assert.IsFalse(found, "Not expecting setting to be found. Key: {0}, value: {1}", key, actualValue);
+            found.Should().BeFalse("Not expecting setting to be found. Key: {0}, value: {1}", key, actualValue);
         }
 
         #endregion Public methods

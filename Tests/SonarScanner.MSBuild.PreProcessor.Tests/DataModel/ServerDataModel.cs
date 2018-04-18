@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using TestUtilities;
 
@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public QualityProfile AddQualityProfile(string id, string language, string organization)
         {
             var profile = FindProfile(id);
-            Assert.IsNull(profile, "A quality profile already exists. Id: {0}, language: {1}", id, language);
+            profile.Should().BeNull("A quality profile already exists. Id: {0}, language: {1}", id, language);
 
             profile = new QualityProfile(id, language, organization);
             qualityProfiles.Add(profile);
