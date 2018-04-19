@@ -293,7 +293,7 @@ namespace SonarScanner.MSBuild.Shim
             }
             else
             {
-                Func<string, bool> invalidPathPredicate = path => path.Contains(",");
+                bool invalidPathPredicate(string path) => path.Contains(",");
                 var invalidPaths = paths.Where(invalidPathPredicate);
                 if (invalidPaths.Any())
                 {
