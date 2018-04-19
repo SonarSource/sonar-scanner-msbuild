@@ -34,7 +34,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ArgumentDescriptor(null, new[] { "" }, true, "description", true);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
         }
 
         [TestMethod]
@@ -44,7 +44,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ArgumentDescriptor("", new[] { "" }, true, "description", true);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
         }
 
         [TestMethod]
@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ArgumentDescriptor("   ", new[] { "" }, true, "description", true);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
         }
 
         [TestMethod]
@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ArgumentDescriptor("id", null, true, "description", true);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("prefixes");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("prefixes");
         }
 
         [TestMethod]
@@ -74,7 +74,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ArgumentDescriptor("id", new string[0], true, "description", true);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("prefixes");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("prefixes");
         }
 
         [TestMethod]
@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ArgumentDescriptor("id", new[] { "" }, true, null, true);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
         }
 
         [TestMethod]
@@ -94,7 +94,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ArgumentDescriptor("id", new[] { "" }, true, "", true);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
         }
 
         [TestMethod]
@@ -104,7 +104,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ArgumentDescriptor("id", new[] { "" }, true, "   ", true);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
         }
     }
 }

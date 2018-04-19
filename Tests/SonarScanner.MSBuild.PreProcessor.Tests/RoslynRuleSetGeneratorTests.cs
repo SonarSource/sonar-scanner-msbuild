@@ -39,7 +39,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_ConstructorArgumentChecks()
         {
             Action act = () => new RoslynRuleSetGenerator(null);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -52,13 +52,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var language = "cs";
 
             Action act1 = () => generator.Generate(activeRules, inactiveRules, null);
-            act1.ShouldThrowExactly<ArgumentNullException>();
+            act1.Should().ThrowExactly<ArgumentNullException>();
 
             Action act2 = () => generator.Generate(activeRules, null, language);
-            act2.ShouldThrowExactly<ArgumentNullException>();
+            act2.Should().ThrowExactly<ArgumentNullException>();
 
             Action act3 = () => generator.Generate(null, inactiveRules, language);
-            act3.ShouldThrowExactly<ArgumentNullException>();
+            act3.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]

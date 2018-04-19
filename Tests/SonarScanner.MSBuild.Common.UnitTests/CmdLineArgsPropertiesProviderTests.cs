@@ -41,10 +41,10 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             IAnalysisPropertyProvider provider;
 
             Action act = () => CmdLineArgPropertyProvider.TryCreateProvider(null, new TestLogger(), out provider);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
 
             act = () => CmdLineArgPropertyProvider.TryCreateProvider(Enumerable.Empty<ArgumentInstance>(), null, out provider);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]

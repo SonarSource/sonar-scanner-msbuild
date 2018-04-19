@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             Action act = () => testSubject.Execute(null, new string[] { });
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
         }
 
         [TestMethod]
@@ -60,7 +60,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             Action act = () => testSubject.Execute(new AnalysisConfig(), null);
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userCmdLineArguments");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userCmdLineArguments");
         }
 
         [TestMethod]
@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             Action act = () => new SonarScannerWrapper(null);
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]

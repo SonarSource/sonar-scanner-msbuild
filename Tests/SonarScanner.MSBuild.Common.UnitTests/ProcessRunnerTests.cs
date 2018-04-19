@@ -42,7 +42,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ProcessRunner(new TestLogger()).Execute(null);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("runnerArgs");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("runnerArgs");
         }
 
         [TestMethod]

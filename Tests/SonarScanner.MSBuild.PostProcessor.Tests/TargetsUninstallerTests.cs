@@ -32,7 +32,7 @@ namespace MSBuild.SonarQube.Internal.PostProcess.Tests
         public void Ctor_Argument_Check()
         {
             Action action = () => new TargetsUninstaller(null);
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
     }
 }

@@ -42,15 +42,15 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             // 1. Invalid analysis config
             Action op = () => ProjectInfoReportBuilder.WriteSummaryReport(null, analysisResult, loggerMock);
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("config");
+            op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("config");
 
             // 2. Invalid result
             op = () => ProjectInfoReportBuilder.WriteSummaryReport(analysisConfig, null, loggerMock);
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("result");
+            op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("result");
 
             // 3. Invalid logger
             op = () => ProjectInfoReportBuilder.WriteSummaryReport(analysisConfig, analysisResult, null);
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]

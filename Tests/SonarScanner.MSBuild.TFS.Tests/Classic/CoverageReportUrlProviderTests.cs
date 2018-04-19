@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void Ctor_Argument_Check()
         {
             Action action = () => new CoverageReportUrlProvider(null);
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -42,10 +42,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var provider = new CoverageReportUrlProvider(new TestLogger());
 
             Action action = () => provider.GetCodeCoverageReportUrls(tfsUri: null, buildUri: "buildUri");
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tfsUri");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tfsUri");
 
             action = () => provider.GetCodeCoverageReportUrls(tfsUri: "tfsUri", buildUri: null);
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildUri");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildUri");
         }
     }
 }

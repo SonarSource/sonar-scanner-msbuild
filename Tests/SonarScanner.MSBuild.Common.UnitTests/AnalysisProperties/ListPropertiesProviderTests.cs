@@ -34,7 +34,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ListPropertiesProvider(null);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
         }
 
         [TestMethod]
@@ -44,7 +44,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ListPropertiesProvider().AddProperty(null, "foo");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
         }
 
         [TestMethod]
@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ListPropertiesProvider().AddProperty("", "foo");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
         }
 
         [TestMethod]
@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ListPropertiesProvider().AddProperty("   ", "foo");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
         }
 
         [TestMethod]
@@ -77,7 +77,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => testSubject.AddProperty("foo", "foo");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("key");
+            action.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("key");
         }
 
         [TestMethod]
@@ -87,7 +87,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ListPropertiesProvider().TryGetProperty(null, out var property);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
         }
 
         [TestMethod]
@@ -97,7 +97,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ListPropertiesProvider().TryGetProperty("", out var property);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
         }
 
         [TestMethod]
@@ -107,7 +107,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ListPropertiesProvider().TryGetProperty("   ", out var property);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
         }
     }
 }

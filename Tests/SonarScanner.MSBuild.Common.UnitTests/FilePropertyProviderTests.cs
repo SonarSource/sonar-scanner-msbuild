@@ -46,15 +46,15 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             // 1. Null command line arguments
             Action act = () => FilePropertyProvider.TryCreateProvider(null, string.Empty, new TestLogger(), out provider);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
 
             // 2. Null directory
             act = () => FilePropertyProvider.TryCreateProvider(Enumerable.Empty<ArgumentInstance>(), null, new TestLogger(), out provider);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
 
             // 3. Null logger
             act = () => FilePropertyProvider.TryCreateProvider(Enumerable.Empty<ArgumentInstance>(), string.Empty, null, out provider);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]

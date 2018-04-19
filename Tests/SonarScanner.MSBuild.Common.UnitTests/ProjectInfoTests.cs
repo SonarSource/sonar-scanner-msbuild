@@ -42,19 +42,19 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             // 1a. Missing file name - save
             Action act = () => pi.Save(null);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
             act = () => pi.Save(string.Empty);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
             act = () => pi.Save("\r\t ");
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
 
             // 1b. Missing file name - load
             act = () => ProjectInfo.Load(null);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
             act = () => ProjectInfo.Load(string.Empty);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
             act = () => ProjectInfo.Load("\r\t ");
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]

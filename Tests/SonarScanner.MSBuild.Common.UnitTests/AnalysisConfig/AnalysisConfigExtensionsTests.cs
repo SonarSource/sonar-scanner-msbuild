@@ -40,7 +40,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.GetConfigValue(null, "foo", "bar");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
         }
 
         [TestMethod]
@@ -50,7 +50,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.GetConfigValue(new AnalysisConfig(), null, "bar");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
         }
 
         [TestMethod]
@@ -60,7 +60,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.GetConfigValue(new AnalysisConfig(), "", "bar");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
         }
 
         [TestMethod]
@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.GetConfigValue(new AnalysisConfig(), "   ", "bar");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
         }
 
         [TestMethod]
@@ -80,7 +80,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.GetAnalysisSettings(null, false);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
         }
 
         [TestMethod]
@@ -90,7 +90,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.SetSettingsFilePath(null, "foo");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
         }
 
         [TestMethod]
@@ -100,7 +100,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.SetSettingsFilePath(new AnalysisConfig(), null);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
         }
 
         [TestMethod]
@@ -110,7 +110,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.SetSettingsFilePath(new AnalysisConfig(), "");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
         }
 
         [TestMethod]
@@ -120,7 +120,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.SetSettingsFilePath(new AnalysisConfig(), "   ");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
         }
 
         [TestMethod]
@@ -130,7 +130,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.GetSettingsFilePath(null);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
         }
 
         [TestMethod]
@@ -140,7 +140,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.SetConfigValue(null, "foo", "bar");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
         }
 
         [TestMethod]
@@ -150,7 +150,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.SetConfigValue(new AnalysisConfig(), null, "bar");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
         }
 
         [TestMethod]
@@ -160,7 +160,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.SetConfigValue(new AnalysisConfig(), "", "bar");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
         }
 
         [TestMethod]
@@ -170,7 +170,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ConfigSettingsExtensions.SetConfigValue(new AnalysisConfig(), "   ", "bar");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingId");
         }
 
         [TestMethod]

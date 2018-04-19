@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             Action act = () => new SonarWebService(new TestDownloader(), null, new TestLogger());
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("server");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("server");
         }
 
         [TestMethod]
@@ -74,7 +74,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             Action act = () => new SonarWebService(new TestDownloader(), "http://localhost:9000", null);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -442,7 +442,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             Action act = () => testSubject.GetProperties(null, null);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
         }
 
         [TestMethod]
@@ -503,7 +503,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             Action act = () => testSubject.TryDownloadEmbeddedFile(null, "filename", "targetDir");
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("pluginKey");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("pluginKey");
         }
 
         [TestMethod]
@@ -514,7 +514,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             Action act = () => testSubject.TryDownloadEmbeddedFile("key", null, "targetDir");
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("embeddedFileName");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("embeddedFileName");
         }
 
         [TestMethod]
@@ -525,7 +525,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             Action act = () => testSubject.TryDownloadEmbeddedFile("pluginKey", "filename", null);
 
             // Act & Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("targetDirectory");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("targetDirectory");
         }
 
         [TestMethod]
@@ -579,7 +579,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             var service = new SonarWebService(downloaderMock.Object, serverUrl, logger);
 
             Action action = () => service.GetProperties(projectKey);
-            action.ShouldThrow<WebException>();
+            action.Should().Throw<WebException>();
 
             logger.Errors.Should().HaveCount(1);
             logger.Warnings.Should().HaveCount(1);
@@ -608,7 +608,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             var service = new SonarWebService(downloaderMock.Object, serverUrl, logger);
 
             Action action = () => service.GetProperties(projectKey);
-            action.ShouldThrow<WebException>();
+            action.Should().Throw<WebException>();
 
             logger.Errors.Should().HaveCount(1);
             logger.Warnings.Should().HaveCount(1);

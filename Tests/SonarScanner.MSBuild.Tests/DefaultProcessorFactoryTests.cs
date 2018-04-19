@@ -38,7 +38,7 @@ namespace SonarQube.Bootstrapper.Tests
             Action action = () => new DefaultProcessorFactory(new TestLogger(), null, new NullCoverageReportConverter());
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
         }
 
         [TestMethod]
@@ -48,7 +48,7 @@ namespace SonarQube.Bootstrapper.Tests
             Action action = () => new DefaultProcessorFactory(new TestLogger(), new NotSupportedLegacyTeamBuildFactory(), null);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("coverageReportConverter");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("coverageReportConverter");
         }
 
         [TestMethod]

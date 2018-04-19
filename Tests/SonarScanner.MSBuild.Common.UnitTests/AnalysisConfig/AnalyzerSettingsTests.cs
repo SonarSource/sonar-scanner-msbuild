@@ -34,7 +34,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new AnalyzerSettings("language", null, Enumerable.Empty<string>(), Enumerable.Empty<string>());
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSetFilePath");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSetFilePath");
         }
 
         [TestMethod]
@@ -44,7 +44,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new AnalyzerSettings("language", "", Enumerable.Empty<string>(), Enumerable.Empty<string>());
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSetFilePath");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSetFilePath");
         }
 
         [TestMethod]
@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new AnalyzerSettings("language", "   ", Enumerable.Empty<string>(), Enumerable.Empty<string>());
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSetFilePath");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSetFilePath");
         }
 
         [TestMethod]
@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new AnalyzerSettings("language", "foo", null, Enumerable.Empty<string>());
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analyzerAssemblies");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analyzerAssemblies");
         }
 
         [TestMethod]
@@ -74,7 +74,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new AnalyzerSettings("language", "foo", Enumerable.Empty<string>(), null);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("additionalFiles");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("additionalFiles");
         }
     }
 }

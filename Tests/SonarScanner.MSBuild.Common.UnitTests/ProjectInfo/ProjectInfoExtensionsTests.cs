@@ -34,7 +34,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ProjectInfoExtensions.TryGetAnalyzerResult(null, "foo", out var result);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
         }
 
         [TestMethod]
@@ -44,7 +44,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ProjectInfoExtensions.TryGetAnalysisSetting(null, "foo", out var result);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
         }
 
         [TestMethod]
@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ProjectInfoExtensions.AddAnalyzerResult(null, "foo", "bar");
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
         }
 
         [TestMethod]
@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), null, "bar");
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
         }
 
         [TestMethod]
@@ -74,7 +74,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "", "bar");
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
         }
 
         [TestMethod]
@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "   ", "bar");
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
         }
 
         [TestMethod]
@@ -94,7 +94,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "foo", null);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
         }
 
         [TestMethod]
@@ -104,7 +104,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "foo", "");
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
         }
 
         [TestMethod]
@@ -114,7 +114,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "foo", "   ");
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
         }
 
         [TestMethod]
@@ -124,7 +124,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ProjectInfoExtensions.GetDirectory(null);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
         }
 
         [TestMethod]
@@ -134,7 +134,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ProjectInfoExtensions.GetProjectGuidAsString(null);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
         }
     }
 }

@@ -44,9 +44,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynConfig_ConstructorArgumentChecks()
         {
             Action act = () => new RoslynAnalyzerProvider(null, new TestLogger());
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
             act = () => new RoslynAnalyzerProvider(new MockAnalyzerInstaller(), null);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -64,15 +64,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             // Act and assert
             Action act = () => testSubject.SetupAnalyzer(null, serverSettings, activeRules, inactiveRules, pluginKey);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
             act = () => testSubject.SetupAnalyzer(settings, null, activeRules, inactiveRules, pluginKey);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
             act = () => testSubject.SetupAnalyzer(settings, serverSettings, null, inactiveRules, pluginKey);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
             act = () => testSubject.SetupAnalyzer(settings, serverSettings, activeRules, null, pluginKey);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
             act = () => testSubject.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, null);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]

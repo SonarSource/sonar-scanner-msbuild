@@ -47,7 +47,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 new List<AnalyzerSettings>(), new MockSonarQubeServer(), new TestLogger());
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("localSettings");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("localSettings");
         }
 
         [TestMethod]
@@ -59,7 +59,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 new Dictionary<string, string>(), new List<AnalyzerSettings>(), new MockSonarQubeServer(), new TestLogger());
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildSettings");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildSettings");
         }
 
         [TestMethod]
@@ -73,7 +73,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 null, new List<AnalyzerSettings>(), new MockSonarQubeServer(), new TestLogger());
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverProperties");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverProperties");
         }
 
         [TestMethod]
@@ -87,7 +87,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 new Dictionary<string, string>(), new List<AnalyzerSettings>(), null, new TestLogger());
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeServer");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeServer");
         }
 
         [TestMethod]
@@ -101,7 +101,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 new Dictionary<string, string>(), new List<AnalyzerSettings>(), new MockSonarQubeServer(), null);
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]

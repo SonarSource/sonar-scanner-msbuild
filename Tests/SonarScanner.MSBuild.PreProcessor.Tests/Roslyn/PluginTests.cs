@@ -34,15 +34,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests.Roslyn
         {
             // 1. Null
             Action act = () => new Plugin(null, "v1", "resourceName");
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
 
             // 2. Empty
             act = () => new Plugin(string.Empty, "v1", "resourceName");
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
 
             // 3. Whitespace
             act = () => new Plugin("\r ", "v1", "resourceName");
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
         }
 
         [TestMethod]
@@ -50,15 +50,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests.Roslyn
         {
             // 1. Null
             Action act = () => new Plugin("key", null, "resourceName");
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
 
             // 2. Empty
             act = () => new Plugin("key", string.Empty, "resourceName");
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
 
             // 3. Whitespace
             act = () => new Plugin("key", "\r\n ", "resourceName");
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
         }
 
         [TestMethod]
@@ -66,15 +66,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests.Roslyn
         {
             // 1. Null
             Action act = () => new Plugin("key", "version", null);
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
 
             // 2. Empty
             act = () => new Plugin("key", "version", string.Empty);
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
 
             // 3. Whitespace
             act = () => new Plugin("key", "version", "\r\n ");
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("staticResourceName");
         }
 
         [TestMethod]

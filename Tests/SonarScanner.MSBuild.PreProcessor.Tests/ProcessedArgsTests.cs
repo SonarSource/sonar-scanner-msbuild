@@ -66,7 +66,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             // 1. Throws on missing value
             Action act = () => args.GetSetting("missing.property");
-            act.ShouldThrowExactly<InvalidOperationException>();
+            act.Should().ThrowExactly<InvalidOperationException>();
 
             // 2. Returns existing values
             args.GetSetting("cmd.key.1").Should().Be("cmd value 1");

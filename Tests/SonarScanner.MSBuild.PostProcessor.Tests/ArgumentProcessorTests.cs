@@ -41,7 +41,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             IAnalysisPropertyProvider provider;
 
             // 1. Null input
-            Action act = () => ArgumentProcessor.TryProcessArgs(null, logger, out provider); act.ShouldThrowExactly<ArgumentNullException>();
+            Action act = () => ArgumentProcessor.TryProcessArgs(null, logger, out provider); act.Should().ThrowExactly<ArgumentNullException>();
 
             // 2. Empty array input
             provider = CheckProcessingSucceeds(logger, new string[] { });

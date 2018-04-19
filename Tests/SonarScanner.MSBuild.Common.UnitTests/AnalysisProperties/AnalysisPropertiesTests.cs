@@ -34,7 +34,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new AnalysisProperties().Save(null);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
         }
 
         [TestMethod]
@@ -44,7 +44,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new AnalysisProperties().Save("");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
         }
 
         [TestMethod]
@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new AnalysisProperties().Save("    ");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
         }
 
         [TestMethod]
@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => AnalysisProperties.Load(null);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
         }
 
         [TestMethod]
@@ -74,7 +74,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => AnalysisProperties.Load("");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
         }
 
         [TestMethod]
@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => AnalysisProperties.Load("    ");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileName");
         }
     }
 }

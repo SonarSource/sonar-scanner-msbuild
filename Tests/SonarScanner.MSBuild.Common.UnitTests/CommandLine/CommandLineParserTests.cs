@@ -38,7 +38,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void Parser_InvalidArguments()
         {
             Action act = () => new CommandLineParser(null, true);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -48,7 +48,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var d2 = new ArgumentDescriptor("id1", new string[] { "b" }, true, "desc2", false);
 
             Action act = () => new CommandLineParser(new ArgumentDescriptor[] { d1, d2 }, true);
-            act.ShouldThrowExactly<ArgumentException>();
+            act.Should().ThrowExactly<ArgumentException>();
         }
 
         [TestMethod]

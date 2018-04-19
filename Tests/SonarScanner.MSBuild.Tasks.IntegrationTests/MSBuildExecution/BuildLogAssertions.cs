@@ -116,7 +116,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             Console.WriteLine("Expected target order: {0}", string.Join(", ", expected));
             Console.WriteLine("Actual target order: {0}", string.Join(", ", actual));
 
-            actual.ShouldBeEquivalentTo(expected, options => options.WithStrictOrdering());
+            actual.Should().BeEquivalentTo(expected, options => options.WithStrictOrdering());
         }
 
         public static void AssertNoWarningsOrErrors(this BuildLog log)
