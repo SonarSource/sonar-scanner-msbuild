@@ -68,8 +68,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             }
 
             // Run the build
-            var args = new ProcessRunnerArguments(exePath, false);
-            args.CmdLineArgs = msbuildArgs;
+            var args = new ProcessRunnerArguments(exePath, false)
+            {
+                CmdLineArgs = msbuildArgs
+            };
             var runner = new ProcessRunner(new ConsoleLogger(true));
             var success = runner.Execute(args);
 
