@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => Property.TryGetProperty(null, Enumerable.Empty<Property>(), out var property);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
         }
 
         [TestMethod]
@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => Property.TryGetProperty("", Enumerable.Empty<Property>(), out var property);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
         }
 
         [TestMethod]
@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => Property.TryGetProperty("   ", Enumerable.Empty<Property>(), out var property);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
         }
 
         [TestMethod]
@@ -65,7 +65,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => Property.TryGetProperty("foo", null, out var property);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
         }
     }
 }

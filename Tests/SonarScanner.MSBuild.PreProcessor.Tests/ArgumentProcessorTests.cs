@@ -43,7 +43,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             // 1. Null logger
             Action act = () => ArgumentProcessor.TryProcessArgs(null, null);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
 
             // 2. required argument missing
             logger = CheckProcessingFails(/* no command line args */);

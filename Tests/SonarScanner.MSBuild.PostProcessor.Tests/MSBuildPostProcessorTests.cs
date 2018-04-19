@@ -359,21 +359,21 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         public void Execute_NullArgs_Throws()
         {
             Action action = () => DummyPostProcessorExecute(null, new AnalysisConfig(), new MockTeamBuildSettings());
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
         }
 
         [TestMethod]
         public void Execute_NullAnalysisConfig_Throws()
         {
             Action action = () => DummyPostProcessorExecute(new string[0], null, new MockTeamBuildSettings());
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
         }
 
         [TestMethod]
         public void Execute_NullTeamBuildSettings_Throws()
         {
             Action action = () => DummyPostProcessorExecute(new string[0], new AnalysisConfig(), null);
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
         }
 
         #endregion Tests

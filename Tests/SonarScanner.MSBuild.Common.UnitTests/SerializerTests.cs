@@ -44,18 +44,18 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             // Load
             Action act1 = () => Serializer.LoadModel<MyDataClass>(null);
-            act1.ShouldThrowExactly<ArgumentNullException>();
+            act1.Should().ThrowExactly<ArgumentNullException>();
 
             // Save
             Action act2 = () => Serializer.SaveModel<MyDataClass>(null, "c:\\data.txt");
-            act2.ShouldThrowExactly<ArgumentNullException>();
+            act2.Should().ThrowExactly<ArgumentNullException>();
 
             Action act3 = () => Serializer.SaveModel<MyDataClass>(new MyDataClass(), null);
-            act3.ShouldThrowExactly<ArgumentNullException>();
+            act3.Should().ThrowExactly<ArgumentNullException>();
 
             // ToString
             Action act4 = () => Serializer.ToString<MyDataClass>(null);
-            act4.ShouldThrowExactly<ArgumentNullException>();
+            act4.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]

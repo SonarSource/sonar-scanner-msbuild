@@ -53,7 +53,7 @@ namespace SonarQube.Bootstrapper.Tests
             Action action = () => ArgumentProcessor.TryProcessArgs(null, new TestLogger(), out var settings);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("commandLineArgs");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("commandLineArgs");
         }
 
         [TestMethod]
@@ -63,7 +63,7 @@ namespace SonarQube.Bootstrapper.Tests
             Action action = () => ArgumentProcessor.TryProcessArgs(new string[0], null, out var settings);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]

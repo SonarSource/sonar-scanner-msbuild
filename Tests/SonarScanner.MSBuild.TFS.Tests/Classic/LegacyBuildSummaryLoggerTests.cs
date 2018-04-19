@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             Action action = () => new LegacyBuildSummaryLogger(null, "http://builduri");
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tfsUri");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tfsUri");
         }
 
         [TestMethod]
@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             Action action = () => new LegacyBuildSummaryLogger("http://tfsUri", null);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildUri");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildUri");
         }
 
         [TestMethod]
@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             Action action = () => testSubject.WriteMessage(null);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("message");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("message");
         }
     }
 }

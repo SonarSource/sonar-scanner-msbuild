@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void Ctor_Argument_Check()
         {
             Action action = () => new CoverageReportDownloader(null);
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -42,13 +42,13 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var downloader = new CoverageReportDownloader(new TestLogger());
 
             Action action = () => downloader.DownloadReport(tfsUri: null, reportUrl: "reportUrl", newFullFileName: "newFullFileName");
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tfsUri");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tfsUri");
 
             action = () => downloader.DownloadReport(tfsUri: "tfsUri", reportUrl: null, newFullFileName: "newFullFileName");
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("reportUrl");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("reportUrl");
 
             action = () => downloader.DownloadReport(tfsUri: "tfsUri", reportUrl: "reportUrl", newFullFileName: null);
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("newFullFileName");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("newFullFileName");
         }
     }
 }

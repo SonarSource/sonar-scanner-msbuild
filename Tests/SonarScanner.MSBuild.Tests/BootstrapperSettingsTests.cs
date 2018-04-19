@@ -42,7 +42,7 @@ namespace SonarQube.Bootstrapper.Tests
             IList<string> validArgs = null;
 
             Action act = () => new BootstrapperSettings(AnalysisPhase.PreProcessing, validArgs, LoggerVerbosity.Debug, null);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]

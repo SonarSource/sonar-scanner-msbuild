@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             Action act = () => PathHelper.WithTrailingDirectorySeparator(null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("directory");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("directory");
         }
 
         [TestMethod]
@@ -176,7 +176,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             Action act = () => PathHelper.GetParts(null);
 
             // Assert
-            act.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("directoryInfo");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("directoryInfo");
         }
 
         [TestMethod]

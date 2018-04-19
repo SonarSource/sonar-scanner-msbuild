@@ -50,7 +50,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             Action act = () => new CoverageReportProcessor(null, converterMock.Object, new TestLogger());
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legactTeamBuildFactory");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legactTeamBuildFactory");
         }
 
         public void Ctor_WhenConverterIsNull_Throws()
@@ -59,7 +59,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             Action act = () => new CoverageReportProcessor(legacyFactoryMock.Object, null, new TestLogger());
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("coverageReportConverter");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("coverageReportConverter");
         }
 
         public void Ctor_WhenLoggerIsNull_Throws()
@@ -68,7 +68,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             Action act = () => new CoverageReportProcessor(legacyFactoryMock.Object, converterMock.Object, null);
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -80,7 +80,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             Action act = () => processor.Initialise(analysisConfig, null);
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
         }
 
         [TestMethod]

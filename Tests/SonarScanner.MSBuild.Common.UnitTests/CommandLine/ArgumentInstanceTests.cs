@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => new ArgumentInstance(null, "foo");
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("descriptor");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("descriptor");
         }
 
         [TestMethod]
@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ArgumentInstance.TryGetArgument(null, Enumerable.Empty<ArgumentInstance>(), out var instance);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
         }
 
         [TestMethod]
@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ArgumentInstance.TryGetArgument("", Enumerable.Empty<ArgumentInstance>(), out var instance);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
         }
 
         [TestMethod]
@@ -65,7 +65,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ArgumentInstance.TryGetArgument("   ", Enumerable.Empty<ArgumentInstance>(), out var instance);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action = () => ArgumentInstance.TryGetArgument("foo", null, out var instance);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("arguments");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("arguments");
         }
     }
 }

@@ -42,7 +42,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             Action op = () => new BinaryToXmlCoverageReportConverter(null);
 
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -53,17 +53,17 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // 1. Null input path
             Action op = () => testSubject.ConvertToXml(null, "dummypath");
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("inputFilePath");
+            op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("inputFilePath");
 
             op = () => testSubject.ConvertToXml("\t\n", "dummypath");
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("inputFilePath");
+            op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("inputFilePath");
 
             // 2. Null output path
             op = () => testSubject.ConvertToXml("dummypath", null);
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("outputFilePath");
+            op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("outputFilePath");
 
             op = () => testSubject.ConvertToXml("dummypath", "   ");
-            op.ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("outputFilePath");
+            op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("outputFilePath");
         }
 
         [TestMethod]

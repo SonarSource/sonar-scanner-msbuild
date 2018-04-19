@@ -44,12 +44,12 @@ namespace SonarScanner.MSBuild.PostProcessorTests
         {
             // Act & Assert
             Action action = () => new SummaryReportBuilder(null, new TestLogger());
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
 
 
             // Act & Assert
             action = () => new SummaryReportBuilder(new Mock<ILegacyTeamBuildFactory>().Object, null);
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -60,7 +60,7 @@ namespace SonarScanner.MSBuild.PostProcessorTests
             Action action = () => SummaryReportBuilder.CreateSummaryData(null, result);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
         }
 
         [TestMethod]
@@ -71,7 +71,7 @@ namespace SonarScanner.MSBuild.PostProcessorTests
             Action action = () => SummaryReportBuilder.CreateSummaryData(config, null);
 
             // Act & Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("result");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("result");
         }
 
         [TestMethod]

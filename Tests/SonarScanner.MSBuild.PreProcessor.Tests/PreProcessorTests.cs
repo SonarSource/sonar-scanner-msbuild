@@ -51,7 +51,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 new TestLogger());
 
             // Act and assert
-            Action act = () => preprocessor.Execute(null); act.ShouldThrowExactly<ArgumentNullException>();
+            Action act = () => preprocessor.Execute(null); act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]

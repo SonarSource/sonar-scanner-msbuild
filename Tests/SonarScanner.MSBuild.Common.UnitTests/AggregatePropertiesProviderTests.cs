@@ -37,7 +37,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void AggProperties_NullOrEmptyList()
         {
             // 1. Null -> error
-            Action act = () => new AggregatePropertiesProvider(null); act.ShouldThrowExactly<ArgumentNullException>();
+            Action act = () => new AggregatePropertiesProvider(null); act.Should().ThrowExactly<ArgumentNullException>();
 
             // 2. Empty list of providers -> valid but returns nothing
             var provider = new AggregatePropertiesProvider(new IAnalysisPropertyProvider[] { });

@@ -51,7 +51,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
             Action action = () => propertiesWriter.WriteSettingsForProject(null);
 
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectData");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectData");
         }
 
         [TestMethod]
@@ -60,7 +60,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
             Action action = () => propertiesWriter.WriteGlobalSettings(null);
 
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
         }
 
         [TestMethod]
@@ -186,7 +186,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             Action act = () => new PropertiesWriter(null, new TestLogger());
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
         }
 
         [TestMethod]
@@ -196,7 +196,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             Action act = () => new PropertiesWriter(new AnalysisConfig(), null);
 
             // Act & Assert
-            act.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
@@ -216,7 +216,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
 
             // Act & Assert
             Action act = () => writer.Flush();
-            act.ShouldThrowExactly<InvalidOperationException>();
+            act.Should().ThrowExactly<InvalidOperationException>();
         }
 
         [TestMethod]
@@ -238,7 +238,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             using (new AssertIgnoreScope())
             {
                 Action act = () => writer.WriteSettingsForProject(new ProjectData(new ProjectInfo()));
-                act.ShouldThrowExactly<InvalidOperationException>();
+                act.Should().ThrowExactly<InvalidOperationException>();
             }
         }
 

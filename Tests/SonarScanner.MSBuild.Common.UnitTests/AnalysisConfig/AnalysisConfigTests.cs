@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using FluentAssertions;
+using  FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -43,23 +43,23 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             // 1a. Missing file name - save
             Action act = () => config.Save(null);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
 
             act = () => config.Save(string.Empty);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
 
             act = () => config.Save("\r\t ");
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
 
             // 1b. Missing file name - load
             act = () => ProjectInfo.Load(null);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
 
             act = () => ProjectInfo.Load(string.Empty);
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
 
             act = () => ProjectInfo.Load("\r\t ");
-            act.ShouldThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]

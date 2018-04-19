@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void Ctor_Argument_Check()
         {
             Action action = () => new LegacyTeamBuildFactory(null);
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]

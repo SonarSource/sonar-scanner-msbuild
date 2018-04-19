@@ -34,7 +34,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             Action action = () => new MSBuildLoggerAdapter(null);
 
             // Assert
-            action.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("msBuildLogger");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("msBuildLogger");
         }
     }
 }

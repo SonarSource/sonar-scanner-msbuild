@@ -47,7 +47,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             // Act and Assert
             Action act = () => task.Execute();
-            act.ShouldThrowExactly<FileNotFoundException>().And.FileName.Should().Be("missing.ruleset");
+            act.Should().ThrowExactly<FileNotFoundException>().And.FileName.Should().Be("missing.ruleset");
         }
 
         [TestMethod]
@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             // Act and Assert
             Action act = () => task.Execute();
-            act.ShouldThrowExactly<InvalidOperationException>().And.Message.Contains(targetRulesetFilePath).Should().BeTrue();
+            act.Should().ThrowExactly<InvalidOperationException>().And.Message.Contains(targetRulesetFilePath).Should().BeTrue();
         }
 
         [TestMethod]

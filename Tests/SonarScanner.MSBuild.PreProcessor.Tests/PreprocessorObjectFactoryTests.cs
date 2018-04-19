@@ -43,11 +43,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             // 1. Ctor
             Action act1 = () => new PreprocessorObjectFactory(null);
-            act1.ShouldThrowExactly<ArgumentNullException>();
+            act1.Should().ThrowExactly<ArgumentNullException>();
 
             // 1. CreateSonarQubeServer method
             Action act2 = () => testSubject.CreateSonarQubeServer(null);
-            act2.ShouldThrowExactly<ArgumentNullException>();
+            act2.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -80,7 +80,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             // 2. Act and assert
             Action act = () => testSubject.CreateRoslynAnalyzerProvider();
-            act.ShouldThrowExactly<InvalidOperationException>();
+            act.Should().ThrowExactly<InvalidOperationException>();
         }
 
         #endregion Tests
