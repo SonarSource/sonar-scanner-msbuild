@@ -86,7 +86,10 @@ namespace TestUtilities
             Debug.Assert(!string.IsNullOrWhiteSpace(fullPath), "fullPath should be specified");
 
             properties = new JavaProperties();
-            properties.Load(File.Open(fullPath, FileMode.Open));
+            using (var stream = File.Open(fullPath, FileMode.Open))
+            {
+                properties.Load(stream);
+            }
         }
 
         #endregion FilePropertiesProvider
