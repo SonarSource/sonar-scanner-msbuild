@@ -20,7 +20,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
@@ -395,7 +394,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             var logger = new TestLogger();
 
-            var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
+            var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, logger);
 
             result.Should().BeNull("Not expecting the arguments to be processed successfully");
             logger.AssertErrorsLogged();
@@ -422,7 +421,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs)
         {
             var logger = new TestLogger();
-            var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
+
+            var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, logger);
 
             result.Should().NotBeNull("Expecting the arguments to be processed successfully");
 
@@ -456,6 +456,24 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             actual.InstallLoaderTargets.Should().Be(expected);
         }
+
+        private static ProcessedArgs TryProcessArgsIsolatedFromEnvironment(string[] commandLineArgs, ILogger logger)
+        {
+            ProcessedArgs args = null;
+
+            // Make sure the test isn't affected by the hosting environment
+            // The SonarCloud VSTS extension sets additional properties in an environment variable that
+            // would be picked up by the argument processor
+            using (var scope = new EnvironmentVariableScope())
+            {
+                scope.SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
+
+                args = ArgumentProcessor.TryProcessArgs(commandLineArgs, logger);
+            }
+
+            return args;
+        }
+
 
         #endregion Checks
     }

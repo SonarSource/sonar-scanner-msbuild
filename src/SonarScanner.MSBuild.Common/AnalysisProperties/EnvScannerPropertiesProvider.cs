@@ -30,7 +30,7 @@ namespace SonarScanner.MSBuild.Common
     /// </summary>
     public class EnvScannerPropertiesProvider : IAnalysisPropertyProvider
     {
-        private const string ENV_VAR_KEY = "SONARQUBE_SCANNER_PARAMS";
+        public static readonly string ENV_VAR_KEY = "SONARQUBE_SCANNER_PARAMS";
         private readonly IEnumerable<Property> properties;
 
         public static bool TryCreateProvider(ILogger logger, out IAnalysisPropertyProvider provider)

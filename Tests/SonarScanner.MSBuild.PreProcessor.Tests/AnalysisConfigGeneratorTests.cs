@@ -365,12 +365,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             TestContext.AddResultFile(config.FileName);
         }
 
-        private static void AssertSettingDoesNotExist(string key, AnalysisConfig actualConfig)
-        {
-            var found = actualConfig.GetAnalysisSettings(true).TryGetProperty(key, out Property setting);
-            found.Should().BeFalse("The setting should not exist. Key: {0}", key);
-        }
-
         private static void AssertExpectedServerSetting(string key, string expectedValue, AnalysisConfig actualConfig)
         {
             var found = Property.TryGetProperty(key, actualConfig.ServerSettings, out Property property);

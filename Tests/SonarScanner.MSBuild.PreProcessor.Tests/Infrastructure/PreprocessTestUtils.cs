@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS;
 using TestUtilities;
 
@@ -39,6 +40,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, null);
             scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, null);
+
+            // The Sonar VSTS tasks set and use this environment variable
+            scope.SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
 
             return scope;
         }

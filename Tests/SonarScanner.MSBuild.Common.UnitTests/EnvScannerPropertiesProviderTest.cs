@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -38,20 +37,22 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             provider.GetAllProperties().First().Value.Should().Be("http://myhost");
         }
 
-        [TestCleanup]
-        public void Cleanup()
-        {
-            Environment.SetEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", null);
-        }
-
         [TestMethod]
         public void ParseInvalidJson()
         {
             var logger = new TestLogger();
-            Environment.SetEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", "trash");
-            var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out IAnalysisPropertyProvider provider);
-            result.Should().BeFalse();
-            logger.AssertErrorLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
+
+            // Make sure the test isn't affected by the hosting environment and
+            // does not affect the hosting environment
+            // The SonarCloud VSTS extension sets additional properties in an environment variable that
+            // would affect the test.
+            using (var scope = new EnvironmentVariableScope())
+            {
+                scope.SetVariable("SONARQUBE_SCANNER_PARAMS", "trash");
+                var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out IAnalysisPropertyProvider provider);
+                result.Should().BeFalse();
+                logger.AssertErrorLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
+            }
         }
 
         [TestMethod]

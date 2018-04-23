@@ -209,13 +209,13 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             config.LocalSettings.Add(new Property() { Id = "local.2", Value = "local.value.2" });
 
             // 1. Local only
-            var localProperties = config.GetAnalysisSettings(false);
+            var localProperties = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
             localProperties.AssertExpectedPropertyCount(2);
             localProperties.AssertExpectedPropertyValue("local.1", "local.value.1");
             localProperties.AssertExpectedPropertyValue("local.2", "local.value.2");
 
             // 2. Local and server
-            var allProperties = config.GetAnalysisSettings(true);
+            var allProperties = GetAnalysisSettingsIsolatedFromEnvironment(config, true);
             allProperties.AssertExpectedPropertyCount(2);
             allProperties.AssertExpectedPropertyValue("local.1", "local.value.1");
             allProperties.AssertExpectedPropertyValue("local.2", "local.value.2");
@@ -236,14 +236,14 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             config.ServerSettings.Add(new Property() { Id = "server.2", Value = "server.value.2" });
 
             // 1. Local only
-            var localProperties = config.GetAnalysisSettings(false);
+            var localProperties = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
             localProperties.AssertExpectedPropertyCount(0);
 
             localProperties.AssertPropertyDoesNotExist("server.1");
             localProperties.AssertPropertyDoesNotExist("server.2");
 
             // 2. Local and server
-            var allProperties = config.GetAnalysisSettings(true);
+            var allProperties = GetAnalysisSettingsIsolatedFromEnvironment(config, true);
             allProperties.AssertExpectedPropertyCount(2);
             allProperties.AssertExpectedPropertyValue("server.1", "server.value.1");
             allProperties.AssertExpectedPropertyValue("server.2", "server.value.2");
@@ -277,7 +277,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             config.GetSettingsFilePath().Should().Be(settingsFilePath, "Unexpected settings file path value returned");
 
             // 3. Check file properties are retrieved
-            var provider = config.GetAnalysisSettings(false);
+            var provider = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
             provider.AssertExpectedPropertyCount(2);
             provider.AssertExpectedPropertyValue("file.1", "file.value.1");
             provider.AssertExpectedPropertyValue("file.2", "file.value.2");
@@ -322,7 +322,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             };
 
             // 1. Precedence - local should win over file
-            var provider = config.GetAnalysisSettings(false);
+            var provider = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
             provider.AssertExpectedPropertyCount(5);
             provider.AssertExpectedPropertyValue("local.1", "local.value.1");
             provider.AssertExpectedPropertyValue("local.2", "local.value.2");
@@ -334,7 +334,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             provider.AssertPropertyDoesNotExist("server.2");
 
             // 2. Server and non-server
-            provider = config.GetAnalysisSettings(true);
+            provider = GetAnalysisSettingsIsolatedFromEnvironment(config, true);
             provider.AssertExpectedPropertyCount(7);
             provider.AssertExpectedPropertyValue("local.1", "local.value.1");
             provider.AssertExpectedPropertyValue("local.2", "local.value.2");
@@ -352,16 +352,33 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var config = new AnalysisConfig();
 
             // 1. No server settings
-            var provider = config.GetAnalysisSettings(false);
+            var provider = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
             provider.Should().NotBeNull("Returned provider should not be null");
             provider.AssertExpectedPropertyCount(0);
 
             // 2. With server settings
-            provider = config.GetAnalysisSettings(true);
+            provider = GetAnalysisSettingsIsolatedFromEnvironment(config, true);
             provider.Should().NotBeNull("Returned provider should not be null");
             provider.AssertExpectedPropertyCount(0);
         }
 
         #endregion Tests
+
+        private static IAnalysisPropertyProvider GetAnalysisSettingsIsolatedFromEnvironment(AnalysisConfig config, bool includeServerSettings)
+        {
+            IAnalysisPropertyProvider provider = null;
+
+            // Make sure the test isn't affected by the hosting environment
+            // The SonarCloud VSTS extension sets additional properties in an environment variable that
+            // would affect the test
+            using (var scope = new EnvironmentVariableScope())
+            {
+                scope.SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
+
+                provider = ConfigSettingsExtensions.GetAnalysisSettings(config, includeServerSettings);
+            }
+
+            return provider;
+        }
     }
 }
