@@ -126,9 +126,6 @@
   <data name="CmdLine_ArgDescription_End" xml:space="preserve">
     <value>end - perform post-MSBuild/post-test steps</value>
   </data>
-  <data name="ERROR_Args_UrlRequired" xml:space="preserve">
-    <value>The SonarQube URL must be supplied. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000).</value>
-  </data>
   <data name="ERROR_CmdLine_BothBeginAndEndSupplied" xml:space="preserve">
     <value>Invalid command line parameters. Please specify either 'begin' or 'end', not both.</value>
   </data>
@@ -141,12 +138,6 @@
   <data name="ERROR_TempDirDoesNotExist" xml:space="preserve">
     <value>Temporary analysis directory (usually .sonarqube) doesn't exist. The "begin" step was probably not executed.</value>
   </data>
-  <data name="ERROR_VersionMismatch" xml:space="preserve">
-    <value>The C# plugin installed on the SonarQube server is not compatible with the SonarQube analysis agent (i.e. the MSBuild.SonarQube.Scanner.exe, or the build automation task). Either check the compatibility matrix or get the latest versions for both.</value>
-  </data>
-  <data name="MSG_ExtractingFiles" xml:space="preserve">
-    <value>Extracting files to {0}...</value>
-  </data>
   <data name="MSG_PreparingDirectories" xml:space="preserve">
     <value>Preparing working directories...</value>
   </data>
@@ -155,9 +146,6 @@
   </data>
   <data name="MSG_ProcessingSucceeded" xml:space="preserve">
     <value>{0} succeeded.</value>
-  </data>
-  <data name="MSG_ServerUrl" xml:space="preserve">
-    <value>SonarQube server URL: {0}</value>
   </data>
   <data name="MSG_UsingBuildEnvironmentVariable" xml:space="preserve">
     <value>Using environment variable '{0}', value '{1}'</value>

@@ -91,24 +91,6 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An error occurred loading the analysis config file. Please check that it is a valid file and try again. Error: {0}.
-        /// </summary>
-        internal static string ERR_ErrorLoadingConfigFile {
-            get {
-                return ResourceManager.GetString("ERR_ErrorLoadingConfigFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Expected to be called with one argument: the full path to the analysis config file.
-        /// </summary>
-        internal static string ERR_InvalidCommandLineArgs {
-            get {
-                return ResourceManager.GetString("ERR_InvalidCommandLineArgs", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The SonarQube MSBuild integration failed: SonarQube was unable to collect the required information about your projects.
         ///Possible causes:
         ///  1. The project has not been built - the project must be built in between the begin and end steps
@@ -119,15 +101,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string ERR_NoProjectInfoFilesFound {
             get {
                 return ResourceManager.GetString("ERR_NoProjectInfoFilesFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No analysable projects were found but some duplicate project IDs were found. Possible cause: you are building multiple configurations (e.g. DEBUG|x86 and RELEASE|x64) at the same time, which is not supported by the SonarQube integration. Please build and analyze each configuration individually..
-        /// </summary>
-        internal static string ERR_NoValidButDuplicateProjects {
-            get {
-                return ResourceManager.GetString("ERR_NoValidButDuplicateProjects", resourceCulture);
             }
         }
         
@@ -357,15 +330,6 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Code coverage report does not exist at the specified location. Path: {0}.
-        /// </summary>
-        internal static string WARN_CodeCoverageReportNotFound {
-            get {
-                return ResourceManager.GetString("WARN_CodeCoverageReportNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Duplicate ProjectGuid: &quot;{0}&quot;. The project will not be analyzed by SonarQube. Project file: &quot;{1}&quot;.
         /// </summary>
         internal static string WARN_DuplicateProjectGuid {
@@ -421,15 +385,6 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not determine default project encoding, therefore {0} is being selected..
-        /// </summary>
-        internal static string WARN_NoEncoding {
-            get {
-                return ResourceManager.GetString("WARN_NoEncoding", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Overriding analysis property. Effective value: {0}={1}.
         /// </summary>
         internal static string WARN_OverridingAnalysisProperty {
@@ -453,15 +408,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string WARN_SarifFixFail {
             get {
                 return ResourceManager.GetString("WARN_SarifFixFail", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Test result file does not exist at the specified location. Path: {0}.
-        /// </summary>
-        internal static string WARN_TestResultsNotFound {
-            get {
-                return ResourceManager.GetString("WARN_TestResultsNotFound", resourceCulture);
             }
         }
     }
