@@ -88,15 +88,6 @@ namespace SonarScanner.MSBuild {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The SonarQube URL must be supplied. The URL can be specified in a settings file or on the command line (e.g. using /d:sonar.host.url=http://myserver:9000)..
-        /// </summary>
-        internal static string ERROR_Args_UrlRequired {
-            get {
-                return ResourceManager.GetString("ERROR_Args_UrlRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid command line parameters. Please specify either &apos;begin&apos; or &apos;end&apos;, not both..
         /// </summary>
         internal static string ERROR_CmdLine_BothBeginAndEndSupplied {
@@ -133,24 +124,6 @@ namespace SonarScanner.MSBuild {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The C# plugin installed on the SonarQube server is not compatible with the SonarQube analysis agent (i.e. the MSBuild.SonarQube.Scanner.exe, or the build automation task). Either check the compatibility matrix or get the latest versions for both..
-        /// </summary>
-        internal static string ERROR_VersionMismatch {
-            get {
-                return ResourceManager.GetString("ERROR_VersionMismatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Extracting files to {0}....
-        /// </summary>
-        internal static string MSG_ExtractingFiles {
-            get {
-                return ResourceManager.GetString("MSG_ExtractingFiles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Preparing working directories....
         /// </summary>
         internal static string MSG_PreparingDirectories {
@@ -174,15 +147,6 @@ namespace SonarScanner.MSBuild {
         internal static string MSG_ProcessingSucceeded {
             get {
                 return ResourceManager.GetString("MSG_ProcessingSucceeded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarQube server URL: {0}.
-        /// </summary>
-        internal static string MSG_ServerUrl {
-            get {
-                return ResourceManager.GetString("MSG_ServerUrl", resourceCulture);
             }
         }
         

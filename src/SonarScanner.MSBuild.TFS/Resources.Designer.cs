@@ -79,15 +79,6 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Updating project info files with code coverage information....
-        /// </summary>
-        internal static string PROC_DIAG_UpdatingProjectInfoFiles {
-            get {
-                return ResourceManager.GetString("PROC_DIAG_UpdatingProjectInfoFiles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Absolute path to coverage file: {0}.
         /// </summary>
         internal static string TRX_DIAG_AbsoluteTrxPath {

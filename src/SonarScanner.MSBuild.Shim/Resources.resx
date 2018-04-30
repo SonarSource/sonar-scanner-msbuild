@@ -141,12 +141,6 @@
   <data name="MSG_WritingSummary" xml:space="preserve">
     <value>Writing processing summary to {0}</value>
   </data>
-  <data name="ERR_ErrorLoadingConfigFile" xml:space="preserve">
-    <value>An error occurred loading the analysis config file. Please check that it is a valid file and try again. Error: {0}</value>
-  </data>
-  <data name="ERR_InvalidCommandLineArgs" xml:space="preserve">
-    <value>Expected to be called with one argument: the full path to the analysis config file</value>
-  </data>
   <data name="ERR_NoProjectInfoFilesFound" xml:space="preserve">
     <value>The SonarQube MSBuild integration failed: SonarQube was unable to collect the required information about your projects.
 Possible causes:
@@ -185,9 +179,6 @@ Possible causes:
   <data name="REPORT_TestProjectsTitle" xml:space="preserve">
     <value>Test projects</value>
   </data>
-  <data name="WARN_CodeCoverageReportNotFound" xml:space="preserve">
-    <value>Code coverage report does not exist at the specified location. Path: {0}</value>
-  </data>
   <data name="WARN_DuplicateProjectGuid" xml:space="preserve">
     <value>Duplicate ProjectGuid: "{0}". The project will not be analyzed by SonarQube. Project file: "{1}"</value>
   </data>
@@ -208,9 +199,6 @@ Possible causes:
   </data>
   <data name="MSG_MandatorySettingIsCorrectlySpecified" xml:space="preserve">
     <value>Analysis property is already correctly set: {0}={1}</value>
-  </data>
-  <data name="ERR_NoValidButDuplicateProjects" xml:space="preserve">
-    <value>No analysable projects were found but some duplicate project IDs were found. Possible cause: you are building multiple configurations (e.g. DEBUG|x86 and RELEASE|x64) at the same time, which is not supported by the SonarQube integration. Please build and analyze each configuration individually.</value>
   </data>
   <data name="ERR_ConflictingSonarProjectProperties" xml:space="preserve">
     <value>sonar-project.properties files are not understood by the SonarScanner for MSBuild. Remove those files from the following folders: {0}</value>
@@ -233,17 +221,11 @@ Possible causes:
   <data name="WARN_PropertyIgnored" xml:space="preserve">
     <value>Property "{0}" is defined, but will be ignored during analysis.</value>
   </data>
-  <data name="WARN_NoEncoding" xml:space="preserve">
-    <value>Could not determine default project encoding, therefore {0} is being selected.</value>
-  </data>
   <data name="DEBUG_FileReferencedByProjects" xml:space="preserve">
     <value>File was referenced by the following projects: '{0}'.</value>
   </data>
   <data name="ERR_ProjectBaseDirDoesNotExist" xml:space="preserve">
     <value>The project base directory doesn't exist.</value>
-  </data>
-  <data name="WARN_TestResultsNotFound" xml:space="preserve">
-    <value>Test result file does not exist at the specified location. Path: {0}</value>
   </data>
   <data name="WARN_EmptyProjectGuids" xml:space="preserve">
     <value>The following projects do not have a valid ProjectGuid and were not built using a valid solution (.sln) thus will be skipped from analysis...

@@ -123,9 +123,6 @@
   <data name="PROC_DIAG_FetchingCoverageReportInfoFromServer" xml:space="preserve">
     <value>Fetching code coverage report information from TFS...</value>
   </data>
-  <data name="PROC_DIAG_UpdatingProjectInfoFiles" xml:space="preserve">
-    <value>Updating project info files with code coverage information...</value>
-  </data>
   <data name="TRX_DIAG_AbsoluteTrxPath" xml:space="preserve">
     <value>Absolute path to coverage file: {0}</value>
   </data>
