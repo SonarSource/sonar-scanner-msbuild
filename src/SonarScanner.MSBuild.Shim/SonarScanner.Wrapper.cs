@@ -229,6 +229,10 @@ namespace SonarScanner.MSBuild.Shim
             // So we'll set our additional properties last to make sure they take precedence.
             args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}={2}", CmdLineArgPrefix, ProjectSettingsFileArgName, projectSettingsFilePath));
 
+            // Let the scanner cli know it is run as an embedded tool (allows to tweak the behavior)
+            // See https://jira.sonarsource.com/browse/SQSCANNER-49
+            args.Add("--embedded");
+
             return args;
         }
 
