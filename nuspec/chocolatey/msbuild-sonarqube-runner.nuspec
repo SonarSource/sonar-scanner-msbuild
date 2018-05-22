@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>msbuild-sonarqube-runner</id>
+    <title>[Deprecated] SonarQube Scanner for MSBuild</title>
+    <version>4.3.0</version>
+    <authors>SonarSource,Microsoft</authors>
+    <owners>SonarSource</owners>
+    <summary>The SonarScanner for MSBuild allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
+    <description>The SonarScanner for MSBuild allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
+    <projectUrl>http://redirect.sonarsource.com/doc/msbuild-sq-runner.html</projectUrl>
+    <projectSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild</projectSourceUrl>
+    <packageSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild/tree/master/nuspec/chocolatey</packageSourceUrl>
+    <tags>sonarqube sonarcloud msbuild scanner sonarsource sonar sonar-scanner sonarscanner</tags>
+    <copyright>SonarSource SA and Microsoft Corporation</copyright>
+    <licenseUrl>https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/LICENSE.txt</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <releaseNotes>
+This package was deprecated and split into 2 packages. One for .net core usage (id: sonarscanner-msbuild-netcoreapp2.0) and one for classic .net usage (id: sonarscanner-msbuild-net46).
+    </releaseNotes>
+    <docsUrl>https://redirect.sonarsource.com/doc/install-configure-scanner-msbuild.html</docsUrl>
+    <mailingListUrl>https://groups.google.com/forum/#!forum/sonarqube</mailingListUrl>
+    <bugTrackerUrl>https://github.com/SonarSource/sonar-scanner-msbuild/issues</bugTrackerUrl>
+    <dependencies>
+        <dependency id="sonarscanner-msbuild-net46" version="4.3.0" />
+    </dependencies>
+  </metadata>
+  <files />
+</package>
