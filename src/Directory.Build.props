@@ -16,7 +16,6 @@
     <AdditionalFiles Include="..\..\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
-    <Content Include="..\License.txt" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">

@@ -56,7 +56,6 @@
     <AdditionalFiles Include="..\..\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
-    <Content Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\AssemblyInfo.Shared.cs">
@@ -85,9 +84,6 @@
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>SonarScanner.MSBuild.Common</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\src\SonarScanner.MSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets">
