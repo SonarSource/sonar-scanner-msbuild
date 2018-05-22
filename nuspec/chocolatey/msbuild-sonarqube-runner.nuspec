@@ -16,7 +16,9 @@
     <copyright>SonarSource SA and Microsoft Corporation</copyright>
     <licenseUrl>https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/LICENSE.txt</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <releaseNotes><![CDATA[[https://github.com/SonarSource/sonar-scanner-msbuild/releases/tag/4.2.0.1214](https://github.com/SonarSource/sonar-scanner-msbuild/releases/tag/4.2.0.1214)]]></releaseNotes>
+    <releaseNotes>
+This package was deprecated and split into 2 packages. One for .net core usage (id: sonarscanner-msbuild-netcoreapp2.0) and one for classic .net usage (id: sonarscanner-msbuild-net46).
+    </releaseNotes>
     <docsUrl>https://redirect.sonarsource.com/doc/install-configure-scanner-msbuild.html</docsUrl>
     <mailingListUrl>https://groups.google.com/forum/#!forum/sonarqube</mailingListUrl>
     <bugTrackerUrl>https://github.com/SonarSource/sonar-scanner-msbuild/issues</bugTrackerUrl>

@@ -4,28 +4,28 @@
   <metadata>
     <id>sonarscanner-msbuild-net46</id>
     <version>4.3.0</version>
-    <title>SonarScanner for MSBuild .Net 4.6</title>    
+    <title>SonarScanner for MSBuild .Net 4.6</title>
     <authors>SonarSource,Microsoft</authors>
     <owners>SonarSource</owners>
     <projectUrl>http://redirect.sonarsource.com/doc/msbuild-sq-runner.html</projectUrl>
     <projectSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild</projectSourceUrl>
     <packageSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild/tree/master/nuspec/chocolatey</packageSourceUrl>
-    <iconUrl>https://cdn.rawgit.com/SonarSource/chocolatey-packages/c62f2c872de1268c4a219c9084198e1311133738/msbuild-sonarqube-runner/sonarqube_waves_512px.png</iconUrl>
+    <iconUrl>https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/logo.png</iconUrl>
     <licenseUrl>https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/LICENSE.txt</licenseUrl>
     <docsUrl>https://redirect.sonarsource.com/doc/install-configure-scanner-msbuild.html</docsUrl>
     <mailingListUrl>https://groups.google.com/forum/#!forum/sonarqube</mailingListUrl>
     <bugTrackerUrl>https://github.com/SonarSource/sonar-scanner-msbuild/issues</bugTrackerUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>The SonarScanner for MSBuild allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
-    <description>The SonarScanner for MSBuild allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>    
+    <description>The SonarScanner for MSBuild allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
     <tags>sonarqube sonarcloud msbuild scanner sonarsource sonar sonar-scanner sonarscanner</tags>
-    <copyright>SonarSource SA and Microsoft Corporation</copyright>   
+    <copyright>SonarSource SA and Microsoft Corporation</copyright>
     <releaseNotes>
 All release notes for SonarScanner MSBuild .Net Core can be found on the GitHub site - https://github.com/SonarSource/sonar-scanner-msbuild/releases
     </releaseNotes>
   </metadata>
   <files>
     <file src="chocolateyInstall-net46.ps1" target="tools\chocolateyInstall.ps1" />
-    <file src="..\..\LICENSE.txt" target="tools\LICENSE.txt"/>
+    <file src="..\..\LICENSE" target="tools\LICENSE"/>
   </files>
 </package>
