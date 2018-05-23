@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.Shim
         private const string CmdLineArgPrefix = "-D";
 
         // This version needs to be in sync with version in src/Packaging/Directory.Build.props.
-        private const string SonarScannerVersion = "3.1.0.1141";
+        private const string SonarScannerVersion = "3.2.0.1227";
 
         private readonly ILogger logger;
 
@@ -228,6 +228,10 @@ namespace SonarScanner.MSBuild.Shim
             // are supplied - it will just use the last argument.
             // So we'll set our additional properties last to make sure they take precedence.
             args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}={2}", CmdLineArgPrefix, ProjectSettingsFileArgName, projectSettingsFilePath));
+
+            // Let the scanner cli know it is run as an embedded tool (allows to tweak the behavior)
+            // See https://jira.sonarsource.com/browse/SQSCANNER-49
+            args.Add("--embedded");
 
             return args;
         }
