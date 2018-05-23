@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{CE9F44AE-DFA1-49A5-9BD8-A7CA848E2939}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
 	<SonarQubeExclude>true</SonarQubeExclude>
     <RootNamespace>Excluded</RootNamespace>

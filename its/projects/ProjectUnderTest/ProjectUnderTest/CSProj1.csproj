@@ -7,8 +7,8 @@
     <ProjectGuid>{1049030E-AC7A-49D0-BEDC-F414C5C7DDD8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ProjectUnderTest</RootNamespace>
-    <AssemblyName>ProjectUnderTest</AssemblyName>
+    <RootNamespace>CSProj1</RootNamespace>
+    <AssemblyName>CSProj1</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SonarQubeExclude Condition=" '$(ExcludeProjectsFromAnalysis)' == 'true' ">true</SonarQubeExclude>

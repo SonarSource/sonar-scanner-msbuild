@@ -147,9 +147,7 @@ public class ScannerMSBuildTest {
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).hasSize(2);
-    assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(23);
-    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(37);
-    assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(58);
+    assertLineCountForProjectUnderTest();
   }
 
   @Test
@@ -183,9 +181,7 @@ public class ScannerMSBuildTest {
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).hasSize(2);
-    assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(23);
-    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(37);
-    assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(58);
+    assertLineCountForProjectUnderTest();
 
     assertThat(seenByProxy).isNotEmpty();
   }
@@ -222,9 +218,14 @@ public class ScannerMSBuildTest {
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).hasSize(2);
+    assertLineCountForProjectUnderTest();
+  }
+
+  private void assertLineCountForProjectUnderTest()
+  {
     assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(23);
     assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(37);
-    assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(58);
+    assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(71);
   }
 
   @Test
