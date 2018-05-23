@@ -20,7 +20,7 @@
 
 using System;
 
-namespace ProjectUnderTest
+namespace CSProj1
 {
     /* FxCop violations: 
     *
