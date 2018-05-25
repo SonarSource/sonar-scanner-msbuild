@@ -26,6 +26,7 @@
     <CallTarget Targets="DownloadScannerCli" />
     <CallTarget Targets="UnzipScannerCli" />
     <CallTarget Targets="CopyPayloadFiles" />
+    <CallTarget Targets="SignBinaries" />
     <CallTarget Targets="ZipPayloadFiles" />
   </Target>
 
@@ -51,6 +52,12 @@
   <Target Name="CleanExistingPayload" AfterTargets="Clean">
     <RemoveDir Directories="$(WorkDestinationDir)" />
     <Delete Files="$(DestinationArtifactPath)" />
+  </Target>
+
+  <Target Name="SignBinaries" Condition="'$(SignAssembly)' == 'true'" >
+    <Message Text="Signing Sonar* binaries in $(WorkDestinationDir)" />
+    <Exec WorkingDirectory="$(WorkDestinationDir)" Command="&quot;$(SIGNTOOL_PATH)&quot; sign /f $(PFX_PATH) /p $(PFX_PASSWORD) Sonar*.dll" />
+    <Exec WorkingDirectory="$(WorkDestinationDir)" Command="&quot;$(SIGNTOOL_PATH)&quot; sign /f $(PFX_PATH) /p $(PFX_PASSWORD) Sonar*.exe" />
   </Target>
 
 </Project>
