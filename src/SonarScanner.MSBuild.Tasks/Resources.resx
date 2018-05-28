@@ -193,4 +193,7 @@ Error: {1}</value>
   <data name="AnalyzerSettings_NotSpecifiedInConfig" xml:space="preserve">
     <value>Analyzer settings for language {0} have not been specified in the analysis config file</value>
   </data>
+  <data name="IsTest_UsingDefaultRegEx" xml:space="preserve">
+    <value>Using default regular expression for detecting test projects: {0}</value>
+  </data>
 </root>

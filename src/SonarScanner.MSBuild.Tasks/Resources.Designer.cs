@@ -82,6 +82,15 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Using default regular expression for detecting test projects: {0}.
+        /// </summary>
+        internal static string IsTest_UsingDefaultRegEx {
+            get {
+                return ResourceManager.GetString("IsTest_UsingDefaultRegEx", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Using regular expression for detecting test projects from analysis config file: {0}.
         /// </summary>
         internal static string IsTest_UsingRegExFromConfig {

@@ -128,7 +128,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
 
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "fOO.proj");
+            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "foo.proj");
 
             // Act
             var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
