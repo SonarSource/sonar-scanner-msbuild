@@ -324,6 +324,52 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #endregion Fakes projects tests
 
+        #region Temp projects tests
+
+        [TestMethod]
+        public void WriteProjectInfo_WpfTmpCase1_ProjectIsExcluded()
+        {
+            // Checks that .tmp_proj projects are excluded from analysis
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f.tmp_proj");
+        }
+
+        [TestMethod]
+        public void WriteProjectInfo_WpfTmpCase2_ProjectIsExcluded()
+        {
+            // Checks that _wpftmp.csproj projects are excluded from analysis
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f_wpftmp.csproj");
+        }
+
+        [TestMethod]
+        public void WriteProjectInfo_WpfTmpCase3_ProjectIsExcluded()
+        {
+            // Checks that _wpftmp.vbproj projects are excluded from analysis
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f_wpftmp.vbproj");
+        }
+
+        private void WriteProjectInfo_WpfTmpCase_ProjectIsExcluded(string projectName)
+        {
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+
+            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
+
+            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+            preImportProperties.AssemblyName = "f";
+
+            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, projectName);
+
+            // Act
+            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+            // Assert
+            AssertProjectIsExcluded(projectInfo);
+            AssertIsNotTestProject(projectInfo);
+        }
+
+        #endregion Temp projects tests
+
         #region File list tests
 
         [TestMethod]
@@ -889,6 +935,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         private static void AssertIsTestProject(ProjectInfo projectInfo)
         {
             projectInfo.ProjectType.Should().Be(ProjectType.Test, "Should be a test project");
+        }
+
+        private static void AssertIsNotTestProject(ProjectInfo projectInfo)
+        {
+            projectInfo.ProjectType.Should().NotBe(ProjectType.Test, "Should not be a test project");
         }
 
         private static void AssertProjectIsExcluded(ProjectInfo projectInfo)
