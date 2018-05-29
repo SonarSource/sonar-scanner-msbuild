@@ -324,6 +324,56 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #endregion Fakes projects tests
 
+        #region Temp projects tests
+
+        [TestMethod]
+        public void WriteProjectInfo_WpfTmpCases_ProjectIsExcluded()
+        {
+            // Used by inner method as a way to change directory name
+            int counter = 0;
+
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f.tmp_proj", expectedExclusionState: true);
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f.TMP_PROJ", expectedExclusionState: true);
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f_wpftmp.csproj", expectedExclusionState: true);
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f_WpFtMp.csproj", expectedExclusionState: true);
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f_wpftmp.vbproj", expectedExclusionState: true);
+
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("WpfApplication.csproj", expectedExclusionState: false);
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("ftmp_proj.csproj", expectedExclusionState: false);
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("wpftmp.csproj", expectedExclusionState: false);
+
+            void WriteProjectInfo_WpfTmpCase_ProjectIsExcluded(string projectName, bool expectedExclusionState)
+            {
+                // Arrange
+                var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, counter.ToString(), "Inputs");
+                var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, counter.ToString(), "Outputs");
+
+                counter++;
+
+                EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
+
+                var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+                var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, projectName);
+
+                // Act
+                var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+                // Assert
+                AssertIsNotTestProject(projectInfo);
+
+                if (expectedExclusionState)
+                {
+                    AssertProjectIsExcluded(projectInfo);
+                }
+                else
+                {
+                    AssertProjectIsNotExcluded(projectInfo);
+                }
+            }
+        }
+
+        #endregion Temp projects tests
+
         #region File list tests
 
         [TestMethod]
@@ -889,6 +939,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         private static void AssertIsTestProject(ProjectInfo projectInfo)
         {
             projectInfo.ProjectType.Should().Be(ProjectType.Test, "Should be a test project");
+        }
+
+        private static void AssertIsNotTestProject(ProjectInfo projectInfo)
+        {
+            projectInfo.ProjectType.Should().NotBe(ProjectType.Test, "Should not be a test project");
         }
 
         private static void AssertProjectIsExcluded(ProjectInfo projectInfo)

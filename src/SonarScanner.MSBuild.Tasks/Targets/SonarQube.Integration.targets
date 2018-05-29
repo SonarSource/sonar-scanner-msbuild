@@ -172,6 +172,24 @@
       <SonarQubeExclude>true</SonarQubeExclude>
     </PropertyGroup>
 
+    <!-- Temporary project detection -->
+    <!-- Some kinds of project have logic to trigger additional special builds based on
+         the same project file e.g. WPF projects build a temporary assembly before
+         the main compilation takes place.
+         We only want to analyze the "normal" build of the project, so we should turn off analysis
+         for the known cases. -->
+
+    <PropertyGroup>
+      <!-- Special case 1: WPF projects call the task Windows.GenerateTemporaryTargetAssembly in PresentationBuildTasks. -->
+      <IsTempProject Condition="$(MSBuildProjectFile.EndsWith('.tmp_proj', System.StringComparison.OrdinalIgnoreCase))">true</IsTempProject>
+      <IsTempProject Condition="$(MSBuildProjectFile.EndsWith('_wpftmp.csproj', System.StringComparison.OrdinalIgnoreCase))">true</IsTempProject>
+      <IsTempProject Condition="$(MSBuildProjectFile.EndsWith('_wpftmp.vbproj', System.StringComparison.OrdinalIgnoreCase))">true</IsTempProject>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$(IsTempProject) == 'true' AND $(SonarQubeExclude)==''" >
+      <SonarQubeExclude>true</SonarQubeExclude>
+    </PropertyGroup>
+
     <PropertyGroup Condition=" $(SonarQubeTestProject) == '' ">
       <!-- The MS Test project type guid-->
       <SonarQubeMsTestProjectTypeGuid>3AC096D0-A1C2-E12C-1390-A8335801FDAB</SonarQubeMsTestProjectTypeGuid>
