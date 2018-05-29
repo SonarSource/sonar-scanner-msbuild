@@ -327,45 +327,49 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         #region Temp projects tests
 
         [TestMethod]
-        public void WriteProjectInfo_WpfTmpCase1_ProjectIsExcluded()
+        public void WriteProjectInfo_WpfTmpCases_ProjectIsExcluded()
         {
-            // Checks that .tmp_proj projects are excluded from analysis
-            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f.tmp_proj");
-        }
+            // Used by inner method as a way to change directory name
+            int counter = 0;
 
-        [TestMethod]
-        public void WriteProjectInfo_WpfTmpCase2_ProjectIsExcluded()
-        {
-            // Checks that _wpftmp.csproj projects are excluded from analysis
-            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f_wpftmp.csproj");
-        }
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f.tmp_proj", expectedExclusionState: true);
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f.TMP_PROJ", expectedExclusionState: true);
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f_wpftmp.csproj", expectedExclusionState: true);
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f_WpFtMp.csproj", expectedExclusionState: true);
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f_wpftmp.vbproj", expectedExclusionState: true);
 
-        [TestMethod]
-        public void WriteProjectInfo_WpfTmpCase3_ProjectIsExcluded()
-        {
-            // Checks that _wpftmp.vbproj projects are excluded from analysis
-            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f_wpftmp.vbproj");
-        }
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("WpfApplication.csproj", expectedExclusionState: false);
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("ftmp_proj.csproj", expectedExclusionState: false);
+            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("wpftmp.csproj", expectedExclusionState: false);
 
-        private void WriteProjectInfo_WpfTmpCase_ProjectIsExcluded(string projectName)
-        {
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            void WriteProjectInfo_WpfTmpCase_ProjectIsExcluded(string projectName, bool expectedExclusionState)
+            {
+                // Arrange
+                var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, counter.ToString(), "Inputs");
+                var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, counter.ToString(), "Outputs");
 
-            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
+                counter++;
 
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-            preImportProperties.AssemblyName = "f";
+                EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
 
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, projectName);
+                var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+                var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, projectName);
 
-            // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+                // Act
+                var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
 
-            // Assert
-            AssertProjectIsExcluded(projectInfo);
-            AssertIsNotTestProject(projectInfo);
+                // Assert
+                AssertIsNotTestProject(projectInfo);
+
+                if (expectedExclusionState)
+                {
+                    AssertProjectIsExcluded(projectInfo);
+                }
+                else
+                {
+                    AssertProjectIsNotExcluded(projectInfo);
+                }
+            }
         }
 
         #endregion Temp projects tests
