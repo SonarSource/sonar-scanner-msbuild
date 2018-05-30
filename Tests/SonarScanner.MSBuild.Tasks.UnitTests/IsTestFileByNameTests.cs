@@ -85,6 +85,10 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
             EnsureAnalysisConfig(testFolder, null);
 
+            CheckFilePathIsTest(testFolder, @"Test.csproj");
+            CheckFilePathIsTest(testFolder, @"Test.vbproj");
+            CheckFilePathIsTest(testFolder, @"Tests.csproj");
+            CheckFilePathIsTest(testFolder, @"Tests.vbproj");
             CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.Test.csproj");
             CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.Test.vbproj");
             CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.Tests.csproj");
@@ -97,13 +101,17 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Doesn't end with regex
             CheckFilePathIsNotTest(testFolder, @"C:\Foo\TestMyProject.csproj");
             CheckFilePathIsNotTest(testFolder, @"C:\Foo\TestMyProject.vbproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Tests\MyProject.csproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Tests\MyProject.vbproj");
 
-            // Case sensitive
+            // Case mismatch
+            CheckFilePathIsNotTest(testFolder, @"Cutest.csproj");
+            CheckFilePathIsNotTest(testFolder, @"Cutest.vbproj");
             CheckFilePathIsNotTest(testFolder, @"C:\Foo\MyProject.Unittest.csproj");
             CheckFilePathIsNotTest(testFolder, @"C:\Foo\MyProject.Unittest.vbproj");
 
             // Not expected extension
-            CheckFilePathIsNotTest(testFolder, @"C:\Foo\MyProject.Unittest.proj");
+            CheckFilePathIsNotTest(testFolder, @"Test.proj");
         }
 
         [TestMethod]

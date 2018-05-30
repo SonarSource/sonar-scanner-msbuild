@@ -78,6 +78,7 @@ namespace SonarScanner.MSBuild.Tasks
 
                 try
                 {
+                    // Let's use a case sensitive regex (default behavior)
                     IsTest = Regex.IsMatch(FullFilePath, regEx);
                 }
                 catch (ArgumentException ex) // thrown for invalid regular expressions
