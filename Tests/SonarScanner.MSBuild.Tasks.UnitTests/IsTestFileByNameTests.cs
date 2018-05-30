@@ -83,28 +83,35 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void IsTestFile_DefaultRegex()
         {
             var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
-            EnsureAnalysisConfig(testFolder, @"[^\\]*test[^\\]*$");
+            EnsureAnalysisConfig(testFolder, null);
 
-            // filename contains 'test'
-            CheckFilePathIsTest(testFolder, "c:\\foo\\mytest.proj");
-            CheckFilePathIsTest(testFolder, "c:\\foo\\xtesty.proj");
-            CheckFilePathIsTest(testFolder, "c:\\foo\\bar space\\testmy.proj");
-            CheckFilePathIsTest(testFolder, "c:\\foo\\test.proj");
-            CheckFilePathIsTest(testFolder, "c:\\foo\\bar space\\foo.test");
-            CheckFilePathIsTest(testFolder, "c:\\foo\\bar space\\tEsT");
-            CheckFilePathIsTest(testFolder, "c:\\foo\\bar space\\xTestyyy.proj");
-            CheckFilePathIsTest(testFolder, "c:\\foo\\testtest");
-            CheckFilePathIsTest(testFolder, "c:\\foo\\bar\\a.test.proj");
-            CheckFilePathIsTest(testFolder, "c:\\foo\\test\\xtesty.proj");
-            CheckFilePathIsTest(testFolder, "xTESTy");
-            CheckFilePathIsTest(testFolder, "test");
-            CheckFilePathIsTest(testFolder, "c:\\foo\\ TEST ");
+            CheckFilePathIsTest(testFolder, @"Test.csproj");
+            CheckFilePathIsTest(testFolder, @"Test.vbproj");
+            CheckFilePathIsTest(testFolder, @"Tests.csproj");
+            CheckFilePathIsTest(testFolder, @"Tests.vbproj");
+            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.Test.csproj");
+            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.Test.vbproj");
+            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.Tests.csproj");
+            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.Tests.vbproj");
+            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.UnitTest.csproj");
+            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.UnitTest.vbproj");
+            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.UnitTests.csproj");
+            CheckFilePathIsTest(testFolder, @"C:\Foo\MyProject.UnitTests.vbproj");
 
-            CheckFilePathIsNotTest(testFolder, "c:\\foo\\te st.proj");
-            CheckFilePathIsNotTest(testFolder, "c:\\foo\\bar\\test\\foo.proj");
-            CheckFilePathIsNotTest(testFolder, "c:\\test\\xtestyy\\foo");
-            CheckFilePathIsNotTest(testFolder, "c:\\foo\\bar\\myproj.csproj");
-            CheckFilePathIsNotTest(testFolder, "test\\foo.proj");
+            // Doesn't end with regex
+            CheckFilePathIsNotTest(testFolder, @"C:\Foo\TestMyProject.csproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Foo\TestMyProject.vbproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Tests\MyProject.csproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Tests\MyProject.vbproj");
+
+            // Case mismatch
+            CheckFilePathIsNotTest(testFolder, @"Cutest.csproj");
+            CheckFilePathIsNotTest(testFolder, @"Cutest.vbproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Foo\MyProject.Unittest.csproj");
+            CheckFilePathIsNotTest(testFolder, @"C:\Foo\MyProject.Unittest.vbproj");
+
+            // Not expected extension
+            CheckFilePathIsNotTest(testFolder, @"Test.proj");
         }
 
         [TestMethod]
@@ -163,12 +170,12 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
             // 1a. Check the config setting is used if valid
-            EnsureAnalysisConfig(testFolder, ".A.");
+            EnsureAnalysisConfig(testFolder, ".*aProject.*");
             CheckFilePathIsNotTest(testFolder, "c:\\test\\mytest.proj");
             CheckFilePathIsTest(testFolder, "c:\\aProject.proj");
 
             // 1b. Check another config valid config setting
-            EnsureAnalysisConfig(testFolder, ".TEST.");
+            EnsureAnalysisConfig(testFolder, ".*\\\\test\\\\.*");
             CheckFilePathIsTest(testFolder, "c:\\test\\mytest.proj");
             CheckFilePathIsNotTest(testFolder, "c:\\aProject.proj");
 

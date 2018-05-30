@@ -40,6 +40,7 @@ namespace SonarScanner.MSBuild.Tasks
         /// if a project is a test project or not
         /// </summary>
         public const string TestRegExSettingId = "sonar.msbuild.testProjectPattern";
+        private const string TestRegExDefaultValue = @".*Tests?\.(cs|vb)proj$";
 
         #region Input properties
 
@@ -77,7 +78,8 @@ namespace SonarScanner.MSBuild.Tasks
 
                 try
                 {
-                    IsTest = !string.IsNullOrEmpty(regEx) && Regex.IsMatch(FullFilePath, regEx, RegexOptions.IgnoreCase);
+                    // Let's use a case sensitive regex (default behavior)
+                    IsTest = Regex.IsMatch(FullFilePath, regEx);
                 }
                 catch (ArgumentException ex) // thrown for invalid regular expressions
                 {
@@ -99,7 +101,12 @@ namespace SonarScanner.MSBuild.Tasks
 
             config.GetAnalysisSettings(true).TryGetValue(TestRegExSettingId, out string regEx);
 
-            if (!string.IsNullOrWhiteSpace(regEx))
+            if (string.IsNullOrWhiteSpace(regEx))
+            {
+                regEx = TestRegExDefaultValue;
+                Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingDefaultRegEx, regEx);
+            }
+            else
             {
                 Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);
             }
