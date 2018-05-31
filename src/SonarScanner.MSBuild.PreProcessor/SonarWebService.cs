@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
@@ -142,11 +143,22 @@ namespace SonarScanner.MSBuild.PreProcessor
                     total = json["total"].ToObject<int>();
                     fetched += json["ps"].ToObject<int>();
                     page++;
+
                     var rules = json["rules"].Children<JObject>();
                     var actives = json["actives"];
 
                     return rules.Select(r =>
                     {
+                        var activeRulesForRuleKey = actives.Value<JArray>(r["key"].ToString());
+
+                        if (activeRulesForRuleKey == null ||
+                            activeRulesForRuleKey.Count != 1)
+                        {
+                            // Because of the parameters we use we expect to have only actives rules. So rules and actives
+                            // should both contain the same number of elements (i.e. the same rules).
+                            throw new JsonException($"Malformed json response, \"actives\" field should contain rule '{r["key"].ToString()}'");
+                        }
+
                         var activeRule = new ActiveRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()));
                         if (r["internalKey"] != null)
                         {
@@ -157,13 +169,14 @@ namespace SonarScanner.MSBuild.PreProcessor
                             activeRule.TemplateKey = r["templateKey"].ToString();
                         }
 
-                        var active = actives[r["key"].ToString()];
-                        var listParams = active.Single()["params"].Children<JObject>();
-                        activeRule.Parameters = listParams.ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
+                        var activeRuleParams = activeRulesForRuleKey[0]["params"].Children<JObject>();
+                        activeRule.Parameters = activeRuleParams.ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
+
                         if (activeRule.Parameters.ContainsKey("CheckId"))
                         {
                             activeRule.RuleKey = activeRule.Parameters["CheckId"];
                         }
+
                         return activeRule;
                     });
                 }, ws));
