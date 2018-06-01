@@ -83,7 +83,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
 
     # scanner begin
     .\SonarScanner.MSBuild begin /k:sonar-scanner-msbuild /n:"Sonar Scanner for MSBuild"
-        /v:$mainVersion `
+        /v:"$mainVersion" `
         /d:sonar.host.url=$env:SONAR_HOST_URL `
         /d:sonar.login=$env:SONAR_TOKEN `
         /d:sonar.cs.vstest.reportsPaths="**\*.trx" `
@@ -120,7 +120,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
 
         # scanner begin
         .\SonarScanner.MSBuild begin /k:sonar-scanner-msbuild /n:"Sonar Scanner for MSBuild"
-            /v:$mainVersion `
+            /v:"$mainVersion" `
             /d:sonar.host.url=$env:SONAR_HOST_URL `
             /d:sonar.login=$env:SONAR_TOKEN `
             /d:sonar.cs.vstest.reportsPaths="**\*.trx" `
@@ -160,5 +160,3 @@ if ($env:IS_PULLREQUEST -eq "true") {
     }
 
 }
-
-
