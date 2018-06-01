@@ -56,11 +56,11 @@
   </Target>
 
   <Target Name="SignDlls" Condition="'$(SignAssembly)' == 'true'" >
-    <Exec WorkingDirectory="$(WorkDestinationDir)" Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /f $(PFX_PATH) /p $(PFX_PASSWORD) Sonar*.dll" />
+    <Exec WorkingDirectory="$(WorkDestinationDir)" Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /f $(PFX_PATH) /p $(PFX_PASSWORD) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp Sonar*.dll" />
   </Target>
 
   <Target Name="SignExes" Condition="'$(SignAssembly)' == 'true' AND $(WorkDestinationDir.EndsWith('net46', System.StringComparison.OrdinalIgnoreCase))" >
-    <Exec WorkingDirectory="$(WorkDestinationDir)" Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /f $(PFX_PATH) /p $(PFX_PASSWORD) Sonar*.exe" />
+    <Exec WorkingDirectory="$(WorkDestinationDir)" Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /f $(PFX_PATH) /p $(PFX_PASSWORD) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp Sonar*.exe" />
   </Target>
 
 </Project>
