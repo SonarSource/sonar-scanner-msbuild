@@ -11,8 +11,8 @@ function testExitCode(){
 # See https://githubengineering.com/crypto-removal-notice/
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 Write-Debug "Current security protocol: $([System.Net.ServicePointManager]::SecurityProtocol)"
-$scannerMsbuildVersion =  "4.2.0.1214"
-(New-Object System.Net.WebClient).DownloadFile("https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/$scannerMsbuildVersion/sonar-scanner-msbuild-$scannerMsbuildVersion.zip", ".\sonar-scanner-msbuild.zip")
+$scannerMsbuildVersion = "4.2.0.1214"
+(New-Object System.Net.WebClient).DownloadFile("https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/$scannerMsbuildVersion/sonar-scanner-msbuild-$scannerMsbuildVersion-net46.zip", ".\sonar-scanner-msbuild.zip")
 
 unzip -o .\sonar-scanner-msbuild.zip
 testExitCode
