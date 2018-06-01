@@ -33,6 +33,10 @@ namespace SonarScanner.MSBuild.Common
     [XmlRoot(Namespace = XmlNamespace, ElementName = XmlElementName)]
     public class AnalysisProperties : List<Property>
     {
+    
+    public string field1;
+    public static void Unused(){}
+    
         public const string XmlNamespace = ProjectInfo.XmlNamespace;
         public const string XmlElementName = "SonarQubeAnalysisProperties";
 
