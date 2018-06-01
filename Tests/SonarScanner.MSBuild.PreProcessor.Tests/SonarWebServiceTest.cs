@@ -26,6 +26,7 @@ using System.Net;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Newtonsoft.Json;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.UnitTests
@@ -404,6 +405,125 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             actual[2].InternalKeyOrKey.Should().Be("S2346");
             actual[2].TemplateKey.Should().BeNull();
             actual[2].Parameters.Should().HaveCount(0);
+        }
+
+        [TestMethod]
+        public void GetActiveRules_WhenActivesDoesNotContainRule_ThrowsJsonException()
+        {
+            // Arrange
+            downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
+                @"{ total: 1, p: 1, ps: 1,
+            rules: [{
+                key: ""key1"",
+                repo: ""vbnet"",
+                name: ""Public methods should not have multidimensional array parameters"",
+                severity: ""MAJOR"",
+                lang: ""vbnet"",
+                params: [ ],
+                type: ""CODE_SMELL""
+            }],
+
+            actives: {
+                ""key2"": [
+                {
+                    qProfile: ""qp"",
+                    inherit: ""NONE"",
+                    severity: ""MAJOR"",
+                    params: [
+                    {
+                      key: ""CheckId"",
+                      value: ""OverwrittenId"",
+                      type: ""FLOAT""
+                    }
+                    ]
+                }
+                ]
+            }
+            }";
+
+            Action act = () => ws.GetActiveRules("qp");
+
+            // Act &  Assert
+            act.Should().ThrowExactly<JsonException>().WithMessage("Malformed json response, \"actives\" field should contain rule 'key1'");
+        }
+
+        [TestMethod]
+        public void GetActiveRules_WhenActivesContainsRuleWithEmptyBody_ThrowsJsonException()
+        {
+            // Arrange
+            downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
+                @"{ total: 1, p: 1, ps: 1,
+            rules: [{
+                key: ""key1"",
+                repo: ""vbnet"",
+                name: ""Public methods should not have multidimensional array parameters"",
+                severity: ""MAJOR"",
+                lang: ""vbnet"",
+                params: [ ],
+                type: ""CODE_SMELL""
+            }],
+
+            actives: {
+                ""key1"": []
+            }
+            }";
+
+            Action act = () => ws.GetActiveRules("qp");
+
+            // Act &  Assert
+            act.Should().ThrowExactly<JsonException>().WithMessage("Malformed json response, \"actives\" field should contain rule 'key1'");
+        }
+
+        [TestMethod]
+        public void GetActiveRules_WhenActivesContainsRuleWithMultipleBodies_ThrowsJsonException()
+        {
+            // Arrange
+            downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
+                @"{ total: 1, p: 1, ps: 1,
+            rules: [{
+                key: ""key1"",
+                repo: ""vbnet"",
+                name: ""Public methods should not have multidimensional array parameters"",
+                severity: ""MAJOR"",
+                lang: ""vbnet"",
+                params: [ ],
+                type: ""CODE_SMELL""
+            }],
+
+            actives: {
+                ""key1"": [
+                {
+                    qProfile: ""qp"",
+                    inherit: ""NONE"",
+                    severity: ""MAJOR"",
+                    params: [
+                    {
+                      key: ""CheckId"",
+                      value: ""OverwrittenId"",
+                      type: ""FLOAT""
+                    }
+                    ]
+                },
+                {
+                    qProfile: ""qp"",
+                    inherit: ""NONE"",
+                    severity: ""MAJOR"",
+                    params: [
+                    {
+                      key: ""CheckId"",
+                      value: ""OverwrittenId"",
+                      type: ""FLOAT""
+                    }
+                    ]
+                }
+                ]
+            }
+            }";
+
+            Action act = () => ws.GetActiveRules("qp");
+
+            // Act &  Assert
+            act.Should().ThrowExactly<JsonException>().WithMessage("Malformed json response, \"actives\" field should contain rule 'key1'");
         }
 
         [TestMethod]
