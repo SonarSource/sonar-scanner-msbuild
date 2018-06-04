@@ -76,7 +76,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         {
             // Arrange
             var analysisConfig = new AnalysisConfig();
-            var settingsMock = new Mock<ITeamBuildSettings>();
             Action act = () => processor.Initialise(analysisConfig, null);
 
             // Act & Assert

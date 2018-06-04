@@ -28,7 +28,7 @@ namespace TestUtilities
     /// Helper class to suppress assertions during tests
     /// </summary>
     /// <remarks>Prevents tests from failing due to assertion dialogs appearing</remarks>
-    public class AssertIgnoreScope : IDisposable
+    public sealed class AssertIgnoreScope : IDisposable
     {
         public AssertIgnoreScope()
         {
@@ -49,24 +49,13 @@ namespace TestUtilities
 
         private bool disposedValue = false; // To detect redundant calls
 
-        protected virtual void Dispose(bool disposing)
+        public void Dispose()
         {
             if (!disposedValue)
             {
-                if (disposing)
-                {
-                    SetAssertUIEnabled(true);
-                }
-
+                SetAssertUIEnabled(true);
                 disposedValue = true;
             }
-        }
-
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
         }
 
         #endregion IDisposable Support

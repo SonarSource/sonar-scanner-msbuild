@@ -38,7 +38,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             // Arrange
             var logger = new TestLogger();
-            var validArgs = CreateValidArguments();
             IPreprocessorObjectFactory testSubject = new PreprocessorObjectFactory(logger);
 
             // 1. Ctor

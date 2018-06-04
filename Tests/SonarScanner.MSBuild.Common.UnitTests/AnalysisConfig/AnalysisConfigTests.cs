@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using  FluentAssertions;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
@@ -226,9 +226,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
                 new Property() { Id = "local.key", Value = "local.value" }
             };
 
-            var settings = new AnalyzerSettings();
-
-            settings = new AnalyzerSettings
+            var settings = new AnalyzerSettings
             {
                 RuleSetFilePath = "d:\\ruleset path.ruleset",
                 AdditionalFilePaths = new List<string>()
@@ -251,7 +249,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         #region Helper methods
 
-        private AnalysisConfig SaveAndReloadConfig(AnalysisConfig original, string outputFileName)
+        private void SaveAndReloadConfig(AnalysisConfig original, string outputFileName)
         {
             File.Exists(outputFileName).Should().BeFalse("Test error: file should not exist at the start of the test. File: {0}", outputFileName);
             original.Save(outputFileName);
@@ -262,7 +260,6 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             reloaded.Should().NotBeNull("Reloaded analysis config should not be null");
 
             AssertExpectedValues(original, reloaded);
-            return reloaded;
         }
 
         private static void AssertExpectedValues(AnalysisConfig expected, AnalysisConfig actual)

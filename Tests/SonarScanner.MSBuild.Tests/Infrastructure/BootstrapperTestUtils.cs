@@ -39,7 +39,7 @@ namespace SonarQube.Bootstrapper.Tests
             if (File.Exists(defaultPropertiesFilePath))
             {
                 File.Delete(defaultPropertiesFilePath);
-            };
+            }
         }
     }
 }

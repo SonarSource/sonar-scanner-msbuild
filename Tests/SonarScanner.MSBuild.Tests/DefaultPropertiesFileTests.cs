@@ -83,7 +83,7 @@ namespace SonarQube.Bootstrapper.Tests
             // Act - will error if the file is badly-formed
             try
             {
-                var properties = AnalysisProperties.Load(propertiesFile);
+                AnalysisProperties.Load(propertiesFile);
 
                 Assert.Fail("Expecting XmlException to be thrown.");
             }

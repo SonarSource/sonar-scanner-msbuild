@@ -411,13 +411,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             Directory.Exists(path).Should().BeTrue("Expected directory does not exist: {0}", path);
         }
 
-        private static string AssertFileExists(string directory, string fileName)
-        {
-            var fullPath = Path.Combine(directory, fileName);
-            File.Exists(fullPath).Should().BeTrue("Expected file does not exist");
-            return fullPath;
-        }
-
         #endregion Checks
     }
 }

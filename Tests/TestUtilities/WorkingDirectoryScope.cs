@@ -31,7 +31,7 @@ namespace TestUtilities
     /// <remarks>The location for the temporary analysis directory is based on the working directory.
     /// This class provides a simple way to set the directory to a known location for the duration
     /// of a test.</remarks>
-    public class WorkingDirectoryScope : IDisposable
+    public sealed class WorkingDirectoryScope : IDisposable
     {
         private readonly string originalDirectory;
 

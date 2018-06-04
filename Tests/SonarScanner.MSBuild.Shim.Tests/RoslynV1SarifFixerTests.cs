@@ -484,7 +484,6 @@ It features ""quoted text""."",
 }";
             var testSarifPath = Path.Combine(testDir, "testSarif.json");
             File.WriteAllText(testSarifPath, testSarifString);
-            var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
 
             // Act
             var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage);

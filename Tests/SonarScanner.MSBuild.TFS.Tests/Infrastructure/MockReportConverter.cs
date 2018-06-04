@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
 
         bool ICoverageReportConverter.Initialize() => CanConvert;
 
-        bool ICoverageReportConverter.ConvertToXml(string fullBinaryFileName, string fullXmlFileName)
+        bool ICoverageReportConverter.ConvertToXml(string inputFilePath, string outputFilePath)
         {
             convertCallCount++;
 

@@ -38,7 +38,6 @@ namespace SonarQube.Bootstrapper.Tests
         [TestMethod]
         public void BootSettings_InvalidArguments()
         {
-            ILogger validLogger = new TestLogger();
             IList<string> validArgs = null;
 
             Action act = () => new BootstrapperSettings(AnalysisPhase.PreProcessing, validArgs, LoggerVerbosity.Debug, null);
@@ -58,7 +57,7 @@ namespace SonarQube.Bootstrapper.Tests
                 envScope.SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
 
                 // 1. Default value -> relative to download dir
-                IBootstrapperSettings settings = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, logger);
+                new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, logger);
             }
         }
 

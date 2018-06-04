@@ -485,7 +485,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var embedded1 = AddFileToProject(projectRoot, "EmbeddedResource", sonarQubeExclude: null);
             var none1 = AddFileToProject(projectRoot, "None", sonarQubeExclude: null);
             var nativeCompile1 = AddFileToProject(projectRoot, "ClCompile", sonarQubeExclude: null);
-            var page1 = AddFileToProject(projectRoot, "Page", sonarQubeExclude: null);
+            AddFileToProject(projectRoot, "Page", sonarQubeExclude: null);
             var typeScript1 = AddFileToProject(projectRoot, "TypeScriptCompile", sonarQubeExclude: null);
 
             // Act
@@ -912,7 +912,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             config.Save(fullPath);
         }
 
-        private static ProjectItemElement AddItem(ProjectRootElement projectRoot, string itemTypeName, string include, params string[] idAndValuePairs)
+        private static void AddItem(ProjectRootElement projectRoot, string itemTypeName, string include, params string[] idAndValuePairs)
         {
             var item = projectRoot.AddItem(itemTypeName, include);
 
@@ -923,8 +923,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             {
                 item.AddMetadata(idAndValuePairs[index], idAndValuePairs[index + 1]);
             }
-
-            return item;
         }
 
         #endregion Private methods

@@ -165,7 +165,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             logger.AssertErrorsLogged(0);
 
             CheckRuleset(actualSettings, rootFolder, language);
-            CheckExpectedAdditionalFiles(rootFolder, language, settings.SonarOutputDirectory, actualSettings);
+            CheckExpectedAdditionalFiles(actualSettings);
             CheckExpectedAssemblies(actualSettings, "c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
             var plugins = new List<string>
             {
@@ -318,13 +318,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             File.ReadAllText(actualSettings.RuleSetFilePath).Should().Be(expectedContent, "Ruleset file does not have the expected content: {0}", actualSettings.RuleSetFilePath);
         }
 
-        private void CheckExpectedAdditionalFiles(string rootTestDir, string language, string outDir, AnalyzerSettings actualSettings)
+        private void CheckExpectedAdditionalFiles(AnalyzerSettings actualSettings)
         {
             // Currently, only SonarLint.xml is written
             var filePaths = actualSettings.AdditionalFilePaths;
             filePaths.Should().HaveCount(1);
 
-            //string expectedContent = expected.AdditionalFiles[expectedFileName];
             CheckExpectedAdditionalFileExists("SonarLint.xml", @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <AnalysisInput>
   <Settings>

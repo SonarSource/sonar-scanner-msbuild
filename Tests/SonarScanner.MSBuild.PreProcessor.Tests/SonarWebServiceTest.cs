@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] = "trash";
             try
             {
-                var result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
+                ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
                 Assert.Fail("Exception expected");
             }
             catch (Exception)
@@ -250,7 +250,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                     ]
                   }
                 ]}";
-            var result = ws.GetProperties("comp");
+            var result = ws.GetProperties("comp", null);
             result.Count.Should().Be(7);
             result["sonar.exclusions"].Should().Be("myfile,myfile2");
             result["sonar.junit.reportsPath"].Should().Be("testing.xml");
@@ -584,7 +584,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 ["sonar.property2"] = "value2",
                 ["sonar.msbuild.testProjectPattern"] = "pattern"
             };
-            var actual1 = ws.GetProperties("foo bar");
+            var actual1 = ws.GetProperties("foo bar", null);
 
             actual1.Should().HaveCount(expected1.Count);
             actual1.Should().NotBeSameAs(expected1);
@@ -698,7 +698,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             var service = new SonarWebService(downloaderMock.Object, serverUrl, logger);
 
-            Action action = () => service.GetProperties(projectKey);
+            Action action = () => service.GetProperties(projectKey, null);
             action.Should().Throw<WebException>();
 
             logger.Errors.Should().HaveCount(1);
@@ -727,7 +727,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             var service = new SonarWebService(downloaderMock.Object, serverUrl, logger);
 
-            Action action = () => service.GetProperties(projectKey);
+            Action action = () => service.GetProperties(projectKey, null);
             action.Should().Throw<WebException>();
 
             logger.Errors.Should().HaveCount(1);
@@ -735,7 +735,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             logger.Warnings[0].Should().Be("To analyze private projects make sure the scanner user has 'Browse' permission.");
         }
 
-        private class TestDownloader : IDownloader
+        private sealed class TestDownloader : IDownloader
         {
             public IDictionary<string, string> Pages = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
             public List<string> AccessedUrls = new List<string>();
