@@ -101,7 +101,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             var preImportProperties = new WellKnownProjectProperties
             {
-                SonarQubeTempPath = @"t:\TeamBuildDir_NonLegacy\.sonarqube", // FIXME
+                SonarQubeTempPath = @"t:\TeamBuildDir_NonLegacy\.sonarqube",
                 TeamBuildLegacyBuildDirectory = "",
                 TeamBuild2105BuildDirectory = @"t:\TeamBuildDir_NonLegacy"
             };

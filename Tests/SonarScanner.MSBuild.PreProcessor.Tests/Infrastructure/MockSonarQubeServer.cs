@@ -24,7 +24,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
@@ -95,7 +94,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             return Data.ServerProperties;
         }
 
-        bool ISonarQubeServer.TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language, out string qualityProfile)
+        bool ISonarQubeServer.TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language, out string qualityProfileKey)
         {
             LogMethodCalled();
 
@@ -111,7 +110,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var profile = Data.QualityProfiles
                 .FirstOrDefault(qp => string.Equals(qp.Language, language) && qp.Projects.Contains(projectId) && string.Equals(qp.Organization, organization));
 
-            qualityProfile = profile?.Id;
+            qualityProfileKey = profile?.Id;
             return profile != null;
         }
 

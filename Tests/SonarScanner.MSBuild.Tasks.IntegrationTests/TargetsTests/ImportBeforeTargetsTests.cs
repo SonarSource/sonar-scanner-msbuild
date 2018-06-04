@@ -25,7 +25,6 @@ using FluentAssertions;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
@@ -255,20 +254,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 ";
                 File.WriteAllText(fullPath, contents);
             }
-            return fullPath;
-        }
-
-        /// <summary>
-        /// Ensures a file with the correct file name exists in the correct sub-directory
-        /// under the specified root
-        /// </summary>
-        private static string EnsureDummyAnalysisConfigFileExists(string rootBuildDir)
-        {
-            var subDir = Path.Combine(rootBuildDir, ".sonarqube", "conf");
-            Directory.CreateDirectory(subDir);
-
-            var fullPath = Path.Combine(subDir, FileConstants.ConfigFileName);
-            File.WriteAllText(fullPath, "Dummy config file");
             return fullPath;
         }
 

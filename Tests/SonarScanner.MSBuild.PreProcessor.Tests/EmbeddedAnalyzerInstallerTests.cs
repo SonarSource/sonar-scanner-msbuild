@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var mockServer = new MockSonarQubeServer();
             AddPlugin(mockServer, requestedPlugin, "file1.dll", "file2.txt");
 
-            var expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 0, requestedPlugin, "file1.dll", "file2.txt");
+            var expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 0, "file1.dll", "file2.txt");
 
             var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
 
@@ -81,9 +81,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             AddPlugin(mockServer, request4, "p2.resource1.dll");
 
             var expectedPaths = new List<string>();
-            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 1, request2, "p1.resource1.file1.dll", "p1.resource1.file2.dll"));
-            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 2, request3, "p1.resource2.file1.dll"));
-            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 3, request4, "p2.resource1.dll"));
+            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 1, "p1.resource1.file1.dll", "p1.resource1.file2.dll"));
+            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 2, "p1.resource2.file1.dll"));
+            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 3, "p2.resource1.dll"));
 
             var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
 
@@ -160,8 +160,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             AddPlugin(mockServer, requestA, "aaa", "bbb");
             AddPlugin(mockServer, requestB, "ccc");
 
-            var expectedPlugin111Paths = CalculateExpectedCachedFilePaths(localCacheDir, 0, requestA, "aaa", "bbb");
-            var expectedPlugin222Paths = CalculateExpectedCachedFilePaths(localCacheDir, 1, requestB, "ccc");
+            var expectedPlugin111Paths = CalculateExpectedCachedFilePaths(localCacheDir, 0, "aaa", "bbb");
+            var expectedPlugin222Paths = CalculateExpectedCachedFilePaths(localCacheDir, 1, "ccc");
             var allExpectedPaths = new List<string>(expectedPlugin111Paths);
             allExpectedPaths.AddRange(expectedPlugin222Paths);
 
@@ -223,7 +223,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             mockServer.Data.AddEmbeddedZipFile(plugin.Key, plugin.StaticResourceName, files);
         }
 
-        private static IList<string> CalculateExpectedCachedFilePaths(string baseDir, int count, Plugin plugin, params string[] fileNames)
+        private static IList<string> CalculateExpectedCachedFilePaths(string baseDir, int count, params string[] fileNames)
         {
             var files = new List<string>();
 

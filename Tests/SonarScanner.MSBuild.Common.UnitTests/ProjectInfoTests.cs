@@ -113,7 +113,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         #region Helper methods
 
-        private ProjectInfo SaveAndReloadProjectInfo(ProjectInfo original, string outputFileName)
+        private void SaveAndReloadProjectInfo(ProjectInfo original, string outputFileName)
         {
             File.Exists(outputFileName).Should().BeFalse("Test error: file should not exist at the start of the test. File: {0}", outputFileName);
             original.Save(outputFileName);
@@ -124,7 +124,6 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             reloadedProjectInfo.Should().NotBeNull("Reloaded project info should not be null");
 
             ProjectInfoAssertions.AssertExpectedValues(original, reloadedProjectInfo);
-            return reloadedProjectInfo;
         }
 
         #endregion Helper methods

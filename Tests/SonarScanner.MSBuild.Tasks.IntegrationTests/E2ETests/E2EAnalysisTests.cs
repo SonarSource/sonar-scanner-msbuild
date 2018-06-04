@@ -87,7 +87,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             };
             AddEmptyAnalysedCodeFile(descriptor, rootInputFolder);
 
-            var projectRoot = BuildUtilities.CreateInitializedProjectRoot(TestContext, descriptor, preImportProperties);
+            BuildUtilities.CreateInitializedProjectRoot(TestContext, descriptor, preImportProperties);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, descriptor.FullFilePath);
@@ -538,11 +538,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
         #region Private methods
 
-        private string AddEmptyAnalysedCodeFile(ProjectDescriptor descriptor, string projectFolder, string extension = "cs")
+        private void AddEmptyAnalysedCodeFile(ProjectDescriptor descriptor, string projectFolder, string extension = "cs")
         {
             var filePath = CreateEmptyFile(projectFolder, extension);
             descriptor.AddCompileInputFile(filePath, true);
-            return filePath;
         }
 
         private static void AddEmptyContentFile(ProjectDescriptor descriptor, string projectFolder)
@@ -570,7 +569,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
         {
             var preImportProperties = new WellKnownProjectProperties
             {
-                SonarQubeTempPath = outputPath, // FIXME
+                SonarQubeTempPath = outputPath,
                 SonarQubeConfigPath = configPath,
                 SonarQubeOutputPath = outputPath,
 
@@ -589,7 +588,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
         /// <returns>The full path of the project-specific directory that was created during the build</returns>
         private string CreateAndBuildSonarProject(ProjectDescriptor descriptor, string rootOutputFolder, WellKnownProjectProperties preImportProperties)
         {
-            var projectRoot = BuildUtilities.CreateInitializedProjectRoot(TestContext, descriptor, preImportProperties);
+            BuildUtilities.CreateInitializedProjectRoot(TestContext, descriptor, preImportProperties);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, descriptor.FullFilePath);
@@ -692,28 +691,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                     }
                 }
             }
-        }
-
-        private static void AssertFileIsNotAnalysed(string analysisFileListPath, string unanalysedPath)
-        {
-            var actualFiles = GetAnalysedFiles(analysisFileListPath);
-            actualFiles.Should().NotContain(unanalysedPath, "File should not be analyzed: {0}", unanalysedPath);
-        }
-
-        private static void AssertFileIsAnalysed(string analysisFileListPath, string unanalysedPath)
-        {
-            var actualFiles = GetAnalysedFiles(analysisFileListPath);
-            actualFiles.Should().Contain(unanalysedPath, "File should not be analyzed: {0}", unanalysedPath);
-        }
-
-        private static string[] GetAnalysedFiles(string analysisFileListPath)
-        {
-            if (!File.Exists(analysisFileListPath))
-            {
-                Assert.Inconclusive("Test error: the specified analysis file list does not exist: {0}", analysisFileListPath);
-            }
-
-            return File.ReadAllLines(analysisFileListPath);
         }
 
         private void CheckProjectInfo(ProjectInfo expected, string projectOutputFolder)

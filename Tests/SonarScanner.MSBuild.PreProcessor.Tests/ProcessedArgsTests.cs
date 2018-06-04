@@ -139,14 +139,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             fileProperties.AddProperty("XXX", "file line value XXX - upper case");
 
             // Act
-            var args = new ProcessedArgs("key", "branch", "version", null, false, cmdLineProperties, fileProperties, EmptyPropertyProvider.Instance);
+            var processedArgs = new ProcessedArgs("key", "branch", "version", null, false, cmdLineProperties, fileProperties, EmptyPropertyProvider.Instance);
 
-            AssertExpectedValue("shared.key1", "cmd line value1 - should override server value", args);
-            AssertExpectedValue("cmd.line.only", "cmd line value4 - only on command line", args);
-            AssertExpectedValue("file.only", "file value3 - only in file", args);
-            AssertExpectedValue("xxx", "cmd line value XXX - lower case", args);
-            AssertExpectedValue("XXX", "file line value XXX - upper case", args);
-            AssertExpectedValue(SonarProperties.HostUrl, "http://host", args);
+            AssertExpectedValue("shared.key1", "cmd line value1 - should override server value", processedArgs);
+            AssertExpectedValue("cmd.line.only", "cmd line value4 - only on command line", processedArgs);
+            AssertExpectedValue("file.only", "file value3 - only in file", processedArgs);
+            AssertExpectedValue("xxx", "cmd line value XXX - lower case", processedArgs);
+            AssertExpectedValue("XXX", "file line value XXX - upper case", processedArgs);
+            AssertExpectedValue(SonarProperties.HostUrl, "http://host", processedArgs);
         }
 
         #endregion Tests

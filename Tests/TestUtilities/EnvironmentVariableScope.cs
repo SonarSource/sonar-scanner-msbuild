@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using FluentAssertions;
 
 namespace TestUtilities
 {
@@ -28,7 +27,7 @@ namespace TestUtilities
     /// Defines a scope inside which new environment variables can be set.
     /// The variables will be cleared when the scope is disposed.
     /// </summary>
-    public class EnvironmentVariableScope : IDisposable
+    public sealed class EnvironmentVariableScope : IDisposable
     {
         private IDictionary<string, string> originalValues = new Dictionary<string, string>();
 
@@ -45,12 +44,6 @@ namespace TestUtilities
         public void SetPath(string value)
         {
             SetVariable("PATH", value);
-        }
-
-        private static void AssertEnvironmentVariableDoesNotExist(string name)
-        {
-            var vars = Environment.GetEnvironmentVariables();
-            vars.Contains(name).Should().BeFalse("Test setup error: environment variable already exists. Name: {0}", name);
         }
 
         #region IDispose implementation

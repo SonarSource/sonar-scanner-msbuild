@@ -83,7 +83,7 @@ namespace SonarQube.Bootstrapper.Tests
 
             // 1. Minimal command line settings with extra values
             var settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "foo", "blah", "/xxxx");
-            AssertUrlAndChildCmdLineArgs(settings, "foo", "/d:sonar.host.url=foo", "foo", "blah", "/xxxx");
+            AssertUrlAndChildCmdLineArgs(settings, "/d:sonar.host.url=foo", "foo", "blah", "/xxxx");
         }
 
         [TestMethod]
@@ -92,10 +92,10 @@ namespace SonarQube.Bootstrapper.Tests
             var logger = new TestLogger();
 
             var settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "/begin:true", "/install:true");
-            AssertUrlAndChildCmdLineArgs(settings, "foo", "/d:sonar.host.url=foo", "/begin:true", "/install:true");
+            AssertUrlAndChildCmdLineArgs(settings, "/d:sonar.host.url=foo", "/begin:true", "/install:true");
 
             settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "/installXXX:true");
-            AssertUrlAndChildCmdLineArgs(settings, "foo", "/d:sonar.host.url=foo", "/installXXX:true");
+            AssertUrlAndChildCmdLineArgs(settings, "/d:sonar.host.url=foo", "/installXXX:true");
         }
 
         [TestMethod]
@@ -331,7 +331,7 @@ namespace SonarQube.Bootstrapper.Tests
             return logger;
         }
 
-        private static void AssertUrlAndChildCmdLineArgs(IBootstrapperSettings settings, string expectedUrl, params string[] expectedCmdLineArgs)
+        private static void AssertUrlAndChildCmdLineArgs(IBootstrapperSettings settings, params string[] expectedCmdLineArgs)
         {
             settings.ChildCmdLineArgs.Should().BeEquivalentTo(expectedCmdLineArgs, "Unexpected child command line arguments");
         }

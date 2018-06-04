@@ -89,7 +89,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var productChineseFile = CreateEmptyFile(productBaseDir, "你好.cs");
 
             var productCoverageFilePath = CreateEmptyFile(productBaseDir, "productCoverageReport.txt").FullName;
-            var productTrxPath = CreateEmptyFile(productBaseDir, "productTrx.trx");
+            CreateEmptyFile(productBaseDir, "productTrx.trx");
             var productFileListFilePath = Path.Combine(productBaseDir, "productManagedFiles.txt");
 
             var otherDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_OtherDir");

@@ -162,7 +162,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var pwdIndex = CheckArgExists("-Dsonar.password=my.pwd", actualCmdLineArgs);
 
             var propertiesFileIndex = CheckArgExists(SonarScannerWrapper.ProjectSettingsFileArgName, actualCmdLineArgs);
-            
+
             propertiesFileIndex.Should().BeGreaterThan(loginIndex, "User arguments should appear first");
             propertiesFileIndex.Should().BeGreaterThan(pwdIndex, "User arguments should appear first");
         }
@@ -314,7 +314,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             testLogger.AssertInfoMessageExists(ExpectedConsoleMessagePrefix);
             testLogger.AssertInfoMessageExists(expectedWorkingDir);
 
-            if (actualOutcome == false)
+            if (!actualOutcome)
             {
                 testLogger.AssertErrorsLogged();
             }

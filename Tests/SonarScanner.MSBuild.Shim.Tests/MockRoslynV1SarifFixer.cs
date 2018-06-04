@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.Shim.Tests
 {
     internal class MockRoslynV1SarifFixer : IRoslynV1SarifFixer
@@ -36,7 +34,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             CallCount = 0;
         }
 
-        public string LoadAndFixFile(string sarifPath, string language)
+        public string LoadAndFixFile(string sarifFilePath, string language)
         {
             CallCount++;
             LastLanguage = language;

@@ -25,11 +25,11 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
-using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 using SonarScanner.MSBuild.PostProcessor;
 using SonarScanner.MSBuild.PostProcessor.Tests;
 using SonarScanner.MSBuild.Shim;
+using SonarScanner.MSBuild.TFS;
+using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PostProcessorTests
@@ -206,7 +206,7 @@ namespace SonarScanner.MSBuild.PostProcessorTests
 
         private sealed class MockLegacyBuildSummaryLogger : ILegacyBuildSummaryLogger
         {
-            public List<string> Messages { get; private set; } = new List<string>();
+            public List<string> Messages { get; } = new List<string>();
 
             public void WriteMessage(string message, params object[] args)
             {

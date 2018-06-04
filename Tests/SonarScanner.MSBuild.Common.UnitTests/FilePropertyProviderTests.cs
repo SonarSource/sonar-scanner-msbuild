@@ -31,8 +31,6 @@ namespace SonarScanner.MSBuild.Common.UnitTests
     [TestClass]
     public class FilePropertyProviderTests
     {
-        private static readonly ArgumentDescriptor DummyDescriptor = new ArgumentDescriptor("dummy", new string[] { "dummy predifx" }, false, "dummy desc", true);
-
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -208,11 +206,6 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             properties.Save(fullPath);
             return fullPath;
-        }
-
-        private static void AddProperty(IList<Property> properties, string key, string value)
-        {
-            properties.Add(new Property() { Id = key, Value = value });
         }
 
         #endregion Private methods

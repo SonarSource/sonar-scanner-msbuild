@@ -625,7 +625,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Add an additional import that will dump data we are interested in to the build log
             var captureTargetsFilePath = CreateCaptureDataTargetsFile(projectFolder);
-            var captureTarget = projectRoot.AddImport(captureTargetsFilePath);
+            projectRoot.AddImport(captureTargetsFilePath);
 
             var projectFilePath = Path.Combine(projectFolder, "valid.project.proj");
             projectRoot.Save(projectFilePath);

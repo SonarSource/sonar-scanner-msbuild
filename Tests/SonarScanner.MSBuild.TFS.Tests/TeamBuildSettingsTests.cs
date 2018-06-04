@@ -192,7 +192,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_Legacy, "http://legacybuilduri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, "http://legacycollectionUri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_Legacy, "legacy build dir");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_Legacy, @"c:\build\1234"); ;
+                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_Legacy, @"c:\build\1234");
 
                 // Act
                 settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
@@ -227,7 +227,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildUri_TFS2015, "http://builduri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, "http://collectionUri");
                 scope.SetVariable(TeamBuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, "non-legacy team build");
-                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, @"c:\agent\_work\1"); ;
+                scope.SetVariable(TeamBuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, @"c:\agent\_work\1");
 
                 // Act
                 settings = TeamBuildSettings.GetSettingsFromEnvironment(logger);

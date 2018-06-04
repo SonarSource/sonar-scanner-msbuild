@@ -39,7 +39,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
         #region ICoverageReportProcessor interface
 
-        public bool Initialise(AnalysisConfig context, ITeamBuildSettings settings)
+        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings)
         {
             initalisedCalled.Should().BeFalse("Expecting Initialize to be called only once");
             initalisedCalled = true;

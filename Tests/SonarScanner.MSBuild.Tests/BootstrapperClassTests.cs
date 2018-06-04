@@ -115,7 +115,7 @@ namespace SonarQube.Bootstrapper.Tests
             using (InitializeNonTeamBuildEnvironment(RootDir))
             {
                 // Act
-                var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
+                CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
                 File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
@@ -158,7 +158,7 @@ namespace SonarQube.Bootstrapper.Tests
                 File.Exists(filePath).Should().BeTrue();
 
                 // Act
-                var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
+                CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
                 File.Exists(filePath).Should().BeFalse();
@@ -305,11 +305,6 @@ namespace SonarQube.Bootstrapper.Tests
             MockPostProcessor.Verify(x => x.Execute(
                 It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()),
                 Times.Never());
-        }
-
-        private void AssertPreProcessorNotCalled()
-        {
-            MockPreProcessor.Verify(x => x.Execute(It.IsAny<string[]>()), Times.Never());
         }
 
         private void AssertPostProcessorArgs(params string[] expectedArgs)
