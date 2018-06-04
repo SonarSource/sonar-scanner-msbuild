@@ -63,7 +63,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public void InstallLoaderTargets(string workDirectory)
         {
             WarnOnGlobalTargetsFile();
-            WarnOnAppDataInsideSystem32();
+            FailOnAppDataInsideSystem32();
             InternalCopyTargetsFile();
             InternalCopyTargetFileToProject(workDirectory);
         }
@@ -120,7 +120,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        private void WarnOnAppDataInsideSystem32()
+        private void FailOnAppDataInsideSystem32()
         {
             var windowsSystem32Part = Path.Combine("windows", "system32");
 
@@ -128,7 +128,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             // C:\Windows\System32\... and is ignored by MSBuild and dotnet.
             if (msBuildPathsSettings.GetImportBeforePaths().Any(IsInsideSystem32))
             {
-                logger.LogWarning(Resources.MSG_InstallTargetsLocalSystem);
+                throw new AnalysisException(Resources.MSG_InstallTargetsLocalSystem);
             }
 
             bool IsInsideSystem32(string path) =>
