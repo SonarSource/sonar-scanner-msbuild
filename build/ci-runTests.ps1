@@ -3,10 +3,22 @@
 # to make it easier to debug and test on a local machine. See the comments at the end of the file
 # for more information on debugging locally.
 
-function Invoke-Tests() {
+function Clear-TestResults() {
+    If (Test-Path TestResults){
+        Remove-Item TestResults -Recurse
+    }
+}
+
+function Invoke-Tests() {    
     Write-Host "Start tests"
-    $x = ""; Get-ChildItem -path . -Recurse -Include *Tests.dll | where { $_.FullName -match "bin" } | foreach { $x += """$_"" " }; iex "& '$env:VSTEST_PATH' /EnableCodeCoverage /Logger:trx $x"
-    testExitCode
+    $x = ""; Get-ChildItem -path . -Recurse -Include *Tests.dll | where { $_.FullName -match "bin" } | foreach { $x = """$_"" " }; iex "& '$env:VSTEST_PATH' /EnableCodeCoverage /Logger:trx $x"
+    testExitCode  
+}
+
+function Clear-ExtraFiles() {
+    # Clean up extra test results
+    Get-ChildItem -path "TestResults" -Recurse -Include *.trx | Where { $_ -Match ".+\\.+\.trx" } | Remove-Item
+    Get-ChildItem -path "TestResults" -Recurse -Include *.coverage | Where { $_ -NotMatch "([a-f0-9]+[-])+[a-f0-9]+\\" } | Remove-Item
 }
 
 #Copied from https://github.com/SonarSource/sonar-csharp/blob/master/scripts/utils.ps1
@@ -141,5 +153,7 @@ function Invoke-CodeCoverage() {
 #function testExitCode(){} # Dummy method definition for method called by Invoke-Tests
 #$vsTestPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\Extensions\TestPlatform\vstest.console.exe"
 #[environment]::SetEnvironmentVariable("VSTEST_PATH", $vsTestPath, "Process")
+#Clear-TestResults
 #Invoke-Tests
+#Clear-ExtraFiles
 #Invoke-CodeCoverage

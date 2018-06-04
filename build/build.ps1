@@ -74,7 +74,9 @@ function deploy([string] $version) {
 
 function runTests() {
     . (Join-Path $PSScriptRoot "ci-runTests.ps1")
+    Clear-TestResults
     Invoke-Tests
+    Clear-ExtraFiles
     Invoke-CodeCoverage
 }
 
