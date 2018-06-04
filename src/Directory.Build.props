@@ -29,7 +29,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="6.6.0.3969" />
+    <PackageReference Update="SonarAnalyzer.CSharp" Version="7.1.0.5212" />
   </ItemGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)\DotnetVersions.props" />
