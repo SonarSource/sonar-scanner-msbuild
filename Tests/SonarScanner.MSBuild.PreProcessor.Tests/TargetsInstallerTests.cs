@@ -152,14 +152,17 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             msBuildPathSettingsMock.Setup(x => x.GetImportBeforePaths()).Returns(new[] { "c:\\windows\\system32\\appdata" });
 
             // Act
-            using (new AssertIgnoreScope())
+            Action act = () =>
             {
-                targetsInstaller.InstallLoaderTargets("c:\\project");
-            }
+                using (new AssertIgnoreScope())
+                {
+                    targetsInstaller.InstallLoaderTargets("c:\\project");
+                }
+            };
 
             // Assert
-            logger.Warnings.Should().Contain(m =>
-                m.StartsWith("Running the Scanner for MSBuild under Local System or Network Service account is not supported."));
+            act.Should().ThrowExactly<AnalysisException>().And.Message.Should()
+                .Be("Running the Scanner for MSBuild under Local System or Network Service account is not supported. Please, use a local or domain user account instead.");
         }
 
         [TestMethod]
