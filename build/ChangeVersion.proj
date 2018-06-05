@@ -22,11 +22,23 @@
       <ReplaceWith>$(AssemblyInformationalVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </AssemblyInformationalVersion>
+    <Net46NuspecVersion Include="$(SolutionRoot)\nuspec\chocolatey\sonarscanner-msbuild-net46.nuspec">
+      <Find>(?&lt;=&lt;version&gt;)([^&lt;]*)</Find>
+      <ReplaceWith>$(AssemblyVersion)</ReplaceWith>
+      <ExpectedMatchCount>1</ExpectedMatchCount>
+    </Net46NuspecVersion>
+    <NetCoreNuspecVersion Include="$(SolutionRoot)\nuspec\chocolatey\sonarscanner-msbuild-netcoreapp2.0.nuspec">
+      <Find>(?&lt;=&lt;version&gt;)([^&lt;]*)</Find>
+      <ReplaceWith>$(AssemblyVersion)</ReplaceWith>
+      <ExpectedMatchCount>1</ExpectedMatchCount>
+    </NetCoreNuspecVersion>
   </ItemGroup>
 
   <Target Name="UpdateAssemblyVersion">
     <RegexTransform Items="@(AssemblyVersion)" />
     <RegexTransform Items="@(AssemblyFileVersion)" />
     <RegexTransform Items="@(AssemblyInformationalVersion)" />
+    <RegexTransform Items="@(Net46NuspecVersion)" />
+    <RegexTransform Items="@(NetCoreNuspecVersion)" />
   </Target>
 </Project>
