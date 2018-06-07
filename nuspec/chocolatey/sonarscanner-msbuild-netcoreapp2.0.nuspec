@@ -3,16 +3,17 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>sonarscanner-msbuild-netcoreapp2.0</id>
-    <version>4.4.0</version>
+    <version>4.3.0.1333</version>
     <title>SonarScanner for MSBuild .Net Core 2.0</title>
     <authors>SonarSource,Microsoft</authors>
     <owners>SonarSource</owners>
     <projectUrl>http://redirect.sonarsource.com/doc/msbuild-sq-runner.html</projectUrl>
     <projectSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild</projectSourceUrl>
     <packageSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild/tree/master/nuspec/chocolatey</packageSourceUrl>
-    <iconUrl>https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/logo.png</iconUrl>
-    <licenseUrl>https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/LICENSE.txt</licenseUrl>
+    <iconUrl>https://cdn.rawgit.com/SonarSource/sonar-scanner-msbuild/cdd1f588/icon.png</iconUrl>
+    <licenseUrl>https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/LICENSE</licenseUrl>
     <docsUrl>https://redirect.sonarsource.com/doc/install-configure-scanner-msbuild.html</docsUrl>
+    <!-- Will need to be updated when the new mailing list will be public -->
     <mailingListUrl>https://groups.google.com/forum/#!forum/sonarqube</mailingListUrl>
     <bugTrackerUrl>https://github.com/SonarSource/sonar-scanner-msbuild/issues</bugTrackerUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -26,6 +27,5 @@ All release notes for SonarScanner MSBuild .Net Core can be found on the GitHub 
   </metadata>
   <files>
     <file src="chocolateyInstall-netcoreapp2.0.ps1" target="tools\chocolateyInstall.ps1" />
-    <file src="..\..\LICENSE" target="tools\LICENSE"/>
   </files>
 </package>

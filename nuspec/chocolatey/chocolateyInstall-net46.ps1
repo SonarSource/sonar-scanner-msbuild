@@ -1,5 +1,5 @@
-﻿$version = "not-set"
-$sha1 = "not-set"
+﻿$version = "4.3.0.1333"
+$sha1 = "63ccb278629d3c787dae20b4c69016ecb346d39b"
 
 Install-ChocolateyZipPackage "sonarscanner-msbuild-net46" `
     -Url "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/${version}/sonar-scanner-msbuild-${version}-net46.zip" `
