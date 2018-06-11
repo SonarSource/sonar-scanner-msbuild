@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>dotnet-sonarscanner</id>
+    <version>4.3.0</version>
+    <title>SonarScanner for .Net Core 2.1</title>
+    <authors>SonarSource,Microsoft</authors>
+    <projectUrl>http://redirect.sonarsource.com/doc/msbuild-sq-runner.html</projectUrl>
+    <iconUrl>https://cdn.rawgit.com/SonarSource/sonar-scanner-msbuild/cdd1f588/icon.png</iconUrl>
+    <licenseUrl>https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <summary>The SonarScanner for .Net Core 2.1 allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
+    <description>The SonarScanner for .Net Core 2.1 allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
+    <tags>sonarqube sonarcloud msbuild scanner sonarsource sonar sonar-scanner sonarscanner</tags>
+    <copyright>SonarSource SA and Microsoft Corporation</copyright>
+    <releaseNotes>
+All release notes for SonarScanner .Net Core 2.1 can be found on the GitHub site - https://github.com/SonarSource/sonar-scanner-msbuild/releases
+    </releaseNotes>
+    <packageTypes>
+      <packageType name="DotnetTool" />
+    </packageTypes>
+    <dependencies>
+      <group targetFramework=".NETCoreApp2.1" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\..\DeploymentArtifacts\BuildAgentPayload\$configuration$\netcoreapp2.1\" target="tools\netcoreapp2.1\any" />
+    <file src="DotnetToolSettings.xml" target="tools\netcoreapp2.1\any\DotnetToolSettings.xml" />
+  </files>
+</package>
