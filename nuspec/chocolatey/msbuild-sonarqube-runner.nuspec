@@ -20,7 +20,7 @@
 This package was deprecated and split into 2 packages. One for .net core usage (id: sonarscanner-msbuild-netcoreapp2.0) and one for classic .net usage (id: sonarscanner-msbuild-net46).
     </releaseNotes>
     <docsUrl>https://redirect.sonarsource.com/doc/install-configure-scanner-msbuild.html</docsUrl>
-    <mailingListUrl>https://groups.google.com/forum/#!forum/sonarqube</mailingListUrl>
+    <mailingListUrl>https://community.sonarsource.com/</mailingListUrl>
     <bugTrackerUrl>https://github.com/SonarSource/sonar-scanner-msbuild/issues</bugTrackerUrl>
     <dependencies>
         <dependency id="sonarscanner-msbuild-net46" version="4.3.0" />
