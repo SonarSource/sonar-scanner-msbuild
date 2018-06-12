@@ -13,8 +13,7 @@
     <iconUrl>https://cdn.rawgit.com/SonarSource/sonar-scanner-msbuild/cdd1f588/icon.png</iconUrl>
     <licenseUrl>https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/LICENSE</licenseUrl>
     <docsUrl>https://redirect.sonarsource.com/doc/install-configure-scanner-msbuild.html</docsUrl>
-    <!-- Will need to be updated when the new mailing list will be public -->
-    <mailingListUrl>https://groups.google.com/forum/#!forum/sonarqube</mailingListUrl>
+    <mailingListUrl>https://community.sonarsource.com/</mailingListUrl>
     <bugTrackerUrl>https://github.com/SonarSource/sonar-scanner-msbuild/issues</bugTrackerUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>The SonarScanner for MSBuild allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
