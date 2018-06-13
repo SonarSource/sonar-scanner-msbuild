@@ -72,6 +72,11 @@
                   <type>zip</type>
                   <classifier>netcoreapp2.0</classifier>
                 </artifact>
+                <artifact>
+                  <file>dotnetScannerGlobalToolPath</file>
+                  <type>nupkg</type>
+                  <classifier>netcoreapp2.1</classifier>
+                </artifact>
               </artifacts>
             </configuration>
           </execution>

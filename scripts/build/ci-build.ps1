@@ -51,10 +51,12 @@ function deploy([string] $version) {
     #DeployOnRepox $classicScannerZipPath "" $version
     $classicScannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarscanner-msbuild-net46.zip
     $dotnetScannerZipPath  = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarscanner-msbuild-netcoreapp2.0.zip
+    $dotnetScannerGlobalToolPath  = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\dotnet-sonarscanner.$mainVersion.nupkg
 
     write-host -f green  "replace zip filenames in pom.xml"
     (Get-Content .\pom.xml) -replace 'classicScannerZipPath', "$classicScannerZipPath" | Set-Content .\pom.xml
-    (Get-Content .\pom.xml) -replace 'dotnetScannerZipPath',  "$dotnetScannerZipPath"  | Set-Content .\pom.xml
+    (Get-Content .\pom.xml) -replace 'dotnetScannerZipPath', "$dotnetScannerZipPath" | Set-Content .\pom.xml
+    (Get-Content .\pom.xml) -replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" | Set-Content .\pom.xml
 
     write-host -f green  "set version $version in pom.xml"
     $command = "mvn versions:set -DgenerateBackupPoms=false -DnewVersion='$version'"

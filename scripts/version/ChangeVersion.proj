@@ -22,11 +22,18 @@
       <ReplaceWith>$(AssemblyInformationalVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </AssemblyInformationalVersion>
+
+    <GlobalToolNuspec Include="$(SolutionRoot)\nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec">
+      <Find>(?&lt;=&lt;version&gt;)([^&lt;]*)</Find>
+      <ReplaceWith>$(MainVersion)</ReplaceWith>
+      <ExpectedMatchCount>1</ExpectedMatchCount>
+    </GlobalToolNuspec>
   </ItemGroup>
 
   <Target Name="UpdateAssemblyVersion">
     <RegexTransform Items="@(AssemblyVersion)" />
     <RegexTransform Items="@(AssemblyFileVersion)" />
     <RegexTransform Items="@(AssemblyInformationalVersion)" />
+    <RegexTransform Items="@(GlobalToolNuspec)" />
   </Target>
 </Project>

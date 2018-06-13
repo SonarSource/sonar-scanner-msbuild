@@ -27,6 +27,7 @@
     <WorkDestinationRootDir>$(BuildAgentPayloadDir)$(Configuration)\</WorkDestinationRootDir>
     <WorkDestinationDir>$(WorkDestinationRootDir)\$(TargetFramework)</WorkDestinationDir>
     <DestinationArtifactPath>$(WorkDestinationRootDir)\sonarscanner-msbuild-$(TargetFramework).zip</DestinationArtifactPath>
+    <GlobalToolNuspecDir>$(SourcesRoot)\..\nuspec\netcoreglobaltool</GlobalToolNuspecDir>
   </PropertyGroup>
 
   <!-- Common -->
@@ -132,6 +133,7 @@
     <CallTarget Targets="SignDlls" />
     <CallTarget Targets="SignExes" />
     <CallTarget Targets="ZipPayloadFiles" />
+    <CallTarget Targets="CreateNuGetPackage" />
     <Message Importance="high" Text="End building artifact for scanner-msbuild $(TargetFramework)" />
   </Target>
 
@@ -158,8 +160,12 @@
   </Target>
 
   <!-- Don't create the zip for netcoreapp2.1 -->
-  <Target Name="ZipPayloadFiles" Condition=" '$(TargetFramework)' != '$(ScannerNetCoreGlobalToolVersion)' ">
+  <Target Name="ZipPayloadFiles" Condition=" '$(TargetFramework)' != '$(ScannerNetCoreGlobalToolVersion)' AND $(Configuration) == 'Release' ">
     <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; Add-Type -assembly system.text.encoding; Add-Type -TypeDefinition 'public class MyEncoder : System.Text.UTF8Encoding { public MyEncoder() : base(true) {} public override byte[] GetBytes(string s) { return base.GetBytes(s.Replace((char) 92, (char) 47)); } }'; $enc = New-Object MyEncoder; [io.compression.zipfile]::CreateFromDirectory('$(WorkDestinationDir)', '$(DestinationArtifactPath)', [io.compression.compressionlevel]::fastest, $false, $enc)&quot;" />
+  </Target>
+
+  <Target Name="CreateNuGetPackage" Condition=" '$(TargetFramework)' == '$(ScannerNetCoreGlobalToolVersion)' AND $(Configuration) == 'Release' ">
+    <Exec WorkingDirectory="$(GlobalToolNuspecDir)" Command="&quot;$(NUGET_PATH)&quot; pack -OutputDirectory $(WorkDestinationRootDir) -Prop Configuration=Release" />
   </Target>
 
 </Project>
