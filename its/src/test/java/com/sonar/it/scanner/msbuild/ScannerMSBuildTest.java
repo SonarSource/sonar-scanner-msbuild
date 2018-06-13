@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.NetworkUtils;
@@ -76,6 +77,7 @@ import org.sonarqube.ws.client.component.SearchWsRequest;
 import org.sonarqube.ws.client.component.ShowWsRequest;
 import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -87,8 +89,6 @@ import static org.junit.Assert.assertTrue;
  * sonar.runtimeVersion: SQ to use
  */
 public class ScannerMSBuildTest {
-  // Should be the same version than in pom.xml
-  static final String LICENSE_PLUGIN_VERSION = "3.1.0.1132";
   private static final String PROJECT_KEY = "my.project";
   private static final String MODULE_KEY = "my.project:my.project:1049030E-AC7A-49D0-BEDC-F414C5C7DDD8";
   private static final String FILE_KEY = MODULE_KEY + ":Foo.cs";
@@ -102,11 +102,12 @@ public class ScannerMSBuildTest {
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setOrchestratorProperty("csharpVersion", "LATEST_RELEASE")
-    .addPlugin("csharp")
+    .setEdition(Edition.DEVELOPER)
+    .addPlugin(MavenLocation.of("org.sonarsource.dotnet","sonar-csharp-plugin", "LATEST_RELEASE"))
     .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
     .setOrchestratorProperty("vbnetVersion", "LATEST_RELEASE")
-    .addPlugin("vbnet")
-    .addPlugin(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", LICENSE_PLUGIN_VERSION))
+    .addPlugin(MavenLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", "LATEST_RELEASE"))
+    .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
     .activateLicense()
     .build();
 
@@ -200,7 +201,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testNoProjectNameAndVersion() throws Exception {
-    Assume.assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals("6.1"));
+    Assume.assumeTrue(ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(6, 1));
 
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");

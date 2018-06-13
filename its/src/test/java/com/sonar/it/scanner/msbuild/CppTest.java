@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
@@ -65,8 +66,9 @@ public class CppTest {
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setOrchestratorProperty("cppVersion", "LATEST_RELEASE")
-    .addPlugin("cpp")
-    .activateLicense("cpp")
+    .setEdition(Edition.DEVELOPER)
+    //.addPlugin("cpp")       // FIXME: add cpp plugin
+    //.activateLicense("cpp") // FIXME: activate cpp license
     .build();
 
   @ClassRule

@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.nio.file.Path;
@@ -43,6 +44,7 @@ import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -62,9 +64,9 @@ public class VBNetTest {
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setOrchestratorProperty("vbnetVersion", "LATEST_RELEASE")
-    .addPlugin("vbnet")
-    // Should be the same version than in pom.xml
-    .addPlugin(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", ScannerMSBuildTest.LICENSE_PLUGIN_VERSION))
+    .setEdition(Edition.DEVELOPER)
+    .addPlugin(MavenLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", "LATEST_RELEASE"))
+    .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
     .activateLicense()
     .build();
 

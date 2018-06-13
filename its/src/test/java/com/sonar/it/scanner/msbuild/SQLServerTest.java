@@ -20,7 +20,10 @@
 package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.MavenLocation;
+
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -53,7 +56,8 @@ public class SQLServerTest {
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setOrchestratorProperty("csharpVersion", "LATEST_RELEASE")
-    .addPlugin("csharp")
+    .setEdition(Edition.DEVELOPER)
+    .addPlugin(MavenLocation.of("org.sonarsource.dotnet","sonar-csharp-plugin", "LATEST_RELEASE"))
     .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
     .build();
 
