@@ -60,7 +60,7 @@ public class CppTest {
   @BeforeClass
   public static void checkSkip() {
     Assume.assumeTrue("Disable for old scanner (needs C# plugin installed to get the payload)",
-      TestUtils.getScannerVersion() == null || !TestUtils.getScannerVersion().equals("2.1.0.0"));
+      TestUtils.getScannerVersion(ORCHESTRATOR) == null || !TestUtils.getScannerVersion(ORCHESTRATOR).equals("2.1.0.0"));
   }
 
   @ClassRule
@@ -91,7 +91,7 @@ public class CppTest {
     Path projectDir = TestUtils.projectDir(temp, "CppSolution");
     File wrapperOutDir = new File(projectDir.toFile(), "out");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
@@ -105,7 +105,7 @@ public class CppTest {
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild");
 
-    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end"));
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
@@ -130,7 +130,7 @@ public class CppTest {
     Path projectDir = TestUtils.projectDir(temp, "CppSharedFiles");
     File wrapperOutDir = new File(projectDir.toFile(), "out");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
@@ -144,7 +144,7 @@ public class CppTest {
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild");
 
-    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end"));
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
