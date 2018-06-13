@@ -28,7 +28,6 @@ import com.sonar.orchestrator.util.NetworkUtils;
 import java.io.IOException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -67,7 +66,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.wsclient.issue.Issue;
 import org.sonar.wsclient.issue.IssueQuery;
-
 import org.sonarqube.ws.WsComponents;
 import org.sonarqube.ws.WsMeasures;
 import org.sonarqube.ws.client.HttpConnector;
@@ -82,7 +80,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
- * csharpPlugin.version: csharp plugin to modify (installing scanner payload) and use. If not specified, uses 5.1. 
+ * csharpPlugin.version: csharp plugin to modify (installing scanner payload) and use. If not specified, uses 5.1.
  * vbnetPlugin.version: vbnet plugin to use. It not specified, it fails
  * scannerForMSBuild.version: scanner to use. If not specified, uses the one built in ../
  * scannerForMSBuildPayload.version: scanner to embed in the csharp plugin. If not specified, uses the one built in ../
@@ -103,10 +101,8 @@ public class ScannerMSBuildTest {
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
     .setEdition(Edition.DEVELOPER)
-    .setOrchestratorProperty("csharpVersion", "LATEST_RELEASE")
-    .setOrchestratorProperty("vbnetVersion", "LATEST_RELEASE")
-    .addPlugin(MavenLocation.of("org.sonarsource.dotnet","sonar-csharp-plugin", "LATEST_RELEASE"))
     .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
+    .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-csharp-plugin", "LATEST_RELEASE"))
     .addPlugin(MavenLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", "LATEST_RELEASE"))
     .activateLicense()
     .build();
@@ -221,8 +217,7 @@ public class ScannerMSBuildTest {
     assertLineCountForProjectUnderTest();
   }
 
-  private void assertLineCountForProjectUnderTest()
-  {
+  private void assertLineCountForProjectUnderTest() {
     assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(23);
     assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(37);
     assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(71);
@@ -515,7 +510,7 @@ public class ScannerMSBuildTest {
     runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Path::toString);
   }
 
-  private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path ,String> getProjectBaseDir)
+  private void runCSharpSharedFileWithOneProjectUsingProjectBaseDir(Function<Path, String> getProjectBaseDir)
     throws IOException {
     String folderName = "CSharpSharedFileWithOneProject";
     Path projectDir = TestUtils.projectDir(temp, folderName);
@@ -597,7 +592,7 @@ public class ScannerMSBuildTest {
 
     // Handler Structure
     HandlerCollection handlers = new HandlerCollection();
-    handlers.setHandlers(new Handler[] {proxyHandler(needProxyAuth), new DefaultHandler()});
+    handlers.setHandlers(new Handler[]{proxyHandler(needProxyAuth), new DefaultHandler()});
     server.setHandler(handlers);
 
     ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
@@ -619,12 +614,12 @@ public class ScannerMSBuildTest {
   private static SecurityHandler basicAuth(String username, String password, String realm) {
 
     HashLoginService l = new HashLoginService();
-    l.putUser(username, Credential.getCredential(password), new String[] {"user"});
+    l.putUser(username, Credential.getCredential(password), new String[]{"user"});
     l.setName(realm);
 
     Constraint constraint = new Constraint();
     constraint.setName(Constraint.__BASIC_AUTH);
-    constraint.setRoles(new String[] {"user"});
+    constraint.setRoles(new String[]{"user"});
     constraint.setAuthenticate(true);
 
     ConstraintMapping cm = new ConstraintMapping();
