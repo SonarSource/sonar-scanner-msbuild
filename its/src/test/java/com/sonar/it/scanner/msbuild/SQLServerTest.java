@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.MavenLocation;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -37,10 +38,10 @@ import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * csharpPlugin.version: csharp plugin to modify (installing scanner payload) and use. If not specified, uses 5.1. 
  * scannerForMSBuild.version: scanner to use. If not specified, uses the one built in ../
  * scannerForMSBuildPayload.version: scanner to embed in the csharp plugin. If not specified, uses the one built in ../
  * sonar.runtimeVersion: SQ to use
@@ -52,8 +53,8 @@ public class SQLServerTest {
 
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    .setOrchestratorProperty("csharpVersion", "LATEST_RELEASE")
-    .addPlugin("csharp")
+    .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
+    .addPlugin(MavenLocation.of("org.sonarsource.dotnet","sonar-csharp-plugin", "LATEST_RELEASE"))
     .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
     .build();
 
@@ -68,7 +69,7 @@ public class SQLServerTest {
   @Test
   public void should_find_issues_in_cs_files() throws Exception {
     Path projectDir = TestUtils.projectDir(temp, "SQLServerSolution");
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
@@ -76,7 +77,7 @@ public class SQLServerTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();

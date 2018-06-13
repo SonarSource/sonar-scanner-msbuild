@@ -51,9 +51,8 @@ public class TestUtils {
   private final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
   @CheckForNull
-  public static String getScannerVersion() {
-    Configuration configuration = Orchestrator.builderEnv().build().getConfiguration();
-    return configuration.getString("scannerForMSBuild.version");
+  public static String getScannerVersion(Orchestrator orchestrator) {
+    return orchestrator.getConfiguration().getString("scannerForMSBuild.version");
   }
 
   private static MavenLocation mavenLocation(String scannerVersion) {
@@ -68,8 +67,8 @@ public class TestUtils {
       .build();
   }
 
-  public static ScannerForMSBuild newScanner(Path projectDir) {
-    String scannerVersion = getScannerVersion();
+  public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir) {
+    String scannerVersion = getScannerVersion(orchestrator);
 
     if (scannerVersion != null) {
       LOG.info("Using Scanner for MSBuild " + scannerVersion);

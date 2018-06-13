@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.nio.file.Path;
@@ -43,6 +44,7 @@ import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -56,15 +58,14 @@ public class VBNetTest {
   @BeforeClass
   public static void checkSkip() {
     Assume.assumeTrue("Disable for old scanner (needs C# plugin installed to get the payload)",
-      TestUtils.getScannerVersion() == null || !TestUtils.getScannerVersion().equals("2.1.0.0"));
+      TestUtils.getScannerVersion(ORCHESTRATOR) == null || !TestUtils.getScannerVersion(ORCHESTRATOR).equals("2.1.0.0"));
   }
 
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    .setOrchestratorProperty("vbnetVersion", "LATEST_RELEASE")
-    .addPlugin("vbnet")
-    // Should be the same version than in pom.xml
-    .addPlugin(MavenLocation.of("com.sonarsource.license", "sonar-dev-license-plugin", ScannerMSBuildTest.LICENSE_PLUGIN_VERSION))
+    .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
+    .setEdition(Edition.DEVELOPER)
+    .addPlugin(MavenLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", "LATEST_RELEASE"))
     .activateLicense()
     .build();
 
@@ -83,7 +84,7 @@ public class VBNetTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "vbnet", "ProfileForTestVBNet");
 
     Path projectDir = TestUtils.projectDir(temp, "ConsoleMultiLanguage");
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("multilang")
@@ -92,7 +93,7 @@ public class VBNetTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(projectDir)
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end"));
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
