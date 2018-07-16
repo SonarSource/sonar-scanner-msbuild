@@ -101,7 +101,8 @@ public class ScannerMSBuildTest {
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
     .setEdition(Edition.DEVELOPER)
-    .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
+    // BUG #545: https://github.com/SonarSource/sonar-scanner-msbuild/issues/545
+    // .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
     .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-csharp-plugin", "LATEST_RELEASE"))
     .addPlugin(MavenLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", "LATEST_RELEASE"))
     .activateLicense()
@@ -420,7 +421,9 @@ public class ScannerMSBuildTest {
     assertThat(result.getLogs()).doesNotContain("AssemblyAttributes.cs");
   }
 
-  @Test
+  //@Test - temporarily ignored - Bug #545: https://github.com/SonarSource/sonar-scanner-msbuild/issues/545
+  // When re-enabling the test, don't forget uncomment the line above that configures the orchestrator
+  // to install the plugin
   public void testCustomRoslynAnalyzer() throws Exception {
     String folderName = "ProjectUnderTest";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/" + folderName +
