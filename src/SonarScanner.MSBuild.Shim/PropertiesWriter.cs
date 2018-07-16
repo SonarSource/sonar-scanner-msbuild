@@ -214,7 +214,12 @@ namespace SonarScanner.MSBuild.Shim
 
             foreach (var setting in properties)
             {
-                AppendKeyValue(sb, setting.Id, setting.Value);
+                // We should no longer pass the sonar.verbose=true parameter to the scanner CLI.
+                // See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/543
+                if (setting.Id != SonarProperties.Verbose)
+                {
+                    AppendKeyValue(sb, setting.Id, setting.Value);
+                }
             }
             sb.AppendLine();
         }

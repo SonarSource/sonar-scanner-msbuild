@@ -131,7 +131,7 @@ namespace SonarScanner.MSBuild.Shim
 
             IgnoreSonarScannerHome(logger);
 
-            var allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments, config);
+            var allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, userCmdLineArguments, config, logger);
 
             var envVarsDictionary = GetAdditionalEnvVariables(logger);
             Debug.Assert(envVarsDictionary != null);
@@ -214,7 +214,8 @@ namespace SonarScanner.MSBuild.Shim
         /// <summary>
         /// Returns all of the command line arguments to pass to sonar-scanner
         /// </summary>
-        private static IEnumerable<string> GetAllCmdLineArgs(string projectSettingsFilePath, IEnumerable<string> userCmdLineArguments, AnalysisConfig config)
+        private static IEnumerable<string> GetAllCmdLineArgs(string projectSettingsFilePath,
+            IEnumerable<string> userCmdLineArguments, AnalysisConfig config, ILogger logger)
         {
             // We don't know what all of the valid command line arguments are so we'll
             // just pass them on for the sonar-scanner to validate.
@@ -227,11 +228,20 @@ namespace SonarScanner.MSBuild.Shim
             // Experimentation suggests that the sonar-scanner won't error if duplicate arguments
             // are supplied - it will just use the last argument.
             // So we'll set our additional properties last to make sure they take precedence.
-            args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}={2}", CmdLineArgPrefix, ProjectSettingsFileArgName, projectSettingsFilePath));
+            args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}={2}", CmdLineArgPrefix,
+                ProjectSettingsFileArgName, projectSettingsFilePath));
 
             // Let the scanner cli know it is run as an embedded tool (allows to tweak the behavior)
             // See https://jira.sonarsource.com/browse/SQSCANNER-49
             args.Add("--embedded");
+
+            // For debug mode, we need to pass the debug option to the scanner cli in order to see correctly stack traces.
+            // Note that in addition to this change, the sonar.verbose=true was removed from the config file.
+            // See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/543
+            if (logger.Verbosity == LoggerVerbosity.Debug)
+            {
+                args.Add("--debug");
+            }
 
             return args;
         }
