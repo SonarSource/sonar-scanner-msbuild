@@ -68,7 +68,7 @@ public class CppTest {
     .setOrchestratorProperty("cppVersion", "LATEST_RELEASE")
     .setEdition(Edition.DEVELOPER)
     //.addPlugin("cpp")       // FIXME: add cpp plugin
-    //.activateLicense("cpp") // FIXME: activate cpp license
+    .activateLicense()
     .build();
 
   @ClassRule
