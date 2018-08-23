@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.nio.file.Path;
@@ -54,7 +55,9 @@ public class SQLServerTest {
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
+    .setEdition(Edition.DEVELOPER)
     .addPlugin(MavenLocation.of("org.sonarsource.dotnet","sonar-csharp-plugin", "LATEST_RELEASE"))
+    .activateLicense()
     .build();
 
   @ClassRule
