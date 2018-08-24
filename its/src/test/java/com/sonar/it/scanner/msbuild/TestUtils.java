@@ -105,7 +105,7 @@ public class TestUtils {
   public static TemporaryFolder createTempFolder() {
     // If the test is being run under VSTS then the Scanner will
     // expect the project to be under the VSTS sources directory
-    String vstsSourcePath = System.getenv("Build.SourcesDirectory");
+    String vstsSourcePath = System.getenv("BUILD_SOURCESDIRECTORY");
     File baseDirectory = null;
     if (vstsSourcePath == null){
       LOG.info("Tests are not running under VSTS");
