@@ -102,6 +102,21 @@ public class TestUtils {
     return jars.get(0);
   }
 
+  public static TemporaryFolder createTempFolder() {
+    // If the test is being run under VSTS then the Scanner will
+    // expect the project to be under the VSTS sources directory
+    String vstsSourcePath = System.getenv("AGENT_BUILDDIRECTORY");
+    File baseDirectory = null;
+    if (vstsSourcePath == null){
+      LOG.info("Tests are not running under VSTS");
+    }
+    else {
+      LOG.info("Tests are running under VSTS. Build dir:  " + vstsSourcePath);
+      baseDirectory = new File(vstsSourcePath);
+    }
+    return new TemporaryFolder(baseDirectory);
+  }
+
   public static Path projectDir(TemporaryFolder temp, String projectName) throws IOException {
     Path projectDir = Paths.get("projects").resolve(projectName);
     FileUtils.deleteDirectory(new File(temp.getRoot(), projectName));

@@ -70,7 +70,7 @@ public class VBNetTest {
     .build();
 
   @ClassRule
-  public static TemporaryFolder temp = new TemporaryFolder();
+  public static TemporaryFolder temp = TestUtils.createTempFolder();
 
   @Before
   public void cleanup() {

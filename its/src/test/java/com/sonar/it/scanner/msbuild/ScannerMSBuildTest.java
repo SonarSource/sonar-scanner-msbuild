@@ -108,7 +108,7 @@ public class ScannerMSBuildTest {
     .build();
 
   @ClassRule
-  public static TemporaryFolder temp = new TemporaryFolder();
+  public static TemporaryFolder temp = TestUtils.createTempFolder();
 
   @Before
   public void setUp() {
