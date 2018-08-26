@@ -24,6 +24,7 @@ import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
@@ -79,17 +80,33 @@ public class TestUtils {
   public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir) {
     String scannerVersion = getScannerVersion(orchestrator);
 
+    Location scannerLocation;
     if (scannerVersion != null) {
       LOG.info("Using Scanner for MSBuild " + scannerVersion);
-      return ScannerForMSBuild.create(projectDir.toFile())
-        .setScannerLocation(mavenLocation(scannerVersion));
-    } else {
+      scannerLocation = mavenLocation(scannerVersion);
+    }
+    else if (VstsUtils.isRunningUnderVsts()) {
+      // if running under VSTS, look for the artifacts in the staging directory
+      String artifactsPath = VstsUtils.getArtifactsDowloadDirectory();
+      LOG.info("Running under VSTS. Using Scanner for MSBuild from the artifacts directory: "
+        + artifactsPath);
+      scannerLocation = FindScannerZip(artifactsPath);
+    }
+    else {
       // run locally
       LOG.info("Using Scanner for MSBuild from the local build");
-      Path scannerZip = Paths.get("../DeploymentArtifacts/BuildAgentPayload/Release/sonarscanner-msbuild-net46.zip");
-      return ScannerForMSBuild.create(projectDir.toFile())
-        .setScannerLocation(FileLocation.of(scannerZip.toFile()));
+      scannerLocation = FindScannerZip("../DeploymentArtifacts/BuildAgentPayload/Release");
     }
+
+    LOG.info("Scanner location: " + scannerLocation);
+    return ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerLocation(scannerLocation);
+  }
+
+  private static Location FindScannerZip(String folderPath){
+    Path scannerZip = Paths.get(folderPath + "/sonarscanner-msbuild-net46.zip");
+    Location scannerLocation = FileLocation.of(scannerZip.toFile());
+    return scannerLocation;
   }
 
   public static Path getCustomRoslynPlugin() {
@@ -114,14 +131,14 @@ public class TestUtils {
   public static TemporaryFolder createTempFolder() {
     // If the test is being run under VSTS then the Scanner will
     // expect the project to be under the VSTS sources directory
-    String vstsSourcePath = System.getenv("BUILD_SOURCESDIRECTORY");
     File baseDirectory = null;
-    if (vstsSourcePath == null){
-      LOG.info("Tests are not running under VSTS");
-    }
-    else {
+    if (VstsUtils.isRunningUnderVsts()){
+      String vstsSourcePath = VstsUtils.getSourcesDirectory();
       LOG.info("Tests are running under VSTS. Build dir:  " + vstsSourcePath);
       baseDirectory = new File(vstsSourcePath);
+    }
+    else {
+      LOG.info("Tests are not running under VSTS");
     }
     return new TemporaryFolder(baseDirectory);
   }
@@ -197,5 +214,4 @@ public class TestUtils {
       .url(orchestrator.getServer().getUrl())
       .build());
   }
-
 }
