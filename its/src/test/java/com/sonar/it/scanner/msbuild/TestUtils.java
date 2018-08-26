@@ -36,14 +36,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import org.apache.commons.io.FileUtils;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonarqube.ws.WsComponents;
+import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.WsClient;
+import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.component.SearchWsRequest;
+import sun.rmi.runtime.Log;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -165,6 +174,28 @@ public class TestUtils {
         + ". Please configure property 'msbuild.path' or 'MSBUILD_PATH'.");
     }
     return msBuildPath;
+  }
+
+  static void dumpComponentList(Orchestrator orchestrator)
+  {
+    Set<String> componentKeys = newWsClient(orchestrator)
+      .components()
+      .search(new SearchWsRequest().setLanguage("cs").setQualifiers(Collections.singletonList("FIL")))
+      .getComponentsList()
+      .stream()
+      .map(WsComponents.Component::getKey)
+      .collect(Collectors.toSet());
+
+    LOG.info("Dumping C# component keys:");
+    for(String key: componentKeys) {
+      LOG.info("  Key: " + key);
+    }
+  }
+
+  static WsClient newWsClient(Orchestrator orchestrator) {
+    return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
+      .url(orchestrator.getServer().getUrl())
+      .build());
   }
 
 }

@@ -548,6 +548,8 @@ public class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end"));
+
+    TestUtils.dumpComponentList(ORCHESTRATOR);
   }
 
   private static WsComponents.Component getComponent(String componentKey) {
@@ -570,9 +572,7 @@ public class ScannerMSBuildTest {
   }
 
   private static WsClient newWsClient() {
-    return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
-      .url(ORCHESTRATOR.getServer().getUrl())
-      .build());
+    return TestUtils.newWsClient(ORCHESTRATOR);
   }
 
   private static void startProxy(boolean needProxyAuth) throws Exception {
