@@ -85,17 +85,18 @@ public class TestUtils {
       LOG.info("Using Scanner for MSBuild " + scannerVersion);
       scannerLocation = mavenLocation(scannerVersion);
     }
-    else if (VstsUtils.isRunningUnderVsts()) {
-      // if running under VSTS, look for the artifacts in the staging directory
-      String artifactsPath = VstsUtils.getArtifactsDowloadDirectory();
-      LOG.info("Running under VSTS. Using Scanner for MSBuild from the artifacts directory: "
-        + artifactsPath);
-      scannerLocation = FindScannerZip(artifactsPath);
-    }
     else {
-      // run locally
-      LOG.info("Using Scanner for MSBuild from the local build");
-      scannerLocation = FindScannerZip("../DeploymentArtifacts/BuildAgentPayload/Release");
+      String scannerLocationEnv = System.getenv("SCANNER_LOCATION");
+      if(scannerLocationEnv != null) {
+        LOG.info("Using Scanner for MSBuild specified by %SCANNER_LOCATION%: " + scannerLocationEnv);
+        Path scannerPath = Paths.get(scannerLocationEnv, "sonarscanner-msbuild-net46.zip");
+        scannerLocation = FileLocation.of(scannerPath.toFile());
+      }
+      else {
+        // run locally
+        LOG.info("Using Scanner for MSBuild from the local build");
+        scannerLocation = FindScannerZip("../DeploymentArtifacts/BuildAgentPayload/Release");
+      }
     }
 
     LOG.info("Scanner location: " + scannerLocation);
@@ -104,6 +105,7 @@ public class TestUtils {
   }
 
   private static Location FindScannerZip(String folderPath){
+    Path root = Paths.get(folderPath);
     Path scannerZip = Paths.get(folderPath + "/sonarscanner-msbuild-net46.zip");
     Location scannerLocation = FileLocation.of(scannerZip.toFile());
     return scannerLocation;
