@@ -543,8 +543,7 @@ public class ScannerMSBuildTest {
       .addArgument("begin")
       .setProjectKey(folderName)
       .setProjectName(folderName)
-      .setProjectVersion("1.0")
-      .addArgument("/d:sonar.verbose=true");
+      .setProjectVersion("1.0");
 
     if (setProjectBaseDirExplicitly) {
       // When running under VSTS the scanner calculates the projectBaseDir differently.
