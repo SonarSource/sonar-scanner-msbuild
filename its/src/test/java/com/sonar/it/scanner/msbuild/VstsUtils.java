@@ -19,9 +19,6 @@
  */
 package com.sonar.it.scanner.msbuild;
 
-import com.sonar.orchestrator.build.ScannerForMSBuild;
-import com.sonar.orchestrator.util.Command;
-
 public class VstsUtils {
 
   final static String ENV_BUILD_DIRECTORY = "AGENT_BUILDDIRECTORY";
@@ -33,18 +30,6 @@ public class VstsUtils {
 
   static String getSourcesDirectory(){
     return GetVstsEnvironmentVariable(ENV_SOURCES_DIRECTORY);
-  }
-
-  static void clearVstsEnvironmentVarsUsedByScanner(ScannerForMSBuild scanner){
-    TestUtils.LOG.info("Clearing VSTS environment variables for scanner invocation...");
-    scanner.setEnvironmentVariable(ENV_SOURCES_DIRECTORY, "")
-      .setEnvironmentVariable(ENV_BUILD_DIRECTORY, "");
-  }
-
-  static void clearVstsEnvironmentVarsUsedByScanner(Command command){
-    TestUtils.LOG.info("Clearing VSTS environment variables for MSBuild invocation...");
-    command.setEnvironmentVariable(ENV_SOURCES_DIRECTORY, "")
-      .setEnvironmentVariable(ENV_BUILD_DIRECTORY, "");
   }
 
   private static String GetVstsEnvironmentVariable(String name){
