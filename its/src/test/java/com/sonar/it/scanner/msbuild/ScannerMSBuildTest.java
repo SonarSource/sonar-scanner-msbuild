@@ -551,7 +551,7 @@ public class ScannerMSBuildTest {
     }
 
     ORCHESTRATOR.executeBuild(scanner);
-    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", folderName + ".sln");
+    TestUtils.runMSBuildWithoutVstsEnvVars(ORCHESTRATOR, projectDir, "/t:Rebuild", folderName + ".sln");
 
     scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end");

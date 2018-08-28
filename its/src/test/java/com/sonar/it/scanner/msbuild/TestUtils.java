@@ -167,11 +167,16 @@ public class TestUtils {
   }
 
   public static void runMSBuild(Orchestrator orch, Path projectDir, String... arguments) {
-    BuildResult r = runMSBuildQuietly(orch, projectDir, arguments);
+    BuildResult r = runMSBuildQuietly(orch, projectDir, false, arguments);
     assertThat(r.isSuccess()).isTrue();
   }
 
-  private static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, String... arguments) {
+  public static void runMSBuildWithoutVstsEnvVars(Orchestrator orch, Path projectDir, String... arguments) {
+    BuildResult r = runMSBuildQuietly(orch, projectDir, true , arguments);
+    assertThat(r.isSuccess()).isTrue();
+  }
+
+  private static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, Boolean clearVstsEnvVars, String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
     BuildResult result = new BuildResult();
@@ -179,7 +184,7 @@ public class TestUtils {
     Command msBuildCommand = Command.create(msBuildPath.toString())
       .addArguments(arguments)
       .setDirectory(projectDir.toFile());
-    if (VstsUtils.isRunningUnderVsts()) {
+    if (clearVstsEnvVars && VstsUtils.isRunningUnderVsts()) {
       VstsUtils.clearVstsEnvironmentVarsUsedByScanner(msBuildCommand);
     }
 
