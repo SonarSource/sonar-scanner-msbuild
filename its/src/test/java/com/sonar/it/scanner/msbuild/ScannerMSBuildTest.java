@@ -543,7 +543,8 @@ public class ScannerMSBuildTest {
       .addArgument("begin")
       .setProjectKey(folderName)
       .setProjectName(folderName)
-      .setProjectVersion("1.0");
+      .setProjectVersion("1.0")
+      .addArgument("/d:sonar.verbose=true");
 
     if (VstsUtils.isRunningUnderVsts()){
       VstsUtils.clearVstsEnvironmentVarsUsedByScanner(scanner);

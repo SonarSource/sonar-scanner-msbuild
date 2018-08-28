@@ -24,26 +24,27 @@ import com.sonar.orchestrator.util.Command;
 
 public class VstsUtils {
 
+  final static String ENV_BUILD_DIRECTORY = "AGENT_BUILDDIRECTORY";
+  final static String ENV_SOURCES_DIRECTORY = "BUILD_SOURCESDIRECTORY";
+
   static Boolean isRunningUnderVsts(){
-    return System.getenv("AGENT_BUILDDIRECTORY") != null;
+    return System.getenv(ENV_BUILD_DIRECTORY) != null;
   }
 
   static String getSourcesDirectory(){
-    return GetVstsEnvironmentVariable("BUILD_SOURCESDIRECTORY");
-  }
-
-  static String getArtifactsDowloadDirectory(){
-    return GetVstsEnvironmentVariable("SYSTEM_ARTIFACTSDIRECTORY");
+    return GetVstsEnvironmentVariable(ENV_SOURCES_DIRECTORY);
   }
 
   static void clearVstsEnvironmentVarsUsedByScanner(ScannerForMSBuild scanner){
-    scanner.setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "")
-      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "");
+    TestUtils.LOG.info("Clearing VSTS environment variables for scanner invocation...");
+    scanner.setEnvironmentVariable(ENV_SOURCES_DIRECTORY, "")
+      .setEnvironmentVariable(ENV_BUILD_DIRECTORY, "");
   }
 
   static void clearVstsEnvironmentVarsUsedByScanner(Command command){
-    command.setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "")
-      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "");
+    TestUtils.LOG.info("Clearing VSTS environment variables for MSBuild invocation...");
+    command.setEnvironmentVariable(ENV_SOURCES_DIRECTORY, "")
+      .setEnvironmentVariable(ENV_BUILD_DIRECTORY, "");
   }
 
   private static String GetVstsEnvironmentVariable(String name){

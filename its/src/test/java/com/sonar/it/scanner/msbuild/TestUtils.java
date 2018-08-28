@@ -58,7 +58,7 @@ import sun.rmi.runtime.Log;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestUtils {
-  private final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
+  final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
   @CheckForNull
   public static String getScannerVersion(Orchestrator orchestrator) {
@@ -136,8 +136,8 @@ public class TestUtils {
     File baseDirectory = null;
     if (VstsUtils.isRunningUnderVsts()){
       String vstsSourcePath = VstsUtils.getSourcesDirectory();
-//      LOG.info("Tests are running under VSTS. Build dir:  " + vstsSourcePath);
-//      baseDirectory = new File(vstsSourcePath);
+      LOG.info("Tests are running under VSTS. Build dir:  " + vstsSourcePath);
+      baseDirectory = new File(vstsSourcePath);
     }
     else {
       LOG.info("Tests are not running under VSTS");
