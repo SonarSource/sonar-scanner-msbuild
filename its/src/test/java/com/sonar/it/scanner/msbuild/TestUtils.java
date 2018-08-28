@@ -136,8 +136,8 @@ public class TestUtils {
     File baseDirectory = null;
     if (VstsUtils.isRunningUnderVsts()){
       String vstsSourcePath = VstsUtils.getSourcesDirectory();
-      LOG.info("Tests are running under VSTS. Build dir:  " + vstsSourcePath);
-      baseDirectory = new File(vstsSourcePath);
+//      LOG.info("Tests are running under VSTS. Build dir:  " + vstsSourcePath);
+//      baseDirectory = new File(vstsSourcePath);
     }
     else {
       LOG.info("Tests are not running under VSTS");
@@ -176,9 +176,14 @@ public class TestUtils {
 
     BuildResult result = new BuildResult();
     StreamConsumer.Pipe writer = new StreamConsumer.Pipe(result.getLogsWriter());
-    int status = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
+    Command msBuildCommand = Command.create(msBuildPath.toString())
       .addArguments(arguments)
-      .setDirectory(projectDir.toFile()), writer, 60 * 1000);
+      .setDirectory(projectDir.toFile());
+    if (VstsUtils.isRunningUnderVsts()) {
+      VstsUtils.clearVstsEnvironmentVarsUsedByScanner(msBuildCommand);
+    }
+
+    int status = CommandExecutor.create().execute(msBuildCommand, writer, 60 * 1000);
     result.addStatus(status);
     return result;
   }

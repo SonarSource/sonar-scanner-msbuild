@@ -19,6 +19,9 @@
  */
 package com.sonar.it.scanner.msbuild;
 
+import com.sonar.orchestrator.build.ScannerForMSBuild;
+import com.sonar.orchestrator.util.Command;
+
 public class VstsUtils {
 
   static Boolean isRunningUnderVsts(){
@@ -31,6 +34,16 @@ public class VstsUtils {
 
   static String getArtifactsDowloadDirectory(){
     return GetVstsEnvironmentVariable("SYSTEM_ARTIFACTSDIRECTORY");
+  }
+
+  static void clearVstsEnvironmentVarsUsedByScanner(ScannerForMSBuild scanner){
+    scanner.setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "")
+      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "");
+  }
+
+  static void clearVstsEnvironmentVarsUsedByScanner(Command command){
+    command.setEnvironmentVariable("BUILD_SOURCESDIRECTORY", "")
+      .setEnvironmentVariable("AGENT_BUILDDIRECTORY", "");
   }
 
   private static String GetVstsEnvironmentVariable(String name){

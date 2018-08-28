@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
+import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.MavenLocation;
@@ -538,16 +539,26 @@ public class ScannerMSBuildTest {
   private void runBeginBuildAndEndForStandardProject(String folderName) throws IOException {
     Path projectDir = TestUtils.projectDir(temp, folderName);
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
       .setProjectKey(folderName)
       .setProjectName(folderName)
-      .setProjectVersion("1.0"));
+      .setProjectVersion("1.0");
 
+    if (VstsUtils.isRunningUnderVsts()){
+      VstsUtils.clearVstsEnvironmentVarsUsedByScanner(scanner);
+    }
+
+    ORCHESTRATOR.executeBuild(scanner);
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", folderName + ".sln");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
+    scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("end");
+    if (VstsUtils.isRunningUnderVsts()){
+      VstsUtils.clearVstsEnvironmentVarsUsedByScanner(scanner);
+    }
+
+    ORCHESTRATOR.executeBuild(scanner);
 
     TestUtils.dumpComponentList(ORCHESTRATOR);
   }
