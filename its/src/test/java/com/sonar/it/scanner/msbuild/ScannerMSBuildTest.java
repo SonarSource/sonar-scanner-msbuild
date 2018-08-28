@@ -445,7 +445,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSharedFiles() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedFiles", false);
+    runBeginBuildAndEndForStandardProject("CSharpSharedFiles", true);
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
       .isNotNull();
