@@ -430,7 +430,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(folderName, "cs",
       "ProfileForTestCustomRoslyn");
 
-    runBeginBuildAndEndForStandardProject(folderName);
+    runBeginBuildAndEndForStandardProject(folderName, false);
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).hasSize(2 + 37 + 1);
@@ -438,14 +438,14 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpAllFlat() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpAllFlat");
+    runBeginBuildAndEndForStandardProject("CSharpAllFlat", true);
 
     assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
   }
 
   @Test
   public void testCSharpSharedFiles() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedFiles");
+    runBeginBuildAndEndForStandardProject("CSharpSharedFiles", false);
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
       .isNotNull();
@@ -457,7 +457,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSharedProjectType() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedProjectType");
+    runBeginBuildAndEndForStandardProject("CSharpSharedProjectType", true);
 
     assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
       .isNotNull();
@@ -469,7 +469,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSharedFileWithOneProjectWithoutProjectBaseDir() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject");
+    runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject", false);
 
     Set<String> componentKeys = newWsClient()
       .components()
@@ -536,7 +536,7 @@ public class ScannerMSBuildTest {
       .isNotNull();
   }
 
-  private void runBeginBuildAndEndForStandardProject(String folderName) throws IOException {
+  private void runBeginBuildAndEndForStandardProject(String folderName, Boolean setProjectBaseDirExplicitly) throws IOException {
     Path projectDir = TestUtils.projectDir(temp, folderName);
 
     ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir)
@@ -546,18 +546,22 @@ public class ScannerMSBuildTest {
       .setProjectVersion("1.0")
       .addArgument("/d:sonar.verbose=true");
 
-    if (VstsUtils.isRunningUnderVsts()){
-      VstsUtils.clearVstsEnvironmentVarsUsedByScanner(scanner);
+    if (setProjectBaseDirExplicitly) {
+      // When running under VSTS the scanner calculates the projectBaseDir differently.
+      // This can be a problem when using shared files as the keys for the shared files
+      // are calculated relative to the projectBaseFir.
+      // For tests that need to check a specific shared project key, one way to work round
+      // the issue is to explicitly set the projectBaseDir to the project directory, as this
+      // will take precedence, so then then key for the shared file is what is expected by
+      // the tests.
+      scanner.addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath());
     }
 
     ORCHESTRATOR.executeBuild(scanner);
-    TestUtils.runMSBuildWithoutVstsEnvVars(ORCHESTRATOR, projectDir, "/t:Rebuild", folderName + ".sln");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", folderName + ".sln");
 
     scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end");
-    if (VstsUtils.isRunningUnderVsts()){
-      VstsUtils.clearVstsEnvironmentVarsUsedByScanner(scanner);
-    }
 
     ORCHESTRATOR.executeBuild(scanner);
 
