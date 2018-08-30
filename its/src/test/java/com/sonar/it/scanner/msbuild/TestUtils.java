@@ -22,33 +22,38 @@ package com.sonar.it.scanner.msbuild;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
-import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import org.apache.commons.io.FileUtils;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonarqube.ws.WsComponents;
+import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.WsClient;
+import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.component.SearchWsRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestUtils {
-  private final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
+  final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
   @CheckForNull
   public static String getScannerVersion(Orchestrator orchestrator) {
@@ -70,17 +75,35 @@ public class TestUtils {
   public static ScannerForMSBuild newScanner(Orchestrator orchestrator, Path projectDir) {
     String scannerVersion = getScannerVersion(orchestrator);
 
+    Location scannerLocation;
     if (scannerVersion != null) {
       LOG.info("Using Scanner for MSBuild " + scannerVersion);
-      return ScannerForMSBuild.create(projectDir.toFile())
-        .setScannerLocation(mavenLocation(scannerVersion));
-    } else {
-      // run locally
-      LOG.info("Using Scanner for MSBuild from the local build");
-      Path scannerZip = Paths.get("../DeploymentArtifacts/BuildAgentPayload/Release/sonarscanner-msbuild-net46.zip");
-      return ScannerForMSBuild.create(projectDir.toFile())
-        .setScannerLocation(FileLocation.of(scannerZip.toFile()));
+      scannerLocation = mavenLocation(scannerVersion);
     }
+    else {
+      String scannerLocationEnv = System.getenv("SCANNER_LOCATION");
+      if(scannerLocationEnv != null) {
+        LOG.info("Using Scanner for MSBuild specified by %SCANNER_LOCATION%: " + scannerLocationEnv);
+        Path scannerPath = Paths.get(scannerLocationEnv, "sonarscanner-msbuild-net46.zip");
+        scannerLocation = FileLocation.of(scannerPath.toFile());
+      }
+      else {
+        // run locally
+        LOG.info("Using Scanner for MSBuild from the local build");
+        scannerLocation = FindScannerZip("../DeploymentArtifacts/BuildAgentPayload/Release");
+      }
+    }
+
+    LOG.info("Scanner location: " + scannerLocation);
+    return ScannerForMSBuild.create(projectDir.toFile())
+      .setScannerLocation(scannerLocation);
+  }
+
+  private static Location FindScannerZip(String folderPath){
+    Path root = Paths.get(folderPath);
+    Path scannerZip = Paths.get(folderPath + "/sonarscanner-msbuild-net46.zip");
+    Location scannerLocation = FileLocation.of(scannerZip.toFile());
+    return scannerLocation;
   }
 
   public static Path getCustomRoslynPlugin() {
@@ -100,6 +123,21 @@ public class TestUtils {
     }
 
     return jars.get(0);
+  }
+
+  public static TemporaryFolder createTempFolder() {
+    // If the test is being run under VSTS then the Scanner will
+    // expect the project to be under the VSTS sources directory
+    File baseDirectory = null;
+    if (VstsUtils.isRunningUnderVsts()){
+      String vstsSourcePath = VstsUtils.getSourcesDirectory();
+      LOG.info("Tests are running under VSTS. Build dir:  " + vstsSourcePath);
+      baseDirectory = new File(vstsSourcePath);
+    }
+    else {
+      LOG.info("Tests are not running under VSTS");
+    }
+    return new TemporaryFolder(baseDirectory);
   }
 
   public static Path projectDir(TemporaryFolder temp, String projectName) throws IOException {
@@ -136,6 +174,7 @@ public class TestUtils {
     int status = CommandExecutor.create().execute(Command.create(msBuildPath.toString())
       .addArguments(arguments)
       .setDirectory(projectDir.toFile()), writer, 60 * 1000);
+
     result.addStatus(status);
     return result;
   }
@@ -152,4 +191,25 @@ public class TestUtils {
     return msBuildPath;
   }
 
+  static void dumpComponentList(Orchestrator orchestrator)
+  {
+    Set<String> componentKeys = newWsClient(orchestrator)
+      .components()
+      .search(new SearchWsRequest().setLanguage("cs").setQualifiers(Collections.singletonList("FIL")))
+      .getComponentsList()
+      .stream()
+      .map(WsComponents.Component::getKey)
+      .collect(Collectors.toSet());
+
+    LOG.info("Dumping C# component keys:");
+    for(String key: componentKeys) {
+      LOG.info("  Key: " + key);
+    }
+  }
+
+  static WsClient newWsClient(Orchestrator orchestrator) {
+    return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
+      .url(orchestrator.getServer().getUrl())
+      .build());
+  }
 }

@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
+import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.MavenLocation;
@@ -108,7 +109,7 @@ public class ScannerMSBuildTest {
     .build();
 
   @ClassRule
-  public static TemporaryFolder temp = new TemporaryFolder();
+  public static TemporaryFolder temp = TestUtils.createTempFolder();
 
   @Before
   public void setUp() {
@@ -429,7 +430,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(folderName, "cs",
       "ProfileForTestCustomRoslyn");
 
-    runBeginBuildAndEndForStandardProject(folderName);
+    runBeginBuildAndEndForStandardProject(folderName, false);
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).hasSize(2 + 37 + 1);
@@ -437,14 +438,14 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpAllFlat() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpAllFlat");
+    runBeginBuildAndEndForStandardProject("CSharpAllFlat", true);
 
     assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
   }
 
   @Test
   public void testCSharpSharedFiles() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedFiles");
+    runBeginBuildAndEndForStandardProject("CSharpSharedFiles", true);
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
       .isNotNull();
@@ -456,7 +457,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSharedProjectType() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedProjectType");
+    runBeginBuildAndEndForStandardProject("CSharpSharedProjectType", true);
 
     assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
       .isNotNull();
@@ -468,7 +469,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSharedFileWithOneProjectWithoutProjectBaseDir() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject");
+    runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject", false);
 
     Set<String> componentKeys = newWsClient()
       .components()
@@ -535,19 +536,33 @@ public class ScannerMSBuildTest {
       .isNotNull();
   }
 
-  private void runBeginBuildAndEndForStandardProject(String folderName) throws IOException {
+  private void runBeginBuildAndEndForStandardProject(String folderName, Boolean setProjectBaseDirExplicitly) throws IOException {
     Path projectDir = TestUtils.projectDir(temp, folderName);
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+    ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
       .setProjectKey(folderName)
       .setProjectName(folderName)
-      .setProjectVersion("1.0"));
+      .setProjectVersion("1.0");
 
+    if (setProjectBaseDirExplicitly) {
+      // When running under VSTS the scanner calculates the projectBaseDir differently.
+      // This can be a problem when using shared files as the keys for the shared files
+      // are calculated relative to the projectBaseFir.
+      // For tests that need to check a specific shared project key, one way to work round
+      // the issue is to explicitly set the projectBaseDir to the project directory, as this
+      // will take precedence, so then then key for the shared file is what is expected by
+      // the tests.
+      scanner.addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath());
+    }
+
+    ORCHESTRATOR.executeBuild(scanner);
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", folderName + ".sln");
 
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end"));
+
+    TestUtils.dumpComponentList(ORCHESTRATOR);
   }
 
   private static WsComponents.Component getComponent(String componentKey) {
@@ -570,9 +585,7 @@ public class ScannerMSBuildTest {
   }
 
   private static WsClient newWsClient() {
-    return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
-      .url(ORCHESTRATOR.getServer().getUrl())
-      .build());
+    return TestUtils.newWsClient(ORCHESTRATOR);
   }
 
   private static void startProxy(boolean needProxyAuth) throws Exception {
