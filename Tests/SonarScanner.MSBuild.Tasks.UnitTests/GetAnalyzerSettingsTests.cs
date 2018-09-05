@@ -146,6 +146,73 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             testSubject.AdditionalFiles.Should().BeEquivalentTo(expectedAdditionalFiles);
         }
 
+        [TestMethod]
+        public void ShouldMerge_OldServerVersion_ReturnsFalse()
+        {
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = "7.4.1.2",
+                ServerSettings = new AnalysisProperties
+                {
+                    // Should be ignored for old server version
+                    new Property { Id = "sonar.roslyn.importAllIssues", Value = "true"}
+                }
+            };
+
+            var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(config);
+
+            result.Should().Be(false);
+        }
+
+        [TestMethod]
+        public void ShouldMerge_NewServerVersion_NoSetting_ReturnsTrue()
+        {
+            // Should default to true i.e. don't override, merge
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = "7.5.0.0"
+            };
+
+            var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(config);
+
+            result.Should().Be(true);
+        }
+
+        [TestMethod]
+        public void ShouldMerge_NewServerVersion_SettingIsTrue_ReturnsTrue()
+        {
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = "8.9",
+                ServerSettings = new AnalysisProperties
+                {
+                    // Import all issues = true => override = false
+                    new Property { Id = "sonar.roslyn.importAllIssues", Value = "true"}
+                }
+            };
+
+            var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(config);
+
+            result.Should().Be(true);
+        }
+
+        [TestMethod]
+        public void ShouldMerge_NewServerVersion_SettingIsFalse_ReturnsFalse()
+        {
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = "7.5",
+                ServerSettings = new AnalysisProperties
+                {
+                    new Property { Id = "sonar.roslyn.importAllIssues", Value = "false"}
+                }
+            };
+
+            var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(config);
+
+            result.Should().Be(false);
+        }
+
         #endregion Tests
 
         #region Checks methods

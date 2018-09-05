@@ -87,12 +87,38 @@ namespace SonarScanner.MSBuild.Tasks
         public override bool Execute()
         {
             var config = TaskUtilities.TryGetConfig(AnalysisConfigDir, new MSBuildLoggerAdapter(Log));
-            ExecuteAnalysis(config);
+
+            if (ShouldMergeAnalysisSettings(config))
+            {
+                MergeAnalysisSettings(config);
+            }
+            else
+            {
+                OverrideAnalysisSettings(config);
+            }
 
             return !Log.HasLoggedErrors;
         }
 
-        private void ExecuteAnalysis(AnalysisConfig config)
+        internal /* for testing */ static bool ShouldMergeAnalysisSettings(AnalysisConfig config)
+        {
+            // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/561
+            // Legacy behaviour is to overwrite. The only time we don't is if the
+            // we are using SQ 7.5 or greater and sonar.roslyn.importAllIssues is not 
+            // set or is true.
+            var serverVersion = config?.FindServerVersion();
+            if (serverVersion != null && serverVersion >= new Version("7.5"))
+            {
+                var settingInFile = config.GetSettingOrDefault("sonar.roslyn.importAllIssues", true, "true");
+                if (Boolean.TryParse(settingInFile, out var includeInFile))
+                {
+                    return includeInFile;
+                }
+            }
+            return false;
+        }
+
+        private void OverrideAnalysisSettings(AnalysisConfig config)
         {
             if (config == null || Language == null)
             {
@@ -133,6 +159,11 @@ namespace SonarScanner.MSBuild.Tasks
                     .Where(original => additionalFileNames.Contains(GetFileName(original)))
                     .ToArray();
             }
+        }
+
+        private void MergeAnalysisSettings(AnalysisConfig config)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion Overrides
