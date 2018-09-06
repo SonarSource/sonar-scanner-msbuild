@@ -72,14 +72,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void GetAnalyzerSettings_ConfigExistsButNoAnalyzerSettings_NoError()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var testSubject = new GetAnalyzerSettings();
-
-            var config = new AnalysisConfig();
-            var fullPath = Path.Combine(testDir, FileConstants.ConfigFileName);
-            config.Save(fullPath);
-
-            testSubject.AnalysisConfigDir = testDir;
+            var testSubject = CreateConfiguredTestSubject(new AnalysisConfig(), "anyLanguage", TestContext);
 
             // Act
             ExecuteAndCheckSuccess(testSubject);
@@ -92,9 +85,6 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void GetAnalyzerSettings_ConfigExists_DataReturned()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var testSubject = new GetAnalyzerSettings();
-
             var expectedAnalyzers = new string[] { "c:\\analyzer1.DLL", "c:\\analyzer2.dll" };
             var expectedAdditionalFiles = new string[] { "c:\\add1.txt", "d:\\add2.txt" };
 
@@ -131,11 +121,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             };
             config.AnalyzersSettings.Add(anotherSettings);
 
-            var fullPath = Path.Combine(testDir, FileConstants.ConfigFileName);
-            config.Save(fullPath);
 
-            testSubject.AnalysisConfigDir = testDir;
-            testSubject.Language = "my lang";
+            var testSubject = CreateConfiguredTestSubject(config, "my lang", TestContext);
 
             // Act
             ExecuteAndCheckSuccess(testSubject);
@@ -213,7 +200,79 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             result.Should().Be(false);
         }
 
+        [TestMethod]
+        public void MergeRulesets_NoOriginalRuleset_FirstGeneratedRulsetUsed()
+        {
+            // Arrange
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = "7.5",
+                AnalyzersSettings = new List<AnalyzerSettings>
+                {
+                    new AnalyzerSettings
+                    {
+                        Language = "xxx",
+                        RuleSetFilePath = "firstGeneratedRuleset.txt"
+                    }
+                }
+            };
+
+            var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
+            testSubject.OriginalRulesetFilePath = null;
+
+            // Act
+            ExecuteAndCheckSuccess(testSubject);
+
+            // Assert
+            testSubject.RuleSetFilePath.Should().Be("firstGeneratedRuleset.txt");
+        }
+
+        [TestMethod]
+        public void MergeRulesets_OriginalRulesetSpecified_SecondGeneratedRulsetUsed()
+        {
+            // Arrange
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = "7.5",
+                AnalyzersSettings = new List<AnalyzerSettings>
+                {
+                    new AnalyzerSettings
+                    {
+                        Language = "xxx",
+                        RuleSetFilePath = "firstGeneratedRuleset.txt"
+                    }
+                }
+            };
+
+            var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
+            testSubject.OriginalRulesetFilePath = "originalRuleset.txt";
+            testSubject.ProjectSpecificOutputDirectory = testSubject.AnalysisConfigDir;
+
+            // Act
+            ExecuteAndCheckSuccess(testSubject);
+
+            // Assert
+            CheckMergedRulesetFile(testSubject, "firstGeneratedRuleset.txt");
+        }
+
         #endregion Tests
+
+        #region Private methods
+
+        private static GetAnalyzerSettings CreateConfiguredTestSubject(AnalysisConfig config, string language, TestContext testContext)
+        {
+            var testDir = TestUtils.CreateTestSpecificFolder(testContext);
+            var testSubject = new GetAnalyzerSettings();
+            testSubject.Language = language;
+
+            var fullPath = Path.Combine(testDir, FileConstants.ConfigFileName);
+            config.Save(fullPath);
+
+            testSubject.AnalysisConfigDir = testDir;
+            return testSubject;
+        }
+
+        #endregion
 
         #region Checks methods
 
@@ -233,6 +292,15 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             executedTask.RuleSetFilePath.Should().BeNull();
             executedTask.AdditionalFiles.Should().BeNull();
             executedTask.AnalyzerFilePaths.Should().BeNull();
+        }
+
+        private static void CheckMergedRulesetFile(GetAnalyzerSettings executedTask, string firstGeneratedRulesetFilePath)
+        {
+            var expectedMergedRulesetFilePath = RuleSetAssertions.CheckMergedRulesetFile(
+                executedTask.ProjectSpecificOutputDirectory,
+                executedTask.OriginalRulesetFilePath, firstGeneratedRulesetFilePath);
+
+            executedTask.RuleSetFilePath.Should().Be(expectedMergedRulesetFilePath);
         }
 
         #endregion Checks methods

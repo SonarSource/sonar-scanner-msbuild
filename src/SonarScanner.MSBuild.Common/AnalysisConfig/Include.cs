@@ -18,47 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace SonarScanner.MSBuild.Common
 {
-    public class RuleSet
+    public class Include
     {
         [XmlAttribute]
-        public string Name { get; set; }
+        public string Path { get; set; }
 
         [XmlAttribute]
-        public string Description { get; set; }
-
-        [XmlAttribute]
-        public string ToolsVersion { get; set; }
-
-        [XmlElement(ElementName = "Include")]
-        public List<Include> Includes { get; set; }
-
-        [XmlElement]
-        public List<Rules> Rules { get; set; } = new List<Rules>();
-
-        public void Save(string fileName)
-        {
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            Serializer.SaveModel(this, fileName);
-        }
-
-        public static RuleSet Load(string fileName)
-        {
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            return Serializer.LoadModel<RuleSet>(fileName);
-        }
+        public string Action { get; set; }
     }
 }

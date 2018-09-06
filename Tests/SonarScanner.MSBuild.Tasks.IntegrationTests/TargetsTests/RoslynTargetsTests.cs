@@ -165,6 +165,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
+            result.AssertTargetExecuted(TargetConstants.CreateProjectSpecificDirs);
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
             result.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
             result.BuildSucceeded.Should().BeTrue();
@@ -183,6 +184,89 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             AssertExpectedAnalyzers(result,
                 "c:\\data\\new.analyzer1.dll",
                 "c:\\new.analyzer2.dll");
+
+            AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
+        }
+
+        [TestMethod]
+        [Description("Checks existing analysis settings are merged for projects using SonarQube 7.5+")]
+        public void Roslyn_Settings_ValidSetup_NonLegacyServer_MergeSettings()
+        {
+            // Arrange
+
+            // Create a valid config containing analyzer settings
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = "7.5", // non-legacy version
+                AnalyzersSettings = new List<AnalyzerSettings>
+                {
+                    new AnalyzerSettings
+                    {
+                        Language = "cs",
+                        RuleSetFilePath = "d:\\generated.ruleset",
+                        AnalyzerAssemblyPaths = new List<string> { "c:\\data\\new.analyzer1.dll", "c:\\new.analyzer2.dll" },
+                        AdditionalFilePaths = new List<string> { "c:\\config.1.txt", "c:\\config.2.txt" }
+                    }
+                }
+            };
+
+            var testSpecificProjectXml = @"
+  <PropertyGroup>
+    <ResolvedCodeAnalysisRuleSet>c:\original.ruleset</ResolvedCodeAnalysisRuleSet>
+    <Language>C#</Language>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- all analyzers specified in the project file should be preserved -->
+    <Analyzer Include='c:\original.analyzer1.dll' />
+    <Analyzer Include='original.analyzer2.dll' />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- These additional files don't match ones in the config and should be preserved -->
+    <AdditionalFiles Include='should.not.be.removed.additional1.txt' />
+    <AdditionalFiles Include='should.not.be.removed.additional2.txt' />
+
+    <!-- This additional file matches one in the config and should be replaced -->
+    <AdditionalFiles Include='should.be.removed\CONFIG.1.TXT' />
+
+  </ItemGroup>
+";
+            var projectFilePath = CreateProjectFile(config, testSpecificProjectXml);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, projectFilePath, TargetConstants.OverrideRoslynAnalysisTarget);
+
+            // Assert
+            result.AssertTargetExecuted(TargetConstants.CreateProjectSpecificDirs);
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
+            result.BuildSucceeded.Should().BeTrue();
+
+            // Check the error log and ruleset properties are set
+            AssertErrorLogIsSetBySonarQubeTargets(result);
+
+            var actualProjectSpecificOutFolder = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
+            Directory.Exists(actualProjectSpecificOutFolder).Should().BeTrue();
+
+            var expectedMergedRuleSetFilePath = Path.Combine(actualProjectSpecificOutFolder, "merged.ruleset");
+            AssertExpectedResolvedRuleset(result, expectedMergedRuleSetFilePath);
+            RuleSetAssertions.CheckMergedRulesetFile(actualProjectSpecificOutFolder,
+                @"c:\original.ruleset", "d:\\generated.ruleset");
+
+
+            // TODO - processing of additional files and analyzer
+            //AssertExpectedAdditionalFiles(result,
+            //    result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath),
+            //    "should.not.be.removed.additional1.txt",
+            //    "should.not.be.removed.additional2.txt",
+            //    "c:\\config.1.txt",
+            //    "c:\\config.2.txt");
+
+            //AssertExpectedAnalyzers(result,
+            //    "c:\\original.analyzer1.dll",
+            //    "original.analyzer2.dll",
+            //    "c:\\data\\new.analyzer1.dll",
+            //    "c:\\new.analyzer2.dll");
 
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
         }
@@ -543,7 +627,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             TestContext.WriteLine("Dumping <" + itemType + "> list: actual");
             foreach (var item in actualResult.GetCapturedItemValues(itemType))
             {
-                TestContext.WriteLine("\t{0}", item);
+                TestContext.WriteLine("\t{0}", item.Value);
             }
             TestContext.WriteLine("");
         }
