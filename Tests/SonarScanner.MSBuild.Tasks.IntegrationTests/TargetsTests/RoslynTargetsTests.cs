@@ -115,69 +115,54 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
         }
-
+        
         [TestMethod]
-        [Description("Checks the happy path i.e. settings exist in config, no reason to exclude the project")]
-        public void Roslyn_Settings_ValidSetup_Override_AdditionalFiles()
+        [Description("Checks any existing analyzers are overridden for projects using SonarQube pre-7.5")]
+        public void Roslyn_Settings_ValidSetup_LegacyServer_Override_Analyzers()
         {
             // Arrange
 
-            // Set the config directory so the targets know where to look for the analysis config file
-            var confDir = TestUtils.CreateTestSpecificFolder(TestContext, "config");
-
-            // Create a valid config file containing analyzer settings
-            var expectedAssemblies = new string[] { "c:\\data\\config.analyzer1.dll", "c:\\config2.dll" };
-            var analyzer1ExpectedFileName = "config.1.txt";
-            var analyzerAdditionalFiles = new string[] { "c:\\" + analyzer1ExpectedFileName, "c:\\config.2.txt" };
-
-            var config = new AnalysisConfig();
-
-            var analyzerSettings = new AnalyzerSettings
+            // Create a valid config containing analyzer settings
+            var config = new AnalysisConfig
             {
-                Language = "cs",
-                RuleSetFilePath = "d:\\my.ruleset",
-                AnalyzerAssemblyPaths = expectedAssemblies.ToList(),
-                AdditionalFilePaths = analyzerAdditionalFiles.ToList()
-            };
-            config.AnalyzersSettings = new List<AnalyzerSettings>
-            {
-                analyzerSettings
+                SonarQubeVersion = "6.7", // legacy version
+                AnalyzersSettings = new List<AnalyzerSettings>
+                {
+                    new AnalyzerSettings
+                    {
+                        Language = "cs",
+                        RuleSetFilePath = "d:\\my.ruleset",
+                        AnalyzerAssemblyPaths = new List<string> { "c:\\data\\new.analyzer1.dll", "c:\\new.analyzer2.dll" },
+                        AdditionalFilePaths = new List<string> { "c:\\config.1.txt", "c:\\config.2.txt" }
+                    }
+                }
             };
 
-            var configFilePath = Path.Combine(confDir, FileConstants.ConfigFileName);
-            config.Save(configFilePath);
+            var testSpecificProjectXml = @"
+  <PropertyGroup>
+    <ResolvedCodeAnalysisRuleSet>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleSet>
+    <Language>C#</Language>
+  </PropertyGroup>
 
-            // Create the project
-            var properties = new WellKnownProjectProperties
-            {
-                SonarQubeConfigPath = confDir,
-                ResolvedCodeAnalysisRuleset = "c:\\should.be.overridden.ruleset"
-            };
+  <ItemGroup>
+    <!-- all analyzers specified in the project file should be removed -->
+    <Analyzer Include='c:\should.be.removed.analyzer2.dll' />
+    <Analyzer Include='should.be.removed.analyzer1.dll' />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- These additional files don't match ones in the config and should be preserved -->
+    <AdditionalFiles Include='should.not.be.removed.additional1.txt' />
+    <AdditionalFiles Include='should.not.be.removed.additional2.txt' />
 
-            var projectRoot = CreateValidProjectSetup(properties);
+    <!-- This additional file matches one in the config and should be replaced -->
+    <AdditionalFiles Include='should.be.removed\CONFIG.1.TXT' />
 
-            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "should.be.removed.analyzer1.dll");
-            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "c:\\should.be.removed.analyzer2.dll");
-
-            var notRemovedAdditionalFiles = new string[] { "should.not.be.removed.additional1.txt", "should.not.be.removed.additional2.txt" };
-
-            foreach (var notRemovedAdditionalFile in notRemovedAdditionalFiles)
-            {
-                projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, notRemovedAdditionalFile);
-            }
-
-            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, "DummyPath\\" + analyzer1ExpectedFileName.ToUpperInvariant());
-
-            projectRoot.Save(); // re-save the modified file
-
+  </ItemGroup>
+";
+            var projectFilePath = CreateProjectFile(config, testSpecificProjectXml);
+            
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.OverrideRoslynAnalysisTarget);
-
-            var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
-            var expectedRoslynAdditionalFiles = new string[] { projectSpecificConfFilePath }
-                .Concat(analyzerAdditionalFiles)
-                .Concat(notRemovedAdditionalFiles)
-                .ToArray();
+            var result = BuildRunner.BuildTargets(TestContext, projectFilePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
             // Assert
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
@@ -187,8 +172,17 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Check the error log and ruleset properties are set
             AssertErrorLogIsSetBySonarQubeTargets(result);
             AssertExpectedResolvedRuleset(result, "d:\\my.ruleset");
-            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expectedRoslynAdditionalFiles);
-            AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, expectedAssemblies);
+
+            AssertExpectedAdditionalFiles(result,
+                result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath),
+                "should.not.be.removed.additional1.txt",
+                "should.not.be.removed.additional2.txt",
+                "c:\\config.1.txt",
+                "c:\\config.2.txt");
+
+            AssertExpectedAnalyzers(result,
+                "c:\\data\\new.analyzer1.dll",
+                "c:\\new.analyzer2.dll");
 
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
         }
@@ -529,6 +523,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             result.AssertExpectedItemGroupCount(itemType, expectedValues.Length);
         }
 
+        private void AssertExpectedAnalyzers(BuildLog result, params string[] expected) =>
+            AssertExpectedItemValuesExists(result, TargetProperties.AnalyzerItemType, expected);
+
+        private void AssertExpectedAdditionalFiles(BuildLog result, params string[] expected) =>
+            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expected);
+
         private void DumpLists(BuildLog actualResult, string itemType, string[] expected)
         {
             TestContext.WriteLine("");
@@ -619,6 +619,68 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var projectFilePath = Path.Combine(projectFolder, "valid.project.proj");
             projectRoot.Save(projectFilePath);
             return projectRoot;
+        }
+
+        /// <summary>
+        /// Creates a valid project with the necessary ruleset and assembly files on disc
+        /// to successfully run the "OverrideRoslynCodeAnalysisProperties" target
+        /// </summary>
+        private string CreateProjectFile(AnalysisConfig analysisConfig, string testSpecificProjectXml)
+        {
+            var projectDirectory = TestUtils.EnsureTestSpecificFolder(TestContext);
+
+            CreateCaptureDataTargetsFile(projectDirectory);
+
+            var configFilePath = Path.Combine(projectDirectory, FileConstants.ConfigFileName);
+            analysisConfig.Save(configFilePath);
+
+            var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
+            File.Exists(sqTargetFile).Should().BeTrue("Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
+            TestContext.AddResultFile(sqTargetFile);
+
+
+            var template = @"<?xml version='1.0' encoding='utf-8'?>
+<Project ToolsVersion='15.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+
+  <!-- Boilerplate -->
+  <PropertyGroup>
+    <ImportByWildcardBeforeMicrosoftCommonTargets>false</ImportByWildcardBeforeMicrosoftCommonTargets>
+    <ImportByWildcardAfterMicrosoftCommonTargets>false</ImportByWildcardAfterMicrosoftCommonTargets>
+    <ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>false</ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>
+    <ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>false</ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>
+    <OutputPath>bin\</OutputPath>
+    <OutputType>library</OutputType>
+    <ProjectGuid>ffdb93c0-2880-44c7-89a6-bbd4ddab034a</ProjectGuid>
+    <CodePage>65001</CodePage>
+  </PropertyGroup>
+
+  <!-- Standard values that need to be set for each/most tests -->
+  <PropertyGroup>
+
+    <SonarQubeBuildTasksAssemblyFile>SONARSCANNER_MSBUILD_TASKS_DLL</SonarQubeBuildTasksAssemblyFile>
+    <SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
+    <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>
+
+  </PropertyGroup>
+
+  <!-- Test-specific data -->
+  TEST_SPECIFIC_XML
+
+  <!-- Standard boilerplate closing imports -->
+  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))SonarQube.Integration.targets' />
+  <Import Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
+  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Capture.targets))Capture.targets' />
+</Project>
+";
+            var projectData = template.Replace("PROJECT_DIRECTORY_PATH", projectDirectory)
+                .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
+                .Replace("TEST_SPECIFIC_XML", testSpecificProjectXml ?? "<!-- none -->");
+
+            var projectFilePath = Path.Combine(projectDirectory, TestContext.TestName + ".proj");
+            File.WriteAllText(projectFilePath, projectData);
+            TestContext.AddResultFile(projectFilePath);
+
+            return projectFilePath;
         }
 
         private void AddCaptureTargetsImport(string projectFolder, ProjectRootElement projectRoot)
