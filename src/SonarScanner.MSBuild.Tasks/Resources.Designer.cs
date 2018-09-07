@@ -61,11 +61,47 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creating merged ruleset at &apos;{0}&apos;.
+        /// </summary>
+        internal static string AnalyzerSettings_CreatingMergedRuleset {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_CreatingMergedRuleset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merging analysis settings....
+        /// </summary>
+        internal static string AnalyzerSettings_MergingSettings {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_MergingSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Analyzer settings for language {0} have not been specified in the analysis config file.
         /// </summary>
         internal static string AnalyzerSettings_NotSpecifiedInConfig {
             get {
                 return ResourceManager.GetString("AnalyzerSettings_NotSpecifiedInConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Original ruleset not specified. Using generated ruleset at &apos;{0}&apos;.
+        /// </summary>
+        internal static string AnalyzerSettings_OriginalRulesetNotSpecified {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_OriginalRulesetNotSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Overwriting analysis settings....
+        /// </summary>
+        internal static string AnalyzerSettings_OverwritingSettings {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_OverwritingSettings", resourceCulture);
             }
         }
         

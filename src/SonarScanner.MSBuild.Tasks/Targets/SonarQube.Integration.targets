@@ -378,7 +378,11 @@
   <Target Name="SetRoslynCodeAnalysisProperties">
 
     <!-- Fetch the relevant settings from the config file -->
-    <GetAnalyzerSettings AnalysisConfigDir="$(SonarQubeConfigPath)" Language="$(SQLanguage)" OriginalAdditionalFiles="@(AdditionalFiles)">
+    <GetAnalyzerSettings AnalysisConfigDir="$(SonarQubeConfigPath)"
+                         Language="$(SQLanguage)"
+                         OriginalAdditionalFiles="@(AdditionalFiles)"
+                         OriginalRulesetFilePath="$(ResolvedCodeAnalysisRuleset)"
+                         ProjectSpecificOutputDirectory="$(ProjectSpecificOutDir)">
       <Output TaskParameter="RuleSetFilePath" PropertyName="SQRuleSetFilePath" />
       <Output TaskParameter="AnalyzerFilePaths" ItemName="SQAnalyzerFilePaths" />
       <Output TaskParameter="AdditionalFiles" ItemName="SQAdditionalFiles" />

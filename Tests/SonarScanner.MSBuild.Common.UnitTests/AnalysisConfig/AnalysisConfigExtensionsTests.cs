@@ -362,6 +362,109 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             provider.AssertExpectedPropertyCount(0);
         }
 
+        [TestMethod]
+        public void ConfigExt_FindServerVersion_WhenConfigIsNull_Throws()
+        {
+            Action action = () => ConfigSettingsExtensions.FindServerVersion(null);
+
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        }
+
+        [TestMethod]
+        public void ConfigExt_FindServerVersion_NoSetting_ReturnsNull()
+        {
+            var config = new AnalysisConfig();
+
+            var actualVersion = ConfigSettingsExtensions.FindServerVersion(config);
+            
+            actualVersion.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void ConfigExt_FindServerVersion_InvalidVersion_ReturnsNull()
+        {
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = "invalid"
+            };
+
+            var actualVersion = ConfigSettingsExtensions.FindServerVersion(config);
+            actualVersion.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void ConfigExt_FindServerVersion_ValidVersion_ReturnsVersion()
+        {
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = "6.7.1.2"
+            };
+
+            var actualVersion = ConfigSettingsExtensions.FindServerVersion(config);
+
+            actualVersion.Should().Be(new Version("6.7.1.2"));
+        }
+
+        [TestMethod]
+        public void ConfigExt_GetSettingOrDefault_InvalidArgs_Throw()
+        {
+            // 1. Null config
+            Action action = () => ConfigSettingsExtensions.GetSettingOrDefault(null, "anySetting", true, "defaultValue");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+
+            // 2. Null setting name
+            action = () => ConfigSettingsExtensions.GetSettingOrDefault(new AnalysisConfig(), null, true, "defaultValue");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingName");
+        }
+
+        [TestMethod]
+        public void ConfigExt_GetSettingOrDefault_NoSetting_DefaultIsReturned()
+        {
+            var config = new AnalysisConfig
+            {
+                ServerSettings = new AnalysisProperties
+                {
+                    new Property{ Id = "foo", Value = "value" }
+                }
+            };
+
+            // 1. Non-null default
+            var result = ConfigSettingsExtensions.GetSettingOrDefault(config, "id1", true, "default1");
+            result.Should().Be("default1");
+
+            // 2. Null default is ok
+            result = ConfigSettingsExtensions.GetSettingOrDefault(config, "id1", true, null);
+            result.Should().BeNull();
+
+            // 3. Case-sensitive
+            result = ConfigSettingsExtensions.GetSettingOrDefault(config, "FOO", true, "not found");
+            result.Should().Be("not found");
+
+            // 4. Not including server settings -> missing
+            result = ConfigSettingsExtensions.GetSettingOrDefault(config, "foo", false, "default1");
+            result.Should().Be("default1");
+        }
+
+        [TestMethod]
+        public void ConfigExt_GetSettingOrDefault_SettingExists_ValueIsReturned()
+        {
+            var config = new AnalysisConfig
+            {
+                ServerSettings = new AnalysisProperties
+                {
+                    new Property { Id = "id1", Value = "server value" }
+                },
+                LocalSettings = new AnalysisProperties
+                {
+                    new Property { Id = "id1", Value = "local value" }
+                }
+            };
+
+            // 1. Local value should take precedence
+            var result = ConfigSettingsExtensions.GetSettingOrDefault(config, "id1", true, "local value");
+            result.Should().Be("local value");
+        }
+
         #endregion Tests
 
         private static IAnalysisPropertyProvider GetAnalysisSettingsIsolatedFromEnvironment(AnalysisConfig config, bool includeServerSettings)
