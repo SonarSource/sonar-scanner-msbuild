@@ -156,6 +156,35 @@ namespace SonarScanner.MSBuild.Common
             return null;
         }
 
+        public static Version FindServerVersion(this AnalysisConfig config)
+        {
+            if (config == null)
+            {
+                throw new ArgumentNullException(nameof(config));
+            }
+
+            Version.TryParse(config.SonarQubeVersion, out var version);
+            return version;
+        }
+
+        public static string GetSettingOrDefault(this AnalysisConfig config, string settingName, bool includeServerSettings, string defaultValue)
+        {
+            if (config == null)
+            {
+                throw new ArgumentNullException(nameof(config));
+            }
+            if (settingName == null)
+            {
+                throw new ArgumentNullException(nameof(settingName));
+            }
+
+            if (config.GetAnalysisSettings(includeServerSettings).TryGetValue(settingName, out var value))
+            {
+                return value;
+            }
+            return defaultValue;
+        }
+
         #endregion Public methods
 
         #region Private methods

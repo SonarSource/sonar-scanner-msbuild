@@ -20,9 +20,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using FluentAssertions;
+using SonarScanner.MSBuild.Common;
 
 namespace TestUtilities
 {
@@ -71,5 +73,30 @@ namespace TestUtilities
 
             return attr != null && string.Equals(attr.Value, includePath, StringComparison.OrdinalIgnoreCase);
         }
+
+        public static string CheckMergedRulesetFile(string outputDirectory, string originalRulesetFile,
+            string firstGeneratedRulesetFilePath)
+        {
+            var expectedMergedRulesetFilePath = Path.Combine(outputDirectory, "merged.ruleset");
+
+            File.Exists(expectedMergedRulesetFilePath).Should().BeTrue();
+
+            // Check the file contents
+            var actual = RuleSet.Load(expectedMergedRulesetFilePath);
+            actual.Includes.Should().NotBeNull();
+            actual.Includes.Count.Should().Be(2);
+            CheckInclude(actual.Includes[0], originalRulesetFile, "Warning");
+            CheckInclude(actual.Includes[1], firstGeneratedRulesetFilePath, "Default");
+
+            return expectedMergedRulesetFilePath;
+        }
+
+        private static void CheckInclude(Include actual, string expectedPath, string expectedAction)
+        {
+            actual.Path.Should().Be(expectedPath);
+            actual.Action.Should().Be(expectedAction);
+        }
+
+
     }
 }

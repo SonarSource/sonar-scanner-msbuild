@@ -51,8 +51,21 @@ namespace SonarScanner.MSBuild.Tasks
         public string[] OriginalAdditionalFiles { get; set; }
 
         /// <summary>
+        /// Original ruleset specified in the project, if any
+        /// </summary>
+        public string OriginalRulesetFilePath { get; set; }
+
+        /// <summary>
+        /// Project-specific directory into which new output files can be written
+        /// (e.g. a new project-specific ruleset file)
+        /// </summary>
+        [Required]
+        public string ProjectSpecificOutputDirectory { get; set; }
+
+        /// <summary>
         /// The language for which we are gettings the settings
         /// </summary>
+        [Required]
         public string Language { get; set; }
 
         /// <summary>
@@ -87,29 +100,56 @@ namespace SonarScanner.MSBuild.Tasks
         public override bool Execute()
         {
             var config = TaskUtilities.TryGetConfig(AnalysisConfigDir, new MSBuildLoggerAdapter(Log));
-            ExecuteAnalysis(config);
+
+            if (ShouldMergeAnalysisSettings(config))
+            {
+                MergeAnalysisSettings(config);
+            }
+            else
+            {
+                OverrideAnalysisSettings(config);
+            }
 
             return !Log.HasLoggedErrors;
         }
 
-        private void ExecuteAnalysis(AnalysisConfig config)
+        #endregion Overrides
+
+        #region Private methods
+
+        internal /* for testing */ static bool ShouldMergeAnalysisSettings(AnalysisConfig config)
         {
+            // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/561
+            // Legacy behaviour is to overwrite. The only time we don't is if the
+            // we are using SQ 7.5 or greater and sonar.roslyn.importAllIssues is not 
+            // set or is true.
+            var serverVersion = config?.FindServerVersion();
+            if (serverVersion != null && serverVersion >= new Version("7.5"))
+            {
+                var settingInFile = config.GetSettingOrDefault("sonar.roslyn.importAllIssues", true, "true");
+                if (Boolean.TryParse(settingInFile, out var includeInFile))
+                {
+                    return includeInFile;
+                }
+            }
+            return false;
+        }
+
+        private void OverrideAnalysisSettings(AnalysisConfig config)
+        {
+            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_OverwritingSettings);
+
             if (config == null || Language == null)
             {
                 return;
             }
 
-            IList<AnalyzerSettings> analyzers = config.AnalyzersSettings;
-            if (analyzers == null)
-            {
-                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
-                return;
-            }
-
-            var settings = analyzers.SingleOrDefault(s => Language.Equals(s.Language));
+            var settings = GetLanguageSpecificSettings(config);
             if (settings == null)
             {
-                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
+                // Early-out: we don't have any settings for the current language, 
+                // so we'll just wipe out the current settings without replacing
+                // them with new ones
                 return;
             }
 
@@ -135,9 +175,80 @@ namespace SonarScanner.MSBuild.Tasks
             }
         }
 
-        #endregion Overrides
+        private void MergeAnalysisSettings(AnalysisConfig config)
+        {
+            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_MergingSettings);
 
-        #region Private methods
+            var settings = GetLanguageSpecificSettings(config);
+            if (settings == null)
+            {
+                // Early-out: we don't have any settings for the current language
+                // so don't change the supplied settings
+                RuleSetFilePath = OriginalRulesetFilePath;
+                AdditionalFiles = OriginalAdditionalFiles;
+                return;
+            }
+
+            RuleSetFilePath = CreateMergedRuleset(settings);
+
+            // TODO - merge analyzers
+            // TODO - merge additional files
+        }
+
+        private string CreateMergedRuleset(AnalyzerSettings languageSpecificSettings)
+        {
+            // The original ruleset should have been provided to the task.
+            // This should never be null when using the default targets
+            // (if the user hasn't specified anything then it will be the
+            // Microsoft minimum recommended tooleset).
+            // However, we'll be defensive and handle nulls in case the
+            // user has customised their build.
+            if (OriginalRulesetFilePath == null)
+            {
+                // If the project doesn't already have a ruleset can just
+                // return the generated one directly
+                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_OriginalRulesetNotSpecified, languageSpecificSettings.RuleSetFilePath);
+                return languageSpecificSettings.RuleSetFilePath;
+            }
+
+            var mergedRulesetFilePath = Path.Combine(ProjectSpecificOutputDirectory, "merged.ruleset");
+            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_CreatingMergedRuleset, mergedRulesetFilePath);
+
+            var content = GetMergedRuleSetContent(OriginalRulesetFilePath, languageSpecificSettings.RuleSetFilePath);
+
+            File.WriteAllText(mergedRulesetFilePath, content);
+            return mergedRulesetFilePath;
+        }
+
+        private static string GetMergedRuleSetContent(string originalRuleset, string languageRuleset) =>
+            // Template for the merged ruleset
+            // * the first ruleset is the one specified by the user. We need to set the action to warning
+            //   so the build won't fail if issues
+            // * the second ruleset is the language-specific one generated by the Begin step from the 
+            //   quality profile.
+            $@"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""RulesetName"" ToolsVersion=""14.0"">
+  <Include Path=""{originalRuleset}"" Action=""Warning"" />
+  <Include Path=""{languageRuleset}"" Action = ""Default"" />
+</RuleSet>";
+
+        private AnalyzerSettings GetLanguageSpecificSettings(AnalysisConfig config)
+        {
+            IList<AnalyzerSettings> analyzers = config.AnalyzersSettings;
+            if (analyzers == null)
+            {
+                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
+                return null;
+            }
+
+            var settings = analyzers.SingleOrDefault(s => Language.Equals(s.Language));
+            if (settings == null)
+            {
+                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
+                return null;
+            }
+            return settings;
+        }
 
         private static string GetFileName(string path)
         {

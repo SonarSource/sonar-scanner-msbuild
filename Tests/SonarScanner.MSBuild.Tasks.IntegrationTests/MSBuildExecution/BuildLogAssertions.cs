@@ -163,7 +163,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
                 p => p.Name.Equals(itemName, System.StringComparison.OrdinalIgnoreCase) &&
                         p.Value.Equals(expectedValue, System.StringComparison.Ordinal));
 
-            capturedData.Should().NotBeNull("Test logger error: failed to expected captured item value. " 
+            capturedData.Should().NotBeNull("Test logger error: failed to find expected captured item value. " 
                 + $"Item name: '{itemName}', expected value: {expectedValue}");
         }
 
