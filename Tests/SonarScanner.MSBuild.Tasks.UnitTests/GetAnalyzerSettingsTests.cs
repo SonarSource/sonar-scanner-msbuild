@@ -106,7 +106,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                         Language = "my lang",
                         RuleSetFilePath = "f:\\yyy.ruleset",
                         AnalyzerAssemblyPaths = filesInConfig,
-                        AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt" }
+                        AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt" }
                     },
 
                     new AnalyzerSettings
@@ -121,9 +121,12 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             };
 
             var testSubject = CreateConfiguredTestSubject(config, "my lang", TestContext);
-            testSubject.OriginalAdditionalFiles = new string[] {
+            testSubject.OriginalAdditionalFiles = new string[]
+            {
                 "original.should.be.preserved.txt",
-                "original.should.be.replaced\\add2.txt" };
+                "original.should.be.replaced\\add2.txt",
+                "e://foo//should.be.replaced//add3.txt"
+            };
 
             // Act
             ExecuteAndCheckSuccess(testSubject);
@@ -131,7 +134,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Assert
             testSubject.RuleSetFilePath.Should().Be("f:\\yyy.ruleset");
             testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(expectedAnalyzers);
-            testSubject.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\add2.txt", "original.should.be.preserved.txt");
+            testSubject.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\add2.txt",
+                "e:\\subdir\\add3.txt", "original.should.be.preserved.txt");
         }
 
         [TestMethod]
