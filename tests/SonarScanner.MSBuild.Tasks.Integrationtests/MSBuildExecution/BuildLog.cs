@@ -49,6 +49,21 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
         public bool BuildSucceeded { get; set; }
 
+        #region Message logging
+
+        private readonly StringBuilder messageLogBuilder = new StringBuilder();
+
+        // We want the normal messages to appear in the log file as a string rather than as a series
+        // of discrete messages to make them more readable.
+        public string MessageLog { get; set; } // for serialization
+
+        public void LogMessage(string message)
+        {
+            messageLogBuilder.AppendLine(message);
+        }
+
+        #endregion
+
         public string GetPropertyValue(string propertyName)
         {
             TryGetPropertyValue(propertyName, out var propertyValue);
@@ -75,6 +90,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
         public void Save(string filePath)
         {
+            MessageLog = messageLogBuilder.ToString();
             SerializeObjectToFile(filePath, this);
             FilePath = filePath;
         }
