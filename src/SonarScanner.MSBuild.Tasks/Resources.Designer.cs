@@ -61,6 +61,15 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Removing duplicate analyzers: {0}.
+        /// </summary>
+        internal static string Analyzer_Settings_RemovingDuplicateAnalyzers {
+            get {
+                return ResourceManager.GetString("Analyzer_Settings_RemovingDuplicateAnalyzers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Creating merged ruleset at &apos;{0}&apos;.
         /// </summary>
         internal static string AnalyzerSettings_CreatingMergedRuleset {
@@ -75,6 +84,15 @@ namespace SonarScanner.MSBuild.Tasks {
         internal static string AnalyzerSettings_MergingSettings {
             get {
                 return ResourceManager.GetString("AnalyzerSettings_MergingSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No analysis settings were found in the Sonar config file for the current language: {0}.
+        /// </summary>
+        internal static string AnalyzerSettings_NoSettingsFoundForCurrentLanguage {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_NoSettingsFoundForCurrentLanguage", resourceCulture);
             }
         }
         
@@ -102,6 +120,15 @@ namespace SonarScanner.MSBuild.Tasks {
         internal static string AnalyzerSettings_OverwritingSettings {
             get {
                 return ResourceManager.GetString("AnalyzerSettings_OverwritingSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removing duplicate additional files: {0}.
+        /// </summary>
+        internal static string AnalyzerSettings_RemovingDuplicateAdditionalFiles {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_RemovingDuplicateAdditionalFiles", resourceCulture);
             }
         }
         

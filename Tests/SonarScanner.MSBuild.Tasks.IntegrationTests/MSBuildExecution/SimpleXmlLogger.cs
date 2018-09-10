@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using Microsoft.Build.Framework;
 
 // See MSDN for an example: https://msdn.microsoft.com/en-us/library/ms171471#Anchor_5
-// Example usage: msbuild x.csproj /logger:SonarScanner.MSBuild.Tasks.IntegrationTests.SimpleXmkLogger,..\SonarScanner.MSBuild.Tasks.IntegrationTests\bin\Debug\Logger.dll;log1.txt /noconsolelogger
+// Example usage: msbuild x.csproj /logger:SonarScanner.MSBuild.Tasks.IntegrationTests.SimpleXmlLogger,..\SonarScanner.MSBuild.Tasks.IntegrationTests\bin\Debug\Logger.dll;log1.txt /noconsolelogger
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 {
@@ -144,6 +144,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
             if (!msg.StartsWith($"CAPTURE{CapturedDataSeparator}"))
             {
+                log.LogMessage(e.Message);
                 return;
             }
 

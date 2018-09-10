@@ -84,14 +84,7 @@ namespace SonarScanner.MSBuild.Tasks
         /// List of additional files to pass to the compiler
         /// </summary>
         [Output]
-        public string[] AdditionalFiles { get; private set; }
-
-        /// <summary>
-        /// List of additional files that are originally passed to the compiler,
-        /// but <see cref="AdditionalFiles"/> contains an explicit override for them.
-        /// </summary>
-        [Output]
-        public string[] AdditionalFilesToRemove { get; private set; }
+        public string[] AdditionalFilePaths { get; private set; }
 
         #endregion Input properties
 
@@ -139,6 +132,11 @@ namespace SonarScanner.MSBuild.Tasks
         {
             Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_OverwritingSettings);
 
+            // Preserve the default existing behaviour of only preserving the original list of additional files
+            // but clearing the analyzers
+            AnalyzerFilePaths = null;
+            AdditionalFilePaths = OriginalAdditionalFiles;
+            
             if (config == null || Language == null)
             {
                 return;
@@ -147,9 +145,8 @@ namespace SonarScanner.MSBuild.Tasks
             var settings = GetLanguageSpecificSettings(config);
             if (settings == null)
             {
-                // Early-out: we don't have any settings for the current language, 
-                // so we'll just wipe out the current settings without replacing
-                // them with new ones
+                // Early-out: no settings for the current language
+                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NoSettingsFoundForCurrentLanguage, Language);
                 return;
             }
 
@@ -160,19 +157,15 @@ namespace SonarScanner.MSBuild.Tasks
                 AnalyzerFilePaths = settings.AnalyzerAssemblyPaths.Where(f => IsAssemblyLibraryFileName(f)).ToArray();
             }
 
-            if (settings.AdditionalFilePaths != null)
-            {
-                AdditionalFiles = settings.AdditionalFilePaths.ToArray();
+            // Merge the additional file paths from the original list from the project with those from the
+            // config file. In case of duplicate file *names* (not full paths), use the setting from the config file.
+            var additionalFilesToRemove = GetEntriesWithMatchingFileNames(settings.AdditionalFilePaths, OriginalAdditionalFiles);
+            AdditionalFilePaths = (settings.AdditionalFilePaths ?? Enumerable.Empty<string>())
+                .Union(OriginalAdditionalFiles ?? Enumerable.Empty<string>())
+                .Except(additionalFilesToRemove)
+                .ToArray();
 
-                var additionalFileNames = new HashSet<string>(
-                    AdditionalFiles
-                        .Select(af => GetFileName(af))
-                        .Where(n => !string.IsNullOrEmpty(n)));
-
-                AdditionalFilesToRemove = (OriginalAdditionalFiles ?? Enumerable.Empty<string>())
-                    .Where(original => additionalFileNames.Contains(GetFileName(original)))
-                    .ToArray();
-            }
+            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_RemovingDuplicateAdditionalFiles, string.Join(", ", additionalFilesToRemove) ?? "{none}");
         }
 
         private void MergeAnalysisSettings(AnalysisConfig config)
@@ -185,7 +178,7 @@ namespace SonarScanner.MSBuild.Tasks
                 // Early-out: we don't have any settings for the current language
                 // so don't change the supplied settings
                 RuleSetFilePath = OriginalRulesetFilePath;
-                AdditionalFiles = OriginalAdditionalFiles;
+                AdditionalFilePaths = OriginalAdditionalFiles;
                 return;
             }
 
@@ -248,6 +241,29 @@ namespace SonarScanner.MSBuild.Tasks
                 return null;
             }
             return settings;
+        }
+
+        /// <summary>
+        /// Returns the entries from <paramref name="candidateFilePaths"/> where the file name
+        /// part of the candidate matches the file name of an entry in <paramref name="sourceFilePaths"/>
+        /// </summary>
+        private static string[] GetEntriesWithMatchingFileNames(IEnumerable<string> sourceFilePaths, IEnumerable<string> candidateFilePaths)
+        {
+            if (sourceFilePaths == null || candidateFilePaths == null)
+            {
+                return new string[] { };
+            }
+
+            var sourceFileNames = new HashSet<string>(
+                sourceFilePaths
+                    .Select(sfp => GetFileName(sfp))
+                    .Where(n => !string.IsNullOrEmpty(n)));
+
+            var matches = (candidateFilePaths ?? Enumerable.Empty<string>())
+                .Where(candidate => sourceFileNames.Contains(GetFileName(candidate)))
+                .ToArray();
+
+            return matches;
         }
 
         private static string GetFileName(string path)
