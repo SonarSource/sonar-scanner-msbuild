@@ -82,11 +82,10 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void GetAnalyzerSettings_ConfigExists_DataReturned()
+        public void GetAnalyzerSettings_ConfigExists_Legacy_SettingsOverwritten()
         {
             // Arrange
             var expectedAnalyzers = new string[] { "c:\\analyzer1.DLL", "c:\\analyzer2.dll" };
-            var expectedAdditionalFiles = new string[] { "c:\\add1.txt", "d:\\add2.txt" };
 
             // SONARMSBRU-216: non-assembly files should be filtered out
             var filesInConfig = new List<string>(expectedAnalyzers)
@@ -100,29 +99,31 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             var config = new AnalysisConfig
             {
-                AnalyzersSettings = new List<AnalyzerSettings>()
-            };
+                AnalyzersSettings = new List<AnalyzerSettings>
+                {
+                    new AnalyzerSettings
+                    {
+                        Language = "my lang",
+                        RuleSetFilePath = "f:\\yyy.ruleset",
+                        AnalyzerAssemblyPaths = filesInConfig,
+                        AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt" }
+                    },
 
-            var settings = new AnalyzerSettings
-            {
-                Language = "my lang",
-                RuleSetFilePath = "f:\\yyy.ruleset",
-                AnalyzerAssemblyPaths = filesInConfig,
-                AdditionalFilePaths = expectedAdditionalFiles.ToList()
-            };
-            config.AnalyzersSettings.Add(settings);
+                    new AnalyzerSettings
+                    {
+                        Language = "cobol",
+                        RuleSetFilePath = "f:\\xxx.ruleset",
+                        AnalyzerAssemblyPaths = filesInConfig,
+                        AdditionalFilePaths = new List<string> { "c:\\cobol.\\add1.txt", "d:\\cobol\\add2.txt" }
+                    }
 
-            var anotherSettings = new AnalyzerSettings
-            {
-                Language = "cobol",
-                RuleSetFilePath = "f:\\xxx.ruleset",
-                AnalyzerAssemblyPaths = filesInConfig,
-                AdditionalFilePaths = expectedAdditionalFiles.ToList()
+                }
             };
-            config.AnalyzersSettings.Add(anotherSettings);
-
 
             var testSubject = CreateConfiguredTestSubject(config, "my lang", TestContext);
+            testSubject.OriginalAdditionalFiles = new string[] {
+                "original.should.be.preserved.txt",
+                "original.should.be.replaced\\add2.txt" };
 
             // Act
             ExecuteAndCheckSuccess(testSubject);
@@ -130,7 +131,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Assert
             testSubject.RuleSetFilePath.Should().Be("f:\\yyy.ruleset");
             testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(expectedAnalyzers);
-            testSubject.AdditionalFiles.Should().BeEquivalentTo(expectedAdditionalFiles);
+            testSubject.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\add2.txt", "original.should.be.preserved.txt");
         }
 
         [TestMethod]
@@ -290,7 +291,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         private static void CheckNoAnalyzerSettings(GetAnalyzerSettings executedTask)
         {
             executedTask.RuleSetFilePath.Should().BeNull();
-            executedTask.AdditionalFiles.Should().BeNull();
+            executedTask.AdditionalFilePaths.Should().BeNull();
             executedTask.AnalyzerFilePaths.Should().BeNull();
         }
 
