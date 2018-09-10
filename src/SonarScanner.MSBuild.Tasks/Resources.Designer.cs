@@ -124,11 +124,11 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Removing duplicate additional files: {0}.
+        ///   Looks up a localized string similar to Removing duplicate files: {0}.
         /// </summary>
-        internal static string AnalyzerSettings_RemovingDuplicateAdditionalFiles {
+        internal static string AnalyzerSettings_RemovingDuplicateFiles {
             get {
-                return ResourceManager.GetString("AnalyzerSettings_RemovingDuplicateAdditionalFiles", resourceCulture);
+                return ResourceManager.GetString("AnalyzerSettings_RemovingDuplicateFiles", resourceCulture);
             }
         }
         

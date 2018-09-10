@@ -99,6 +99,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             var config = new AnalysisConfig
             {
+                SonarQubeVersion = "7.3",
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings
@@ -136,6 +137,79 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(expectedAnalyzers);
             testSubject.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\add2.txt",
                 "e:\\subdir\\add3.txt", "original.should.be.preserved.txt");
+        }
+
+        [TestMethod]
+        public void GetAnalyzerSettings_ConfigExists_NewBehaviour_SettingsMerged()
+        {
+            // Expecting both the additional files and the analyzers to be merged
+
+            // Arrange
+            // SONARMSBRU-216: non-assembly files should be filtered out
+            var filesInConfig = new List<string>
+            {
+                "c:\\config\\analyzer1.DLL",
+                "c:\\config\\analyzer2.dll",
+                "c:\\not_an_assembly.exe",
+                "c:\\not_an_assembly.zip",
+                "c:\\not_an_assembly.txt",
+                "c:\\not_an_assembly.dll.foo",
+                "c:\\not_an_assembly.winmd"
+            };
+
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = "7.5",
+                AnalyzersSettings = new List<AnalyzerSettings>
+                {
+                    new AnalyzerSettings
+                    {
+                        Language = "my lang",
+                        RuleSetFilePath = "f:\\yyy.ruleset",
+                        AnalyzerAssemblyPaths = filesInConfig,
+                        AdditionalFilePaths = new List<string> { "c:\\config\\add1.txt", "d:\\config\\add2.txt" }
+                    },
+
+                    new AnalyzerSettings
+                    {
+                        Language = "cobol",
+                        RuleSetFilePath = "f:\\xxx.ruleset",
+                        AnalyzerAssemblyPaths = new List<string>(),
+                        AdditionalFilePaths = new List<string> { "c:\\cobol.\\add1.txt", "d:\\cobol\\add2.txt" }
+                    }
+
+                }
+            };
+
+            var testSubject = CreateConfiguredTestSubject(config, "my lang", TestContext);
+
+            testSubject.OriginalAnalyzers = new string[]
+            {
+                "c:\\original.should.be.removed\\analyzer1.DLL",
+                "f:\\original.should.be.preserved\\analyzer3.dll"
+            };
+
+            testSubject.OriginalAdditionalFiles = new string[]
+            {
+                "original.should.be.preserved.txt",
+                "original.should.be.replaced\\add2.txt"
+            };
+
+            // Act
+            ExecuteAndCheckSuccess(testSubject);
+
+            // Assert
+            testSubject.RuleSetFilePath.Should().Be("f:\\yyy.ruleset");
+
+            testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(
+                "c:\\config\\analyzer1.DLL",
+                "c:\\config\\analyzer2.dll",
+                "f:\\original.should.be.preserved\\analyzer3.dll");
+
+            testSubject.AdditionalFilePaths.Should().BeEquivalentTo(
+                "c:\\config\\add1.txt",
+                "d:\\config\\add2.txt",
+                "original.should.be.preserved.txt");
         }
 
         [TestMethod]
