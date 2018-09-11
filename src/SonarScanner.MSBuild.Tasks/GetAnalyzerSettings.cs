@@ -122,10 +122,10 @@ namespace SonarScanner.MSBuild.Tasks
         {
             // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/561
             // Legacy behaviour is to overwrite. The only time we don't is if the
-            // we are using SQ 7.5 or greater and sonar.roslyn.importAllIssues is not 
+            // we are using SQ 7.4 or greater and sonar.roslyn.importAllIssues is not 
             // set or is true.
             var serverVersion = config?.FindServerVersion();
-            if (serverVersion != null && serverVersion >= new Version("7.5"))
+            if (serverVersion != null && serverVersion >= new Version("7.4"))
             {
                 var settingInFile = config.GetSettingOrDefault("sonar.roslyn.importAllIssues", true, "true");
                 if (Boolean.TryParse(settingInFile, out var includeInFile))
