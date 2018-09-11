@@ -205,8 +205,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                     {
                         Language = "cs",
                         RuleSetFilePath = "d:\\generated.ruleset",
-                        AnalyzerAssemblyPaths = new List<string> { "c:\\data\\new.analyzer1.dll", "c:\\new.analyzer2.dll" },
-                        AdditionalFilePaths = new List<string> { "c:\\config.1.txt", "c:\\config.2.txt" }
+                        AnalyzerAssemblyPaths = new List<string> { "c:\\data\\new\\analyzer1.dll", "c:\\new.analyzer2.dll" },
+                        AdditionalFilePaths = new List<string> { "c:\\config\\duplicate.1.txt", "c:\\duplicate.2.txt" }
                     }
                 }
             };
@@ -219,8 +219,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
   <ItemGroup>
     <!-- all analyzers specified in the project file should be preserved -->
-    <Analyzer Include='c:\original.analyzer1.dll' />
-    <Analyzer Include='original.analyzer2.dll' />
+    <Analyzer Include='c:\original\should.be.removed\analyzer1.dll' />
+    <Analyzer Include='original\should.be.preserved\analyzer3.dll' />
   </ItemGroup>
   <ItemGroup>
     <!-- These additional files don't match ones in the config and should be preserved -->
@@ -228,7 +228,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     <AdditionalFiles Include='should.not.be.removed.additional2.txt' />
 
     <!-- This additional file matches one in the config and should be replaced -->
-    <AdditionalFiles Include='d:/should.be.removed/CONFIG.1.TXT' />
+    <AdditionalFiles Include='d:/should.be.removed/DUPLICATE.1.TXT' />
+    <AdditionalFiles Include='d:\should.be.removed\duplicate.2.TXT' />
 
   </ItemGroup>
 ";
@@ -254,20 +255,17 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             RuleSetAssertions.CheckMergedRulesetFile(actualProjectSpecificOutFolder,
                 @"c:\original.ruleset", "d:\\generated.ruleset");
 
+            AssertExpectedAdditionalFiles(result,
+                result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath),
+                "should.not.be.removed.additional1.txt",
+                "should.not.be.removed.additional2.txt",
+                "c:\\config\\duplicate.1.txt",
+                "c:\\duplicate.2.txt");
 
-            // TODO - processing of additional files and analyzer
-            //AssertExpectedAdditionalFiles(result,
-            //    result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath),
-            //    "should.not.be.removed.additional1.txt",
-            //    "should.not.be.removed.additional2.txt",
-            //    "c:\\config.1.txt",
-            //    "c:\\config.2.txt");
-
-            //AssertExpectedAnalyzers(result,
-            //    "c:\\original.analyzer1.dll",
-            //    "original.analyzer2.dll",
-            //    "c:\\data\\new.analyzer1.dll",
-            //    "c:\\new.analyzer2.dll");
+            AssertExpectedAnalyzers(result,
+                "c:\\data\\new\\analyzer1.dll",
+                "c:\\new.analyzer2.dll",
+                "original\\should.be.preserved\\analyzer3.dll");
 
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
         }
