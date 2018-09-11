@@ -206,7 +206,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                         Language = "cs",
                         RuleSetFilePath = "d:\\generated.ruleset",
                         AnalyzerAssemblyPaths = new List<string> { "c:\\data\\new\\analyzer1.dll", "c:\\new.analyzer2.dll" },
-                        AdditionalFilePaths = new List<string> { "c:\\config\\duplicate1.txt", "c:\\config.2.txt" }
+                        AdditionalFilePaths = new List<string> { "c:\\config\\duplicate.1.txt", "c:\\duplicate.2.txt" }
                     }
                 }
             };
@@ -228,7 +228,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     <AdditionalFiles Include='should.not.be.removed.additional2.txt' />
 
     <!-- This additional file matches one in the config and should be replaced -->
-    <AdditionalFiles Include='d:/should.be.removed/CONFIG.1.TXT' />
+    <AdditionalFiles Include='d:/should.be.removed/DUPLICATE.1.TXT' />
+    <AdditionalFiles Include='d:\should.be.removed\duplicate.2.TXT' />
 
   </ItemGroup>
 ";
@@ -258,8 +259,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath),
                 "should.not.be.removed.additional1.txt",
                 "should.not.be.removed.additional2.txt",
-                "c:\\config\\duplicate1.txt",
-                "c:\\config.2.txt");
+                "c:\\config\\duplicate.1.txt",
+                "c:\\duplicate.2.txt");
 
             AssertExpectedAnalyzers(result,
                 "c:\\data\\new\\analyzer1.dll",
