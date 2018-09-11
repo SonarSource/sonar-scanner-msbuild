@@ -159,7 +159,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             var config = new AnalysisConfig
             {
-                SonarQubeVersion = "7.5",
+                SonarQubeVersion = "7.4",
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings
@@ -217,7 +217,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         {
             var config = new AnalysisConfig
             {
-                SonarQubeVersion = "7.4.1.2",
+                SonarQubeVersion = "7.3.1.2",
                 ServerSettings = new AnalysisProperties
                 {
                     // Should be ignored for old server version
@@ -236,7 +236,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Should default to true i.e. don't override, merge
             var config = new AnalysisConfig
             {
-                SonarQubeVersion = "7.5.0.0"
+                SonarQubeVersion = "7.4.0.0"
             };
 
             var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(config);
@@ -267,7 +267,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         {
             var config = new AnalysisConfig
             {
-                SonarQubeVersion = "7.5",
+                SonarQubeVersion = "7.4",
                 ServerSettings = new AnalysisProperties
                 {
                     new Property { Id = "sonar.roslyn.importAllIssues", Value = "false"}
@@ -285,7 +285,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Arrange
             var config = new AnalysisConfig
             {
-                SonarQubeVersion = "7.5",
+                SonarQubeVersion = "7.4",
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings
@@ -312,7 +312,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Arrange
             var config = new AnalysisConfig
             {
-                SonarQubeVersion = "7.5",
+                SonarQubeVersion = "7.4",
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings
