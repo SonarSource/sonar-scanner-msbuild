@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
@@ -248,9 +249,12 @@ namespace SonarScanner.MSBuild.Tasks
         /// </summary>
         private string[] MergeFileLists(IEnumerable<string> primaryList, IEnumerable<string> secondaryList)
         {
-            var duplicates = GetEntriesWithMatchingFileNames(primaryList, secondaryList);
-            var finalList = (primaryList ?? Enumerable.Empty<string>())
-                .Union(secondaryList ?? Enumerable.Empty<string>())
+            var nonNullPrimary = primaryList ?? Enumerable.Empty<string>();
+            var nonNullSecondary = secondaryList ?? Enumerable.Empty<string>();
+
+            var duplicates = GetEntriesWithMatchingFileNames(nonNullPrimary, nonNullSecondary);
+            var finalList = nonNullPrimary
+                .Union(nonNullSecondary)
                 .Except(duplicates)
                 .ToArray();
 
@@ -264,18 +268,16 @@ namespace SonarScanner.MSBuild.Tasks
         /// </summary>
         private static string[] GetEntriesWithMatchingFileNames(IEnumerable<string> sourceFilePaths, IEnumerable<string> candidateFilePaths)
         {
-            if (sourceFilePaths == null || candidateFilePaths == null)
-            {
-                return new string[] { };
-            }
+            Debug.Assert(sourceFilePaths != null);
+            Debug.Assert(candidateFilePaths != null);
 
             var sourceFileNames = new HashSet<string>(
                 sourceFilePaths
                     .Select(sfp => GetFileName(sfp))
                     .Where(n => !string.IsNullOrEmpty(n)));
 
-            var matches = (candidateFilePaths ?? Enumerable.Empty<string>())
-                .Where(candidate => sourceFileNames.Contains(GetFileName(candidate)))
+            var matches = candidateFilePaths
+                .Where(candidate => sourceFileNames.Contains(GetFileName(candidate), StringComparer.OrdinalIgnoreCase))
                 .ToArray();
 
             return matches;
