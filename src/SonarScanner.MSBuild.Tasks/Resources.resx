@@ -211,8 +211,8 @@ Error: {1}</value>
   <data name="AnalyzerSettings_NoSettingsFoundForCurrentLanguage" xml:space="preserve">
     <value>No analysis settings were found in the Sonar config file for the current language: {0}</value>
   </data>
-  <data name="AnalyzerSettings_RemovingDuplicateAdditionalFiles" xml:space="preserve">
-    <value>Removing duplicate additional files: {0}</value>
+  <data name="AnalyzerSettings_RemovingDuplicateFiles" xml:space="preserve">
+    <value>Removing duplicate files: {0}</value>
   </data>
   <data name="Analyzer_Settings_RemovingDuplicateAnalyzers" xml:space="preserve">
     <value>Removing duplicate analyzers: {0}</value>

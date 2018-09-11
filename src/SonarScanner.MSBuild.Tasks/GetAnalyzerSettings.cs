@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
@@ -42,6 +43,13 @@ namespace SonarScanner.MSBuild.Tasks
         /// </summary>
         [Required]
         public string AnalysisConfigDir { get; set; }
+
+        /// <summary>
+        /// List of analyzers that would be passed to the compiler if
+        /// no SonarQube analysis was happening.
+        /// </summary>
+        [Required]
+        public string[] OriginalAnalyzers { get; set; }
 
         /// <summary>
         /// List of additional files that would be passed to the compiler if
@@ -154,18 +162,10 @@ namespace SonarScanner.MSBuild.Tasks
 
             if (settings.AnalyzerAssemblyPaths != null)
             {
-                AnalyzerFilePaths = settings.AnalyzerAssemblyPaths.Where(f => IsAssemblyLibraryFileName(f)).ToArray();
+                AnalyzerFilePaths = RemoveNonAnalyzerFiles(settings.AnalyzerAssemblyPaths);
             }
 
-            // Merge the additional file paths from the original list from the project with those from the
-            // config file. In case of duplicate file *names* (not full paths), use the setting from the config file.
-            var additionalFilesToRemove = GetEntriesWithMatchingFileNames(settings.AdditionalFilePaths, OriginalAdditionalFiles);
-            AdditionalFilePaths = (settings.AdditionalFilePaths ?? Enumerable.Empty<string>())
-                .Union(OriginalAdditionalFiles ?? Enumerable.Empty<string>())
-                .Except(additionalFilesToRemove)
-                .ToArray();
-
-            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_RemovingDuplicateAdditionalFiles, string.Join(", ", additionalFilesToRemove) ?? "{none}");
+            AdditionalFilePaths = MergeFileLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
         }
 
         private void MergeAnalysisSettings(AnalysisConfig config)
@@ -184,8 +184,8 @@ namespace SonarScanner.MSBuild.Tasks
 
             RuleSetFilePath = CreateMergedRuleset(settings);
 
-            // TODO - merge analyzers
-            // TODO - merge additional files
+            AnalyzerFilePaths = MergeFileLists(RemoveNonAnalyzerFiles(settings.AnalyzerAssemblyPaths), OriginalAnalyzers);
+            AdditionalFilePaths = MergeFileLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
         }
 
         private string CreateMergedRuleset(AnalyzerSettings languageSpecificSettings)
@@ -244,23 +244,40 @@ namespace SonarScanner.MSBuild.Tasks
         }
 
         /// <summary>
+        /// Merges and returns the supplied list of file paths. In case of duplicate
+        /// // file *names* (not full paths), the path from the primary list is used.
+        /// </summary>
+        private string[] MergeFileLists(IEnumerable<string> primaryList, IEnumerable<string> secondaryList)
+        {
+            var nonNullPrimary = primaryList ?? Enumerable.Empty<string>();
+            var nonNullSecondary = secondaryList ?? Enumerable.Empty<string>();
+
+            var duplicates = GetEntriesWithMatchingFileNames(nonNullPrimary, nonNullSecondary);
+            var finalList = nonNullPrimary
+                .Union(nonNullSecondary)
+                .Except(duplicates)
+                .ToArray();
+
+            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_RemovingDuplicateFiles, string.Join(", ", duplicates) ?? "{none}");
+            return finalList;
+        }
+
+        /// <summary>
         /// Returns the entries from <paramref name="candidateFilePaths"/> where the file name
         /// part of the candidate matches the file name of an entry in <paramref name="sourceFilePaths"/>
         /// </summary>
         private static string[] GetEntriesWithMatchingFileNames(IEnumerable<string> sourceFilePaths, IEnumerable<string> candidateFilePaths)
         {
-            if (sourceFilePaths == null || candidateFilePaths == null)
-            {
-                return new string[] { };
-            }
+            Debug.Assert(sourceFilePaths != null);
+            Debug.Assert(candidateFilePaths != null);
 
             var sourceFileNames = new HashSet<string>(
                 sourceFilePaths
                     .Select(sfp => GetFileName(sfp))
                     .Where(n => !string.IsNullOrEmpty(n)));
 
-            var matches = (candidateFilePaths ?? Enumerable.Empty<string>())
-                .Where(candidate => sourceFileNames.Contains(GetFileName(candidate)))
+            var matches = candidateFilePaths
+                .Where(candidate => sourceFileNames.Contains(GetFileName(candidate), StringComparer.OrdinalIgnoreCase))
                 .ToArray();
 
             return matches;
@@ -277,6 +294,9 @@ namespace SonarScanner.MSBuild.Tasks
                 return null;
             }
         }
+
+        private static string[] RemoveNonAnalyzerFiles(IEnumerable<string> files) =>
+            files.Where(f => IsAssemblyLibraryFileName(f)).ToArray();
 
         /// <summary>
         /// Returns whether the supplied string is an assembly library (i.e. dll)
