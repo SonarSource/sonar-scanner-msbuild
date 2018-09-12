@@ -380,6 +380,7 @@
     <!-- Fetch the relevant settings from the config file -->
     <GetAnalyzerSettings AnalysisConfigDir="$(SonarQubeConfigPath)"
                          Language="$(SQLanguage)"
+                         CurrentProjectDirectoryPath="$(MSBuildProjectDirectory)"
                          OriginalAnalyzers="@(Analyzer)"
                          OriginalAdditionalFiles="@(AdditionalFiles)"
                          OriginalRulesetFilePath="$(ResolvedCodeAnalysisRuleset)"

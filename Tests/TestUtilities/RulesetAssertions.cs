@@ -74,7 +74,7 @@ namespace TestUtilities
             return attr != null && string.Equals(attr.Value, includePath, StringComparison.OrdinalIgnoreCase);
         }
 
-        public static string CheckMergedRulesetFile(string outputDirectory, string originalRulesetFile,
+        public static string CheckMergedRulesetFile(string outputDirectory, string originalRulesetFullPath,
             string firstGeneratedRulesetFilePath)
         {
             var expectedMergedRulesetFilePath = Path.Combine(outputDirectory, "merged.ruleset");
@@ -85,7 +85,7 @@ namespace TestUtilities
             var actual = RuleSet.Load(expectedMergedRulesetFilePath);
             actual.Includes.Should().NotBeNull();
             actual.Includes.Count.Should().Be(2);
-            CheckInclude(actual.Includes[0], originalRulesetFile, "Warning");
+            CheckInclude(actual.Includes[0], originalRulesetFullPath, "Warning");
             CheckInclude(actual.Includes[1], firstGeneratedRulesetFilePath, "Default");
 
             return expectedMergedRulesetFilePath;
