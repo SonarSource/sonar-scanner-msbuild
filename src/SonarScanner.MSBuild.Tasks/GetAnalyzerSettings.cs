@@ -102,7 +102,7 @@ namespace SonarScanner.MSBuild.Tasks
         {
             var config = TaskUtilities.TryGetConfig(AnalysisConfigDir, new MSBuildLoggerAdapter(Log));
 
-            if (ShouldMergeAnalysisSettings(config))
+            if (ShouldMergeAnalysisSettings(this.Language, config))
             {
                 MergeAnalysisSettings(config);
             }
@@ -118,19 +118,20 @@ namespace SonarScanner.MSBuild.Tasks
 
         #region Private methods
 
-        internal /* for testing */ static bool ShouldMergeAnalysisSettings(AnalysisConfig config)
+        internal /* for testing */ static bool ShouldMergeAnalysisSettings(string language, AnalysisConfig config)
         {
             // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/561
-            // Legacy behaviour is to overwrite. The only time we don't is if the
-            // we are using SQ 7.4 or greater and sonar.roslyn.importAllIssues is not 
-            // set or is true.
+            // Legacy behaviour is to overwrite.
+            // The new (SQ 7.4+) behaviour is to merge only if sonar.[LANGUAGE].roslyn.importAllIssues is true.
             var serverVersion = config?.FindServerVersion();
             if (serverVersion != null && serverVersion >= new Version("7.4"))
             {
-                var settingInFile = config.GetSettingOrDefault("sonar.roslyn.importAllIssues", true, "true");
-                if (Boolean.TryParse(settingInFile, out var includeInFile))
+                var settingInFile = config.GetSettingOrDefault($"sonar.{language}.roslyn.importAllIssues",
+                    includeServerSettings: true, defaultValue: "false");
+
+                if (Boolean.TryParse(settingInFile, out var importAllRoslynIssues))
                 {
-                    return includeInFile;
+                    return importAllRoslynIssues;
                 }
             }
             return false;

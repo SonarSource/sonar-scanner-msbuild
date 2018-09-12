@@ -199,6 +199,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var config = new AnalysisConfig
             {
                 SonarQubeVersion = "7.5", // non-legacy version
+                ServerSettings = new AnalysisProperties
+                {
+                    new Property { Id = "sonar.cs.roslyn.importAllIssues", Value = "true" }
+                },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings
