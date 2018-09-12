@@ -20,7 +20,6 @@
 
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.Build.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -100,11 +99,16 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var config = new AnalysisConfig
             {
                 SonarQubeVersion = "7.3",
+                ServerSettings = new AnalysisProperties
+                {
+                    // Setting should be ignored
+                    new Property { Id = "sonar.cs.roslyn.importAllIssues", Value = "true" }  
+                },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings
                     {
-                        Language = "my lang",
+                        Language = "cs",
                         RuleSetFilePath = "f:\\yyy.ruleset",
                         AnalyzerAssemblyPaths = filesInConfig,
                         AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt" }
@@ -117,11 +121,10 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                         AnalyzerAssemblyPaths = filesInConfig,
                         AdditionalFilePaths = new List<string> { "c:\\cobol.\\add1.txt", "d:\\cobol\\add2.txt" }
                     }
-
                 }
             };
 
-            var testSubject = CreateConfiguredTestSubject(config, "my lang", TestContext);
+            var testSubject = CreateConfiguredTestSubject(config, "cs", TestContext);
             testSubject.OriginalAdditionalFiles = new string[]
             {
                 "original.should.be.preserved.txt",
@@ -160,11 +163,15 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var config = new AnalysisConfig
             {
                 SonarQubeVersion = "7.4",
+                ServerSettings = new AnalysisProperties
+                                {
+                    new Property { Id = "sonar.cs.roslyn.importAllIssues", Value = "true" }
+                },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings
                     {
-                        Language = "my lang",
+                        Language = "cs",
                         RuleSetFilePath = "f:\\yyy.ruleset",
                         AnalyzerAssemblyPaths = filesInConfig,
                         AdditionalFilePaths = new List<string> { "c:\\config\\add1.txt", "d:\\config\\add2.txt" }
@@ -181,7 +188,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 }
             };
 
-            var testSubject = CreateConfiguredTestSubject(config, "my lang", TestContext);
+            var testSubject = CreateConfiguredTestSubject(config, "cs", TestContext);
 
             testSubject.OriginalAnalyzers = new string[]
             {
@@ -215,69 +222,60 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [TestMethod]
         public void ShouldMerge_OldServerVersion_ReturnsFalse()
         {
-            var config = new AnalysisConfig
-            {
-                SonarQubeVersion = "7.3.1.2",
-                ServerSettings = new AnalysisProperties
-                {
-                    // Should be ignored for old server version
-                    new Property { Id = "sonar.roslyn.importAllIssues", Value = "true"}
-                }
-            };
-
-            var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(config);
-
-            result.Should().Be(false);
+            // The "importAllValue" setting should be ignored for old server versions
+            CheckShouldMerge("7.3.1", "cs", importAllValue: "true", expected: false);
+            CheckShouldMerge("6.7.0", "vbnet", importAllValue: "true", expected: false);
         }
 
         [TestMethod]
-        public void ShouldMerge_NewServerVersion_NoSetting_ReturnsTrue()
+        public void ShouldMerge_Multiples_NewServer_NoSetting_ReturnsFalse()
         {
             // Should default to true i.e. don't override, merge
-            var config = new AnalysisConfig
-            {
-                SonarQubeVersion = "7.4.0.0"
-            };
-
-            var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(config);
-
-            result.Should().Be(true);
+            CheckShouldMerge("7.4.0.0", "cs", importAllValue: null /* not set */, expected: false);
+            CheckShouldMerge("7.4.0.0", "vbnet", importAllValue: null /* not set */, expected: false);
         }
 
         [TestMethod]
-        public void ShouldMerge_NewServerVersion_SettingIsTrue_ReturnsTrue()
+        public void ShouldMerge_NewServerVersion_SettingIsTrue_ReturnsFalse()
         {
-            var config = new AnalysisConfig
-            {
-                SonarQubeVersion = "8.9",
-                ServerSettings = new AnalysisProperties
-                {
-                    // Import all issues = true => override = false
-                    new Property { Id = "sonar.roslyn.importAllIssues", Value = "true"}
-                }
-            };
-
-            var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(config);
-
-            result.Should().Be(true);
+            CheckShouldMerge("8.9", "cs", importAllValue: "true", expected: false);
+            CheckShouldMerge("7.4", "vbnet", importAllValue: "true", expected: false);
         }
 
         [TestMethod]
         public void ShouldMerge_NewServerVersion_SettingIsFalse_ReturnsFalse()
         {
+            CheckShouldMerge("7.4", "cs", importAllValue: "false", expected: false);
+            CheckShouldMerge("7.7", "vbnet", importAllValue: "false", expected: false);
+        }
+
+        [TestMethod]
+        public void ShouldMerge_NewServerVersion_InvalidSetting_NoError_ReturnsFalse()
+        {
+            CheckShouldMerge("7.4", "cs", importAllValue: "not a boolean value", expected: false);
+            CheckShouldMerge("7.7", "vbnet", importAllValue: "not a boolean value", expected: false);
+        }
+
+        private static void CheckShouldMerge(string serverVersion, string language, string importAllValue, bool expected)
+        {
+            // Should default to true i.e. don't override, merge
             var config = new AnalysisConfig
             {
-                SonarQubeVersion = "7.4",
-                ServerSettings = new AnalysisProperties
-                {
-                    new Property { Id = "sonar.roslyn.importAllIssues", Value = "false"}
-                }
+                SonarQubeVersion = serverVersion
             };
+            if (importAllValue != null)
+            {
+                config.ServerSettings = new AnalysisProperties
+                {
+                    new Property { Id = $"sonar.{language}.roslyn.importAllIssues" }
+                };
+            }
 
-            var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(config);
+            var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(language, config);
 
-            result.Should().Be(false);
+            result.Should().Be(expected);
         }
+
 
         [TestMethod]
         public void MergeRulesets_NoOriginalRuleset_FirstGeneratedRulsetUsed()
@@ -313,6 +311,10 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var config = new AnalysisConfig
             {
                 SonarQubeVersion = "7.4",
+                ServerSettings = new AnalysisProperties
+                {
+                    new Property { Id = "sonar.xxx.roslyn.importAllIssues", Value = "true" }
+                },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
                     new AnalyzerSettings
