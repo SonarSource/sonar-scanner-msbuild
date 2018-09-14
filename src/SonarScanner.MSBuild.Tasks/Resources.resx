@@ -214,7 +214,19 @@ Error: {1}</value>
   <data name="AnalyzerSettings_RemovingDuplicateFiles" xml:space="preserve">
     <value>Removing duplicate files: {0}</value>
   </data>
-  <data name="Analyzer_Settings_RemovingDuplicateAnalyzers" xml:space="preserve">
+  <data name="AnalyzerSettings_RemovingDuplicateAnalyzers" xml:space="preserve">
     <value>Removing duplicate analyzers: {0}</value>
+  </data>
+  <data name="AnalyzerSettings_OriginalRulesetIsNotRooted" xml:space="preserve">
+    <value>Supplied ruleset path is not rooted: '{0}'</value>
+  </data>
+  <data name="AnalyzerSettings_OriginalRulesetIsRooted" xml:space="preserve">
+    <value>Supplied ruleset path is rooted: '{0}'</value>
+  </data>
+  <data name="AnalyzerSettings_ResolvedRulesetFound" xml:space="preserve">
+    <value>Found ruleset file: '{0}'</value>
+  </data>
+  <data name="AnalyzerSettings_ResolvedRulesetNotFound" xml:space="preserve">
+    <value>Failed to find ruleset file: '{0}'</value>
   </data>
 </root>

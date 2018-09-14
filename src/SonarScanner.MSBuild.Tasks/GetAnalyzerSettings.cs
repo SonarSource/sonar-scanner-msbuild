@@ -63,6 +63,12 @@ namespace SonarScanner.MSBuild.Tasks
         /// </summary>
         public string OriginalRulesetFilePath { get; set; }
 
+        [Required]
+        /// <summary>
+        /// Path to the directory containing the project being built
+        /// </summary>
+        public string CurrentProjectDirectoryPath { get; set; }
+
         /// <summary>
         /// Project-specific directory into which new output files can be written
         /// (e.g. a new project-specific ruleset file)
@@ -205,13 +211,38 @@ namespace SonarScanner.MSBuild.Tasks
                 return languageSpecificSettings.RuleSetFilePath;
             }
 
+            string resolvedRulesetPath = GetAbsoluteRulesetPath();
+
             var mergedRulesetFilePath = Path.Combine(ProjectSpecificOutputDirectory, "merged.ruleset");
             Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_CreatingMergedRuleset, mergedRulesetFilePath);
 
-            var content = GetMergedRuleSetContent(OriginalRulesetFilePath, languageSpecificSettings.RuleSetFilePath);
+            var content = GetMergedRuleSetContent(resolvedRulesetPath, languageSpecificSettings.RuleSetFilePath);
 
             File.WriteAllText(mergedRulesetFilePath, content);
             return mergedRulesetFilePath;
+        }
+
+        private string GetAbsoluteRulesetPath()
+        {
+            // If the supplied ruleset path is relative then it is relative to the project folder.
+            // This relative path will be wrong if use it directly in the generated merged ruleset
+            // file so we need to make it absolute.
+            string resolvedRulesetFilePath;
+            if (Path.IsPathRooted(OriginalRulesetFilePath))
+            {
+                Log.LogMessage(MessageImportance.Low, $"Supplied ruleset path is rooted: {OriginalRulesetFilePath}");
+                resolvedRulesetFilePath = OriginalRulesetFilePath;
+            }
+            else
+            {
+                Log.LogMessage(MessageImportance.Low, $"Supplied ruleset path is not rooted: {OriginalRulesetFilePath}");
+                resolvedRulesetFilePath = Path.GetFullPath(Path.Combine(CurrentProjectDirectoryPath, OriginalRulesetFilePath));
+            }
+
+            Log.LogMessage(MessageImportance.Low,
+                File.Exists(resolvedRulesetFilePath) ? Resources.AnalyzerSettings_ResolvedRulesetFound : Resources.AnalyzerSettings_ResolvedRulesetNotFound,
+                resolvedRulesetFilePath);
+            return resolvedRulesetFilePath;
         }
 
         private static string GetMergedRuleSetContent(string originalRuleset, string languageRuleset) =>
