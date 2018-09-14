@@ -305,7 +305,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void MergeRulesets_OriginalRulesetSpecified_SecondGeneratedRulsetUsed()
+        public void MergeRulesets_OriginalRulesetSpecified_RelativePath_SecondGeneratedRulsetUsed()
         {
             // Arrange
             var config = new AnalysisConfig
@@ -326,14 +326,50 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             };
 
             var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
-            testSubject.OriginalRulesetFilePath = "originalRuleset.txt";
+            testSubject.CurrentProjectDirectoryPath = "c:\\solution.folder\\project.folder";
+            testSubject.OriginalRulesetFilePath = ".\\..\\originalRuleset.txt";
             testSubject.ProjectSpecificOutputDirectory = testSubject.AnalysisConfigDir;
 
             // Act
             ExecuteAndCheckSuccess(testSubject);
 
             // Assert
-            CheckMergedRulesetFile(testSubject, "firstGeneratedRuleset.txt");
+            CheckMergedRulesetFile(testSubject, "c:\\solution.folder\\originalRuleset.txt",
+                "firstGeneratedRuleset.txt");
+        }
+
+        [TestMethod]
+        public void MergeRulesets_OriginalRulesetSpecified_AbsolutePath_SecondGeneratedRulsetUsed()
+        {
+            // Arrange
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = "7.4",
+                ServerSettings = new AnalysisProperties
+                {
+                    new Property { Id = "sonar.xxx.roslyn.importAllIssues", Value = "true" }
+                },
+                AnalyzersSettings = new List<AnalyzerSettings>
+                {
+                    new AnalyzerSettings
+                    {
+                        Language = "xxx",
+                        RuleSetFilePath = "firstGeneratedRuleset.txt"
+                    }
+                }
+            };
+
+            var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
+            testSubject.CurrentProjectDirectoryPath = "c:\\nonexistent.project.path";
+            testSubject.OriginalRulesetFilePath = "e:\\sub1\\originalRuleset.txt";
+            testSubject.ProjectSpecificOutputDirectory = testSubject.AnalysisConfigDir;
+
+            // Act
+            ExecuteAndCheckSuccess(testSubject);
+
+            // Assert
+            CheckMergedRulesetFile(testSubject, "e:\\sub1\\originalRuleset.txt",
+                "firstGeneratedRuleset.txt");
         }
 
         #endregion Tests
@@ -375,11 +411,13 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             executedTask.AnalyzerFilePaths.Should().BeNull();
         }
 
-        private static void CheckMergedRulesetFile(GetAnalyzerSettings executedTask, string firstGeneratedRulesetFilePath)
+        private static void CheckMergedRulesetFile(GetAnalyzerSettings executedTask, 
+            string originalRulesetFullPath, string firstGeneratedRulesetFilePath)
         {
             var expectedMergedRulesetFilePath = RuleSetAssertions.CheckMergedRulesetFile(
                 executedTask.ProjectSpecificOutputDirectory,
-                executedTask.OriginalRulesetFilePath, firstGeneratedRulesetFilePath);
+                originalRulesetFullPath,
+                firstGeneratedRulesetFilePath);
 
             executedTask.RuleSetFilePath.Should().Be(expectedMergedRulesetFilePath);
         }

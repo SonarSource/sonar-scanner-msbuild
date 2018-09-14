@@ -61,15 +61,6 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Removing duplicate analyzers: {0}.
-        /// </summary>
-        internal static string Analyzer_Settings_RemovingDuplicateAnalyzers {
-            get {
-                return ResourceManager.GetString("Analyzer_Settings_RemovingDuplicateAnalyzers", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Creating merged ruleset at &apos;{0}&apos;.
         /// </summary>
         internal static string AnalyzerSettings_CreatingMergedRuleset {
@@ -106,6 +97,24 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Supplied ruleset path is not rooted: &apos;{0}&apos;.
+        /// </summary>
+        internal static string AnalyzerSettings_OriginalRulesetIsNotRooted {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_OriginalRulesetIsNotRooted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Supplied ruleset path is rooted: &apos;{0}&apos;.
+        /// </summary>
+        internal static string AnalyzerSettings_OriginalRulesetIsRooted {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_OriginalRulesetIsRooted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Original ruleset not specified. Using generated ruleset at &apos;{0}&apos;.
         /// </summary>
         internal static string AnalyzerSettings_OriginalRulesetNotSpecified {
@@ -124,11 +133,38 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Removing duplicate analyzers: {0}.
+        /// </summary>
+        internal static string AnalyzerSettings_RemovingDuplicateAnalyzers {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_RemovingDuplicateAnalyzers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Removing duplicate files: {0}.
         /// </summary>
         internal static string AnalyzerSettings_RemovingDuplicateFiles {
             get {
                 return ResourceManager.GetString("AnalyzerSettings_RemovingDuplicateFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Found ruleset file: &apos;{0}&apos;.
+        /// </summary>
+        internal static string AnalyzerSettings_ResolvedRulesetFound {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_ResolvedRulesetFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to find ruleset file: &apos;{0}&apos;.
+        /// </summary>
+        internal static string AnalyzerSettings_ResolvedRulesetNotFound {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_ResolvedRulesetNotFound", resourceCulture);
             }
         }
         
