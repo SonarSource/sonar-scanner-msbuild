@@ -384,7 +384,7 @@
                          OriginalAnalyzers="@(Analyzer)"
                          OriginalAdditionalFiles="@(AdditionalFiles)"
                          OriginalRulesetFilePath="$(ResolvedCodeAnalysisRuleset)"
-                         ProjectSpecificOutputDirectory="$(ProjectSpecificOutDir)">
+                         ProjectSpecificConfigDirectory="$(ProjectSpecificConfDir)">
       <Output TaskParameter="RuleSetFilePath" PropertyName="SQRuleSetFilePath" />
       <Output TaskParameter="AnalyzerFilePaths" ItemName="SQAnalyzerFilePaths" />
       <Output TaskParameter="AdditionalFilePaths" ItemName="SQAdditionalFiles" />

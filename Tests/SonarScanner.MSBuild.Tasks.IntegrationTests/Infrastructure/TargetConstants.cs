@@ -101,6 +101,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         public const string ProjectConfFilePath = "ProjectConfFilePath";
 
         public const string ProjectSpecificOutDir = "ProjectSpecificOutDir";
+        public const string ProjectSpecificConfDir = "ProjectSpecificConfDir";
 
         // Legacy TeamBuild environment variables (XAML Builds)
         public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";

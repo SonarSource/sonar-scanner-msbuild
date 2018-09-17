@@ -70,6 +70,33 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to External issues are not supported on this version of SonarQube. SQv7.4+ is required..
+        /// </summary>
+        internal static string AnalyzerSettings_ExternalIssueNotSupported {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_ExternalIssueNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}={1}.
+        /// </summary>
+        internal static string AnalyzerSettings_ImportAllSettingValue {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_ImportAllSettingValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid value for &apos;{0}&apos;. Expecting &apos;true&apos; or &apos;false&apos;. Actual: &apos;{1}&apos;. External issues will not be imported..
+        /// </summary>
+        internal static string AnalyzerSettings_InvalidValueForImportAll {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_InvalidValueForImportAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Merging analysis settings....
         /// </summary>
         internal static string AnalyzerSettings_MergingSettings {
