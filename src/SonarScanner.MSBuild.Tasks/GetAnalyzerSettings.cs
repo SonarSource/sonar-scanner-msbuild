@@ -142,7 +142,7 @@ namespace SonarScanner.MSBuild.Tasks
             var settingInFile = config.GetSettingOrDefault(settingName,
                 includeServerSettings: true, defaultValue: "false");
 
-            if (Boolean.TryParse(settingInFile, out var importAllRoslynIssues))
+            if (bool.TryParse(settingInFile, out var importAllRoslynIssues))
             {
                 logger.LogDebug(Resources.AnalyzerSettings_ImportAllSettingValue, settingName,
                     importAllRoslynIssues.ToString().ToLowerInvariant());
