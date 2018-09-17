@@ -74,7 +74,7 @@ namespace SonarScanner.MSBuild.Tasks
         /// (e.g. a new project-specific ruleset file)
         /// </summary>
         [Required]
-        public string ProjectSpecificOutputDirectory { get; set; }
+        public string ProjectSpecificConfigDirectory { get; set; }
 
         /// <summary>
         /// The language for which we are gettings the settings
@@ -106,9 +106,10 @@ namespace SonarScanner.MSBuild.Tasks
 
         public override bool Execute()
         {
-            var config = TaskUtilities.TryGetConfig(AnalysisConfigDir, new MSBuildLoggerAdapter(Log));
+            var logger = new MSBuildLoggerAdapter(Log);
+            var config = TaskUtilities.TryGetConfig(AnalysisConfigDir, logger);
 
-            if (ShouldMergeAnalysisSettings(this.Language, config))
+            if (ShouldMergeAnalysisSettings(this.Language, config, logger))
             {
                 MergeAnalysisSettings(config);
             }
@@ -124,23 +125,34 @@ namespace SonarScanner.MSBuild.Tasks
 
         #region Private methods
 
-        internal /* for testing */ static bool ShouldMergeAnalysisSettings(string language, AnalysisConfig config)
+        internal /* for testing */ static bool ShouldMergeAnalysisSettings(string language, AnalysisConfig config,
+            SonarScanner.MSBuild.Common.ILogger logger)
         {
             // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/561
             // Legacy behaviour is to overwrite.
             // The new (SQ 7.4+) behaviour is to merge only if sonar.[LANGUAGE].roslyn.importAllIssues is true.
             var serverVersion = config?.FindServerVersion();
-            if (serverVersion != null && serverVersion >= new Version("7.4"))
+            if (serverVersion == null || serverVersion < new Version("7.4"))
             {
-                var settingInFile = config.GetSettingOrDefault($"sonar.{language}.roslyn.importAllIssues",
-                    includeServerSettings: true, defaultValue: "false");
-
-                if (Boolean.TryParse(settingInFile, out var importAllRoslynIssues))
-                {
-                    return importAllRoslynIssues;
-                }
+                logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported);
+                return false;
             }
-            return false;
+
+            var settingName = $"sonar.{language}.roslyn.importAllIssues";
+            var settingInFile = config.GetSettingOrDefault(settingName,
+                includeServerSettings: true, defaultValue: "false");
+
+            if (bool.TryParse(settingInFile, out var importAllRoslynIssues))
+            {
+                logger.LogDebug(Resources.AnalyzerSettings_ImportAllSettingValue, settingName,
+                    importAllRoslynIssues.ToString().ToLowerInvariant());
+                return importAllRoslynIssues;
+            }
+            else
+            {
+                logger.LogWarning(Resources.AnalyzerSettings_InvalidValueForImportAll, settingName, settingInFile);
+                return false;
+            }
         }
 
         private void OverrideAnalysisSettings(AnalysisConfig config)
@@ -213,7 +225,7 @@ namespace SonarScanner.MSBuild.Tasks
 
             string resolvedRulesetPath = GetAbsoluteRulesetPath();
 
-            var mergedRulesetFilePath = Path.Combine(ProjectSpecificOutputDirectory, "merged.ruleset");
+            var mergedRulesetFilePath = Path.Combine(ProjectSpecificConfigDirectory, "merged.ruleset");
             Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_CreatingMergedRuleset, mergedRulesetFilePath);
 
             var content = GetMergedRuleSetContent(resolvedRulesetPath, languageSpecificSettings.RuleSetFilePath);
