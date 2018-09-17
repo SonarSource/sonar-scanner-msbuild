@@ -251,12 +251,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Check the error log and ruleset properties are set
             AssertErrorLogIsSetBySonarQubeTargets(result);
 
-            var actualProjectSpecificOutFolder = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
-            Directory.Exists(actualProjectSpecificOutFolder).Should().BeTrue();
+            var actualProjectSpecificConfFolder = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificConfDir);
+            Directory.Exists(actualProjectSpecificConfFolder).Should().BeTrue();
 
-            var expectedMergedRuleSetFilePath = Path.Combine(actualProjectSpecificOutFolder, "merged.ruleset");
+            var expectedMergedRuleSetFilePath = Path.Combine(actualProjectSpecificConfFolder, "merged.ruleset");
             AssertExpectedResolvedRuleset(result, expectedMergedRuleSetFilePath);
-            RuleSetAssertions.CheckMergedRulesetFile(actualProjectSpecificOutFolder,
+            RuleSetAssertions.CheckMergedRulesetFile(actualProjectSpecificConfFolder,
                 @"c:\original.ruleset", "d:\\generated.ruleset");
 
             AssertExpectedAdditionalFiles(result,
@@ -811,6 +811,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     <Message Importance='high' Text='CAPTURE::PROPERTY::WarningsAsErrors::$(WarningsAsErrors)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::WarningLevel::$(WarningLevel)' />
     <Message Importance='high' Text='CAPTURE::PROPERTY::ProjectSpecificOutDir::$(ProjectSpecificOutDir)' />
+    <Message Importance='high' Text='CAPTURE::PROPERTY::ProjectSpecificConfDir::$(ProjectSpecificConfDir)' />
 
     <!-- Item group values will be written out one per line -->
     <Message Importance='high' Text='CAPTURE::ITEM::AdditionalFiles::%(AdditionalFiles.Identity)' Condition="" @(AdditionalFiles) != '' ""/>
