@@ -85,7 +85,7 @@ namespace TestUtilities
             var actual = RuleSet.Load(expectedMergedRulesetFilePath);
             actual.Includes.Should().NotBeNull();
             actual.Includes.Count.Should().Be(2);
-            CheckInclude(actual.Includes[0], originalRulesetFullPath, "Warning");
+            CheckInclude(actual.Includes[0], originalRulesetFullPath, "Default");
             CheckInclude(actual.Includes[1], firstGeneratedRulesetFilePath, "Default");
 
             return expectedMergedRulesetFilePath;
@@ -96,7 +96,5 @@ namespace TestUtilities
             actual.Path.Should().Be(expectedPath);
             actual.Action.Should().Be(expectedAction);
         }
-
-
     }
 }
