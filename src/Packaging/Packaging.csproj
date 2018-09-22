@@ -19,7 +19,7 @@
 
   <PropertyGroup>
     <!-- This version needs to be in sync with version in src/SonarScanner.MSBuild.Shim/SonarScanner.Wrapper.cs -->
-    <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.2.0.1227</ScannerCliVersion>
+    <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.2.0.1363</ScannerCliVersion> <!--FIXME-->
     <ScannerCliArtifact>sonar-scanner-cli-$(ScannerCliVersion).zip</ScannerCliArtifact>
     <MavenCentralUrl>https://repox.sonarsource.com/sonarsource-public-releases/org/sonarsource/scanner/cli/sonar-scanner-cli/$(ScannerCliVersion)/$(ScannerCliArtifact)</MavenCentralUrl>
     <SourcesRoot>$(MSBuildThisFileDirectory)..</SourcesRoot>
