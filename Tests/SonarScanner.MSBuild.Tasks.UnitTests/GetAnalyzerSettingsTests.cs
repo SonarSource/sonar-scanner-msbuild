@@ -102,7 +102,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 ServerSettings = new AnalysisProperties
                 {
                     // Setting should be ignored
-                    new Property { Id = "sonar.cs.roslyn.importAllIssues", Value = "true" }  
+                    new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value = "true" }
                 },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
@@ -165,7 +165,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 SonarQubeVersion = "7.4",
                 ServerSettings = new AnalysisProperties
                                 {
-                    new Property { Id = "sonar.cs.roslyn.importAllIssues", Value = "true" }
+                    new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value = "false" }
                 },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
@@ -223,55 +223,55 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void ShouldMerge_OldServerVersion_ReturnsFalse()
         {
             // The "importAllValue" setting should be ignored for old server versions
-            var logger = CheckShouldMerge("7.3.1", "cs", importAllValue: "true", expected: false);
+            var logger = CheckShouldMerge("7.3.1", "cs", ignoreExternalIssues: "true", expected: false);
             logger.AssertInfoMessageExists("External issues are not supported on this version of SonarQube. SQv7.4+ is required.");
 
-            logger = CheckShouldMerge("6.7.0", "vbnet", importAllValue: "true", expected: false);
+            logger = CheckShouldMerge("6.7.0", "vbnet", ignoreExternalIssues: "true", expected: false);
             logger.AssertInfoMessageExists("External issues are not supported on this version of SonarQube. SQv7.4+ is required.");
         }
 
         [TestMethod]
-        public void ShouldMerge_Multiples_NewServer_NoSetting_ReturnsFalse()
+        public void ShouldMerge_Multiples_NewServer_NoSetting_ReturnsTrue()
         {
             // Should default to false i.e. override, don't merge
-            var logger = CheckShouldMerge("7.4.0.0", "cs", importAllValue: null /* not set */, expected: false);
-            logger.AssertDebugLogged("sonar.cs.roslyn.importAllIssues=false");
+            var logger = CheckShouldMerge("7.4.0.0", "cs", ignoreExternalIssues: null /* not set */, expected: true);
+            logger.AssertDebugLogged("sonar.cs.roslyn.ignoreIssues=false");
 
-            logger = CheckShouldMerge("7.4.0.0", "vbnet", importAllValue: null /* not set */, expected: false);
-            logger.AssertDebugLogged("sonar.vbnet.roslyn.importAllIssues=false");
+            logger = CheckShouldMerge("7.4.0.0", "vbnet", ignoreExternalIssues: null /* not set */, expected: true);
+            logger.AssertDebugLogged("sonar.vbnet.roslyn.ignoreIssues=false");
         }
 
         [TestMethod]
         public void ShouldMerge_NewServerVersion_SettingIsTrue_ReturnsFalse()
         {
-            var logger = CheckShouldMerge("8.9", "cs", importAllValue: "true", expected: true);
-            logger.AssertDebugLogged("sonar.cs.roslyn.importAllIssues=true");
+            var logger = CheckShouldMerge("8.9", "cs", ignoreExternalIssues: "true", expected: false);
+            logger.AssertDebugLogged("sonar.cs.roslyn.ignoreIssues=true");
 
-            logger = CheckShouldMerge("7.4", "vbnet", importAllValue: "true", expected: true);
-            logger.AssertDebugLogged("sonar.vbnet.roslyn.importAllIssues=true");
+            logger = CheckShouldMerge("7.4", "vbnet", ignoreExternalIssues: "true", expected: false);
+            logger.AssertDebugLogged("sonar.vbnet.roslyn.ignoreIssues=true");
         }
 
         [TestMethod]
-        public void ShouldMerge_NewServerVersion_SettingIsFalse_ReturnsFalse()
+        public void ShouldMerge_NewServerVersion_SettingIsFalse_ReturnsTrue()
         {
-            var logger = CheckShouldMerge("7.4", "cs", importAllValue: "false", expected: false);
-            logger.AssertDebugLogged("sonar.cs.roslyn.importAllIssues=false");
+            var logger = CheckShouldMerge("7.4", "cs", ignoreExternalIssues: "false", expected: true);
+            logger.AssertDebugLogged("sonar.cs.roslyn.ignoreIssues=false");
 
-            logger = CheckShouldMerge("7.7", "vbnet", importAllValue: "false", expected: false);
-            logger.AssertDebugLogged("sonar.vbnet.roslyn.importAllIssues=false");
+            logger = CheckShouldMerge("7.7", "vbnet", ignoreExternalIssues: "false", expected: true);
+            logger.AssertDebugLogged("sonar.vbnet.roslyn.ignoreIssues=false");
         }
 
         [TestMethod]
         public void ShouldMerge_NewServerVersion_InvalidSetting_NoError_ReturnsFalse()
         {
-            var logger = CheckShouldMerge("7.4", "cs", importAllValue: "not a boolean value", expected: false);
-            logger.AssertSingleWarningExists("Invalid value for 'sonar.cs.roslyn.importAllIssues'. Expecting 'true' or 'false'. Actual: 'not a boolean value'. External issues will not be imported.");
+            var logger = CheckShouldMerge("7.4", "cs", ignoreExternalIssues: "not a boolean value", expected: false);
+            logger.AssertSingleWarningExists("Invalid value for 'sonar.cs.roslyn.ignoreIssues'. Expecting 'true' or 'false'. Actual: 'not a boolean value'. External issues will not be imported.");
 
-            logger = CheckShouldMerge("7.7", "vbnet", importAllValue: "not a boolean value", expected: false);
-            logger.AssertSingleWarningExists("Invalid value for 'sonar.vbnet.roslyn.importAllIssues'. Expecting 'true' or 'false'. Actual: 'not a boolean value'. External issues will not be imported.");
+            logger = CheckShouldMerge("7.7", "vbnet", ignoreExternalIssues: "not a boolean value", expected: false);
+            logger.AssertSingleWarningExists("Invalid value for 'sonar.vbnet.roslyn.ignoreIssues'. Expecting 'true' or 'false'. Actual: 'not a boolean value'. External issues will not be imported.");
         }
 
-        private static TestLogger CheckShouldMerge(string serverVersion, string language, string importAllValue, bool expected)
+        private static TestLogger CheckShouldMerge(string serverVersion, string language, string ignoreExternalIssues, bool expected)
         {
             // Should default to true i.e. don't override, merge
             var logger = new TestLogger();
@@ -279,14 +279,14 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             {
                 SonarQubeVersion = serverVersion
             };
-            if (importAllValue != null)
+            if (ignoreExternalIssues != null)
             {
                 config.ServerSettings = new AnalysisProperties
                 {
-                    new Property { Id = $"sonar.{language}.roslyn.importAllIssues", Value = importAllValue }
+                    new Property { Id = $"sonar.{language}.roslyn.ignoreIssues", Value = ignoreExternalIssues }
                 };
             }
-            
+
             var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(language, config, logger);
 
             result.Should().Be(expected);
@@ -329,7 +329,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 SonarQubeVersion = "7.4",
                 ServerSettings = new AnalysisProperties
                 {
-                    new Property { Id = "sonar.xxx.roslyn.importAllIssues", Value = "true" }
+                    new Property { Id = "sonar.xxx.roslyn.ignoreIssues", Value = "false" }
                 },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
@@ -363,7 +363,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 SonarQubeVersion = "7.4",
                 ServerSettings = new AnalysisProperties
                 {
-                    new Property { Id = "sonar.xxx.roslyn.importAllIssues", Value = "true" }
+                    new Property { Id = "sonar.xxx.roslyn.ignoreIssues", Value = "false" }
                 },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
@@ -427,7 +427,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             executedTask.AnalyzerFilePaths.Should().BeNull();
         }
 
-        private static void CheckMergedRulesetFile(GetAnalyzerSettings executedTask, 
+        private static void CheckMergedRulesetFile(GetAnalyzerSettings executedTask,
             string originalRulesetFullPath, string firstGeneratedRulesetFilePath)
         {
             var expectedMergedRulesetFilePath = RuleSetAssertions.CheckMergedRulesetFile(

@@ -414,7 +414,7 @@
       <AdditionalFiles Include="@(SQAdditionalFiles)" />
       <AdditionalFiles Include="$(ProjectConfFilePath)" />
     </ItemGroup>
-  
+
   </Target>
 
   <Target Name="SetRoslynAnalysisResults"
