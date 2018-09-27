@@ -115,7 +115,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
         }
-        
+
         [TestMethod]
         [Description("Checks any existing analyzers are overridden for projects using SonarQube pre-7.5")]
         public void Roslyn_Settings_ValidSetup_LegacyServer_Override_Analyzers()
@@ -161,7 +161,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
   </ItemGroup>
 ";
             var projectFilePath = CreateProjectFile(config, testSpecificProjectXml);
-            
+
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath, TargetConstants.OverrideRoslynAnalysisTarget);
 
@@ -201,7 +201,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 SonarQubeVersion = "7.5", // non-legacy version
                 ServerSettings = new AnalysisProperties
                 {
-                    new Property { Id = "sonar.cs.roslyn.importAllIssues", Value = "true" }
+                    new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value = "false" }
                 },
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
