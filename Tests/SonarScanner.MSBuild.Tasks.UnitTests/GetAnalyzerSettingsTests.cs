@@ -231,14 +231,14 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void ShouldMerge_Multiples_NewServer_NoSetting_ReturnsTrue()
+        public void ShouldMerge_Multiples_NewServer_NoSetting_ReturnsFalse()
         {
             // Should default to false i.e. override, don't merge
-            var logger = CheckShouldMerge("7.4.0.0", "cs", ignoreExternalIssues: null /* not set */, expected: true);
-            logger.AssertDebugLogged("sonar.cs.roslyn.ignoreIssues=false");
+            var logger = CheckShouldMerge("7.4.0.0", "cs", ignoreExternalIssues: null /* not set */, expected: false);
+            logger.AssertDebugLogged("sonar.cs.roslyn.ignoreIssues=true");
 
-            logger = CheckShouldMerge("7.4.0.0", "vbnet", ignoreExternalIssues: null /* not set */, expected: true);
-            logger.AssertDebugLogged("sonar.vbnet.roslyn.ignoreIssues=false");
+            logger = CheckShouldMerge("7.4.0.0", "vbnet", ignoreExternalIssues: null /* not set */, expected: false);
+            logger.AssertDebugLogged("sonar.vbnet.roslyn.ignoreIssues=true");
         }
 
         [TestMethod]

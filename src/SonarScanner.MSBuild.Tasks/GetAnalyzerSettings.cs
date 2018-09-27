@@ -140,7 +140,7 @@ namespace SonarScanner.MSBuild.Tasks
 
             var settingName = $"sonar.{language}.roslyn.ignoreIssues";
             var settingInFile = config.GetSettingOrDefault(settingName,
-                includeServerSettings: true, defaultValue: "false");
+                includeServerSettings: true, defaultValue: "true");
 
             if (bool.TryParse(settingInFile, out var ignoreExternalRoslynIssues))
             {
