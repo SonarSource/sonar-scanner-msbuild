@@ -132,6 +132,11 @@ namespace TestUtilities
             return filePath;
         }
 
+        public static string CreateValidEmptyRuleset(string parentDir, string fileNameWithoutExtension) =>
+           CreateTextFile(parentDir, fileNameWithoutExtension + ".ruleset", @"<?xml version='1.0' encoding='utf-8'?>
+<RuleSet xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' Name='x' Description='x' ToolsVersion='14.0'>
+</RuleSet>");
+
         public static string GetTestSpecificFolderName(TestContext testContext)
         {
             var fullPath = Path.Combine(testContext.DeploymentDirectory, testContext.TestName);

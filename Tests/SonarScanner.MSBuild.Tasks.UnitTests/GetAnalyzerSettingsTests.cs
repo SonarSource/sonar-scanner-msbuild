@@ -20,11 +20,13 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.Build.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
+using MSCA = Microsoft.CodeAnalysis;
 
 namespace SonarScanner.MSBuild.Tasks.UnitTests
 {
@@ -321,25 +323,13 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void MergeRulesets_OriginalRulesetSpecified_RelativePath_SecondGeneratedRulsetUsed()
+        public void MergeRulesets_OriginalRulesetSpecified_RelativePath_SecondGeneratedRulesetUsed()
         {
             // Arrange
-            var config = new AnalysisConfig
-            {
-                SonarQubeVersion = "7.4",
-                ServerSettings = new AnalysisProperties
-                {
-                    new Property { Id = "sonar.xxx.roslyn.ignoreIssues", Value = "false" }
-                },
-                AnalyzersSettings = new List<AnalyzerSettings>
-                {
-                    new AnalyzerSettings
-                    {
-                        Language = "xxx",
-                        RuleSetFilePath = "firstGeneratedRuleset.txt"
-                    }
-                }
-            };
+
+            var dir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
+            var config = CreateMergingAnalysisConfig("xxx", dummyQpRulesetPath);
 
             var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
             testSubject.CurrentProjectDirectoryPath = "c:\\solution.folder\\project.folder";
@@ -350,30 +340,17 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             ExecuteAndCheckSuccess(testSubject);
 
             // Assert
-            CheckMergedRulesetFile(testSubject, "c:\\solution.folder\\originalRuleset.txt",
-                "firstGeneratedRuleset.txt");
+            CheckMergedRulesetFile(testSubject, "c:\\solution.folder\\originalRuleset.txt");
         }
 
         [TestMethod]
-        public void MergeRulesets_OriginalRulesetSpecified_AbsolutePath_SecondGeneratedRulsetUsed()
+        public void MergeRulesets_OriginalRulesetSpecified_AbsolutePath_SecondGeneratedRulesetUsed()
         {
             // Arrange
-            var config = new AnalysisConfig
-            {
-                SonarQubeVersion = "7.4",
-                ServerSettings = new AnalysisProperties
-                {
-                    new Property { Id = "sonar.xxx.roslyn.ignoreIssues", Value = "false" }
-                },
-                AnalyzersSettings = new List<AnalyzerSettings>
-                {
-                    new AnalyzerSettings
-                    {
-                        Language = "xxx",
-                        RuleSetFilePath = "firstGeneratedRuleset.txt"
-                    }
-                }
-            };
+
+            var dir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
+            var config = CreateMergingAnalysisConfig("xxx", dummyQpRulesetPath);
 
             var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
             testSubject.CurrentProjectDirectoryPath = "c:\\nonexistent.project.path";
@@ -384,8 +361,54 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             ExecuteAndCheckSuccess(testSubject);
 
             // Assert
-            CheckMergedRulesetFile(testSubject, "e:\\sub1\\originalRuleset.txt",
-                "firstGeneratedRuleset.txt");
+            CheckMergedRulesetFile(testSubject, "e:\\sub1\\originalRuleset.txt");
+        }
+
+        [TestMethod]
+        // Regression test for #581: Sonar issues are reported as external issues
+        // https://github.com/SonarSource/sonar-scanner-msbuild/issues/581
+        public void MergeRuleset_CheckQPSettingsWin()
+        {
+            // Arrange
+            // Off in QP, on locally -> off
+            var qpRulesetPath = CreateRuleset("qpRuleset", @"<?xml version='1.0' encoding='utf-8'?>
+<RuleSet xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' Name='x' Description='x' ToolsVersion='14.0'>
+  <Rules AnalyzerId='analyzer1' RuleNamespace='ns1'>
+    <Rule Id='SharedRuleOffInQP' Action='None' />
+    <Rule Id='SharedRuleOffInLocal' Action='Warning' />
+    <Rule Id='QPOnlyRule' Action='Info' />
+  </Rules>
+</RuleSet>");
+
+            var localRulesetPath = CreateRuleset("localRuleset", @"<?xml version='1.0' encoding='utf-8'?>
+<RuleSet xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' Name='x' Description='x' ToolsVersion='14.0'>
+  <Rules AnalyzerId='analyzer1' RuleNamespace='ns1'>
+    <Rule Id='SharedRuleOffInQP' Action='Error' />
+    <Rule Id='SharedRuleOffInLocal' Action='None' />
+    <Rule Id='LocalOnlyRule' Action='Error' />
+  </Rules>
+</RuleSet>");
+
+            var config = CreateMergingAnalysisConfig("xxx", qpRulesetPath);
+
+            var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
+            testSubject.OriginalRulesetFilePath = localRulesetPath;
+            testSubject.ProjectSpecificConfigDirectory = testSubject.AnalysisConfigDir;
+
+            // Act
+            ExecuteAndCheckSuccess(testSubject);
+
+            // Assert
+            CheckMergedRulesetFile(testSubject, localRulesetPath);
+
+            // Check individual rule severities are set correctly
+            var finalPath = testSubject.RuleSetFilePath;
+            var actualRuleset = MSCA.RuleSet.LoadEffectiveRuleSetFromFile(finalPath);
+
+            CheckExpectedDiagnosticLevel(actualRuleset, "SharedRuleOffInQP", MSCA.ReportDiagnostic.Suppress);
+            CheckExpectedDiagnosticLevel(actualRuleset, "SharedRuleOffInLocal", MSCA.ReportDiagnostic.Warn);
+            CheckExpectedDiagnosticLevel(actualRuleset, "QPOnlyRule", MSCA.ReportDiagnostic.Info);
+            CheckExpectedDiagnosticLevel(actualRuleset, "LocalOnlyRule", MSCA.ReportDiagnostic.Error);
         }
 
         #endregion Tests
@@ -394,7 +417,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
         private static GetAnalyzerSettings CreateConfiguredTestSubject(AnalysisConfig config, string language, TestContext testContext)
         {
-            var testDir = TestUtils.CreateTestSpecificFolder(testContext);
+            var testDir = TestUtils.EnsureTestSpecificFolder(testContext);
             var testSubject = new GetAnalyzerSettings();
             testSubject.Language = language;
 
@@ -403,6 +426,31 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             testSubject.AnalysisConfigDir = testDir;
             return testSubject;
+        }
+
+        private static AnalysisConfig CreateMergingAnalysisConfig(string language, string qpRulesetFilePath) =>
+            new AnalysisConfig
+            {
+                SonarQubeVersion = "7.4",
+                ServerSettings = new AnalysisProperties
+                {
+                    new Property { Id = $"sonar.{language}.roslyn.ignoreIssues", Value = "false" }
+                },
+                AnalyzersSettings = new List<AnalyzerSettings>
+                {
+                    new AnalyzerSettings
+                    {
+                        Language = language,
+                        RuleSetFilePath = qpRulesetFilePath
+                    }
+                }
+            };
+
+        public string CreateRuleset(string fileNameWithoutExtension, string content)
+        {
+            var dir = TestUtils.EnsureTestSpecificFolder(TestContext);
+            var filePath = TestUtils.CreateTextFile(dir, fileNameWithoutExtension + ".ruleset", content);
+            return filePath;
         }
 
         #endregion
@@ -427,15 +475,23 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             executedTask.AnalyzerFilePaths.Should().BeNull();
         }
 
-        private static void CheckMergedRulesetFile(GetAnalyzerSettings executedTask,
-            string originalRulesetFullPath, string firstGeneratedRulesetFilePath)
+        private void CheckMergedRulesetFile(GetAnalyzerSettings executedTask,
+            string originalRulesetFullPath)
         {
             var expectedMergedRulesetFilePath = RuleSetAssertions.CheckMergedRulesetFile(
                 executedTask.ProjectSpecificConfigDirectory,
-                originalRulesetFullPath,
-                firstGeneratedRulesetFilePath);
+                originalRulesetFullPath);
+
+            TestContext.AddResultFile(expectedMergedRulesetFilePath);
 
             executedTask.RuleSetFilePath.Should().Be(expectedMergedRulesetFilePath);
+        }
+
+        private static void CheckExpectedDiagnosticLevel(MSCA.RuleSet ruleset, string ruleId,
+            MSCA.ReportDiagnostic expected)
+        {
+            ruleset.SpecificDiagnosticOptions.Keys.Contains(ruleId).Should().BeTrue();
+            ruleset.SpecificDiagnosticOptions[ruleId].Should().Be(expected);
         }
 
         #endregion Checks methods

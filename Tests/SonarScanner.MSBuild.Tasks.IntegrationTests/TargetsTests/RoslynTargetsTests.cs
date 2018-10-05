@@ -195,6 +195,9 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Arrange
 
+            var dir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
+
             // Create a valid config containing analyzer settings
             var config = new AnalysisConfig
             {
@@ -208,7 +211,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                     new AnalyzerSettings
                     {
                         Language = "cs",
-                        RuleSetFilePath = "d:\\generated.ruleset",
+                        RuleSetFilePath = dummyQpRulesetPath,
                         AnalyzerAssemblyPaths = new List<string> { "c:\\data\\new\\analyzer1.dll", "c:\\new.analyzer2.dll" },
                         AdditionalFilePaths = new List<string> { "c:\\config\\duplicate.1.txt", "c:\\duplicate.2.txt" }
                     }
@@ -257,7 +260,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var expectedMergedRuleSetFilePath = Path.Combine(actualProjectSpecificConfFolder, "merged.ruleset");
             AssertExpectedResolvedRuleset(result, expectedMergedRuleSetFilePath);
             RuleSetAssertions.CheckMergedRulesetFile(actualProjectSpecificConfFolder,
-                @"c:\original.ruleset", "d:\\generated.ruleset");
+                @"c:\original.ruleset");
 
             AssertExpectedAdditionalFiles(result,
                 result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath),
