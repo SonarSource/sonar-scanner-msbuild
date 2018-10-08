@@ -29,10 +29,7 @@ import com.sonar.orchestrator.util.NetworkUtils;
 import java.io.IOException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -41,6 +38,8 @@ import javax.annotation.Nullable;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.sonar.orchestrator.version.Version;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.proxy.ProxyServlet;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -419,6 +418,48 @@ public class ScannerMSBuildTest {
 
     assertThat(result.getLogs()).doesNotContain("File is not under the project directory and cannot currently be analysed by SonarQube");
     assertThat(result.getLogs()).doesNotContain("AssemblyAttributes.cs");
+  }
+
+  @Test
+  public void checkExternalIssues() throws Exception {
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssues/TestQualityProfileExternalIssues.xml"));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "cs", "ProfileForTestExternalIssues");
+
+    Path projectDir = TestUtils.projectDir(temp, "ExternalIssues");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectName("sample")
+      .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("end"));
+
+    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    List<String> keys = issues.stream().map(Issue::ruleKey).collect(Collectors.toList());
+
+    // The same set of Sonar issues should be reported, regardless of whether
+    // external issues are imported or not
+    assertThat(keys).containsAll(Arrays.asList(
+      "csharpsquid:S125",
+      "csharpsquid:S1134"));
+
+    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7,4))
+    {
+      // if external issues are imported, then there should also be some
+      // Wintellect errors.  However, only file-level issues are imported.
+      assertThat(keys).containsAll(Arrays.asList(
+        "external_roslyn:Wintellect004"));
+
+      assertThat(issues).hasSize(3);
+
+    } else {
+      // Not expecting any external issues
+      assertThat(issues).hasSize(2);
+    }
   }
 
   @Test
