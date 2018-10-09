@@ -106,7 +106,8 @@ public class ScannerMSBuildTest {
     .setEdition(Edition.DEVELOPER)
     .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
     .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-csharp-plugin", "LATEST_RELEASE"))
-    .addPlugin(MavenLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", "LATEST_RELEASE"))
+    // TODO: switch this to LATEST_RELEASE once the OS VB plugin has been released
+    .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-vbnet-plugin", "DEV"))
     .activateLicense()
     .build();
 
