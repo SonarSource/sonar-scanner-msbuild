@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild;
 
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.MavenLocation;
@@ -65,7 +66,8 @@ public class VBNetTest {
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
     .setEdition(Edition.DEVELOPER)
-    .addPlugin(MavenLocation.of("com.sonarsource.vbnet", "sonar-vbnet-plugin", "LATEST_RELEASE"))
+    // TODO: switch this to LATEST_RELEASE once the OS VB plugin has been released
+    .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-vbnet-plugin", "DEV"))
     .activateLicense()
     .build();
 
@@ -104,6 +106,48 @@ public class VBNetTest {
 
     assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(23);
     assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(10);
+  }
+
+  @Test
+  public void checkExternalIssuesVB() throws Exception {
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssuesVB/TestQualityProfileExternalIssuesVB.xml"));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "vbnet", "ProfileForTestExternalIssuesVB");
+
+    Path projectDir = TestUtils.projectDir(temp, "ExternalIssuesVB");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectName("sample")
+      .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("end"));
+
+    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    List<String> keys = issues.stream().map(Issue::ruleKey).collect(Collectors.toList());
+
+    // The same set of Sonar issues should be reported, regardless of whether
+    // external issues are imported or not
+    assertThat(keys).containsAll(Arrays.asList(
+      "vbnet:S112",
+      "vbnet:S3385"));
+
+    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7,4))
+    {
+      // if external issues are imported, then there should also be some CodeCracker errors.
+      assertThat(keys).containsAll(Arrays.asList(
+        "external_roslyn:CC0021",
+        "external_roslyn:CC0062"));
+
+      assertThat(issues).hasSize(4);
+
+    } else {
+      // Not expecting any external issues
+      assertThat(issues).hasSize(2);
+    }
   }
 
   @CheckForNull

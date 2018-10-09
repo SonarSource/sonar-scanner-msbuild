@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<profile>
+  <name>ProfileForTestExternalIssuesVB</name>
+  <language>vbnet</language>
+  <rules>
+    <rule>
+      <repositoryKey>vbnet</repositoryKey>
+      <key>S3385</key>
+      <priority>MAJOR</priority>
+      <parameters/>
+    </rule>
+    <rule>
+      <repositoryKey>vbnet</repositoryKey>
+      <key>S112</key>
+      <priority>MAJOR</priority>
+      <parameters/>
+    </rule>
+  </rules>
+</profile>
