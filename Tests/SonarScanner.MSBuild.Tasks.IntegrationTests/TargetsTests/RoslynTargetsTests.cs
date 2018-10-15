@@ -321,7 +321,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             result.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
             result.BuildSucceeded.Should().BeTrue();
 
-            // Check the error log and ruleset properties are set
             result.MessageLog.Contains("Analysis language is not specified");
 
             AssertErrorLogIsSetBySonarQubeTargets(result);
