@@ -83,6 +83,74 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
+        public void GetAnalyzerSettings_ConfigExists_Legacy_NoLanguage_SettingsOverwritten()
+        {
+            // Arrange
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = "7.3",
+                AnalyzersSettings = new List<AnalyzerSettings>
+                {
+                    new AnalyzerSettings
+                    {
+                        Language = "cs",
+                        RuleSetFilePath = "f:\\yyy.ruleset",
+                        AnalyzerAssemblyPaths = new List<string> { "c:\\local_analyzer.dll" },
+                        AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt" }
+                    }
+                }
+            };
+
+            var testSubject = CreateConfiguredTestSubject(config, "" /* no language specified */, TestContext);
+            testSubject.OriginalAdditionalFiles = new string[]
+            {
+                "original.should.be.preserved.txt"
+            };
+
+            // Act
+            ExecuteAndCheckSuccess(testSubject);
+
+            // Assert
+            testSubject.RuleSetFilePath.Should().BeNull();
+            testSubject.AnalyzerFilePaths.Should().BeNull();
+            testSubject.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.preserved.txt");
+        }
+
+        [TestMethod]
+        public void GetAnalyzerSettings_ConfigExists_NotLegacy_NoLanguage_SettingsOverwritten()
+        {
+            // Arrange
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = "7.4",
+                AnalyzersSettings = new List<AnalyzerSettings>
+                {
+                    new AnalyzerSettings
+                    {
+                        Language = "cs",
+                        RuleSetFilePath = "f:\\yyy.ruleset",
+                        AnalyzerAssemblyPaths = new List<string> { "c:\\local_analyzer.dll" },
+                        AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt" }
+                    }
+                }
+            };
+
+            var testSubject = CreateConfiguredTestSubject(config, "" /* no language specified */, TestContext);
+            testSubject.OriginalAdditionalFiles = new string[]
+            {
+                "original.should.be.preserved.txt"
+            };
+
+            // Act
+            ExecuteAndCheckSuccess(testSubject);
+
+            // Assert
+            testSubject.RuleSetFilePath.Should().BeNull("");
+            testSubject.AnalyzerFilePaths.Should().BeNull();
+            testSubject.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.preserved.txt");
+        }
+
+        [TestMethod]
         public void GetAnalyzerSettings_ConfigExists_Legacy_SettingsOverwritten()
         {
             // Arrange
@@ -219,6 +287,19 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 "c:\\config\\add1.txt",
                 "d:\\config\\add2.txt",
                 "original.should.be.preserved.txt");
+        }
+
+
+        [TestMethod]
+        public void ShouldMerge_MissingLanguage_ReturnsFalse()
+        {
+            // Legacy server version - empty language
+            var logger = CheckShouldMerge("7.3.1", "", ignoreExternalIssues: "true", expected: false);
+            logger.AssertInfoMessageExists("Analysis language is not specified");
+
+            // New server version - null language
+            logger = CheckShouldMerge("7.4", null, ignoreExternalIssues: "true", expected: false);
+            logger.AssertInfoMessageExists("Analysis language is not specified");
         }
 
         [TestMethod]

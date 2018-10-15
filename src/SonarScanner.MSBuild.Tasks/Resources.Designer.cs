@@ -97,6 +97,15 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analysis language is not specified.
+        /// </summary>
+        internal static string AnalyzerSettings_LanguageNotSpecified {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_LanguageNotSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Merging analysis settings....
         /// </summary>
         internal static string AnalyzerSettings_MergingSettings {
