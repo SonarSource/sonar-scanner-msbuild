@@ -80,7 +80,6 @@ namespace SonarScanner.MSBuild.Tasks
         /// <summary>
         /// The language for which we are gettings the settings
         /// </summary>
-        [Required]
         public string Language { get; set; }
 
         /// <summary>
@@ -129,6 +128,12 @@ namespace SonarScanner.MSBuild.Tasks
         internal /* for testing */ static bool ShouldMergeAnalysisSettings(string language, AnalysisConfig config,
             SonarScanner.MSBuild.Common.ILogger logger)
         {
+            if (string.IsNullOrEmpty(language))
+            {
+                logger.LogInfo(Resources.AnalyzerSettings_LanguageNotSpecified);
+                return false;
+            }
+
             // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/561
             // Legacy behaviour is to overwrite.
             // The new (SQ 7.4+) behaviour is to merge only if sonar.[LANGUAGE].roslyn.ignoreIssues is true.

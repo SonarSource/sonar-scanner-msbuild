@@ -278,6 +278,59 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         }
 
         [TestMethod]
+        public void Roslyn_Settings_LanguageMissing_NoError()
+        {
+            // Arrange
+
+            // Set the config directory so the targets know where to look for the analysis config file
+            var confDir = TestUtils.CreateTestSpecificFolder(TestContext, "config");
+
+            // Create a valid config file that does not contain analyzer settings
+            var config = new AnalysisConfig();
+            var configFilePath = Path.Combine(confDir, FileConstants.ConfigFileName);
+            config.Save(configFilePath);
+
+            // Create the project
+            var properties = new WellKnownProjectProperties
+            {
+                SonarQubeConfigPath = confDir,
+                ResolvedCodeAnalysisRuleset = "c:\\should.be.overridden.ruleset"
+            };
+
+            var projectRoot = CreateValidProjectSetup(properties);
+            projectRoot.AddProperty("Language", "");
+
+            projectRoot.AddItem(TargetProperties.AnalyzerItemType, "should.be.removed.analyzer1.dll");
+            const string additionalFileName = "should.not.be.removed.additional1.txt";
+            projectRoot.AddItem(TargetProperties.AdditionalFilesItemType, additionalFileName);
+
+            projectRoot.Save(); // re-save the modified project
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.OverrideRoslynAnalysisTarget);
+
+            var projectSpecificConfFilePath = result.GetCapturedPropertyValue(TargetProperties.ProjectConfFilePath);
+
+            var expectedRoslynAdditionalFiles = new string[] {
+                projectSpecificConfFilePath,
+                additionalFileName /* additional files are not removed */
+            };
+
+            // Assert
+            result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
+            result.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisPropertiesTarget);
+            result.BuildSucceeded.Should().BeTrue();
+
+            // Check the error log and ruleset properties are set
+            result.MessageLog.Contains("Analysis language is not specified");
+
+            AssertErrorLogIsSetBySonarQubeTargets(result);
+            AssertExpectedResolvedRuleset(result, string.Empty);
+            result.AssertExpectedItemGroupCount(TargetProperties.AnalyzerItemType, 0);
+            AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, expectedRoslynAdditionalFiles);
+        }
+
+        [TestMethod]
         [Description("Checks that a config file with no analyzer settings does not cause an issue")]
         public void Roslyn_Settings_SettingsMissing_NoError()
         {
