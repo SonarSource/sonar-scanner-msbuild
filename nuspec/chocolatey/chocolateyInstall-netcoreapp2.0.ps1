@@ -2,4 +2,4 @@
     -Url "https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/$env:ChocolateyPackageVersion/sonar-scanner-msbuild-$env:ChocolateyPackageVersion-netcoreapp2.0.zip" `
     -UnzipLocation "$(Split-Path -parent $MyInvocation.MyCommand.Definition)" `
     -ChecksumType 'sha256' `
-    -Checksum "831290FDA537D37F756051266C0B85D6064B068ECE6F53B445CC9DB3BAF2E0D5"
+    -Checksum "BA8D058A88C311A0F01DBAC94B4B3041EB27713085FC2F0776FB863277127534"
