@@ -11,11 +11,13 @@ function testExitCode(){
 # See https://githubengineering.com/crypto-removal-notice/
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 Write-Debug "Current security protocol: $([System.Net.ServicePointManager]::SecurityProtocol)"
-$scannerMsbuildVersion = "4.2.0.1214"
-(New-Object System.Net.WebClient).DownloadFile("https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/$scannerMsbuildVersion/sonar-scanner-msbuild-$scannerMsbuildVersion-net46.zip", 
-    ".\sonar-scanner-msbuild.zip")
 
-unzip -o .\sonar-scanner-msbuild.zip
+$scannerMsbuildZip = ".\sonar-scanner-msbuild.zip"
+$downloadLink = "https://repox.sonarsource.com/sonarsource-public-releases/org/sonarsource/scanner/msbuild/" +
+    "sonar-scanner-msbuild/%5BRELEASE%5D/sonar-scanner-msbuild-%5BRELEASE%5D-net46.zip"
+(New-Object System.Net.WebClient).DownloadFile($downloadLink, $scannerMsbuildZip)
+
+unzip -o $scannerMsbuildZip
 testExitCode
 
 #generate build version from the build number
@@ -98,13 +100,13 @@ if ($env:IS_PULLREQUEST -eq "true") {
         write-host -f green "Building master branch"
 
         # scanner begin
-        .\SonarScanner.MSBuild begin `
+        & .\SonarScanner.MSBuild.exe begin `
             /k:sonarscanner-msbuild `
             /n:"SonarScanner for MSBuild" `
-            /v:$mainVersion `
             /d:sonar.host.url=$env:SONARCLOUD_HOST_URL `
             /d:sonar.login=$env:SONARCLOUD_TOKEN `
             /o:sonarsource `
+            /v:$mainVersion `
             /d:sonar.cs.vstest.reportsPaths="**\*.trx" `
             /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" `
             /d:sonar.analysis.buildNumber=$env:BUILD_NUMBER `
@@ -123,7 +125,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
         runTests
 
         # scanner end
-        .\SonarScanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
+        & .\SonarScanner.MSBuild.exe end /d:sonar.login=$env:SONARCLOUD_TOKEN
         testExitCode
 
         # deploy
