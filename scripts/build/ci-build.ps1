@@ -104,7 +104,7 @@ if ($env:IS_PULLREQUEST -eq "true") {
             /v:$mainVersion `
             /d:sonar.host.url=$env:SONARCLOUD_HOST_URL `
             /d:sonar.login=$env:SONARCLOUD_TOKEN `
-            /o:sonarsource
+            /o:sonarsource `
             /d:sonar.cs.vstest.reportsPaths="**\*.trx" `
             /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" `
             /d:sonar.analysis.buildNumber=$env:BUILD_NUMBER `
