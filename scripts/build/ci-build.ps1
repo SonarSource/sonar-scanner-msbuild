@@ -98,13 +98,10 @@ if ($env:IS_PULLREQUEST -eq "true") {
         write-host -f green "Building master branch"
 
         # scanner begin
-        .\SonarScanner.MSBuild begin `
-            /k:sonarscanner-msbuild `
-            /n:"SonarScanner for MSBuild" `
+        .\SonarScanner.MSBuild begin /k:sonar-scanner-msbuild /n:"Sonar Scanner for MSBuild" `
             /v:$mainVersion `
-            /d:sonar.host.url=$env:SONARCLOUD_HOST_URL `
-            /d:sonar.login=$env:SONARCLOUD_TOKEN `
-            /o:sonarsource
+            /d:sonar.host.url=$env:SONAR_HOST_URL `
+            /d:sonar.login=$env:SONAR_TOKEN `
             /d:sonar.cs.vstest.reportsPaths="**\*.trx" `
             /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" `
             /d:sonar.analysis.buildNumber=$env:BUILD_NUMBER `
