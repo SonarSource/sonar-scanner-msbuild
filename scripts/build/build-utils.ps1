@@ -98,16 +98,32 @@ function Invoke-MSBuild (
 }
 
 # Tests
+function Clear-TestResults() {
+    If (Test-Path TestResults){
+        Remove-Item TestResults -Recurse
+    }
+}
+
+function Clear-ExtraFiles() {
+    # Clean up extra test results
+    Get-ChildItem -path "TestResults" -Recurse -Include *.trx `
+        | Where-Object { $_ -Match ".+\\.+\.trx" } `
+        | Remove-Item
+    Get-ChildItem -path "TestResults" -Recurse -Include *.coverage `
+        | Where-Object { $_ -NotMatch "([a-f0-9]+[-])+[a-f0-9]+\\" } `
+        | Remove-Item
+}
+
 function Invoke-UnitTests([string]$binPath, [bool]$failsIfNotTest) {
     Write-Header "Running unit tests"
 
-    $escapedPath = (Join-Path $binPath "net46") -Replace '\\', '\\'
+    Clear-TestResults
 
     Write-Debug "Running unit tests for"
     $testFiles = @()
     $testDirs = @()
     Get-ChildItem ".\tests" -Recurse -Include "*Tests.dll" `
-        | Where-Object { $_.DirectoryName -Match $escapedPath } `
+        | Where-Object { $_.DirectoryName -Match $binPath } `
         | ForEach-Object {
             $currentFile = $_
             Write-Debug "   - ${currentFile}"
@@ -116,8 +132,10 @@ function Invoke-UnitTests([string]$binPath, [bool]$failsIfNotTest) {
         }
     $testDirs = $testDirs | Select-Object -Uniq
 
-    & (Get-VsTestPath) $testFiles /Parallel /Enablecodecoverage /InIsolation /Logger:trx
+    & (Get-VsTestPath) /Enablecodecoverage /Logger:trx $testFiles
     Test-ExitCode "ERROR: Unit Tests execution FAILED."
+
+    Clear-ExtraFiles
 }
 
 # Coverage
