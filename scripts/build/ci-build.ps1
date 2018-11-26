@@ -124,7 +124,7 @@ function Invoke-SonarBeginAnalysis([array][parameter(ValueFromRemainingArguments
     Exec { & (Get-ScannerMsBuildPath) begin `
         /k:sonaranalyzer-dotnet `
         /n:"SonarAnalyzer .Net" `
-        /d:sonar.host.url=${sonarCloudUrl} `
+        /d:sonar.host.url=$sonarQubeUrl `
         /d:sonar.login=$sonarQubeToken `
         /o:sonarsource `
         /d:sonar.cs.vstest.reportsPaths="**\*.trx" `
