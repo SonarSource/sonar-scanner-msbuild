@@ -111,7 +111,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <AdditionalFiles Include="..\..\SonarLint.xml">
+    <AdditionalFiles Include="..\..\.sonarlint\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
   </ItemGroup>
