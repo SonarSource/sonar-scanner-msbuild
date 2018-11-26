@@ -123,7 +123,7 @@ function Invoke-UnitTests([string]$binPath, [bool]$failsIfNotTest) {
     $testFiles = @()
     $testDirs = @()
     Get-ChildItem ".\tests" -Recurse -Include "*Tests.dll" `
-        | Where-Object { $_.DirectoryName -Match $binPath } `
+        | Where-Object { $_.DirectoryName -Match "bin" } `
         | ForEach-Object {
             $currentFile = $_
             Write-Debug "   - ${currentFile}"
