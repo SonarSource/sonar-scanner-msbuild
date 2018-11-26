@@ -64,27 +64,27 @@ namespace TestUtilities
 
         public void AssertErrorsLogged()
         {
-            Errors.Count.Should().BeGreaterThan(0, "Expecting at least one error to be logged");
+            Errors.Count.Should().BePositive("Expecting at least one error to be logged");
         }
 
         public void AssertMessagesLogged()
         {
-            InfoMessages.Count.Should().BeGreaterThan(0, "Expecting at least one message to be logged");
+            InfoMessages.Count.Should().BePositive("Expecting at least one message to be logged");
         }
 
         public void AssertErrorsLogged(int expectedCount)
         {
-            Errors.Count.Should().Be(expectedCount, "Unexpected number of errors logged");
+            Errors.Should().HaveCount(expectedCount, "Unexpected number of errors logged");
         }
 
         public void AssertWarningsLogged(int expectedCount)
         {
-            Warnings.Count.Should().Be(expectedCount, "Unexpected number of warnings logged");
+            Warnings.Should().HaveCount(expectedCount, "Unexpected number of warnings logged");
         }
 
         public void AssertMessagesLogged(int expectedCount)
         {
-            InfoMessages.Count.Should().Be(expectedCount, "Unexpected number of messages logged");
+            InfoMessages.Should().HaveCount(expectedCount, "Unexpected number of messages logged");
         }
 
         public void AssertDebugLogged(string expected)
@@ -120,7 +120,7 @@ namespace TestUtilities
         public void AssertSingleErrorExists(params string[] expected)
         {
             var matches = Errors.Where(w => expected.All(e => w.Contains(e)));
-            matches.Should().HaveCount(1, "More than one error contains the expected strings: {0}", string.Join(",", expected));
+            matches.Should().ContainSingle("More than one error contains the expected strings: {0}", string.Join(",", expected));
         }
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace TestUtilities
         public void AssertSingleWarningExists(params string[] expected)
         {
             var matches = Warnings.Where(w => expected.All(e => w.Contains(e)));
-            matches.Should().HaveCount(1, "More than one warning contains the expected strings: {0}", string.Join(",", expected));
+            matches.Should().ContainSingle("More than one warning contains the expected strings: {0}", string.Join(",", expected));
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace TestUtilities
         public string AssertSingleInfoMessageExists(params string[] expected)
         {
             var matches = InfoMessages.Where(m => expected.All(e => m.Contains(e)));
-            matches.Should().HaveCount(1, "More than one INFO message contains the expected strings: {0}", string.Join(",", expected));
+            matches.Should().ContainSingle("More than one INFO message contains the expected strings: {0}", string.Join(",", expected));
             return matches.First();
         }
 
@@ -148,7 +148,7 @@ namespace TestUtilities
         public string AssertSingleDebugMessageExists(params string[] expected)
         {
             var matches = DebugMessages.Where(m => expected.All(e => m.Contains(e)));
-            matches.Should().HaveCount(1, "More than one DEBUG message contains the expected strings: {0}", string.Join(",", expected));
+            matches.Should().ContainSingle("More than one DEBUG message contains the expected strings: {0}", string.Join(",", expected));
             return matches.First();
         }
 

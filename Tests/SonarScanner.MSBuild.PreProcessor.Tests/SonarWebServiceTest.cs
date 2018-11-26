@@ -251,13 +251,15 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                   }
                 ]}";
             var result = ws.GetProperties("comp", null);
-            result.Count.Should().Be(7);
+            result.Should().HaveCount(7);
+#pragma warning disable CollectionShouldHaveElementAt // Simplify Assertion
             result["sonar.exclusions"].Should().Be("myfile,myfile2");
             result["sonar.junit.reportsPath"].Should().Be("testing.xml");
             result["sonar.issue.ignore.multicriteria.1.resourceKey"].Should().Be("prop1");
             result["sonar.issue.ignore.multicriteria.1.ruleKey"].Should().Be("");
             result["sonar.issue.ignore.multicriteria.2.resourceKey"].Should().Be("prop2");
             result["sonar.issue.ignore.multicriteria.2.ruleKey"].Should().Be("");
+#pragma warning restore CollectionShouldHaveElementAt // Simplify Assertion
         }
 
         [TestMethod]
@@ -294,7 +296,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }";
 
             var actual = ws.GetActiveRules("qp");
-            actual.Should().HaveCount(1);
+            actual.Should().ContainSingle();
 
             actual[0].RepoKey.Should().Be("vbnet");
             actual[0].RuleKey.Should().Be("OverwrittenId");

@@ -386,7 +386,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             File.Exists(filePath).Should().BeTrue("File should exist: {0}", filePath);
 
             var content = File.ReadAllText(filePath);
-            content.IndexOf(text, System.StringComparison.InvariantCultureIgnoreCase).Should().BeLessThan(0, "Not expecting text to be found in the file. Text: '{0}', file: {1}",
+            content.IndexOf(text, System.StringComparison.InvariantCultureIgnoreCase).Should().BeNegative("Not expecting text to be found in the file. Text: '{0}', file: {1}",
                 text, filePath);
         }
 

@@ -423,7 +423,8 @@ xxx yyy
 
         private static void AssertTextDoesNotAppearInLog(string text, IList<string> logEntries)
         {
-            logEntries.Any(e => e.IndexOf(text, StringComparison.OrdinalIgnoreCase) > -1).Should().BeFalse("Specified text should not appear anywhere in the log file: {0}", text);
+            logEntries.Should().NotContain(e => e.IndexOf(text, StringComparison.OrdinalIgnoreCase) > -1,
+                "Specified text should not appear anywhere in the log file: {0}", text);
         }
 
         #endregion Private methods

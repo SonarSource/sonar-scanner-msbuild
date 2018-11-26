@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         public void AssertExpectedLastOutput(string message, ConsoleColor textColor, bool isError)
         {
-            outputMessages.Any().Should().BeTrue("Expecting some output to have been written to the console");
+            outputMessages.Should().NotBeEmpty("Expecting some output to have been written to the console");
 
             var lastMessage = outputMessages.Last();
 

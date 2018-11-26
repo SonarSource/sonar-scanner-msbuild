@@ -68,7 +68,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             var lastMessage = GetLastMessage(outputWriter);
 
-            lastMessage.EndsWith(expected, StringComparison.CurrentCulture).Should().BeTrue("Message does not end with the expected string: '{0}'", lastMessage);
+            lastMessage.Should().EndWith(expected, "Message does not end with the expected string: '{0}'", lastMessage);
             lastMessage.Length.Should().BeGreaterThan(expected.Length, "Expecting the message to be prefixed with timestamps text");
         }
 
@@ -82,7 +82,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             var last = GetLastMessage(errorWriter);
 
-            last.EndsWith(expected, StringComparison.CurrentCulture).Should().BeTrue("Error does not end with the expected string: '{0}'", last);
+            last.Should().EndWith(expected, "Error does not end with the expected string: '{0}'", last);
             last.Length.Should().BeGreaterThan(expected.Length, "Expecting the error to be prefixed with timestamps text");
         }
 
@@ -138,7 +138,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             // There will always be at least one entry in the array, even in an empty string.
             // The last line should be an empty string that follows the final new line character.
-            lines[lines.Length - 1].Should().Be(string.Empty, "Test logic error: expecting the last array entry to be an empty string");
+            lines.Should().HaveElementAt(lines.Length - 1, string.Empty, "Test logic error: expecting the last array entry to be an empty string");
 
             return lines[lines.Length - 2];
         }
