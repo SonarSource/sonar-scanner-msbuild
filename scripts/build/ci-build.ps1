@@ -1,143 +1,288 @@
+<#
+
+.SYNOPSIS
+This script controls the build process on the CI server.
+
+#>
+
+[CmdletBinding(PositionalBinding = $false)]
+param (
+    # GitHub related parameters
+    [string]$githubRepo = $env:GITHUB_REPO,
+    [string]$githubToken = $env:GITHUB_TOKEN,
+    [string]$githubPullRequest = $env:PULL_REQUEST,
+    [string]$githubIsPullRequest = $env:IS_PULLREQUEST,
+    [string]$githubBranch = $env:GITHUB_BRANCH,
+    [string]$githubSha1 = $env:GIT_SHA1,
+    # GitHub PR related parameters
+    [string]$githubPRBaseBranch = $env:GITHUB_BASE_BRANCH,
+    [string]$githubPRTargetBranch = $env:GITHUB_TARGET_BRANCH,
+
+    # SonarCloud related parameters
+    [string]$sonarCloudUrl = $env:SONARCLOUD_HOST_URL,
+    [string]$sonarCloudToken = $env:SONARCLOUD_TOKEN,
+
+    # Build related parameters
+    [string]$buildNumber = $env:BUILD_NUMBER,
+    [string]$certificatePath = $env:CERT_PATH,
+
+    # Artifactory related parameters
+    [string]$repoxUserName = $env:ARTIFACTORY_DEPLOY_USERNAME,
+    [string]$repoxPassword = $env:ARTIFACTORY_DEPLOY_PASSWORD,
+
+    # Others
+    [string]$appDataPath = $env:APPDATA
+)
+
+Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
-function testExitCode(){
-    If($LASTEXITCODE -ne 0) {
-        write-host -f green "lastexitcode: $LASTEXITCODE"
-        exit $LASTEXITCODE
+if ($PSBoundParameters['Verbose'] -Or $PSBoundParameters['Debug']) {
+    $global:DebugPreference = "Continue"
+}
+
+function Get-BranchName() {
+    if ($githubBranch.StartsWith("refs/heads/")) {
+        return $githubBranch.Substring(11)
+    }
+
+    return $githubBranch
+}
+
+function Get-DotNetVersion() {
+    [xml]$versionProps = Get-Content "${PSScriptRoot}\..\version\Version.props"
+    $fullVersion = $versionProps.Project.PropertyGroup.MainVersion + "." + $versionProps.Project.PropertyGroup.BuildNumber
+
+    Write-Debug ".Net version is '${fullVersion}'"
+
+    return $fullVersion
+}
+
+function Set-DotNetVersion() {
+    Write-Header "Updating version in .Net files"
+
+    $branchName = Get-BranchName
+    Write-Debug "Setting build number ${buildNumber}, sha1 ${githubSha1} and branch ${branchName}"
+
+    Invoke-InLocation (Join-Path $PSScriptRoot "..\version") {
+        $versionProperties = "Version.props"
+        (Get-Content $versionProperties) `
+                -Replace '<Sha1>.*</Sha1>', "<Sha1>$githubSha1</Sha1>" `
+                -Replace '<BuildNumber>\d+</BuildNumber>', "<BuildNumber>$buildNumber</BuildNumber>" `
+                -Replace '<BranchName>.*</BranchName>', "<BranchName>$branchName</BranchName>" `
+            | Set-Content $versionProperties
+
+        Invoke-MSBuild "15.0" "ChangeVersion.proj"
+
+        $version = Get-DotNetVersion
+        Write-Host "Version successfully set to '${version}'"
     }
 }
 
-# NB: the .Net framework defaults to TLS v1 which is no longer supported by GitHub
-# See https://githubengineering.com/crypto-removal-notice/
-[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-Write-Debug "Current security protocol: $([System.Net.ServicePointManager]::SecurityProtocol)"
-$scannerMsbuildVersion = "4.2.0.1214"
-(New-Object System.Net.WebClient).DownloadFile("https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/$scannerMsbuildVersion/sonar-scanner-msbuild-$scannerMsbuildVersion-net46.zip", 
-    ".\sonar-scanner-msbuild.zip")
+function Get-LeakPeriodVersion() {
+    [xml]$versionProps = Get-Content "${PSScriptRoot}\..\version\Version.props"
+    $mainVersion = $versionProps.Project.PropertyGroup.MainVersion
 
-unzip -o .\sonar-scanner-msbuild.zip
-testExitCode
+    Write-Debug "Leak period version is '${mainVersion}'"
 
-#generate build version from the build number
-$buildversion="$env:BUILD_NUMBER"
-$branchName = "$env:GITHUB_BRANCH"
-$sha1 = "$env:GIT_SHA1"
-
-$versionProperties = "scripts\version\Version.props"
-[xml]$versionProps = Get-Content $versionProperties
-$mainVersion = $versionProps.Project.PropertyGroup.MainVersion
-
-#Append build number to the versions
-(Get-Content $versionProperties) `
-        -Replace '<Sha1>.*</Sha1>', "<Sha1>$sha1</Sha1>" `
-        -Replace '<BuildNumber>\d+</BuildNumber>', "<BuildNumber>$buildversion</BuildNumber>" `
-        -Replace '<BranchName>.*</BranchName>', "<BranchName>$branchName</BranchName>" `
-    | Set-Content $versionProperties
-& $env:MSBUILD_PATH  .\scripts\version\ChangeVersion.proj
-testExitCode
-
-#get version number
-$version  = $mainVersion+".$buildversion"
-write-host -f green "version: $version"
-
-function restore() {
-    # see https://github.com/Microsoft/vsts-tasks/issues/3762
-    # it seems for mixed .net standard and .net framework, we need both dotnet restore and nuget restore...
-    & dotnet restore
-    & $env:NUGET_PATH restore
+    return $mainVersion
 }
 
-function deploy([string] $version) {
-    #DeployOnRepox $classicScannerZipPath "" $version
+function Get-ScannerMsBuildPath() {
+    $currentDir = (Resolve-Path .\).Path
+    $scannerMsbuild = Join-Path $currentDir "SonarScanner.MSBuild.exe"
+
+    if (-Not (Test-Path $scannerMsbuild)) {
+        Write-Debug "Scanner for MSBuild not found, downloading it"
+
+        # This links always redirect to the latest released scanner
+        $downloadLink = "https://repox.sonarsource.com/sonarsource-public-releases/org/sonarsource/scanner/msbuild/" +
+            "sonar-scanner-msbuild/%5BRELEASE%5D/sonar-scanner-msbuild-%5BRELEASE%5D-net46.zip"
+        $scannerMsbuildZip = Join-Path $currentDir "\SonarScanner.MSBuild.zip"
+
+        Write-Debug "Downloading scanner from '${downloadLink}' at '${currentDir}'"
+        (New-Object System.Net.WebClient).DownloadFile($downloadLink, $scannerMsbuildZip)
+
+        # perhaps we could use other folder, not the repository root
+        Expand-ZIPFile $scannerMsbuildZip $currentDir
+
+        Write-Debug "Deleting downloaded zip"
+        Remove-Item $scannerMsbuildZip -Force
+    }
+
+    Write-Debug "Scanner for MSBuild found at '$scannerMsbuild'"
+    return $scannerMsbuild
+}
+
+function Invoke-SonarBeginAnalysis([array][parameter(ValueFromRemainingArguments = $true)]$remainingArgs) {
+    Write-Header "Running SonarCloud Analysis begin step"
+
+    if (Test-Debug) {
+        $remainingArgs += "/d:sonar.verbose=true"
+    }
+
+    Exec { & (Get-ScannerMsBuildPath) begin `
+        /k:sonaranalyzer-dotnet `
+        /n:"SonarAnalyzer .Net" `
+        /d:sonar.host.url=${sonarCloudUrl} `
+        /d:sonar.login=$sonarCloudToken `
+        /o:sonarsource `
+        /d:sonar.cs.vstest.reportsPaths="**\*.trx" `
+        /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" `
+        $remainingArgs `
+    } -errorMessage "ERROR: SonarCloud Analysis begin step FAILED."
+}
+
+function Invoke-SonarEndAnalysis() {
+    Write-Header "Running SonarCloud Analysis end step"
+
+    Exec { & (Get-ScannerMsBuildPath) end `
+        /d:sonar.login=$sonarCloudToken `
+    } -errorMessage "ERROR: SonarCloud Analysis end step FAILED."
+}
+
+function Publish-Artifacts() {
     $classicScannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarscanner-msbuild-net46.zip
     $dotnetScannerZipPath  = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarscanner-msbuild-netcoreapp2.0.zip
-    $dotnetScannerGlobalToolPath  = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\dotnet-sonarscanner.$mainVersion.nupkg
+    $dotnetScannerGlobalToolPath  = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\dotnet-sonarscanner.$leakPeriodVersion.nupkg
 
-    write-host -f green  "replace zip filenames in pom.xml"
-    (Get-Content .\pom.xml) -replace 'classicScannerZipPath', "$classicScannerZipPath" | Set-Content .\pom.xml
-    (Get-Content .\pom.xml) -replace 'dotnetScannerZipPath', "$dotnetScannerZipPath" | Set-Content .\pom.xml
-    (Get-Content .\pom.xml) -replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" | Set-Content .\pom.xml
+    Write-Host "Update zip locations in pom.xml"
+    $pomFile = ".\pom.xml"
+    (Get-Content $pomFile) `
+            -Replace 'classicScannerZipPath', "$classicScannerZipPath" `
+            -Replace 'dotnetScannerZipPath', "$dotnetScannerZipPath" `
+            -Replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" `
+        | Set-Content $pomFile
 
-    write-host -f green  "set version $version in pom.xml"
-    $command = "mvn versions:set -DgenerateBackupPoms=false -DnewVersion='$version'"
-    Invoke-Expression $command
-    write-host -f green  "set version $version in env VAR PROJECT_VERSION for artifactory buildinfo metadata"
-    $env:PROJECT_VERSION=$version
-    write-host -f green  "set the buildnumber to this job build number"
-    $env:BUILD_ID=$env:BUILD_NUMBER
-    write-host -f green  "Deploy to repox with $version"
-    $command = 'mvn deploy -Pdeploy-sonarsource -B -e -V'
-    Invoke-Expression $command
+    Exec { & mvn org.codehaus.mojo:versions-maven-plugin:2.2:set "-DnewVersion=${version}" `
+        -DgenerateBackupPoms=false -B -e `
+    } -errorMessage "ERROR: Maven set version FAILED."
 
-    #create empty file to trigger qa
-    new-item -path . -name qa.properties -type "file"
+    Write-Host "Deploying artifacts to repox"
+    # Set the version used by Jenkins to associate artifacts to the right version
+    $env:PROJECT_VERSION = $version
+    $env:BUILD_ID=$buildNumber
+
+    Exec { & mvn deploy -Pdeploy-sonarsource -B -e -V `
+    } -errorMessage "ERROR: Deployment FAILED."
 }
 
-function runTests() {
-    . (Join-Path $PSScriptRoot "ci-runTests.ps1")
-    Clear-TestResults
-    Invoke-Tests
-    Clear-ExtraFiles
-    Invoke-CodeCoverage
-}
+function Invoke-DotNetBuild() {
+    Set-DotNetVersion
 
-if ($env:IS_PULLREQUEST -eq "true") {
-    write-host -f green "in a pull request"
+    $skippedAnalysis = $false
+    $leakPeriodVersion = Get-LeakPeriodVersion
 
-    restore
-    testExitCode
-    & $env:MSBUILD_PATH SonarScanner.MSBuild.sln /t:rebuild /p:Configuration=Release
-    testExitCode
-    #run tests
-    runTests
-
-    deploy -version $version
-
-} else {
-    if (($env:GITHUB_BRANCH -eq "master") -or ($env:GITHUB_BRANCH -eq "refs/heads/master")) {
-        write-host -f green "Building master branch"
-
-        # scanner begin
-        .\SonarScanner.MSBuild begin /k:sonar-scanner-msbuild /n:"Sonar Scanner for MSBuild" `
-            /v:$mainVersion `
-            /d:sonar.host.url=$env:SONAR_HOST_URL `
-            /d:sonar.login=$env:SONAR_TOKEN `
-            /d:sonar.cs.vstest.reportsPaths="**\*.trx" `
-            /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" `
-            /d:sonar.analysis.buildNumber=$env:BUILD_NUMBER `
-            /d:sonar.analysis.pipeline=$env:BUILD_NUMBER `
-            /d:sonar.analysis.sha1=$env:GIT_SHA1 `
-            /d:sonar.analysis.repository=$env:GITHUB_REPO
-        testExitCode
-
-        # build
-        restore
-        testExitCode
-        & $env:MSBUILD_PATH SonarScanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH /p:defineConstants="SignAssembly"
-        testExitCode
-
-        # tests
-        runTests
-
-        # scanner end
-        .\SonarScanner.MSBuild end /d:sonar.login=$env:SONAR_TOKEN
-        testExitCode
-
-        # deploy
-       deploy -version $version
-
-    } else {
-        write-host -f green "not on master"
-
-        #build
-        restore
-        testExitCode
-        & $env:MSBUILD_PATH SonarScanner.MSBuild.sln /p:configuration=Release /v:m /p:defineConstants=SignAssembly /p:SignAssembly=true /p:AssemblyOriginatorKeyFile=$env:CERT_PATH /p:defineConstants="SignAssembly"
-        testExitCode
-
-        runTests
+    if ($isPullRequest) {
+        Invoke-SonarBeginAnalysis `
+            /d:sonar.analysis.prNumber=$githubPullRequest `
+            /d:sonar.analysis.sha1=$githubSha1 `
+            /d:sonar.pullrequest.key=$githubPullRequest `
+            /d:sonar.pullrequest.branch=$githubPRBaseBranch `
+            /d:sonar.pullrequest.base=$githubPRTargetBranch `
+            /d:sonar.pullrequest.provider=github `
+            /d:sonar.pullrequest.github.repository=$githubRepo `
+            /v:$leakPeriodVersion
+    }
+    elseif ($isMaster) {
+        Invoke-SonarBeginAnalysis `
+            /v:$leakPeriodVersion `
+            /d:sonar.analysis.buildNumber=$buildNumber `
+            /d:sonar.analysis.pipeline=$buildNumber `
+            /d:sonar.analysis.sha1=$githubSha1 `
+            /d:sonar.analysis.repository=$githubRepo
+    }
+    elseif ($isMaintenanceBranch -or $isFeatureBranch) {
+        Invoke-SonarBeginAnalysis `
+            /v:$leakPeriodVersion `
+            /d:sonar.analysis.buildNumber=$buildNumber `
+            /d:sonar.analysis.pipeline=$buildNumber `
+            /d:sonar.analysis.sha1=$githubSha1 `
+            /d:sonar.analysis.repository=$githubRepo `
+            /d:sonar.branch.name=$branchName
+    }
+    else {
+        $skippedAnalysis = $true
     }
 
+    Restore-Packages "15.0" $solutionName
+    Invoke-MSBuild "15.0" $solutionName `
+        /bl:"${binPath}\msbuild.binlog" `
+        /consoleloggerparameters:Summary `
+        /m `
+        /p:configuration=$buildConfiguration `
+        /p:DeployExtension=false `
+        /p:ZipPackageCompressionLevel=normal `
+        /p:defineConstants="SignAssembly" `
+        /p:SignAssembly=true `
+        /p:AssemblyOriginatorKeyFile=$certificatePath
+
+    Invoke-UnitTests $binPath $true
+    Invoke-CodeCoverage
+
+    if (-Not $skippedAnalysis) {
+        Invoke-SonarEndAnalysis
+        Publish-Artifacts $leakPeriodVersion
+    }
 }
 
+function Initialize-QaStep() {
+    Write-Header "Queueing QA job"
 
+    New-Item -Path . -Name qa.properties -Type "file"
+    Write-Host "Triggering QA job"
+}
+
+try {
+    . (Join-Path $PSScriptRoot "build-utils.ps1")
+
+    $buildConfiguration = "Release"
+    $binPath = "bin\${buildConfiguration}"
+    $solutionName = "SonarAnalyzer.sln"
+    $branchName = Get-BranchName
+    $isMaster = $branchName -eq "master"
+    # See https://xtranet.sonarsource.com/display/DEV/Release+Procedures for info about maintenance branches
+    $isMaintenanceBranch = $branchName -like 'branch-*'
+    $isFeatureBranch = $branchName -like 'feature/*'
+    $isPullRequest = $githubIsPullRequest -eq "true"
+
+    Write-Debug "Solution to build: ${solutionName}"
+    Write-Debug "Build configuration: ${buildConfiguration}"
+    Write-Debug "Bin folder to use: ${binPath}"
+    Write-Debug "Branch: ${branchName}"
+    if ($isMaster) {
+        Write-Debug "Build kind: master"
+    }
+    elseif ($isPullRequest) {
+        Write-Debug "Build kind: PR"
+        Write-Debug "PR: ${githubPullRequest}"
+        Write-Debug "PR source: ${githubPRBaseBranch}"
+        Write-Debug "PR target: ${githubPRTargetBranch}"
+    }
+    elseif ($isMaintenanceBranch) {
+        Write-Debug "Build kind: maintenance branch"
+    }
+    elseif ($isFeatureBranch) {
+        Write-Debug "Build kind: feature branch"
+    }
+    else {
+        Write-Debug "Build kind: branch"
+    }
+
+    Invoke-InLocation "${PSScriptRoot}\..\.." {
+        Invoke-DotNetBuild
+    }
+
+    if ($isPullRequest -or $isMaster -or $isMaintenanceBranch) {
+        Invoke-InLocation "${PSScriptRoot}\..\.." { Initialize-QaStep }
+    }
+
+    Write-Host -ForegroundColor Green "SUCCESS: BUILD job was successful!"
+    exit 0
+}
+catch {
+    Write-Host -ForegroundColor Red $_
+    Write-Host $_.Exception
+    Write-Host $_.ScriptStackTrace
+    exit 1
+}
