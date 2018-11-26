@@ -50,35 +50,7 @@ function Get-CodeCoveragePath {
     return Get-ExecutablePath -name "CodeCoverage.exe" -directory $codeCoverageDirectory -envVar "CODE_COVERAGE_PATH"
 }
 
-function Get-MSBuildImportBeforePath([ValidateSet("14.0", "15.0")][string]$msbuildVersion) {
-    return "$env:USERPROFILE\AppData\Local\Microsoft\MSBuild\${msbuildVersion}\Microsoft.Common.targets\ImportBefore"
-}
-
 # NuGet
-function New-NuGetPackages([string]$binPath) {
-    Write-Header "Building NuGet packages"
-
-    $nugetExe = Get-NuGetPath
-    Get-ChildItem "src" -Recurse *.nuspec | ForEach-Object {
-        $outputDir = Join-Path $_.DirectoryName $binPath
-
-        Write-Debug "Creating NuGet package for '$_' in ${outputDir}"
-
-        $fixedBinPath = if ($_.Name -Like "Descriptor.*.nuspec") { "${binPath}\net46" } else { $binPath }
-
-        if (Test-Debug) {
-            Exec { & $nugetExe pack $_.FullName -NoPackageAnalysis -OutputDirectory $outputDir `
-                -Prop binPath=$fixedBinPath -Verbosity detailed `
-            } -errorMessage "ERROR: NuGet package creation FAILED."
-        }
-        else {
-            Exec { & $nugetExe pack $_.FullName -NoPackageAnalysis -OutputDirectory $outputDir `
-                -Prop binPath=$fixedBinPath `
-            } -errorMessage "ERROR: NuGet package creation FAILED."
-        }
-    }
-}
-
 function Restore-Packages (
     [Parameter(Mandatory = $true, Position = 0)][ValidateSet("14.0", "15.0")][string]$msbuildVersion,
     [Parameter(Mandatory = $true, Position = 1)][string]$solutionPath) {
@@ -126,16 +98,32 @@ function Invoke-MSBuild (
 }
 
 # Tests
+function Clear-TestResults() {
+    If (Test-Path TestResults){
+        Remove-Item TestResults -Recurse
+    }
+}
+
+function Clear-ExtraFiles() {
+    # Clean up extra test results
+    Get-ChildItem -path "TestResults" -Recurse -Include *.trx `
+        | Where-Object { $_ -Match ".+\\.+\.trx" } `
+        | Remove-Item
+    Get-ChildItem -path "TestResults" -Recurse -Include *.coverage `
+        | Where-Object { $_ -NotMatch "([a-f0-9]+[-])+[a-f0-9]+\\" } `
+        | Remove-Item
+}
+
 function Invoke-UnitTests([string]$binPath, [bool]$failsIfNotTest) {
     Write-Header "Running unit tests"
 
-    $escapedPath = (Join-Path $binPath "net46") -Replace '\\', '\\'
+    Clear-TestResults
 
     Write-Debug "Running unit tests for"
     $testFiles = @()
     $testDirs = @()
-    Get-ChildItem ".\tests" -Recurse -Include "*.UnitTest.dll" `
-        | Where-Object { $_.DirectoryName -Match $escapedPath } `
+    Get-ChildItem ".\tests" -Recurse -Include "*Tests.dll" `
+        | Where-Object { $_.DirectoryName -Match $binPath } `
         | ForEach-Object {
             $currentFile = $_
             Write-Debug "   - ${currentFile}"
@@ -144,19 +132,10 @@ function Invoke-UnitTests([string]$binPath, [bool]$failsIfNotTest) {
         }
     $testDirs = $testDirs | Select-Object -Uniq
 
-    & (Get-VsTestPath) $testFiles /Parallel /Enablecodecoverage /InIsolation /Logger:trx /TestAdapterPath:$testDirs
+    & (Get-VsTestPath) /Enablecodecoverage /Logger:trx $testFiles
     Test-ExitCode "ERROR: Unit Tests execution FAILED."
-}
 
-function Invoke-IntegrationTests([ValidateSet("14.0", "15.0")][string] $msbuildVersion) {
-    Write-Header "Running integration tests"
-
-    Invoke-InLocation "its" {
-        Exec { & git submodule update --init --recursive --depth 1 }
-
-        Exec { & .\regression-test.ps1 -msbuildVersion $msbuildVersion `
-        } -errorMessage "ERROR: Integration tests FAILED."
-    }
+    Clear-ExtraFiles
 }
 
 # Coverage
@@ -177,18 +156,5 @@ function Invoke-CodeCoverage() {
 
         Exec { & $codeCoverageExe analyze /output:$filePathWithNewExtension $_.FullName `
         } -errorMessage "ERROR: Code coverage reports generation FAILED."
-    }
-}
-
-# Metadata
-function New-Metadata([string]$binPath) {
-    Write-Header "Generating rules metadata"
-
-    #Generate the XML descriptor files for the SQ plugin
-    Invoke-InLocation "src\SonarAnalyzer.RuleDescriptorGenerator\${binPath}\net46" {
-        Exec { & .\SonarAnalyzer.RuleDescriptorGenerator.exe cs } | Out-Null
-        Write-Host "Sucessfully created metadata for C#"
-        Exec { & .\SonarAnalyzer.RuleDescriptorGenerator.exe vbnet } | Out-Null
-        Write-Host "Sucessfully created metadata for VB.Net"
     }
 }
