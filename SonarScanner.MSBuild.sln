@@ -46,13 +46,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Old.Bootstrapper"
 		{60AACBB4-1661-4EEB-A029-91289C1D3F7E} = {60AACBB4-1661-4EEB-A029-91289C1D3F7E}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{B6AA1FBF-BA98-4686-8C37-D1FD13DBB2E6}"
-	ProjectSection(SolutionItems) = preProject
-		SonarQube\SolutionBinding.sqconfig = SonarQube\SolutionBinding.sqconfig
-		SonarQube\sonar-scanner-msbuildCSharp.ruleset = SonarQube\sonar-scanner-msbuildCSharp.ruleset
-		SonarLint.xml = SonarLint.xml
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarScanner.MSBuild.TFS.Classic", "src\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj", "{C3466723-5499-4FAD-B236-5C96094DE276}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarScanner.MSBuild", "src\SonarScanner.MSBuild\SonarScanner.MSBuild.csproj", "{B9F6FCA4-CD6C-4426-9835-D86160B30072}"
