@@ -126,7 +126,6 @@ function Invoke-SonarBeginAnalysis([array][parameter(ValueFromRemainingArguments
         /n:"SonarAnalyzer .Net" `
         /d:sonar.host.url=$sonarQubeUrl `
         /d:sonar.login=$sonarQubeToken `
-        /o:sonarsource `
         /d:sonar.cs.vstest.reportsPaths="**\*.trx" `
         /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" `
         $remainingArgs `
