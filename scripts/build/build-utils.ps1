@@ -88,13 +88,19 @@ function Restore-Packages (
 
     $msbuildBinDir = Split-Path -Parent (Get-MsBuildPath $msbuildVersion)
 
+    # see https://github.com/Microsoft/vsts-tasks/issues/3762
+    # it seems for mixed .net standard and .net framework, we need both dotnet restore and nuget restore...
     if (Test-Debug) {
         Exec { & (Get-NuGetPath) restore $solutionPath -MSBuildPath $msbuildBinDir -Verbosity detailed `
         } -errorMessage "ERROR: Restoring NuGet packages FAILED."
+        Exec { & dotnet restore $solutionPath `
+        }  -
     }
     else {
         Exec { & (Get-NuGetPath) restore $solutionPath -MSBuildPath $msbuildBinDir `
-        } -errorMessage "ERROR: Restoring NuGet packages FAILED."
+        } -errorMessage "ERROR: Restoring NuGet packages with nuget FAILED."
+        Exec { & dotnet restore $solutionPath `
+        }  -errorMessage "ERROR: Restoring NuGet packages with dotnet FAILED."
     }
 }
 
