@@ -77,7 +77,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
                 rules.RuleList = entry.Value.Select(r => new Rule(r.RuleKey, "Warning")).ToList();
 
                 // add other
-                if (inactiveRulesByRepoKey.TryGetValue(repoKey, out List<string> otherRules))
+                if (inactiveRulesByRepoKey.TryGetValue(repoKey, out var otherRules))
                 {
                     rules.RuleList.AddRange(otherRules.Select(r => new Rule(r, "None")).ToList());
                 }
@@ -92,7 +92,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
             var dict = new Dictionary<string, List<string>>();
             foreach (var r in inactiveRules)
             {
-                ParseRuleKey(r, out string repo, out string key);
+                ParseRuleKey(r, out var repo, out var key);
                 AddDict(dict, repo, key);
             }
             return dict;
@@ -128,7 +128,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
 
         private static void AddDict<T>(Dictionary<string, List<T>> dict, string key, T value)
         {
-            if (!dict.TryGetValue(key, out List<T> list))
+            if (!dict.TryGetValue(key, out var list))
             {
                 list = new List<T>();
                 dict.Add(key, list);
@@ -152,7 +152,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
             {
                 throw new ArgumentNullException(nameof(propertyKey));
             }
-            if (!serverSettings.ContainsKey(propertyKey))
+            if (!this.serverSettings.ContainsKey(propertyKey))
             {
                 if (propertyKey.StartsWith(string.Format(SONARANALYZER_PARTIAL_REPO_KEY, "vbnet")))
                 {
@@ -164,7 +164,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
                     throw new AnalysisException("Key doesn't exist: " + propertyKey +". This property should be set by the plugin in SonarQube.");
                 }
             }
-            return serverSettings[propertyKey];
+            return this.serverSettings[propertyKey];
         }
     }
 }

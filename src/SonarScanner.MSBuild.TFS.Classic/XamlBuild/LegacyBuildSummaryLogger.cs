@@ -75,7 +75,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             }
 
             EnsureConnected();
-            build.Information.AddCustomSummaryInformation(finalMessage, SectionName, Resources.SonarQubeSummarySectionHeader,
+            this.build.Information.AddCustomSummaryInformation(finalMessage, SectionName, Resources.SonarQubeSummarySectionHeader,
                 SectionPriority).Save();
         }
 
@@ -91,26 +91,26 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed && disposing && teamProjectCollection != null)
+            if (!this.disposed && disposing && this.teamProjectCollection != null)
             {
-                build.Save();
+                this.build.Save();
 
-                teamProjectCollection.Dispose();
-                teamProjectCollection = null;
-                build = null;
+                this.teamProjectCollection.Dispose();
+                this.teamProjectCollection = null;
+                this.build = null;
             }
 
-            disposed = true;
+            this.disposed = true;
         }
 
         #endregion IDisposable interface
 
         private void EnsureConnected()
         {
-            if (teamProjectCollection == null)
+            if (this.teamProjectCollection == null)
             {
-                teamProjectCollection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(tfsUri));
-                build = teamProjectCollection.GetService<IBuildServer>().GetBuild(new Uri(buildUri));
+                this.teamProjectCollection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(this.tfsUri));
+                this.build = this.teamProjectCollection.GetService<IBuildServer>().GetBuild(new Uri(this.buildUri));
             }
         }
     }

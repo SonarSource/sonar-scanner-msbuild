@@ -79,16 +79,16 @@ namespace SonarScanner.MSBuild.TFS.Classic
         {
             bool success;
 
-            conversionToolPath = GetExeToolPath();
+            this.conversionToolPath = GetExeToolPath();
 
-            if (conversionToolPath == null)
+            if (this.conversionToolPath == null)
             {
-                logger.LogWarning(Resources.CONV_WARN_FailToFindConversionTool);
+                this.logger.LogWarning(Resources.CONV_WARN_FailToFindConversionTool);
                 success = false;
             }
             else
             {
-                logger.LogDebug(Resources.CONV_DIAG_CommandLineToolInfo, conversionToolPath);
+                this.logger.LogDebug(Resources.CONV_DIAG_CommandLineToolInfo, this.conversionToolPath);
                 success = true;
             }
             return success;
@@ -105,7 +105,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
                 throw new ArgumentNullException(nameof(outputFilePath));
             }
 
-            return ConvertBinaryToXml(conversionToolPath, inputFilePath, outputFilePath, logger);
+            return ConvertBinaryToXml(this.conversionToolPath, inputFilePath, outputFilePath, this.logger);
         }
 
         #endregion IReportConverter interface
@@ -114,7 +114,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
 
         private string GetExeToolPath()
         {
-            logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageTool);
+            this.logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageTool);
 
             return GetExeToolPathFromSetupConfiguration()
                 ?? GetExeToolPathFromRegistry();
@@ -126,8 +126,8 @@ namespace SonarScanner.MSBuild.TFS.Classic
         {
             string toolPath = null;
 
-            logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageToolSetupConfiguration);
-            var configurationQuery = setupConfigurationFactory.GetSetupConfigurationQuery();
+            this.logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageToolSetupConfiguration);
+            var configurationQuery = this.setupConfigurationFactory.GetSetupConfigurationQuery();
             if (configurationQuery != null)
             {
                 var instanceEnumerator = configurationQuery.EnumInstances();
@@ -153,7 +153,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
 
                 if (instances.Count > 1)
                 {
-                    logger.LogDebug(Resources.CONV_DIAG_MultipleVsVersionsInstalled, string.Join(", ", instances.Select(i =>
+                    this.logger.LogDebug(Resources.CONV_DIAG_MultipleVsVersionsInstalled, string.Join(", ", instances.Select(i =>
                         i.GetInstallationVersion())));
                 }
 
@@ -169,7 +169,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
             }
             else
             {
-                logger.LogDebug(Resources.CONV_DIAG_SetupConfigurationNotSupported);
+                this.logger.LogDebug(Resources.CONV_DIAG_SetupConfigurationNotSupported);
             }
 
             return toolPath;
@@ -183,7 +183,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
         {
             string toolPath = null;
 
-            logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageToolRegistry);
+            this.logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageToolRegistry);
 
             var regPath = GetVsRegistryPath(Environment.Is64BitProcess);
 
@@ -206,7 +206,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
 
                 if (versionToolMap.Count > 1)
                 {
-                    logger.LogDebug(Resources.CONV_DIAG_MultipleVsVersionsInstalled, string.Join(", ", versionToolMap.Keys));
+                    this.logger.LogDebug(Resources.CONV_DIAG_MultipleVsVersionsInstalled, string.Join(", ", versionToolMap.Keys));
                 }
 
                 if (versionToolMap.Count > 0)

@@ -383,24 +383,17 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         /// </summary>
         private class PostProcTestContext
         {
-            private readonly TestLogger logger;
-            private readonly TeamBuildSettings settings;
-
-            private readonly MockCodeCoverageProcessor codeCoverage;
-            private readonly MockSonarScanner scanner;
-            private readonly MockSummaryReportBuilder reportBuilder;
-
             public Mock<ITargetsUninstaller> TargetsUninstaller { get; }
 
             public PostProcTestContext(TestContext testContext)
             {
                 Config = new AnalysisConfig();
-                settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(testContext.DeploymentDirectory);
+                Settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(testContext.DeploymentDirectory);
 
-                logger = new TestLogger();
-                codeCoverage = new MockCodeCoverageProcessor();
-                scanner = new MockSonarScanner(logger);
-                reportBuilder = new MockSummaryReportBuilder();
+                Logger = new TestLogger();
+                CodeCoverage = new MockCodeCoverageProcessor();
+                Scanner = new MockSonarScanner(Logger);
+                ReportBuilder = new MockSummaryReportBuilder();
                 TargetsUninstaller = new Mock<ITargetsUninstaller>();
                 var callCount = 0;
                 TargetsUninstaller
@@ -412,16 +405,16 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
                         callCount++;
                     });
 
-                codeCoverage.InitialiseValueToReturn = true;
-                codeCoverage.ProcessValueToReturn = true;
+                CodeCoverage.InitialiseValueToReturn = true;
+                CodeCoverage.ProcessValueToReturn = true;
             }
 
             public AnalysisConfig Config { get; set; }
-            public TeamBuildSettings Settings { get { return settings; } }
-            public MockCodeCoverageProcessor CodeCoverage {  get { return codeCoverage; } }
-            public MockSonarScanner Scanner { get { return scanner; } }
-            public MockSummaryReportBuilder ReportBuilder { get { return reportBuilder; } }
-            public TestLogger Logger { get { return logger; } }
+            public TeamBuildSettings Settings { get; }
+            public MockCodeCoverageProcessor CodeCoverage { get; }
+            public MockSonarScanner Scanner { get; }
+            public MockSummaryReportBuilder ReportBuilder { get; }
+            public TestLogger Logger { get; }
         }
 
         #region Private methods

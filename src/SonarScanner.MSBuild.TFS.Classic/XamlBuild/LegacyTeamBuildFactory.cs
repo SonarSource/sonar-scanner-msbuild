@@ -36,6 +36,6 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             => new LegacyBuildSummaryLogger(tfsUri, buildUri);
 
         public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
-            => new TfsLegacyCoverageReportProcessor(logger);
+            => new TfsLegacyCoverageReportProcessor(this.logger);
     }
 }

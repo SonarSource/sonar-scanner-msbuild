@@ -53,7 +53,7 @@ namespace SonarScanner.MSBuild.Common
 
             var result = defaultValue;
 
-            if (config.TryGetConfigSetting(settingId, out ConfigSetting setting))
+            if (config.TryGetConfigSetting(settingId, out var setting))
             {
                 result = setting.Value;
             }
@@ -99,7 +99,7 @@ namespace SonarScanner.MSBuild.Common
             }
 
             // Add scanner environment settings
-            if (EnvScannerPropertiesProvider.TryCreateProvider(null, out IAnalysisPropertyProvider envProvider))
+            if (EnvScannerPropertiesProvider.TryCreateProvider(null, out var envProvider))
             {
                 providers.Add(envProvider);
             }
@@ -149,7 +149,7 @@ namespace SonarScanner.MSBuild.Common
                 throw new ArgumentNullException(nameof(config));
             }
 
-            if (config.TryGetConfigSetting(SettingsFileKey, out ConfigSetting setting))
+            if (config.TryGetConfigSetting(SettingsFileKey, out var setting))
             {
                 return setting.Value;
             }
@@ -221,7 +221,7 @@ namespace SonarScanner.MSBuild.Common
                 throw new ArgumentNullException(nameof(settingId));
             }
 
-            if (config.TryGetConfigSetting(settingId, out ConfigSetting setting))
+            if (config.TryGetConfigSetting(settingId, out var setting))
             {
                 setting.Value = value;
             }

@@ -53,7 +53,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             }
 
             var downloadDir = Path.GetDirectoryName(newFullFileName);
-            Utilities.EnsureDirectoryExists(downloadDir, logger);
+            Utilities.EnsureDirectoryExists(downloadDir, this.logger);
 
             InternalDownloadReport(tfsUri, reportUrl, newFullFileName);
 
@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
         {
             var vssHttpMessageHandler = GetHttpHandler(tfsUri);
 
-            logger.LogInfo(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, reportDestinationPath);
+            this.logger.LogInfo(Resources.DOWN_DIAG_DownloadCoverageReportFromTo, reportUrl, reportDestinationPath);
 
             using (var httpClient = new HttpClient(vssHttpMessageHandler))
             using (var response = httpClient.GetAsync(reportUrl).Result)
@@ -78,7 +78,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
                 }
                 else
                 {
-                    logger.LogError(Resources.PROC_ERROR_FailedToDownloadReportReason, reportUrl, response.StatusCode, response.ReasonPhrase);
+                    this.logger.LogError(Resources.PROC_ERROR_FailedToDownloadReportReason, reportUrl, response.StatusCode, response.ReasonPhrase);
                 }
             }
         }
@@ -94,7 +94,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
                 collection.ClientCredentials.AllowInteractive = false;
                 collection.EnsureAuthenticated();
 
-                logger.LogInfo(Resources.DOWN_DIAG_ConnectedToTFS, tfsUri);
+                this.logger.LogInfo(Resources.DOWN_DIAG_ConnectedToTFS, tfsUri);
 
                 // We need VSS credentials that encapsulate all types of credentials (NetworkCredentials for TFS, OAuth for VSO)
                 var connection = collection as TfsConnection;

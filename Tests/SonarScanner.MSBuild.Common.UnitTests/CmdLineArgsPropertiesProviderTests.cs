@@ -190,7 +190,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             var logger = new TestLogger();
 
-            var success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out IAnalysisPropertyProvider provider);
+            var success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out var provider);
             success.Should().BeFalse("Not expecting the provider to be created");
             provider.Should().BeNull("Expecting the provider to be null is processing fails");
             logger.AssertErrorsLogged();
@@ -200,7 +200,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         private static IAnalysisPropertyProvider CheckProcessingSucceeds(IEnumerable<ArgumentInstance> args, TestLogger logger)
         {
-            var success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out IAnalysisPropertyProvider provider);
+            var success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out var provider);
 
             success.Should().BeTrue("Expected processing to succeed");
             provider.Should().NotBeNull("Not expecting a null provider when processing succeeds");

@@ -48,9 +48,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public void AssertExpectedPluginRequested(string key)
         {
-            SuppliedPlugins.Should().NotBeEmpty("No plugins have been requested");
+            this.SuppliedPlugins.Should().NotBeEmpty("No plugins have been requested");
 
-            var found = SuppliedPlugins.Any(p => string.Equals(key, p.Key, System.StringComparison.Ordinal));
+            var found = this.SuppliedPlugins.Any(p => string.Equals(key, p.Key, System.StringComparison.Ordinal));
             found.Should().BeTrue("Expected plugin was not requested. Id: {0}", key);
         }
 
@@ -65,7 +65,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             {
                 Debug.WriteLine(p.StaticResourceName);
             }
-            SuppliedPlugins.AddRange(plugins);
+            this.SuppliedPlugins.AddRange(plugins);
 
             return AssemblyPathsToReturn;
         }

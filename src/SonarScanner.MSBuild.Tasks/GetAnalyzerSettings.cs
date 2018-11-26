@@ -109,7 +109,7 @@ namespace SonarScanner.MSBuild.Tasks
             var logger = new MSBuildLoggerAdapter(Log);
             var config = TaskUtilities.TryGetConfig(AnalysisConfigDir, logger);
 
-            if (ShouldMergeAnalysisSettings(this.Language, config, logger))
+            if (ShouldMergeAnalysisSettings(Language, config, logger))
             {
                 MergeAnalysisSettings(config);
             }
@@ -229,7 +229,7 @@ namespace SonarScanner.MSBuild.Tasks
                 return languageSpecificSettings.RuleSetFilePath;
             }
 
-            string resolvedRulesetPath = GetAbsoluteRulesetPath();
+            var resolvedRulesetPath = GetAbsoluteRulesetPath();
 
             var mergedRulesetFilePath = Path.Combine(ProjectSpecificConfigDirectory, "merged.ruleset");
             Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_CreatingMergedRuleset, mergedRulesetFilePath);

@@ -53,9 +53,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             InstallLoaderTargets = installLoaderTargets;
 
             AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
-            if (!AggregateProperties.TryGetValue(SonarProperties.HostUrl, out sonarQubeUrl))
+            if (!AggregateProperties.TryGetValue(SonarProperties.HostUrl, out this.sonarQubeUrl))
             {
-                sonarQubeUrl = "http://localhost:9000";
+                this.sonarQubeUrl = "http://localhost:9000";
             }
         }
 
@@ -67,7 +67,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public string Organization { get; }
 
-        public string SonarQubeUrl => sonarQubeUrl;
+        public string SonarQubeUrl => this.sonarQubeUrl;
 
         /// <summary>
         /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up
@@ -90,7 +90,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             get
             {
-                if (globalFileProperties is FilePropertyProvider fileProvider)
+                if (this.globalFileProperties is FilePropertyProvider fileProvider)
                 {
                     Debug.Assert(fileProvider.PropertiesFile != null, "File properties should not be null");
                     Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath),
@@ -107,7 +107,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </summary>
         public string GetSetting(string key)
         {
-            if (!AggregateProperties.TryGetValue(key, out string value))
+            if (!AggregateProperties.TryGetValue(key, out var value))
             {
                 var message = string.Format(System.Globalization.CultureInfo.CurrentCulture, Resources.ERROR_MissingSetting, key);
                 throw new InvalidOperationException(message);
@@ -121,7 +121,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </summary>
         public string GetSetting(string key, string defaultValue)
         {
-            if (!AggregateProperties.TryGetValue(key, out string value))
+            if (!AggregateProperties.TryGetValue(key, out var value))
             {
                 value = defaultValue;
             }

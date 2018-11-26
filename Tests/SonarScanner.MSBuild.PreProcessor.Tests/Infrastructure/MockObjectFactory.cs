@@ -44,19 +44,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public IAnalyzerProvider CreateRoslynAnalyzerProvider()
         {
-            return analyzerProvider;
+            return this.analyzerProvider;
         }
 
         public ISonarQubeServer CreateSonarQubeServer(ProcessedArgs args)
         {
             args.Should().NotBeNull();
 
-            return server;
+            return this.server;
         }
 
         public ITargetsInstaller CreateTargetInstaller()
         {
-            return targetsInstaller;
+            return this.targetsInstaller;
         }
 
         #endregion PreprocessorObjectFactory methods

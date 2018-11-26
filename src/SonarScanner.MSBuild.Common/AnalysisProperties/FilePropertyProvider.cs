@@ -37,8 +37,6 @@ namespace SonarScanner.MSBuild.Common
         public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(DescriptorId, new string[] { Prefix },
             false, Resources.CmdLine_ArgDescription_PropertiesFilePath, false);
 
-        private readonly bool isDefaultPropertiesFile;
-
         #region Public methods
 
         /// <summary>
@@ -67,10 +65,10 @@ namespace SonarScanner.MSBuild.Common
             // If the path to a properties file was specified on the command line, use that.
             // Otherwise, look for a default properties file in the default directory.
             var settingsFileArgExists = ArgumentInstance.TryGetArgumentValue(DescriptorId, commandLineArguments,
-                out string propertiesFilePath);
+                out var propertiesFilePath);
 
             if (ResolveFilePath(propertiesFilePath, defaultPropertiesFileDirectory, logger,
-                out AnalysisProperties locatedPropertiesFile))
+                out var locatedPropertiesFile))
             {
                 if (locatedPropertiesFile == null)
                 {
@@ -107,7 +105,7 @@ namespace SonarScanner.MSBuild.Common
 
         public bool IsDefaultSettingsFile { get { return IsDefaultPropertiesFile; } }
 
-        public bool IsDefaultPropertiesFile => isDefaultPropertiesFile;
+        public bool IsDefaultPropertiesFile { get; private set; }
 
         #endregion Public methods
 
@@ -130,7 +128,7 @@ namespace SonarScanner.MSBuild.Common
         private FilePropertyProvider(AnalysisProperties properties, bool isDefaultPropertiesFile)
         {
             PropertiesFile = properties ?? throw new ArgumentNullException(nameof(properties));
-            this.isDefaultPropertiesFile = isDefaultPropertiesFile;
+            IsDefaultPropertiesFile = isDefaultPropertiesFile;
         }
 
         /// <summary>

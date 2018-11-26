@@ -25,22 +25,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
     internal class QualityProfile
     {
-        private readonly string id;
-        private readonly string language;
-        private readonly string organization;
         private readonly ISet<string> projectIds;
-
-        private readonly IList<string> inactiveRules;
-        private readonly IList<ActiveRule> activeRules;
 
         public QualityProfile(string id, string language, string organization)
         {
-            this.id = id;
-            this.language = language;
-            this.organization = organization;
-            projectIds = new HashSet<string>();
-            inactiveRules = new List<string>();
-            activeRules = new List<ActiveRule>();
+            Id = id;
+            Language = language;
+            Organization = organization;
+            this.projectIds = new HashSet<string>();
+            InactiveRules = new List<string>();
+            ActiveRules = new List<ActiveRule>();
         }
 
         public QualityProfile AddProject(string projectKey, string projectBranch = null)
@@ -51,27 +45,27 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 projectId = projectKey + ":" + projectBranch;
             }
 
-            projectIds.Add(projectId);
+            this.projectIds.Add(projectId);
             return this;
         }
 
         public QualityProfile AddRule(ActiveRule rule)
         {
-            activeRules.Add(rule);
+            ActiveRules.Add(rule);
             return this;
         }
 
         public QualityProfile AddInactiveRule(string ruleKey)
         {
-            inactiveRules.Add(ruleKey);
+            InactiveRules.Add(ruleKey);
             return this;
         }
 
-        public string Id { get { return id; } }
-        public string Language { get { return language; } }
-        public string Organization { get { return organization; } }
-        public IEnumerable<string> Projects { get { return projectIds; } }
-        public IList<ActiveRule> ActiveRules { get { return activeRules; } }
-        public IList<string> InactiveRules { get { return inactiveRules; } }
+        public string Id { get; }
+        public string Language { get; }
+        public string Organization { get; }
+        public IEnumerable<string> Projects { get { return this.projectIds; } }
+        public IList<ActiveRule> ActiveRules { get; }
+        public IList<string> InactiveRules { get; }
     }
 }

@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.Common
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (TryGetProperty(key, out Property existing))
+            if (TryGetProperty(key, out var existing))
             {
                 throw new ArgumentOutOfRangeException(nameof(key));
             }

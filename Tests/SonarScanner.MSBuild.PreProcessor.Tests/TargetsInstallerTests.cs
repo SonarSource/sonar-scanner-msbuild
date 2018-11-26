@@ -49,12 +49,12 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         public void Init()
         {
             CleanupMsbuildDirectories();
-            WorkingDirectory = TestUtils.CreateTestSpecificFolder(TestContext, "sonarqube");
+            this.WorkingDirectory = TestUtils.CreateTestSpecificFolder(TestContext, "sonarqube");
 
-            logger = new TestLogger();
-            msBuildPathSettingsMock = new Mock<IMsBuildPathsSettings>();
-            fileWrapperMock = new Mock<IFileWrapper>();
-            directoryWrapperMock = new Mock<IDirectoryWrapper>();
+            this.logger = new TestLogger();
+            this.msBuildPathSettingsMock = new Mock<IMsBuildPathsSettings>();
+            this.fileWrapperMock = new Mock<IFileWrapper>();
+            this.directoryWrapperMock = new Mock<IDirectoryWrapper>();
         }
 
         [TestCleanup]
@@ -104,11 +104,11 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         public void InstallLoaderTargets_GlobalTargets_Exist()
         {
             // Arrange
-            var targetsInstaller = new TargetsInstaller(logger, msBuildPathSettingsMock.Object,
-                fileWrapperMock.Object, directoryWrapperMock.Object);
+            var targetsInstaller = new TargetsInstaller(this.logger, this.msBuildPathSettingsMock.Object,
+                this.fileWrapperMock.Object, this.directoryWrapperMock.Object);
 
-            msBuildPathSettingsMock.Setup(x => x.GetGlobalTargetsPaths()).Returns(new[] { "global" });
-            fileWrapperMock.Setup(x => x.Exists("global\\SonarQube.Integration.ImportBefore.targets")).Returns(true);
+            this.msBuildPathSettingsMock.Setup(x => x.GetGlobalTargetsPaths()).Returns(new[] { "global" });
+            this.fileWrapperMock.Setup(x => x.Exists("global\\SonarQube.Integration.ImportBefore.targets")).Returns(true);
 
             // Act
             using (new AssertIgnoreScope())
@@ -117,7 +117,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
 
             // Assert
-            logger.Warnings.Should().Contain(m =>
+            this.logger.Warnings.Should().Contain(m =>
                 m.StartsWith("This version of the SonarScanner for MSBuild automatically deploys"));
         }
 
@@ -125,11 +125,11 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         public void InstallLoaderTargets_GlobalTargets_NotExist()
         {
             // Arrange
-            var targetsInstaller = new TargetsInstaller(logger, msBuildPathSettingsMock.Object,
-                fileWrapperMock.Object, directoryWrapperMock.Object);
+            var targetsInstaller = new TargetsInstaller(this.logger, this.msBuildPathSettingsMock.Object,
+                this.fileWrapperMock.Object, this.directoryWrapperMock.Object);
 
-            msBuildPathSettingsMock.Setup(x => x.GetGlobalTargetsPaths()).Returns(new[] { "global" });
-            fileWrapperMock.Setup(x => x.Exists("global\\SonarQube.Integration.ImportBefore.targets")).Returns(false);
+            this.msBuildPathSettingsMock.Setup(x => x.GetGlobalTargetsPaths()).Returns(new[] { "global" });
+            this.fileWrapperMock.Setup(x => x.Exists("global\\SonarQube.Integration.ImportBefore.targets")).Returns(false);
 
             // Act
             using (new AssertIgnoreScope())
@@ -138,7 +138,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
 
             // Assert
-            logger.Warnings.Should().NotContain(m =>
+            this.logger.Warnings.Should().NotContain(m =>
                 m.StartsWith("This version of the SonarScanner for MSBuild automatically deploys"));
         }
 
@@ -146,10 +146,10 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         public void InstallLoaderTargets_Running_Under_LocalSystem_Account()
         {
             // Arrange
-            var targetsInstaller = new TargetsInstaller(logger, msBuildPathSettingsMock.Object,
-                fileWrapperMock.Object, directoryWrapperMock.Object);
+            var targetsInstaller = new TargetsInstaller(this.logger, this.msBuildPathSettingsMock.Object,
+                this.fileWrapperMock.Object, this.directoryWrapperMock.Object);
 
-            msBuildPathSettingsMock.Setup(x => x.GetImportBeforePaths()).Returns(new[] { "c:\\windows\\system32\\appdata" });
+            this.msBuildPathSettingsMock.Setup(x => x.GetImportBeforePaths()).Returns(new[] { "c:\\windows\\system32\\appdata" });
 
             // Act
             Action act = () =>
@@ -172,7 +172,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 destinationExists: true,
                 destinationContent: "target content");
 
-            logger.DebugMessages.Should().Contain(m =>
+            this.logger.DebugMessages.Should().Contain(m =>
                 m.Equals("The file SonarQube.Integration.targets is up to date at c:\\project\\bin\\targets"));
         }
 
@@ -184,7 +184,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 destinationExists: true,
                 destinationContent: "different content");
 
-            logger.DebugMessages.Should().Contain(m =>
+            this.logger.DebugMessages.Should().Contain(m =>
                 m.Equals("The file SonarQube.Integration.targets was overwritten at c:\\project\\bin\\targets"));
         }
 
@@ -195,7 +195,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 sourceContent: "target content",
                 destinationExists: false);
 
-            logger.DebugMessages.Should().Contain(m =>
+            this.logger.DebugMessages.Should().Contain(m =>
                 m.Equals("Installed SonarQube.Integration.targets to c:\\project\\bin\\targets"));
         }
 
@@ -207,7 +207,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 destinationExists: true,
                 destinationContent: "target content");
 
-            logger.DebugMessages.Should().Contain(m =>
+            this.logger.DebugMessages.Should().Contain(m =>
                 m.Equals("The file SonarQube.Integration.ImportBefore.targets is up to date at c:\\global paths"));
         }
 
@@ -219,7 +219,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 destinationExists: true,
                 destinationContent: "different content");
 
-            logger.DebugMessages.Should().Contain(m =>
+            this.logger.DebugMessages.Should().Contain(m =>
                 m.Equals("The file SonarQube.Integration.ImportBefore.targets was overwritten at c:\\global paths"));
         }
 
@@ -230,25 +230,25 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 sourceContent: "target content",
                 destinationExists: false);
 
-            logger.DebugMessages.Should().Contain(m =>
+            this.logger.DebugMessages.Should().Contain(m =>
                 m.Equals("Installed SonarQube.Integration.ImportBefore.targets to c:\\global paths"));
         }
 
         private void InstallLoaderTargets_InternalCopyTargetFileToProject(string sourceContent, bool destinationExists, string destinationContent = null)
         {
             // Arrange
-            var targetsInstaller = new TargetsInstaller(logger, msBuildPathSettingsMock.Object,
-                fileWrapperMock.Object, directoryWrapperMock.Object);
+            var targetsInstaller = new TargetsInstaller(this.logger, this.msBuildPathSettingsMock.Object,
+                this.fileWrapperMock.Object, this.directoryWrapperMock.Object);
 
             var sourcePathRegex = "bin\\\\(?:debug|release)\\\\targets\\\\SonarQube.Integration.targets";
 
-            fileWrapperMock
+            this.fileWrapperMock
                 .Setup(x => x.ReadAllText(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase)))
                 .Returns(sourceContent);
-            fileWrapperMock
+            this.fileWrapperMock
                 .Setup(x => x.ReadAllText("c:\\project\\bin\\targets\\SonarQube.Integration.targets"))
                 .Returns(destinationContent);
-            fileWrapperMock
+            this.fileWrapperMock
                 .Setup(x => x.Exists("c:\\project\\bin\\targets\\SonarQube.Integration.targets"))
                 .Returns(destinationExists);
 
@@ -264,13 +264,13 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             if (!destinationExists || !sameContent)
             {
                 var shouldOverwrite = destinationExists && !sameContent;
-                fileWrapperMock.Verify(
+                this.fileWrapperMock.Verify(
                     x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\project\\bin\\targets\\SonarQube.Integration.targets", shouldOverwrite),
                     Times.Once);
             }
             else
             {
-                fileWrapperMock.Verify(
+                this.fileWrapperMock.Verify(
                     x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\project\\bin\\targets\\SonarQube.Integration.targets", It.IsAny<bool>()),
                     Times.Never);
             }
@@ -279,21 +279,21 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         private void InstallLoaderTargets_InternalCopyTargetsFile(string sourceContent, bool destinationExists, string destinationContent = null)
         {
             // Arrange
-            var targetsInstaller = new TargetsInstaller(logger, msBuildPathSettingsMock.Object,
-                fileWrapperMock.Object, directoryWrapperMock.Object);
+            var targetsInstaller = new TargetsInstaller(this.logger, this.msBuildPathSettingsMock.Object,
+                this.fileWrapperMock.Object, this.directoryWrapperMock.Object);
 
             var sourcePathRegex = "bin\\\\(?:debug|release)\\\\targets\\\\SonarQube.Integration.ImportBefore.targets";
 
-            msBuildPathSettingsMock
+            this.msBuildPathSettingsMock
                 .Setup(x => x.GetImportBeforePaths())
                 .Returns(new[] { "c:\\global paths" });
-            fileWrapperMock
+            this.fileWrapperMock
                 .Setup(x => x.ReadAllText(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase)))
                 .Returns(sourceContent);
-            fileWrapperMock
+            this.fileWrapperMock
                 .Setup(x => x.ReadAllText("c:\\global paths\\SonarQube.Integration.ImportBefore.targets"))
                 .Returns(destinationContent);
-            fileWrapperMock
+            this.fileWrapperMock
                 .Setup(x => x.Exists("c:\\global paths\\SonarQube.Integration.ImportBefore.targets"))
                 .Returns(destinationExists);
 
@@ -310,13 +310,13 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             {
                 var shouldOverwrite = destinationExists && !sameContent;
 
-                fileWrapperMock
+                this.fileWrapperMock
                     .Verify(x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\global paths\\SonarQube.Integration.ImportBefore.targets", shouldOverwrite),
                     Times.Once);
             }
             else
             {
-                fileWrapperMock.Verify(
+                this.fileWrapperMock.Verify(
                     x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\global paths\\SonarQube.Integration.ImportBefore.targets", It.IsAny<bool>()),
                     Times.Never);
             }
@@ -370,7 +370,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             using (new AssertIgnoreScope())
             {
-                installer.InstallLoaderTargets(WorkingDirectory);
+                installer.InstallLoaderTargets(this.WorkingDirectory);
             }
 
             var msBuildPathSettings = new MsBuildPathSettings();
@@ -385,7 +385,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 localLogger.DebugMessages.Any(m => m.Contains(destinationDir)).Should().BeTrue();
             }
 
-            var targetsPath = Path.Combine(WorkingDirectory, "bin", "targets", FileConstants.IntegrationTargetsName);
+            var targetsPath = Path.Combine(this.WorkingDirectory, "bin", "targets", FileConstants.IntegrationTargetsName);
             File.Exists(targetsPath).Should().BeTrue(".targets file not found at: " + targetsPath);
 
             if (expectCopy)

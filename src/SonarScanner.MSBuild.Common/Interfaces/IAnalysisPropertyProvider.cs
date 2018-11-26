@@ -47,7 +47,7 @@ namespace SonarScanner.MSBuild.Common
                 throw new ArgumentNullException(nameof(name));
             }
 
-            if (provider.TryGetProperty(name, out Property property))
+            if (provider.TryGetProperty(name, out var property))
             {
                 value = property.Value;
                 return true;

@@ -48,7 +48,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             envProps.AddProperty("shared.key.1", "shared env value");
             envProps.AddProperty("shared.key.2", "shared env value");
 
-            args = new ProcessedArgs("key", "branch", "ver", null, true, cmdLineProps, fileProps, envProps);
+            this.args = new ProcessedArgs("key", "branch", "ver", null, true, cmdLineProps, fileProps, envProps);
         }
 
         #region Tests
@@ -56,67 +56,67 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         [TestMethod]
         public void ProcArgs_Organization()
         {
-            args.Organization.Should().BeNull();
-            args = new ProcessedArgs("key", "branch", "ver", "organization", true, new ListPropertiesProvider(), new ListPropertiesProvider(), new ListPropertiesProvider());
-            args.Organization.Should().Be("organization");
+            this.args.Organization.Should().BeNull();
+            this.args = new ProcessedArgs("key", "branch", "ver", "organization", true, new ListPropertiesProvider(), new ListPropertiesProvider(), new ListPropertiesProvider());
+            this.args.Organization.Should().Be("organization");
         }
 
         [TestMethod]
         public void ProcArgs_GetSetting()
         {
             // 1. Throws on missing value
-            Action act = () => args.GetSetting("missing.property");
+            Action act = () => this.args.GetSetting("missing.property");
             act.Should().ThrowExactly<InvalidOperationException>();
 
             // 2. Returns existing values
-            args.GetSetting("cmd.key.1").Should().Be("cmd value 1");
-            args.GetSetting("file.key.1").Should().Be("file value 1");
-            args.GetSetting("env.key.1").Should().Be("env value 1");
+            this.args.GetSetting("cmd.key.1").Should().Be("cmd value 1");
+            this.args.GetSetting("file.key.1").Should().Be("file value 1");
+            this.args.GetSetting("env.key.1").Should().Be("env value 1");
 
             // 3. Precedence - command line properties should win
-            args.GetSetting("shared.key.1").Should().Be("shared cmd value");
+            this.args.GetSetting("shared.key.1").Should().Be("shared cmd value");
 
             // 4. Precedence - file wins over env
-            args.GetSetting("shared.key.2").Should().Be("shared file value");
+            this.args.GetSetting("shared.key.2").Should().Be("shared file value");
 
             // 5. Preprocessor only settings
-            args.InstallLoaderTargets.Should().BeTrue();
+            this.args.InstallLoaderTargets.Should().BeTrue();
         }
 
         [TestMethod]
         public void ProcArgs_TryGetSetting()
         {
             // 1. Missing key -> null
-            args.TryGetSetting("missing.property", out string result).Should().BeFalse("Expecting false when the specified key does not exist");
+            this.args.TryGetSetting("missing.property", out string result).Should().BeFalse("Expecting false when the specified key does not exist");
             result.Should().BeNull("Expecting the value to be null when the specified key does not exist");
 
             // 2. Returns existing values
-            args.TryGetSetting("cmd.key.1", out result).Should().BeTrue();
+            this.args.TryGetSetting("cmd.key.1", out result).Should().BeTrue();
             result.Should().Be("cmd value 1");
 
             // 3. Precedence - command line properties should win
-            args.GetSetting("shared.key.1").Should().Be("shared cmd value");
+            this.args.GetSetting("shared.key.1").Should().Be("shared cmd value");
 
             // 4. Preprocessor only settings
-            args.InstallLoaderTargets.Should().BeTrue();
+            this.args.InstallLoaderTargets.Should().BeTrue();
         }
 
         [TestMethod]
         public void ProcArgs_GetSettingOrDefault()
         {
             // 1. Missing key -> default returned
-            var result = args.GetSetting("missing.property", "default value");
+            var result = this.args.GetSetting("missing.property", "default value");
             result.Should().Be("default value");
 
             // 2. Returns existing values
-            result = args.GetSetting("file.key.1", "default value");
+            result = this.args.GetSetting("file.key.1", "default value");
             result.Should().Be("file value 1");
 
             // 3. Precedence - command line properties should win
-            args.GetSetting("shared.key.1", "default ValueType").Should().Be("shared cmd value");
+            this.args.GetSetting("shared.key.1", "default ValueType").Should().Be("shared cmd value");
 
             // 4. Preprocessor only settings
-            args.InstallLoaderTargets.Should().BeTrue();
+            this.args.InstallLoaderTargets.Should().BeTrue();
         }
 
         [TestMethod]

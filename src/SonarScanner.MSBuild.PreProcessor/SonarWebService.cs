@@ -46,7 +46,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             this.downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
-            serverUrl = server.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? server.Substring(0, server.Length - 1) : server;
+            this.serverUrl = server.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? server.Substring(0, server.Length - 1) : server;
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -57,16 +57,16 @@ namespace SonarScanner.MSBuild.PreProcessor
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
 
             var ws = AddOrganization(GetUrl("/api/qualityprofiles/search?projectKey={0}", projectId), organization);
-            logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
+            this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
 
             qualityProfileKey = DoLogExceptions(() =>
             {
-                if (!downloader.TryDownloadIfExists(ws, out string contents))
+                if (!this.downloader.TryDownloadIfExists(ws, out var contents))
                 {
                     ws = AddOrganization(GetUrl("/api/qualityprofiles/search?defaults=true"), organization);
 
-                    logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
-                    contents = downloader.Download(ws);
+                    this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
+                    contents = this.downloader.Download(ws);
                 }
                 var json = JObject.Parse(contents);
                 var profiles = json["profiles"].Children<JObject>();
@@ -100,11 +100,11 @@ namespace SonarScanner.MSBuild.PreProcessor
             do
             {
                 var ws = GetUrl("/api/rules/search?f=internalKey&ps=500&activation=false&qprofile={0}&p={1}&languages={2}", qprofile, page.ToString(), language);
-                logger.LogDebug(Resources.MSG_FetchingInactiveRules, qprofile, language, ws);
+                this.logger.LogDebug(Resources.MSG_FetchingInactiveRules, qprofile, language, ws);
 
                 ruleList.AddRange(DoLogExceptions(() =>
                 {
-                    var contents = downloader.Download(ws);
+                    var contents = this.downloader.Download(ws);
                     var json = JObject.Parse(contents);
                     total = json["total"].ToObject<int>();
                     fetched += json["ps"].ToObject<int>();
@@ -134,11 +134,11 @@ namespace SonarScanner.MSBuild.PreProcessor
             do
             {
                 var ws = GetUrl("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile={0}&p={1}", qprofile, page.ToString());
-                logger.LogDebug(Resources.MSG_FetchingActiveRules, qprofile, ws);
+                this.logger.LogDebug(Resources.MSG_FetchingActiveRules, qprofile, ws);
 
                 activeRuleList.AddRange(DoLogExceptions(() =>
                 {
-                    var contents = downloader.Download(ws);
+                    var contents = this.downloader.Download(ws);
                     var json = JObject.Parse(contents);
                     total = json["total"].ToObject<int>();
                     fetched += json["ps"].ToObject<int>();
@@ -214,11 +214,11 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public Version GetServerVersion()
         {
-            if (serverVersion == null)
+            if (this.serverVersion == null)
             {
                 DownloadServerVersion();
             }
-            return serverVersion;
+            return this.serverVersion;
         }
 
         public IEnumerable<string> GetAllLanguages()
@@ -226,7 +226,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             var ws = GetUrl("/api/languages/list");
             return DoLogExceptions(() =>
             {
-                var contents = downloader.Download(ws);
+                var contents = this.downloader.Download(ws);
 
                 var langArray = JObject.Parse(contents).Value<JArray>("languages");
                 return langArray.Select(obj => obj["key"].ToString());
@@ -254,8 +254,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
 
-                logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, url, targetDirectory);
-                return downloader.TryDownloadFileIfExists(url, targetFilePath);
+                this.logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, url, targetDirectory);
+                return this.downloader.TryDownloadFileIfExists(url, targetFilePath);
             }, url);
         }
 
@@ -288,7 +288,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 onError?.Invoke(e);
 
-                logger.LogError("Failed to request and parse '{0}': {1}", url, e.Message);
+                this.logger.LogError("Failed to request and parse '{0}': {1}", url, e.Message);
                 throw;
             }
         }
@@ -296,9 +296,9 @@ namespace SonarScanner.MSBuild.PreProcessor
         private void DownloadServerVersion()
         {
             var ws = GetUrl("api/server/version");
-            serverVersion = DoLogExceptions(() =>
+            this.serverVersion = DoLogExceptions(() =>
             {
-                var contents = downloader.Download(ws);
+                var contents = this.downloader.Download(ws);
                 var separator = contents.IndexOf('-');
                 return separator >= 0 ? new Version(contents.Substring(0, separator)) : new Version(contents);
             }, ws);
@@ -307,10 +307,10 @@ namespace SonarScanner.MSBuild.PreProcessor
         private IDictionary<string, string> GetPropertiesOld(string projectId)
         {
             var ws = GetUrl("/api/properties?resource={0}", projectId);
-            logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
+            this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
             var result = DoLogExceptions(() =>
             {
-                var contents = downloader.Download(ws);
+                var contents = this.downloader.Download(ws);
                 var properties = JArray.Parse(contents);
                 return properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
             }, ws, LogPermissionRequired);
@@ -321,16 +321,16 @@ namespace SonarScanner.MSBuild.PreProcessor
         private IDictionary<string, string> GetProperties63(string projectId)
         {
             var ws = GetUrl("/api/settings/values?component={0}", projectId);
-            logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
+            this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
 
             var contents = string.Empty;
-            var projectFound = DoLogExceptions(() => downloader.TryDownloadIfExists(ws, out contents), ws, LogPermissionRequired);
+            var projectFound = DoLogExceptions(() => this.downloader.TryDownloadIfExists(ws, out contents), ws, LogPermissionRequired);
 
             if (!projectFound)
             {
                 ws = GetUrl("/api/settings/values");
-                logger.LogDebug("No settings for project {0}. Getting global settings: {1}", projectId, ws);
-                contents = DoLogExceptions(() => downloader.Download(ws), ws);
+                this.logger.LogDebug("No settings for project {0}. Getting global settings: {1}", projectId, ws);
+                contents = DoLogExceptions(() => this.downloader.Download(ws), ws);
             }
 
             return DoLogExceptions(() => ParseSettingsResponse(contents), ws);
@@ -356,7 +356,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 var value = settings["sonar.cs.msbuild.testProjectPattern"];
                 if (value != oldDefaultProjectTestPattern)
                 {
-                    logger.LogWarning("The property 'sonar.cs.msbuild.testProjectPattern' defined in SonarQube is deprecated. Set the property 'sonar.msbuild.testProjectPattern' in the scanner instead.");
+                    this.logger.LogWarning("The property 'sonar.cs.msbuild.testProjectPattern' defined in SonarQube is deprecated. Set the property 'sonar.msbuild.testProjectPattern' in the scanner instead.");
                 }
                 settings["sonar.msbuild.testProjectPattern"] = value;
                 settings.Remove("sonar.cs.msbuild.testProjectPattern");
@@ -434,7 +434,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 queryString = string.Concat('/', queryString);
             }
 
-            return serverUrl + queryString;
+            return this.serverUrl + queryString;
         }
 
         private string EscapeQuery(string format, params string[] args)
@@ -448,7 +448,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 exception.Response is HttpWebResponse response &&
                 response.StatusCode == HttpStatusCode.Forbidden)
             {
-                logger.LogWarning("To analyze private projects make sure the scanner user has 'Browse' permission.");
+                this.logger.LogWarning("To analyze private projects make sure the scanner user has 'Browse' permission.");
             }
         }
 
@@ -460,14 +460,14 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!this.disposedValue)
             {
                 if (disposing)
                 {
-                    Utilities.SafeDispose(downloader);
+                    Utilities.SafeDispose(this.downloader);
                 }
 
-                disposedValue = true;
+                this.disposedValue = true;
             }
         }
 

@@ -36,14 +36,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public ServerDataModel()
         {
-            qualityProfiles = new List<QualityProfile>();
+            this.qualityProfiles = new List<QualityProfile>();
             ServerProperties = new Dictionary<string, string>();
             Languages = new List<string>();
-            embeddedFilesMap = new Dictionary<string, byte[]>();
+            this.embeddedFilesMap = new Dictionary<string, byte[]>();
             SonarQubeVersion = new Version(5, 6);
         }
 
-        public IEnumerable<QualityProfile> QualityProfiles { get { return qualityProfiles; } }
+        public IEnumerable<QualityProfile> QualityProfiles { get { return this.qualityProfiles; } }
 
         public IDictionary<string, string> ServerProperties { get; set; }
 
@@ -59,7 +59,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             profile.Should().BeNull("A quality profile already exists. Id: {0}, language: {1}", id, language);
 
             profile = new QualityProfile(id, language, organization);
-            qualityProfiles.Add(profile);
+            this.qualityProfiles.Add(profile);
             return profile;
         }
 
@@ -77,7 +77,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public void AddEmbeddedZipFile(string pluginKey, string embeddedFileName, params string[] contentFileNames)
         {
-            embeddedFilesMap.Add(GetEmbeddedFileKey(pluginKey, embeddedFileName), CreateDummyZipFile(contentFileNames));
+            this.embeddedFilesMap.Add(GetEmbeddedFileKey(pluginKey, embeddedFileName), CreateDummyZipFile(contentFileNames));
         }
 
         #endregion Builder methods
@@ -86,13 +86,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public QualityProfile FindProfile(string id)
         {
-            var profile = qualityProfiles.SingleOrDefault(qp => string.Equals(qp.Id, id));
+            var profile = this.qualityProfiles.SingleOrDefault(qp => string.Equals(qp.Id, id));
             return profile;
         }
 
         public byte[] FindEmbeddedFile(string pluginKey, string embeddedFileName)
         {
-            embeddedFilesMap.TryGetValue(GetEmbeddedFileKey(pluginKey, embeddedFileName), out byte[] content);
+            this.embeddedFilesMap.TryGetValue(GetEmbeddedFileKey(pluginKey, embeddedFileName), out byte[] content);
             return content;
         }
 

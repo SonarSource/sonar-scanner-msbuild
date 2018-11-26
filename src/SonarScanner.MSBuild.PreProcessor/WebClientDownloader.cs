@@ -63,7 +63,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 password = "";
             }
 
-            client = new PersistentUserAgentWebClient($"ScannerMSBuild/{Utilities.ScannerVersion}");
+            this.client = new PersistentUserAgentWebClient($"ScannerMSBuild/{Utilities.ScannerVersion}");
 
             if (userName != null)
             {
@@ -78,38 +78,38 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                 var credentials = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}:{1}", userName, password);
                 credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(credentials));
-                client.Headers[HttpRequestHeader.Authorization] = "Basic " + credentials;
+                this.client.Headers[HttpRequestHeader.Authorization] = "Basic " + credentials;
             }
         }
 
         public string GetHeader(HttpRequestHeader header)
         {
             return header == HttpRequestHeader.UserAgent
-                ? client.UserAgent
-                : client.Headers[header];
+                ? this.client.UserAgent
+                : this.client.Headers[header];
         }
 
         #region IDownloaderMethods
 
         public bool TryDownloadIfExists(string url, out string contents)
         {
-            logger.LogDebug(Resources.MSG_Downloading, url);
+            this.logger.LogDebug(Resources.MSG_Downloading, url);
             string data = null;
-            var success = DoIgnoringMissingUrls(() => data = client.DownloadString(url));
+            var success = DoIgnoringMissingUrls(() => data = this.client.DownloadString(url));
             contents = data;
             return success;
         }
 
         public bool TryDownloadFileIfExists(string url, string targetFilePath)
         {
-            logger.LogDebug(Resources.MSG_DownloadingFile, url, targetFilePath);
-            return DoIgnoringMissingUrls(() => client.DownloadFile(url, targetFilePath));
+            this.logger.LogDebug(Resources.MSG_DownloadingFile, url, targetFilePath);
+            return DoIgnoringMissingUrls(() => this.client.DownloadFile(url, targetFilePath));
         }
 
         public string Download(string url)
         {
-            logger.LogDebug(Resources.MSG_Downloading, url);
-            return client.DownloadString(url);
+            this.logger.LogDebug(Resources.MSG_Downloading, url);
+            return this.client.DownloadString(url);
         }
 
         #endregion IDownloaderMethods
@@ -157,12 +157,12 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed && disposing && client != null)
+            if (!this.disposed && disposing && this.client != null)
             {
-                client.Dispose();
+                this.client.Dispose();
             }
 
-            disposed = true;
+            this.disposed = true;
         }
 
         #endregion IDisposable implementation

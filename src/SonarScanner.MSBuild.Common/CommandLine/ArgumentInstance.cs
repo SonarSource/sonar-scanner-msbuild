@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.Common
 
         public static bool TryGetArgumentValue(string id, IEnumerable<ArgumentInstance> arguments, out string value)
         {
-            if (TryGetArgument(id, arguments, out ArgumentInstance instance))
+            if (TryGetArgument(id, arguments, out var instance))
             {
                 value = instance.Value;
             }
