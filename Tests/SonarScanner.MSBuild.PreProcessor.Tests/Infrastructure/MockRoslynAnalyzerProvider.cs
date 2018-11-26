@@ -41,7 +41,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             settings.Should().NotBeNull();
             serverSettings.Should().NotBeNull();
-            string.IsNullOrWhiteSpace(language).Should().BeFalse();
+            language.Should().NotBeNullOrWhiteSpace();
 
             return SettingsToReturn;
         }

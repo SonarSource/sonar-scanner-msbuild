@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             LogMethodCalled();
 
-            string.IsNullOrEmpty(qprofile).Should().BeFalse("Quality profile is required");
+            qprofile.Should().NotBeNullOrEmpty("Quality profile is required");
 
             var profile = Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qprofile));
             if (profile == null)
@@ -69,7 +69,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         IList<string> ISonarQubeServer.GetInactiveRules(string qprofile, string language)
         {
             LogMethodCalled();
-            string.IsNullOrEmpty(qprofile).Should().BeFalse("Quality profile is required");
+            qprofile.Should().NotBeNullOrEmpty("Quality profile is required");
             var profile = Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qprofile));
             if (profile == null)
             {
@@ -89,7 +89,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             LogMethodCalled();
 
-            string.IsNullOrEmpty(projectKey).Should().BeFalse("Project key is required");
+            projectKey.Should().NotBeNullOrEmpty("Project key is required");
 
             return Data.ServerProperties;
         }
@@ -98,8 +98,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             LogMethodCalled();
 
-            string.IsNullOrEmpty(projectKey).Should().BeFalse("Project key is required");
-            string.IsNullOrEmpty(language).Should().BeFalse("Language is required");
+            projectKey.Should().NotBeNullOrEmpty("Project key is required");
+            language.Should().NotBeNullOrEmpty("Language is required");
 
             var projectId = projectKey;
             if (!string.IsNullOrWhiteSpace(projectBranch))
@@ -118,9 +118,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             LogMethodCalled();
 
-            string.IsNullOrEmpty(pluginKey).Should().BeFalse("plugin key is required");
-            string.IsNullOrEmpty(embeddedFileName).Should().BeFalse("embeddedFileName is required");
-            string.IsNullOrEmpty(targetDirectory).Should().BeFalse("targetDirectory is required");
+            pluginKey.Should().NotBeNullOrEmpty("plugin key is required");
+            embeddedFileName.Should().NotBeNullOrEmpty("embeddedFileName is required");
+            targetDirectory.Should().NotBeNullOrEmpty("targetDirectory is required");
 
             var data = Data.FindEmbeddedFile(pluginKey, embeddedFileName);
             if (data == null)

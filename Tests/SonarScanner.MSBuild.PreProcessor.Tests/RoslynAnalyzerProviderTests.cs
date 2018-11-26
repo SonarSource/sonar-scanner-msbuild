@@ -322,7 +322,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             // Currently, only SonarLint.xml is written
             var filePaths = actualSettings.AdditionalFilePaths;
-            filePaths.Should().HaveCount(1);
+            filePaths.Should().ContainSingle();
 
             CheckExpectedAdditionalFileExists("SonarLint.xml", @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <AnalysisInput>
@@ -352,7 +352,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             // Check one file of the expected name exists
             var matches = actualSettings.AdditionalFilePaths.Where(actual => string.Equals(expectedFileName, Path.GetFileName(actual), System.StringComparison.OrdinalIgnoreCase));
-            matches.Should().HaveCount(1, "Unexpected number of files named \"{0}\". One and only one expected", expectedFileName);
+            matches.Should().ContainSingle("Unexpected number of files named \"{0}\". One and only one expected", expectedFileName);
 
             // Check the file exists and has the expected content
             var actualFilePath = matches.First();

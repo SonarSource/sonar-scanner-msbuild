@@ -632,7 +632,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
         private void CheckProjectOutputFolder(ProjectDescriptor expected, string projectOutputFolder)
         {
-            string.IsNullOrEmpty(projectOutputFolder).Should().BeFalse("Test error: projectOutputFolder should not be null/empty");
+            projectOutputFolder.Should().NotBeNullOrEmpty("Test error: projectOutputFolder should not be null/empty");
             Directory.Exists(projectOutputFolder).Should().BeTrue("Expected project folder does not exist: {0}", projectOutputFolder);
 
             // Check folder naming

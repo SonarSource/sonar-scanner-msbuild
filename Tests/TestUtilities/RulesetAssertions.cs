@@ -62,7 +62,7 @@ namespace TestUtilities
         private static XElement AssertSingleIncludeExists(IEnumerable<XElement> includeElements, string expectedPath)
         {
             var matches = includeElements.Where(i => HasIncludePath(i, expectedPath));
-            matches.Should().HaveCount(1, "Expecting one and only Include with Path '{0}'", expectedPath);
+            matches.Should().ContainSingle("Expecting one and only Include with Path '{0}'", expectedPath);
             return matches.First();
         }
 

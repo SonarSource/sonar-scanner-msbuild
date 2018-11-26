@@ -308,10 +308,10 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             result.Should().BeFalse();
 
             Directory.Exists(baseDir1).Should().BeTrue();
-            Directory.GetFiles(baseDir1).Length.Should().Be(1);
+            Directory.GetFiles(baseDir1).Should().HaveCount(1);
 
             Directory.Exists(baseDir2).Should().BeTrue();
-            Directory.GetFiles(baseDir2).Length.Should().Be(1);
+            Directory.GetFiles(baseDir2).Should().HaveCount(1);
 
             logger.Warnings.Should().BeEmpty();
             logger.Errors.Should().HaveCount(1);

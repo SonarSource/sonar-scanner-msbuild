@@ -87,7 +87,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             IEnumerable<ProjectInfo> projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(testSourcePath);
 
             // Assert
-             projects.Should().HaveCount(3);
+            projects.Should().HaveCount(3);
 
             AssertProjectResultExists(validTestProject.ProjectName, projects);
 
@@ -119,11 +119,11 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             // 1. Run against the root dir -> not expecting the project to be found
             IEnumerable<ProjectInfo> projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(rootTestDir);
-             projects.Should().HaveCount(0);
+            projects.Should().BeEmpty();
 
             // 2. Run against the child dir -> project should be found
             projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(childDir);
-             projects.Should().HaveCount(1);
+            projects.Should().ContainSingle();
         }
 
         #endregion Tests

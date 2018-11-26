@@ -724,10 +724,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             */
 
             var settings = actualResult.GetCapturedItemValues(BuildTaskConstants.SettingItemName);
-            settings.Any().Should().BeTrue();
+            settings.Should().NotBeEmpty();
 
             var matches = settings.Where(v => v.Value.Equals(settingName, System.StringComparison.Ordinal)).ToList();
-            matches.Should().HaveCount(1, $"Only one and only expecting one SonarQubeSetting with include value of '{0}' to exist. Count: {matches.Count}", settingName);
+            matches.Should().ContainSingle($"Only one and only expecting one SonarQubeSetting with include value of '{0}' to exist. Count: {matches.Count}", settingName);
 
             var item = matches[0];
             var value = item.Metadata.SingleOrDefault(v => v.Name.Equals(BuildTaskConstants.SettingValueMetadataName));

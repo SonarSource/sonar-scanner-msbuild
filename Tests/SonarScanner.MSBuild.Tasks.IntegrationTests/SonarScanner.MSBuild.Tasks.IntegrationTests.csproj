@@ -38,8 +38,8 @@
     <CodeAnalysisRuleSet>SonarScanner.MSBuild.Tasks.IntegrationTests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FluentAssertions, Version=5.3.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\FluentAssertions.5.3.0\lib\net45\FluentAssertions.dll</HintPath>
+    <Reference Include="FluentAssertions, Version=5.5.3.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\FluentAssertions.5.5.3\lib\net45\FluentAssertions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -139,6 +139,9 @@
     </None>
     <None Include="packages.config" />
     <None Include="SonarScanner.MSBuild.Tasks.IntegrationTests.ruleset" />
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\..\packages\FluentAssertions.Analyzers.0.11.4\analyzers\dotnet\cs\FluentAssertions.Analyzers.dll" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') And '$(IsCodedUITest)' == 'True'">

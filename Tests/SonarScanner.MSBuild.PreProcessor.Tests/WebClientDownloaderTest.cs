@@ -93,21 +93,21 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         public void SemicolonInUsername()
         {
             Action act = () => new WebClientDownloader("user:name", "", new TestLogger());
-            act.Should().ThrowExactly<ArgumentException>().And.Message.Should().Be("username cannot contain the ':' character due to basic authentication limitations");
+            act.Should().ThrowExactly<ArgumentException>().WithMessage("username cannot contain the ':' character due to basic authentication limitations");
         }
 
         [TestMethod]
         public void AccentsInUsername()
         {
             Action act = () => new WebClientDownloader("héhé", "password", new TestLogger());
-            act.Should().ThrowExactly<ArgumentException>().And.Message.Should().Be("username and password should contain only ASCII characters due to basic authentication limitations");
+            act.Should().ThrowExactly<ArgumentException>().WithMessage("username and password should contain only ASCII characters due to basic authentication limitations");
         }
 
         [TestMethod]
         public void AccentsInPassword()
         {
             Action act = () => new WebClientDownloader("username", "héhé", new TestLogger());
-            act.Should().ThrowExactly<ArgumentException>().And.Message.Should().Be("username and password should contain only ASCII characters due to basic authentication limitations");
+            act.Should().ThrowExactly<ArgumentException>().WithMessage("username and password should contain only ASCII characters due to basic authentication limitations");
         }
     }
 }

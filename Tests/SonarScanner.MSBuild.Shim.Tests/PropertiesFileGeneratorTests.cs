@@ -747,7 +747,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var propertiesFileGenerator = new PropertiesFileGenerator(CreateValidConfig(analysisRootDir), new TestLogger());
             var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First()).AnalyzerOutPaths.ToList();
 
-            results.Count.Should().Be(4);
+            results.Should().HaveCount(4);
             results[0].FullName.Should().Be(new FileInfo("2").FullName);
             results[1].FullName.Should().Be(new FileInfo("3").FullName);
             results[2].FullName.Should().Be(new FileInfo("4").FullName);
@@ -965,7 +965,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         private static void AssertExpectedStatus(string expectedProjectName, ProjectInfoValidity expectedStatus, ProjectInfoAnalysisResult actual)
         {
             var matches = actual.GetProjectsByStatus(expectedStatus).Where(p => p.ProjectName.Equals(expectedProjectName));
-            matches.Should().HaveCount(1, "ProjectInfo was not classified as expected. Project name: {0}, expected status: {1}", expectedProjectName, expectedStatus);
+            matches.Should().ContainSingle("ProjectInfo was not classified as expected. Project name: {0}, expected status: {1}", expectedProjectName, expectedStatus);
         }
 
         private static void AssertNoValidProjects(ProjectInfoAnalysisResult actual)
