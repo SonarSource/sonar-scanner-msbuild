@@ -499,8 +499,10 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         private static GetAnalyzerSettings CreateConfiguredTestSubject(AnalysisConfig config, string language, TestContext testContext)
         {
             var testDir = TestUtils.EnsureTestSpecificFolder(testContext);
-            var testSubject = new GetAnalyzerSettings();
-            testSubject.Language = language;
+            var testSubject = new GetAnalyzerSettings
+            {
+                Language = language
+            };
 
             var fullPath = Path.Combine(testDir, FileConstants.ConfigFileName);
             config.Save(fullPath);
