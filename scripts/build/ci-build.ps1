@@ -122,8 +122,8 @@ function Invoke-SonarBeginAnalysis([array][parameter(ValueFromRemainingArguments
     }
 
     Exec { & (Get-ScannerMsBuildPath) begin `
-        /k:sonaranalyzer-dotnet `
-        /n:"SonarAnalyzer .Net" `
+        /k:sonar-scanner-msbuild `
+        /n:"SonarScanner for MSBuild" `
         /d:sonar.host.url=$sonarQubeUrl `
         /d:sonar.login=$sonarQubeToken `
         /d:sonar.cs.vstest.reportsPaths="**\*.trx" `
@@ -237,7 +237,7 @@ try {
 
     $buildConfiguration = "Release"
     $binPath = "bin\${buildConfiguration}"
-    $solutionName = "SonarAnalyzer.sln"
+    $solutionName = "SonarScanner.MSBuild.sln"
     $branchName = Get-BranchName
     $isMaster = $branchName -eq "master"
     # See https://xtranet.sonarsource.com/display/DEV/Release+Procedures for info about maintenance branches
