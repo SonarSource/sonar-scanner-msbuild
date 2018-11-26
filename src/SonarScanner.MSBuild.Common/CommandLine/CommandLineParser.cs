@@ -90,13 +90,13 @@ namespace SonarScanner.MSBuild.Common
 
             foreach (var arg in commandLineArgs)
             {
-                if (TryGetMatchingDescriptor(arg, out ArgumentDescriptor descriptor, out string prefix))
+                if (TryGetMatchingDescriptor(arg, out var descriptor, out var prefix))
                 {
                     var newId = descriptor.Id;
 
                     if (!descriptor.AllowMultiple && IdExists(newId, recognized))
                     {
-                        ArgumentInstance.TryGetArgumentValue(newId, recognized, out string existingValue);
+                        ArgumentInstance.TryGetArgumentValue(newId, recognized, out var existingValue);
                         logger.LogError(Resources.ERROR_CmdLine_DuplicateArg, arg, existingValue);
                         parsedOk = false;
                     }
@@ -176,7 +176,7 @@ namespace SonarScanner.MSBuild.Common
 
         private static bool IdExists(string id, IEnumerable<ArgumentInstance> arguments)
         {
-            var exists = ArgumentInstance.TryGetArgument(id, arguments, out ArgumentInstance existing);
+            var exists = ArgumentInstance.TryGetArgument(id, arguments, out var existing);
             return exists;
         }
 
@@ -188,7 +188,7 @@ namespace SonarScanner.MSBuild.Common
             var allExist = true;
             foreach (var desc in descriptors.Where(d => d.Required))
             {
-                ArgumentInstance.TryGetArgument(desc.Id, arguments, out ArgumentInstance argument);
+                ArgumentInstance.TryGetArgument(desc.Id, arguments, out var argument);
 
                 var exists = argument != null && !string.IsNullOrWhiteSpace(argument.Value);
                 if (!exists)

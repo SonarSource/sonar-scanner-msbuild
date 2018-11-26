@@ -285,7 +285,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         private static IEnumerable<ArgumentInstance> CheckProcessingSucceeds(CommandLineParser parser, TestLogger logger, params string[] args)
         {
-            var success = parser.ParseArguments(args, logger, out IEnumerable<ArgumentInstance> instances);
+            var success = parser.ParseArguments(args, logger, out var instances);
             success.Should().BeTrue("Expecting parsing to succeed");
             instances.Should().NotBeNull("Instances should not be null if parsing succeeds");
             logger.AssertErrorsLogged(0);
@@ -295,7 +295,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         private static TestLogger CheckProcessingFails(CommandLineParser parser, params string[] args)
         {
             var logger = new TestLogger();
-            var success = parser.ParseArguments(args, logger, out IEnumerable<ArgumentInstance> instances);
+            var success = parser.ParseArguments(args, logger, out var instances);
 
             success.Should().BeFalse("Expecting parsing to fail");
             instances.Should().NotBeNull("Instances should not be null even if parsing fails");
@@ -313,7 +313,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         private static void AssertExpectedValue(string id, string expectedValue, IEnumerable<ArgumentInstance> actual)
         {
-            var found = ArgumentInstance.TryGetArgument(id, actual, out ArgumentInstance actualInstance);
+            var found = ArgumentInstance.TryGetArgument(id, actual, out var actualInstance);
             found.Should().BeTrue("Expected argument was not found. Id: {0}", id);
             actual.Should().NotBeNull();
 

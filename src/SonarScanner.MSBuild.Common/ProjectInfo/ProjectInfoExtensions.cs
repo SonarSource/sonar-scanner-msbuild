@@ -154,7 +154,7 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         public static string TryGetAnalysisFileLocation(this ProjectInfo projectInfo, AnalysisType analysisType)
         {
-            if (projectInfo.TryGetAnalyzerResult(analysisType, out AnalysisResult result))
+            if (projectInfo.TryGetAnalyzerResult(analysisType, out var result))
             {
                 return result.Location;
             }

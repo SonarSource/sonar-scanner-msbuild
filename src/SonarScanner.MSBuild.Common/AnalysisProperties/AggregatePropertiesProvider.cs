@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.Common
             IList<Property> allProperties = new List<Property>();
             foreach (var key in allKeys)
             {
-                var match = TryGetProperty(key, out Property property);
+                var match = TryGetProperty(key, out var property);
 
                 Debug.Assert(match, "Expecting to find value for all keys. Key: " + key);
                 allProperties.Add(property);

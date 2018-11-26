@@ -61,8 +61,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         public AnalyzerSettings SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings,
             IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules, string language)
         {
-            sqSettings = settings ?? throw new ArgumentNullException(nameof(settings));
-            sqServerSettings = serverSettings ?? throw new ArgumentNullException(nameof(serverSettings));
+            this.sqSettings = settings ?? throw new ArgumentNullException(nameof(settings));
+            this.sqServerSettings = serverSettings ?? throw new ArgumentNullException(nameof(serverSettings));
             if (language == null)
             {
                 throw new ArgumentNullException(nameof(language));
@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             var analyzer = ConfigureAnalyzer(language, activeRules, inactiveRules);
             if (analyzer == null)
             {
-                logger.LogInfo(Resources.RAP_NoPluginInstalled, language);
+                this.logger.LogInfo(Resources.RAP_NoPluginInstalled, language);
             }
 
             return analyzer;
@@ -111,7 +111,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         /// </summary>
         private AnalyzerSettings ConfigureAnalyzer(string language, IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules)
         {
-            var ruleSetGenerator = new RoslynRuleSetGenerator(sqServerSettings);
+            var ruleSetGenerator = new RoslynRuleSetGenerator(this.sqServerSettings);
             var ruleSet = ruleSetGenerator.Generate(activeRules, inactiveRules, language);
             var rulesetFilePath = WriteRuleset(ruleSet, language);
             if (rulesetFilePath == null)
@@ -138,12 +138,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             string rulesetFilePath = null;
             if (ruleSet == null || ruleSet.Rules == null || !ruleSet.Rules.Any())
             {
-                logger.LogDebug(Resources.RAP_ProfileDoesNotContainRuleset);
+                this.logger.LogDebug(Resources.RAP_ProfileDoesNotContainRuleset);
             }
             else
             {
-                rulesetFilePath = GetRulesetFilePath(sqSettings, language);
-                logger.LogDebug(Resources.RAP_UnpackingRuleset, rulesetFilePath);
+                rulesetFilePath = GetRulesetFilePath(this.sqSettings, language);
+                this.logger.LogDebug(Resources.RAP_UnpackingRuleset, rulesetFilePath);
                 ruleSet.Save(rulesetFilePath);
             }
             return rulesetFilePath;
@@ -173,31 +173,31 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         {
             if (string.IsNullOrWhiteSpace(language))
             {
-                logger.LogDebug(Resources.RAP_AdditionalFileNameMustBeSpecified);
+                this.logger.LogDebug(Resources.RAP_AdditionalFileNameMustBeSpecified);
                 return null;
             }
 
             string content;
             if (language.Equals(CSharpLanguage))
             {
-                content = RoslynSonarLint.GenerateXml(activeRules, sqServerSettings, language, "csharpsquid");
+                content = RoslynSonarLint.GenerateXml(activeRules, this.sqServerSettings, language, "csharpsquid");
             }
             else
             {
-                content = RoslynSonarLint.GenerateXml(activeRules, sqServerSettings, language, "vbnet");
+                content = RoslynSonarLint.GenerateXml(activeRules, this.sqServerSettings, language, "vbnet");
             }
 
-            var langDir = Path.Combine(sqSettings.SonarConfigDirectory, language);
+            var langDir = Path.Combine(this.sqSettings.SonarConfigDirectory, language);
             Directory.CreateDirectory(langDir);
 
             var fullPath = Path.Combine(langDir, "SonarLint.xml");
             if (File.Exists(fullPath))
             {
-                logger.LogDebug(Resources.RAP_AdditionalFileAlreadyExists, language, fullPath);
+                this.logger.LogDebug(Resources.RAP_AdditionalFileAlreadyExists, language, fullPath);
                 return null;
             }
 
-            logger.LogDebug(Resources.RAP_WritingAdditionalFile, fullPath);
+            this.logger.LogDebug(Resources.RAP_WritingAdditionalFile, fullPath);
             File.WriteAllText(fullPath, content);
             return fullPath;
         }
@@ -209,11 +209,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
             foreach (var repoKey in repoKeys)
             {
-                if (!sqServerSettings.TryGetValue(PluginKeyPropertyKey(repoKey), out string pluginkey)
-                    || !sqServerSettings.TryGetValue(PluginVersionPropertyKey(repoKey), out string pluginVersion)
-                    || !sqServerSettings.TryGetValue(StaticResourceNamePropertyKey(repoKey), out string staticResourceName))
+                if (!this.sqServerSettings.TryGetValue(PluginKeyPropertyKey(repoKey), out var pluginkey)
+                    || !this.sqServerSettings.TryGetValue(PluginVersionPropertyKey(repoKey), out var pluginVersion)
+                    || !this.sqServerSettings.TryGetValue(StaticResourceNamePropertyKey(repoKey), out var staticResourceName))
                 {
-                    logger.LogInfo(Resources.RAP_NoAssembliesForRepo, repoKey, language);
+                    this.logger.LogInfo(Resources.RAP_NoAssembliesForRepo, repoKey, language);
                     continue;
                 }
 
@@ -223,12 +223,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             IEnumerable<string> analyzerAssemblyPaths = null;
             if (plugins.Count == 0)
             {
-                logger.LogInfo(Resources.RAP_NoAnalyzerPluginsSpecified, language);
+                this.logger.LogInfo(Resources.RAP_NoAnalyzerPluginsSpecified, language);
             }
             else
             {
-                logger.LogInfo(Resources.RAP_ProvisioningAnalyzerAssemblies, language);
-                analyzerAssemblyPaths = analyzerInstaller.InstallAssemblies(plugins);
+                this.logger.LogInfo(Resources.RAP_ProvisioningAnalyzerAssemblies, language);
+                analyzerAssemblyPaths = this.analyzerInstaller.InstallAssemblies(plugins);
             }
             return analyzerAssemblyPaths;
         }

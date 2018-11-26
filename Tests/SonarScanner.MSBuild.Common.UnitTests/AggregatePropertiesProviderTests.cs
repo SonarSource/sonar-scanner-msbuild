@@ -43,7 +43,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var provider = new AggregatePropertiesProvider(new IAnalysisPropertyProvider[] { });
 
             provider.GetAllProperties().Should().BeEmpty();
-            var success = provider.TryGetProperty("any key", out Property actualProperty);
+            var success = provider.TryGetProperty("any key", out var actualProperty);
 
             success.Should().BeFalse("Not expecting a property to be returned");
             actualProperty.Should().BeNull("Returned property should be null");

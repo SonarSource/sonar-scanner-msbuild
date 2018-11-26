@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable("SONARQUBE_SCANNER_PARAMS", "trash");
-                var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out IAnalysisPropertyProvider provider);
+                var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out var provider);
                 result.Should().BeFalse();
                 logger.AssertErrorLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS'");
             }

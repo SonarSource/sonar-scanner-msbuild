@@ -125,7 +125,7 @@ namespace SonarScanner.MSBuild.Tasks
 
             var guid = GetProjectGuid();
 
-            if (guid != null && Guid.TryParse(guid, out Guid projectId))
+            if (guid != null && Guid.TryParse(guid, out var projectId))
             {
                 pi.ProjectGuid = projectId;
             }
@@ -155,7 +155,7 @@ namespace SonarScanner.MSBuild.Tasks
 
             // Try to return the CodePage specified into the .xxproj
             if (!string.IsNullOrWhiteSpace(cleanedCodePage) &&
-                long.TryParse(cleanedCodePage, NumberStyles.None, CultureInfo.InvariantCulture, out long codepageValue) &&
+                long.TryParse(cleanedCodePage, NumberStyles.None, CultureInfo.InvariantCulture, out var codepageValue) &&
                 codepageValue > 0)
             {
                 try
@@ -262,8 +262,8 @@ namespace SonarScanner.MSBuild.Tasks
 
             // No validation for the value: can be anything, but the
             // "Value" metadata item must exist
-            if (TryGetSettingId(taskItem, out string settingId) &&
-                TryGetSettingValue(taskItem, out string settingValue))
+            if (TryGetSettingId(taskItem, out var settingId) &&
+                TryGetSettingValue(taskItem, out var settingValue))
             {
                 return new Property()
                 {

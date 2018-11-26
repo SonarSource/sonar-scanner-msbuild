@@ -68,7 +68,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             this.logger.LogDebug(RoslynResources.EAI_LocalAnalyzerCache, localCacheDirectory);
             Directory.CreateDirectory(localCacheDirectory); // ensure the cache dir exists
 
-            cache = new PluginResourceCache(localCacheDirectory);
+            this.cache = new PluginResourceCache(localCacheDirectory);
         }
 
         #region IAnalyzerInstaller methods
@@ -82,11 +82,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
             if (!plugins.Any())
             {
-                logger.LogInfo(RoslynResources.EAI_NoPluginsSpecified);
+                this.logger.LogInfo(RoslynResources.EAI_NoPluginsSpecified);
                 return Enumerable.Empty<string>(); // nothing to deploy
             }
 
-            logger.LogInfo(RoslynResources.EAI_InstallingAnalyzers);
+            this.logger.LogInfo(RoslynResources.EAI_InstallingAnalyzers);
 
             var allFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var plugin in plugins)
@@ -117,19 +117,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
         private IEnumerable<string> GetPluginResourceFiles(Plugin plugin)
         {
-            logger.LogDebug(RoslynResources.EAI_ProcessingPlugin, plugin.Key, plugin.Version);
+            this.logger.LogDebug(RoslynResources.EAI_ProcessingPlugin, plugin.Key, plugin.Version);
 
-            var cacheDir = cache.GetResourceSpecificDir(plugin);
+            var cacheDir = this.cache.GetResourceSpecificDir(plugin);
 
             var allFiles = FetchFilesFromCache(cacheDir);
 
             if (allFiles.Any())
             {
-                logger.LogDebug(RoslynResources.EAI_CacheHit, cacheDir);
+                this.logger.LogDebug(RoslynResources.EAI_CacheHit, cacheDir);
             }
             else
             {
-                logger.LogDebug(RoslynResources.EAI_CacheMiss);
+                this.logger.LogDebug(RoslynResources.EAI_CacheMiss);
                 if (FetchResourceFromServer(plugin, cacheDir))
                 {
                     allFiles = FetchFilesFromCache(cacheDir);
@@ -152,11 +152,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
         private bool FetchResourceFromServer(Plugin plugin, string targetDir)
         {
-            logger.LogDebug(RoslynResources.EAI_FetchingPluginResource, plugin.Key, plugin.Version, plugin.StaticResourceName);
+            this.logger.LogDebug(RoslynResources.EAI_FetchingPluginResource, plugin.Key, plugin.Version, plugin.StaticResourceName);
 
             Directory.CreateDirectory(targetDir);
 
-            var success = server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir);
+            var success = this.server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir);
 
             if (success)
             {
@@ -164,13 +164,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
                 if (IsZipFile(targetFilePath))
                 {
-                    logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
+                    this.logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
                     ZipFile.ExtractToDirectory(targetFilePath, targetDir);
                 }
             }
             else
             {
-                logger.LogWarning(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName);
+                this.logger.LogWarning(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName);
             }
             return success;
         }

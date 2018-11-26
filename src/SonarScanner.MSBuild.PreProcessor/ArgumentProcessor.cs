@@ -112,22 +112,22 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             // This call will fail if there are duplicate, missing, or unrecognized arguments
             var parser = new CommandLineParser(Descriptors, false /* don't allow unrecognized */);
-            var parsedOk = parser.ParseArguments(commandLineArgs, logger, out IEnumerable<ArgumentInstance> arguments);
+            var parsedOk = parser.ParseArguments(commandLineArgs, logger, out var arguments);
 
             // Handle the /install: command line only argument
-            parsedOk &= TryGetInstallTargetsEnabled(arguments, logger, out bool installLoaderTargets);
+            parsedOk &= TryGetInstallTargetsEnabled(arguments, logger, out var installLoaderTargets);
 
             // Handler for command line analysis properties
             parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger,
-                out IAnalysisPropertyProvider cmdLineProperties);
+                out var cmdLineProperties);
 
             // Handler for scanner environment properties
-            parsedOk &= EnvScannerPropertiesProvider.TryCreateProvider(logger, out IAnalysisPropertyProvider scannerEnvProperties);
+            parsedOk &= EnvScannerPropertiesProvider.TryCreateProvider(logger, out var scannerEnvProperties);
 
             // Handler for property file
             var asmPath = Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location);
             parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger,
-                out IAnalysisPropertyProvider globalFileProperties);
+                out var globalFileProperties);
 
             if (parsedOk)
             {
@@ -183,7 +183,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         private static bool TryGetInstallTargetsEnabled(IEnumerable<ArgumentInstance> arguments, ILogger logger, out bool installTargetsEnabled)
         {
-            var hasInstallTargetsVerb = ArgumentInstance.TryGetArgument(KeywordIds.InstallLoaderTargets, arguments, out ArgumentInstance argumentInstance);
+            var hasInstallTargetsVerb = ArgumentInstance.TryGetArgument(KeywordIds.InstallLoaderTargets, arguments, out var argumentInstance);
 
             if (hasInstallTargetsVerb)
             {

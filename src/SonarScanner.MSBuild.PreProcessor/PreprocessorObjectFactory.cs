@@ -60,23 +60,23 @@ namespace SonarScanner.MSBuild.PreProcessor
             var password = args.GetSetting(SonarProperties.SonarPassword, null);
             var hostUrl = args.SonarQubeUrl;
 
-            server = new SonarWebService(new WebClientDownloader(username, password, logger), hostUrl, logger);
-            return server;
+            this.server = new SonarWebService(new WebClientDownloader(username, password, this.logger), hostUrl, this.logger);
+            return this.server;
         }
 
         public ITargetsInstaller CreateTargetInstaller()
         {
-            return new TargetsInstaller(logger);
+            return new TargetsInstaller(this.logger);
         }
 
         public IAnalyzerProvider CreateRoslynAnalyzerProvider()
         {
-            if (server == null)
+            if (this.server == null)
             {
                 throw new InvalidOperationException(Resources.FACTORY_InternalError_MissingServer);
             }
 
-            return new Roslyn.RoslynAnalyzerProvider(new Roslyn.EmbeddedAnalyzerInstaller(server, logger), logger);
+            return new Roslyn.RoslynAnalyzerProvider(new Roslyn.EmbeddedAnalyzerInstaller(this.server, this.logger), this.logger);
         }
 
         #endregion IPreprocessorObjectFactory methods

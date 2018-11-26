@@ -214,7 +214,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         private static IAnalysisPropertyProvider CheckProcessingSucceeds(IEnumerable<ArgumentInstance> cmdLineArgs, string defaultPropertiesDirectory, TestLogger logger)
         {
-            var isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out IAnalysisPropertyProvider provider);
+            var isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out var provider);
 
             isValid.Should().BeTrue("Expecting the provider to be initialized successfully");
             provider.Should().NotBeNull("Not expecting a null provider if the function returned true");
@@ -225,7 +225,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         private static void CheckProcessingFails(IEnumerable<ArgumentInstance> cmdLineArgs, string defaultPropertiesDirectory, TestLogger logger)
         {
-            var isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out IAnalysisPropertyProvider provider);
+            var isValid = FilePropertyProvider.TryCreateProvider(cmdLineArgs, defaultPropertiesDirectory, logger, out var provider);
 
             isValid.Should().BeFalse("Not expecting the provider to be initialized successfully");
             provider.Should().BeNull("Not expecting a provider instance if the function returned true");

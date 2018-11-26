@@ -34,7 +34,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public MockSonarQubeServer()
         {
-            calledMethods = new List<string>();
+            this.calledMethods = new List<string>();
             Data = new ServerDataModel();
         }
 
@@ -44,7 +44,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public void AssertMethodCalled(string methodName, int callCount)
         {
-            var actualCalls = calledMethods.Count(n => string.Equals(methodName, n));
+            var actualCalls = this.calledMethods.Count(n => string.Equals(methodName, n));
             actualCalls.Should().Be(callCount, "Method was not called the expected number of times");
         }
 
@@ -139,7 +139,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             LogMethodCalled();
 
-            return this.Data.SonarQubeVersion;
+            return Data.SonarQubeVersion;
         }
 
         #endregion ISonarQubeServer methods
@@ -148,7 +148,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         private void LogMethodCalled([CallerMemberName] string methodName = null)
         {
-            calledMethods.Add(methodName);
+            this.calledMethods.Add(methodName);
         }
 
         #endregion Private methods

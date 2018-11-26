@@ -57,7 +57,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void PIRB_WriteSummaryReport_ValidArgs_FileCreated()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
             var analysisConfig = new AnalysisConfig()
             {
@@ -88,7 +88,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             // Assert
             var expectedFileName = Path.Combine(testDir, ProjectInfoReportBuilder.ReportFileName);
             File.Exists(expectedFileName).Should().BeTrue();
-            this.TestContext.AddResultFile(expectedFileName);
+            TestContext.AddResultFile(expectedFileName);
 
             var contents = File.ReadAllText(expectedFileName);
             contents.Should().Contain("project1");

@@ -57,7 +57,7 @@ namespace SonarScanner.MSBuild.Common
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            if (ExtractAndValidateProperties(commandLineArguments, logger, out IEnumerable<Property> validProperties))
+            if (ExtractAndValidateProperties(commandLineArguments, logger, out var validProperties))
             {
                 if (validProperties.Any())
                 {
@@ -121,9 +121,9 @@ namespace SonarScanner.MSBuild.Common
 
             foreach (var argument in arguments.Where(a => a.Descriptor.Id == DynamicPropertyArgumentId))
             {
-                if (Property.TryParse(argument.Value, out Property property))
+                if (Property.TryParse(argument.Value, out var property))
                 {
-                    if (Property.TryGetProperty(property.Id, validProperties, out Property existing))
+                    if (Property.TryGetProperty(property.Id, validProperties, out var existing))
                     {
                         logger.LogError(Resources.ERROR_CmdLine_DuplicateProperty, argument.Value, existing.Value);
                         containsDuplicateProperty = true;
@@ -165,7 +165,7 @@ namespace SonarScanner.MSBuild.Common
         private static bool ContainsNamedParameter(string propertyName, IEnumerable<Property> properties, ILogger logger,
             string errorMessage)
         {
-            if (Property.TryGetProperty(propertyName, properties, out Property existing))
+            if (Property.TryGetProperty(propertyName, properties, out var existing))
             {
                 logger.LogError(errorMessage);
                 return true;
@@ -175,7 +175,7 @@ namespace SonarScanner.MSBuild.Common
 
         private static bool ContainsUnsettableParameter(string propertyName, IEnumerable<Property> properties, ILogger logger)
         {
-            if (Property.TryGetProperty(propertyName, properties, out Property existing))
+            if (Property.TryGetProperty(propertyName, properties, out var existing))
             {
                 logger.LogError(Resources.ERROR_CmdLine_CannotSetPropertyOnCommandLine, propertyName);
                 return true;

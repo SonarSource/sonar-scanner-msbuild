@@ -64,9 +64,9 @@ namespace SonarScanner.MSBuild.Common
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            properties.TryGetValue(SonarProperties.Verbose, out string sonarVerboseValue);
+            properties.TryGetValue(SonarProperties.Verbose, out var sonarVerboseValue);
 
-            properties.TryGetValue(SonarProperties.LogLevel, out string sonarLogLevelValue);
+            properties.TryGetValue(SonarProperties.LogLevel, out var sonarLogLevelValue);
 
             return ComputeVerbosity(sonarVerboseValue, sonarLogLevelValue, logger);
         }

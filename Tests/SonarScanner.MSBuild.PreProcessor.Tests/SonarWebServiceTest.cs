@@ -43,18 +43,18 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         [TestInitialize]
         public void Init()
         {
-            downloader = new TestDownloader();
-            logger = new TestLogger();
-            ws = new SonarWebService(downloader, "http://myhost:222", logger);
-            downloader.Pages["http://myhost:222/api/server/version"] = "5.6";
+            this.downloader = new TestDownloader();
+            this.logger = new TestLogger();
+            this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
+            this.downloader.Pages["http://myhost:222/api/server/version"] = "5.6";
         }
 
         [TestCleanup]
         public void Cleanup()
         {
-            if (ws != null)
+            if (this.ws != null)
             {
-                ws.Dispose();
+                this.ws.Dispose();
             }
         }
 
@@ -81,77 +81,77 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         [TestMethod]
         public void LogWSOnError()
         {
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] = "trash";
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] = "trash";
             try
             {
-                ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
+                this.ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
                 Assert.Fail("Exception expected");
             }
             catch (Exception)
             {
-                logger.AssertErrorLogged("Failed to request and parse 'http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar': Error parsing boolean value. Path '', line 1, position 2.");
+                this.logger.AssertErrorLogged("Failed to request and parse 'http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar': Error parsing boolean value. Path '', line 1, position 2.");
             }
         }
 
         [TestMethod]
         public void TryGetQualityProfile64()
         {
-            downloader.Pages["http://myhost:222/api/server/version"] = "6.4";
+            this.downloader.Pages["http://myhost:222/api/server/version"] = "6.4";
             bool result;
 
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] =
                 "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AaBranch"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AaBranch"] =
                 "{ profiles: [{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AanotherBranch"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AanotherBranch"] =
                 "{ profiles: [{\"key\":\"profile3k\",\"name\":\"profile3\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
 
             // main
-            result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
+            result = this.ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
             result.Should().BeTrue();
             qualityProfile.Should().Be("profile1k");
 
             // branch specific
-            result = ws.TryGetQualityProfile("foo bar", "aBranch", null, "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("foo bar", "aBranch", null, "cs", out qualityProfile);
             result.Should().BeTrue();
             qualityProfile.Should().Be("profile2k");
 
-            result = ws.TryGetQualityProfile("foo bar", "anotherBranch", null, "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("foo bar", "anotherBranch", null, "cs", out qualityProfile);
             result.Should().BeTrue();
             qualityProfile.Should().Be("profile3k");
 
             // with organizations
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar&organization=my+org"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar&organization=my+org"] =
                "{ profiles: [{\"key\":\"profileOrganization\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            result = ws.TryGetQualityProfile("foo bar", null, "my org", "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("foo bar", null, "my org", "cs", out qualityProfile);
             result.Should().BeTrue();
             qualityProfile.Should().Be("profileOrganization");
 
             // fallback to defaults
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?defaults=true"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?defaults=true"] =
                 "{ profiles: [{\"key\":\"profileDefault\",\"name\":\"profileDefault\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            result = ws.TryGetQualityProfile("non existing", null, null, "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("non existing", null, null, "cs", out qualityProfile);
             result.Should().BeTrue();
             qualityProfile.Should().Be("profileDefault");
 
             // defaults with organizations
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?defaults=true&organization=my+org"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?defaults=true&organization=my+org"] =
                        "{ profiles: [{\"key\":\"profileOrganizationDefault\",\"name\":\"profileDefault\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            result = ws.TryGetQualityProfile("non existing", null, "my org", "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("non existing", null, "my org", "cs", out qualityProfile);
             result.Should().BeTrue();
             qualityProfile.Should().Be("profileOrganizationDefault");
 
             // no cs in list of profiles
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=java+foo+bar"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=java+foo+bar"] =
                 "{ profiles: [{\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            result = ws.TryGetQualityProfile("java foo bar", null, null, "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("java foo bar", null, null, "cs", out qualityProfile);
             result.Should().BeFalse();
             qualityProfile.Should().BeNull();
 
             // empty
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=empty+foo+bar"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=empty+foo+bar"] =
                 "{ profiles: []}";
-            result = ws.TryGetQualityProfile("empty foo bar", null, null, "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("empty foo bar", null, null, "cs", out qualityProfile);
             result.Should().BeFalse();
             qualityProfile.Should().BeNull();
         }
@@ -161,55 +161,55 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         {
             bool result;
 
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] =
                 "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AaBranch"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AaBranch"] =
                 "{ profiles: [{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AanotherBranch"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AanotherBranch"] =
                 "{ profiles: [{\"key\":\"profile3k\",\"name\":\"profile3\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
 
             // main
-            result = ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
+            result = this.ws.TryGetQualityProfile("foo bar", null, null, "cs", out string qualityProfile);
             result.Should().BeTrue();
             qualityProfile.Should().Be("profile1k");
 
             // branch specific
-            result = ws.TryGetQualityProfile("foo bar", "aBranch", null, "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("foo bar", "aBranch", null, "cs", out qualityProfile);
             result.Should().BeTrue();
             qualityProfile.Should().Be("profile2k");
 
-            result = ws.TryGetQualityProfile("foo bar", "anotherBranch", null, "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("foo bar", "anotherBranch", null, "cs", out qualityProfile);
             result.Should().BeTrue();
             qualityProfile.Should().Be("profile3k");
 
             // with organizations
-            result = ws.TryGetQualityProfile("foo bar", null, "my org", "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("foo bar", null, "my org", "cs", out qualityProfile);
             result.Should().BeTrue();
             qualityProfile.Should().Be("profile1k");
 
             // fallback to defaults
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?defaults=true"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?defaults=true"] =
                 "{ profiles: [{\"key\":\"profileDefault\",\"name\":\"profileDefault\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            result = ws.TryGetQualityProfile("non existing", null, null, "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("non existing", null, null, "cs", out qualityProfile);
             result.Should().BeTrue();
             qualityProfile.Should().Be("profileDefault");
 
             // defaults with organizations
-            result = ws.TryGetQualityProfile("non existing", null, "my org", "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("non existing", null, "my org", "cs", out qualityProfile);
             result.Should().BeTrue();
             qualityProfile.Should().Be("profileDefault");
 
             // no cs in list of profiles
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=java+foo+bar"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=java+foo+bar"] =
                 "{ profiles: [{\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            result = ws.TryGetQualityProfile("java foo bar", null, null, "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("java foo bar", null, null, "cs", out qualityProfile);
             result.Should().BeFalse();
             qualityProfile.Should().BeNull();
 
             // empty
-            downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=empty+foo+bar"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=empty+foo+bar"] =
                 "{ profiles: []}";
-            result = ws.TryGetQualityProfile("empty foo bar", null, null, "cs", out qualityProfile);
+            result = this.ws.TryGetQualityProfile("empty foo bar", null, null, "cs", out qualityProfile);
             result.Should().BeFalse();
             qualityProfile.Should().BeNull();
         }
@@ -217,8 +217,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         [TestMethod]
         public void GetSettingsSq63()
         {
-            downloader.Pages["http://myhost:222/api/server/version"] = "6.3-SNAPSHOT";
-            downloader.Pages["http://myhost:222/api/settings/values?component=comp"] =
+            this.downloader.Pages["http://myhost:222/api/server/version"] = "6.3-SNAPSHOT";
+            this.downloader.Pages["http://myhost:222/api/settings/values?component=comp"] =
                 @"{ settings: [
                   {
                     key: ""sonar.core.id"",
@@ -250,7 +250,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                     ]
                   }
                 ]}";
-            var result = ws.GetProperties("comp", null);
+            var result = this.ws.GetProperties("comp", null);
             result.Should().HaveCount(7);
 #pragma warning disable CollectionShouldHaveElementAt // Simplify Assertion
             result["sonar.exclusions"].Should().Be("myfile,myfile2");
@@ -265,7 +265,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         [TestMethod]
         public void GetActiveRules_UseParamAsKey()
         {
-            downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
                 @"{ total: 1, p: 1, ps: 1,
             rules: [{
                 key: ""vbnet:S2368"",
@@ -295,7 +295,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             }";
 
-            var actual = ws.GetActiveRules("qp");
+            var actual = this.ws.GetActiveRules("qp");
             actual.Should().ContainSingle();
 
             actual[0].RepoKey.Should().Be("vbnet");
@@ -308,7 +308,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         [TestMethod]
         public void GetActiveRules()
         {
-            downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
             @" { total: 3, p: 1, ps: 2,
             rules: [{
                 key: ""vbnet:S2368"",
@@ -362,7 +362,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             }";
 
-            downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=2"] =
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=2"] =
             @" { total: 3, p: 2, ps: 2,
             rules: [{
                 key: ""vbnet:S2346"",
@@ -386,7 +386,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             }";
 
-            var actual = ws.GetActiveRules("qp");
+            var actual = this.ws.GetActiveRules("qp");
             actual.Should().HaveCount(3);
 
             actual[0].RepoKey.Should().Be("vbnet");
@@ -413,7 +413,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         public void GetActiveRules_WhenActivesDoesNotContainRule_ThrowsJsonException()
         {
             // Arrange
-            downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
                 @"{ total: 1, p: 1, ps: 1,
             rules: [{
                 key: ""key1"",
@@ -443,7 +443,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             }";
 
-            Action act = () => ws.GetActiveRules("qp");
+            Action act = () => this.ws.GetActiveRules("qp");
 
             // Act &  Assert
             act.Should().ThrowExactly<JsonException>().WithMessage("Malformed json response, \"actives\" field should contain rule 'key1'");
@@ -453,7 +453,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         public void GetActiveRules_WhenActivesContainsRuleWithEmptyBody_ThrowsJsonException()
         {
             // Arrange
-            downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
                 @"{ total: 1, p: 1, ps: 1,
             rules: [{
                 key: ""key1"",
@@ -470,7 +470,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             }";
 
-            Action act = () => ws.GetActiveRules("qp");
+            Action act = () => this.ws.GetActiveRules("qp");
 
             // Act &  Assert
             act.Should().ThrowExactly<JsonException>().WithMessage("Malformed json response, \"actives\" field should contain rule 'key1'");
@@ -480,7 +480,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         public void GetActiveRules_WhenActivesContainsRuleWithMultipleBodies_ThrowsJsonException()
         {
             // Arrange
-            downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
                 @"{ total: 1, p: 1, ps: 1,
             rules: [{
                 key: ""key1"",
@@ -522,7 +522,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             }";
 
-            Action act = () => ws.GetActiveRules("qp");
+            Action act = () => this.ws.GetActiveRules("qp");
 
             // Act &  Assert
             act.Should().ThrowExactly<JsonException>().WithMessage("Malformed json response, \"actives\" field should contain rule 'key1'");
@@ -531,7 +531,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         [TestMethod]
         public void GetInactiveRulesAndEscapeUrl()
         {
-            downloader.Pages["http://myhost:222/api/rules/search?f=internalKey&ps=500&activation=false&qprofile=my%23qp&p=1&languages=cs"] = @"
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=internalKey&ps=500&activation=false&qprofile=my%23qp&p=1&languages=cs"] = @"
             {
             total: 3,
             p: 1,
@@ -551,7 +551,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 }
             ]}";
 
-            var rules = ws.GetInactiveRules("my#qp", "cs");
+            var rules = this.ws.GetInactiveRules("my#qp", "cs");
             string[] expected = { "csharpsquid:S2757", "csharpsquid:S1117", "csharpsquid:S1764" };
             rules.Should().BeEquivalentTo(expected);
         }
@@ -574,9 +574,9 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             // Requesting properties for project:branch should return branch-specific data
 
             // Check that properties are correctly defaulted as well as branch-specific
-            downloader.Pages["http://myhost:222/api/properties?resource=foo+bar"] =
+            this.downloader.Pages["http://myhost:222/api/properties?resource=foo+bar"] =
                 "[{\"key\": \"sonar.property1\",\"value\": \"value1\"},{\"key\": \"sonar.property2\",\"value\": \"value2\"},{\"key\": \"sonar.cs.msbuild.testProjectPattern\",\"value\": \"pattern\"}]";
-            downloader.Pages["http://myhost:222/api/properties?resource=foo+bar%3AaBranch"] =
+            this.downloader.Pages["http://myhost:222/api/properties?resource=foo+bar%3AaBranch"] =
                 "[{\"key\": \"sonar.property1\",\"value\": \"anotherValue1\"},{\"key\": \"sonar.property2\",\"value\": \"anotherValue2\"}]";
 
             // default
@@ -586,7 +586,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 ["sonar.property2"] = "value2",
                 ["sonar.msbuild.testProjectPattern"] = "pattern"
             };
-            var actual1 = ws.GetProperties("foo bar", null);
+            var actual1 = this.ws.GetProperties("foo bar", null);
 
             actual1.Should().HaveCount(expected1.Count);
             actual1.Should().NotBeSameAs(expected1);
@@ -597,7 +597,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 ["sonar.property1"] = "anotherValue1",
                 ["sonar.property2"] = "anotherValue2"
             };
-            var actual2 = ws.GetProperties("foo bar", "aBranch");
+            var actual2 = this.ws.GetProperties("foo bar", "aBranch");
 
             actual2.Should().HaveCount(expected2.Count);
             actual2.Should().NotBeSameAs(expected2);
@@ -606,13 +606,13 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         [TestMethod]
         public void GetInstalledPlugins()
         {
-            downloader.Pages["http://myhost:222/api/languages/list"] = "{ languages: [{ key: \"cs\", name: \"C#\" }, { key: \"flex\", name: \"Flex\" } ]}";
+            this.downloader.Pages["http://myhost:222/api/languages/list"] = "{ languages: [{ key: \"cs\", name: \"C#\" }, { key: \"flex\", name: \"Flex\" } ]}";
             var expected = new List<string>
             {
                 "cs",
                 "flex"
             };
-            var actual = new List<string>(ws.GetAllLanguages());
+            var actual = new List<string>(this.ws.GetAllLanguages());
 
             expected.SequenceEqual(actual).Should().BeTrue();
         }
@@ -655,10 +655,10 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         {
             // Arrange
             var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            downloader.Pages["http://myhost:222/static/csharp/dummy.txt"] = "dummy file content";
+            this.downloader.Pages["http://myhost:222/static/csharp/dummy.txt"] = "dummy file content";
 
             // Act
-            var success = ws.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir);
+            var success = this.ws.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir);
 
             // Assert
             success.Should().BeTrue("Expected success");
@@ -673,7 +673,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
             // Act
-            var success = ws.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir);
+            var success = this.ws.TryDownloadEmbeddedFile("csharp", "dummy.txt", testDir);
 
             // Assert
             success.Should().BeFalse("Expected failure");
@@ -698,14 +698,14 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 .Setup(x => x.Download($"{serverUrl}/api/properties?resource={projectKey}"))
                 .Throws(new WebException("Forbidden", new Exception(), WebExceptionStatus.ConnectionClosed, responseMock.Object));
 
-            var service = new SonarWebService(downloaderMock.Object, serverUrl, logger);
+            var service = new SonarWebService(downloaderMock.Object, serverUrl, this.logger);
 
             Action action = () => service.GetProperties(projectKey, null);
             action.Should().Throw<WebException>();
 
-            logger.Errors.Should().HaveCount(1);
-            logger.Warnings.Should().HaveCount(1);
-            logger.Warnings[0].Should().Be("To analyze private projects make sure the scanner user has 'Browse' permission.");
+            this.logger.Errors.Should().HaveCount(1);
+            this.logger.Warnings.Should().HaveCount(1);
+            this.logger.Warnings[0].Should().Be("To analyze private projects make sure the scanner user has 'Browse' permission.");
         }
 
         [TestMethod]
@@ -727,14 +727,14 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 .Setup(x => x.TryDownloadIfExists($"{serverUrl}/api/settings/values?component={projectKey}", out content))
                 .Throws(new WebException("Forbidden", new Exception(), WebExceptionStatus.ConnectionClosed, responseMock.Object));
 
-            var service = new SonarWebService(downloaderMock.Object, serverUrl, logger);
+            var service = new SonarWebService(downloaderMock.Object, serverUrl, this.logger);
 
             Action action = () => service.GetProperties(projectKey, null);
             action.Should().Throw<WebException>();
 
-            logger.Errors.Should().HaveCount(1);
-            logger.Warnings.Should().HaveCount(1);
-            logger.Warnings[0].Should().Be("To analyze private projects make sure the scanner user has 'Browse' permission.");
+            this.logger.Errors.Should().HaveCount(1);
+            this.logger.Warnings.Should().HaveCount(1);
+            this.logger.Warnings[0].Should().Be("To analyze private projects make sure the scanner user has 'Browse' permission.");
         }
 
         private sealed class TestDownloader : IDownloader
@@ -744,10 +744,10 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             public bool TryDownloadIfExists(string url, out string contents)
             {
-                AccessedUrls.Add(url);
-                if (Pages.ContainsKey(url))
+                this.AccessedUrls.Add(url);
+                if (this.Pages.ContainsKey(url))
                 {
-                    contents = Pages[url];
+                    contents = this.Pages[url];
                     return true;
                 }
                 else
@@ -759,21 +759,21 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             public string Download(string url)
             {
-                AccessedUrls.Add(url);
-                if (Pages.ContainsKey(url))
+                this.AccessedUrls.Add(url);
+                if (this.Pages.ContainsKey(url))
                 {
-                    return Pages[url];
+                    return this.Pages[url];
                 }
                 throw new ArgumentException("Cannot find URL " + url);
             }
 
             public bool TryDownloadFileIfExists(string url, string targetFilePath)
             {
-                AccessedUrls.Add(url);
+                this.AccessedUrls.Add(url);
 
-                if (Pages.ContainsKey(url))
+                if (this.Pages.ContainsKey(url))
                 {
-                    File.WriteAllText(targetFilePath, Pages[url]);
+                    File.WriteAllText(targetFilePath, this.Pages[url]);
                     return true;
                 }
                 else

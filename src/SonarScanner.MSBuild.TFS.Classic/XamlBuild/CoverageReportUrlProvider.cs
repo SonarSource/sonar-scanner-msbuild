@@ -64,16 +64,16 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 
             var urls = new List<string>();
 
-            logger.LogDebug(Resources.URL_DIAG_ConnectingToTfs);
+            this.logger.LogDebug(Resources.URL_DIAG_ConnectingToTfs);
             using (var collection = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(tfsUri)))
             {
                 var buildServer = collection.GetService<IBuildServer>();
 
-                logger.LogDebug(Resources.URL_DIAG_FetchingBuildInfo);
+                this.logger.LogDebug(Resources.URL_DIAG_FetchingBuildInfo);
                 var build = buildServer.GetMinimalBuildDetails(new Uri(buildUri));
                 var projectName = build.TeamProject;
 
-                logger.LogDebug(Resources.URL_DIAG_FetchingCoverageReportInfo);
+                this.logger.LogDebug(Resources.URL_DIAG_FetchingCoverageReportInfo);
                 var tcm = collection.GetService<ITestManagementService>();
                 var testProject = tcm.GetTeamProject(projectName);
 
@@ -81,12 +81,12 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
                 // before the service is able to provide them.
                 // For the time being, we're retrying with a time out.
                 IBuildCoverage[] coverages = null;
-                Utilities.Retry(TimeoutInMs, RetryPeriodInMs, logger, () => TryGetCoverageInfo(testProject, buildUri,
+                Utilities.Retry(TimeoutInMs, RetryPeriodInMs, this.logger, () => TryGetCoverageInfo(testProject, buildUri,
                     out coverages));
 
                 foreach (var coverage in coverages)
                 {
-                    logger.LogDebug(Resources.URL_DIAG_CoverageReportInfo, coverage.Configuration.Id,
+                    this.logger.LogDebug(Resources.URL_DIAG_CoverageReportInfo, coverage.Configuration.Id,
                         coverage.Configuration.BuildPlatform, coverage.Configuration.BuildPlatform);
 
                     var coverageFileUrl = GetCoverageUri(build, coverage);
@@ -95,7 +95,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
                 }
             }
 
-            logger.LogDebug(Resources.URL_DIAG_Finished);
+            this.logger.LogDebug(Resources.URL_DIAG_Finished);
             return urls;
         }
 

@@ -99,7 +99,7 @@ namespace SonarScanner.MSBuild.Tasks
         {
             Debug.Assert(config != null, "Not expecting the supplied configuration to be null");
 
-            config.GetAnalysisSettings(true).TryGetValue(TestRegExSettingId, out string regEx);
+            config.GetAnalysisSettings(true).TryGetValue(TestRegExSettingId, out var regEx);
 
             if (string.IsNullOrWhiteSpace(regEx))
             {

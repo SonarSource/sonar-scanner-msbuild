@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 
         protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, out string binaryFilePath)
         {
-            var urls = urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri());
+            var urls = this.urlProvider.GetCodeCoverageReportUrls(config.GetTfsUri(), config.GetBuildUri());
             Debug.Assert(urls != null, "Not expecting the returned list of urls to be null");
 
             var continueProcessing = true;
@@ -68,7 +68,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
                     var url = urls.First();
 
                     var targetFileName = Path.Combine(config.SonarOutputDir, DownloadFileName);
-                    var result = downloader.DownloadReport(config.GetTfsUri(), url, targetFileName);
+                    var result = this.downloader.DownloadReport(config.GetTfsUri(), url, targetFileName);
 
                     if (result)
                     {

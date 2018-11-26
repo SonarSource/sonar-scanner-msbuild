@@ -79,13 +79,13 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public bool Execute(string[] args)
         {
-            logger.SuspendOutput();
-            var processedArgs = ArgumentProcessor.TryProcessArgs(args, logger);
+            this.logger.SuspendOutput();
+            var processedArgs = ArgumentProcessor.TryProcessArgs(args, this.logger);
 
             if (processedArgs == null)
             {
-                logger.ResumeOutput();
-                logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
+                this.logger.ResumeOutput();
+                this.logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
                 return false;
             }
             else
@@ -98,38 +98,38 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             Debug.Assert(localSettings != null, "Not expecting the process arguments to be null");
 
-            logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, logger);
-            logger.ResumeOutput();
+            this.logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, this.logger);
+            this.logger.ResumeOutput();
 
             InstallLoaderTargets(localSettings);
 
-            var teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+            var teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(this.logger);
 
             // We're checking the args and environment variables so we can report all config errors to the user at once
             if (teamBuildSettings == null)
             {
-                logger.LogError(Resources.ERROR_CannotPerformProcessing);
+                this.logger.LogError(Resources.ERROR_CannotPerformProcessing);
                 return false;
             }
 
             // Create the directories
-            logger.LogDebug(Resources.MSG_CreatingFolders);
-            if (!Utilities.TryEnsureEmptyDirectories(logger,
+            this.logger.LogDebug(Resources.MSG_CreatingFolders);
+            if (!Utilities.TryEnsureEmptyDirectories(this.logger,
                 teamBuildSettings.SonarConfigDirectory,
                 teamBuildSettings.SonarOutputDirectory))
             {
                 return false;
             }
 
-            var server = factory.CreateSonarQubeServer(localSettings);
-            if (!FetchArgumentsAndRulesets(server, localSettings, teamBuildSettings, out IDictionary<string, string> serverSettings, out List<AnalyzerSettings> analyzersSettings))
+            var server = this.factory.CreateSonarQubeServer(localSettings);
+            if (!FetchArgumentsAndRulesets(server, localSettings, teamBuildSettings, out var serverSettings, out var analyzersSettings))
             {
                 return false;
             }
             Debug.Assert(analyzersSettings != null, "Not expecting the analyzers settings to be null");
 
             // analyzerSettings can be empty
-            AnalysisConfigGenerator.GenerateFile(localSettings, teamBuildSettings, serverSettings, analyzersSettings, server, logger);
+            AnalysisConfigGenerator.GenerateFile(localSettings, teamBuildSettings, serverSettings, analyzersSettings, server, this.logger);
 
             return true;
         }
@@ -142,13 +142,13 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             if (args.InstallLoaderTargets)
             {
-                var installer = factory.CreateTargetInstaller();
+                var installer = this.factory.CreateTargetInstaller();
                 Debug.Assert(installer != null, "Factory should not return null");
                 installer.InstallLoaderTargets(Directory.GetCurrentDirectory());
             }
             else
             {
-                logger.LogDebug(Resources.MSG_NotCopyingTargets);
+                this.logger.LogDebug(Resources.MSG_NotCopyingTargets);
             }
         }
 
@@ -159,10 +159,10 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             try
             {
-                logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
+                this.logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
 
                 // Respect sonar.branch setting if set
-                args.TryGetSetting(SonarProperties.ProjectBranch, out string projectBranch);
+                args.TryGetSetting(SonarProperties.ProjectBranch, out var projectBranch);
 
                 // Fetch the SonarQube project properties
                 serverSettings = server.GetProperties(args.ProjectKey, projectBranch);
@@ -178,9 +178,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                     }
 
                     // Fetch project quality profile
-                    if (!server.TryGetQualityProfile(args.ProjectKey, projectBranch, args.Organization, plugin.Language, out string qualityProfile))
+                    if (!server.TryGetQualityProfile(args.ProjectKey, projectBranch, args.Organization, plugin.Language, out var qualityProfile))
                     {
-                        logger.LogDebug(Resources.RAP_NoQualityProfile, plugin.Language, args.ProjectKey);
+                        this.logger.LogDebug(Resources.RAP_NoQualityProfile, plugin.Language, args.ProjectKey);
                         continue;
                     }
 
@@ -189,14 +189,14 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                     if (!activeRules.Any())
                     {
-                        logger.LogDebug(Resources.RAP_NoActiveRules, plugin.Language);
+                        this.logger.LogDebug(Resources.RAP_NoActiveRules, plugin.Language);
                         continue;
                     }
 
                     var inactiveRules = server.GetInactiveRules(qualityProfile, plugin.Language);
 
                     // Generate Roslyn analyzers settings and rulesets
-                    var analyzerProvider = factory.CreateRoslynAnalyzerProvider();
+                    var analyzerProvider = this.factory.CreateRoslynAnalyzerProvider();
                     Debug.Assert(analyzerProvider != null, "Factory should not return null");
 
                     // Will be null if the processing of server settings and active rules resulted in an empty ruleset
@@ -210,7 +210,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             catch (WebException ex)
             {
-                if (Utilities.HandleHostUrlWebException(ex, args.SonarQubeUrl, logger))
+                if (Utilities.HandleHostUrlWebException(ex, args.SonarQubeUrl, this.logger))
                 {
                     return false;
                 }
