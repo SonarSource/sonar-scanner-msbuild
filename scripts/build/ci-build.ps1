@@ -153,6 +153,7 @@ function Publish-Artifacts() {
             -Replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" `
         | Set-Content $pomFile
 
+    $version = Get-DotNetVersion
     Exec { & mvn org.codehaus.mojo:versions-maven-plugin:2.2:set "-DnewVersion=${version}" `
         -DgenerateBackupPoms=false -B -e `
     } -errorMessage "ERROR: Maven set version FAILED."
