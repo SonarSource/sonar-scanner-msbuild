@@ -32,13 +32,13 @@ namespace SonarScanner.MSBuild.Shim
     public class PropertiesWriter
     {
         private readonly ILogger logger;
-        private readonly StringBuilder sb;
         private readonly AnalysisConfig config;
 
         /// <summary>
-        /// List of projects that for which settings have been written
+        /// Project guids that have been processed. This is used in <see cref="Flush"/> to write the module keys in the end.
         /// </summary>
-        private readonly IList<ProjectInfo> projects;
+        private readonly IList<string> moduleKeys = new List<string>();
+        private readonly StringBuilder sb = new StringBuilder();
 
         #region Public methods
 
@@ -77,8 +77,6 @@ namespace SonarScanner.MSBuild.Shim
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.sb = new StringBuilder();
-            projects = new List<ProjectInfo>();
         }
 
         public bool FinishedWriting { get; private set; }
@@ -95,10 +93,9 @@ namespace SonarScanner.MSBuild.Shim
 
             FinishedWriting = true;
 
-            Debug.Assert(projects.Select(p => p.ProjectGuid).Distinct().Count() == projects.Count,
-                "Expecting the project guids to be unique");
+            Debug.Assert(moduleKeys.Distinct().Count() == moduleKeys.Count, "Expecting the project guids to be unique.");
 
-            AppendKeyValue(sb, "sonar.modules", string.Join(",", projects.Select(p => p.GetProjectGuidAsString())));
+            AppendKeyValue(sb, "sonar.modules", string.Join(",", moduleKeys));
             sb.AppendLine();
 
             return sb.ToString();
@@ -118,8 +115,6 @@ namespace SonarScanner.MSBuild.Shim
 
             Debug.Assert(projectData.ReferencedFiles.Count > 0, "Expecting a project to have files to analyze");
             Debug.Assert(projectData.SonarQubeModuleFiles.All(f => f.Exists), "Expecting all of the specified files to exist");
-
-            projects.Add(projectData.Project);
 
             var guid = projectData.Project.GetProjectGuidAsString();
 
@@ -158,6 +153,12 @@ namespace SonarScanner.MSBuild.Shim
 
                 sb.AppendLine();
             }
+
+            // Store the project guid so that we can write all module keys in the end
+            moduleKeys.Add(projectData.Guid);
+
+            var moduleWorkdir = Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"); // zero-based index of projectData.Guid
+            AppendKeyValue(sb, projectData.Guid, SonarProperties.WorkingDirectory, moduleWorkdir);
         }
 
         public void WriteAnalyzerOutputPaths(ProjectData project)
@@ -231,17 +232,6 @@ namespace SonarScanner.MSBuild.Shim
             AppendKeyValueIfNotEmpty(sb, SonarProperties.ProjectVersion, config.SonarProjectVersion);
             AppendKeyValue(sb, SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar"));
             AppendKeyValue(sb, SonarProperties.ProjectBaseDir, projectBaseDir.FullName);
-
-            projects
-                .Select(
-                    (p, index) =>
-                    {
-                        var moduleWorkdir = Path.Combine(config.SonarOutputDir, ".sonar", "mod" + index);
-                        return new { ProjectInfo = p, Workdir = moduleWorkdir };
-                    })
-                .ToList()
-                .ForEach(t => AppendKeyValue(sb, t.ProjectInfo.GetProjectGuidAsString(), SonarProperties.WorkingDirectory,
-                    t.Workdir));
         }
 
         public void WriteSharedFiles(IEnumerable<FileInfo> sharedFiles)
