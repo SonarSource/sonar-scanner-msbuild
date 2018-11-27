@@ -59,6 +59,9 @@
     <Reference Include="Microsoft.VisualStudio.Services.Common">
       <HintPath>..\..\TfsXamlDependencies\TFS2013_U4\Microsoft.VisualStudio.Services.Common.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Common">
+      <HintPath>..\..\TfsXamlDependencies\TFS2013_U4\Microsoft.TeamFoundation.Common.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Castle.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
