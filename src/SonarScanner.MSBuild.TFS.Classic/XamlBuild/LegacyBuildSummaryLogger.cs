@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Microsoft.TeamFoundation.Build.Client;
 using Microsoft.TeamFoundation.Client;
@@ -61,6 +62,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
         /// <summary>
         /// Writes the custom build summary message
         /// </summary>
+        [ExcludeFromCodeCoverage] // not mockable
         public void WriteMessage(string message, params object[] args)
         {
             if (string.IsNullOrWhiteSpace(message))
@@ -89,6 +91,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             GC.SuppressFinalize(this);
         }
 
+        [ExcludeFromCodeCoverage] // not mockable
         protected virtual void Dispose(bool disposing)
         {
             if (!this.disposed && disposing && this.teamProjectCollection != null)
@@ -105,6 +108,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 
         #endregion IDisposable interface
 
+        [ExcludeFromCodeCoverage] // not mockable
         private void EnsureConnected()
         {
             if (this.teamProjectCollection == null)
