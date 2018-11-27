@@ -30,6 +30,7 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 {
+    [ExcludeFromCodeCoverage] // Using non-mockable api
     internal class CoverageReportUrlProvider : ICoverageUrlProvider
     {
         /// <summary>
@@ -52,7 +53,6 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
         /// <summary>
         /// Builds and returns the download URLs for all code coverage reports for the specified build
         /// </summary>
-        [ExcludeFromCodeCoverage] // Using non-mockable api
         public IEnumerable<string> GetCodeCoverageReportUrls(string tfsUri, string buildUri)
         {
             if (string.IsNullOrWhiteSpace(tfsUri))
@@ -101,7 +101,6 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             return urls;
         }
 
-        [ExcludeFromCodeCoverage] // Using non-mockable api
         private static bool TryGetCoverageInfo(ITestManagementTeamProject testProject, string buildUri,
             out IBuildCoverage[] coverageInfo)
         {
@@ -110,7 +109,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             return coverageInfo != null && coverageInfo.Length > 0;
         }
 
-        internal /* for testing purpose */ static string GetCoverageUri(IBuildDetail buildDetail, IBuildCoverage buildCoverage)
+        private static string GetCoverageUri(IBuildDetail buildDetail, IBuildCoverage buildCoverage)
         {
             var serverPath = string.Format(CultureInfo.InvariantCulture, "/BuildCoverage/{0}.{1}.{2}.{3}.coverage",
                                     buildDetail.BuildNumber,
