@@ -26,20 +26,48 @@ namespace SonarScanner.MSBuild.Common
 {
     public class MsBuildPathSettings : IMsBuildPathsSettings
     {
+        private readonly Func<Environment.SpecialFolder, bool, string> getEnvironmentSpecialFolderPath;
+        private readonly Func<bool> isWindows;
+
+        public MsBuildPathSettings()
+        {
+            this.getEnvironmentSpecialFolderPath = (folder, forceCreate) =>
+                Environment.GetFolderPath(folder,
+                    forceCreate ? Environment.SpecialFolderOption.Create : Environment.SpecialFolderOption.None);
+            this.isWindows = PlatformHelper.IsWindows;
+        }
+
+        public /* for testing purposes */ MsBuildPathSettings(
+            Func<Environment.SpecialFolder, bool, string> getEnvironmentSpecialFolderPath, Func<bool> isWindows)
+        {
+            this.getEnvironmentSpecialFolderPath = getEnvironmentSpecialFolderPath;
+            this.isWindows = isWindows;
+        }
+
         public IEnumerable<string> GetImportBeforePaths()
         {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var appDataPath = this.getEnvironmentSpecialFolderPath(Environment.SpecialFolder.LocalApplicationData, true);
 
-            yield return GetMsBuildImportBeforePath(appData, "4.0");
-            yield return GetMsBuildImportBeforePath(appData, "10.0");
-            yield return GetMsBuildImportBeforePath(appData, "11.0");
-            yield return GetMsBuildImportBeforePath(appData, "12.0");
-            yield return GetMsBuildImportBeforePath(appData, "14.0");
-            yield return GetMsBuildImportBeforePath(appData, "15.0");
-
-            if (!PlatformHelper.IsWindows())
+            if (string.IsNullOrEmpty(appDataPath))
             {
-                var userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                throw new IOException("Cannot find local application data directory.");
+            }
+
+            yield return GetMsBuildImportBeforePath(appDataPath, "4.0");
+            yield return GetMsBuildImportBeforePath(appDataPath, "10.0");
+            yield return GetMsBuildImportBeforePath(appDataPath, "11.0");
+            yield return GetMsBuildImportBeforePath(appDataPath, "12.0");
+            yield return GetMsBuildImportBeforePath(appDataPath, "14.0");
+            yield return GetMsBuildImportBeforePath(appDataPath, "15.0");
+
+            if (!this.isWindows())
+            {
+                var userProfilePath = this.getEnvironmentSpecialFolderPath(Environment.SpecialFolder.UserProfile, true);
+
+                if (string.IsNullOrEmpty(userProfilePath))
+                {
+                    throw new IOException("Cannot find user profile directory.");
+                }
 
                 // "dotnet build" and "dotnet msbuild" on non-Windows use a different path for import before
                 yield return GetMsBuildImportBeforePath(userProfilePath, "15.0");
@@ -48,7 +76,12 @@ namespace SonarScanner.MSBuild.Common
 
         public IEnumerable<string> GetGlobalTargetsPaths()
         {
-            var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            var programFiles = this.getEnvironmentSpecialFolderPath(Environment.SpecialFolder.ProgramFiles, false);
+
+            if (string.IsNullOrEmpty(programFiles))
+            {
+                throw new IOException("Cannot find programs directory.");
+            }
 
             yield return Path.Combine(programFiles, "MSBuild", "14.0", "Microsoft.Common.Targets", "ImportBefore");
         }

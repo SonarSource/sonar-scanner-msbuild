@@ -91,6 +91,7 @@
     <Compile Include="FilePropertyProviderTests.cs" />
     <Compile Include="Infrastructure\OutputCaptureScope.cs" />
     <Compile Include="Infrastructure\OutputRecorder.cs" />
+    <Compile Include="MsBuildPathSettingsTests.cs" />
     <Compile Include="ProcessRunnerTests.cs" />
     <Compile Include="ProjectInfoTests.cs" />
     <Compile Include="ProjectInfo\ProjectInfoExtensionsTests.cs" />
