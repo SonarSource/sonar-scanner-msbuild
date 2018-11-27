@@ -52,7 +52,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         #region ISonarQubeServer methods
 
-        IList<ActiveRule> ISonarQubeServer.GetActiveRules(string qprofile)
+        IList<SonarRule> ISonarQubeServer.GetActiveRules(string qprofile)
         {
             LogMethodCalled();
 
@@ -66,7 +66,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             return profile.ActiveRules;
         }
 
-        IList<string> ISonarQubeServer.GetInactiveRules(string qprofile, string language)
+        IList<SonarRule> ISonarQubeServer.GetInactiveRules(string qprofile, string language)
         {
             LogMethodCalled();
             qprofile.Should().NotBeNullOrEmpty("Quality profile is required");

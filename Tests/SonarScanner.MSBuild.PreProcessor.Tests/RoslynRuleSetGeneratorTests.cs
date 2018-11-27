@@ -47,8 +47,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             IDictionary<string, string> dict = new Dictionary<string, string>();
             var generator = new RoslynRuleSetGenerator(dict);
-            IEnumerable<ActiveRule> activeRules = new List<ActiveRule>();
-            IEnumerable<string> inactiveRules = new List<string>();
+            IEnumerable<SonarRule> activeRules = new List<SonarRule>();
+            IEnumerable<SonarRule> inactiveRules = new List<SonarRule>();
             var language = "cs";
 
             Action act1 = () => generator.Generate(activeRules, inactiveRules, null);
@@ -66,10 +66,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             IDictionary<string, string> dict = new Dictionary<string, string>();
             var generator = new RoslynRuleSetGenerator(dict);
-            var activeRules = new List<ActiveRule>();
-            IEnumerable<string> inactiveRules = new List<string>();
+            var activeRules = new List<SonarRule>();
+            IEnumerable<SonarRule> inactiveRules = new List<SonarRule>();
             var language = "cs";
-            activeRules.Add(new ActiveRule("repo", "key"));
+            activeRules.Add(new SonarRule("repo", "key"));
 
             var ruleSet = generator.Generate(activeRules, inactiveRules, language);
             // No analyzer
@@ -98,17 +98,17 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             };
 
             var generator = new RoslynRuleSetGenerator(dict);
-            var activeRules = new List<ActiveRule>();
-            var inactiveRules = new List<string>();
+            var activeRules = new List<SonarRule>();
+            var inactiveRules = new List<SonarRule>();
             var language = "cs";
 
-            activeRules.Add(new ActiveRule("csharpsquid", "S1000"));
-            activeRules.Add(new ActiveRule("csharpsquid", "S1001"));
-            activeRules.Add(new ActiveRule("roslyn.custom", "custom", "custom.internal"));
-            activeRules.Add(new ActiveRule("other.repo", "other.rule"));
+            activeRules.Add(new SonarRule("csharpsquid", "S1000", true));
+            activeRules.Add(new SonarRule("csharpsquid", "S1001", true));
+            activeRules.Add(new SonarRule("roslyn.custom", "custom", "custom.internal", true));
+            activeRules.Add(new SonarRule("other.repo", "other.rule", true));
 
-            inactiveRules.Add("csharpsquid:S1002");
-            inactiveRules.Add("roslyn.custom:S1005");
+            inactiveRules.Add(new SonarRule("csharpsquid", "S1002", false));
+            inactiveRules.Add(new SonarRule("roslyn.custom", "S1005", false));
 
             var ruleSet = generator.Generate(activeRules, inactiveRules, language);
             string[] activatedCSharp = { "S1000", "S1001" };

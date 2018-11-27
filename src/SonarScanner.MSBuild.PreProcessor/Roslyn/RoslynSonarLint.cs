@@ -28,7 +28,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 {
     internal static class RoslynSonarLint
     {
-        public static string GenerateXml(IEnumerable<ActiveRule> activeRules, IDictionary<string, string> serverSettings,
+        public static string GenerateXml(IEnumerable<SonarRule> activeRules, IDictionary<string, string> serverSettings,
             string language, string repoKey)
         {
             var repoActiveRules = activeRules.Where(ar => repoKey.Equals(ar.RepoKey));

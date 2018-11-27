@@ -33,8 +33,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             Language = language;
             Organization = organization;
             this.projectIds = new HashSet<string>();
-            InactiveRules = new List<string>();
-            ActiveRules = new List<ActiveRule>();
+            InactiveRules = new List<SonarRule>();
+            ActiveRules = new List<SonarRule>();
         }
 
         public QualityProfile AddProject(string projectKey, string projectBranch = null)
@@ -49,15 +49,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             return this;
         }
 
-        public QualityProfile AddRule(ActiveRule rule)
+        public QualityProfile AddRule(SonarRule rule)
         {
             ActiveRules.Add(rule);
             return this;
         }
 
-        public QualityProfile AddInactiveRule(string ruleKey)
+        public QualityProfile AddInactiveRule(SonarRule rule)
         {
-            InactiveRules.Add(ruleKey);
+            InactiveRules.Add(rule);
             return this;
         }
 
@@ -65,7 +65,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public string Language { get; }
         public string Organization { get; }
         public IEnumerable<string> Projects { get { return this.projectIds; } }
-        public IList<ActiveRule> ActiveRules { get; }
-        public IList<string> InactiveRules { get; }
+        public IList<SonarRule> ActiveRules { get; }
+        public IList<SonarRule> InactiveRules { get; }
     }
 }

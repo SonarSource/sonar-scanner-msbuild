@@ -41,9 +41,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
         /// The ruleset can be empty if there are no active rules belonging to the repo keys "vbnet", "csharpsquid" or "roslyn.*".
         /// </summary>
         /// <exception cref="AnalysisException">if mandatory properties that should be associated with the repo key are missing.</exception>
-        public RuleSet Generate(IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules, string language)
+        public RuleSet Generate(IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, string language)
         {
-            if (activeRules == null || !activeRules.Any())
+            if (activeRules == null)
             {
                 throw new ArgumentNullException(nameof(activeRules));
             }
@@ -56,8 +56,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
                 throw new ArgumentNullException(nameof(language));
             }
 
-            var activeRulesByPartialRepoKey = ActiveRoslynRulesByPartialRepoKey(activeRules, language);
-            var inactiveRulesByRepoKey = GetInactiveRulesByRepoKey(inactiveRules);
+            var allRulesByPartialRepoKey = RoslynRulesByPartialRepoKey(activeRules, language)
+                .Concat(RoslynRulesByPartialRepoKey(inactiveRules, language))
+                .GroupBy(x => x.Key)
+                .ToDictionary(x => x.Key, x => x.SelectMany(y => y.Value));
 
             var ruleSet = new RuleSet
             {
@@ -66,60 +68,36 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
                 ToolsVersion = "14.0"
             };
 
-            foreach (var entry in activeRulesByPartialRepoKey)
+            foreach (var entry in allRulesByPartialRepoKey)
             {
-                var rules = new Rules();
-                var repoKey = entry.Value.First().RepoKey;
-                rules.AnalyzerId = MandatoryPropertyValue(AnalyzerIdPropertyKey(entry.Key));
-                rules.RuleNamespace = MandatoryPropertyValue(RuleNamespacePropertyKey(entry.Key));
-
-                // add active rules
-                rules.RuleList = entry.Value.Select(r => new Rule(r.RuleKey, "Warning")).ToList();
-
-                // add other
-                if (inactiveRulesByRepoKey.TryGetValue(repoKey, out var otherRules))
+                var rules = new Rules
                 {
-                    rules.RuleList.AddRange(otherRules.Select(r => new Rule(r, "None")).ToList());
-                }
+                    AnalyzerId = MandatoryPropertyValue(AnalyzerIdPropertyKey(entry.Key)),
+                    RuleNamespace = MandatoryPropertyValue(RuleNamespacePropertyKey(entry.Key)),
+                    RuleList = entry.Value.Select(r => new Rule(r.RuleKey, r.IsActive ? "Warning" : "None")).ToList()
+                };
+
                 ruleSet.Rules.Add(rules);
             }
 
             return ruleSet;
         }
 
-        private static Dictionary<string, List<string>> GetInactiveRulesByRepoKey(IEnumerable<string> inactiveRules)
-        {
-            var dict = new Dictionary<string, List<string>>();
-            foreach (var r in inactiveRules)
-            {
-                ParseRuleKey(r, out var repo, out var key);
-                AddDict(dict, repo, key);
-            }
-            return dict;
-        }
-
-        private static void ParseRuleKey(string keyWithRepo, out string repo, out string key)
-        {
-            var pos = keyWithRepo.IndexOf(':');
-            repo = keyWithRepo.Substring(0, pos);
-            key = keyWithRepo.Substring(pos + 1);
-        }
-
-        private static Dictionary<string, List<ActiveRule>> ActiveRoslynRulesByPartialRepoKey(IEnumerable<ActiveRule> activeRules,
+        private static Dictionary<string, List<SonarRule>> RoslynRulesByPartialRepoKey(IEnumerable<SonarRule> rules,
             string language)
         {
-            var rulesByPartialRepoKey = new Dictionary<string, List<ActiveRule>>();
+            var rulesByPartialRepoKey = new Dictionary<string, List<SonarRule>>();
 
-            foreach (var activeRule in activeRules)
+            foreach (var rule in rules)
             {
-                if (activeRule.RepoKey.StartsWith(ROSLYN_REPOSITORY_PREFIX))
+                if (rule.RepoKey.StartsWith(ROSLYN_REPOSITORY_PREFIX))
                 {
-                    var pluginKey = activeRule.RepoKey.Substring(ROSLYN_REPOSITORY_PREFIX.Length);
-                    AddDict(rulesByPartialRepoKey, pluginKey, activeRule);
+                    var pluginKey = rule.RepoKey.Substring(ROSLYN_REPOSITORY_PREFIX.Length);
+                    AddDict(rulesByPartialRepoKey, pluginKey, rule);
                 }
-                else if ("csharpsquid".Equals(activeRule.RepoKey) || "vbnet".Equals(activeRule.RepoKey))
+                else if ("csharpsquid".Equals(rule.RepoKey) || "vbnet".Equals(rule.RepoKey))
                 {
-                    AddDict(rulesByPartialRepoKey, string.Format(SONARANALYZER_PARTIAL_REPO_KEY, language), activeRule);
+                    AddDict(rulesByPartialRepoKey, string.Format(SONARANALYZER_PARTIAL_REPO_KEY, language), rule);
                 }
             }
 

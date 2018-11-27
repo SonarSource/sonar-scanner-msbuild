@@ -22,10 +22,11 @@ using System.Collections.Generic;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
 {
-    public class ActiveRule
+    public class SonarRule
     {
         public string RepoKey { set; get; }
         public string RuleKey { set; get; }
+        public bool IsActive { get; }
         public string TemplateKey { set; get; }
         public string InternalKey { set; get; }
         public Dictionary<string, string> Parameters { set; get; }
@@ -35,21 +36,29 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
             get { return InternalKey ?? RuleKey; }
         }
 
-        public ActiveRule()
+        public SonarRule()
         {
         }
 
-        public ActiveRule(string repoKey, string ruleKey)
+        public SonarRule(string repoKey, string ruleKey)
         {
             RepoKey = repoKey;
             RuleKey = ruleKey;
         }
 
-        public ActiveRule(string repoKey, string ruleKey, string internalKey)
+        public SonarRule(string repoKey, string ruleKey, bool isActive)
+        {
+            RepoKey = repoKey;
+            RuleKey = ruleKey;
+            IsActive = isActive;
+        }
+
+        public SonarRule(string repoKey, string ruleKey, string internalKey, bool isActive)
         {
             RepoKey = repoKey;
             RuleKey = ruleKey;
             InternalKey = internalKey;
+            IsActive = isActive;
         }
     }
 }

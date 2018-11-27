@@ -37,7 +37,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         #region IAnalyzerProvider methods
 
         AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings,
-            IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules, string language)
+            IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, string language)
         {
             settings.Should().NotBeNull();
             serverSettings.Should().NotBeNull();
