@@ -132,7 +132,7 @@ function Invoke-UnitTests([string]$binPath, [bool]$failsIfNotTest) {
         }
     $testDirs = $testDirs | Select-Object -Uniq
 
-    & (Get-VsTestPath) /Enablecodecoverage /Logger:trx $testFiles
+    & (Get-VsTestPath) /Enablecodecoverage /Parallel /Logger:trx $testFiles
     Test-ExitCode "ERROR: Unit Tests execution FAILED."
 
     Clear-ExtraFiles
