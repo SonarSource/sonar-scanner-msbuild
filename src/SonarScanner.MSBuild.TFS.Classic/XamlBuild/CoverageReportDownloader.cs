@@ -29,6 +29,7 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 {
+    [ExcludeFromCodeCoverage] // non-mockable
     internal class CoverageReportDownloader : ICoverageReportDownloader
     {
         private readonly ILogger logger;
@@ -38,7 +39,6 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        [ExcludeFromCodeCoverage] // non-mockable
         public bool DownloadReport(string tfsUri, string reportUrl, string newFullFileName)
         {
             if (string.IsNullOrWhiteSpace(tfsUri))
@@ -62,7 +62,6 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             return true;
         }
 
-        [ExcludeFromCodeCoverage] // non-mockable
         private void InternalDownloadReport(string tfsUri, string reportUrl, string reportDestinationPath)
         {
             var vssHttpMessageHandler = GetHttpHandler(tfsUri);
@@ -86,7 +85,6 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
             }
         }
 
-        [ExcludeFromCodeCoverage] // non-mockable
         private VssHttpMessageHandler GetHttpHandler(string tfsUri)
         {
             VssCredentials vssCreds;

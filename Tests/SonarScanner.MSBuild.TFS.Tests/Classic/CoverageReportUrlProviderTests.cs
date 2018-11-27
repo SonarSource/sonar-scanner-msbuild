@@ -20,11 +20,7 @@
 
 using System;
 using FluentAssertions;
-using Microsoft.TeamFoundation.Build.Client;
-using Microsoft.TeamFoundation.Client;
-using Microsoft.TeamFoundation.TestManagement.Client;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 using TestUtilities;
 
@@ -50,33 +46,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             action = () => provider.GetCodeCoverageReportUrls(tfsUri: "tfsUri", buildUri: null);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildUri");
-        }
-
-        [TestMethod]
-        public void GetCoverageUri_ReturnsExepctedUri()
-        {
-            // Arrange
-            var buildDetailMock = new Mock<IBuildDetail>();
-            buildDetailMock.SetupGet(x => x.BuildNumber).Returns("1234");
-            buildDetailMock.SetupGet(x => x.TeamProject).Returns("team-project");
-            buildDetailMock.SetupGet(x => x.Uri).Returns(new Uri("http://foo.com"));
-            var buildServerMock = new Mock<IBuildServer>();
-            var tfsCollection = new TfsTeamProjectCollection(new Uri("http://bar.com"));
-            buildServerMock.SetupGet(x => x.TeamProjectCollection).Returns(tfsCollection);
-            buildDetailMock.SetupGet(x => x.BuildServer).Returns(buildServerMock.Object);
-
-            var buildCoverageMock = new Mock<IBuildCoverage>();
-            var configMock = new Mock<IBuildConfiguration>();
-            configMock.SetupGet(x => x.BuildFlavor).Returns("flavor");
-            configMock.SetupGet(x => x.BuildPlatform).Returns("platform");
-            configMock.SetupGet(x => x.Id).Returns(1);
-            buildCoverageMock.SetupGet(x => x.Configuration).Returns(configMock.Object);
-
-            // Act
-            var result = CoverageReportUrlProvider.GetCoverageUri(buildDetailMock.Object, buildCoverageMock.Object);
-
-            // Assert
-            result.Should().Be("http://bar.com//team-project/_api/_build/ItemContent?buildUri=http%3A%2F%2Ffoo.com%2F&path=%2FBuildCoverage%2F1234.flavor.platform.1.coverage");
         }
     }
 }
