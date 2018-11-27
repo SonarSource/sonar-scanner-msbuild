@@ -531,29 +531,44 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         [TestMethod]
         public void GetInactiveRulesAndEscapeUrl()
         {
-            this.downloader.Pages["http://myhost:222/api/rules/search?f=internalKey&ps=500&activation=false&qprofile=my%23qp&p=1&languages=cs"] = @"
+            this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params&ps=500&activation=false&qprofile=my%23qp&p=1&languages=cs"] = @"
             {
             total: 3,
             p: 1,
             ps: 500,
             rules: [
                 {
-                    key: ""csharpsquid:S2757"",
-                    type: ""BUG""
+                    ""key"": ""csharpsquid:S2757"",
+                    ""repo"": ""csharpsquid"",
+                    ""type"": ""BUG""
                 },
                 {
-                    key: ""csharpsquid:S1117"",
-                    type: ""CODE_SMELL""
+                    ""key"": ""csharpsquid:S1117"",
+                    ""repo"": ""csharpsquid"",
+                    ""type"": ""CODE_SMELL""
                 },
                 {
-                    key: ""csharpsquid:S1764"",
-                    type: ""BUG""
+                    ""key"": ""csharpsquid:S1764"",
+                    ""repo"": ""csharpsquid"",
+                    ""type"": ""BUG""
                 }
             ]}";
 
             var rules = this.ws.GetInactiveRules("my#qp", "cs");
-            string[] expected = { "csharpsquid:S2757", "csharpsquid:S1117", "csharpsquid:S1764" };
-            rules.Should().BeEquivalentTo(expected);
+
+            rules.Should().HaveCount(3);
+
+            rules[0].RepoKey.Should().Be("csharpsquid");
+            rules[0].RuleKey.Should().Be("S2757");
+            rules[0].InternalKeyOrKey.Should().Be("S2757");
+
+            rules[1].RepoKey.Should().Be("csharpsquid");
+            rules[1].RuleKey.Should().Be("S1117");
+            rules[1].InternalKeyOrKey.Should().Be("S1117");
+
+            rules[2].RepoKey.Should().Be("csharpsquid");
+            rules[2].RuleKey.Should().Be("S1764");
+            rules[2].InternalKeyOrKey.Should().Be("S1764");
         }
 
         [TestMethod]

@@ -54,6 +54,12 @@ namespace SonarScanner.MSBuild.Common
             MemoryStream stream = null;
             try
             {
+                var containingDir = new FileInfo(fileName).Directory;
+                if (!containingDir.Exists)
+                {
+                    containingDir.Create();
+                }
+
                 stream = new MemoryStream();
                 using (var writer = new StreamWriter(stream))
                 {

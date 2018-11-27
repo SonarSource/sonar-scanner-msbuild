@@ -24,8 +24,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
+using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 {
@@ -34,7 +34,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         public const string RoslynFormatNamePrefix = "roslyn-{0}";
         public const string RoslynRulesetFileName = "SonarQubeRoslyn-{0}.ruleset";
 
-        private const string SONARANALYZER_PARTIAL_REPO_KEY = "sonaranalyzer-{0}";
+        private const string SONARANALYZER_PARTIAL_REPO_KEY_PREFIX = "sonaranalyzer-";
+        private const string SONARANALYZER_PARTIAL_REPO_KEY = SONARANALYZER_PARTIAL_REPO_KEY_PREFIX + "{0}";
         private const string ROSLYN_REPOSITORY_PREFIX = "roslyn.";
 
         public const string CSharpLanguage = "cs";
@@ -59,7 +60,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         }
 
         public AnalyzerSettings SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings,
-            IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules, string language)
+            IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, string language)
         {
             this.sqSettings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.sqServerSettings = serverSettings ?? throw new ArgumentNullException(nameof(serverSettings));
@@ -75,10 +76,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             if (activeRules == null)
             {
                 throw new ArgumentNullException(nameof(activeRules));
-            }
-            if (!activeRules.Any())
-            {
-                return null;
             }
 
             var analyzer = ConfigureAnalyzer(language, activeRules, inactiveRules);
@@ -109,7 +106,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         /// Active rules should never be empty, but depending on the server settings of repo keys, we might have no rules in the ruleset.
         /// In that case, this method returns null.
         /// </summary>
-        private AnalyzerSettings ConfigureAnalyzer(string language, IEnumerable<ActiveRule> activeRules, IEnumerable<string> inactiveRules)
+        private AnalyzerSettings ConfigureAnalyzer(string language, IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules)
         {
             var ruleSetGenerator = new RoslynRuleSetGenerator(this.sqServerSettings);
             var ruleSet = ruleSetGenerator.Generate(activeRules, inactiveRules, language);
@@ -136,7 +133,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         public string WriteRuleset(RuleSet ruleSet, string language)
         {
             string rulesetFilePath = null;
-            if (ruleSet == null || ruleSet.Rules == null || !ruleSet.Rules.Any())
+            if (ruleSet == null || ruleSet.Rules == null)
             {
                 this.logger.LogDebug(Resources.RAP_ProfileDoesNotContainRuleset);
             }
@@ -154,7 +151,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             return Path.Combine(settings.SonarConfigDirectory, GetRoslynRulesetFileName(language));
         }
 
-        private IEnumerable<string> WriteAdditionalFiles(string language, IEnumerable<ActiveRule> activeRules)
+        private IEnumerable<string> WriteAdditionalFiles(string language, IEnumerable<SonarRule> activeRules)
         {
             Debug.Assert(activeRules != null, "Supplied active rules should not be null");
 
@@ -169,7 +166,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             return additionalFiles;
         }
 
-        private string WriteSonarLintXmlFile(string language, IEnumerable<ActiveRule> activeRules)
+        private string WriteSonarLintXmlFile(string language, IEnumerable<SonarRule> activeRules)
         {
             if (string.IsNullOrWhiteSpace(language))
             {
@@ -202,7 +199,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             return fullPath;
         }
 
-        public IEnumerable<string> FetchAnalyzerAssemblies(IEnumerable<ActiveRule> activeRules, string language)
+        public IEnumerable<string> FetchAnalyzerAssemblies(IEnumerable<SonarRule> activeRules, string language)
         {
             var repoKeys = ActiveRulesPartialRepoKey(activeRules, language);
             IList<Plugin> plugins = new List<Plugin>();
@@ -213,7 +210,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
                     || !this.sqServerSettings.TryGetValue(PluginVersionPropertyKey(repoKey), out var pluginVersion)
                     || !this.sqServerSettings.TryGetValue(StaticResourceNamePropertyKey(repoKey), out var staticResourceName))
                 {
-                    this.logger.LogInfo(Resources.RAP_NoAssembliesForRepo, repoKey, language);
+                    if (!repoKey.StartsWith(SONARANALYZER_PARTIAL_REPO_KEY_PREFIX))
+                    {
+                        this.logger.LogInfo(Resources.RAP_NoAssembliesForRepo, repoKey, language);
+                    }
                     continue;
                 }
 
@@ -248,19 +248,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             return partialRepoKey + ".staticResourceName";
         }
 
-        private static ICollection<string> ActiveRulesPartialRepoKey(IEnumerable<ActiveRule> activeRules, string language)
+        private static ICollection<string> ActiveRulesPartialRepoKey(IEnumerable<SonarRule> activeRules, string language)
         {
-            ISet<string> list = new HashSet<string>();
+            var list = new HashSet<string>
+            {
+                // Always add SonarC# and SonarVB to have at least tokens...
+                string.Format(SONARANALYZER_PARTIAL_REPO_KEY, "cs"),
+                string.Format(SONARANALYZER_PARTIAL_REPO_KEY, "vbnet")
+            };
 
             foreach (var activeRule in activeRules)
             {
                 if (activeRule.RepoKey.StartsWith(ROSLYN_REPOSITORY_PREFIX))
                 {
                     list.Add(activeRule.RepoKey.Substring(ROSLYN_REPOSITORY_PREFIX.Length));
-                }
-                else if ("csharpsquid".Equals(activeRule.RepoKey) || "vbnet".Equals(activeRule.RepoKey))
-                {
-                    list.Add(string.Format(SONARANALYZER_PARTIAL_REPO_KEY, language));
                 }
             }
 

@@ -90,16 +90,16 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <param name="qprofile">Quality profile key.</param>
         /// <param name="language">Rule Language.</param>
         /// <returns>Non-activated rule keys, including repo. Example: csharpsquid:S1100</returns>
-        public IList<string> GetInactiveRules(string qprofile, string language)
+        public IList<SonarRule> GetInactiveRules(string qprofile, string language)
         {
             var fetched = 0;
             var page = 1;
             var total = 0;
-            var ruleList = new List<string>();
+            var ruleList = new List<SonarRule>();
 
             do
             {
-                var ws = GetUrl("/api/rules/search?f=internalKey&ps=500&activation=false&qprofile={0}&p={1}&languages={2}", qprofile, page.ToString(), language);
+                var ws = GetUrl("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params&ps=500&activation=false&qprofile={0}&p={1}&languages={2}", qprofile, page.ToString(), language);
                 this.logger.LogDebug(Resources.MSG_FetchingInactiveRules, qprofile, language, ws);
 
                 ruleList.AddRange(DoLogExceptions(() =>
@@ -111,7 +111,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     page++;
                     var rules = json["rules"].Children<JObject>();
 
-                    return rules.Select(r => r["key"].ToString());
+                    return rules.Select(r => new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), false));
                 }, ws));
             } while (fetched < total);
 
@@ -124,12 +124,12 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </summary>
         /// <param name="qprofile">Quality profile id.</param>
         /// <returns>List of active rules</returns>
-        public IList<ActiveRule> GetActiveRules(string qprofile)
+        public IList<SonarRule> GetActiveRules(string qprofile)
         {
             var fetched = 0;
             var page = 1;
             var total = 0;
-            var activeRuleList = new List<ActiveRule>();
+            var activeRuleList = new List<SonarRule>();
 
             do
             {
@@ -159,7 +159,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                             throw new JsonException($"Malformed json response, \"actives\" field should contain rule '{r["key"].ToString()}'");
                         }
 
-                        var activeRule = new ActiveRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()));
+                        var activeRule = new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), true);
                         if (r["internalKey"] != null)
                         {
                             activeRule.InternalKey = r["internalKey"].ToString();

@@ -190,7 +190,6 @@ namespace SonarScanner.MSBuild.PreProcessor
                     if (!activeRules.Any())
                     {
                         this.logger.LogDebug(Resources.RAP_NoActiveRules, plugin.Language);
-                        continue;
                     }
 
                     var inactiveRules = server.GetInactiveRules(qualityProfile, plugin.Language);

@@ -54,8 +54,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             // Arrange
             var logger = new TestLogger();
-            IList<ActiveRule> activeRules = new List<ActiveRule>();
-            IList<string> inactiveRules = new List<string>();
+            IList<SonarRule> activeRules = new List<SonarRule>();
+            IList<SonarRule> inactiveRules = new List<SonarRule>();
             var pluginKey = RoslynAnalyzerProvider.CSharpPluginKey;
             IDictionary<string, string> serverSettings = new Dictionary<string, string>();
             var settings = CreateSettings(TestContext.DeploymentDirectory);
@@ -80,8 +80,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             // Arrange
             var logger = new TestLogger();
-            IList<ActiveRule> activeRules = new List<ActiveRule>();
-            IList<string> inactiveRules = new List<string>();
+            IList<SonarRule> activeRules = new List<SonarRule>();
+            IList<SonarRule> inactiveRules = new List<SonarRule>();
             var pluginKey = "csharp";
             IDictionary<string, string> serverSettings = new Dictionary<string, string>();
             var settings = CreateSettings(TestContext.DeploymentDirectory);
@@ -89,7 +89,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var testSubject = CreateTestSubject(logger);
 
             // Act and assert
-            testSubject.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, pluginKey).Should().BeNull();
+            testSubject.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, pluginKey).Should().NotBeNull();
         }
 
         [TestMethod]
@@ -98,8 +98,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             // Arrange
             var rootFolder = CreateTestFolders();
             var logger = new TestLogger();
-            IList<ActiveRule> activeRules = createActiveRules();
-            IList<string> inactiveRules = createInactiveRules();
+            IList<SonarRule> activeRules = createActiveRules();
+            IList<SonarRule> inactiveRules = createInactiveRules();
             var language = RoslynAnalyzerProvider.CSharpLanguage;
 
             // missing properties to get plugin related properties
@@ -145,8 +145,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             // Arrange
             var rootFolder = CreateTestFolders();
             var logger = new TestLogger();
-            IList<ActiveRule> activeRules = createActiveRules();
-            IList<string> inactiveRules = createInactiveRules();
+            IList<SonarRule> activeRules = createActiveRules();
+            IList<SonarRule> inactiveRules = createInactiveRules();
             var language = RoslynAnalyzerProvider.CSharpLanguage;
             var mockInstaller = new MockAnalyzerInstaller
             {
@@ -179,16 +179,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         #region Private methods
 
-        private List<string> createInactiveRules()
+        private List<SonarRule> createInactiveRules()
         {
-            var list = new List<string>
+            var list = new List<SonarRule>
             {
-                "csharpsquid:S1000"
+                new SonarRule("csharpsquid", "S1000", false)
             };
             return list;
         }
 
-        private List<ActiveRule> createActiveRules()
+        private List<SonarRule> createActiveRules()
         {
             /*
             <Rules AnalyzerId=""SonarLint.CSharp"" RuleNamespace=""SonarLint.CSharp"">
@@ -199,16 +199,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
               <Rule Id=""Wintellect003"" Action=""Warning""/>
             </Rules>
             */
-            var rules = new List<ActiveRule>();
-            var ruleWithParameter = new ActiveRule("csharpsquid", "S1116");
+            var rules = new List<SonarRule>();
+            var ruleWithParameter = new SonarRule("csharpsquid", "S1116", true);
             var p = new Dictionary<string, string>
             {
                 { "key", "value" }
             };
             ruleWithParameter.Parameters = p;
             rules.Add(ruleWithParameter);
-            rules.Add(new ActiveRule("csharpsquid", "S1125"));
-            rules.Add(new ActiveRule("roslyn.wintellect", "Wintellect003"));
+            rules.Add(new SonarRule("csharpsquid", "S1125", true));
+            rules.Add(new SonarRule("roslyn.wintellect", "Wintellect003", true));
 
             return rules;
         }

@@ -63,16 +63,16 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             return profile;
         }
 
-        public void AddActiveRuleToProfile(string qProfile, ActiveRule rule)
+        public void AddActiveRuleToProfile(string qProfile, SonarRule rule)
         {
             var profile = FindProfile(qProfile);
             profile.ActiveRules.Add(rule);
         }
 
-        public void AddInactiveRuleToProfile(string qProfile, string ruleKey)
+        public void AddInactiveRuleToProfile(string qProfile, SonarRule rule)
         {
             var profile = FindProfile(qProfile);
-            profile.InactiveRules.Add(ruleKey);
+            profile.InactiveRules.Add(rule);
         }
 
         public void AddEmbeddedZipFile(string pluginKey, string embeddedFileName, params string[] contentFileNames)

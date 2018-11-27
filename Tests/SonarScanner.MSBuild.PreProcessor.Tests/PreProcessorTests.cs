@@ -80,11 +80,81 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             data.AddQualityProfile("qp1", "cs", null)
                 .AddProject("key")
-                .AddRule(new ActiveRule("csharpsquid", "cs.rule3"));
+                .AddRule(new SonarRule("csharpsquid", "cs.rule3"));
 
             data.AddQualityProfile("qp2", "vbnet", null)
                 .AddProject("key")
-                .AddRule(new ActiveRule("vbnet", "vb.rule3"));
+                .AddRule(new SonarRule("vbnet", "vb.rule3"));
+
+            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
+            {
+                SettingsToReturn = new AnalyzerSettings
+                {
+                    RuleSetFilePath = "c:\\xxx.ruleset"
+                }
+            };
+
+            var mockTargetsInstaller = new Mock<ITargetsInstaller>();
+            var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
+
+            TeamBuildSettings settings;
+            using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
+            using (new WorkingDirectoryScope(workingDir))
+            {
+                settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
+                settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
+                settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+
+                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+
+                // Act
+                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
+                success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+            }
+
+            // Assert
+            AssertDirectoriesCreated(settings);
+
+            mockTargetsInstaller.Verify(x => x.InstallLoaderTargets(workingDir), Times.Once());
+            mockServer.AssertMethodCalled("GetProperties", 1);
+            mockServer.AssertMethodCalled("GetAllLanguages", 1);
+            mockServer.AssertMethodCalled("TryGetQualityProfile", 2); // C# and VBNet
+            mockServer.AssertMethodCalled("GetActiveRules", 2); // C# and VBNet
+            mockServer.AssertMethodCalled("GetInactiveRules", 2); // C# and VBNet
+
+            AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, logger);
+        }
+
+        [TestMethod]
+        public void PreProc_EndToEnd_SuccessCase_NoActiveRule()
+        {
+            // Checks end-to-end happy path for the pre-processor i.e.
+            // * arguments are parsed
+            // * targets are installed
+            // * server properties are fetched
+            // * rulesets are generated
+            // * config file is created
+
+            // Arrange
+            var workingDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var logger = new TestLogger();
+
+            // Configure the server
+            var mockServer = new MockSonarQubeServer();
+
+            var data = mockServer.Data;
+            data.ServerProperties.Add("server.key", "server value 1");
+
+            data.Languages.Add("cs");
+            data.Languages.Add("vbnet");
+            data.Languages.Add("another_plugin");
+
+            data.AddQualityProfile("qp1", "cs", null)
+                .AddProject("key");
+
+            data.AddQualityProfile("qp2", "vbnet", null)
+                .AddProject("key")
+                .AddRule(new SonarRule("vbnet", "vb.rule3"));
 
             var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
             {
@@ -151,11 +221,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             data.AddQualityProfile("qp1", "cs", "organization")
                 .AddProject("key")
-                .AddRule(new ActiveRule("csharpsquid", "cs.rule3"));
+                .AddRule(new SonarRule("csharpsquid", "cs.rule3"));
 
             data.AddQualityProfile("qp2", "vbnet", "organization")
                 .AddProject("key")
-                .AddRule(new ActiveRule("vbnet", "vb.rule3"));
+                .AddRule(new SonarRule("vbnet", "vb.rule3"));
 
             var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
             {
@@ -272,13 +342,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             data.AddQualityProfile("qp1", "cs", null)
                 .AddProject("invalid")
-                .AddRule(new ActiveRule("fxcop", "cs.rule1"))
-                .AddRule(new ActiveRule("fxcop", "cs.rule2"));
+                .AddRule(new SonarRule("fxcop", "cs.rule1"))
+                .AddRule(new SonarRule("fxcop", "cs.rule2"));
 
             data.AddQualityProfile("qp2", "vbnet", null)
                 .AddProject("invalid")
-                .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule1"))
-                .AddRule(new ActiveRule("fxcop-vbnet", "vb.rule2"));
+                .AddRule(new SonarRule("fxcop-vbnet", "vb.rule1"))
+                .AddRule(new SonarRule("fxcop-vbnet", "vb.rule2"));
 
             var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
             {
