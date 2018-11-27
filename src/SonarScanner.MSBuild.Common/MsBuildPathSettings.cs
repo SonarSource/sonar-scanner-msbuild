@@ -50,7 +50,7 @@ namespace SonarScanner.MSBuild.Common
 
             if (string.IsNullOrEmpty(appDataPath))
             {
-                throw new IOException("The local application data folder doesn't exist and it was not possible to create it.");
+                throw new IOException("Cannot find local application data directory.");
             }
 
             yield return GetMsBuildImportBeforePath(appDataPath, "4.0");
@@ -66,7 +66,7 @@ namespace SonarScanner.MSBuild.Common
 
                 if (string.IsNullOrEmpty(userProfilePath))
                 {
-                    throw new IOException("The user profile folder doesn't exist and it was not possible to create it.");
+                    throw new IOException("Cannot find user profile directory.");
                 }
 
                 // "dotnet build" and "dotnet msbuild" on non-Windows use a different path for import before
@@ -80,7 +80,7 @@ namespace SonarScanner.MSBuild.Common
 
             if (string.IsNullOrEmpty(programFiles))
             {
-                throw new IOException("The program files folder doesn't exist and it was not possible to create it.");
+                throw new IOException("Cannot find programs directory.");
             }
 
             yield return Path.Combine(programFiles, "MSBuild", "14.0", "Microsoft.Common.Targets", "ImportBefore");

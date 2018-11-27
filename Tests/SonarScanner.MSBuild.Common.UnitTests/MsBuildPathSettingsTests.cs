@@ -44,8 +44,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action2 = () => testSubject2.GetImportBeforePaths().ToList();
 
             // Assert
-            action1.Should().ThrowExactly<IOException>().WithMessage("The local application data folder doesn't exist and it was not possible to create it.");
-            action2.Should().ThrowExactly<IOException>().WithMessage("The local application data folder doesn't exist and it was not possible to create it.");
+            action1.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
+            action2.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
         }
 
         [TestMethod]
@@ -116,7 +116,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Func<IEnumerable<string>> func = () => testSubject.GetImportBeforePaths().ToList();
 
             // Assert
-            func.Should().ThrowExactly<IOException>().WithMessage("The user profile folder doesn't exist and it was not possible to create it.");
+            func.Should().ThrowExactly<IOException>().WithMessage("Cannot find user profile directory.");
 
             string GetSpecialFolder(Environment.SpecialFolder folder, bool forceCreate)
             {
@@ -143,8 +143,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Func<IEnumerable<string>> action2 = () => testSubject2.GetGlobalTargetsPaths().ToList();
 
             // Assert
-            action1.Should().ThrowExactly<IOException>().WithMessage("The program files folder doesn't exist and it was not possible to create it.");
-            action2.Should().ThrowExactly<IOException>().WithMessage("The program files folder doesn't exist and it was not possible to create it.");
+            action1.Should().ThrowExactly<IOException>().WithMessage("Cannot find programs directory.");
+            action2.Should().ThrowExactly<IOException>().WithMessage("Cannot find programs directory.");
         }
 
         [TestMethod]
