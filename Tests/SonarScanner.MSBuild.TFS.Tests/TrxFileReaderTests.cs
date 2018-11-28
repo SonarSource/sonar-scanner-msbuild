@@ -40,10 +40,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
+            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
 
             // Assert
-             coverageFilePath.Should().BeNull();
+            coverageFilePaths.Should().BeEmpty();
 
             // Not expecting errors or warnings: we assume it means that tests have not been executed
             logger.AssertErrorsLogged(0);
@@ -60,12 +60,16 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
+            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
 
             // Assert
-             coverageFilePath.Should().BeNull();
+            coverageFilePaths.Should().BeEmpty();
 
-            logger.AssertSingleWarningExists("dummy.trx"); // expecting a warning about the invalid file
+            logger.InfoMessages.Should().HaveCount(3);
+            logger.InfoMessages[0].Should().Be("Attempting to locate a test results (.trx) file...");
+            logger.InfoMessages[1].Should().Match(@"Looking for TRX files in: *\Out\TrxReader_InvalidTrxFile\TestResults");
+            logger.InfoMessages[2].Should().Match(@"The following test results files were found: *\Out\TrxReader_InvalidTrxFile\TestResults\dummy.trx");
+            logger.AssertSingleWarningExists("Located trx file is not a valid xml file. File: System.String[]. File load error: Data at the root level is invalid. Line 1, position 1."); // expecting a warning about the invalid file
             logger.AssertErrorsLogged(0); // should be a warning, not an error
         }
 
@@ -80,12 +84,17 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
+            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
 
             // Assert
-             coverageFilePath.Should().BeNull();
+            coverageFilePaths.Should().BeEmpty();
 
-            logger.AssertSingleWarningExists(trx1, trx2); // expecting a warning referring the log files
+            logger.AssertDebugLogged("No code coverage attachments were found in the trx file");
+            logger.InfoMessages.Should().HaveCount(3);
+            logger.InfoMessages[0].Should().Be("Attempting to locate a test results (.trx) file...");
+            logger.InfoMessages[1].Should().Match(@"Looking for TRX files in: *\Out\TrxReader_MultipleTrxFiles\TestResults");
+            logger.InfoMessages[2].Should().Match(@"The following test results files were found: *\Out\TrxReader_MultipleTrxFiles\TestResults\mytrx1.trx, *\Out\TrxReader_MultipleTrxFiles\TestResults\mytrx2.trx");
+            logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
         }
 
@@ -110,10 +119,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
+            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
 
             // Assert
-             coverageFilePath.Should().BeNull();
+            coverageFilePaths.Should().BeEmpty();
 
             // Not finding attachment info in the file shouldn't cause a warning/error
             logger.AssertErrorsLogged(0);
@@ -142,10 +151,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
+            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
 
             // Assert
-             coverageFilePath.Should().BeNull();
+             coverageFilePaths.Should().BeEmpty();
 
             // Not finding attachment info in the file shouldn't cause a warning/error
             logger.AssertErrorsLogged(0);
@@ -193,12 +202,13 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
+            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
 
             // Assert
-             coverageFilePath.Should().BeNull();
+            coverageFilePaths.Should().BeEmpty();
 
-            logger.AssertSingleWarningExists(@"MACHINENAME\AAA.coverage", @"XXX.coverage"); // the warning should refer to both of the coverage files
+            logger.AssertDebugLogged(@"The following code coverage attachments were found in the trx files: MACHINENAME\AAA.coverage, XXX.coverage");
+            logger.AssertSingleWarningExists("None of the attached coverage reports exist on disk");
             logger.AssertErrorsLogged(0);
         }
 
@@ -236,10 +246,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
+            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
 
             // Assert
-             coverageFilePath.Should().BeNull();
+            coverageFilePaths.Should().BeEmpty();
 
             logger.AssertDebugMessageExists(coverageFileName);
         }
@@ -282,10 +292,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             File.Create(expectedFilePath);
 
             // Act
-            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
+            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
 
             // Assert
-             coverageFilePath.Should().Be(expectedFilePath);
+             coverageFilePaths.Should().BeEquivalentTo(expectedFilePath);
 
             logger.AssertDebugMessageExists(coverageFileName);
         }
@@ -328,10 +338,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             File.Create(expectedFilePath);
 
             // Act
-            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
+            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
 
             // Assert
-             coverageFilePath.Should().Be(expectedFilePath);
+             coverageFilePaths.Should().BeEquivalentTo(expectedFilePath);
 
             logger.AssertDebugMessageExists(coverageFileName);
         }
@@ -370,10 +380,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var logger = new TestLogger();
 
             // Act
-            var coverageFilePath = new TrxFileReader(logger).LocateCodeCoverageFile(testDir);
+            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
 
             // Assert
-             coverageFilePath.Should().Be(coverageFilePath);
+             coverageFilePaths.Should().BeEquivalentTo(coverageFilePaths);
             logger.AssertDebugMessageExists(coverageFileName);
         }
 
