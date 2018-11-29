@@ -19,8 +19,8 @@ param (
     [string]$githubPRTargetBranch = $env:GITHUB_TARGET_BRANCH,
 
     # SonarQube related parameters
-    [string]$sonarQubeUrl = $env:SONAR_HOST_URL,
-    [string]$sonarQubeToken = $env:SONAR_TOKEN,
+    [string]$sonarCloudUrl = $env:SONARCLOUD_HOST_URL,
+    [string]$sonarCloudToken = $env:SONARCLOUD_TOKEN,
 
     # Build related parameters
     [string]$buildNumber = $env:BUILD_NUMBER,
@@ -115,7 +115,7 @@ function Get-ScannerMsBuildPath() {
 }
 
 function Invoke-SonarBeginAnalysis([array][parameter(ValueFromRemainingArguments = $true)]$remainingArgs) {
-    Write-Header "Running SonarQube Analysis begin step"
+    Write-Header "Running SonarCloud Analysis begin step"
 
     if (Test-Debug) {
         $remainingArgs += "/d:sonar.verbose=true"
@@ -124,20 +124,21 @@ function Invoke-SonarBeginAnalysis([array][parameter(ValueFromRemainingArguments
     Exec { & (Get-ScannerMsBuildPath) begin `
         /k:sonar-scanner-msbuild `
         /n:"SonarScanner for MSBuild" `
-        /d:sonar.host.url=$sonarQubeUrl `
-        /d:sonar.login=$sonarQubeToken `
+        /d:sonar.host.url=$sonarCloudUrl `
+        /d:sonar.login=$sonarCloudToken `
+        /o:sonarsource `
         /d:sonar.cs.vstest.reportsPaths="**\*.trx" `
         /d:sonar.cs.vscoveragexml.reportsPaths="**\*.coveragexml" `
         $remainingArgs `
-    } -errorMessage "ERROR: SonarQube Analysis begin step FAILED."
+    } -errorMessage "ERROR: SonarCloud Analysis begin step FAILED."
 }
 
 function Invoke-SonarEndAnalysis() {
-    Write-Header "Running SonarQube Analysis end step"
+    Write-Header "Running SonarCloud Analysis end step"
 
     Exec { & (Get-ScannerMsBuildPath) end `
-        /d:sonar.login=$sonarQubeToken `
-    } -errorMessage "ERROR: SonarQube Analysis end step FAILED."
+        /d:sonar.login=$sonarCloudToken `
+    } -errorMessage "ERROR: SonarCloud Analysis end step FAILED."
 }
 
 function Publish-Artifacts() {
