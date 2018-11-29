@@ -75,13 +75,13 @@ namespace SonarScanner.MSBuild.TFS
         }
 
         /// <summary>
-        /// Attempts to locate a code coverage file under the specified build directory
+        /// Attempts to locate all code coverage files under the specified build directory
         /// </summary>
-        /// <returns>The location of the code coverage file, or null if one could not be found</returns>
+        /// <returns>The location of all code coverage files, or empty if one could not be found</returns>
         /// <remarks>The method uses logic equivalent to that in the VSTest vNext step i.e.
-        /// * look for a test results file (*.trx) in a default location under the supplied build directory.
-        /// * parse the trx file looking for a code coverage attachment entry
-        /// * resolve the attachment entry to an absolute path</remarks>
+        /// * look for all test results files (*.trx) in a default location under the supplied build directory.
+        /// * parse the trx files looking for all code coverage attachment entries
+        /// * resolve all the attachment entries to absolute paths</remarks>
         public IEnumerable<string> FindCodeCoverageFiles(string buildRootDirectory)
         {
             if (string.IsNullOrWhiteSpace(buildRootDirectory))
@@ -112,11 +112,9 @@ namespace SonarScanner.MSBuild.TFS
             this.logger.LogDebug(Resources.TRX_DIAG_CodeCoverageAttachmentsFound, string.Join(", ", attachmentUris));
 
             var potentialCoverageFiles = GetPotentialCoverageFiles(trxFilePaths, attachmentUris)
-                .Distinct()
-                .Where(File.Exists)
-                .ToList();
+                .Distinct(StringComparer.OrdinalIgnoreCase);
 
-            if (potentialCoverageFiles.Count == 0)
+            if (!potentialCoverageFiles.Any())
             {
                 this.logger.LogWarning(Resources.TRX_WARN_CoverageAttachmentsNotFound);
             }
@@ -133,11 +131,26 @@ namespace SonarScanner.MSBuild.TFS
 
                 foreach (var coveragePath in coverageAttachmentPaths)
                 {
-                    yield return coveragePath;
-                    yield return Path.Combine(trxDirectoryName, trxFileName, "In", coveragePath);
-                    // https://jira.sonarsource.com/browse/SONARMSBRU-361
-                    // With VSTest task the coverage file name uses underscore instead of spaces.
-                    yield return Path.Combine(trxDirectoryName, trxFileName.Replace(' ', '_'), "In", coveragePath);
+                    var possibleCoveragePath =
+                        new[]
+                        {
+                            coveragePath,
+                            Path.Combine(trxDirectoryName, trxFileName, "In", coveragePath),
+                            // https://jira.sonarsource.com/browse/SONARMSBRU-361
+                            // With VSTest task the coverage file name uses underscore instead of spaces.
+                            Path.Combine(trxDirectoryName, trxFileName.Replace(' ', '_'), "In", coveragePath)
+                        }
+                        .FirstOrDefault(path => File.Exists(path));
+
+                    if (possibleCoveragePath != null)
+                    {
+                        logger.LogDebug(Resources.TRX_DIAG_AbsoluteTrxPath, possibleCoveragePath);
+                        yield return possibleCoveragePath;
+                    }
+                    else
+                    {
+                        logger.LogWarning(Resources.TRX_WARN_InvalidConstructedCoveragePath, trxPath, coveragePath);
+                    }
                 }
             }
         }

@@ -79,6 +79,15 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Absolute path to coverage file: {0}.
+        /// </summary>
+        internal static string TRX_DIAG_AbsoluteTrxPath {
+            get {
+                return ResourceManager.GetString("TRX_DIAG_AbsoluteTrxPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The following code coverage attachments were found in the trx files: {0}.
         /// </summary>
         internal static string TRX_DIAG_CodeCoverageAttachmentsFound {
@@ -147,6 +156,15 @@ namespace SonarScanner.MSBuild.TFS {
         internal static string TRX_WARN_CoverageAttachmentsNotFound {
             get {
                 return ResourceManager.GetString("TRX_WARN_CoverageAttachmentsNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Coverage attachment could not be found. Trx file: {0}. Attachment name: {1}.
+        /// </summary>
+        internal static string TRX_WARN_InvalidConstructedCoveragePath {
+            get {
+                return ResourceManager.GetString("TRX_WARN_InvalidConstructedCoveragePath", resourceCulture);
             }
         }
         
