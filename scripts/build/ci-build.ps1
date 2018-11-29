@@ -122,7 +122,7 @@ function Invoke-SonarBeginAnalysis([array][parameter(ValueFromRemainingArguments
     }
 
     Exec { & (Get-ScannerMsBuildPath) begin `
-        /k:sonar-scanner-msbuild `
+        /k:sonarscanner-msbuild `
         /n:"SonarScanner for MSBuild" `
         /d:sonar.host.url=$sonarCloudUrl `
         /d:sonar.login=$sonarCloudToken `
