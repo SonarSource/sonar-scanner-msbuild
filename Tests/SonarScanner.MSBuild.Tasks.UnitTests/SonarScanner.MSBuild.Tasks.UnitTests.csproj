@@ -136,7 +136,6 @@
     <Compile Include="Infrastructure\DummyBuildEngine.cs" />
     <Compile Include="IsTestFileByNameTests.cs" />
     <Compile Include="MakeUniqueDirTests.cs" />
-    <Compile Include="MergeRuleSetsTests.cs" />
     <Compile Include="MSBuildLoggerAdapterTests.cs" />
     <Compile Include="TaskUtilitiesTests.cs" />
     <Compile Include="WriteProjectInfoFileTests.cs" />
