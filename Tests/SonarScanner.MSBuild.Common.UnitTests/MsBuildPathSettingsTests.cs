@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -31,135 +30,233 @@ namespace SonarScanner.MSBuild.Common.UnitTests
     public class MsBuildPathSettingsTests
     {
         [TestMethod]
-        public void GetImportBeforePaths_WhenLocalAppDataIsEmptyOrNull_Throws()
+        public void GetImportBeforePaths_NonWindows_AppData_Is_NullOrEmpty()
         {
-            // Arrange
-            var testSubject1 = new MsBuildPathSettings(
-                (x, y) => x == Environment.SpecialFolder.LocalApplicationData ? null : "foo", () => true);
-            var testSubject2 = new MsBuildPathSettings(
-                (x, y) => x == Environment.SpecialFolder.LocalApplicationData ? "" : "foo", () => true);
+            Action action;
 
-            // Act
-            Action action1 = () => testSubject1.GetImportBeforePaths().ToList();
-            Action action2 = () => testSubject2.GetImportBeforePaths().ToList();
+            action = new Action(() => new MsBuildPathSettings((folder, o) => string.Empty, IsWindows(false), FileExists(true)).GetImportBeforePaths());
+            action.Should().ThrowExactly<IOException>().And.Message.Should().Be("Cannot find local application data directory.");
 
-            // Assert
-            action1.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
-            action2.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
+            action = new Action(() => new MsBuildPathSettings((folder, o) => null, IsWindows(false), FileExists(true)).GetImportBeforePaths());
+            action.Should().ThrowExactly<IOException>().And.Message.Should().Be("Cannot find local application data directory.");
         }
 
         [TestMethod]
-        public void GetImportBeforePaths_WhenLocalAppDataIsSetAndOsIsWindows_ReturnsExceptedPaths()
+        public void GetImportBeforePaths_NonWindows_User_Account()
         {
-            // Arrange
-            var testSubject = new MsBuildPathSettings(
-                (x, y) => x == Environment.SpecialFolder.LocalApplicationData ? "C:\\AppDataPath" : "", () => true);
+            var paths = new[]
+            {
+                (Environment.SpecialFolder.LocalApplicationData, "c:\\app data"),
+                (Environment.SpecialFolder.UserProfile, "c:\\user profile"),
+            };
 
-            // Act
-            var result = testSubject.GetImportBeforePaths().ToList();
+            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(false), FileExists(true));
 
-            // Assert
-            result.Should().HaveCount(6);
-            result.Should().ContainInOrder(
-                "C:\\AppDataPath\\Microsoft\\MSBuild\\4.0\\Microsoft.Common.targets\\ImportBefore",
-                "C:\\AppDataPath\\Microsoft\\MSBuild\\10.0\\Microsoft.Common.targets\\ImportBefore",
-                "C:\\AppDataPath\\Microsoft\\MSBuild\\11.0\\Microsoft.Common.targets\\ImportBefore",
-                "C:\\AppDataPath\\Microsoft\\MSBuild\\12.0\\Microsoft.Common.targets\\ImportBefore",
-                "C:\\AppDataPath\\Microsoft\\MSBuild\\14.0\\Microsoft.Common.targets\\ImportBefore",
-                "C:\\AppDataPath\\Microsoft\\MSBuild\\15.0\\Microsoft.Common.targets\\ImportBefore");
-        }
+            var result = settings.GetImportBeforePaths();
 
-        [TestMethod]
-        public void GetImportBeforePaths_WhenLocalAppDataIsSetAndOsNotWindowsAndUserProfileNotEmpty_ReturnsExceptedPaths()
-        {
-            // Arrange
-            var testSubject = new MsBuildPathSettings(GetSpecialFolder, () => false);
-
-            // Act
-            var result = testSubject.GetImportBeforePaths().ToList();
-
-            // Assert
             result.Should().HaveCount(7);
-            result.Should().ContainInOrder(
-                "C:\\AppDataPath\\Microsoft\\MSBuild\\4.0\\Microsoft.Common.targets\\ImportBefore",
-                "C:\\AppDataPath\\Microsoft\\MSBuild\\10.0\\Microsoft.Common.targets\\ImportBefore",
-                "C:\\AppDataPath\\Microsoft\\MSBuild\\11.0\\Microsoft.Common.targets\\ImportBefore",
-                "C:\\AppDataPath\\Microsoft\\MSBuild\\12.0\\Microsoft.Common.targets\\ImportBefore",
-                "C:\\AppDataPath\\Microsoft\\MSBuild\\14.0\\Microsoft.Common.targets\\ImportBefore",
-                "C:\\AppDataPath\\Microsoft\\MSBuild\\15.0\\Microsoft.Common.targets\\ImportBefore",
-                "C:\\UserProfilePath\\Microsoft\\MSBuild\\15.0\\Microsoft.Common.targets\\ImportBefore");
-
-            string GetSpecialFolder(Environment.SpecialFolder folder, bool forceCreate)
-            {
-                if (folder == Environment.SpecialFolder.LocalApplicationData)
-                {
-                    return "C:\\AppDataPath";
-                }
-                else if (folder == Environment.SpecialFolder.UserProfile)
-                {
-                    return "C:\\UserProfilePath";
-                }
-                else
-                {
-                    return "";
-                }
-            }
+            result.Should().Contain(
+                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\use profile", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
+                );
         }
 
         [TestMethod]
-        public void GetImportBeforePaths_WhenLocalAppDataIsSetAndOsNotWindowsAndUserProfileIsEmpty_Throws()
+        public void GetImportBeforePaths_NonWindows_User_Account_UserProfile_NotExists()
         {
-            // Arrange
-            var testSubject = new MsBuildPathSettings(GetSpecialFolder, () => false);
-
-            // Act
-            Func<IEnumerable<string>> func = () => testSubject.GetImportBeforePaths().ToList();
-
-            // Assert
-            func.Should().ThrowExactly<IOException>().WithMessage("Cannot find user profile directory.");
-
-            string GetSpecialFolder(Environment.SpecialFolder folder, bool forceCreate)
+            var paths = new[]
             {
-                if (folder == Environment.SpecialFolder.LocalApplicationData)
-                {
-                    return "C:\\AppDataPath";
-                }
-                else
-                {
-                    return "";
-                }
-            }
+                (Environment.SpecialFolder.LocalApplicationData, "c:\\app data"),
+                (Environment.SpecialFolder.UserProfile, string.Empty),
+            };
+
+            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(false), FileExists(true));
+
+            var action = new Action(() => settings.GetImportBeforePaths());
+
+            action.Should().ThrowExactly<IOException>().And.Message.Should().Be("Cannot find user profile directory.");
         }
 
         [TestMethod]
-        public void GetGlobalTargetsPaths_WhenProgramFilesIsEmptyOrNull_Throws()
+        public void GetImportBeforePaths_Windows_AppData_Is_NullOrEmpty()
+        {
+            Action action;
+
+            action = new Action(() => new MsBuildPathSettings((folder, o) => string.Empty, IsWindows(true), FileExists(true)).GetImportBeforePaths());
+            action.Should().ThrowExactly<IOException>().And.Message.Should().Be("Cannot find local application data directory.");
+
+            action = new Action(() => new MsBuildPathSettings((folder, o) => null, IsWindows(true), FileExists(true)).GetImportBeforePaths());
+            action.Should().ThrowExactly<IOException>().And.Message.Should().Be("Cannot find local application data directory.");
+        }
+
+        [TestMethod]
+        public void GetImportBeforePaths_Windows_User_Account()
+        {
+            var paths = new[]
+            {
+                (Environment.SpecialFolder.LocalApplicationData, "c:\\app data"),
+                (Environment.SpecialFolder.System, "c:\\windows\\system32"),
+                (Environment.SpecialFolder.SystemX86, "c:\\windows\\systemWOW64"),
+            };
+
+            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(true), FileExists(true));
+
+            var result = settings.GetImportBeforePaths();
+
+            result.Should().HaveCount(6);
+            result.Should().Contain(
+                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"));
+        }
+
+        [TestMethod]
+        public void GetImportBeforePaths_Windows_System_Account()
+        {
+            var paths = new[]
+            {
+                (Environment.SpecialFolder.LocalApplicationData, "c:\\windows\\system32\\app data"),
+                (Environment.SpecialFolder.System, "c:\\windows\\system32"),
+                (Environment.SpecialFolder.SystemX86, "c:\\windows\\systemWOW64"),
+            };
+
+            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(true), FileExists(true));
+
+            var result = settings.GetImportBeforePaths();
+
+            result.Should().HaveCount(18);
+            result.Should().Contain(
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+
+                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+
+                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
+                );
+        }
+
+        [TestMethod]
+        public void GetImportBeforePaths_Windows_System_Account_WOW64_NotExists()
+        {
+            var paths = new[]
+            {
+                (Environment.SpecialFolder.LocalApplicationData, "c:\\windows\\system32\\app data"),
+                (Environment.SpecialFolder.System, "c:\\windows\\system32"),
+                (Environment.SpecialFolder.SystemX86, "c:\\windows\\systemWOW64"),
+            };
+
+            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(true), path => !path.Contains("WOW64")); // paths with wow64 do not exist, others exist
+
+            var result = settings.GetImportBeforePaths();
+
+            result.Should().HaveCount(12);
+            result.Should().Contain(
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+
+                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
+                );
+        }
+
+        [TestMethod]
+        public void GetImportBeforePaths_Windows_System_Account_Sysnative_NotExists()
+        {
+            var paths = new[]
+            {
+                (Environment.SpecialFolder.LocalApplicationData, "c:\\windows\\system32\\app data"),
+                (Environment.SpecialFolder.System, "c:\\windows\\system32"),
+                (Environment.SpecialFolder.SystemX86, "c:\\windows\\systemWOW64"),
+            };
+
+            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(true), path => !path.Contains("Sysnative")); // paths with Sysnative do not exist, others exist
+
+            var result = settings.GetImportBeforePaths();
+
+            result.Should().HaveCount(12);
+            result.Should().Contain(
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+
+                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
+                );
+        }
+
+        [TestMethod]
+        public void GetGlobalTargetsPaths_WhenProgramFilesIsEmptyOrNull_Returns_Empty()
         {
             // Arrange
-            var testSubject1 = new MsBuildPathSettings((x, y) => x == Environment.SpecialFolder.ProgramFiles ? null : "foo", () => true);
-            var testSubject2 = new MsBuildPathSettings((x, y) => x == Environment.SpecialFolder.ProgramFiles ? "" : "foo", () => true);
+            var testSubject1 = new MsBuildPathSettings((x, y) => x == Environment.SpecialFolder.ProgramFiles ? null : "foo", () => true, (path) => true);
+            var testSubject2 = new MsBuildPathSettings((x, y) => x == Environment.SpecialFolder.ProgramFiles ? "" : "foo", () => true, (path) => true);
 
             // Act
-            Func<IEnumerable<string>> action1 = () => testSubject1.GetGlobalTargetsPaths().ToList();
-            Func<IEnumerable<string>> action2 = () => testSubject2.GetGlobalTargetsPaths().ToList();
-
-            // Assert
-            action1.Should().ThrowExactly<IOException>().WithMessage("Cannot find programs directory.");
-            action2.Should().ThrowExactly<IOException>().WithMessage("Cannot find programs directory.");
+            testSubject1.GetGlobalTargetsPaths().Should().BeEmpty();
+            testSubject2.GetGlobalTargetsPaths().Should().BeEmpty();
         }
 
         [TestMethod]
         public void GetGlobalTargetsPaths_WhenProgramFilesNotEmpty_ReturnsExpectedPaths()
         {
+            var paths = new[]
+            {
+                (Environment.SpecialFolder.ProgramFiles, "C:\\Program")
+            };
+
             // Arrange
-            var testSubject = new MsBuildPathSettings((x, y) => x == Environment.SpecialFolder.ProgramFiles ? "C:\\Program" : "", () => true);
+            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(true), FileExists(true));
 
             // Act
-            var result = testSubject.GetGlobalTargetsPaths().ToList();
+            var result = settings.GetGlobalTargetsPaths().ToList();
 
             // Assert
-            result.Should().HaveCount(1);
+            result.Should().HaveCount(2);
             result.Should().ContainInOrder(
-                "C:\\Program\\MSBuild\\14.0\\Microsoft.Common.Targets\\ImportBefore");
+                "C:\\Program\\MSBuild\\14.0\\Microsoft.Common.Targets\\ImportBefore",
+                "C:\\Program\\MSBuild\\15.0\\Microsoft.Common.Targets\\ImportBefore");
         }
+
+        private static Func<bool> IsWindows(bool result) => () => result;
+        private static Func<string, bool> FileExists(bool result) => path => result;
+        private static Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> GetFolderPath(params (Environment.SpecialFolder, string)[] paths) =>
+            (folder, option) => paths.First(p => p.Item1 == folder).Item2;
     }
 }
