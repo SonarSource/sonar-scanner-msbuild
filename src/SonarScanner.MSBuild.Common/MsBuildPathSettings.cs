@@ -27,9 +27,11 @@ namespace SonarScanner.MSBuild.Common
 {
     public class MsBuildPathSettings : IMsBuildPathsSettings
     {
-        // Not supported versions of MSBuild are listed too, to allow us to throw
-        // errors from the Integration targets in case we detect we are running under
-        // not supported MSBuild.
+        /// <summary>
+        /// Not supported versions of MSBuild are listed too, to allow us to throw
+        /// errors from the Integration targets in case we detect we are running under
+        /// not supported MSBuild.
+        /// </summary>
         private readonly string[] msBuildVersions = new[] { "4.0", "10.0", "11.0", "12.0", "14.0", "15.0", };
 
         private readonly Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> environmentGetFolderPath;
@@ -100,7 +102,9 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         private IEnumerable<string> GetLocalApplicationDataPaths()
         {
-            var localAppData = this.environmentGetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create);
+            var localAppData = environmentGetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData,
+                Environment.SpecialFolderOption.Create);
 
             // Return empty enumerable when Local AppData is empty. In this case an exception should be thrown at the call site.
             if (string.IsNullOrWhiteSpace(localAppData))
@@ -123,24 +127,29 @@ namespace SonarScanner.MSBuild.Common
             // for 64bit processes - %windir%\system32\...
             // Nice explanation could be found here:
             // https://www.howtogeek.com/326509/whats-the-difference-between-the-system32-and-syswow64-folders-in-windows/
-            // If a 32bit process needs to copy files to %windir%\system32, it should use %windir%\sysnative
+            // If a 32bit process needs to copy files to %windir%\system32, it should use %windir%\Sysnative
             // to avoid the redirection:
             // https://docs.microsoft.com/en-us/windows/desktop/WinProg64/file-system-redirector
             // We need to copy the ImportBefore.targets in both locations to ensure that both the 32bit and 64bit versions
             // of MSBuild will be able to pick them up.
-            var systemPath = environmentGetFolderPath(Environment.SpecialFolder.System, Environment.SpecialFolderOption.None); // %windir%\System32
+            var systemPath = environmentGetFolderPath(
+                Environment.SpecialFolder.System,
+                Environment.SpecialFolderOption.None); // %windir%\System32
             if (!string.IsNullOrWhiteSpace(systemPath) &&
                 localAppData.StartsWith(systemPath)) // We are under %windir%\System32 => we are running as System Account
             {
-                var systemX86Path = environmentGetFolderPath(Environment.SpecialFolder.SystemX86, Environment.SpecialFolderOption.None); // %windir%\SysWOW64 (or System32 on 32bit windows)
-                var localAppDataX86 = localAppData.Replace(systemPath, systemX86Path);
+                var systemX86Path = environmentGetFolderPath(
+                    Environment.SpecialFolder.SystemX86,
+                    Environment.SpecialFolderOption.None); // %windir%\SysWOW64 (or System32 on 32bit windows)
+                var localAppDataX86 = localAppData.ReplaceCaseInsensitive(systemPath, systemX86Path);
+
                 if (fileExists(localAppDataX86))
                 {
                     yield return localAppDataX86;
                 }
 
                 var sysNativePath = Path.Combine(Path.GetDirectoryName(systemPath), "Sysnative"); // %windir%\Sysnative
-                var localAppDataX64 = localAppData.Replace(systemPath, sysNativePath);
+                var localAppDataX64 = localAppData.ReplaceCaseInsensitive(systemPath, sysNativePath);
                 if (fileExists(localAppDataX64))
                 {
                     yield return localAppDataX64;
@@ -160,7 +169,6 @@ namespace SonarScanner.MSBuild.Common
             return new[]
             {
                 Path.Combine(programFiles, "MSBuild", "14.0", "Microsoft.Common.Targets", "ImportBefore"),
-                Path.Combine(programFiles, "MSBuild", "15.0", "Microsoft.Common.Targets", "ImportBefore"),
             };
         }
 

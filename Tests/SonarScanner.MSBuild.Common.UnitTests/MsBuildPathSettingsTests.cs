@@ -35,10 +35,10 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action;
 
             action = new Action(() => new MsBuildPathSettings((folder, o) => string.Empty, IsWindows(false), FileExists(true)).GetImportBeforePaths());
-            action.Should().ThrowExactly<IOException>().And.Message.Should().Be("Cannot find local application data directory.");
+            action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
 
             action = new Action(() => new MsBuildPathSettings((folder, o) => null, IsWindows(false), FileExists(true)).GetImportBeforePaths());
-            action.Should().ThrowExactly<IOException>().And.Message.Should().Be("Cannot find local application data directory.");
+            action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
         }
 
         [TestMethod]
@@ -67,7 +67,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         }
 
         [TestMethod]
-        public void GetImportBeforePaths_NonWindows_User_Account_UserProfile_NotExists()
+        public void GetImportBeforePaths_NonWindows_User_Account_UserProfile_Missing()
         {
             var paths = new[]
             {
@@ -79,7 +79,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             var action = new Action(() => settings.GetImportBeforePaths());
 
-            action.Should().ThrowExactly<IOException>().And.Message.Should().Be("Cannot find user profile directory.");
+            action.Should().ThrowExactly<IOException>().WithMessage("Cannot find user profile directory.");
         }
 
         [TestMethod]
@@ -88,10 +88,10 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             Action action;
 
             action = new Action(() => new MsBuildPathSettings((folder, o) => string.Empty, IsWindows(true), FileExists(true)).GetImportBeforePaths());
-            action.Should().ThrowExactly<IOException>().And.Message.Should().Be("Cannot find local application data directory.");
+            action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
 
             action = new Action(() => new MsBuildPathSettings((folder, o) => null, IsWindows(true), FileExists(true)).GetImportBeforePaths());
-            action.Should().ThrowExactly<IOException>().And.Message.Should().Be("Cannot find local application data directory.");
+            action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
         }
 
         [TestMethod]
@@ -158,7 +158,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         }
 
         [TestMethod]
-        public void GetImportBeforePaths_Windows_System_Account_WOW64_NotExists()
+        public void GetImportBeforePaths_Windows_System_Account_WOW64_Missing()
         {
             var paths = new[]
             {
@@ -190,7 +190,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         }
 
         [TestMethod]
-        public void GetImportBeforePaths_Windows_System_Account_Sysnative_NotExists()
+        public void GetImportBeforePaths_Windows_System_Account_Sysnative_Missing()
         {
             var paths = new[]
             {
@@ -248,10 +248,9 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var result = settings.GetGlobalTargetsPaths().ToList();
 
             // Assert
-            result.Should().HaveCount(2);
+            result.Should().HaveCount(1);
             result.Should().ContainInOrder(
-                "C:\\Program\\MSBuild\\14.0\\Microsoft.Common.Targets\\ImportBefore",
-                "C:\\Program\\MSBuild\\15.0\\Microsoft.Common.Targets\\ImportBefore");
+                "C:\\Program\\MSBuild\\14.0\\Microsoft.Common.Targets\\ImportBefore");
         }
 
         private static Func<bool> IsWindows(bool result) => () => result;
