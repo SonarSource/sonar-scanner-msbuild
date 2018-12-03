@@ -106,6 +106,17 @@ namespace SonarScanner.MSBuild {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot copy a different version of the SonarScanner for MSBuild assemblies because they are used by a running MSBuild process. To resolve this problem try one of the following:
+        ///- Use the same version of SonarScanner for MSBuild to analyze this project
+        ///- Run msbuild or dotnet with &apos;/nr:false&apos;.
+        /// </summary>
+        internal static string ERROR_DllLockedMultipleScanners {
+            get {
+                return ResourceManager.GetString("ERROR_DllLockedMultipleScanners", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} failed. Exit code: {1}.
         /// </summary>
         internal static string ERROR_ProcessingFailed {

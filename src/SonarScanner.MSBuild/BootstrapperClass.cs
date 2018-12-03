@@ -18,9 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS;
 using SonarScanner.MSBuild.TFS.Interfaces;
@@ -35,12 +37,20 @@ namespace SonarScanner.MSBuild
         private readonly IProcessorFactory processorFactory;
         private readonly IBootstrapperSettings bootstrapSettings;
         private readonly ILogger logger;
+        private readonly Func<string, Version> getAssemblyVersion;
 
         public BootstrapperClass(IProcessorFactory processorFactory, IBootstrapperSettings bootstrapSettings, ILogger logger)
+            : this(processorFactory, bootstrapSettings, logger, assemblyPath => AssemblyName.GetAssemblyName(assemblyPath).Version)
+        {
+        }
+
+        public BootstrapperClass(IProcessorFactory processorFactory, IBootstrapperSettings bootstrapSettings, ILogger logger,
+            Func<string, Version> getAssemblyVersion)
         {
             this.processorFactory = processorFactory;
             this.bootstrapSettings = bootstrapSettings;
             this.logger = logger;
+            this.getAssemblyVersion = getAssemblyVersion;
 
             Debug.Assert(this.bootstrapSettings != null, "Bootstrapper settings should not be null");
             Debug.Assert(this.bootstrapSettings.Phase != AnalysisPhase.Unspecified, "Expecting the processing phase to be specified");
@@ -53,10 +63,10 @@ namespace SonarScanner.MSBuild
         {
             int exitCode;
 
-            logger.Verbosity = bootstrapSettings.LoggingVerbosity;
-            logger.ResumeOutput();
+            this.logger.Verbosity = this.bootstrapSettings.LoggingVerbosity;
+            this.logger.ResumeOutput();
 
-            var phase = bootstrapSettings.Phase;
+            var phase = this.bootstrapSettings.Phase;
             LogProcessingStarted(phase);
 
             try
@@ -72,7 +82,7 @@ namespace SonarScanner.MSBuild
             }
             catch (AnalysisException ex)
             {
-                logger.LogError(ex.Message);
+                this.logger.LogError(ex.Message);
                 exitCode = ErrorCode;
             }
 
@@ -82,34 +92,69 @@ namespace SonarScanner.MSBuild
 
         private int PreProcess()
         {
-            logger.LogInfo(Resources.MSG_PreparingDirectories);
-            if (!Utilities.TryEnsureEmptyDirectories(logger, bootstrapSettings.TempDirectory))
+            this.logger.LogInfo(Resources.MSG_PreparingDirectories);
+
+            CleanSonarQubeDirectory();
+            if (!CopyDlls())
             {
                 return ErrorCode;
             }
 
-            CopyDLLs();
-            logger.IncludeTimestamp = true;
+            this.logger.IncludeTimestamp = true;
 
-            var preProcessor = processorFactory.CreatePreProcessor();
-            Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
-            var success = preProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray());
+            var preProcessor = this.processorFactory.CreatePreProcessor();
+            Directory.SetCurrentDirectory(this.bootstrapSettings.TempDirectory);
+            var success = preProcessor.Execute(this.bootstrapSettings.ChildCmdLineArgs.ToArray());
 
             return success ? SuccessCode : ErrorCode;
         }
 
+        private void CleanSonarQubeDirectory()
+        {
+            var rootDirectory = new DirectoryInfo(this.bootstrapSettings.TempDirectory);
+
+            if (!rootDirectory.Exists)
+            {
+                return;
+            }
+
+            foreach (var directory in rootDirectory.GetDirectories())
+            {
+                try
+                {
+                    directory.Delete(true);
+                }
+                catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
+                {
+                    this.logger.LogDebug($"Cannot delete directory: '{directory.FullName}' because {ex.Message}.");
+                }
+            }
+
+            foreach (var file in rootDirectory.GetFiles("*", SearchOption.AllDirectories))
+            {
+                try
+                {
+                    file.Delete();
+                }
+                catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
+                {
+                    this.logger.LogDebug($"Cannot delete file: '{file.FullName}' because {ex.Message}.");
+                }
+            }
+        }
+
         private int PostProcess()
         {
-            logger.IncludeTimestamp = true;
+            this.logger.IncludeTimestamp = true;
 
-            if (!Directory.Exists(bootstrapSettings.TempDirectory))
+            if (!Directory.Exists(this.bootstrapSettings.TempDirectory))
             {
-                logger.LogError(Resources.ERROR_TempDirDoesNotExist);
+                this.logger.LogError(Resources.ERROR_TempDirDoesNotExist);
                 return ErrorCode;
             }
 
-            Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
-            ITeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
+            Directory.SetCurrentDirectory(this.bootstrapSettings.TempDirectory);
+            ITeamBuildSettings teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(this.logger);
             var config = GetAnalysisConfig(teamBuildSettings.AnalysisConfigFilePath);
 
             bool succeeded;
@@ -119,8 +164,8 @@ namespace SonarScanner.MSBuild
             }
             else
             {
-                var postProcessor = processorFactory.CreatePostProcessor();
-                succeeded = postProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray(), config, teamBuildSettings);
+                var postProcessor = this.processorFactory.CreatePostProcessor();
+                succeeded = postProcessor.Execute(this.bootstrapSettings.ChildCmdLineArgs.ToArray(), config, teamBuildSettings);
             }
 
             return succeeded ? SuccessCode : ErrorCode;
@@ -129,17 +174,33 @@ namespace SonarScanner.MSBuild
         /// <summary>
         /// Copies DLLs needed by the targets file that is loaded by MSBuild to the project's .sonarqube directory
         /// </summary>
-        private void CopyDLLs()
+        private bool CopyDlls()
         {
-            var binDirPath = Path.Combine(bootstrapSettings.TempDirectory, "bin");
+            var binDirPath = Path.Combine(this.bootstrapSettings.TempDirectory, "bin");
             Directory.CreateDirectory(binDirPath);
             string[] dllsToCopy = { "SonarScanner.MSBuild.Common.dll", "SonarScanner.MSBuild.Tasks.dll" };
 
             foreach (var dll in dllsToCopy)
             {
-                var dllPath = Path.Combine(bootstrapSettings.ScannerBinaryDirPath, dll);
-                File.Copy(dllPath, Path.Combine(binDirPath, dll));
+                var from = Path.Combine(this.bootstrapSettings.ScannerBinaryDirPath, dll);
+                var to = Path.Combine(binDirPath, dll);
+
+                if (!File.Exists(to))
+                {
+                    File.Copy(from, to);
+                }
+                else if (this.getAssemblyVersion(from).CompareTo(this.getAssemblyVersion(to)) != 0)
+                {
+                    this.logger.LogError(Resources.ERROR_DllLockedMultipleScanners);
+                    return false;
+                }
+                else
+                {
+                    // do nothing
+                }
             }
+
+            return true;
         }
 
         /// <summary>
@@ -165,7 +226,7 @@ namespace SonarScanner.MSBuild
                 }
                 else
                 {
-                    logger.LogError(Resources.ERROR_ConfigFileNotFound, configFilePath);
+                    this.logger.LogError(Resources.ERROR_ConfigFileNotFound, configFilePath);
                 }
             }
             return config;
@@ -174,7 +235,7 @@ namespace SonarScanner.MSBuild
         private void LogProcessingStarted(AnalysisPhase phase)
         {
             var phaseLabel = phase == AnalysisPhase.PreProcessing ? Resources.PhaseLabel_PreProcessing : Resources.PhaseLabel_PostProcessing;
-            logger.LogInfo(Resources.MSG_ProcessingStarted, phaseLabel);
+            this.logger.LogInfo(Resources.MSG_ProcessingStarted, phaseLabel);
         }
 
         private void LogProcessingCompleted(AnalysisPhase phase, int exitCode)
@@ -182,11 +243,11 @@ namespace SonarScanner.MSBuild
             var phaseLabel = phase == AnalysisPhase.PreProcessing ? Resources.PhaseLabel_PreProcessing : Resources.PhaseLabel_PostProcessing;
             if (exitCode == ProcessRunner.ErrorCode)
             {
-                logger.LogError(Resources.ERROR_ProcessingFailed, phaseLabel, exitCode);
+                this.logger.LogError(Resources.ERROR_ProcessingFailed, phaseLabel, exitCode);
             }
             else
             {
-                logger.LogInfo(Resources.MSG_ProcessingSucceeded, phaseLabel);
+                this.logger.LogInfo(Resources.MSG_ProcessingSucceeded, phaseLabel);
             }
         }
     }

@@ -132,6 +132,11 @@
   <data name="ERROR_ConfigFileNotFound" xml:space="preserve">
     <value>SonarQube analysis could not be completed because the analysis configuration file could not be found: {0}.</value>
   </data>
+  <data name="ERROR_DllLockedMultipleScanners" xml:space="preserve">
+    <value>Cannot copy a different version of the SonarScanner for MSBuild assemblies because they are used by a running MSBuild process. To resolve this problem try one of the following:
+- Use the same version of SonarScanner for MSBuild to analyze this project
+- Run msbuild or dotnet with '/nr:false'</value>
+  </data>
   <data name="ERROR_ProcessingFailed" xml:space="preserve">
     <value>{0} failed. Exit code: {1}</value>
   </data>

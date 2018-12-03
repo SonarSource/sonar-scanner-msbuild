@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -88,6 +89,7 @@ namespace SonarQube.Bootstrapper.Tests
 
                 // Act
                 var logger = CheckExecutionFails(AnalysisPhase.PreProcessing, true,
+                    null,
                     "/install:true",  // this argument should just pass through
                     "/d:sonar.verbose=true",
                     "/d:sonar.host.url=http://host:9",
@@ -107,19 +109,115 @@ namespace SonarQube.Bootstrapper.Tests
         }
 
         [TestMethod]
-        public void Exe_CopyDLLs()
+        public void CopyDlls_WhenFileDoNotExist_FilesAreCopied()
         {
             // Arrange
             BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
             using (InitializeNonTeamBuildEnvironment(RootDir))
             {
+                // Sanity
+                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeFalse();
+                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeFalse();
+
                 // Act
-                CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
+                CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
                 File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
                 File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
+            }
+        }
+
+        [TestMethod]
+        public void CopyDlls_WhenFileExistButAreNotLocked_FilesAreCopied()
+        {
+            // Arrange
+            BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+
+            using (InitializeNonTeamBuildEnvironment(RootDir))
+            {
+                Directory.CreateDirectory(Path.Combine(TempDir, "bin"));
+                File.Create(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Close();
+                File.Create(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Close();
+
+                // Act
+                CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
+
+                // Assert
+                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
+            }
+        }
+
+        [TestMethod]
+        public void CopyDlls_WhenFileExistAndAreLockedButSameVersion_DoNothing()
+        {
+            // Arrange
+            BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+
+            using (InitializeNonTeamBuildEnvironment(RootDir))
+            {
+                Directory.CreateDirectory(Path.Combine(TempDir, "bin"));
+                var file1 = File.Create(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll"));
+                var file2 = File.Create(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll"));
+
+                // Act
+                CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, _ => new Version(), "/d:sonar.host.url=http://anotherHost");
+
+                // Assert
+                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
+
+                // Do not close before to ensure the file is locked
+                file1.Close();
+                file2.Close();
+            }
+        }
+
+        [TestMethod]
+        public void CopyDlls_WhenFileExistAndAreLockedButDifferentVersion_Fails()
+        {
+            // Arrange
+            BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+
+            using (InitializeNonTeamBuildEnvironment(RootDir))
+            {
+                Directory.CreateDirectory(Path.Combine(TempDir, "bin"));
+                var file1 = File.Create(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll"));
+                var file2 = File.Create(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll"));
+
+                int callCount = 0;
+                Func<string, Version> getAssemblyVersion = _ =>
+                {
+                    if (callCount == 0)
+                    {
+                        callCount++;
+                        return new Version("1.0");
+                    }
+
+                    return new Version("2.0");
+                };
+
+                // Act
+                var logger = CheckExecutionFails(AnalysisPhase.PreProcessing, false, getAssemblyVersion, "/d:sonar.host.url=http://anotherHost");
+
+                // Assert
+                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
+                File.Exists(Path.Combine(TempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
+
+                logger.DebugMessages.Should().HaveCount(3);
+                logger.DebugMessages[0].Should().Match("Cannot delete directory: '*\\.sonarqube\\bin' because The process cannot access the file 'SonarScanner.MSBuild.Common.dll' because it is being used by another process..");
+                logger.DebugMessages[1].Should().Match("Cannot delete file: '*\\.sonarqube\\bin\\SonarScanner.MSBuild.Common.dll' because The process cannot access the file 'SonarScanner.MSBuild.Common.dll' because it is being used by another process..");
+                logger.DebugMessages[2].Should().Match("Cannot delete file: '*\\.sonarqube\\bin\\SonarScanner.MSBuild.Tasks.dll' because The process cannot access the file 'SonarScanner.MSBuild.Tasks.dll' because it is being used by another process..");
+
+                logger.AssertErrorLogged(@"Cannot copy a different version of the SonarScanner for MSBuild assemblies because they are used by a running MSBuild process. To resolve this problem try one of the following:
+- Use the same version of SonarScanner for MSBuild to analyze this project
+- Run msbuild or dotnet with '/nr:false'");
+
+                // Do not close before to ensure the file is locked
+                file1.Close();
+                file2.Close();
             }
         }
 
@@ -132,7 +230,7 @@ namespace SonarQube.Bootstrapper.Tests
             using (InitializeNonTeamBuildEnvironment(RootDir))
             {
                 // Act
-                var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
+                var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
                 logger.AssertWarningsLogged(0);
@@ -158,7 +256,7 @@ namespace SonarQube.Bootstrapper.Tests
                 File.Exists(filePath).Should().BeTrue();
 
                 // Act
-                CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, "/d:sonar.host.url=http://anotherHost");
+                CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
 
                 // Assert
                 File.Exists(filePath).Should().BeFalse();
@@ -208,7 +306,7 @@ namespace SonarQube.Bootstrapper.Tests
                 Directory.CreateDirectory(TempDir);
 
                 // Act
-                var logger = CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, "other params", "yet.more.params");
+                var logger = CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, null, "other params", "yet.more.params");
 
                 // Assert
                 logger.AssertWarningsLogged(0);
@@ -231,7 +329,7 @@ namespace SonarQube.Bootstrapper.Tests
                 File.Delete(analysisConfigFile);
 
                 // Act
-                var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false, "other params", "yet.more.params");
+                var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false, null, "other params", "yet.more.params");
 
                 // Assert
                 logger.AssertWarningsLogged(0);
@@ -257,11 +355,13 @@ namespace SonarQube.Bootstrapper.Tests
 
         #region Checks
 
-        private TestLogger CheckExecutionFails(AnalysisPhase phase, bool debug, params string[] args)
+        private TestLogger CheckExecutionFails(AnalysisPhase phase, bool debug, Func<string, Version> getAssemblyVersion = null, params string[] args)
         {
             var logger = new TestLogger();
             var settings = MockBootstrapSettings(phase, debug, args);
-            var bootstrapper = new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
+            var bootstrapper = getAssemblyVersion != null
+                ? new BootstrapperClass(MockProcessorFactory.Object, settings, logger, getAssemblyVersion)
+                : new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
             var exitCode = bootstrapper.Execute();
 
             exitCode.Should().Be(Program.ErrorCode, "Bootstrapper did not return the expected exit code");
@@ -270,11 +370,13 @@ namespace SonarQube.Bootstrapper.Tests
             return logger;
         }
 
-        private TestLogger CheckExecutionSucceeds(AnalysisPhase phase, bool debug, params string[] args)
+        private TestLogger CheckExecutionSucceeds(AnalysisPhase phase, bool debug, Func<string, Version> getAssemblyVersion = null, params string[] args)
         {
             var logger = new TestLogger();
             var settings = MockBootstrapSettings(phase, debug, args);
-            var bootstrapper = new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
+            var bootstrapper = getAssemblyVersion != null
+                ? new BootstrapperClass(MockProcessorFactory.Object, settings, logger, getAssemblyVersion)
+                : new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
             var exitCode = bootstrapper.Execute();
 
             exitCode.Should().Be(0, "Bootstrapper did not return the expected exit code");
