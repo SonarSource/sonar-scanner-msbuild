@@ -63,7 +63,6 @@ namespace SonarScanner.MSBuild.PreProcessor
         public void InstallLoaderTargets(string workDirectory)
         {
             WarnOnGlobalTargetsFile();
-            FailOnAppDataInsideSystem32();
             InternalCopyTargetsFile();
             InternalCopyTargetFileToProject(workDirectory);
         }
@@ -120,23 +119,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        private void FailOnAppDataInsideSystem32()
-        {
-            var windowsSystem32Part = Path.Combine("windows", "system32");
-
-            // When the scanner is running under Local System or Network Service the AppData folder is under
-            // C:\Windows\System32\... and is ignored by MSBuild and dotnet.
-            if (this.msBuildPathsSettings.GetImportBeforePaths().Any(IsInsideSystem32))
-            {
-                throw new AnalysisException(Resources.MSG_InstallTargetsLocalSystem);
-            }
-
-            bool IsInsideSystem32(string path) =>
-                new DirectoryInfo(path)
-                    .FullName
-                    .IndexOf(windowsSystem32Part, StringComparison.InvariantCultureIgnoreCase) >= 0;
-        }
-
+        /// <summary>
+        /// Logs a warning when \Program Files (x86)\MSBuild\14.0\Microsoft.Common.Targets\ImportBefore\SonarQube.Integration.ImportBefore.targets exists.
+        /// </summary>
         private void WarnOnGlobalTargetsFile()
         {
             // Giving a warning is best effort - if the user has installed MSBUILD in a non-standard location then this will not work

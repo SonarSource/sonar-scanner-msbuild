@@ -161,7 +161,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             };
 
             // Assert
-            act.Should().ThrowExactly<AnalysisException>().WithMessage("Running the Scanner for MSBuild under Local System or Network Service account is not supported. Please, use a local or domain user account instead.");
+            act.Should().NotThrow();
         }
 
         [TestMethod]
