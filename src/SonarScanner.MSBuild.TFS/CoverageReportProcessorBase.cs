@@ -72,26 +72,20 @@ namespace SonarScanner.MSBuild.TFS
                 binaryFilePath != null &&
                 TryConvertCoverageReport(binaryFilePath, out var coverageReportPath) &&
                 !string.IsNullOrEmpty(coverageReportPath) &&
-                !config.LocalSettings.Any(IsVsCoverageXmlReportsPaths))
+                config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null) == null)
             {
                 config.LocalSettings.Add( new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = coverageReportPath });
             }
 
             if (TryGetTrxFile(config, settings, out var trxPath) &&
                 !string.IsNullOrEmpty(trxPath) &&
-                !config.LocalSettings.Any(IsVsTestReportsPaths))
+                config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null) == null)
             {
                 config.LocalSettings.Add( new Property { Id = SonarProperties.VsTestReportsPaths, Value = trxPath });
             }
 
             return success;
         }
-
-        private static bool IsVsCoverageXmlReportsPaths(Property property) =>
-            Property.AreKeysEqual(property.Id, SonarProperties.VsCoverageXmlReportsPaths);
-
-        private static bool IsVsTestReportsPaths(Property property) =>
-            Property.AreKeysEqual(property.Id, SonarProperties.VsTestReportsPaths);
 
         protected abstract bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, out string binaryFilePath);
 

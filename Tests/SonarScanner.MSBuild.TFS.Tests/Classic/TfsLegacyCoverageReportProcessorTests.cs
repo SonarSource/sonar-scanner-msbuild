@@ -202,6 +202,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
+
+            context.LocalSettings.Should().Contain(x => x.Id == SonarProperties.VsCoverageXmlReportsPaths);
         }
 
         #endregion Tests
