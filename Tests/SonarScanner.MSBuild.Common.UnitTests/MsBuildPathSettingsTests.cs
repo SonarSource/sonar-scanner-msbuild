@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TestUtilities;
 
 namespace SonarScanner.MSBuild.Common.UnitTests
 {
@@ -34,10 +35,10 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             Action action;
 
-            action = new Action(() => new MsBuildPathSettings((folder, o) => string.Empty, IsWindows(false), FileExists(true)).GetImportBeforePaths());
+            action = new Action(() => new MsBuildPathSettings((folder, o) => string.Empty, IsWindows(false), DirExists(true)).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
 
-            action = new Action(() => new MsBuildPathSettings((folder, o) => null, IsWindows(false), FileExists(true)).GetImportBeforePaths());
+            action = new Action(() => new MsBuildPathSettings((folder, o) => null, IsWindows(false), DirExists(true)).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
         }
 
@@ -255,6 +256,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
         private static Func<bool> IsWindows(bool result) => () => result;
         private static Func<string, bool> FileExists(bool result) => path => result;
+        private static Func<string, bool> DirExists(bool result) => path => result;
         private static Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> GetFolderPath(params (Environment.SpecialFolder, string)[] paths) =>
             (folder, option) => paths.First(p => p.Item1 == folder).Item2;
     }

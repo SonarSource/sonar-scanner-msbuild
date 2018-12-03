@@ -36,20 +36,20 @@ namespace SonarScanner.MSBuild.Common
 
         private readonly Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> environmentGetFolderPath;
         private readonly Func<bool> isWindows;
-        private readonly Func<string, bool> fileExists;
+        private readonly Func<string, bool> directoryExists;
 
-        public MsBuildPathSettings() : this(Environment.GetFolderPath, PlatformHelper.IsWindows, File.Exists)
+        public MsBuildPathSettings() : this(Environment.GetFolderPath, PlatformHelper.IsWindows, Directory.Exists)
         {
         }
 
         public /* for testing purposes */ MsBuildPathSettings(
             Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> environmentGetFolderPath,
             Func<bool> isWindows,
-            Func<string, bool> fileExists)
+            Func<string, bool> directoryExists)
         {
             this.environmentGetFolderPath = environmentGetFolderPath;
             this.isWindows = isWindows;
-            this.fileExists = fileExists;
+            this.directoryExists = directoryExists;
         }
 
         public IEnumerable<string> GetImportBeforePaths()
@@ -143,14 +143,14 @@ namespace SonarScanner.MSBuild.Common
                     Environment.SpecialFolderOption.None); // %windir%\SysWOW64 (or System32 on 32bit windows)
                 var localAppDataX86 = localAppData.ReplaceCaseInsensitive(systemPath, systemX86Path);
 
-                if (fileExists(localAppDataX86))
+                if (directoryExists(localAppDataX86))
                 {
                     yield return localAppDataX86;
                 }
 
                 var sysNativePath = Path.Combine(Path.GetDirectoryName(systemPath), "Sysnative"); // %windir%\Sysnative
                 var localAppDataX64 = localAppData.ReplaceCaseInsensitive(systemPath, sysNativePath);
-                if (fileExists(localAppDataX64))
+                if (directoryExists(localAppDataX64))
                 {
                     yield return localAppDataX64;
                 }
