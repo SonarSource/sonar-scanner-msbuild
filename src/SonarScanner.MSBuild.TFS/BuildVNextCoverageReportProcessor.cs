@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS.Interfaces;
 
@@ -30,16 +31,16 @@ namespace SonarScanner.MSBuild.TFS
         {
         }
 
-        protected override bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, out string binaryFilePath)
+        protected override bool TryGetVsCoverageFiles(AnalysisConfig config, ITeamBuildSettings settings, out IEnumerable<string> binaryFilePaths)
         {
-            binaryFilePath = new TrxFileReader(Logger).LocateCodeCoverageFile(settings.BuildDirectory);
+            binaryFilePaths = new TrxFileReader(Logger).FindCodeCoverageFiles(settings.BuildDirectory);
 
             return true; // there aren't currently any conditions under which we'd want to stop processing
         }
 
-        protected override bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, out string trxFilePath)
+        protected override bool TryGetTrxFiles(AnalysisConfig config, ITeamBuildSettings settings, out IEnumerable<string> trxFilePaths)
         {
-            trxFilePath = new TrxFileReader(Logger).FindTrxFile(settings.BuildDirectory);
+            trxFilePaths = new TrxFileReader(Logger).FindTrxFiles(settings.BuildDirectory);
 
             return true;
         }

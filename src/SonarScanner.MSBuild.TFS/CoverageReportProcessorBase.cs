@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -50,62 +51,64 @@ namespace SonarScanner.MSBuild.TFS
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
 
-            succesfullyInitialised = converter.Initialize();
-            return succesfullyInitialised;
+            this.succesfullyInitialised = this.converter.Initialize();
+            return this.succesfullyInitialised;
         }
 
         public bool ProcessCoverageReports()
         {
-            if (!succesfullyInitialised)
+            if (!this.succesfullyInitialised)
             {
                 throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialised);
             }
 
-            Debug.Assert(config != null, "Expecting the config to not be null. Did you call Initialize() ?");
+            Debug.Assert(this.config != null, "Expecting the config to not be null. Did you call Initialize() ?");
 
             // Fetch all of the report URLs
             Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
 
-            var success = TryGetBinaryReportFile(config, settings, out string binaryFilePath);
-
-            if (success &&
-                binaryFilePath != null &&
-                TryConvertCoverageReport(binaryFilePath, out var coverageReportPath) &&
-                !string.IsNullOrEmpty(coverageReportPath) &&
-                config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null) == null)
-            {
-                config.LocalSettings.Add( new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = coverageReportPath });
-            }
-
-            if (TryGetTrxFile(config, settings, out var trxPath) &&
-                !string.IsNullOrEmpty(trxPath) &&
+            if (TryGetTrxFiles(this.config, this.settings, out var trxPaths) &&
+                trxPaths.Any() &&
                 config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null) == null)
             {
-                config.LocalSettings.Add( new Property { Id = SonarProperties.VsTestReportsPaths, Value = trxPath });
+                this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsTestReportsPaths, Value = string.Join(",", trxPaths) });
+            }
+
+            var success = TryGetVsCoverageFiles(this.config, this.settings, out var vscoveragePaths);
+            if (success &&
+                vscoveragePaths.Any() &&
+                TryConvertCoverageReports(vscoveragePaths, out var coverageReportPaths) &&
+                coverageReportPaths.Any() &&
+                config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null) == null)
+            {
+                this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = string.Join(",", coverageReportPaths) });
             }
 
             return success;
         }
 
-        protected abstract bool TryGetBinaryReportFile(AnalysisConfig config, ITeamBuildSettings settings, out string binaryFilePath);
+        protected abstract bool TryGetVsCoverageFiles(AnalysisConfig config, ITeamBuildSettings settings, out IEnumerable<string> binaryFilePaths);
 
-        protected abstract bool TryGetTrxFile(AnalysisConfig config, ITeamBuildSettings settings, out string trxFilePath);
+        protected abstract bool TryGetTrxFiles(AnalysisConfig config, ITeamBuildSettings settings, out IEnumerable<string> trxFilePaths);
 
-        private bool TryConvertCoverageReport(string binaryCoverageFilePath, out string coverageReportFileName)
+        private bool TryConvertCoverageReports(IEnumerable<string> vscoverageFilePaths, out IEnumerable<string> vscoveragexmlPaths)
         {
-            coverageReportFileName = null;
-            var xmlFileName = Path.ChangeExtension(binaryCoverageFilePath, XmlReportFileExtension);
+            var xmlFileNames = vscoverageFilePaths.Select(x => Path.ChangeExtension(x, XmlReportFileExtension));
 
-            Debug.Assert(!File.Exists(xmlFileName),
-                "Not expecting a file with the name of the binary-to-XML conversion output to already exist: " + xmlFileName);
+            Debug.Assert(!xmlFileNames.Any(x => File.Exists(x)),
+                "Not expecting a file with the name of the binary-to-XML conversion output to already exist.");
 
-            if (converter.ConvertToXml(binaryCoverageFilePath, xmlFileName))
+            var anyFailedConversion = vscoverageFilePaths.Zip(xmlFileNames, (x, y) => new { coverage = x, xml = y })
+                .Any(x => !this.converter.ConvertToXml(x.coverage, x.xml));
+
+            if (anyFailedConversion)
             {
-                coverageReportFileName = xmlFileName;
-                return true;
+                vscoveragexmlPaths = Enumerable.Empty<string>();
+                return false;
             }
 
-            return false;
+            vscoveragexmlPaths = xmlFileNames;
+            return true;
         }
     }
 }

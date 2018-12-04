@@ -126,6 +126,9 @@
   <data name="TRX_DIAG_AbsoluteTrxPath" xml:space="preserve">
     <value>Absolute path to coverage file: {0}</value>
   </data>
+  <data name="TRX_DIAG_CodeCoverageAttachmentsFound" xml:space="preserve">
+    <value>The following code coverage attachments were found from the trx files: {0}</value>
+  </data>
   <data name="TRX_DIAG_FolderPaths" xml:space="preserve">
     <value>Looking for TRX files in: {0}</value>
   </data>
@@ -133,30 +136,24 @@
     <value>Attempting to locate a test results (.trx) file...</value>
   </data>
   <data name="TRX_DIAG_NoCodeCoverageInfo" xml:space="preserve">
-    <value>No code coverage attachments were found in the trx file</value>
+    <value>No code coverage attachments were found from the trx files.</value>
   </data>
   <data name="TRX_DIAG_NoTestResultsFound" xml:space="preserve">
     <value>No test results files found</value>
   </data>
-  <data name="TRX_DIAG_SingleCodeCoverageAttachmentFound" xml:space="preserve">
-    <value>One code coverage attachment was found in the trx file: {0}</value>
-  </data>
-  <data name="TRX_DIAG_SingleTrxFileFound" xml:space="preserve">
-    <value>Located a test results file: {0}</value>
-  </data>
   <data name="TRX_DIAG_TestResultsDirectoryNotFound" xml:space="preserve">
     <value>Test results directory does not exist in {0}</value>
   </data>
+  <data name="TRX_DIAG_TrxFilesFound" xml:space="preserve">
+    <value>The following test results files were found: {0}</value>
+  </data>
+  <data name="TRX_WARN_CoverageAttachmentsNotFound" xml:space="preserve">
+    <value>None of the attached coverage reports exist on disk</value>
+  </data>
   <data name="TRX_WARN_InvalidConstructedCoveragePath" xml:space="preserve">
-    <value>Coverage attachment could not be found. Trx file: {0}. Attachment name: {1}</value>
+    <value>None of the following coverage attachments could be found: {0}. Trx file: {1}</value>
   </data>
   <data name="TRX_WARN_InvalidTrx" xml:space="preserve">
     <value>Located trx file is not a valid xml file. File: {0}. File load error: {1}</value>
-  </data>
-  <data name="TRX_WARN_MultipleCodeCoverageAttachmentsFound" xml:space="preserve">
-    <value>Expecting to find at most one code coverage attachment in the trx file, but multiple attachments were found. Code coverage information will not be uploaded to SonarQube. Attachments: {0}</value>
-  </data>
-  <data name="TRX_WARN_MultipleTrxFilesFound" xml:space="preserve">
-    <value>More than one test result file was found: expecting to find only one. Results files: {0}</value>
   </data>
 </root>

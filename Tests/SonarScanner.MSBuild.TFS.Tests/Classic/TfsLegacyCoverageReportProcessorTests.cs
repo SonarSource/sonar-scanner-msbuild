@@ -110,7 +110,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
         [TestMethod]
         [TestCategory("CodeCoverage")]
-        [Description("Should early out if multiple reports are found")]
         public void ReportProcessor_MultipleUrlsFound()
         {
             // Arrange
@@ -121,6 +120,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var settings = CreateValidSettings();
             var logger = new TestLogger();
 
+            downloader.CreateFileOnDownloadRequest = true;
+
             var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
@@ -130,12 +131,13 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Assert
             urlProvider.AssertGetUrlsCalled();
-            downloader.AssertDownloadNotCalled(); // Multiple urls so should early out
-            converter.AssertConvertNotCalled();
-            result.Should().BeFalse("Expecting false: can't process multiple coverage reports");
+            downloader.AssertExpectedDownloads(2);
+            converter.AssertExpectedNumberOfConversions(2);
+            downloader.AssertExpectedUrlsRequested(ValidUrl1, ValidUrl2);
+            result.Should().BeTrue();
 
-            logger.AssertErrorsLogged(1);
             logger.AssertWarningsLogged(0);
+            logger.AssertErrorsLogged(0);
         }
 
         [TestMethod]

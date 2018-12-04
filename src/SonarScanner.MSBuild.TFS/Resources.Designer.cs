@@ -88,6 +88,15 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The following code coverage attachments were found from the trx files: {0}.
+        /// </summary>
+        internal static string TRX_DIAG_CodeCoverageAttachmentsFound {
+            get {
+                return ResourceManager.GetString("TRX_DIAG_CodeCoverageAttachmentsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Looking for TRX files in: {0}.
         /// </summary>
         internal static string TRX_DIAG_FolderPaths {
@@ -106,7 +115,7 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No code coverage attachments were found in the trx file.
+        ///   Looks up a localized string similar to No code coverage attachments were found from the trx files..
         /// </summary>
         internal static string TRX_DIAG_NoCodeCoverageInfo {
             get {
@@ -124,24 +133,6 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to One code coverage attachment was found in the trx file: {0}.
-        /// </summary>
-        internal static string TRX_DIAG_SingleCodeCoverageAttachmentFound {
-            get {
-                return ResourceManager.GetString("TRX_DIAG_SingleCodeCoverageAttachmentFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Located a test results file: {0}.
-        /// </summary>
-        internal static string TRX_DIAG_SingleTrxFileFound {
-            get {
-                return ResourceManager.GetString("TRX_DIAG_SingleTrxFileFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Test results directory does not exist in {0}.
         /// </summary>
         internal static string TRX_DIAG_TestResultsDirectoryNotFound {
@@ -151,7 +142,25 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Coverage attachment could not be found. Trx file: {0}. Attachment name: {1}.
+        ///   Looks up a localized string similar to The following test results files were found: {0}.
+        /// </summary>
+        internal static string TRX_DIAG_TrxFilesFound {
+            get {
+                return ResourceManager.GetString("TRX_DIAG_TrxFilesFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None of the attached coverage reports exist on disk.
+        /// </summary>
+        internal static string TRX_WARN_CoverageAttachmentsNotFound {
+            get {
+                return ResourceManager.GetString("TRX_WARN_CoverageAttachmentsNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None of the following coverage attachments could be found: {0}. Trx file: {1}.
         /// </summary>
         internal static string TRX_WARN_InvalidConstructedCoveragePath {
             get {
@@ -165,24 +174,6 @@ namespace SonarScanner.MSBuild.TFS {
         internal static string TRX_WARN_InvalidTrx {
             get {
                 return ResourceManager.GetString("TRX_WARN_InvalidTrx", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Expecting to find at most one code coverage attachment in the trx file, but multiple attachments were found. Code coverage information will not be uploaded to SonarQube. Attachments: {0}.
-        /// </summary>
-        internal static string TRX_WARN_MultipleCodeCoverageAttachmentsFound {
-            get {
-                return ResourceManager.GetString("TRX_WARN_MultipleCodeCoverageAttachmentsFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to More than one test result file was found: expecting to find only one. Results files: {0}.
-        /// </summary>
-        internal static string TRX_WARN_MultipleTrxFilesFound {
-            get {
-                return ResourceManager.GetString("TRX_WARN_MultipleTrxFilesFound", resourceCulture);
             }
         }
     }

@@ -68,167 +68,175 @@ namespace SonarScanner.MSBuild.TFS
         private const string TestResultsFolderName = "TestResults";
 
         private readonly ILogger logger;
+        private readonly Func<string, bool> fileExistsFunc;
 
         public TrxFileReader(ILogger logger)
+            : this(logger, File.Exists)
+        {
+        }
+
+        public TrxFileReader(ILogger logger, Func<string, bool> fileExistsFunc)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.fileExistsFunc = fileExistsFunc ?? throw new ArgumentNullException(nameof(fileExistsFunc));
         }
 
         /// <summary>
-        /// Attempts to locate a code coverage file under the specified build directory
+        /// Attempts to locate all code coverage files under the specified build directory
         /// </summary>
-        /// <returns>The location of the code coverage file, or null if one could not be found</returns>
+        /// <returns>The location of all code coverage files, or empty if one could not be found</returns>
         /// <remarks>The method uses logic equivalent to that in the VSTest vNext step i.e.
-        /// * look for a test results file (*.trx) in a default location under the supplied build directory.
-        /// * parse the trx file looking for a code coverage attachment entry
-        /// * resolve the attachment entry to an absolute path</remarks>
-        public string LocateCodeCoverageFile(string buildRootDirectory)
+        /// * look for all test results files (*.trx) in a default location under the supplied build directory.
+        /// * parse the trx files looking for all code coverage attachment entries
+        /// * resolve all the attachment entries to absolute paths</remarks>
+        public IEnumerable<string> FindCodeCoverageFiles(string buildRootDirectory)
         {
             if (string.IsNullOrWhiteSpace(buildRootDirectory))
             {
                 throw new ArgumentNullException(nameof(buildRootDirectory));
             }
 
-            string coverageFilePath = null;
+            var trxFilePaths = FindTrxFiles(buildRootDirectory, false);
 
-            var trxFilePath = FindTrxFile(buildRootDirectory);
-
-            if (!string.IsNullOrEmpty(trxFilePath))
+            if (!trxFilePaths.Any())
             {
-                Debug.Assert(File.Exists(trxFilePath), "Expecting the specified trx file to exist: " + trxFilePath);
-
-                coverageFilePath = TryGetCoverageFilePath(trxFilePath);
+                return Enumerable.Empty<string>();
             }
 
-            return coverageFilePath;
+            Debug.Assert(trxFilePaths.All(File.Exists), "Expecting the specified trx files to exist.");
+
+            var coverageReportPaths = GetCoverageAttachments(trxFilePaths)
+                .Values
+                .SelectMany(x => x)
+                .Distinct(StringComparer.OrdinalIgnoreCase) // windows paths
+                .ToList();
+
+            if (coverageReportPaths.Count == 0)
+            {
+                this.logger.LogInfo(Resources.TRX_DIAG_NoCodeCoverageInfo);
+            }
+            else
+            {
+                this.logger.LogInfo(Resources.TRX_DIAG_CodeCoverageAttachmentsFound, string.Join(", ", coverageReportPaths));
+            }
+
+            return coverageReportPaths;
         }
 
-        public string FindTrxFile(string buildRootDirectory)
+        public IEnumerable<string> FindTrxFiles(string buildRootDirectory, bool shouldLog = true)
         {
             Debug.Assert(!string.IsNullOrEmpty(buildRootDirectory));
             Debug.Assert(Directory.Exists(buildRootDirectory), "The specified build root directory should exist: " + buildRootDirectory);
 
-            logger.LogInfo(Resources.TRX_DIAG_LocatingTrx);
+            if (shouldLog)
+            {
+                this.logger.LogInfo(Resources.TRX_DIAG_LocatingTrx);
+            }
 
             var testDirectories = Directory.GetDirectories(buildRootDirectory, TestResultsFolderName, SearchOption.AllDirectories);
 
             if (testDirectories == null ||
                 !testDirectories.Any())
             {
-                logger.LogInfo(Resources.TRX_DIAG_TestResultsDirectoryNotFound, buildRootDirectory);
-                return null;
+                if (shouldLog)
+                {
+                    this.logger.LogInfo(Resources.TRX_DIAG_TestResultsDirectoryNotFound, buildRootDirectory);
+                }
+
+                return Enumerable.Empty<string>();
             }
 
-            logger.LogInfo(Resources.TRX_DIAG_FolderPaths, string.Join(", ", testDirectories));
+            if (shouldLog)
+            {
+                this.logger.LogInfo(Resources.TRX_DIAG_FolderPaths, string.Join(", ", testDirectories));
+            }
 
             var trxFiles = testDirectories.SelectMany(dir => Directory.GetFiles(dir, "*.trx")).ToArray();
 
-            string trxFilePath = null;
-
-            switch (trxFiles.Length)
+            if (shouldLog)
             {
-                case 0:
-                    logger.LogInfo(Resources.TRX_DIAG_NoTestResultsFound);
-                    break;
-
-                case 1:
-                    trxFilePath = trxFiles[0];
-                    logger.LogInfo(Resources.TRX_DIAG_SingleTrxFileFound, trxFilePath);
-                    break;
-
-                default:
-                    logger.LogWarning(Resources.TRX_WARN_MultipleTrxFilesFound, string.Join(", ", trxFiles));
-                    break;
-            }
-
-            return trxFilePath;
-        }
-
-        private string TryGetCoverageFilePath(string trxFilePath)
-        {
-            Debug.Assert(File.Exists(trxFilePath));
-
-            if (!TryExtractCoverageFilePaths(trxFilePath, out var attachmentUris))
-            {
-                return null;
-            }
-
-            switch (attachmentUris.Count())
-            {
-                case 0:
-                    logger.LogDebug(Resources.TRX_DIAG_NoCodeCoverageInfo);
-                    return null;
-
-                case 1:
-                    var attachmentName = attachmentUris.First();
-                    logger.LogDebug(Resources.TRX_DIAG_SingleCodeCoverageAttachmentFound, attachmentName);
-
-                    var trxDirectoryName = Path.GetDirectoryName(trxFilePath);
-                    var trxFileName = Path.GetFileNameWithoutExtension(trxFilePath);
-
-                    var possibleCoveragePath =
-                        new[]
-                        {
-                            attachmentName,
-                            Path.Combine(trxDirectoryName, trxFileName, "In", attachmentName),
-                            // https://jira.sonarsource.com/browse/SONARMSBRU-361
-                            // With VSTest task the coverage file name uses underscore instead of spaces.
-                            Path.Combine(trxDirectoryName, trxFileName.Replace(' ', '_'), "In", attachmentName)
-                        }
-                        .FirstOrDefault(path => File.Exists(path));
-
-                    if (possibleCoveragePath != null)
-                    {
-                        logger.LogDebug(Resources.TRX_DIAG_AbsoluteTrxPath, possibleCoveragePath);
-                    }
-                    else
-                    {
-                        logger.LogWarning(Resources.TRX_WARN_InvalidConstructedCoveragePath, trxFilePath, attachmentName);
-                    }
-
-                    return possibleCoveragePath;
-
-                default:
-                    logger.LogWarning(Resources.TRX_WARN_MultipleCodeCoverageAttachmentsFound, string.Join(", ", attachmentUris.ToArray()));
-                    return null;
-            }
-        }
-
-        private bool TryExtractCoverageFilePaths(string trxFilePath, out IEnumerable<string> coverageFilePaths)
-        {
-            Debug.Assert(File.Exists(trxFilePath));
-
-            coverageFilePaths = null;
-            var continueProcessing = true;
-
-            var runAttachments = new List<string>();
-            try
-            {
-                var doc = new XmlDocument();
-                doc.Load(trxFilePath);
-                var nsmgr = new XmlNamespaceManager(doc.NameTable);
-                nsmgr.AddNamespace("x", CodeCoverageXmlNamespace);
-
-                var attachmentNodes = doc.SelectNodes("/x:TestRun/x:ResultSummary/x:CollectorDataEntries/x:Collector[@uri='datacollector://microsoft/CodeCoverage/2.0']/x:UriAttachments/x:UriAttachment/x:A", nsmgr);
-
-                foreach (XmlNode attachmentNode in attachmentNodes)
+                if (trxFiles.Length == 0)
                 {
-                    var att = attachmentNode.Attributes["href"];
-                    if (att != null && att.Value != null)
+                    this.logger.LogInfo(Resources.TRX_DIAG_NoTestResultsFound);
+                }
+                else
+                {
+                    this.logger.LogInfo(Resources.TRX_DIAG_TrxFilesFound, string.Join(", ", trxFiles));
+                }
+            }
+
+            return trxFiles;
+        }
+
+        private Dictionary<string, List<string>> GetCoverageAttachments(IEnumerable<string> trxFilePaths)
+        {
+            var attachmentsPerTrx = new Dictionary<string, List<string>>();
+
+            foreach (var trxPath in trxFilePaths)
+            {
+                attachmentsPerTrx[trxPath] = new List<string>();
+
+                try
+                {
+                    var doc = new XmlDocument();
+                    doc.Load(trxPath);
+                    var nsmgr = new XmlNamespaceManager(doc.NameTable);
+                    nsmgr.AddNamespace("x", CodeCoverageXmlNamespace);
+
+                    var attachmentNodes = doc.SelectNodes("/x:TestRun/x:ResultSummary/x:CollectorDataEntries/x:Collector[@uri='datacollector://microsoft/CodeCoverage/2.0']/x:UriAttachments/x:UriAttachment/x:A", nsmgr);
+
+                    foreach (XmlNode attachmentNode in attachmentNodes)
                     {
-                        runAttachments.Add(att.Value);
+                        var att = attachmentNode.Attributes["href"];
+                        if (att == null || att.Value == null)
+                        {
+                            continue;
+                        }
+
+                        var coverageFullPath = TryFindCoverageFileFromUri(trxPath, att.Value);
+                        if (coverageFullPath != null)
+                        {
+                            attachmentsPerTrx[trxPath].Add(coverageFullPath);
+                        }
                     }
                 }
-
-                coverageFilePaths = runAttachments;
+                catch (XmlException ex)
+                {
+                    this.logger.LogWarning(Resources.TRX_WARN_InvalidTrx, trxPath, ex.Message);
+                    return new Dictionary<string, List<string>>();
+                }
             }
-            catch (XmlException ex)
+
+            return attachmentsPerTrx;
+        }
+
+        private string TryFindCoverageFileFromUri(string trx, string attachmentUri)
+        {
+            var trxDirectoryName = Path.GetDirectoryName(trx);
+            var trxFileName = Path.GetFileNameWithoutExtension(trx);
+
+            var possibleCoveragePaths =
+                new[]
+                {
+                            attachmentUri,
+                            Path.Combine(trxDirectoryName, trxFileName, "In", attachmentUri),
+                            // https://jira.sonarsource.com/browse/SONARMSBRU-361
+                            // With VSTest task the coverage file name uses underscore instead of spaces.
+                            Path.Combine(trxDirectoryName, trxFileName.Replace(' ', '_'), "In", attachmentUri)
+                };
+            var firstFoundCoveragePath = possibleCoveragePaths.FirstOrDefault(path => this.fileExistsFunc(path));
+
+            if (firstFoundCoveragePath != null)
             {
-                logger.LogWarning(Resources.TRX_WARN_InvalidTrx, trxFilePath, ex.Message);
-                continueProcessing = false;
+                this.logger.LogDebug(Resources.TRX_DIAG_AbsoluteTrxPath, firstFoundCoveragePath);
+                return firstFoundCoveragePath;
             }
-
-            return continueProcessing;
+            else
+            {
+                this.logger.LogWarning(Resources.TRX_WARN_InvalidConstructedCoveragePath,
+                    string.Join(", ", possibleCoveragePaths), trx);
+                return null;
+            }
         }
     }
 }
