@@ -69,7 +69,7 @@ namespace SonarScanner.MSBuild.TFS
 
             if (TryGetTrxFiles(this.config, this.settings, out var trxPaths) &&
                 trxPaths.Any() &&
-                !this.config.LocalSettings.Any(IsVsTestReportsPaths))
+                config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null) == null)
             {
                 this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsTestReportsPaths, Value = string.Join(",", trxPaths) });
             }
@@ -79,19 +79,13 @@ namespace SonarScanner.MSBuild.TFS
                 vscoveragePaths.Any() &&
                 TryConvertCoverageReports(vscoveragePaths, out var coverageReportPaths) &&
                 coverageReportPaths.Any() &&
-                !this.config.LocalSettings.Any(IsVsCoverageXmlReportsPaths))
+                config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null) == null)
             {
                 this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = string.Join(",", coverageReportPaths) });
             }
 
             return success;
         }
-
-        private static bool IsVsCoverageXmlReportsPaths(Property property) =>
-            Property.AreKeysEqual(property.Id, SonarProperties.VsCoverageXmlReportsPaths);
-
-        private static bool IsVsTestReportsPaths(Property property) =>
-            Property.AreKeysEqual(property.Id, SonarProperties.VsTestReportsPaths);
 
         protected abstract bool TryGetVsCoverageFiles(AnalysisConfig config, ITeamBuildSettings settings, out IEnumerable<string> binaryFilePaths);
 
