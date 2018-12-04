@@ -67,8 +67,14 @@ namespace SonarScanner.MSBuild.TFS
             // Fetch all of the report URLs
             Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
 
-            var success = TryGetVsCoverageFiles(this.config, this.settings, out var vscoveragePaths);
+            if (TryGetTrxFiles(this.config, this.settings, out var trxPaths) &&
+                trxPaths.Any() &&
+                !this.config.LocalSettings.Any(IsVsTestReportsPaths))
+            {
+                this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsTestReportsPaths, Value = string.Join(",", trxPaths) });
+            }
 
+            var success = TryGetVsCoverageFiles(this.config, this.settings, out var vscoveragePaths);
             if (success &&
                 vscoveragePaths.Any() &&
                 TryConvertCoverageReports(vscoveragePaths, out var coverageReportPaths) &&
@@ -76,13 +82,6 @@ namespace SonarScanner.MSBuild.TFS
                 !this.config.LocalSettings.Any(IsVsCoverageXmlReportsPaths))
             {
                 this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = string.Join(",", coverageReportPaths) });
-            }
-
-            if (TryGetTrxFiles(this.config, this.settings, out var trxPaths) &&
-                trxPaths.Any() &&
-                !this.config.LocalSettings.Any(IsVsTestReportsPaths))
-            {
-                this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsTestReportsPaths, Value = string.Join(",", trxPaths) });
             }
 
             return success;

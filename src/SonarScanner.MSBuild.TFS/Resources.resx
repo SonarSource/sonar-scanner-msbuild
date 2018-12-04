@@ -127,7 +127,7 @@
     <value>Absolute path to coverage file: {0}</value>
   </data>
   <data name="TRX_DIAG_CodeCoverageAttachmentsFound" xml:space="preserve">
-    <value>The following code coverage attachments were found in the trx files: {0}</value>
+    <value>The following code coverage attachments were found from the trx files: {0}</value>
   </data>
   <data name="TRX_DIAG_FolderPaths" xml:space="preserve">
     <value>Looking for TRX files in: {0}</value>
@@ -136,7 +136,7 @@
     <value>Attempting to locate a test results (.trx) file...</value>
   </data>
   <data name="TRX_DIAG_NoCodeCoverageInfo" xml:space="preserve">
-    <value>No code coverage attachments were found in the trx file</value>
+    <value>No code coverage attachments were found from the trx files.</value>
   </data>
   <data name="TRX_DIAG_NoTestResultsFound" xml:space="preserve">
     <value>No test results files found</value>
@@ -151,7 +151,7 @@
     <value>None of the attached coverage reports exist on disk</value>
   </data>
   <data name="TRX_WARN_InvalidConstructedCoveragePath" xml:space="preserve">
-    <value>Coverage attachment could not be found. Trx file: {0}. Attachment name: {1}</value>
+    <value>None of the following coverage attachments could be found: {0}. Trx file: {1}</value>
   </data>
   <data name="TRX_WARN_InvalidTrx" xml:space="preserve">
     <value>Located trx file is not a valid xml file. File: {0}. File load error: {1}</value>

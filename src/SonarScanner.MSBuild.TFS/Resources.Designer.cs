@@ -88,7 +88,7 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following code coverage attachments were found in the trx files: {0}.
+        ///   Looks up a localized string similar to The following code coverage attachments were found from the trx files: {0}.
         /// </summary>
         internal static string TRX_DIAG_CodeCoverageAttachmentsFound {
             get {
@@ -115,7 +115,7 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No code coverage attachments were found in the trx file.
+        ///   Looks up a localized string similar to No code coverage attachments were found from the trx files..
         /// </summary>
         internal static string TRX_DIAG_NoCodeCoverageInfo {
             get {
@@ -160,7 +160,7 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Coverage attachment could not be found. Trx file: {0}. Attachment name: {1}.
+        ///   Looks up a localized string similar to None of the following coverage attachments could be found: {0}. Trx file: {1}.
         /// </summary>
         internal static string TRX_WARN_InvalidConstructedCoveragePath {
             get {
