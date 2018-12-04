@@ -37,7 +37,7 @@ namespace SonarScanner.MSBuild
         private readonly IProcessorFactory processorFactory;
         private readonly IBootstrapperSettings bootstrapSettings;
         private readonly ILogger logger;
-        private readonly Func<string, Version> getAssemblyVersion;
+        private readonly Func<string, Version> getAssemblyVersionFunc;
 
         public BootstrapperClass(IProcessorFactory processorFactory, IBootstrapperSettings bootstrapSettings, ILogger logger)
             : this(processorFactory, bootstrapSettings, logger, assemblyPath => AssemblyName.GetAssemblyName(assemblyPath).Version)
@@ -45,12 +45,12 @@ namespace SonarScanner.MSBuild
         }
 
         public BootstrapperClass(IProcessorFactory processorFactory, IBootstrapperSettings bootstrapSettings, ILogger logger,
-            Func<string, Version> getAssemblyVersion)
+            Func<string, Version> getAssemblyVersionFunc)
         {
             this.processorFactory = processorFactory;
             this.bootstrapSettings = bootstrapSettings;
             this.logger = logger;
-            this.getAssemblyVersion = getAssemblyVersion;
+            this.getAssemblyVersionFunc = getAssemblyVersionFunc;
 
             Debug.Assert(this.bootstrapSettings != null, "Bootstrapper settings should not be null");
             Debug.Assert(this.bootstrapSettings.Phase != AnalysisPhase.Unspecified, "Expecting the processing phase to be specified");
@@ -189,7 +189,7 @@ namespace SonarScanner.MSBuild
                 {
                     File.Copy(from, to);
                 }
-                else if (this.getAssemblyVersion(from).CompareTo(this.getAssemblyVersion(to)) != 0)
+                else if (this.getAssemblyVersionFunc(from).CompareTo(this.getAssemblyVersionFunc(to)) != 0)
                 {
                     this.logger.LogError(Resources.ERROR_DllLockedMultipleScanners);
                     return false;
