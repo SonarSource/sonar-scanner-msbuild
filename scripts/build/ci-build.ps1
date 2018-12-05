@@ -143,18 +143,44 @@ function Invoke-SonarEndAnalysis() {
 
 function Publish-Artifacts() {
     $classicScannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarscanner-msbuild-net46.zip
-    $dotnetScannerZipPath  = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarscanner-msbuild-netcoreapp2.0.zip
-    $dotnetScannerGlobalToolPath  = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\dotnet-sonarscanner.$leakPeriodVersion.nupkg
+    $dotnetScannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarscanner-msbuild-netcoreapp2.0.zip
+    $dotnetScannerGlobalToolPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\dotnet-sonarscanner.$leakPeriodVersion.nupkg
 
-    Write-Host "Update zip locations in pom.xml"
+    $version = Get-DotNetVersion
+
+    Write-Host "Generate the chocolatey packages"
+    $classicZipHash = (Get-FileHash $classicScannerZipPath -Algorithm SHA256).hash
+    $net46ps1 = "nuspec\chocolatey\chocolateyInstall-net46.ps1"
+    (Get-Content $net46ps1) `
+            -Replace '-Checksum "not-set"', "-Checksum $classicZipHash" `
+        | Set-Content $net46ps1
+
+    $dotnetZipHash = (Get-FileHash $dotnetScannerZipPath -Algorithm SHA256).hash
+    $netcoreps1 = "nuspec\chocolatey\chocolateyInstall-netcoreapp2.0.ps1"
+    (Get-Content $netcoreps1) `
+            -Replace '-Checksum "not-set"', "-Checksum $dotnetZipHash" `
+        | Set-Content $netcoreps1
+
+    Exec { & choco pack nuspec\chocolatey\sonarscanner-msbuild-net46.nuspec `
+        --outputdirectory ".\DeploymentArtifacts\BuildAgentPayload\Release" `
+        --version $version `
+    } -errorMessage "ERROR: Creation of the net46 chocolatey package FAILED."
+    Exec { & choco pack nuspec\chocolatey\sonarscanner-msbuild-netcoreapp2.0.nuspec `
+        --outputdirectory ".\DeploymentArtifacts\BuildAgentPayload\Release" `
+        --version $version `
+    } -errorMessage "ERROR: Creation of the net46 chocolatey package FAILED."
+
+    Write-Host "Update artifacts locations in pom.xml"
     $pomFile = ".\pom.xml"
+    $currentDir = (Get-Item -Path ".\").FullName
     (Get-Content $pomFile) `
             -Replace 'classicScannerZipPath', "$classicScannerZipPath" `
             -Replace 'dotnetScannerZipPath', "$dotnetScannerZipPath" `
             -Replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" `
+            -Replace 'classicScannerChocoPath', "$currentDir\\sonarscanner-msbuild-net46.$version.nupkg" `
+            -Replace 'dotnetScannerChocoPath', "$currentDir\\sonarscanner-msbuild-netcoreapp2.0.$version.nupkg" `
         | Set-Content $pomFile
 
-    $version = Get-DotNetVersion
     Exec { & mvn org.codehaus.mojo:versions-maven-plugin:2.2:set "-DnewVersion=${version}" `
         -DgenerateBackupPoms=false -B -e `
     } -errorMessage "ERROR: Maven set version FAILED."
