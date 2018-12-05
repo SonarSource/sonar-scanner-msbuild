@@ -142,13 +142,15 @@ function Invoke-SonarEndAnalysis() {
 }
 
 function Publish-Artifacts() {
-    $classicScannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarscanner-msbuild-net46.zip
-    $dotnetScannerZipPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\sonarscanner-msbuild-netcoreapp2.0.zip
-    $dotnetScannerGlobalToolPath = Get-Item .\DeploymentArtifacts\BuildAgentPayload\Release\dotnet-sonarscanner.$leakPeriodVersion.nupkg
+    $artifactsFolder = ".\DeploymentArtifacts\BuildAgentPayload\Release"
+
+    $classicScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-net46.zip"
+    $dotnetScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip"
+    $dotnetScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$leakPeriodVersion.nupkg"
 
     $version = Get-DotNetVersion
 
-    Write-Host "Generate the chocolatey packages"
+    Write-Host "Generating the chocolatey packages"
     $classicZipHash = (Get-FileHash $classicScannerZipPath -Algorithm SHA256).hash
     $net46ps1 = "nuspec\chocolatey\chocolateyInstall-net46.ps1"
     (Get-Content $net46ps1) `
@@ -161,12 +163,13 @@ function Publish-Artifacts() {
             -Replace '-Checksum "not-set"', "-Checksum $dotnetZipHash" `
         | Set-Content $netcoreps1
 
+    $d
     Exec { & choco pack nuspec\chocolatey\sonarscanner-msbuild-net46.nuspec `
-        --outputdirectory ".\DeploymentArtifacts\BuildAgentPayload\Release" `
+        --outputdirectory $artifactsFolder `
         --version $version `
     } -errorMessage "ERROR: Creation of the net46 chocolatey package FAILED."
     Exec { & choco pack nuspec\chocolatey\sonarscanner-msbuild-netcoreapp2.0.nuspec `
-        --outputdirectory ".\DeploymentArtifacts\BuildAgentPayload\Release" `
+        --outputdirectory $artifactsFolder `
         --version $version `
     } -errorMessage "ERROR: Creation of the net46 chocolatey package FAILED."
 
@@ -177,8 +180,8 @@ function Publish-Artifacts() {
             -Replace 'classicScannerZipPath', "$classicScannerZipPath" `
             -Replace 'dotnetScannerZipPath', "$dotnetScannerZipPath" `
             -Replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" `
-            -Replace 'classicScannerChocoPath', "$currentDir\\sonarscanner-msbuild-net46.$version.nupkg" `
-            -Replace 'dotnetScannerChocoPath', "$currentDir\\sonarscanner-msbuild-netcoreapp2.0.$version.nupkg" `
+            -Replace 'classicScannerChocoPath', "$currentDir\\$artifactsFolder\\sonarscanner-msbuild-net46.$version.nupkg") `
+            -Replace 'dotnetScannerChocoPath', "$currentDir\\$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.$version.nupkg" `
         | Set-Content $pomFile
 
     Exec { & mvn org.codehaus.mojo:versions-maven-plugin:2.2:set "-DnewVersion=${version}" `
