@@ -180,7 +180,7 @@ function Publish-Artifacts() {
             -Replace 'classicScannerZipPath', "$classicScannerZipPath" `
             -Replace 'dotnetScannerZipPath', "$dotnetScannerZipPath" `
             -Replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" `
-            -Replace 'classicScannerChocoPath', "$currentDir\\$artifactsFolder\\sonarscanner-msbuild-net46.$version.nupkg") `
+            -Replace 'classicScannerChocoPath', "$currentDir\\$artifactsFolder\\sonarscanner-msbuild-net46.$version.nupkg" `
             -Replace 'dotnetScannerChocoPath', "$currentDir\\$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.$version.nupkg" `
         | Set-Content $pomFile
 
