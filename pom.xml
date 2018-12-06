@@ -77,6 +77,16 @@
                   <type>nupkg</type>
                   <classifier>netcoreapp2.1</classifier>
                 </artifact>
+                <artifact>
+                  <file>classicScannerChocoPath</file>
+                  <type>nupkg</type>
+                  <classifier>net46</classifier>
+                </artifact>
+                <artifact>
+                  <file>dotnetScannerChocoPath</file>
+                  <type>nupkg</type>
+                  <classifier>netcoreapp2.0</classifier>
+                </artifact>
               </artifacts>
             </configuration>
           </execution>
