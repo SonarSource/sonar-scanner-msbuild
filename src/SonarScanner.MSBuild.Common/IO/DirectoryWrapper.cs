@@ -26,6 +26,10 @@ namespace SonarScanner.MSBuild.Common
     [ExcludeFromCodeCoverage]
     public class DirectoryWrapper : IDirectoryWrapper
     {
+        public static IDirectoryWrapper Instance { get; } = new DirectoryWrapper();
+
+        private DirectoryWrapper() { }
+
         public void CreateDirectory(string path) =>
             Directory.CreateDirectory(path);
 
