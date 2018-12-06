@@ -102,12 +102,11 @@ public class ScannerMSBuildTest {
 
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
+    .setSonarVersion(TestUtils.replaceLtsVersion(System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE")))
     .setEdition(Edition.DEVELOPER)
     .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
     .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-csharp-plugin", "LATEST_RELEASE"))
-    // TODO: switch this to LATEST_RELEASE once the OS VB plugin has been released
-    .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-vbnet-plugin", "DEV"))
+    .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-vbnet-plugin", "LATEST_RELEASE"))
     .activateLicense()
     .build();
 
@@ -589,7 +588,8 @@ public class ScannerMSBuildTest {
       .addArgument("begin")
       .setProjectKey(folderName)
       .setProjectName(folderName)
-      .setProjectVersion("1.0");
+      .setProjectVersion("1.0")
+      .setProperty("sonar.sourceEncoding", "UTF-8");
 
     if (setProjectBaseDirExplicitly) {
       // When running under VSTS the scanner calculates the projectBaseDir differently.
