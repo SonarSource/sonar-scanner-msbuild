@@ -163,7 +163,6 @@ function Publish-Artifacts() {
             -Replace '-Checksum "not-set"', "-Checksum $dotnetZipHash" `
         | Set-Content $netcoreps1
 
-    $d
     Exec { & choco pack nuspec\chocolatey\sonarscanner-msbuild-net46.nuspec `
         --outputdirectory $artifactsFolder `
         --version $version `
