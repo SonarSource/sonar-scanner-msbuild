@@ -72,7 +72,7 @@ namespace SonarScanner.MSBuild.TFS
         private readonly IDirectoryWrapper directoryWrapper;
 
         public TrxFileReader(ILogger logger)
-            : this(logger, new FileWrapper(), new DirectoryWrapper())
+            : this(logger, FileWrapper.Instance, DirectoryWrapper.Instance)
         {
         }
 

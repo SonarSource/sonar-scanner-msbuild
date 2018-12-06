@@ -47,7 +47,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         private readonly IDirectoryWrapper directoryWrapper;
 
         public TargetsInstaller(ILogger logger)
-            : this(logger, new MsBuildPathSettings(), new FileWrapper(), new DirectoryWrapper())
+            : this(logger, new MsBuildPathSettings(), FileWrapper.Instance, DirectoryWrapper.Instance)
         {
         }
 

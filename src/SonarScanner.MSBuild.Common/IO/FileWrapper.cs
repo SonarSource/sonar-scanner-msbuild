@@ -26,6 +26,10 @@ namespace SonarScanner.MSBuild.Common
     [ExcludeFromCodeCoverage]
     public class FileWrapper : IFileWrapper
     {
+        public static IFileWrapper Instance { get; } = new FileWrapper();
+
+        private FileWrapper() { }
+
         public void Copy(string sourceFileName, string destFileName, bool overwrite) =>
             File.Copy(sourceFileName, destFileName, overwrite);
 
