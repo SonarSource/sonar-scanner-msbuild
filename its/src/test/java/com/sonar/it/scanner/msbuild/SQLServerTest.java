@@ -54,7 +54,7 @@ public class SQLServerTest {
 
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
+    .setSonarVersion(TestUtils.replaceLtsVersion(System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE")))
     .setEdition(Edition.DEVELOPER)
     .addPlugin(MavenLocation.of("org.sonarsource.dotnet","sonar-csharp-plugin", "LATEST_RELEASE"))
     .activateLicense()
