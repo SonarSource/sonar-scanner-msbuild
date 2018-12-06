@@ -216,8 +216,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             var context = new AnalysisConfig()
             {
-                SonarOutputDir = TestContext.DeploymentDirectory, // tests can write to this directory
-                SonarConfigDir = TestContext.TestRunResultsDirectory, // we don't read anything from this directory, we just want it to be different from the output directory
+                SonarOutputDir = TestUtils.CreateTestSpecificFolder(TestContext, "out"), // tests can write to this directory
+                SonarConfigDir = TestUtils.CreateTestSpecificFolder(TestContext, "conf"), // we don't read anything from this directory, we just want it to be different from the output directory
                 LocalSettings = new AnalysisProperties(),
             };
             return context;
@@ -225,7 +225,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
         private TeamBuildSettings CreateValidSettings()
         {
-            return TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestContext.DeploymentDirectory);
+            return TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolder(TestContext));
         }
 
         #endregion Private methods

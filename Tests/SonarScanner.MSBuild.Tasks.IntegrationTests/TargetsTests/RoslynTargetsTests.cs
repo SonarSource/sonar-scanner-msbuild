@@ -746,7 +746,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// </summary>
         private ProjectRootElement CreateValidProjectSetup(WellKnownProjectProperties properties)
         {
-            var sqTempFolder = TestUtils.EnsureTestSpecificFolder(TestContext);
+            var sqTempFolder = TestUtils.CreateTestSpecificFolder(TestContext);
 
             var projectProperties = properties ?? new WellKnownProjectProperties();
             var projectFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Project");
@@ -769,7 +769,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// </summary>
         private string CreateProjectFile(AnalysisConfig analysisConfig, string testSpecificProjectXml)
         {
-            var projectDirectory = TestUtils.EnsureTestSpecificFolder(TestContext);
+            var projectDirectory = TestUtils.CreateTestSpecificFolder(TestContext);
 
             CreateCaptureDataTargetsFile(projectDirectory);
 

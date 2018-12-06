@@ -84,13 +84,13 @@ namespace SonarScanner.MSBuild.Shim.Tests
             using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(SonarScannerWrapper.SonarScannerHomeVariableName, null);
-                var config = new AnalysisConfig() { SonarScannerWorkingDirectory = TestContext.DeploymentDirectory };
+                var config = new AnalysisConfig() { SonarScannerWorkingDirectory = TestUtils.CreateTestSpecificFolder(TestContext) };
 
                 // Act
                 var success = SonarScannerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), testLogger, exePath, propertiesFilePath);
 
                 // Assert
-                VerifyProcessRunOutcome(testLogger, TestContext.DeploymentDirectory, success, true);
+                VerifyProcessRunOutcome(testLogger, TestUtils.CreateTestSpecificFolder(TestContext), success, true);
                 testLogger.AssertMessageNotLogged(SonarScanner.MSBuild.Shim.Resources.MSG_SonarScannerHomeIsSet);
             }
         }
@@ -106,13 +106,13 @@ namespace SonarScanner.MSBuild.Shim.Tests
                 var testLogger = new TestLogger();
                 var exePath = CreateDummarySonarScannerBatchFile();
                 var propertiesFilePath = CreateDummySonarScannerPropertiesFile();
-                var config = new AnalysisConfig() { SonarScannerWorkingDirectory = TestContext.DeploymentDirectory };
+                var config = new AnalysisConfig() { SonarScannerWorkingDirectory = TestUtils.CreateTestSpecificFolder(TestContext) };
 
                 // Act
                 var success = SonarScannerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), testLogger, exePath, propertiesFilePath);
 
                 // Assert
-                VerifyProcessRunOutcome(testLogger, TestContext.DeploymentDirectory, success, true);
+                VerifyProcessRunOutcome(testLogger, TestUtils.CreateTestSpecificFolder(TestContext), success, true);
             }
         }
 
@@ -123,13 +123,13 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var logger = new TestLogger();
             var exePath = CreateDummarySonarScannerBatchFile();
             var propertiesFilePath = CreateDummySonarScannerPropertiesFile();
-            var config = new AnalysisConfig() { SonarScannerWorkingDirectory = TestContext.DeploymentDirectory };
+            var config = new AnalysisConfig() { SonarScannerWorkingDirectory = TestUtils.CreateTestSpecificFolder(TestContext) };
 
             // Act
             var success = SonarScannerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), logger, exePath, propertiesFilePath);
 
             // Assert
-            VerifyProcessRunOutcome(logger, TestContext.DeploymentDirectory, success, true);
+            VerifyProcessRunOutcome(logger, TestUtils.CreateTestSpecificFolder(TestContext), success, true);
         }
 
         [TestMethod]
@@ -147,14 +147,14 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             // Act
             var success = SonarScannerWrapper.ExecuteJavaRunner(
-                new AnalysisConfig() { SonarScannerWorkingDirectory = TestContext.DeploymentDirectory },
+                new AnalysisConfig() { SonarScannerWorkingDirectory = TestUtils.CreateTestSpecificFolder(TestContext) },
                 userArgs,
                 logger,
                 exePath,
                 propertiesFilePath);
 
             // Assert
-            VerifyProcessRunOutcome(logger, TestContext.DeploymentDirectory, success, true);
+            VerifyProcessRunOutcome(logger, TestUtils.CreateTestSpecificFolder(TestContext), success, true);
 
             var actualCmdLineArgs = CheckStandardArgsPassed(logger, propertiesFilePath);
 
@@ -192,14 +192,14 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var settingsFilePath = Path.Combine(testDir, "fileSettings.txt");
             fileSettings.Save(settingsFilePath);
 
-            var config = new AnalysisConfig() { SonarScannerWorkingDirectory = TestContext.DeploymentDirectory };
+            var config = new AnalysisConfig() { SonarScannerWorkingDirectory = TestUtils.CreateTestSpecificFolder(TestContext) };
             config.SetSettingsFilePath(settingsFilePath);
 
             // Act
             var success = SonarScannerWrapper.ExecuteJavaRunner(config, userArgs, logger, exePath, propertiesFilePath);
 
             // Assert
-            VerifyProcessRunOutcome(logger, TestContext.DeploymentDirectory, success, true);
+            VerifyProcessRunOutcome(logger, TestUtils.CreateTestSpecificFolder(TestContext), success, true);
             var actualCmdLineArgs = CheckStandardArgsPassed(logger, propertiesFilePath);
 
             // Non-sensitive values from the file should not be passed on the command line
@@ -257,13 +257,13 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var logger = new TestLogger();
             var exePath = CreateDummarySonarScannerBatchFile(addMessageToStdErr, exitCode);
             var propertiesFilePath = CreateDummySonarScannerPropertiesFile();
-            var config = new AnalysisConfig() { SonarScannerWorkingDirectory = TestContext.DeploymentDirectory };
+            var config = new AnalysisConfig() { SonarScannerWorkingDirectory = TestUtils.CreateTestSpecificFolder(TestContext) };
 
             // Act
             var success = SonarScannerWrapper.ExecuteJavaRunner(config, Enumerable.Empty<string>(), logger, exePath, propertiesFilePath);
 
             // Assert
-            VerifyProcessRunOutcome(logger, TestContext.DeploymentDirectory, success, expectedOutcome);
+            VerifyProcessRunOutcome(logger, TestUtils.CreateTestSpecificFolder(TestContext), success, expectedOutcome);
         }
 
         #endregion Tests
@@ -274,7 +274,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         {
             // Create a batch file that echoes the command line args to the console
             // so they can be captured and checked
-            var testDir = TestUtils.EnsureTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
             var exePath = Path.Combine(testDir, "dummy.scanner.bat");
 
             File.Exists(exePath).Should().BeFalse("Not expecting a batch file to already exist: {0}", exePath);
@@ -298,7 +298,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
         private string CreateDummySonarScannerPropertiesFile()
         {
-            var testDir = TestUtils.EnsureTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
             var propertiesFilePath = Path.Combine(testDir, "analysis.properties");
             File.CreateText(propertiesFilePath);
             return propertiesFilePath;

@@ -18,10 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarScanner.MSBuild.Common;
 
 namespace TestUtilities
 {
@@ -32,26 +35,29 @@ namespace TestUtilities
 
         public const string ImportsBeforeFile = "SonarQube.Integration.ImportBefore.targets";
 
+        /// <summary>
+        /// Test class + Test name --> Test directory. Used to prevent creating multiple directories for the same test
+        /// in case CreateTestSpecificFolder is called multiple times.
+        /// </summary>
+        private static readonly ConcurrentDictionary<string, string> testDirectoriesMap =
+            new ConcurrentDictionary<string, string>();
+
         #region Public methods
 
         /// <summary>
         /// Creates a new folder specific to the current test and returns the
-        /// full path to the new folder.
-        /// Throws if a test-specific folder already exists.
+        /// full path to the new folder. This method will return the same path
+        /// if called multiple times from within the same test.
         /// </summary>
-        public static string CreateTestSpecificFolder(TestContext testContext, params string[] optionalSubDirNames)
+        public static string CreateTestSpecificFolder(TestContext testContext, params string[] subDirNames)
         {
-            var fullPath = DoCreateTestSpecificFolder(testContext, optionalSubDirNames, throwIfExists: true);
-            return fullPath;
-        }
+            var fullPath = CreateTestSpecificFolder(testContext);
+            if (subDirNames.Length > 0)
+            {
+                fullPath = Path.Combine(new[] { fullPath }.Concat(subDirNames).ToArray());
+                Directory.CreateDirectory(fullPath);
+            }
 
-        /// <summary>
-        /// Ensures that a new folder specific to the current test exists and returns the
-        /// full path to the new folder.
-        /// </summary>
-        public static string EnsureTestSpecificFolder(TestContext testContext, params string[] optionalSubDirNames)
-        {
-            var fullPath = DoCreateTestSpecificFolder(testContext, optionalSubDirNames, throwIfExists: false);
             return fullPath;
         }
 
@@ -80,7 +86,7 @@ namespace TestUtilities
         /// </summary>
         public static string EnsureImportBeforeTargetsExists(TestContext testContext)
         {
-            var filePath = Path.Combine(GetTestSpecificFolderName(testContext), ImportsBeforeFile);
+            var filePath = Path.Combine(CreateTestSpecificFolder(testContext), ImportsBeforeFile);
             if (File.Exists(filePath))
             {
                 testContext.WriteLine("ImportBefore target file already exists: {0}", filePath);
@@ -88,7 +94,7 @@ namespace TestUtilities
             else
             {
                 testContext.WriteLine("Extracting ImportBefore target file to {0}", filePath);
-                EnsureTestSpecificFolder(testContext);
+                CreateTestSpecificFolder(testContext);
                 ExtractResourceToFile("TestUtilities.Embedded.SonarQube.Integration.ImportBefore.targets", filePath);
             }
             return filePath;
@@ -99,7 +105,7 @@ namespace TestUtilities
         /// </summary>
         public static string EnsureAnalysisTargetsExists(TestContext testContext)
         {
-            var filePath = Path.Combine(GetTestSpecificFolderName(testContext), AnalysisTargetFile);
+            var filePath = Path.Combine(CreateTestSpecificFolder(testContext), AnalysisTargetFile);
             if (File.Exists(filePath))
             {
                 testContext.WriteLine("Analysis target file already exists: {0}", filePath);
@@ -107,7 +113,7 @@ namespace TestUtilities
             else
             {
                 testContext.WriteLine("Extracting analysis target file to {0}", filePath);
-                EnsureTestSpecificFolder(testContext);
+                CreateTestSpecificFolder(testContext);
                 ExtractResourceToFile("TestUtilities.Embedded.SonarQube.Integration.targets", filePath);
             }
             return filePath;
@@ -118,7 +124,7 @@ namespace TestUtilities
         /// </summary>
         public static string EnsureDefaultPropertiesFileExists(string targetDir, TestContext testContext)
         {
-            var filePath = Path.Combine(targetDir, SonarScanner.MSBuild.Common.FilePropertyProvider.DefaultFileName);
+            var filePath = Path.Combine(targetDir, FilePropertyProvider.DefaultFileName);
             if (File.Exists(filePath))
             {
                 testContext.WriteLine("Default properties file already exists: {0}", filePath);
@@ -137,10 +143,21 @@ namespace TestUtilities
 <RuleSet xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' Name='x' Description='x' ToolsVersion='14.0'>
 </RuleSet>");
 
-        public static string GetTestSpecificFolderName(TestContext testContext)
+        private static string CreateTestSpecificFolder(TestContext testContext)
         {
-            var fullPath = Path.Combine(testContext.DeploymentDirectory, testContext.TestName);
-            return fullPath;
+            return testDirectoriesMap.GetOrAdd(
+                testContext.FullyQualifiedTestClassName + testContext.TestName,
+                testName =>
+                {
+                    var uniqueDir = UniqueDirectory.CreateNext(testContext.DeploymentDirectory);
+
+                    // Save the unique directory name into a file to improve the debugging experience.
+                    File.AppendAllText(
+                        Path.Combine(testContext.DeploymentDirectory, "testmap.txt"),
+                        $"{testContext.TestName} : {uniqueDir}{Environment.NewLine}");
+
+                    return Path.Combine(testContext.DeploymentDirectory, uniqueDir);
+                });
         }
 
         /// <summary>
@@ -149,7 +166,8 @@ namespace TestUtilities
         /// <returns>Returns the full file name of the new file</returns>
         public static string WriteBatchFileForTest(TestContext context, string content)
         {
-            var fileName = Path.Combine(context.DeploymentDirectory, context.TestName + ".bat");
+            var testPath = CreateTestSpecificFolder(context);
+            var fileName = Path.Combine(testPath, context.TestName + ".bat");
             File.Exists(fileName).Should().BeFalse("Not expecting a batch file to already exist: {0}", fileName);
             File.WriteAllText(fileName, content);
             return fileName;
@@ -158,29 +176,6 @@ namespace TestUtilities
         #endregion Public methods
 
         #region Private methods
-
-        private static string DoCreateTestSpecificFolder(TestContext testContext, string[] optionalSubDirNames, bool throwIfExists)
-        {
-            var fullPath = GetTestSpecificFolderName(testContext);
-            if (optionalSubDirNames != null &&
-                optionalSubDirNames.Any())
-            {
-                fullPath = Path.Combine(new[] { fullPath }.Concat(optionalSubDirNames).ToArray());
-            }
-
-            var exists = Directory.Exists(fullPath);
-
-            if (exists)
-            {
-                throwIfExists.Should().BeFalse("Test-specific test folder should not already exist: {0}", fullPath);
-            }
-            else
-            {
-                Directory.CreateDirectory(fullPath);
-            }
-
-            return fullPath;
-        }
 
         private static void ExtractResourceToFile(string resourceName, string filePath)
         {

@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             IList<SonarRule> inactiveRules = new List<SonarRule>();
             var pluginKey = RoslynAnalyzerProvider.CSharpPluginKey;
             IDictionary<string, string> serverSettings = new Dictionary<string, string>();
-            var settings = CreateSettings(TestContext.DeploymentDirectory);
+            var settings = CreateSettings(TestUtils.CreateTestSpecificFolder(TestContext));
 
             var testSubject = CreateTestSubject(logger);
 
@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             IList<SonarRule> inactiveRules = new List<SonarRule>();
             var pluginKey = "csharp";
             IDictionary<string, string> serverSettings = new Dictionary<string, string>();
-            var settings = CreateSettings(TestContext.DeploymentDirectory);
+            var settings = CreateSettings(TestUtils.CreateTestSpecificFolder(TestContext));
 
             var testSubject = CreateTestSubject(logger);
 

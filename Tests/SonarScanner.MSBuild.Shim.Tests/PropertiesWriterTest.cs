@@ -211,7 +211,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
                 SonarProjectKey = "key",
                 SonarProjectName = "name",
                 SonarProjectVersion = "1.0",
-                SonarOutputDir = TestContext.DeploymentDirectory
+                SonarOutputDir = TestUtils.CreateTestSpecificFolder(TestContext)
             };
 
             var writer = new PropertiesWriter(validConfig, new TestLogger());
@@ -231,7 +231,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
                 SonarProjectKey = "key",
                 SonarProjectName = "name",
                 SonarProjectVersion = "1.0",
-                SonarOutputDir = TestContext.DeploymentDirectory
+                SonarOutputDir = TestUtils.CreateTestSpecificFolder(TestContext)
             };
 
             var writer = new PropertiesWriter(validConfig, new TestLogger());
