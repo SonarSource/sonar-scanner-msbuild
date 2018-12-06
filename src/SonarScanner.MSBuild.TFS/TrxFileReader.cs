@@ -68,17 +68,19 @@ namespace SonarScanner.MSBuild.TFS
         private const string TestResultsFolderName = "TestResults";
 
         private readonly ILogger logger;
-        private readonly Func<string, bool> fileExistsFunc;
+        private readonly IFileWrapper fileWrapper;
+        private readonly IDirectoryWrapper directoryWrapper;
 
         public TrxFileReader(ILogger logger)
-            : this(logger, File.Exists)
+            : this(logger, new FileWrapper(), new DirectoryWrapper())
         {
         }
 
-        public TrxFileReader(ILogger logger, Func<string, bool> fileExistsFunc)
+        public TrxFileReader(ILogger logger, IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.fileExistsFunc = fileExistsFunc ?? throw new ArgumentNullException(nameof(fileExistsFunc));
+            this.fileWrapper = fileWrapper;
+            this.directoryWrapper = directoryWrapper;
         }
 
         /// <summary>
@@ -103,7 +105,7 @@ namespace SonarScanner.MSBuild.TFS
                 return Enumerable.Empty<string>();
             }
 
-            Debug.Assert(trxFilePaths.All(File.Exists), "Expecting the specified trx files to exist.");
+            Debug.Assert(trxFilePaths.All(fileWrapper.Exists), "Expecting the specified trx files to exist.");
 
             var coverageReportPaths = GetCoverageAttachments(trxFilePaths)
                 .Values
@@ -126,14 +128,15 @@ namespace SonarScanner.MSBuild.TFS
         public IEnumerable<string> FindTrxFiles(string buildRootDirectory, bool shouldLog = true)
         {
             Debug.Assert(!string.IsNullOrEmpty(buildRootDirectory));
-            Debug.Assert(Directory.Exists(buildRootDirectory), "The specified build root directory should exist: " + buildRootDirectory);
+            Debug.Assert(directoryWrapper.Exists(buildRootDirectory),
+                "The specified build root directory should exist: " + buildRootDirectory);
 
             if (shouldLog)
             {
                 this.logger.LogInfo(Resources.TRX_DIAG_LocatingTrx);
             }
 
-            var testDirectories = Directory.GetDirectories(buildRootDirectory, TestResultsFolderName, SearchOption.AllDirectories);
+            var testDirectories = directoryWrapper.GetDirectories(buildRootDirectory, TestResultsFolderName, SearchOption.AllDirectories);
 
             if (testDirectories == null ||
                 !testDirectories.Any())
@@ -151,7 +154,7 @@ namespace SonarScanner.MSBuild.TFS
                 this.logger.LogInfo(Resources.TRX_DIAG_FolderPaths, string.Join(", ", testDirectories));
             }
 
-            var trxFiles = testDirectories.SelectMany(dir => Directory.GetFiles(dir, "*.trx")).ToArray();
+            var trxFiles = testDirectories.SelectMany(dir => directoryWrapper.GetFiles(dir, "*.trx")).ToArray();
 
             if (shouldLog)
             {
@@ -179,7 +182,7 @@ namespace SonarScanner.MSBuild.TFS
                 try
                 {
                     var doc = new XmlDocument();
-                    doc.Load(trxPath);
+                    doc.Load(fileWrapper.Open(trxPath));
                     var nsmgr = new XmlNamespaceManager(doc.NameTable);
                     nsmgr.AddNamespace("x", CodeCoverageXmlNamespace);
 
@@ -218,13 +221,13 @@ namespace SonarScanner.MSBuild.TFS
             var possibleCoveragePaths =
                 new[]
                 {
-                            attachmentUri,
-                            Path.Combine(trxDirectoryName, trxFileName, "In", attachmentUri),
-                            // https://jira.sonarsource.com/browse/SONARMSBRU-361
-                            // With VSTest task the coverage file name uses underscore instead of spaces.
-                            Path.Combine(trxDirectoryName, trxFileName.Replace(' ', '_'), "In", attachmentUri)
+                    attachmentUri,
+                    Path.Combine(trxDirectoryName, trxFileName, "In", attachmentUri),
+                    // https://jira.sonarsource.com/browse/SONARMSBRU-361
+                    // With VSTest task the coverage file name uses underscore instead of spaces.
+                    Path.Combine(trxDirectoryName, trxFileName.Replace(' ', '_'), "In", attachmentUri)
                 };
-            var firstFoundCoveragePath = possibleCoveragePaths.FirstOrDefault(path => this.fileExistsFunc(path));
+            var firstFoundCoveragePath = possibleCoveragePaths.FirstOrDefault(path => this.fileWrapper.Exists(path));
 
             if (firstFoundCoveragePath != null)
             {

@@ -18,10 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
+
 namespace SonarScanner.MSBuild.Common
 {
     public interface IDirectoryWrapper
     {
         void CreateDirectory(string path);
+        bool Exists(string path);
+        string[] GetDirectories(string path, string searchPattern, SearchOption searchOption);
+        string[] GetFiles(string path, string searchPattern);
     }
 }
