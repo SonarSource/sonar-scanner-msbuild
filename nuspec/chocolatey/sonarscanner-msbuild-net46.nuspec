@@ -3,6 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>sonarscanner-msbuild-net46</id>
+    <version>not-set</version>
     <title>SonarScanner for MSBuild .Net Fwk 4.6</title>
     <authors>SonarSource,Microsoft</authors>
     <owners>SonarSource</owners>
