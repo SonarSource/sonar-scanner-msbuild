@@ -18,10 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace SonarScanner.MSBuild.Common
 {
+    [ExcludeFromCodeCoverage]
     public class FileWrapper : IFileWrapper
     {
         public void Copy(string sourceFileName, string destFileName, bool overwrite) =>
@@ -32,5 +34,8 @@ namespace SonarScanner.MSBuild.Common
 
         public string ReadAllText(string path) =>
             File.ReadAllText(path);
+
+        public Stream Open(string path) =>
+            File.OpenRead(path);
     }
 }

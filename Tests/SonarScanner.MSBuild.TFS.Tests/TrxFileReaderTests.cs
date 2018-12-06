@@ -18,9 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
+using System.Linq;
+using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.TFS.Tests
@@ -28,19 +33,47 @@ namespace SonarScanner.MSBuild.TFS.Tests
     [TestClass]
     public class TrxFileReaderTests
     {
+        private TestLogger logger;
+        private Mock<IFileWrapper> fileMock;
+        private Mock<IDirectoryWrapper> directoryMock;
+        private TrxFileReader trxReader;
+
         public TestContext TestContext { get; set; }
 
-        #region Tests
+        /// <summary>
+        /// The directory where test results are supposed to be stored. It could be anything, because
+        /// we don't create actual files, but regardless we still use test-specific folders.
+        /// </summary>
+        private string RootDirectory =>
+            Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName);
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            this.fileMock = new Mock<IFileWrapper>(MockBehavior.Strict);
+            // Any file does not exist unless it is setup afterwards
+            this.fileMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(false);
+
+            this.directoryMock = new Mock<IDirectoryWrapper>(MockBehavior.Strict);
+            // Any directory does not exist unless it is setup afterwards
+            this.directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(false);
+            // RootDirectory exists
+            this.directoryMock.Setup(x => x.Exists(RootDirectory)).Returns(true);
+
+            this.logger = new TestLogger();
+            this.trxReader = new TrxFileReader(logger, fileMock.Object, directoryMock.Object);
+        }
 
         [TestMethod, TestCategory("CodeCoverage")]
         public void TrxReader_TestsResultsDirectoryMissing()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var logger = new TestLogger();
+            // No subdirectories, we call CreateDirectories to setup Directory.GetDirectories(RootDirectory)
+            // to return empty array and avoid throwing.
+            CreateDirectories(RootDirectory);
 
             // Act
-            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
+            var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
 
             // Assert
             coverageFilePaths.Should().BeEmpty();
@@ -54,13 +87,11 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void TrxReader_InvalidTrxFile()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
-            TestUtils.CreateTextFile(resultsDir, "dummy.trx", "this is not a trx file");
-            var logger = new TestLogger();
+            var testResults = CreateDirectories(RootDirectory, "TestResults")[0];
+            CreateFiles(testResults, ("dummy.trx", "this is not a trx file"));
 
             // Act
-            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
+            var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
 
             // Assert
             coverageFilePaths.Should().BeEmpty();
@@ -75,14 +106,13 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void TrxReader_MultipleTrxFiles()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
-            var trx1 = TestUtils.CreateTextFile(resultsDir, "mytrx1.trx", "<TestRun />");
-            var trx2 = TestUtils.CreateTextFile(resultsDir, "mytrx2.trx", "<TestRun />");
-            var logger = new TestLogger();
+            var testResults = CreateDirectories(RootDirectory, "TestResults")[0];
+            var trx1 = CreateFiles(testResults,
+                ("mytrx1.trx", "<TestRun />"),
+                ("mytrx2.trx", "<TestRun />"));
 
             // Act
-            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
+            var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
 
             // Assert
             coverageFilePaths.Should().BeEmpty();
@@ -97,24 +127,11 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void TrxReader_SingleTrxFileInSubfolder()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "Dummy", "TestResults");
-            var trxFile = TestUtils.CreateTextFile(resultsDir, "no_attachments.trx",
-@"<?xml version=""1.0"" encoding=""UTF-8""?>
-<TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE"" xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
-  <TestSettings name=""default"" id=""bf0f0911-87a2-4413-aa12-36e177a9c5b3"" />
-  <ResultSummary outcome=""Completed"">
-    <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
-    <RunInfos />
-    <CollectorDataEntries />
-  </ResultSummary>
-</TestRun>
-");
-            var logger = new TestLogger();
+            var testResults = CreateDirectories(RootDirectory, "Dummy\\TestResults")[0];
+            CreateFiles(testResults, ("no_attachments.trx", GetTrxContent()));
 
             // Act
-            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
+            var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
 
             // Assert
             coverageFilePaths.Should().BeEmpty();
@@ -129,24 +146,11 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void TrxReader_TrxWithNoAttachments()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
-            var trxFile = TestUtils.CreateTextFile(resultsDir, "no_attachments.trx",
-@"<?xml version=""1.0"" encoding=""UTF-8""?>
-<TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE"" xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
-  <TestSettings name=""default"" id=""bf0f0911-87a2-4413-aa12-36e177a9c5b3"" />
-  <ResultSummary outcome=""Completed"">
-    <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
-    <RunInfos />
-    <CollectorDataEntries />
-  </ResultSummary>
-</TestRun>
-");
-            var logger = new TestLogger();
+            var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+            CreateFiles(resultsDir, ("no_attachments.trx", GetTrxContent()));
 
             // Act
-            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
+            var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
 
             // Assert
             coverageFilePaths.Should().BeEmpty();
@@ -162,42 +166,11 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void TrxReader_TrxWithMultipleAttachments()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
-
-            TestUtils.CreateTextFile(resultsDir, "multiple_attachments.trx",
-@"<?xml version=""1.0"" encoding=""UTF-8""?>
-<TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
-    xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
-  <ResultSummary outcome=""Completed"">
-    <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
-    <RunInfos />
-    <CollectorDataEntries>
-      <Collector agentName=""MACHINENAME"" uri=""datacollector://microsoft/CodeCoverage/2.0"" collectorDisplayName=""Code Coverage"">
-        <UriAttachments>
-          <UriAttachment>
-            <A href=""MACHINENAME\AAA.coverage"">
-            </A>
-          </UriAttachment>
-        </UriAttachments>
-      </Collector>
-      <Collector agentName=""MACHINENAME"" uri=""datacollector://microsoft/CodeCoverage/2.0"" collectorDisplayName=""Code Coverage"">
-        <UriAttachments>
-          <UriAttachment>
-            <A href=""XXX.coverage"">
-            </A>
-          </UriAttachment>
-        </UriAttachments>
-      </Collector>
-    </CollectorDataEntries>
-  </ResultSummary>
-</TestRun>
-");
-            var logger = new TestLogger();
+            var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+            CreateFiles(resultsDir, ("multiple_attachments.trx", GetTrxContent("MACHINENAME\\AAA.coverage", "XXX.coverage")));
 
             // Act
-            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
+            var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
 
             // Assert
             coverageFilePaths.Should().BeEmpty();
@@ -213,36 +186,13 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void TrxReader_SingleAttachment_PathDoesNotExist()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
+            var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
             var coverageFileName = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
 
-            TestUtils.CreateTextFile(resultsDir, "single_attachment.trx",
-@"<?xml version=""1.0"" encoding=""UTF-8""?>
-<TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
-    xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
-  <ResultSummary outcome=""Completed"">
-    <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
-    <RunInfos />
-    <CollectorDataEntries>
-      <Collector agentName=""MACHINENAME"" uri=""datacollector://microsoft/CodeCoverage/2.0"" collectorDisplayName=""Code Coverage"">
-        <UriAttachments>
-          <UriAttachment>
-            <A href=""{0}"">
-            </A>
-          </UriAttachment>
-        </UriAttachments>
-      </Collector>
-    </CollectorDataEntries>
-  </ResultSummary>
-</TestRun>",
-           coverageFileName);
-
-            var logger = new TestLogger();
+            CreateFiles(resultsDir, ("single_attachment.trx", GetTrxContent(coverageFileName)));
 
             // Act
-            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
+            var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
 
             // Assert
             coverageFilePaths.Should().BeEmpty();
@@ -256,45 +206,21 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void TrxReader_SingleAttachment_Path1()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
-            var coverageFileName = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+            var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
 
-            TestUtils.CreateTextFile(resultsDir, "single attachment.trx",
-@"<?xml version=""1.0"" encoding=""UTF-8""?>
-<TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
-    xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
-  <ResultSummary outcome=""Completed"">
-    <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
-    <RunInfos />
-    <CollectorDataEntries>
-      <Collector agentName=""MACHINENAME"" uri=""datacollector://microsoft/CodeCoverage/2.0"" collectorDisplayName=""Code Coverage"">
-        <UriAttachments>
-          <UriAttachment>
-            <A href=""{0}"">
-            </A>
-          </UriAttachment>
-        </UriAttachments>
-      </Collector>
-    </CollectorDataEntries>
-  </ResultSummary>
-</TestRun>",
-           coverageFileName);
+            var relativeCoveragePath = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+            var fullCoveragePath = Path.Combine(resultsDir, "single attachment", "In", relativeCoveragePath);
+            CreateFiles(Path.GetDirectoryName(fullCoveragePath), (Path.GetFileName(fullCoveragePath), string.Empty));
 
-            var logger = new TestLogger();
-
-            var expectedFilePath = Path.Combine(resultsDir, "single attachment", "In", coverageFileName);
-            Directory.CreateDirectory(Path.GetDirectoryName(expectedFilePath));
-            File.Create(expectedFilePath);
+            CreateFiles(resultsDir, ("single attachment.trx", GetTrxContent(relativeCoveragePath)));
 
             // Act
-            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
+            var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
 
             // Assert
-            coverageFilePaths.Should().BeEquivalentTo(expectedFilePath);
+            coverageFilePaths.Should().BeEquivalentTo(fullCoveragePath);
 
-            logger.AssertDebugMessageExists(coverageFileName);
+            logger.AssertDebugMessageExists(relativeCoveragePath);
         }
 
         [TestMethod, TestCategory("CodeCoverage")]
@@ -302,45 +228,21 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void TrxReader_SingleAttachment_Path2()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
-            var coverageFileName = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+            var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+            var relativeCoveragePath = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+            // With VSTest task the coverage file name uses underscore instead of spaces.
+            var fullCoveragePath = Path.Combine(resultsDir, "single_attachment", "In", relativeCoveragePath);
+            CreateFiles(Path.GetDirectoryName(fullCoveragePath), (Path.GetFileName(fullCoveragePath), string.Empty));
 
-            TestUtils.CreateTextFile(resultsDir, "single_attachment.trx",
-@"<?xml version=""1.0"" encoding=""UTF-8""?>
-<TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
-    xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
-  <ResultSummary outcome=""Completed"">
-    <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
-    <RunInfos />
-    <CollectorDataEntries>
-      <Collector agentName=""MACHINENAME"" uri=""datacollector://microsoft/CodeCoverage/2.0"" collectorDisplayName=""Code Coverage"">
-        <UriAttachments>
-          <UriAttachment>
-            <A href=""{0}"">
-            </A>
-          </UriAttachment>
-        </UriAttachments>
-      </Collector>
-    </CollectorDataEntries>
-  </ResultSummary>
-</TestRun>",
-           coverageFileName);
-
-            var logger = new TestLogger();
-
-            var expectedFilePath = Path.Combine(resultsDir, "single_attachment", "In", coverageFileName);
-            Directory.CreateDirectory(Path.GetDirectoryName(expectedFilePath));
-            File.Create(expectedFilePath);
+            CreateFiles(resultsDir, ("single attachment.trx", GetTrxContent(relativeCoveragePath)));
 
             // Act
-            var coverageFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(testDir);
+            var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
 
             // Assert
-            coverageFilePaths.Should().BeEquivalentTo(expectedFilePath);
+            coverageFilePaths.Should().BeEquivalentTo(fullCoveragePath);
 
-            logger.AssertDebugMessageExists(coverageFileName);
+            logger.AssertDebugMessageExists(relativeCoveragePath);
         }
 
         [TestMethod, TestCategory("CodeCoverage")]
@@ -348,12 +250,68 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void TrxReader_SingleAttachment_AbsolutePath()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var resultsDir = TestUtils.CreateTestSpecificFolder(TestContext, "TestResults");
-            var coverageFileName = "x:\\dir1\\dir2\\xxx.coverage";
+            var coverageResults = CreateDirectories("x:\\dir1", "dir2")[0];
+            var coverageFileName = CreateFiles(coverageResults, ("xxx.coverage", string.Empty))[0];
 
-            TestUtils.CreateTextFile(resultsDir, "single_attachment.trx",
-@"<?xml version=""1.0"" encoding=""UTF-8""?>
+            var testResults = CreateDirectories(RootDirectory, "TestResults")[0];
+            CreateFiles(testResults, ("single_attachment.trx", GetTrxContent(coverageFileName)));
+
+            // Act
+            var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
+
+            // Assert
+            coverageFilePaths.Should().BeEquivalentTo(coverageFileName);
+            logger.AssertDebugMessageExists(@"Absolute path to coverage file: x:\dir1\dir2\xxx.coverage");
+        }
+
+        private string[] CreateDirectories(string path, params string[] names)
+        {
+            var subdirs = names.Select(name => Path.Combine(path, name)).ToArray();
+
+            // Directories can be checked for existence, making sure the check is case insensitive
+            Array.ForEach(subdirs,
+                subdir => this.directoryMock
+                    .Setup(x => x.Exists(It.Is<string>(s => subdir.Equals(s, StringComparison.InvariantCultureIgnoreCase))))
+                    .Returns(true));
+
+            this.directoryMock
+                .Setup(x => x.GetDirectories(
+                    It.Is<string>(s => path.Equals(s, StringComparison.InvariantCultureIgnoreCase)),
+                    It.IsAny<string>(),
+                    It.IsAny<SearchOption>()))
+                .Returns(subdirs);
+
+            return subdirs;
+        }
+
+        private string[] CreateFiles(string path, params (string Name, string Content)[] files)
+        {
+            var filePaths = files.Select(f => Path.Combine(path, f.Name)).ToArray();
+
+            for (int i = 0; i < files.Length; i++)
+            {
+                var filePath = filePaths[i];
+                var fileContent = files[i].Content;
+                // File can be checked for existence, making sure the check is case insensitive
+                this.fileMock
+                    .Setup(x => x.Exists(It.Is<string>(s => filePath.Equals(s, StringComparison.InvariantCultureIgnoreCase))))
+                    .Returns(true);
+                // File can be opened, making sure the check is case insensitive
+                this.fileMock
+                    .Setup(x => x.Open(It.Is<string>(s => filePath.Equals(s, StringComparison.InvariantCultureIgnoreCase))))
+                    .Returns(() => new MemoryStream(Encoding.UTF8.GetBytes(fileContent)));
+            }
+
+            this.directoryMock
+                .Setup(x => x.GetFiles(path, It.IsAny<string>()))
+                .Returns(filePaths);
+
+            return filePaths;
+        }
+
+        private static string GetTrxContent(params string[] attachmentUris)
+        {
+            return $@"<?xml version=""1.0"" encoding=""UTF-8""?>
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
     name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
     xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
@@ -361,29 +319,20 @@ namespace SonarScanner.MSBuild.TFS.Tests
     <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
     <RunInfos />
     <CollectorDataEntries>
-      <Collector agentName=""MACHINENAME"" uri=""datacollector://microsoft/CodeCoverage/2.0"" collectorDisplayName=""Code Coverage"">
+      {string.Join(Environment.NewLine, attachmentUris.Select(FormatCollectorElement))}
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>";
+
+            string FormatCollectorElement(string uri) =>
+                $@"<Collector agentName=""MACHINENAME"" uri=""datacollector://microsoft/CodeCoverage/2.0"" collectorDisplayName=""Code Coverage"">
         <UriAttachments>
           <UriAttachment>
-            <A href=""{0}"">
+            <A href=""{uri}"">
             </A>
           </UriAttachment>
         </UriAttachments>
-      </Collector>
-    </CollectorDataEntries>
-  </ResultSummary>
-</TestRun>",
-           coverageFileName);
-
-            var logger = new TestLogger();
-
-            // Act
-            var coverageFilePaths = new TrxFileReader(logger, x => true).FindCodeCoverageFiles(testDir);
-
-            // Assert
-            coverageFilePaths.Should().BeEquivalentTo(coverageFilePaths);
-            logger.AssertDebugMessageExists(@"Absolute path to coverage file: x:\dir1\dir2\xxx.coverage");
+      </Collector>";
         }
-
-        #endregion Tests
     }
 }
