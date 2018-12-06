@@ -62,7 +62,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             // Arrange
             IAnalysisPropertyProvider provider;
             var logger = new TestLogger();
-            var defaultPropertiesDir = TestContext.TestDeploymentDir;
+            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
             // Act
             provider = CheckProcessingSucceeds(Enumerable.Empty<ArgumentInstance>(), defaultPropertiesDir, logger);
@@ -125,7 +125,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             // Arrange
             var logger = new TestLogger();
-            var defaultPropertiesDir = TestContext.DeploymentDirectory;
+            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>
             {

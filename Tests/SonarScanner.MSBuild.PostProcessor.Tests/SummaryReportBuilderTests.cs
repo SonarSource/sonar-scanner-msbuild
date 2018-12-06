@@ -163,9 +163,9 @@ namespace SonarScanner.MSBuild.PostProcessorTests
             var result = new ProjectInfoAnalysisResult();
             var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
 
-            var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestContext.DeploymentDirectory);
-            config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
-            var expectedReportPath = Path.Combine(TestContext.TestDeploymentDir, SummaryReportBuilder.SummaryMdFilename);
+            var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolder(TestContext));
+            config.SonarOutputDir = TestUtils.CreateTestSpecificFolder(TestContext); // this will be cleaned up by VS when there are too many results
+            var expectedReportPath = Path.Combine(TestUtils.CreateTestSpecificFolder(TestContext), SummaryReportBuilder.SummaryMdFilename);
 
             var logger = new TestLogger();
 

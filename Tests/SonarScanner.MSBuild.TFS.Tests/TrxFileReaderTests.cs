@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         /// we don't create actual files, but regardless we still use test-specific folders.
         /// </summary>
         private string RootDirectory =>
-            Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName);
+            TestUtils.CreateTestSpecificFolder(TestContext);
 
         [TestInitialize]
         public void TestInitialize()
@@ -98,7 +98,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
             logger.Warnings.Should().HaveCount(1);
-            logger.Warnings[0].Should().Match(@"Located trx file is not a valid xml file. File: *\Out\TrxReader_InvalidTrxFile\TestResults\dummy.trx. File load error: Data at the root level is invalid. Line 1, position 1."); // expecting a warning about the invalid file
+            logger.Warnings[0].Should().Match(@"Located trx file is not a valid xml file. File: *\TestResults\dummy.trx. File load error: Data at the root level is invalid. Line 1, position 1."); // expecting a warning about the invalid file
             logger.AssertErrorsLogged(0); // should be a warning, not an error
         }
 
@@ -176,8 +176,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
             coverageFilePaths.Should().BeEmpty();
 
             logger.Warnings.Should().HaveCount(2);
-            logger.Warnings[0].Should().Match(@"None of the following coverage attachments could be found: MACHINENAME\AAA.coverage, *\Out\TrxReader_TrxWithMultipleAttachments\TestResults\multiple_attachments\In\MACHINENAME\AAA.coverage, *\Out\TrxReader_TrxWithMultipleAttachments\TestResults\multiple_attachments\In\MACHINENAME\AAA.coverage. Trx file: *\Out\TrxReader_TrxWithMultipleAttachments\TestResults\multiple_attachments.trx");
-            logger.Warnings[1].Should().Match(@"None of the following coverage attachments could be found: XXX.coverage, *\Out\TrxReader_TrxWithMultipleAttachments\TestResults\multiple_attachments\In\XXX.coverage, *\Out\TrxReader_TrxWithMultipleAttachments\TestResults\multiple_attachments\In\XXX.coverage. Trx file: *\Out\TrxReader_TrxWithMultipleAttachments\TestResults\multiple_attachments.trx");
+            logger.Warnings[0].Should().Match(@"None of the following coverage attachments could be found: MACHINENAME\AAA.coverage, *\TestResults\multiple_attachments\In\MACHINENAME\AAA.coverage, *\TestResults\multiple_attachments\In\MACHINENAME\AAA.coverage. Trx file: *\TestResults\multiple_attachments.trx");
+            logger.Warnings[1].Should().Match(@"None of the following coverage attachments could be found: XXX.coverage, *\TestResults\multiple_attachments\In\XXX.coverage, *\TestResults\multiple_attachments\In\XXX.coverage. Trx file: *\TestResults\multiple_attachments.trx");
             logger.AssertErrorsLogged(0);
         }
 
@@ -198,7 +198,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             coverageFilePaths.Should().BeEmpty();
 
             logger.Warnings.Should().HaveCount(1);
-            logger.Warnings[0].Should().Match(@"None of the following coverage attachments could be found: MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, *\Out\TrxReader_SingleAttachment_PathDoesNotExist\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, *\Out\TrxReader_SingleAttachment_PathDoesNotExist\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage. Trx file: *\Out\TrxReader_SingleAttachment_PathDoesNotExist\TestResults\single_attachment.trx");
+            logger.Warnings[0].Should().Match(@"None of the following coverage attachments could be found: MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, *\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, *\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage. Trx file: *\TestResults\single_attachment.trx");
         }
 
         [TestMethod, TestCategory("CodeCoverage")]

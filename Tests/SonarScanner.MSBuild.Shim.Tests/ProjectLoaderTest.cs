@@ -43,7 +43,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var testSourcePath = TestUtils.CreateTestSpecificFolder(TestContext);
 
             // Create sub-directories, some with project info XML files and some without
-            TestUtils.EnsureTestSpecificFolder(TestContext, "EmptyDir1");
+            TestUtils.CreateTestSpecificFolder(TestContext, "EmptyDir1");
 
             var validTestProject = new ProjectDescriptor()
             {
@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             validTestProject.AddContentFile("contentFile1.js", true);
             CreateFilesFromDescriptor(validTestProject, "testCompileListFile", "testVisualStudioCodeCoverageReport");
 
-            TestUtils.EnsureTestSpecificFolder(TestContext, "EmptyDir2");
+            TestUtils.CreateTestSpecificFolder(TestContext, "EmptyDir2");
 
             var validNonTestProject = new ProjectDescriptor()
             {
@@ -101,7 +101,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void ProjectLoader_NonRecursive()
         {
             // 0. Setup
-            var rootTestDir = Path.Combine(TestContext.DeploymentDirectory, "ProjectLoader_NonRecursive");
+            var rootTestDir = TestUtils.CreateTestSpecificFolder(TestContext);
             var childDir = Path.Combine(rootTestDir, "Child1");
 
             // Create a valid project in the child directory

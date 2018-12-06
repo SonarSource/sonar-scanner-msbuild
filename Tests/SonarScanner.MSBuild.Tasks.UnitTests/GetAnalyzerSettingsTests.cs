@@ -59,7 +59,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Arrange
             var testSubject = new GetAnalyzerSettings
             {
-                AnalysisConfigDir = TestContext.DeploymentDirectory
+                AnalysisConfigDir = TestUtils.CreateTestSpecificFolder(TestContext)
             };
 
             // Act
@@ -498,7 +498,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
         private static GetAnalyzerSettings CreateConfiguredTestSubject(AnalysisConfig config, string language, TestContext testContext)
         {
-            var testDir = TestUtils.EnsureTestSpecificFolder(testContext);
+            var testDir = TestUtils.CreateTestSpecificFolder(testContext);
             var testSubject = new GetAnalyzerSettings
             {
                 Language = language
@@ -531,7 +531,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
         public string CreateRuleset(string fileNameWithoutExtension, string content)
         {
-            var dir = TestUtils.EnsureTestSpecificFolder(TestContext);
+            var dir = TestUtils.CreateTestSpecificFolder(TestContext);
             var filePath = TestUtils.CreateTextFile(dir, fileNameWithoutExtension + ".ruleset", content);
             return filePath;
         }

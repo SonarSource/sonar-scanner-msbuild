@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-
-using Mutex = System.Threading.Mutex;
+using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.Tasks
 {
@@ -48,46 +46,9 @@ namespace SonarScanner.MSBuild.Tasks
 
         public override bool Execute()
         {
-            var mutex = new Mutex(false, StripReservedChars(Path));
-
-            mutex.WaitOne();
-
-            try
-            {
-                for (var i = 0; /* endless */ ; i++)
-                {
-                    UniqueName = i.ToString();
-                    UniquePath = System.IO.Path.Combine(Path, UniqueName);
-
-                    if (!Directory.Exists(UniquePath))
-                    {
-                        Directory.CreateDirectory(UniquePath);
-                        break;
-                    }
-                }
-            }
-            finally
-            {
-                mutex.ReleaseMutex();
-            }
-
+            UniqueName = UniqueDirectory.CreateNext(Path);
+            UniquePath = System.IO.Path.Combine(Path, UniqueName);
             return true;
-        }
-
-        /// <summary>
-        /// It seems that the Mutex is using its name property to create a file somewhere,
-        /// hence the path must be stripped from reserved characters. We should be generally
-        /// safe on the length side, because the Mutex accepts names up to 260 chars which
-        /// is already too long for file and folder names, e.g. if you have longer path here,
-        /// you have bigger problems.
-        /// </summary>
-        private static string StripReservedChars(string path)
-        {
-            foreach (var c in System.IO.Path.GetInvalidFileNameChars())
-            {
-                path = path.Replace(c.ToString(), string.Empty);
-            }
-            return path;
         }
     }
 }

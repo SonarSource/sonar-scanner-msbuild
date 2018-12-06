@@ -203,11 +203,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             EnsureDummyIntegrationTargetsFileExists();
 
             // Locate the real "ImportsBefore" target file
-            var importsBeforeTargets = Path.Combine(TestUtils.GetTestSpecificFolderName(TestContext), TargetConstants.ImportsBeforeFile);
+            var importsBeforeTargets = Path.Combine(TestUtils.CreateTestSpecificFolder(TestContext), TargetConstants.ImportsBeforeFile);
             File.Exists(importsBeforeTargets).Should().BeTrue("Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
 
             var projectName = TestContext.TestName + ".proj";
-            var testSpecificFolder = TestUtils.EnsureTestSpecificFolder(TestContext);
+            var testSpecificFolder = TestUtils.CreateTestSpecificFolder(TestContext);
             var fullProjectPath = Path.Combine(testSpecificFolder, projectName);
 
             var root = BuildUtilities.CreateMinimalBuildableProject(preImportProperties, false /* not a VB project */, importsBeforeTargets);
@@ -238,7 +238,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // This can't just be in the TestContext.DeploymentDirectory as this will
             // be shared with other tests, and some of those tests might be deploying
             // the real analysis targets to that location.
-            var testSpecificDir = TestUtils.EnsureTestSpecificFolder(TestContext);
+            var testSpecificDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
             var fullPath = Path.Combine(testSpecificDir, TargetConstants.AnalysisTargetFile);
             if (!File.Exists(fullPath))
