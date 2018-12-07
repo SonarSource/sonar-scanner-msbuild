@@ -55,6 +55,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TestUtils {
   final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
+  private static final String NUGET_PATH = "NUGET_PATH";
+
   @CheckForNull
   public static String getScannerVersion(Orchestrator orchestrator) {
     return orchestrator.getConfiguration().getString("scannerForMSBuild.version");
@@ -181,6 +183,27 @@ public class TestUtils {
     return version;
   }
 
+  public static void runNuGet(Orchestrator orch, Path projectDir, String... arguments) {
+    Path nugetPath = getNuGetPath(orch);
+
+    int r = CommandExecutor.create().execute(Command.create(nugetPath.toString())
+      .addArguments(arguments)
+      .addArguments("-MSBuildPath", TestUtils.getMsBuildPath(orch).getParent().toString())
+      .setDirectory(projectDir.toFile()), 60 * 1000);
+    assertThat(r).isEqualTo(0);
+  }
+
+  private static Path getNuGetPath(Orchestrator orch) {
+    String toolsFolder = Paths.get("tools").resolve("nuget.exe").toAbsolutePath().toString();
+    String nugetPathStr = orch.getConfiguration().getString(NUGET_PATH, toolsFolder);
+    Path nugetPath = Paths.get(nugetPathStr).toAbsolutePath();
+    if (!Files.exists(nugetPath)) {
+      throw new IllegalStateException("Unable to find NuGet at '" + nugetPath.toString() +
+        "'. Please configure property '" + NUGET_PATH + "'");
+    }
+    return nugetPath;
+  }
+
   private static BuildResult runMSBuildQuietly(Orchestrator orch, Path projectDir, String... arguments) {
     Path msBuildPath = getMsBuildPath(orch);
 
@@ -194,7 +217,7 @@ public class TestUtils {
     return result;
   }
 
-  private static Path getMsBuildPath(Orchestrator orch) {
+  static Path getMsBuildPath(Orchestrator orch) {
     String msBuildPathStr = orch.getConfiguration().getString("msbuild.path",
       orch.getConfiguration().getString("MSBUILD_PATH", "C:\\Program Files (x86)\\Microsoft Visual "
         + "Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"));

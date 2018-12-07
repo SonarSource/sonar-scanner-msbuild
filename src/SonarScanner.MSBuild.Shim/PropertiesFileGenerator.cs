@@ -36,6 +36,9 @@ namespace SonarScanner.MSBuild.Shim
         public const string ReportFileVbnetPropertyKey = "sonar.vbnet.roslyn.reportFilePath";
         public const string ReportFilesVbnetPropertyKey = "sonar.vbnet.roslyn.reportFilePaths";
 
+        // This delimiter needs to be the same as the one used in the Integration.targets
+        private const char RoslynReportPathsDelimiter = '|';
+
         private readonly AnalysisConfig analysisConfig;
         private readonly ILogger logger;
         private readonly IRoslynV1SarifFixer fixer;
@@ -325,7 +328,13 @@ namespace SonarScanner.MSBuild.Shim
             var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".roslyn.reportFilePath"));
             if (property != null)
             {
-                projectData.RoslynReportFilePaths.Add(new FileInfo(property.Value));
+                var reportFilePaths = property.Value.Split(RoslynReportPathsDelimiter);
+                foreach (var reportFilePath in reportFilePaths)
+                {
+                    projectData.RoslynReportFilePaths.Add(new FileInfo(reportFilePath));
+                }
+                // For compatibility with old SonarC#/VB.NET plugins we need to have only one path in this property
+                property.Value = reportFilePaths.First();
             }
         }
 
@@ -395,24 +404,26 @@ namespace SonarScanner.MSBuild.Shim
             var tryResult = project.TryGetAnalysisSetting(reportFilePropertyKey, out Property reportPathProperty);
             if (tryResult)
             {
-                var reportPath = reportPathProperty.Value;
-                var fixedPath = fixer.LoadAndFixFile(reportPath, language);
-
-                if (!reportPath.Equals(fixedPath)) // only need to alter the property if there was no change
+                foreach (var reportPath in reportPathProperty.Value.Split(RoslynReportPathsDelimiter))
                 {
-                    // remove the property ahead of changing it
-                    // if the new path is null, the file was unfixable and we should leave the property out
-                    project.AnalysisSettings.Remove(reportPathProperty);
+                    var fixedPath = fixer.LoadAndFixFile(reportPath, language);
 
-                    if (fixedPath != null)
+                    if (!reportPath.Equals(fixedPath)) // only need to alter the property if there was no change
                     {
-                        // otherwise, set the property value (results in no change if the file was already valid)
-                        var newReportPathProperty = new Property
+                        // remove the property ahead of changing it
+                        // if the new path is null, the file was unfixable and we should leave the property out
+                        project.AnalysisSettings.Remove(reportPathProperty);
+
+                        if (fixedPath != null)
                         {
-                            Id = reportFilePropertyKey,
-                            Value = fixedPath,
-                        };
-                        project.AnalysisSettings.Add(newReportPathProperty);
+                            // otherwise, set the property value (results in no change if the file was already valid)
+                            var newReportPathProperty = new Property
+                            {
+                                Id = reportFilePropertyKey,
+                                Value = fixedPath,
+                            };
+                            project.AnalysisSettings.Add(newReportPathProperty);
+                        }
                     }
                 }
             }
