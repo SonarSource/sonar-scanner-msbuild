@@ -390,11 +390,16 @@
       <Output TaskParameter="AdditionalFilePaths" ItemName="SQAdditionalFiles" />
     </GetAnalyzerSettings>
 
-    <PropertyGroup>
+    <PropertyGroup Condition=" $(ErrorLog) == '' ">
+      <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
       <!-- https://jira.sonarsource.com/browse/SONARMSBRU-211 - the name of the report should be unique
       as the TargetDir can point to the same directory for multiple projects, leading to the report being overwritten.
       This style of naming is consistent with how FxCop names its report.-->
-      <ErrorLog Condition=" $(ErrorLog) == '' " >$(TargetDir)$(TargetFileName).RoslynCA.json</ErrorLog>
+      <SonarCompileErrorLog>$(TargetDir)$(TargetFileName).RoslynCA.json</SonarCompileErrorLog>
+      <ErrorLog>$(SonarCompileErrorLog)</ErrorLog>
+    </PropertyGroup>
+
+    <PropertyGroup>
       <ResolvedCodeAnalysisRuleSet>$(SQRuleSetFilePath)</ResolvedCodeAnalysisRuleSet>
       <ProjectConfFilePath>$(ProjectSpecificConfDir)\ProjectOutFolderPath.txt</ProjectConfFilePath>
     </PropertyGroup>
@@ -417,19 +422,33 @@
 
   </Target>
 
+  <Target Name="SetRazorCodeAnalysisProperties" BeforeTargets="RazorCoreCompile" AfterTargets="CopyFilesToOutputDirectory">
+    <PropertyGroup Condition=" $(ErrorLog) == $(SonarCompileErrorLog) ">
+      <!-- Keep the path so that we could set SonarQubeSetting with sonar.language.roslyn.reportFilePaths -->
+      <RazorSonarCompileErrorLog>$(TargetDir)$(TargetName)$(RazorTargetNameSuffix)$(TargetExt).RoslynCA.json</RazorSonarCompileErrorLog>
+      <ErrorLog>$(RazorSonarCompileErrorLog)</ErrorLog>
+    </PropertyGroup>
+  </Target>
+
   <Target Name="SetRoslynAnalysisResults"
       Condition=" $(SonarQubeTempPath) != '' "
       AfterTargets="Build;CreateProjectSpecificDirs"
       BeforeTargets="WriteSonarQubeProjectData">
 
     <ItemGroup>
+      <SonarReportFilePath Condition=" $(SonarCompileErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarCompileErrorLog))) == 'true' " Include="$(SonarCompileErrorLog)" />
+      <SonarReportFilePath Condition=" $(RazorSonarCompileErrorLog) != '' AND  $([System.IO.File]::Exists($(RazorSonarCompileErrorLog))) == 'true' " Include="$(RazorSonarCompileErrorLog)" />
+    </ItemGroup>
 
+    <ItemGroup>
       <SonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePath"
-         Condition=" $(ErrorLog) != '' AND  $([System.IO.File]::Exists($(ErrorLog))) == 'true' ">
-        <Value>$(ErrorLog)</Value>
+         Condition=" @(SonarReportFilePath) != '' ">
+        <!-- Join the paths with |  -->
+        <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
+        <Value>@(SonarReportFilePath->'%(identity)','|')</Value>
       </SonarQubeSetting>
       <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPath"
-         Condition=" $(ErrorLog) != '' AND  $([System.IO.File]::Exists($(ErrorLog))) == 'true' ">
+         Condition=" $(SonarCompileErrorLog) != '' AND  $([System.IO.File]::Exists($(SonarCompileErrorLog))) == 'true' ">
         <Value>$(ProjectSpecificOutDir)</Value>
       </SonarQubeSetting>
     </ItemGroup>
