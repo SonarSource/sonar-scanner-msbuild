@@ -217,7 +217,7 @@ public class TestUtils {
     return result;
   }
 
-  private static Path getMsBuildPath(Orchestrator orch) {
+  static Path getMsBuildPath(Orchestrator orch) {
     String msBuildPathStr = orch.getConfiguration().getString("msbuild.path",
       orch.getConfiguration().getString("MSBUILD_PATH", "C:\\Program Files (x86)\\Microsoft Visual "
         + "Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"));

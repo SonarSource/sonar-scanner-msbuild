@@ -470,6 +470,10 @@ public class ScannerMSBuildTest {
   public void testRazorCompilation() throws IOException {
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "Razor");
 
+    if (TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("14.0")) {
+      return; // This test is not supported on Visual Studio 2015
+    }
+
     Path projectDir = TestUtils.projectDir(temp, "RazorWebApplication");
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
