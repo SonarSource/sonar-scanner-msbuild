@@ -467,6 +467,31 @@ public class ScannerMSBuildTest {
   }
 
   @Test
+  public void testRazorCompilation() throws IOException {
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "Razor");
+
+    Path projectDir = TestUtils.projectDir(temp, "RazorWebApplication");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectVersion("1.0"));
+
+    TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
+
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("end"));
+    assertTrue(result.isSuccess());
+
+    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    List<String> keys = issues.stream().map(Issue::ruleKey).collect(Collectors.toList());
+
+    assertThat(keys).containsAll(Arrays.asList(
+      "csharpsquid:S1118",
+      "csharpsquid:S1186"));
+  }
+
+  @Test
   public void testCustomRoslynAnalyzer() throws Exception {
     String folderName = "ProjectUnderTest";
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/" + folderName +
