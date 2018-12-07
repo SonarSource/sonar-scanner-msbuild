@@ -328,13 +328,13 @@ namespace SonarScanner.MSBuild.Shim
             var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".roslyn.reportFilePath"));
             if (property != null)
             {
-                var reportFilePaths = property.Value.Split(RoslynReportPathsDelimiter).Select(path => new FileInfo(path));
+                var reportFilePaths = property.Value.Split(RoslynReportPathsDelimiter);
                 foreach (var reportFilePath in reportFilePaths)
                 {
-                    projectData.RoslynReportFilePaths.Add(reportFilePath);
+                    projectData.RoslynReportFilePaths.Add(new FileInfo(reportFilePath));
                 }
                 // For compatibility with old SonarC#/VB.NET plugins we need to have only one path in this property
-                property.Value = projectData.RoslynReportFilePaths.First().FullName;
+                property.Value = reportFilePaths.First();
             }
         }
 

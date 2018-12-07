@@ -547,7 +547,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             {
                 SonarQubeTempPath = rootInputFolder
             };
-            properties[TargetProperties.ErrorLog] = resultsFile;
+            properties[TargetProperties.SonarCompileErrorLog] = resultsFile;
 
             var projectRoot = BuildUtilities.CreateValidProjectRoot(TestContext, rootInputFolder, properties);
             AddCaptureTargetsImport(rootInputFolder, projectRoot);
@@ -564,6 +564,41 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             result.AssertTargetExecuted(TargetConstants.CreateProjectSpecificDirs);
             result.AssertTargetExecuted(TargetConstants.SetRoslynResultsTarget);
             AssertExpectedAnalysisSetting(result, RoslynAnalysisResultsSettingName, resultsFile);
+            AssertExpectedAnalysisSetting(result, AnalyzerWorkDirectoryResultsSettingName, projectSpecificOutDir);
+        }
+
+        [TestMethod]
+        [Description("Checks the analysis settings are set if the normal Roslyn and the Razor result files exist")]
+        public void Roslyn_SetResults_BothResultsFilesCreated()
+        {
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
+
+            var resultsFile = TestUtils.CreateTextFile(rootInputFolder, "error.report.txt", "dummy report content");
+            var razorResultsFile = TestUtils.CreateTextFile(rootInputFolder, "razor.error.report.txt", "dummy report content");
+
+            var properties = new WellKnownProjectProperties
+            {
+                SonarQubeTempPath = rootInputFolder
+            };
+            properties[TargetProperties.SonarCompileErrorLog] = resultsFile;
+            properties[TargetProperties.RazorSonarCompileErrorLog] = razorResultsFile;
+
+            var projectRoot = BuildUtilities.CreateValidProjectRoot(TestContext, rootInputFolder, properties);
+            AddCaptureTargetsImport(rootInputFolder, projectRoot);
+            projectRoot.Save();
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext,
+                projectRoot.FullPath,
+                TargetConstants.CreateProjectSpecificDirs, TargetConstants.SetRoslynResultsTarget);
+
+            var projectSpecificOutDir = result.GetCapturedPropertyValue(TargetProperties.ProjectSpecificOutDir);
+
+            // Assert
+            result.AssertTargetExecuted(TargetConstants.CreateProjectSpecificDirs);
+            result.AssertTargetExecuted(TargetConstants.SetRoslynResultsTarget);
+            AssertExpectedAnalysisSetting(result, RoslynAnalysisResultsSettingName, resultsFile + "|" + razorResultsFile);
             AssertExpectedAnalysisSetting(result, AnalyzerWorkDirectoryResultsSettingName, projectSpecificOutDir);
         }
 
