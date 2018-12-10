@@ -22,7 +22,7 @@ if ($PSBoundParameters['Verbose'] -Or $PSBoundParameters['Debug']) {
 }
 
 function Get-ScannerArtifact($artifactKind, $localName) {
-    $url = "https://repox.sonarsource.com/sonarsource-public-dev/org/sonarsource/scanner/msbuild/sonar-scanner-msbuild/$version/sonar-scanner-msbuild-$version-$artifactKind"
+    $url = "https://repox.sonarsource.com/sonarsource-public-releases/org/sonarsource/scanner/msbuild/sonar-scanner-msbuild/$version/sonar-scanner-msbuild-$version-$artifactKind"
 
     Write-Host "Downloading artifact from '${url}' to '${downloadFolder}'"
 
