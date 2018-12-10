@@ -29,8 +29,8 @@ function Get-ScannerArtifact($artifactKind, $localName) {
     (New-Object System.Net.WebClient).DownloadFile($url, (Join-Path $downloadFolder $localName))
 }
 
-Get-ScannerArtifact "net46.zip" "sonarscanner-msbuild-$version-net46.zip"
-Get-ScannerArtifact "netcoreapp2.0.zip" "sonarscanner-msbuild-$version-netcoreapp2.0.zip"
+Get-ScannerArtifact "net46.zip" "sonar-scanner-msbuild-$version-net46.zip"
+Get-ScannerArtifact "netcoreapp2.0.zip" "sonar-scanner-msbuild-$version-netcoreapp2.0.zip"
 
 Get-ScannerArtifact "net46.nupkg" "sonarscanner-msbuild-net46.$version.nupkg"
 Get-ScannerArtifact "netcoreapp2.0.nupkg" "sonarscanner-msbuild-netcoreapp2.0.$version.nupkg"
