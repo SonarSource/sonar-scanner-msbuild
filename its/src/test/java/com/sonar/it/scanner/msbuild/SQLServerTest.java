@@ -42,15 +42,8 @@ import org.sonarqube.ws.client.measure.ComponentWsRequest;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * scannerForMSBuild.version: scanner to use. If not specified, uses the one built in ../
- * scannerForMSBuildPayload.version: scanner to embed in the csharp plugin. If not specified, uses the one built in ../
- * sonar.runtimeVersion: SQ to use
- */
 public class SQLServerTest {
   private static final String PROJECT_KEY = "my.project";
-  private static final String MODULE_KEY = "my.project:my.project:692D7F66-3DC3-4FE3-9274-DD9A1CA06482";
-  private static final String FILE_KEY = MODULE_KEY + ":util/SqlStoredProcedure1.cs";
 
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
@@ -84,9 +77,9 @@ public class SQLServerTest {
 
     List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
     assertThat(issues).hasSize(3);
-    assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(19);
+    assertThat(getMeasureAsInteger(getFileKey(), "ncloc")).isEqualTo(19);
     assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(25);
-    assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(23);
+    assertThat(getMeasureAsInteger(getFileKey(), "lines")).isEqualTo(23);
   }
 
   @CheckForNull
@@ -108,5 +101,9 @@ public class SQLServerTest {
     return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
       .url(ORCHESTRATOR.getServer().getUrl())
       .build());
+  }
+
+  private static String getFileKey() {
+    return TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:692D7F66-3DC3-4FE3-9274-DD9A1CA06482:util/SqlStoredProcedure1.cs" : "my.project:util/SqlStoredProcedure1.cs";
   }
 }

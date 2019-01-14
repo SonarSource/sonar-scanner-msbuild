@@ -41,8 +41,6 @@ import javax.annotation.Nullable;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.sonar.orchestrator.version.Version;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.proxy.ProxyServlet;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -71,28 +69,16 @@ import org.sonar.wsclient.issue.Issue;
 import org.sonar.wsclient.issue.IssueQuery;
 import org.sonarqube.ws.WsComponents;
 import org.sonarqube.ws.WsMeasures;
-import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
-import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.component.SearchWsRequest;
 import org.sonarqube.ws.client.component.ShowWsRequest;
 import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
-import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
-/**
- * csharpPlugin.version: csharp plugin to modify (installing scanner payload) and use. If not specified, uses 5.1.
- * vbnetPlugin.version: vbnet plugin to use. It not specified, it fails
- * scannerForMSBuild.version: scanner to use. If not specified, uses the one built in ../
- * scannerForMSBuildPayload.version: scanner to embed in the csharp plugin. If not specified, uses the one built in ../
- * sonar.runtimeVersion: SQ to use
- */
 public class ScannerMSBuildTest {
   private static final String PROJECT_KEY = "my.project";
-  private static final String MODULE_KEY = "my.project:my.project:1049030E-AC7A-49D0-BEDC-F414C5C7DDD8";
-  private static final String FILE_KEY = MODULE_KEY + ":Foo.cs";
   private static final String PROXY_USER = "scott";
   private static final String PROXY_PASSWORD = "tiger";
   private static Server server;
@@ -221,15 +207,15 @@ public class ScannerMSBuildTest {
   }
 
   private void assertLineCountForProjectUnderTest() {
-    assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(23);
+    assertThat(getMeasureAsInteger(getFileKey(), "ncloc")).isEqualTo(23);
     assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(37);
-    assertThat(getMeasureAsInteger(FILE_KEY, "lines")).isEqualTo(71);
+    assertThat(getMeasureAsInteger(getFileKey(), "lines")).isEqualTo(71);
   }
 
   @Test
   public void testExcludedAndTest() throws Exception {
-    String normalProjectKey = "my.project:my.project:B93B287C-47DB-4406-9EAB-653BCF7D20DC";
-    String testProjectKey = "my.project:my.project:2DC588FC-16FB-42F8-9FDA-193852E538AF";
+    String normalProjectKey = TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:B93B287C-47DB-4406-9EAB-653BCF7D20DC" : "my.project:Normal";
+    String testProjectKey = TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:2DC588FC-16FB-42F8-9FDA-193852E538AF" : "my.project:Test";
 
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "excludedAndTest");
@@ -523,9 +509,11 @@ public class ScannerMSBuildTest {
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
       .isNotNull();
-    assertThat(getComponent("CSharpSharedFiles:CSharpSharedFiles:D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs"))
+    String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedFiles:CSharpSharedFiles:D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs" : "CSharpSharedFiles:ClassLib1/Class1.cs";
+    assertThat(getComponent(class1ComponentId))
       .isNotNull();
-    assertThat(getComponent("CSharpSharedFiles:CSharpSharedFiles:72CD6ED2-481A-4828-BA15-8CD5F0472A77:Class2.cs"))
+    String class2ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedFiles:CSharpSharedFiles:72CD6ED2-481A-4828-BA15-8CD5F0472A77:Class2.cs" : "CSharpSharedFiles:ClassLib2/Class2.cs";
+    assertThat(getComponent(class2ComponentId))
       .isNotNull();
   }
 
@@ -535,9 +523,11 @@ public class ScannerMSBuildTest {
 
     assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
       .isNotNull();
-    assertThat(getComponent("CSharpSharedProjectType:CSharpSharedProjectType:36F96F66-8136-46C0-B83B-EFAE05A8FFC1:Program.cs"))
+    String programComponentId1 = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedProjectType:CSharpSharedProjectType:36F96F66-8136-46C0-B83B-EFAE05A8FFC1:Program.cs" : "CSharpSharedProjectType:ConsoleApp1/Program.cs";
+    assertThat(getComponent(programComponentId1))
       .isNotNull();
-    assertThat(getComponent("CSharpSharedProjectType:CSharpSharedProjectType:F96D8AA1-BCE1-4655-8D65-08F2A5FAC15B:Program.cs"))
+    String programComponentId2 = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedProjectType:CSharpSharedProjectType:F96D8AA1-BCE1-4655-8D65-08F2A5FAC15B:Program.cs" : "CSharpSharedProjectType:ConsoleApp2/Program.cs";
+      assertThat(getComponent(programComponentId2))
       .isNotNull();
   }
 
@@ -556,8 +546,8 @@ public class ScannerMSBuildTest {
     // When not using /d:sonar.projectBaseDir the root dir will be set at the level of the project so that the
     // file Common.cs will be outside of the scope and won't be pushed to SQ
     assertThat(componentKeys).doesNotContain("CSharpSharedFileWithOneProject:Common.cs");
-    assertThat(componentKeys).contains("CSharpSharedFileWithOneProject:CSharpSharedFileWithOneProject:"
-      + "D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs");
+    String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedFileWithOneProject:CSharpSharedFileWithOneProject:D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs" : "CSharpSharedFileWithOneProject:Class1.cs";
+    assertThat(componentKeys).contains(class1ComponentId);
   }
 
   @Test
@@ -605,8 +595,8 @@ public class ScannerMSBuildTest {
 
     assertThat(getComponent(folderName + ":Common.cs"))
       .isNotNull();
-    assertThat(getComponent(folderName + ":" + folderName + ":D8FEDBA2-D056-42FB-B146-5A409727B65D:"
-      + "Class1.cs"))
+    String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? folderName + ":" + folderName + ":D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs" : folderName + ":ClassLib1/Class1.cs";
+    assertThat(getComponent(class1ComponentId))
       .isNotNull();
   }
 
@@ -728,6 +718,10 @@ public class ScannerMSBuildTest {
     ServletHandler handler = new ServletHandler();
     handler.addServletWithMapping(MyProxyServlet.class, "/*");
     return handler;
+  }
+
+  private static String getFileKey() {
+    return TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:1049030E-AC7A-49D0-BEDC-F414C5C7DDD8:Foo.cs" : "my.project:Foo.cs";
   }
 
   public static class MyProxyServlet extends ProxyServlet {
