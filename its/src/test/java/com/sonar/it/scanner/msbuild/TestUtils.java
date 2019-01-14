@@ -250,4 +250,8 @@ public class TestUtils {
       .url(orchestrator.getServer().getUrl())
       .build());
   }
+
+  public static boolean hasModules(Orchestrator orch) {
+    return !orch.getServer().version().isGreaterThanOrEquals(7, 6);
+  }
 }

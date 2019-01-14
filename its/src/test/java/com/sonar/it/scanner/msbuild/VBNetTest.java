@@ -53,8 +53,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  */
 public class VBNetTest {
-  private static final String PROJECT_KEY = "my.project";
-  private static final String FILE_KEY = "my.project:my.project:60FFCB5D-A35A-43B2-8FE3-F37C8F3B742B:Module1.vb";
 
   @BeforeClass
   public static void checkSkip() {
@@ -64,12 +62,13 @@ public class VBNetTest {
 
   @ClassRule
   public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
+    .setSonarVersion(TestUtils.replaceLtsVersion(System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE")))
     .setEdition(Edition.DEVELOPER)
-    // TODO: switch this to LATEST_RELEASE once the OS VB plugin has been released
-    .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-vbnet-plugin", "DEV"))
+    .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-vbnet-plugin", "LATEST_RELEASE"))
     .activateLicense()
     .build();
+
+  private static final String PROJECT_KEY = "my.project";
 
   @ClassRule
   public static TemporaryFolder temp = TestUtils.createTempFolder();
@@ -105,7 +104,7 @@ public class VBNetTest {
       "vbnet:S2358"));
 
     assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(23);
-    assertThat(getMeasureAsInteger(FILE_KEY, "ncloc")).isEqualTo(10);
+    assertThat(getMeasureAsInteger(getFileKey(), "ncloc")).isEqualTo(10);
   }
 
   @Test
@@ -169,5 +168,9 @@ public class VBNetTest {
     return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
       .url(ORCHESTRATOR.getServer().getUrl())
       .build());
+  }
+
+  private String getFileKey() {
+    return TestUtils.hasModules(ORCHESTRATOR) ? "my.project:my.project:60FFCB5D-A35A-43B2-8FE3-F37C8F3B742B:Module1.vb" : "my.project:ConsoleVBNet/Module1.vb";
   }
 }
