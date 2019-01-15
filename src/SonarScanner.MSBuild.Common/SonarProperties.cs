@@ -57,5 +57,8 @@ namespace SonarScanner.MSBuild.Common
 
         public const string VsCoverageXmlReportsPaths = "sonar.cs.vscoveragexml.reportsPaths";
         public const string VsTestReportsPaths = "sonar.cs.vstest.reportsPaths";
+
+        public const string Proxy = "sonar.proxy.host";
+        public const string ProxyCredencial = "sonar.proxy.credencial";
     }
 }
