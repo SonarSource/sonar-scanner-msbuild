@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Net;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -60,8 +61,39 @@ namespace SonarScanner.MSBuild.PreProcessor
             var password = args.GetSetting(SonarProperties.SonarPassword, null);
             var hostUrl = args.SonarQubeUrl;
 
-            this.server = new SonarWebService(new WebClientDownloader(username, password, this.logger), hostUrl, this.logger);
+            var proxyHost = ProxyParser(args.GetSetting(SonarProperties.Proxy, null));
+            WebProxy wp = null;
+            if ( proxyHost.Length==2 )
+            {
+                Console.WriteLine("Proxy setup Starting ...");
+                wp = new WebProxy(proxyHost[0], int.Parse(proxyHost[1]));
+                Console.WriteLine("Setting host");
+                var proxyCredencial = ProxyParser(args.GetSetting(SonarProperties.ProxyCredencial, null));
+                if (proxyCredencial.Length == 2)
+                {
+                    Console.WriteLine("Setting credencial");
+                    var cred = new NetworkCredential(proxyCredencial[0], proxyCredencial[1]);
+                    wp.Credentials = cred;
+                }
+                Console.WriteLine("... Proxy setup OK");
+            }
+            var downloader = new WebClientDownloader(username, password, this.logger, wp);
+            this.server = new SonarWebService(downloader, hostUrl, this.logger);
             return this.server;
+        }
+
+        private string[] ProxyParser(string proxyParam)
+        {
+            if (proxyParam == null)
+            {
+                return new string[] { };
+            }
+            var result=proxyParam.Split(':');
+            if (result.Length != 2)
+            {
+                return new string[] { };
+            }
+            return result;
         }
 
         public ITargetsInstaller CreateTargetInstaller()

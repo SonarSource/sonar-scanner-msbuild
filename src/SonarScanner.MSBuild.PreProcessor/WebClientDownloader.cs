@@ -51,7 +51,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        public WebClientDownloader(string userName, string password, ILogger logger)
+        public WebClientDownloader(string userName, string password, ILogger logger, IWebProxy wp = null)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -64,7 +64,11 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             this.client = new PersistentUserAgentWebClient($"ScannerMSBuild/{Utilities.ScannerVersion}");
-
+            if (wp != null)
+            {
+                Console.Write("Setting webclient proxy");
+                this.client.Proxy = wp;
+            }
             if (userName != null)
             {
                 if (userName.Contains(':'))
