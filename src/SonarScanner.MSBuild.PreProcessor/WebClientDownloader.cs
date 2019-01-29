@@ -66,8 +66,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.client = new PersistentUserAgentWebClient($"ScannerMSBuild/{Utilities.ScannerVersion}");
             if (wp != null)
             {
-                Console.Write("Setting webclient proxy");
+                logger.LogInfo(Resources.MSG_ProxySetupWebclient);
                 this.client.Proxy = wp;
+                logger.LogInfo(Resources.MSG_ProxySetupOK);
             }
             if (userName != null)
             {

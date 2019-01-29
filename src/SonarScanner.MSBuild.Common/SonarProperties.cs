@@ -59,6 +59,6 @@ namespace SonarScanner.MSBuild.Common
         public const string VsTestReportsPaths = "sonar.cs.vstest.reportsPaths";
 
         public const string Proxy = "sonar.proxy.host";
-        public const string ProxyCredencial = "sonar.proxy.credencial";
+        public const string ProxyCredential = "sonar.proxy.credential";
     }
 }

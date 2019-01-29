@@ -213,6 +213,21 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_UpdatingMSBuildTargets" xml:space="preserve">
     <value>Updating build integration targets...</value>
   </data>
+  <data name="MSG_ProxySetupStarting" xml:space="preserve">
+    <value>Proxy setup Starting ...</value>
+  </data>
+  <data name="MSG_ProxySetupHost" xml:space="preserve">
+    <value>Setting host</value>
+  </data>
+  <data name="MSG_ProxySetupCredential" xml:space="preserve">
+    <value>Setting credential</value>
+  </data>
+  <data name="MSG_ProxySetupWebclient" xml:space="preserve">
+    <value>Setting proxy to WebClient</value>
+  </data>
+  <data name="MSG_ProxySetupOK" xml:space="preserve">
+    <value>... Proxy setup succeed</value>
+  </data>
   <data name="RAP_AdditionalFileAlreadyExists" xml:space="preserve">
     <value>A Roslyn analyzer "additional file" named "{0}" already exists at {1}. The existing file will not be overwritten.</value>
   </data>

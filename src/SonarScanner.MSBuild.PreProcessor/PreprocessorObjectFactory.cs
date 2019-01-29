@@ -65,17 +65,16 @@ namespace SonarScanner.MSBuild.PreProcessor
             WebProxy wp = null;
             if ( proxyHost.Length==2 )
             {
-                Console.WriteLine("Proxy setup Starting ...");
+                logger.LogInfo(Resources.MSG_ProxySetupStarting);
                 wp = new WebProxy(proxyHost[0], int.Parse(proxyHost[1]));
-                Console.WriteLine("Setting host");
-                var proxyCredencial = ProxyParser(args.GetSetting(SonarProperties.ProxyCredencial, null));
+                logger.LogInfo(Resources.MSG_ProxySetupHost);
+                var proxyCredencial = ProxyParser(args.GetSetting(SonarProperties.ProxyCredential, null));
                 if (proxyCredencial.Length == 2)
                 {
-                    Console.WriteLine("Setting credencial");
+                    logger.LogInfo(Resources.MSG_ProxySetupCredential);
                     var cred = new NetworkCredential(proxyCredencial[0], proxyCredencial[1]);
                     wp.Credentials = cred;
                 }
-                Console.WriteLine("... Proxy setup OK");
             }
             var downloader = new WebClientDownloader(username, password, this.logger, wp);
             this.server = new SonarWebService(downloader, hostUrl, this.logger);
