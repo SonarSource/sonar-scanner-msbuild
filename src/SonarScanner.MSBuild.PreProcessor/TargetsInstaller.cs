@@ -96,25 +96,35 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 var destinationPath = Path.Combine(destinationDir, fileName);
 
-                if (!this.fileWrapper.Exists(destinationPath))
+                try
                 {
-                    this.directoryWrapper.CreateDirectory(destinationDir); // creates all the directories in the path if needed
-                    this.fileWrapper.Copy(sourcePath, destinationPath, overwrite: false);
-                    this.logger.LogDebug(Resources.MSG_InstallTargets_Copy, fileName, destinationDir);
-                }
-                else
-                {
-                    var destinationContent = this.fileWrapper.ReadAllText(destinationPath);
-
-                    if (!string.Equals(sourceContent, destinationContent, StringComparison.Ordinal))
+                    if (!this.fileWrapper.Exists(destinationPath))
                     {
+                        this.directoryWrapper.CreateDirectory(destinationDir); // creates all the directories in the path if needed
+
+                        // always overwrite to avoid intermittent exceptions: https://github.com/SonarSource/sonar-scanner-msbuild/issues/647
                         this.fileWrapper.Copy(sourcePath, destinationPath, overwrite: true);
-                        this.logger.LogDebug(Resources.MSG_InstallTargets_Overwrite, fileName, destinationDir);
+                        this.logger.LogDebug(Resources.MSG_InstallTargets_Copy, fileName, destinationDir);
                     }
                     else
                     {
-                        this.logger.LogDebug(Resources.MSG_InstallTargets_UpToDate, fileName, destinationDir);
+                        var destinationContent = this.fileWrapper.ReadAllText(destinationPath);
+
+                        if (!string.Equals(sourceContent, destinationContent, StringComparison.Ordinal))
+                        {
+                            this.fileWrapper.Copy(sourcePath, destinationPath, overwrite: true);
+                            this.logger.LogDebug(Resources.MSG_InstallTargets_Overwrite, fileName, destinationDir);
+                        }
+                        else
+                        {
+                            this.logger.LogDebug(Resources.MSG_InstallTargets_UpToDate, fileName, destinationDir);
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    this.logger.LogWarning(Resources.MSG_InstallTargets_Error, destinationPath, e.Message);
+                    this.logger.LogDebug(e.StackTrace);
                 }
             }
         }
