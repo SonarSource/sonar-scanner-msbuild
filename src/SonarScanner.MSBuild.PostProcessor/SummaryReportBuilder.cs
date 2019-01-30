@@ -92,14 +92,6 @@ namespace SonarScanner.MSBuild.PostProcessor
             }
 
             CreateSummaryMdFile(summaryData);
-
-            // Write the dashboard link to the output. The sonar-scanner will have written it out earlier,
-            // but writing it again here puts it very close to the end of the output - easier to find,
-            // especially when running from the command line.
-            if (result.RanToCompletion)
-            {
-                logger.LogInfo(Resources.Report_LinkToDashboard, summaryData.DashboardUrl);
-            }
         }
 
         public /* for test purposes */ static SummaryReportData CreateSummaryData(
