@@ -263,13 +263,14 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             if (!destinationExists || !sameContent)
             {
-                var shouldOverwrite = destinationExists && !sameContent;
+                // Copy is executed once, overwriting existing files
                 this.fileWrapperMock.Verify(
-                    x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\project\\bin\\targets\\SonarQube.Integration.targets", shouldOverwrite),
+                    x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\project\\bin\\targets\\SonarQube.Integration.targets", true),
                     Times.Once);
             }
             else
             {
+                // Copy is not executed
                 this.fileWrapperMock.Verify(
                     x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\project\\bin\\targets\\SonarQube.Integration.targets", It.IsAny<bool>()),
                     Times.Never);
@@ -308,14 +309,14 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             if (!destinationExists || !sameContent)
             {
-                var shouldOverwrite = destinationExists && !sameContent;
-
-                this.fileWrapperMock
-                    .Verify(x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\global paths\\SonarQube.Integration.ImportBefore.targets", shouldOverwrite),
+                // Copy is executed once, overwriting existing files
+                this.fileWrapperMock.Verify(
+                    x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\global paths\\SonarQube.Integration.ImportBefore.targets", true),
                     Times.Once);
             }
             else
             {
+                // Copy is not executed
                 this.fileWrapperMock.Verify(
                     x => x.Copy(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase), "c:\\global paths\\SonarQube.Integration.ImportBefore.targets", It.IsAny<bool>()),
                     Times.Never);

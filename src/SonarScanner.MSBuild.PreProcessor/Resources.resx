@@ -201,6 +201,9 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_InstallTargets_Copy" xml:space="preserve">
     <value>Installed {0} to {1}</value>
   </data>
+  <data name="MSG_InstallTargets_Error" xml:space="preserve">
+    <value>Error occurred when installing the loader targets to '{0}'. '{1}'</value>
+  </data>
   <data name="MSG_InstallTargets_Overwrite" xml:space="preserve">
     <value>The file {0} was overwritten at {1}</value>
   </data>

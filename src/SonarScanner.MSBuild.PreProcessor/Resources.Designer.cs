@@ -292,6 +292,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error occurred when installing the loader targets to &apos;{0}&apos;. &apos;{1}&apos;.
+        /// </summary>
+        internal static string MSG_InstallTargets_Error {
+            get {
+                return ResourceManager.GetString("MSG_InstallTargets_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The file {0} was overwritten at {1}.
         /// </summary>
         internal static string MSG_InstallTargets_Overwrite {
