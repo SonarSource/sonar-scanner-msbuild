@@ -114,7 +114,7 @@ namespace SonarScanner.MSBuild.Shim
             }
 
             var exeFileName = FindScannerExe();
-            return ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, fullPropertiesFilePath);
+            return ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, fullPropertiesFilePath, new ProcessRunner(logger));
         }
 
         private static string FindScannerExe()
@@ -124,7 +124,7 @@ namespace SonarScanner.MSBuild.Shim
             return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
         }
 
-        public /* for test purposes */ static bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName)
+        public /* for test purposes */ static bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
         {
             Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
             Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
@@ -147,8 +147,6 @@ namespace SonarScanner.MSBuild.Shim
                 WorkingDirectory = config.SonarScannerWorkingDirectory,
                 EnvironmentVariables = envVarsDictionary
             };
-
-            var runner = new ProcessRunner(logger);
 
             // SONARMSBRU-202 Note that the Sonar Scanner may write warnings to stderr so
             // we should only rely on the exit code when deciding if it ran successfully
