@@ -165,6 +165,43 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
+        public void InstallLoaderTargets_ExceptionsOnCopyAreSuppressed()
+        {
+            // Arrange
+            var targetsInstaller = new TargetsInstaller(this.logger, this.msBuildPathSettingsMock.Object,
+                this.fileWrapperMock.Object, this.directoryWrapperMock.Object);
+
+            bool exceptionThrown = false;
+
+            var sourcePathRegex = "bin\\\\(?:debug|release)\\\\targets\\\\SonarQube.Integration.targets";
+            this.fileWrapperMock
+                .Setup(x => x.ReadAllText(It.IsRegex(sourcePathRegex, RegexOptions.IgnoreCase)))
+                .Returns("sourceContent");
+
+            this.fileWrapperMock
+                .Setup(x => x.Exists("c:\\project\\bin\\targets\\SonarQube.Integration.targets"))
+                .Returns(false);
+
+            this.fileWrapperMock
+                .Setup(x => x.Copy(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .Callback(() =>
+                {
+                    exceptionThrown = true;
+                    throw new InvalidOperationException("This exception should be caught and suppressed by the product code");
+                });
+
+            // Act
+            using (new AssertIgnoreScope())
+            {
+                targetsInstaller.InstallLoaderTargets("c:\\project");
+            }
+
+            // Assert
+            exceptionThrown.Should().BeTrue();
+            this.logger.AssertSingleWarningExists("This exception should be caught and suppressed by the product code");
+        }
+
+        [TestMethod]
         public void InstallLoaderTargets_InternalCopyTargetFileToProject_Same_Content()
         {
             InstallLoaderTargets_InternalCopyTargetFileToProject(
