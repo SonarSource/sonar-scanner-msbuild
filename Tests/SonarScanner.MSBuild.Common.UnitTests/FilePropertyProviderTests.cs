@@ -137,7 +137,8 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             // Assert
             logger.AssertErrorsLogged(1);
-            logger.AssertSingleErrorExists("missingFile.txt");
+            // The error should contain the full path of the file
+            logger.AssertSingleErrorExists(Path.Combine(Directory.GetCurrentDirectory(), "missingFile.txt"));
         }
 
         [TestMethod]
