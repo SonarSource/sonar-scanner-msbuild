@@ -156,29 +156,6 @@ namespace SonarScanner.MSBuild.PostProcessorTests
         }
 
         [TestMethod]
-        public void SummaryReport_ReportIsGenerated()
-        {
-            // Arrange
-            var hostUrl = "http://mySonarQube:9000";
-            var result = new ProjectInfoAnalysisResult();
-            var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
-
-            var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolder(TestContext));
-            config.SonarOutputDir = TestUtils.CreateTestSpecificFolder(TestContext); // this will be cleaned up by VS when there are too many results
-            var expectedReportPath = Path.Combine(TestUtils.CreateTestSpecificFolder(TestContext), SummaryReportBuilder.SummaryMdFilename);
-
-            var logger = new TestLogger();
-
-            // Act
-            var builder = new SummaryReportBuilder(new LegacyTeamBuildFactory(logger), logger);
-            builder.GenerateReports(settings, config, result);
-
-            // Assert
-            File.Exists(expectedReportPath).Should().BeTrue();
-            (new FileInfo(expectedReportPath)).Length.Should().BeGreaterThan(0, "The report file cannot be found or is empty");
-        }
-
-        [TestMethod]
         public void Deprecated_Warning_Logged_On_XAML_Build()
         {
             var hostUrl = "http://mySonarQube:9000";
