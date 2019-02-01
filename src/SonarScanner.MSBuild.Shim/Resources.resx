@@ -155,11 +155,8 @@ Possible causes:
   <data name="ERR_SonarScannerExecutionFailed" xml:space="preserve">
     <value>The SonarQube Scanner did not complete successfully</value>
   </data>
-  <data name="MSG_SonarScannerOptsDefaultUsed" xml:space="preserve">
-    <value>{0} is not configured. Setting it to the default value of {1}</value>
-  </data>
-  <data name="MSG_SonarScannerOptsAlreadySet" xml:space="preserve">
-    <value>{0} is already set. Value: {1}</value>
+  <data name="MSG_UsingSuppliedSonarScannerOptsValue" xml:space="preserve">
+    <value>Using the supplied value for {0}. Value: {1}</value>
   </data>
   <data name="REPORT_ExcludedProjectsTitle" xml:space="preserve">
     <value>Excluded projects</value>

@@ -125,8 +125,6 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             // Assert
             VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
-            // Check that the JVM size is set
-            logger.InfoMessages.Should().Contain(msg => msg.Contains("-Xmx1024m"));
         }
 
         [TestMethod]
@@ -209,6 +207,56 @@ namespace SonarScanner.MSBuild.Shim.Tests
         }
 
         [TestMethod]
+        public void SonarScanner_NoUserSpecifiedEnvVars_SONARSCANNEROPTSIsNotPassed()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var mockRunner = new MockProcessRunner(executeResult: true);
+            var config = new AnalysisConfig() { SonarScannerWorkingDirectory = "c:\\work" };
+
+            // Act
+            var success = ExecuteJavaRunnerIgnoringAsserts(config, Enumerable.Empty<string>(), logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
+
+            // Assert
+            VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
+
+            mockRunner.SuppliedArguments.EnvironmentVariables.Count.Should().Be(0);
+
+            // #656: Check that the JVM size is not set by default
+            // https://github.com/SonarSource/sonar-scanner-msbuild/issues/656
+            logger.InfoMessages.Should().NotContain(msg => msg.Contains("SONAR_SCANNER_OPTS"));
+        }
+
+        [TestMethod]
+        public void SonarScanner_UserSpecifiedEnvVars_OnlySONARSCANNEROPTSIsPassed()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var mockRunner = new MockProcessRunner(executeResult: true);
+            var config = new AnalysisConfig() { SonarScannerWorkingDirectory = "c:\\work" };
+
+            using (new EnvironmentVariableScope())
+            {
+                // the SONAR_SCANNER_OPTS variable should be passed through explicitly,
+                // but not other variables
+                Environment.SetEnvironmentVariable("Foo", "xxx");
+                Environment.SetEnvironmentVariable("SONAR_SCANNER_OPTS", "-Xmx2048m");
+                Environment.SetEnvironmentVariable("Bar", "yyy");
+
+                // Act
+                var success = ExecuteJavaRunnerIgnoringAsserts(config, Enumerable.Empty<string>(), logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
+
+                // Assert
+                VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
+            }
+
+            CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Xmx2048m", mockRunner);
+            mockRunner.SuppliedArguments.EnvironmentVariables.Count.Should().Be(1);
+            logger.InfoMessages.Should().Contain(msg => msg.Contains("SONAR_SCANNER_OPTS"));
+            logger.InfoMessages.Should().Contain(msg => msg.Contains("-Xmx2048m"));
+        }
+
+        [TestMethod]
         public void WrapperError_Success_NoStdErr()
         {
             TestWrapperErrorHandling(executeResult: true, addMessageToStdErr: false, expectedOutcome: true);
@@ -275,9 +323,16 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             mockRunner.SuppliedArguments.WorkingDirectory.Should().Be(expectedWorkingDir);
 
-            if (!actualOutcome)
+            if (actualOutcome)
+            {
+                // Errors can still be logged when the process completes successfully, so
+                // we don't check the error log in this case
+                testLogger.AssertInfoMessageExists(Resources.MSG_SonarScannerCompleted);
+            }
+            else
             {
                 testLogger.AssertErrorsLogged();
+                testLogger.AssertErrorLogged(Resources.ERR_SonarScannerExecutionFailed);
             }
         }
 
@@ -304,6 +359,12 @@ namespace SonarScanner.MSBuild.Shim.Tests
             string allArgs = mockRunner.SuppliedArguments.GetEscapedArguments();
             var index = allArgs.IndexOf(argToCheck);
             index.Should().Be(-1, "Not expecting to find the argument. Arg: '{0}', all args: '{1}'", argToCheck, allArgs);
+        }
+
+        private static void CheckEnvVarExists(string varName, string expectedValue, MockProcessRunner mockRunner)
+        {
+            mockRunner.SuppliedArguments.EnvironmentVariables.ContainsKey(varName).Should().BeTrue();
+            mockRunner.SuppliedArguments.EnvironmentVariables[varName].Should().Be(expectedValue);
         }
 
         #endregion Checks
