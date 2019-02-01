@@ -20,12 +20,11 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Shim;
 using SonarScanner.MSBuild.TFS;
 using SonarScanner.MSBuild.TFS.Interfaces;
-using SonarScanner.MSBuild.Shim;
 
 namespace SonarScanner.MSBuild.PostProcessor
 {
@@ -48,7 +47,6 @@ namespace SonarScanner.MSBuild.PostProcessor
 
         public /* for test purposes */ const string DashboardUrlFormat = "{0}/dashboard/index/{1}";
         public /* for test purposes */ const string DashboardUrlFormatWithBranch = "{0}/dashboard/index/{1}:{2}";
-        public /* for test purposes */ const string SummaryMdFilename = "summary.md";
 
         private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
         private readonly ILogger logger;
@@ -90,8 +88,6 @@ namespace SonarScanner.MSBuild.PostProcessor
             {
                 UpdateLegacyTeamBuildSummary(summaryData);
             }
-
-            CreateSummaryMdFile(summaryData);
         }
 
         public /* for test purposes */ static SummaryReportData CreateSummaryData(
@@ -161,29 +157,6 @@ namespace SonarScanner.MSBuild.PostProcessor
             localSettings.TryGetValue(SonarProperties.ProjectBranch, out string branch);
 
             return branch;
-        }
-
-        private void CreateSummaryMdFile(SummaryReportData summaryData)
-        {
-            logger.LogInfo(Resources.Report_CreatingSummaryMarkdown);
-
-            Debug.Assert(!string.IsNullOrEmpty(config.SonarOutputDir), "Could not find the output directory");
-            var summaryMdPath = Path.Combine(config.SonarOutputDir, SummaryMdFilename);
-
-            using (var sw = new StreamWriter(summaryMdPath, append: false))
-            {
-                if (summaryData.Succeeded)
-                {
-                    sw.WriteLine(Resources.Report_MdSummaryAnalysisSucceeded, summaryData.ProjectDescription, summaryData.DashboardUrl);
-                }
-                else
-                {
-                    sw.WriteLine(Resources.Report_MdSummaryAnalysisFailed, summaryData.ProjectDescription);
-                }
-
-                sw.WriteLine(Resources.Report_MdSummaryProductAndTestMessage, summaryData.ProductProjects, summaryData.TestProjects);
-                sw.WriteLine(Resources.Report_MdSummaryInvalidSkippedAndExcludedMessage, summaryData.InvalidProjects, summaryData.SkippedProjects, summaryData.ExcludedProjects);
-            }
         }
 
         private void UpdateLegacyTeamBuildSummary(SummaryReportData summaryData)
