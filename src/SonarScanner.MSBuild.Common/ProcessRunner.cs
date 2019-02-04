@@ -28,7 +28,7 @@ namespace SonarScanner.MSBuild.Common
     /// <summary>
     /// Helper class to run an executable and capture the output
     /// </summary>
-    public sealed class ProcessRunner
+    public sealed class ProcessRunner : IProcessRunner
     {
         public const int ErrorCode = 1;
 

@@ -46,12 +46,6 @@ namespace SonarScanner.MSBuild.Shim
         /// </summary>
         public const string ProjectSettingsFileArgName = "project.settings";
 
-        /// <summary>
-        /// Default value for the SONAR_SCANNER_OPTS
-        /// </summary>
-        /// <remarks>Reserving more than is available on the agent will cause the sonar-scanner to fail</remarks>
-        private const string SonarScannerOptsDefaultValue = "-Xmx1024m";
-
         private const string CmdLineArgPrefix = "-D";
 
         // This version needs to be in sync with version in src/Packaging/Directory.Build.props.
@@ -114,7 +108,7 @@ namespace SonarScanner.MSBuild.Shim
             }
 
             var exeFileName = FindScannerExe();
-            return ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, fullPropertiesFilePath);
+            return ExecuteJavaRunner(config, userCmdLineArguments, logger, exeFileName, fullPropertiesFilePath, new ProcessRunner(logger));
         }
 
         private static string FindScannerExe()
@@ -124,7 +118,7 @@ namespace SonarScanner.MSBuild.Shim
             return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
         }
 
-        public /* for test purposes */ static bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName)
+        public /* for test purposes */ static bool ExecuteJavaRunner(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
         {
             Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
             Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
@@ -147,8 +141,6 @@ namespace SonarScanner.MSBuild.Shim
                 WorkingDirectory = config.SonarScannerWorkingDirectory,
                 EnvironmentVariables = envVarsDictionary
             };
-
-            var runner = new ProcessRunner(logger);
 
             // SONARMSBRU-202 Note that the Sonar Scanner may write warnings to stderr so
             // we should only rely on the exit code when deciding if it ran successfully
@@ -183,32 +175,16 @@ namespace SonarScanner.MSBuild.Shim
         {
             IDictionary<string, string> envVarsDictionary = new Dictionary<string, string>();
 
-            // Always set a value for SONAR_SCANNER_OPTS just in case it is set at process-level
-            // which wouldn't be inherited by the child sonar-scanner process.
-            var sonarScannerOptsValue = GetSonarScannerOptsValue(logger);
-            envVarsDictionary.Add(SonarScannerOptsVariableName, sonarScannerOptsValue);
+            // If there is a value for SONAR_SCANNER_OPTS then pass it through explicitly just in case it is
+            // set at process-level (which wouldn't otherwise be inherited by the child sonar-scanner process)
+            var sonarScannerOptsValue = Environment.GetEnvironmentVariable(SonarScannerOptsVariableName);
+            if (sonarScannerOptsValue != null)
+            {
+                envVarsDictionary.Add(SonarScannerOptsVariableName, sonarScannerOptsValue);
+                logger.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, SonarScannerOptsVariableName, sonarScannerOptsValue);
+            }
 
             return envVarsDictionary;
-        }
-
-        /// <summary>
-        /// Get the value of the SONAR_SCANNER_OPTS variable that controls the amount of memory available to the JDK so that the sonar-scanner doesn't
-        /// hit OutOfMemory exceptions. If no env variable with this name is defined then a default value is used.
-        /// </summary>
-        private static string GetSonarScannerOptsValue(ILogger logger)
-        {
-            var existingValue = Environment.GetEnvironmentVariable(SonarScannerOptsVariableName);
-
-            if (!string.IsNullOrWhiteSpace(existingValue))
-            {
-                logger.LogInfo(Resources.MSG_SonarScannerOptsAlreadySet, SonarScannerOptsVariableName, existingValue);
-                return existingValue;
-            }
-            else
-            {
-                logger.LogInfo(Resources.MSG_SonarScannerOptsDefaultUsed, SonarScannerOptsVariableName, SonarScannerOptsDefaultValue);
-                return SonarScannerOptsDefaultValue;
-            }
         }
 
         /// <summary>
