@@ -153,6 +153,16 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         /// </summary>
         public static ProjectRootElement CreateProjectFromTemplate(string projectFilePath, TestContext testContext, string templateXml, params object[] args)
         {
+            CreateFileFromTemplate(projectFilePath, testContext, templateXml, args);
+            var projectRoot = ProjectRootElement.Open(projectFilePath);
+            return projectRoot;
+        }
+
+        /// <summary>
+        /// Creates and returns a new MSBuild project using the supplied template
+        /// </summary>
+        public static void CreateFileFromTemplate(string projectFilePath, TestContext testContext, string templateXml, params object[] args)
+        {
             var projectXml = templateXml;
             if (args != null && args.Any())
             {
@@ -161,9 +171,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
 
             File.WriteAllText(projectFilePath, projectXml);
             testContext.AddResultFile(projectFilePath);
-
-            var projectRoot = ProjectRootElement.Open(projectFilePath);
-            return projectRoot;
         }
 
         #endregion Project creation helpers

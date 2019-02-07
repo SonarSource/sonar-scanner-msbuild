@@ -194,6 +194,14 @@
       <!-- The MS Test project type guid-->
       <SonarQubeMsTestProjectTypeGuid>3AC096D0-A1C2-E12C-1390-A8335801FDAB</SonarQubeMsTestProjectTypeGuid>
       <SonarQubeTestProject Condition=" $(ProjectTypeGuids.ToUpperInvariant().Contains('$(SonarQubeMsTestProjectTypeGuid)')) ">true</SonarQubeTestProject>
+      
+      <!-- The legacy Service tag added by the Test Explorer window -->
+      <tmpSQServiceList>@(Service)</tmpSQServiceList>
+      <SonarQubeTestProject Condition="$(tmpSQServiceList.ToUpperInvariant().Contains('{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}')) ">true</SonarQubeTestProject>
+
+      <!-- The ProjectCapability for test projects -->
+      <tmpSQProjectCapabilities>@(ProjectCapability)</tmpSQProjectCapabilities>
+      <SonarQubeTestProject Condition="$(tmpSQProjectCapabilities.ToUpperInvariant().Contains('TESTCONTAINER')) ">true</SonarQubeTestProject>
     </PropertyGroup>
 
     <!-- If we haven't already determined whether the project is a test project then check
