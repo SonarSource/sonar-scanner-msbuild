@@ -61,6 +61,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             msbuildArgs.Add($"/logger:{loggerType.FullName},{loggerType.Assembly.Location};{logPath}");
             msbuildArgs.Add(projectFile);
 
+            // Ask MSBuild to create a detailed binary log (not used by the tests,
+            // but it simplifies manual investigation of failures)
+            var projectDir = Path.GetDirectoryName(projectFile);
+            var binaryLogPath = Path.Combine(projectDir, "buildlog.binlog");
+            msbuildArgs.Add("/bl:" + binaryLogPath);
+            System.Console.WriteLine("Project Directory: " + projectDir);
+
             // Specify the targets to be executed, if any
             if (targets?.Length > 0)
             {

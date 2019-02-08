@@ -34,346 +34,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     {
         public TestContext TestContext { get; set; }
 
-        #region Test project recognition tests
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("IsTest")]
-        public void WriteProjectInfo_TestProject_ExplicitMarking_True()
-        {
-            // If the project is explicitly marked as a test then the other condition should be ignored
-
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-            preImportProperties.SonarTestProject = "true";
-            preImportProperties.AssemblyName = "MyTest.proj";
-
-            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
-
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "test.proj");
-
-            // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
-
-            // Assert
-            AssertIsTestProject(projectInfo);
-            AssertProjectIsNotExcluded(projectInfo);
-        }
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("IsTest")]
-        public void WriteProjectInfo_TestProject_ExplicitMarking_False()
-        {
-            // If the project is explicitly marked as not a test then the other condition should be ignored
-
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            EnsureAnalysisConfig(rootInputFolder, "*.*");
-
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-            preImportProperties.SonarTestProject = "false";
-            preImportProperties.ProjectTypeGuids = "X;" + TargetConstants.MsTestProjectTypeGuid.ToUpperInvariant() + ";Y";
-
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "foo.proj");
-
-            // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
-
-            // Assert
-            AssertIsProductProject(projectInfo);
-            AssertProjectIsNotExcluded(projectInfo);
-        }
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("IsTest")]
-        public void WriteProjectInfo_TestProject_WildcardMatch_Default_NoMatch()
-        {
-            // Check the default wildcard matching
-
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "foo.proj");
-
-            // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
-
-            // Assert
-            AssertIsProductProject(projectInfo);
-            AssertProjectIsNotExcluded(projectInfo);
-        }
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("IsTest")]
-        public void WriteProjectInfo_TestProject_WildcardMatch_UserSpecified_Match()
-        {
-            // Check user-specified wildcard matching
-
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            EnsureAnalysisConfig(rootInputFolder, ".*foo.*");
-
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "foo.proj");
-
-            // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
-
-            // Assert
-            AssertIsTestProject(projectInfo);
-            AssertProjectIsNotExcluded(projectInfo);
-        }
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("IsTest")]
-        public void WriteProjectInfo_TestProject_WildcardMatch_UserSpecified_NoMatch()
-        {
-            // Check user-specified wildcard matching
-
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            EnsureAnalysisConfig(rootInputFolder, ".*foo.*");
-
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-
-            // Use project name that will be recognized as a test by the default regex
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "TestafoXB.proj");
-
-            // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
-
-            // Assert
-            AssertIsProductProject(projectInfo);
-            AssertProjectIsNotExcluded(projectInfo);
-        }
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("IsTest")]
-        public void WriteProjectInfo_TestProject_HasTestGuid()
-        {
-            // Checks the MSTest project type guid is recognized
-
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
-
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-            preImportProperties.ProjectTypeGuids = "X" + TargetConstants.MsTestProjectTypeGuid.ToUpperInvariant() + "Y";
-
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "a.b");
-
-            // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
-
-            // Assert
-            AssertIsTestProject(projectInfo);
-            AssertProjectIsNotExcluded(projectInfo);
-        }
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        [TestCategory("IsTest")]
-        public void WriteProjectInfo_TestProject_HasTestGuid_LowerCase()
-        {
-            // Checks the MSTest project type guid is recognized
-
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
-
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-            preImportProperties.ProjectTypeGuids = "X" + TargetConstants.MsTestProjectTypeGuid.ToLowerInvariant() + "Y";
-
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "a.b");
-
-            // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
-
-            // Assert
-            AssertIsTestProject(projectInfo);
-            AssertProjectIsNotExcluded(projectInfo);
-        }
-
-        #endregion Test project recognition tests
-
-        #region SQL Server projects tests
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        public void WriteProjectInfo_SqlServerProjectsAreNotExcluded()
-        {
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-            preImportProperties["SqlTargetName"] = "non-empty";
-
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
-
-            // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
-
-            // Assert
-            AssertProjectIsNotExcluded(projectInfo);
-        }
-
-        #endregion SQL Server projects tests
-
-        #region Fakes projects tests
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")] // SONARMSBRU-26: MS Fakes should be excluded from analysis
-        public void WriteProjectInfo_FakesProjectsAreExcluded()
-        {
-            // Checks that fakes projects are excluded from analysis
-
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
-
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-            preImportProperties.AssemblyName = "f.fAKes";
-
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "f.proj");
-
-            // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
-
-            // Assert
-            AssertIsTestProject(projectInfo);
-            AssertProjectIsExcluded(projectInfo);
-        }
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        public void WriteProjectInfo_FakesProjects_FakesInName()
-        {
-            // Checks that projects with ".fakes" in the name are not excluded
-
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
-
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-            preImportProperties.AssemblyName = "f.fakes.proj";
-
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "f.proj");
-
-            // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
-
-            // Assert
-            AssertIsProductProject(projectInfo);
-            AssertProjectIsNotExcluded(projectInfo);
-        }
-
-        [TestMethod]
-        [TestCategory("ProjectInfo")]
-        public void WriteProjectInfo_FakesProjects_ExplicitSonarTestPropertyIsIgnored()
-        {
-            // Checks that fakes projects are recognized and marked as test
-            // projects, irrespective of whether the SonarQubeTestProject is
-            // already set.
-
-            // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-
-            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
-
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-            preImportProperties.SonarTestProject = "false";
-            preImportProperties.AssemblyName = "MyFakeProject.fakes";
-
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "f.proj");
-
-            // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
-
-            // Assert
-            AssertIsTestProject(projectInfo);
-            AssertProjectIsExcluded(projectInfo);
-        }
-
-        #endregion Fakes projects tests
-
-        #region Temp projects tests
-
-        [TestMethod]
-        public void WriteProjectInfo_WpfTmpCases_ProjectIsExcluded()
-        {
-            // Used by inner method as a way to change directory name
-            int counter = 0;
-
-            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f.tmp_proj", expectedExclusionState: true);
-            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f.TMP_PROJ", expectedExclusionState: true);
-            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f_wpftmp.csproj", expectedExclusionState: true);
-            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f_WpFtMp.csproj", expectedExclusionState: true);
-            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("f_wpftmp.vbproj", expectedExclusionState: true);
-
-            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("WpfApplication.csproj", expectedExclusionState: false);
-            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("ftmp_proj.csproj", expectedExclusionState: false);
-            WriteProjectInfo_WpfTmpCase_ProjectIsExcluded("wpftmp.csproj", expectedExclusionState: false);
-
-            void WriteProjectInfo_WpfTmpCase_ProjectIsExcluded(string projectName, bool expectedExclusionState)
-            {
-                // Arrange
-                var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, counter.ToString(), "Inputs");
-                var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, counter.ToString(), "Outputs");
-
-                counter++;
-
-                EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
-
-                var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-                var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, projectName);
-
-                // Act
-                var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
-
-                // Assert
-                AssertIsNotTestProject(projectInfo);
-
-                if (expectedExclusionState)
-                {
-                    AssertProjectIsExcluded(projectInfo);
-                }
-                else
-                {
-                    AssertProjectIsNotExcluded(projectInfo);
-                }
-            }
-        }
-
-        #endregion Temp projects tests
-
         #region File list tests
 
         [TestMethod]
@@ -565,6 +225,58 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         #endregion File list tests
 
         #region Miscellaneous tests
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        public void WriteProjectInfo_IsNotTestAndNotExcluded()
+        {
+            // Check that SonarQubeTestProject and SonarQubeExclude are
+            // correctly set for "normal" projects
+
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+
+            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
+
+            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+
+            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "f.proj");
+
+            // Act
+            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+            // Assert
+            AssertIsProductProject(projectInfo);
+            AssertProjectIsNotExcluded(projectInfo);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        public void WriteProjectInfo_IsTestAndIsExcluded()
+        {
+            // Check that SonarQubeTestProject and SonarQubeExclude are
+            // correctly serialized. We'll test using a fakes project since
+            // both values should be set to true.
+
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+
+            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
+
+            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
+            preImportProperties.AssemblyName = "f.fAKes";
+
+            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "f.proj");
+
+            // Act
+            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+
+            // Assert
+            AssertIsTestProject(projectInfo);
+            AssertProjectIsExcluded(projectInfo);
+        }
 
         [TestMethod]
         [TestCategory("ProjectInfo")]
@@ -937,11 +649,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         private static void AssertIsTestProject(ProjectInfo projectInfo)
         {
             projectInfo.ProjectType.Should().Be(ProjectType.Test, "Should be a test project");
-        }
-
-        private static void AssertIsNotTestProject(ProjectInfo projectInfo)
-        {
-            projectInfo.ProjectType.Should().NotBe(ProjectType.Test, "Should not be a test project");
         }
 
         private static void AssertProjectIsExcluded(ProjectInfo projectInfo)
