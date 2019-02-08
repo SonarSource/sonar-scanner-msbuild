@@ -23,7 +23,6 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.Common.UnitTests
 {
@@ -51,20 +50,21 @@ namespace SonarScanner.MSBuild.Common.UnitTests
                 (Environment.SpecialFolder.UserProfile, "c:\\user profile"),
             };
 
-            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(false), FileExists(true));
+            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(false), DirExists(true));
 
             var result = settings.GetImportBeforePaths();
 
             result.Should().HaveCount(7);
             result.Should().Contain(
-                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\use profile", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
-                );
+                new[] {
+                    Path.Combine("c:\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\user profile", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
+                });
         }
 
         [TestMethod]
@@ -76,7 +76,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
                 (Environment.SpecialFolder.UserProfile, string.Empty),
             };
 
-            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(false), FileExists(true));
+            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(false), DirExists(true));
 
             var action = new Action(() => settings.GetImportBeforePaths());
 
@@ -88,10 +88,10 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             Action action;
 
-            action = new Action(() => new MsBuildPathSettings((folder, o) => string.Empty, IsWindows(true), FileExists(true)).GetImportBeforePaths());
+            action = new Action(() => new MsBuildPathSettings((folder, o) => string.Empty, IsWindows(true), DirExists(true)).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
 
-            action = new Action(() => new MsBuildPathSettings((folder, o) => null, IsWindows(true), FileExists(true)).GetImportBeforePaths());
+            action = new Action(() => new MsBuildPathSettings((folder, o) => null, IsWindows(true), DirExists(true)).GetImportBeforePaths());
             action.Should().ThrowExactly<IOException>().WithMessage("Cannot find local application data directory.");
         }
 
@@ -105,18 +105,20 @@ namespace SonarScanner.MSBuild.Common.UnitTests
                 (Environment.SpecialFolder.SystemX86, "c:\\windows\\systemWOW64"),
             };
 
-            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(true), FileExists(true));
+            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(true), DirExists(true));
 
             var result = settings.GetImportBeforePaths();
 
             result.Should().HaveCount(6);
             result.Should().Contain(
-                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"));
+                new[] {
+                    Path.Combine("c:\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
+                });
         }
 
         [TestMethod]
@@ -126,15 +128,16 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             {
                 (Environment.SpecialFolder.LocalApplicationData, "c:\\windows\\system32\\app data"),
                 (Environment.SpecialFolder.System, "c:\\windows\\system32"),
-                (Environment.SpecialFolder.SystemX86, "c:\\windows\\systemWOW64"),
+                (Environment.SpecialFolder.SystemX86, "c:\\windows\\sysWOW64"),
             };
 
-            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(true), FileExists(true));
+            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(true), DirExists(true));
 
             var result = settings.GetImportBeforePaths();
 
             result.Should().HaveCount(18);
             result.Should().Contain(
+                new[] {
                 Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
                 Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
                 Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
@@ -149,13 +152,13 @@ namespace SonarScanner.MSBuild.Common.UnitTests
                 Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
                 Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
 
-                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
-                );
+                Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
+                });
         }
 
         [TestMethod]
@@ -165,7 +168,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             {
                 (Environment.SpecialFolder.LocalApplicationData, "c:\\windows\\system32\\app data"),
                 (Environment.SpecialFolder.System, "c:\\windows\\system32"),
-                (Environment.SpecialFolder.SystemX86, "c:\\windows\\systemWOW64"),
+                (Environment.SpecialFolder.SystemX86, "c:\\windows\\sysWOW64"),
             };
 
             var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(true), path => !path.Contains("WOW64")); // paths with wow64 do not exist, others exist
@@ -174,20 +177,21 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             result.Should().HaveCount(12);
             result.Should().Contain(
-                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+                new[] {
+                    Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
 
-                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysnative\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
-                );
+                    Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
+                });
         }
 
         [TestMethod]
@@ -197,7 +201,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             {
                 (Environment.SpecialFolder.LocalApplicationData, "c:\\windows\\system32\\app data"),
                 (Environment.SpecialFolder.System, "c:\\windows\\system32"),
-                (Environment.SpecialFolder.SystemX86, "c:\\windows\\systemWOW64"),
+                (Environment.SpecialFolder.SystemX86, "c:\\windows\\sysWOW64"),
             };
 
             var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(true), path => !path.Contains("Sysnative")); // paths with Sysnative do not exist, others exist
@@ -206,28 +210,29 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
             result.Should().HaveCount(12);
             result.Should().Contain(
-                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+                new[] {
+                    Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\system32\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
 
-                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-                Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
-                );
+                    Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+                    Path.Combine("c:\\windows\\sysWOW64\\app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore")
+                });
         }
 
         [TestMethod]
         public void GetGlobalTargetsPaths_WhenProgramFilesIsEmptyOrNull_Returns_Empty()
         {
             // Arrange
-            var testSubject1 = new MsBuildPathSettings((x, y) => x == Environment.SpecialFolder.ProgramFiles ? null : "foo", () => true, (path) => true);
-            var testSubject2 = new MsBuildPathSettings((x, y) => x == Environment.SpecialFolder.ProgramFiles ? "" : "foo", () => true, (path) => true);
+            var testSubject1 = new MsBuildPathSettings((x, y) => x == Environment.SpecialFolder.ProgramFiles ? null : "foo", () => true, DirExists(true));
+            var testSubject2 = new MsBuildPathSettings((x, y) => x == Environment.SpecialFolder.ProgramFiles ? "" : "foo", () => true, DirExists(true));
 
             // Act
             testSubject1.GetGlobalTargetsPaths().Should().BeEmpty();
@@ -243,7 +248,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             };
 
             // Arrange
-            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(true), FileExists(true));
+            var settings = new MsBuildPathSettings(GetFolderPath(paths), IsWindows(true), DirExists(true));
 
             // Act
             var result = settings.GetGlobalTargetsPaths().ToList();
@@ -255,7 +260,6 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         }
 
         private static Func<bool> IsWindows(bool result) => () => result;
-        private static Func<string, bool> FileExists(bool result) => path => result;
         private static Func<string, bool> DirExists(bool result) => path => result;
         private static Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> GetFolderPath(params (Environment.SpecialFolder, string)[] paths) =>
             (folder, option) => paths.First(p => p.Item1 == folder).Item2;
