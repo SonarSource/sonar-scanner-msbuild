@@ -20,7 +20,9 @@
 
 using System;
 using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Tasks;
 using SonarScanner.MSBuild.Tasks.IntegrationTests;
 using TestUtilities;
@@ -42,7 +44,122 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var result = BuildAndRunTarget("foo.proj", "");
 
             // Assert
-            result.AssertExpectedCapturedPropertyValue("SonarQubeTestProject", "False");
+            AssertIsNotTestProject(result);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
+        public void ExplicitMarking_IsTrue()
+        {
+            var projectXmlSnippet = @"
+<PropertyGroup>
+  <SonarQubeTestProject>true</SonarQubeTestProject>
+</PropertyGroup>
+";
+            // Act
+            var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
+
+            // Assert
+            AssertIsTestProject(result);
+            AssertProjectIsNotExcluded(result);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
+        public void ExplicitMarking_False()
+        {
+            // If the project is explicitly marked as not a test then the other conditions should be ignored
+            var projectXmlSnippet = @"
+<PropertyGroup>
+  <ProjectTypeGuids>D1C3357D-82B4-43D2-972C-4D5455F0A7DB;3AC096D0-A1C2-E12C-1390-A8335801FDAB;BF3D2153-F372-4432-8D43-09B24D530F20</ProjectTypeGuids>
+  <SonarQubeTestProject>false</SonarQubeTestProject>
+</PropertyGroup>
+
+<ItemGroup>
+  <Service Include='{D1C3357D-82B4-43D2-972C-4D5455F0A7DB}' />
+  <ProjectCapability Include='TestContainer' />
+</ItemGroup>
+
+";
+            var configFilePath = CreateAnalysisConfigWithRegEx("*");
+
+            // Act
+            var result = BuildAndRunTarget("Test.proj", projectXmlSnippet, configFilePath);
+
+            // Assert
+            AssertIsNotTestProject(result);
+            AssertProjectIsNotExcluded(result);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
+        public void WildcardMatch_Default_Match()
+        {
+            // Check the default wildcard matching
+            var configFilePath = CreateAnalysisConfigWithRegEx(null);
+
+            // Act
+            var result = BuildAndRunTarget("MyTests.csproj", string.Empty, configFilePath);
+
+            // Assert
+            AssertIsTestProject(result);
+            AssertProjectIsNotExcluded(result);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
+        public void WildcardMatch_Default_NoMatch()
+        {
+            // Check the default wildcard matching
+            var configFilePath = CreateAnalysisConfigWithRegEx(null);
+
+            // Act
+            var result = BuildAndRunTarget("foo.proj", string.Empty, configFilePath);
+
+            // Assert
+            AssertIsNotTestProject(result);
+            AssertProjectIsNotExcluded(result);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
+        public void WildcardMatch_UserSpecified_Match()
+        {
+            // Check user-specified wildcard matching
+
+            // Arrange
+            var configFilePath = CreateAnalysisConfigWithRegEx(".*foo.*");
+
+            // Act
+            var result = BuildAndRunTarget("foo.proj", string.Empty, configFilePath);
+
+            // Assert
+            AssertIsTestProject(result);
+            AssertProjectIsNotExcluded(result);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("IsTest")]
+        public void WildcardMatch_UserSpecified_NoMatch()
+        {
+            // Check user-specified wildcard matching
+
+            // Arrange
+            var configFilePath = CreateAnalysisConfigWithRegEx(".*foo.*");
+
+            // Act
+            // Using a project name that will be recognized as a test by the default regex
+            var result = BuildAndRunTarget("TestafoXB.proj", string.Empty, configFilePath);
+
+            // Assert
+            AssertIsNotTestProject(result);
+            AssertProjectIsNotExcluded(result);
         }
 
         [TestMethod]
@@ -59,7 +176,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
 
             // Assert
-            result.AssertExpectedCapturedPropertyValue("SonarQubeTestProject", "true");
+            AssertIsTestProject(result);
         }
 
         [TestMethod]
@@ -75,7 +192,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
 
             // Assert
-            result.AssertExpectedCapturedPropertyValue("SonarQubeTestProject", "true");
+            AssertIsTestProject(result);
         }
 
         [TestMethod]
@@ -93,7 +210,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
 
             // Assert
-            result.AssertExpectedCapturedPropertyValue("SonarQubeTestProject", "true");
+            AssertIsTestProject(result);
         }
 
         [TestMethod]
@@ -109,7 +226,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
 
             // Assert
-            result.AssertExpectedCapturedPropertyValue("SonarQubeTestProject", "true");
+            AssertIsTestProject(result);
         }
 
         [TestMethod]
@@ -127,7 +244,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
 
             // Assert
-            result.AssertExpectedCapturedPropertyValue("SonarQubeTestProject", "true");
+            AssertIsTestProject(result);
         }
 
         [TestMethod]
@@ -143,14 +260,14 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
 
             // Assert
-            result.AssertExpectedCapturedPropertyValue("SonarQubeTestProject", "true");
+            AssertIsTestProject(result);
         }
 
         #endregion Tests
 
-        private BuildLog BuildAndRunTarget(string projectFileName, string projectXmlSnippet)
+        private BuildLog BuildAndRunTarget(string projectFileName, string projectXmlSnippet, string analysisConfigDir = "c:\\dummy")
         {
-            var projectFilePath = CreateProjectFile(projectFileName, projectXmlSnippet);
+            var projectFilePath = CreateProjectFile(projectFileName, projectXmlSnippet, analysisConfigDir);
 
             // Act
             var result = BuildRunner.BuildTargets(TestContext, projectFilePath,
@@ -161,12 +278,12 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             return result;
         }
 
-        private string CreateProjectFile(string projectFileName, string xmlSnippet)
+        private string CreateProjectFile(string projectFileName, string xmlSnippet, string analysisConfigDir)
         {
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
-            var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
+            var projectFilePath = Path.Combine(rootInputFolder, projectFileName);
 
             // Boilerplate XML for minimal project file that will execute the "categorise project" task
             var projectXml = @"<Project Sdk='Microsoft.NET.Sdk'>
@@ -179,6 +296,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
     <ProjectGuid>{1}</ProjectGuid>
     <SonarQubeTempPath>c:\dummy\path</SonarQubeTempPath>
     <SonarQubeOutputPath>c:\dummy\path</SonarQubeOutputPath>
+    <SonarQubeConfigPath>{4}</SonarQubeConfigPath>
     <SonarQubeBuildTasksAssemblyFile>{2}</SonarQubeBuildTasksAssemblyFile>
   </PropertyGroup>
 
@@ -187,6 +305,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
     <Message Importance='high' Text='CAPTURE___PROPERTY___tmpSQServiceList___$(tmpSQServiceList)' />
     <Message Importance='high' Text='CAPTURE___PROPERTY___tmpSQProjectCapabilities___$(tmpSQProjectCapabilities)' />
     <Message Importance='high' Text='CAPTURE___PROPERTY___SonarQubeTestProject___$(SonarQubeTestProject)' />
+<Message Importance='high' Text='CAPTURE___PROPERTY___SonarQubeExclude___$(SonarQubeExclude)' />
   </Target>
 
   <Import Project='{3}' />
@@ -196,10 +315,59 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
                 xmlSnippet,
                 Guid.NewGuid(),
                 typeof(WriteProjectInfoFile).Assembly.Location,
-                sqTargetFile
-                );
+                sqTargetFile,
+                analysisConfigDir);
 
             return projectFilePath;
         }
+
+        /// <summary>
+        /// Creates an analysis config file, replacing one if it already exists.
+        /// If the supplied "regExExpression" is not null then the appropriate setting
+        /// entry will be created in the file
+        /// </summary>
+        /// <returns>The directory containing the config file</returns>
+        private string CreateAnalysisConfigWithRegEx(string regExExpression)
+        {
+            var config = new AnalysisConfig();
+            if (regExExpression != null)
+            {
+                config.LocalSettings = new AnalysisProperties
+                {
+                    new Property { Id = IsTestFileByName.TestRegExSettingId, Value = regExExpression }
+                };
+            }
+
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var fullPath = Path.Combine(testDir, "SonarQubeAnalysisConfig.xml");
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+            }
+            config.Save(fullPath);
+            TestContext.AddResultFile(fullPath);
+            return testDir;
+        }
+
+        private static void AssertIsTestProject(BuildLog log)
+        {
+            log.GetPropertyAsBoolean(TargetProperties.SonarQubeTestProject).Should().BeTrue();
+        }
+
+        private static void AssertIsNotTestProject(BuildLog log)
+        {
+            log.GetPropertyAsBoolean(TargetProperties.SonarQubeTestProject).Should().BeFalse();
+        }
+
+        private static void AssertProjectIsExcluded(BuildLog log)
+        {
+            log.GetPropertyAsBoolean(TargetProperties.SonarQubeExcludeMetadata).Should().BeTrue();
+        }
+
+        private static void AssertProjectIsNotExcluded(BuildLog log)
+        {
+            log.GetPropertyAsBoolean(TargetProperties.SonarQubeExcludeMetadata).Should().BeFalse();
+        }
+
     }
 }

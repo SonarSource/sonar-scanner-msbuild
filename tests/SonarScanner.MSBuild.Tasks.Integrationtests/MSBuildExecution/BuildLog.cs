@@ -70,19 +70,20 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             return propertyValue;
         }
 
-        public bool TryGetPropertyValue(string propertyName, out string value)
+        public bool TryGetPropertyValue(string propertyName, out string value) =>
+            TryGetBuildPropertyValue(BuildProperties, propertyName, out value);
+
+        public bool TryGetCapturedPropertyValue(string propertyName, out string value) =>
+            TryGetBuildPropertyValue(CapturedProperties, propertyName, out value);
+
+        public bool GetPropertyAsBoolean(string propertyName)
         {
-            var property = BuildProperties.FirstOrDefault(
-                p => p.Name.Equals(propertyName, System.StringComparison.OrdinalIgnoreCase));
-
-            if (property == null)
+            // We treat a value as false if it is not set
+            if (TryGetCapturedPropertyValue(propertyName, out string value))
             {
-                value = null;
-                return false;
+                return (string.IsNullOrEmpty(value)) ? false : bool.Parse(value);
             }
-
-            value = property.Value;
-            return true;
+            return false;
         }
 
         [XmlIgnore]
@@ -127,6 +128,21 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
                 var xml = Encoding.UTF8.GetString(stream.ToArray());
                 File.WriteAllText(filePath, xml);
             }
+        }
+
+        private static bool TryGetBuildPropertyValue(IList<BuildKeyValue> properties, string propertyName, out string value)
+        {
+            var property = properties.FirstOrDefault(
+                p => p.Name.Equals(propertyName, System.StringComparison.OrdinalIgnoreCase));
+
+            if (property == null)
+            {
+                value = null;
+                return false;
+            }
+
+            value = property.Value;
+            return true;
         }
     }
 
