@@ -262,6 +262,11 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         private static Func<bool> IsWindows(bool result) => () => result;
         private static Func<string, bool> DirExists(bool result) => path => result;
         private static Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> GetFolderPath(params (Environment.SpecialFolder, string)[] paths) =>
-            (folder, option) => paths.First(p => p.Item1 == folder).Item2;
+            (folder, option) =>
+            {
+                // Bug #681 - the Create option doesn't work on some NET Core versions on Linux
+                option.Should().NotBe(Environment.SpecialFolderOption.Create);
+                return paths.First(p => p.Item1 == folder).Item2;
+            };
     }
 }

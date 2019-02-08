@@ -76,7 +76,9 @@ namespace SonarScanner.MSBuild.Common
                 return Enumerable.Empty<string>();
             }
 
-            var userProfilePath = this.environmentGetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.Create);
+            // We don't need to create the paths here - the ITargetsInstaller will do it.
+            // Also, see bug #681: Environment.SpecialFolderOption.Create fails on some versions of NET Core on Linux
+            var userProfilePath = this.environmentGetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
 
             if (string.IsNullOrEmpty(userProfilePath))
             {
@@ -104,7 +106,7 @@ namespace SonarScanner.MSBuild.Common
         {
             var localAppData = environmentGetFolderPath(
                 Environment.SpecialFolder.LocalApplicationData,
-                Environment.SpecialFolderOption.Create);
+                Environment.SpecialFolderOption.DoNotVerify);
 
             // Return empty enumerable when Local AppData is empty. In this case an exception should be thrown at the call site.
             if (string.IsNullOrWhiteSpace(localAppData))
