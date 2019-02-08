@@ -34,7 +34,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
     {
         public TestContext TestContext { get; set; }
 
-        #region Tests
+        #region Detection of test projects
 
         [TestMethod]
         [TestCategory("IsTest")]
@@ -52,7 +52,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         [TestCategory("IsTest")]
         public void ExplicitMarking_IsTrue()
         {
-            var projectXmlSnippet = @"
+            const string projectXmlSnippet = @"
 <PropertyGroup>
   <SonarQubeTestProject>true</SonarQubeTestProject>
 </PropertyGroup>
@@ -71,7 +71,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         public void ExplicitMarking_False()
         {
             // If the project is explicitly marked as not a test then the other conditions should be ignored
-            var projectXmlSnippet = @"
+            const string projectXmlSnippet = @"
 <PropertyGroup>
   <ProjectTypeGuids>D1C3357D-82B4-43D2-972C-4D5455F0A7DB;3AC096D0-A1C2-E12C-1390-A8335801FDAB;BF3D2153-F372-4432-8D43-09B24D530F20</ProjectTypeGuids>
   <SonarQubeTestProject>false</SonarQubeTestProject>
@@ -167,7 +167,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         public void ProjectTypeGuids_IsRecognized()
         {
             // Snippet with the Test Project Type Guid between two other Guids
-            var projectXmlSnippet = @"
+            const string projectXmlSnippet = @"
 <PropertyGroup>
   <ProjectTypeGuids>D1C3357D-82B4-43D2-972C-4D5455F0A7DB;3AC096D0-A1C2-E12C-1390-A8335801FDAB;BF3D2153-F372-4432-8D43-09B24D530F20</ProjectTypeGuids>
 </PropertyGroup>
@@ -183,7 +183,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         [TestCategory("IsTest")]
         public void ProjectTypeGuids_IsRecognized_CaseInsensitive()
         {
-            var projectXmlSnippet = @"
+            const string projectXmlSnippet = @"
 <PropertyGroup>
   <ProjectTypeGuids>3AC096D0-A1C2-E12C-1390-A8335801fdab</ProjectTypeGuids>
 </PropertyGroup>
@@ -199,7 +199,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         [TestCategory("IsTest")]
         public void ServiceGuid_IsRecognized()
         {
-            var projectXmlSnippet = @"
+            const string projectXmlSnippet = @"
 <ItemGroup>
   <Service Include='{D1C3357D-82B4-43D2-972C-4D5455F0A7DB}' />
   <Service Include='{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}' />
@@ -217,7 +217,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         [TestCategory("IsTest")]
         public void ServiceGuid_IsRecognized_CaseInsensitive()
         {
-            var projectXmlSnippet = @"
+            const string projectXmlSnippet = @"
 <ItemGroup>
   <Service Include='{82a7f48d-3b50-4b1e-b82e-3ada8210c358}' />
 </ItemGroup>
@@ -233,7 +233,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         [TestCategory("IsTest")]
         public void ProjectCapability_IsRecognized()
         {
-            var projectXmlSnippet = @"
+            const string projectXmlSnippet = @"
 <ItemGroup>
   <ProjectCapability Include='Foo' />
   <ProjectCapability Include='TestContainer' />
@@ -251,7 +251,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         [TestCategory("IsTest")]
         public void ProjectCapability_IsRecognized_CaseInsensitive()
         {
-            var projectXmlSnippet = @"
+            const string projectXmlSnippet = @"
 <ItemGroup>
   <ProjectCapability Include='testcontainer' />
 </ItemGroup>
@@ -263,7 +263,128 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             AssertIsTestProject(result);
         }
 
-        #endregion Tests
+        #endregion Detection of test projects
+
+        #region SQL Server projects tests
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        public void SqlServerProjectsAreNotExcluded()
+        {
+            const string projectXmlSnippet = @"
+<PropertyGroup>
+  <SqlTargetName>non-empty</SqlTargetName>
+</PropertyGroup>
+";
+            // Act
+            var result = BuildAndRunTarget("foo.sqproj", projectXmlSnippet);
+
+            // Assert
+            AssertIsNotTestProject(result);
+            AssertProjectIsNotExcluded(result);
+        }
+
+        #endregion SQL Server projects tests
+
+        #region Fakes projects tests
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")] // SONARMSBRU-26: MS Fakes should be excluded from analysis
+        public void FakesProjects_AreExcluded()
+        {
+            const string projectXmlSnippet = @"
+<PropertyGroup>
+  <AssemblyName>f.fAKes</AssemblyName>
+</PropertyGroup>
+";
+            // Act
+            var result = BuildAndRunTarget("f.proj", projectXmlSnippet);
+
+            // Assert
+            AssertIsTestProject(result);
+            AssertProjectIsExcluded(result);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        public void FakesProjects_FakesInName_AreNotExcluded()
+        {
+            // Checks that projects with ".fakes" in the name are not excluded
+
+            const string projectXmlSnippet = @"
+<PropertyGroup>
+  <AssemblyName>f.fAKes.proj</AssemblyName>
+</PropertyGroup>
+";
+            // Act
+            var result = BuildAndRunTarget("f.proj", projectXmlSnippet);
+
+            // Assert
+            AssertIsNotTestProject(result);
+            AssertProjectIsNotExcluded(result);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        public void FakesProjects_ExplicitSonarTestPropertyIsIgnored()
+        {
+            // Checks that fakes projects are recognized and marked as test
+            // projects, irrespective of whether the SonarQubeTestProject is
+            // already set.
+
+            const string projectXmlSnippet = @"
+<PropertyGroup>
+  <SonarQubeTestProject>false</SonarQubeTestProject>
+  <AssemblyName>MyFakeProject.fakes</AssemblyName>
+</PropertyGroup>
+";
+            // Act
+            var result = BuildAndRunTarget("f.proj", projectXmlSnippet);
+
+            // Assert
+            AssertIsTestProject(result);
+            AssertProjectIsExcluded(result);
+        }
+
+        #endregion Fakes projects tests
+
+
+        #region Temp projects tests
+
+        [TestMethod]
+        public void WpfTemporaryProjects_AreExcluded()
+        {
+            ExecuteTest("f.tmp_proj", expectedExclusionState: true);
+            ExecuteTest("f.TMP_PROJ", expectedExclusionState: true);
+            ExecuteTest("f_wpftmp.csproj", expectedExclusionState: true);
+            ExecuteTest("f_WpFtMp.csproj", expectedExclusionState: true);
+            ExecuteTest("f_wpftmp.vbproj", expectedExclusionState: true);
+
+            ExecuteTest("WpfApplication.csproj", expectedExclusionState: false);
+            ExecuteTest("ftmp_proj.csproj", expectedExclusionState: false);
+            ExecuteTest("wpftmp.csproj", expectedExclusionState: false);
+
+            void ExecuteTest(string projectName, bool expectedExclusionState)
+            {
+                // Act
+                var result = BuildAndRunTarget(projectName, string.Empty);
+
+                // Assert
+                AssertIsNotTestProject(result);
+
+                if (expectedExclusionState)
+                {
+                    AssertProjectIsExcluded(result);
+                }
+                else
+                {
+                    AssertProjectIsNotExcluded(result);
+                }
+            }
+        }
+
+        #endregion Temp projects tests
+
 
         private BuildLog BuildAndRunTarget(string projectFileName, string projectXmlSnippet, string analysisConfigDir = "c:\\dummy")
         {
@@ -305,7 +426,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
     <Message Importance='high' Text='CAPTURE___PROPERTY___tmpSQServiceList___$(tmpSQServiceList)' />
     <Message Importance='high' Text='CAPTURE___PROPERTY___tmpSQProjectCapabilities___$(tmpSQProjectCapabilities)' />
     <Message Importance='high' Text='CAPTURE___PROPERTY___SonarQubeTestProject___$(SonarQubeTestProject)' />
-<Message Importance='high' Text='CAPTURE___PROPERTY___SonarQubeExclude___$(SonarQubeExclude)' />
+    <Message Importance='high' Text='CAPTURE___PROPERTY___SonarQubeExclude___$(SonarQubeExclude)' />
   </Target>
 
   <Import Project='{3}' />
