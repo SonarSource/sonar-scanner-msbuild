@@ -24,8 +24,8 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarQube.Client.Models;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using SonarScanner.MSBuild.TFS;
 using TestUtilities;
 
@@ -80,11 +80,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             data.AddQualityProfile("qp1", "cs", null)
                 .AddProject("key")
-                .AddRule(new SonarRule("csharpsquid", "cs.rule3"));
+                .AddRule(new SonarQubeRule("cs.rule3", "csharpsquid", true));
 
             data.AddQualityProfile("qp2", "vbnet", null)
                 .AddProject("key")
-                .AddRule(new SonarRule("vbnet", "vb.rule3"));
+                .AddRule(new SonarQubeRule("vb.rule3", "vbnet", true));
 
             var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
             {
@@ -154,7 +154,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             data.AddQualityProfile("qp2", "vbnet", null)
                 .AddProject("key")
-                .AddRule(new SonarRule("vbnet", "vb.rule3"));
+                .AddRule(new SonarQubeRule("vb.rule3", "vbnet", true));
 
             var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
             {
@@ -221,11 +221,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             data.AddQualityProfile("qp1", "cs", "organization")
                 .AddProject("key")
-                .AddRule(new SonarRule("csharpsquid", "cs.rule3"));
+                .AddRule(new SonarQubeRule("cs.rule3", "csharpsquid", true));
 
             data.AddQualityProfile("qp2", "vbnet", "organization")
                 .AddProject("key")
-                .AddRule(new SonarRule("vbnet", "vb.rule3"));
+                .AddRule(new SonarQubeRule("vb.rule3", "vbnet", true));
 
             var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
             {
@@ -342,13 +342,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             data.AddQualityProfile("qp1", "cs", null)
                 .AddProject("invalid")
-                .AddRule(new SonarRule("fxcop", "cs.rule1"))
-                .AddRule(new SonarRule("fxcop", "cs.rule2"));
+                .AddRule(new SonarQubeRule("cs.rule1", "fxcop", true))
+                .AddRule(new SonarQubeRule("cs.rule2", "fxcop", true));
 
             data.AddQualityProfile("qp2", "vbnet", null)
                 .AddProject("invalid")
-                .AddRule(new SonarRule("fxcop-vbnet", "vb.rule1"))
-                .AddRule(new SonarRule("fxcop-vbnet", "vb.rule2"));
+                .AddRule(new SonarQubeRule("vb.rule1", "fxcop-vbnet", true))
+                .AddRule(new SonarQubeRule("vb.rule2", "fxcop-vbnet", true));
 
             var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
             {

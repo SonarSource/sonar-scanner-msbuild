@@ -20,7 +20,7 @@
 
 using System;
 using System.Collections.Generic;
-using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
+using SonarQube.Client.Models;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
@@ -29,9 +29,9 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// </summary>
     public interface ISonarQubeServer
     {
-        IList<SonarRule> GetInactiveRules(string qprofile, string language);
+        IList<SonarQubeRule> GetInactiveRules(string qprofile, string language);
 
-        IList<SonarRule> GetActiveRules(string qprofile);
+        IList<SonarQubeRule> GetActiveRules(string qprofile);
 
         /// <summary>
         /// Get all keys of all available languages

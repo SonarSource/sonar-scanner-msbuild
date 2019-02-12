@@ -19,6 +19,10 @@
  */
 
 using System;
+using System.Net.Http;
+using SonarQube.Client;
+using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -57,10 +61,14 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             var username = args.GetSetting(SonarProperties.SonarUserName, null);
-            var password = args.GetSetting(SonarProperties.SonarPassword, null);
+            var password = args.GetSetting(SonarProperties.SonarPassword, string.Empty);
             var hostUrl = args.SonarQubeUrl;
 
-            this.server = new SonarWebService(new WebClientDownloader(username, password, this.logger), hostUrl, this.logger);
+            this.server = new SonarQubeServer(
+                new SonarQubeService(new HttpClientHandler(), $"ScannerMSBuild/{Utilities.ScannerVersion}", new LoggerAdapter(logger)),
+                new ConnectionInformation(new Uri(args.SonarQubeUrl), username, password.ToSecureString()),
+                logger);
+
             return this.server;
         }
 
@@ -80,5 +88,27 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
 
         #endregion IPreprocessorObjectFactory methods
+
+        private class LoggerAdapter : SonarQube.Client.Logging.ILogger
+        {
+            private readonly ILogger logger;
+
+            public LoggerAdapter(ILogger logger)
+            {
+                this.logger = logger;
+            }
+
+            public void Debug(string message) =>
+                logger.LogDebug(message);
+
+            public void Error(string message) =>
+                logger.LogError(message);
+
+            public void Info(string message) =>
+                logger.LogInfo(message);
+
+            public void Warning(string message) =>
+                logger.LogWarning(message);
+        }
     }
 }

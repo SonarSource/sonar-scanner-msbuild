@@ -26,6 +26,7 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
+    [Obsolete]
     public class WebClientDownloader : IDownloader
     {
         private readonly ILogger logger;

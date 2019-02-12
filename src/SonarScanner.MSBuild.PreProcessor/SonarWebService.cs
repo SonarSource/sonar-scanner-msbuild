@@ -30,7 +30,8 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {
-    public sealed class SonarWebService : ISonarQubeServer, IDisposable
+    [Obsolete]
+    public sealed class SonarWebService : IDisposable
     {
         private const string oldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
         private readonly string serverUrl;
@@ -111,7 +112,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                     page++;
                     var rules = json["rules"].Children<JObject>();
 
-                    return rules.Select(r => new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), false));
+                    return rules.Select(r => new SonarRule(ParseRuleKey(r["key"].ToString()), r["repo"].ToString(), false));
                 }, ws));
             } while (fetched < total);
 
@@ -159,7 +160,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                             throw new JsonException($"Malformed json response, \"actives\" field should contain rule '{r["key"].ToString()}'");
                         }
 
-                        var activeRule = new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), true);
+                        var activeRule = new SonarRule(ParseRuleKey(r["key"].ToString()), r["repo"].ToString(), true);
                         if (r["internalKey"] != null)
                         {
                             activeRule.InternalKey = r["internalKey"].ToString();

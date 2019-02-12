@@ -20,8 +20,8 @@
 
 using System.Collections.Generic;
 using FluentAssertions;
+using SonarQube.Client.Models;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
@@ -37,7 +37,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         #region IAnalyzerProvider methods
 
         AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings,
-            IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, string language)
+            IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules, string language)
         {
             settings.Should().NotBeNull();
             serverSettings.Should().NotBeNull();

@@ -52,6 +52,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarScanner.MSBuild", "src
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Legacy", "Legacy", "{631622D0-344F-4390-B80A-2227E015A261}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client", "sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj", "{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client.Tests", "sonarqube-webclient\SonarQube.Client.Tests\SonarQube.Client.Tests.csproj", "{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -272,6 +276,30 @@ Global
 		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Release|x86.ActiveCfg = Release|Any CPU
 		{B9F6FCA4-CD6C-4426-9835-D86160B30072}.Release|x86.Build.0 = Release|Any CPU
+		{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}.Debug|x86.Build.0 = Debug|Any CPU
+		{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}.Release|x86.ActiveCfg = Release|Any CPU
+		{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}.Release|x86.Build.0 = Release|Any CPU
+		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}.Debug|x86.Build.0 = Debug|Any CPU
+		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}.Release|x86.ActiveCfg = Release|Any CPU
+		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -289,6 +317,7 @@ Global
 		{BF55995C-B05B-44D0-B80E-2366CC5ACCDE} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{6E599202-77D0-41CD-9AFF-7450DC83A85C} = {37FB4C72-0F3D-4BF2-9F78-2780A76746A2}
 		{35848C6E-2018-4831-94FA-40D7E45B5A09} = {631622D0-344F-4390-B80A-2227E015A261}
+		{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F1322FF5-8DA8-4714-ABD1-B289A655E630}

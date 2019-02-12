@@ -34,6 +34,7 @@
   <!-- Common -->
   <ItemGroup>
     <!-- Project dependencies - ensure build order -->
+    <ProjectReference Include="$(SourcesRoot)\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj" />
     <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
     <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild\SonarScanner.MSBuild.csproj" />
     <ProjectReference Include="$(SourcesRoot)\SonarScanner.MSBuild.Tasks\SonarScanner.MSBuild.Tasks.csproj" />
@@ -47,6 +48,7 @@
     <TargetFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.Tasks\Targets\SonarQube.Integration.ImportBefore.targets" />
 
     <!-- Dlls -->
+    <ScannerFiles Include="$(SourcesRoot)\..\sonarqube-webclient\SonarQube.Client\bin\$(Configuration)\$(CommonFrameworkVersion)\SonarQube.Client.dll" />
     <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(TargetFramework)\SonarQube.Analysis.xml" />
     <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.Common\bin\$(Configuration)\$(CommonFrameworkVersion)\SonarScanner.MSBuild.Common.dll" />
     <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\bin\$(Configuration)\$(CommonFrameworkVersion)\SonarScanner.MSBuild.PreProcessor.dll" />
@@ -57,6 +59,7 @@
 
     <!-- Third-parties dlls -->
     <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\bin\$(Configuration)\$(CommonFrameworkVersion)\Newtonsoft.Json.dll" />
+    <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.PreProcessor\bin\$(Configuration)\$(CommonFrameworkVersion)\Google.Protobuf.dll" />
   </ItemGroup>
 
   <!-- Common debug files -->

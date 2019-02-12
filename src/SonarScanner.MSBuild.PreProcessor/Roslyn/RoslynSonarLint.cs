@@ -21,17 +21,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using SonarQube.Client.Models;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 {
     internal static class RoslynSonarLint
     {
-        public static string GenerateXml(IEnumerable<SonarRule> activeRules, IDictionary<string, string> serverSettings,
+        public static string GenerateXml(IEnumerable<SonarQubeRule> activeRules, IDictionary<string, string> serverSettings,
             string language, string repoKey)
         {
-            var repoActiveRules = activeRules.Where(ar => repoKey.Equals(ar.RepoKey));
+            var repoActiveRules = activeRules.Where(ar => repoKey.Equals(ar.RepositoryKey));
             var settings = serverSettings.Where(a => a.Key.StartsWith("sonar." + language + "."));
 
             var builder = new StringBuilder();
@@ -53,9 +53,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             foreach (var activeRule in repoActiveRules)
             {
                 builder.AppendLine("    <Rule>");
-                var templateKey = activeRule.TemplateKey;
-                var ruleKey = templateKey ?? activeRule.RuleKey;
-                builder.AppendLine("      <Key>" + EscapeXml(ruleKey) + "</Key>");
+                builder.AppendLine("      <Key>" + EscapeXml(activeRule.Key) + "</Key>");
 
                 if (activeRule.Parameters != null && activeRule.Parameters.Any())
                 {

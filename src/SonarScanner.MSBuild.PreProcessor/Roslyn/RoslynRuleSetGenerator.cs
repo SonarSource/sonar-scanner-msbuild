@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SonarQube.Client.Models;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
@@ -41,7 +42,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
         /// The ruleset can be empty if there are no active rules belonging to the repo keys "vbnet", "csharpsquid" or "roslyn.*".
         /// </summary>
         /// <exception cref="AnalysisException">if mandatory properties that should be associated with the repo key are missing.</exception>
-        public RuleSet Generate(IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, string language)
+        public RuleSet Generate(IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules, string language)
         {
             if (activeRules == null)
             {
@@ -74,7 +75,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
                 {
                     AnalyzerId = MandatoryPropertyValue(AnalyzerIdPropertyKey(entry.Key)),
                     RuleNamespace = MandatoryPropertyValue(RuleNamespacePropertyKey(entry.Key)),
-                    RuleList = entry.Value.Select(r => new Rule(r.RuleKey, r.IsActive ? "Warning" : "None")).ToList()
+                    RuleList = entry.Value.Select(r => new Rule(r.Key, r.IsActive ? "Warning" : "None")).ToList()
                 };
 
                 ruleSet.Rules.Add(rules);
@@ -83,19 +84,19 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
             return ruleSet;
         }
 
-        private static Dictionary<string, List<SonarRule>> RoslynRulesByPartialRepoKey(IEnumerable<SonarRule> rules,
+        private static Dictionary<string, List<SonarQubeRule>> RoslynRulesByPartialRepoKey(IEnumerable<SonarQubeRule> rules,
             string language)
         {
-            var rulesByPartialRepoKey = new Dictionary<string, List<SonarRule>>();
+            var rulesByPartialRepoKey = new Dictionary<string, List<SonarQubeRule>>();
 
             foreach (var rule in rules)
             {
-                if (rule.RepoKey.StartsWith(ROSLYN_REPOSITORY_PREFIX))
+                if (rule.RepositoryKey.StartsWith(ROSLYN_REPOSITORY_PREFIX))
                 {
-                    var pluginKey = rule.RepoKey.Substring(ROSLYN_REPOSITORY_PREFIX.Length);
+                    var pluginKey = rule.RepositoryKey.Substring(ROSLYN_REPOSITORY_PREFIX.Length);
                     AddDict(rulesByPartialRepoKey, pluginKey, rule);
                 }
-                else if ("csharpsquid".Equals(rule.RepoKey) || "vbnet".Equals(rule.RepoKey))
+                else if ("csharpsquid".Equals(rule.RepositoryKey) || "vbnet".Equals(rule.RepositoryKey))
                 {
                     AddDict(rulesByPartialRepoKey, string.Format(SONARANALYZER_PARTIAL_REPO_KEY, language), rule);
                 }

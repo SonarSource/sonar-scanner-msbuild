@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using SonarQube.Client.Models;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 using SonarScanner.MSBuild.TFS;
@@ -60,7 +61,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         }
 
         public AnalyzerSettings SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings,
-            IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, string language)
+            IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules, string language)
         {
             this.sqSettings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.sqServerSettings = serverSettings ?? throw new ArgumentNullException(nameof(serverSettings));
@@ -106,7 +107,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         /// Active rules should never be empty, but depending on the server settings of repo keys, we might have no rules in the ruleset.
         /// In that case, this method returns null.
         /// </summary>
-        private AnalyzerSettings ConfigureAnalyzer(string language, IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules)
+        private AnalyzerSettings ConfigureAnalyzer(string language, IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules)
         {
             var ruleSetGenerator = new RoslynRuleSetGenerator(this.sqServerSettings);
             var ruleSet = ruleSetGenerator.Generate(activeRules, inactiveRules, language);
@@ -151,7 +152,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             return Path.Combine(settings.SonarConfigDirectory, GetRoslynRulesetFileName(language));
         }
 
-        private IEnumerable<string> WriteAdditionalFiles(string language, IEnumerable<SonarRule> activeRules)
+        private IEnumerable<string> WriteAdditionalFiles(string language, IEnumerable<SonarQubeRule> activeRules)
         {
             Debug.Assert(activeRules != null, "Supplied active rules should not be null");
 
@@ -166,7 +167,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             return additionalFiles;
         }
 
-        private string WriteSonarLintXmlFile(string language, IEnumerable<SonarRule> activeRules)
+        private string WriteSonarLintXmlFile(string language, IEnumerable<SonarQubeRule> activeRules)
         {
             if (string.IsNullOrWhiteSpace(language))
             {
@@ -199,7 +200,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             return fullPath;
         }
 
-        public IEnumerable<string> FetchAnalyzerAssemblies(IEnumerable<SonarRule> activeRules, string language)
+        public IEnumerable<string> FetchAnalyzerAssemblies(IEnumerable<SonarQubeRule> activeRules, string language)
         {
             var repoKeys = ActiveRulesPartialRepoKey(activeRules, language);
             IList<Plugin> plugins = new List<Plugin>();
@@ -248,7 +249,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             return partialRepoKey + ".staticResourceName";
         }
 
-        private static ICollection<string> ActiveRulesPartialRepoKey(IEnumerable<SonarRule> activeRules, string language)
+        private static ICollection<string> ActiveRulesPartialRepoKey(IEnumerable<SonarQubeRule> activeRules, string language)
         {
             var list = new HashSet<string>
             {
@@ -259,9 +260,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
             foreach (var activeRule in activeRules)
             {
-                if (activeRule.RepoKey.StartsWith(ROSLYN_REPOSITORY_PREFIX))
+                if (activeRule.RepositoryKey.StartsWith(ROSLYN_REPOSITORY_PREFIX))
                 {
-                    list.Add(activeRule.RepoKey.Substring(ROSLYN_REPOSITORY_PREFIX.Length));
+                    list.Add(activeRule.RepositoryKey.Substring(ROSLYN_REPOSITORY_PREFIX.Length));
                 }
             }
 

@@ -18,10 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
 {
+    [Obsolete]
     public class SonarRule
     {
         public string RepoKey { set; get; }
@@ -40,20 +42,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
         {
         }
 
-        public SonarRule(string repoKey, string ruleKey)
+        public SonarRule(string ruleKey, string repoKey)
         {
             RepoKey = repoKey;
             RuleKey = ruleKey;
         }
 
-        public SonarRule(string repoKey, string ruleKey, bool isActive)
+        public SonarRule(string ruleKey, string repoKey, bool isActive)
         {
             RepoKey = repoKey;
             RuleKey = ruleKey;
             IsActive = isActive;
         }
 
-        public SonarRule(string repoKey, string ruleKey, string internalKey, bool isActive)
+        public SonarRule(string ruleKey, string repoKey, string internalKey, bool isActive)
         {
             RepoKey = repoKey;
             RuleKey = ruleKey;

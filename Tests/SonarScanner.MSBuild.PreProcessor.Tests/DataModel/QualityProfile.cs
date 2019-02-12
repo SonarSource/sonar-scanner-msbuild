@@ -19,7 +19,7 @@
  */
 
 using System.Collections.Generic;
-using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
+using SonarQube.Client.Models;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
@@ -33,8 +33,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             Language = language;
             Organization = organization;
             this.projectIds = new HashSet<string>();
-            InactiveRules = new List<SonarRule>();
-            ActiveRules = new List<SonarRule>();
+            InactiveRules = new List<SonarQubeRule>();
+            ActiveRules = new List<SonarQubeRule>();
         }
 
         public QualityProfile AddProject(string projectKey, string projectBranch = null)
@@ -49,13 +49,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             return this;
         }
 
-        public QualityProfile AddRule(SonarRule rule)
+        public QualityProfile AddRule(SonarQubeRule rule)
         {
             ActiveRules.Add(rule);
             return this;
         }
 
-        public QualityProfile AddInactiveRule(SonarRule rule)
+        public QualityProfile AddInactiveRule(SonarQubeRule rule)
         {
             InactiveRules.Add(rule);
             return this;
@@ -65,7 +65,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public string Language { get; }
         public string Organization { get; }
         public IEnumerable<string> Projects { get { return this.projectIds; } }
-        public IList<SonarRule> ActiveRules { get; }
-        public IList<SonarRule> InactiveRules { get; }
+        public IList<SonarQubeRule> ActiveRules { get; }
+        public IList<SonarQubeRule> InactiveRules { get; }
     }
 }
