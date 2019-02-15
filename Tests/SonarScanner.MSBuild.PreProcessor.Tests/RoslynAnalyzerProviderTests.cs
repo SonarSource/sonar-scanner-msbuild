@@ -128,6 +128,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             logger.AssertErrorsLogged(0);
 
             CheckRuleset(actualSettings.RuleSetFilePath, rootFolder, language);
+            CheckTestRuleset(actualSettings.TestProjectRuleSetFilePath, rootFolder, language);
 
             actualSettings.AnalyzerAssemblyPaths.Should().BeEmpty();
             var plugins = new List<string>();
@@ -160,6 +161,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             logger.AssertErrorsLogged(0);
 
             CheckRuleset(actualSettings.RuleSetFilePath, rootFolder, language);
+            CheckTestRuleset(actualSettings.TestProjectRuleSetFilePath, rootFolder, language);
 
             CheckExpectedAdditionalFiles(actualSettings);
             CheckExpectedAssemblies(actualSettings, "c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
@@ -305,6 +307,36 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
   </Rules>
   <Rules AnalyzerId=""Wintellect.Analyzers"" RuleNamespace=""Wintellect.Analyzers"">
     <Rule Id=""Wintellect003"" Action=""Warning"" />
+  </Rules>
+</RuleSet>";
+
+            File.ReadAllText(ruleSetPath).Should().Be(expectedContent, "Ruleset file does not have the expected content: {0}", ruleSetPath);
+        }
+
+        private void CheckTestRuleset(string ruleSetPath, string rootDir, string language)
+        {
+            ruleSetPath.Should().NotBeNullOrEmpty("Ruleset file path should be set");
+
+            Path.IsPathRooted(ruleSetPath).Should().BeTrue("Ruleset file path should be absolute");
+
+            File.Exists(ruleSetPath).Should().BeTrue("Specified ruleset file does not exist: {0}", ruleSetPath);
+            TestContext.AddResultFile(ruleSetPath);
+
+            CheckFileIsXml(ruleSetPath);
+
+            Path.GetFileName(ruleSetPath).Should().Be($"SonarQubeRoslyn-{language}-test.ruleset", "Ruleset file does not have the expected name");
+
+            Path.GetDirectoryName(ruleSetPath).Should().Be(GetConfPath(rootDir), "Ruleset was not written to the expected location");
+
+            var expectedContent = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" Name=""Rules for SonarQube"" Description=""This rule set was automatically generated from SonarQube"" ToolsVersion=""14.0"">
+  <Rules AnalyzerId=""SonarAnalyzer.CSharp"" RuleNamespace=""SonarAnalyzer.CSharp"">
+    <Rule Id=""S1116"" Action=""None"" />
+    <Rule Id=""S1125"" Action=""None"" />
+    <Rule Id=""S1000"" Action=""None"" />
+  </Rules>
+  <Rules AnalyzerId=""Wintellect.Analyzers"" RuleNamespace=""Wintellect.Analyzers"">
+    <Rule Id=""Wintellect003"" Action=""None"" />
   </Rules>
 </RuleSet>";
 

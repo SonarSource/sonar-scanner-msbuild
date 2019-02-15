@@ -32,17 +32,27 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void Ctor_WhenRuleSetFilePathIsNull_ThrowsArgumentNullException()
         {
             // Arrange
-            Action action = () => new AnalyzerSettings("language", null, Enumerable.Empty<string>(), Enumerable.Empty<string>());
+            Action action = () => new AnalyzerSettings("language", null, "path", Enumerable.Empty<string>(), Enumerable.Empty<string>());
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSetFilePath");
         }
 
         [TestMethod]
+        public void Ctor_WhenTestProjectRuleSetFilePathIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            Action action = () => new AnalyzerSettings("language", "path", null, Enumerable.Empty<string>(), Enumerable.Empty<string>());
+
+            // Act & Assert
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("testProjectRuleSetFilePath");
+        }
+
+        [TestMethod]
         public void Ctor_WhenRuleSetFilePathIsEmpty_ThrowsArgumentNullException()
         {
             // Arrange
-            Action action = () => new AnalyzerSettings("language", "", Enumerable.Empty<string>(), Enumerable.Empty<string>());
+            Action action = () => new AnalyzerSettings("language", "", "path", Enumerable.Empty<string>(), Enumerable.Empty<string>());
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSetFilePath");
@@ -52,7 +62,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void Ctor_WhenRuleSetFilePathIsWhitespaces_ThrowsArgumentNullException()
         {
             // Arrange
-            Action action = () => new AnalyzerSettings("language", "   ", Enumerable.Empty<string>(), Enumerable.Empty<string>());
+            Action action = () => new AnalyzerSettings("language", "   ", "path", Enumerable.Empty<string>(), Enumerable.Empty<string>());
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSetFilePath");
@@ -62,7 +72,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void Ctor_WhenAnalyzerAssembliesIsNull_ThrowsArgumentNullException()
         {
             // Arrange
-            Action action = () => new AnalyzerSettings("language", "foo", null, Enumerable.Empty<string>());
+            Action action = () => new AnalyzerSettings("language", "foo", "path", null, Enumerable.Empty<string>());
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analyzerAssemblies");
@@ -72,7 +82,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void Ctor_WhenAdditionalFilesIsNull_ThrowsArgumentNullException()
         {
             // Arrange
-            Action action = () => new AnalyzerSettings("language", "foo", Enumerable.Empty<string>(), null);
+            Action action = () => new AnalyzerSettings("language", "foo", "path", Enumerable.Empty<string>(), null);
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("additionalFiles");

@@ -37,6 +37,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
             this.serverProperties = serverProperties ?? throw new ArgumentNullException(nameof(serverProperties));
         }
 
+        public RuleAction ActiveRuleAction { get; set; } = RuleAction.Warning;
+
         /// <summary>
         /// Generates a RuleSet that is serializable (XML).
         /// The ruleset can be empty if there are no active rules belonging to the repo keys "vbnet", "csharpsquid" or "roslyn.*".
@@ -95,7 +97,25 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
 
         private Rule CreateRuleElement(SonarRule sonarRule) =>
             new Rule(
-                sonarRule.RuleKey, sonarRule.IsActive ? "Warning" : "None");
+                sonarRule.RuleKey,
+                GetActionText(sonarRule.IsActive ? ActiveRuleAction : RuleAction.None));
+
+        private static string GetActionText(RuleAction ruleAction)
+        {
+            switch (ruleAction)
+            {
+                case RuleAction.None:
+                    return "None";
+                case RuleAction.Info:
+                    return "Info";
+                case RuleAction.Warning:
+                    return "Warning";
+                case RuleAction.Error:
+                    return "Error";
+                default:
+                    throw new NotSupportedException($"RuleAction is not supported {ruleAction}");
+            }
+        }
 
         private static string GetPartialRepoKey(SonarRule rule, string language)
         {
