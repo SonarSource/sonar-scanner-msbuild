@@ -54,17 +54,17 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // 1. Prebuild
             // Arrange
-            EnsureDummyIntegrationTargetsFileExists();
-
-            var preImportProperties = new WellKnownProjectProperties
-            {
-                SonarQubeTargetsPath = "",
-                TeamBuild2105BuildDirectory = "",
-                TeamBuildLegacyBuildDirectory = ""
-            };
+            var projectXml = @"
+<PropertyGroup>
+  <SonarQubeTargetsPath />
+  <AGENT_BUILDDIRECTORY />
+  <TF_BUILD_BUILDDIRECTORY />
+</PropertyGroup>
+";
+            var projectFilePath = CreateProjectFile(projectXml);
 
             // Act
-            var projectInstance = CreateAndEvaluateProject(preImportProperties);
+            var projectInstance = CreateAndEvaluateProject(projectFilePath);
 
             // Assert
             BuildAssertions.AssertPropertyDoesNotExist(projectInstance, TargetProperties.SonarQubeTargetFilePath);
@@ -85,16 +85,18 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // 1. Pre-build
             // Arrange
             var dummySonarTargetsDir = EnsureDummyIntegrationTargetsFileExists();
-
-            var preImportProperties = new WellKnownProjectProperties
-            {
-                SonarQubeTempPath = Path.GetTempPath(),
-                SonarQubeTargetsPath = Path.GetDirectoryName(dummySonarTargetsDir),
-                BuildingInsideVS = "tRuE" // should not be case-sensitive
-            };
+            
+            var projectXml = $@"
+<PropertyGroup>
+  <SonarQubeTempPath>{Path.GetTempPath()}</SonarQubeTempPath>
+  <SonarQubeTargetsPath>{Path.GetDirectoryName(dummySonarTargetsDir)}</SonarQubeTargetsPath>
+  <BuildingInsideVisualStudio>tRuE</BuildingInsideVisualStudio>
+</PropertyGroup>
+";
+            var projectFilePath = CreateProjectFile(projectXml);
 
             // Act
-            var projectInstance = CreateAndEvaluateProject(preImportProperties);
+            var projectInstance = CreateAndEvaluateProject(projectFilePath);
 
             // Assert
             BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeTargetFilePath, dummySonarTargetsDir);
@@ -114,16 +116,19 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // 1. Prebuild
             // Arrange
-            var preImportProperties = new WellKnownProjectProperties
-            {
-                SonarQubeTempPath = "nonExistentPath",
-                MSBuildExtensionsPath = "nonExistentPath",
-                TeamBuild2105BuildDirectory = "",
-                TeamBuildLegacyBuildDirectory = ""
-            };
+            var projectXml = @"
+<PropertyGroup>
+  <SonarQubeTempPath>nonExistentPath</SonarQubeTempPath>
+  <MSBuildExtensionsPath>nonExistentPath</MSBuildExtensionsPath>
+  <AGENT_BUILDDIRECTORY />
+  <TF_BUILD_BUILDDIRECTORY />
+</PropertyGroup>
+";
+            var projectFilePath = CreateProjectFile(projectXml);
 
             // Act
-            var projectInstance = CreateAndEvaluateProject(preImportProperties);
+            var projectInstance = CreateAndEvaluateProject(projectFilePath);
+
 
             // Assert
             BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeTargetsPath, @"nonExistentPath\bin\targets");
@@ -150,16 +155,18 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var dummySonarTargetsDir = EnsureDummyIntegrationTargetsFileExists();
 
-            var preImportProperties = new WellKnownProjectProperties
-            {
-                SonarQubeTempPath = Path.GetTempPath(),
-                SonarQubeTargetsPath = Path.GetDirectoryName(dummySonarTargetsDir),
-                TeamBuild2105BuildDirectory = "",
-                TeamBuildLegacyBuildDirectory = ""
-            };
+            var projectXml = $@"
+<PropertyGroup>
+  <SonarQubeTempPath>{Path.GetTempPath()}</SonarQubeTempPath>
+  <SonarQubeTargetsPath>{Path.GetDirectoryName(dummySonarTargetsDir)}</SonarQubeTargetsPath>
+  <AGENT_BUILDDIRECTORY />
+  <TF_BUILD_BUILDDIRECTORY />
+</PropertyGroup>
+";
+            var projectFilePath = CreateProjectFile(projectXml);
 
             // Act
-            var projectInstance = CreateAndEvaluateProject(preImportProperties);
+            var projectInstance = CreateAndEvaluateProject(projectFilePath);
 
             // Assert
             BuildAssertions.AssertExpectedPropertyValue(projectInstance, TargetProperties.SonarQubeTargetFilePath, dummySonarTargetsDir);
@@ -177,46 +184,17 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         #region Private methods
 
-        private ProjectInstance CreateAndEvaluateProject(Dictionary<string, string> preImportProperties)
+        private ProjectInstance CreateAndEvaluateProject(string projectFilePath)
         {
             // TODO: consider changing these tests to redirect where the common targets look for ImportBefore assemblies.
             // That would allow us to test the actual ImportBefore behavior (we're currently creating a project that
             // explicitly imports our SonarQube "ImportBefore" project).
-            BuildUtilities.DisableStandardTargetsWildcardImporting(preImportProperties);
-
-            var projectRoot = CreateImportsBeforeTestProject(preImportProperties);
 
             // Evaluate the imports
-            var projectInstance = new ProjectInstance(projectRoot);
+            var projectInstance = new ProjectInstance(projectFilePath);
 
             SavePostEvaluationProject(projectInstance);
             return projectInstance;
-        }
-
-        /// <summary>
-        /// Creates and returns a minimal project file that has imported the ImportsBefore targets file
-        /// </summary>
-        /// <param name="preImportProperties">Any properties that need to be set before the C# targets are imported. Can be null.</param>
-        private ProjectRootElement CreateImportsBeforeTestProject(IDictionary<string, string> preImportProperties)
-        {
-            // Create a dummy SonarQube analysis targets file
-            EnsureDummyIntegrationTargetsFileExists();
-
-            // Locate the real "ImportsBefore" target file
-            var importsBeforeTargets = Path.Combine(TestUtils.CreateTestSpecificFolder(TestContext), TargetConstants.ImportsBeforeFile);
-            File.Exists(importsBeforeTargets).Should().BeTrue("Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
-
-            var projectName = TestContext.TestName + ".proj";
-            var testSpecificFolder = TestUtils.CreateTestSpecificFolder(TestContext);
-            var fullProjectPath = Path.Combine(testSpecificFolder, projectName);
-
-            var root = BuildUtilities.CreateMinimalBuildableProject(preImportProperties, false /* not a VB project */, importsBeforeTargets);
-            root.AddProperty(TargetProperties.ProjectGuid, Guid.NewGuid().ToString("D"));
-
-            root.Save(fullProjectPath);
-            TestContext.AddResultFile(fullProjectPath);
-
-            return root;
         }
 
         /// <summary>
@@ -255,6 +233,47 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 File.WriteAllText(fullPath, contents);
             }
             return fullPath;
+        }
+
+        private string CreateProjectFile(string testSpecificProjectXml)
+        {
+            var projectDirectory = TestUtils.CreateTestSpecificFolder(TestContext);
+
+            // Locate the real "ImportsBefore" target file
+            var importsBeforeTargets = Path.Combine(TestUtils.CreateTestSpecificFolder(TestContext), TargetConstants.ImportsBeforeFile);
+            File.Exists(importsBeforeTargets).Should().BeTrue("Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
+
+            var template = @"<?xml version='1.0' encoding='utf-8'?>
+<Project ToolsVersion='15.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+
+  <!-- Test-specific data -->
+  TEST_SPECIFIC_XML
+
+  <!-- Boilerplate -->
+  <PropertyGroup>
+    <ImportByWildcardBeforeMicrosoftCommonTargets>false</ImportByWildcardBeforeMicrosoftCommonTargets>
+    <ImportByWildcardAfterMicrosoftCommonTargets>false</ImportByWildcardAfterMicrosoftCommonTargets>
+    <ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>false</ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>
+    <ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>false</ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>
+    <OutputPath>bin\</OutputPath>
+    <Language>C#</Language>
+    <OutputType>library</OutputType>
+    <ProjectGuid>ffdb93c0-2880-44c7-89a6-bbd4ddab034a</ProjectGuid>
+  </PropertyGroup>
+
+  <!-- Standard boilerplate closing imports -->
+  <Import Project='SQ_IMPORTS_BEFORE' />
+  <Import Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
+</Project>
+";
+            var projectData = template.Replace("SQ_IMPORTS_BEFORE", importsBeforeTargets)
+                .Replace("TEST_SPECIFIC_XML", testSpecificProjectXml);
+
+            var projectFilePath = Path.Combine(projectDirectory, TestContext.TestName + ".proj.txt");
+            File.WriteAllText(projectFilePath, projectData);
+            TestContext.AddResultFile(projectFilePath);
+
+            return projectFilePath;
         }
 
         #endregion Private methods

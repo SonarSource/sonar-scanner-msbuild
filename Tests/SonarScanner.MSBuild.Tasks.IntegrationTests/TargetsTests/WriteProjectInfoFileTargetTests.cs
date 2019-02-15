@@ -47,11 +47,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
 
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "content.proj.txt");
-            var projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+            var projectFilePath = CreateProjectFile(null, null, rootOutputFolder);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
 
             // Assert
             AssertResultFileDoesNotExist(projectInfo, AnalysisType.FilesToAnalyze);
@@ -65,28 +64,46 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // The analysis file list should be created with the expected files
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
 
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "content.X.proj.txt");
-            var projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+            // Note: the included/excluded files don't actually have to exist
+            string projectXml = $@"
+<ItemGroup>
+  <Content Include='included1.txt'>
+    <SonarQubeExclude>false</SonarQubeExclude>
+  </Content>
+  <Compile Include='included2.txt'>
+    <SonarQubeExclude>false</SonarQubeExclude>
+  </Compile>
+  <Content Include='included3.txt' />
 
-            // Files we expect to be included
-            var file1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false");
-            var file2 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "FALSE");
-            var file3 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null); // no metadata
 
-            // Files we don't expect to be included
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "true");
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "TRUE");
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "true");
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "TRUE");
+  <Content Include='excluded1.txt'>
+    <SonarQubeExclude>true</SonarQubeExclude>
+  </Content>
+  <Content Include='excluded2.txt'>
+    <SonarQubeExclude>TRUE</SonarQubeExclude>
+  </Content>
+  <Compile Include='excluded3.txt'>
+    <SonarQubeExclude>true</SonarQubeExclude>
+  </Compile>
+  <Compile Include='excluded4.txt'>
+    <SonarQubeExclude>TRUE</SonarQubeExclude>
+  </Compile>
+
+</ItemGroup>
+";
+            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+            var projectDir = Path.GetDirectoryName(projectFilePath);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
 
             // Assert
-            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, file1, file2, file3);
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze,
+                projectDir + "\\included1.txt",
+                projectDir + "\\included2.txt",
+                projectDir + "\\included3.txt");
         }
 
         [TestMethod]
@@ -97,28 +114,51 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // The content file list should not include items with <AutoGen>true</AutoGen> metadata
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            
+            // Note: the included/excluded files don't actually have to exist
+            string projectXml = $@"
+<ItemGroup>
+  <!-- Files we expect to be excluded -->
+  <Content Include='excluded1.txt'>
+    <AutoGen>TRUE</AutoGen>
+  </Content>
+  <Compile Include='excluded2.txt'>
+    <SonarQubeExclude>false</SonarQubeExclude>
+    <AutoGen>truE</AutoGen>
+  </Compile>
+  <Compile Include='excluded3.txt'>
+    <SonarQubeExclude>true</SonarQubeExclude>
+    <AutoGen>false</AutoGen>
+  </Compile>
 
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "agC.proj.txt");
-            var projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+  <!-- Files we expect to be included -->
+  <Content Include='included1.txt' />
+  <Compile Include='included2.txt' />
+  <Content Include='included3.txt' >
+    <SonarQubeExclude>false</SonarQubeExclude>
+    <AutoGen>FALSe</AutoGen>
+  </Content>
+  <Compile Include='included4.txt'>
+    <SonarQubeExclude>false</SonarQubeExclude>
+    <AutoGen>faLSe</AutoGen>
+  </Compile>
 
-            // Files we don't expect to be included
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, "TRUE"); // only AutoGen, set to true
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false", "truE"); // exclude=false, autogen=true
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "true", "false"); // exclude=true, autogen=false
-
-            // Files we expect to be included
-            var content1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, null, null); // no metadata
-            var compile1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, null, null); // no metadata
-            var autogenContentFalseAndIncluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, "false", "FALSe"); // exclude=false, autogen=false
-            var autogenCompileFalseAndIncluded = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, "false", "faLSE"); // exclude=false, autogen=false
+</ItemGroup>
+";
+            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+            var projectDir = Path.GetDirectoryName(projectFilePath);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
 
-            // Assert
-            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, compile1, content1, autogenContentFalseAndIncluded, autogenCompileFalseAndIncluded);
+
+            // Act
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze,
+                projectDir + "\\included1.txt",
+                projectDir + "\\included2.txt",
+                projectDir + "\\included3.txt",
+                projectDir + "\\included4.txt");
         }
 
         [TestMethod]
@@ -129,32 +169,46 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Check that all default item types are included for analysis
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
 
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "fileTypes.proj.txt");
-            var projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+            // Note: the included/excluded files don't actually have to exist
+            string projectXml = $@"
+<ItemGroup>
+  <!-- Files we expect to be excluded -->
+  <fooType Include='xfile1.txt' />
+  <barType Include='xfile2.txt' />
 
-            // Files we don't expect to be included by default
-            AddFileToProject(projectRoot, "fooType");
-            AddFileToProject(projectRoot, "barType");
+  <!-- Files we expect to be included -->
+  <Compile Include='compile.txt'>
+    <SonarQubeExclude></SonarQubeExclude>
+  </Compile>
+  <Content Include='content.txt' >
+    <SonarQubeExclude />
+  </Content>
+  <EmbeddedResource Include='resource.res' >
+    <SonarQubeExclude />
+  </EmbeddedResource>
+  <None Include='none.none' />
+  <ClCompile Include='code.cpp' />
+  <Page Include='page.page' />
+  <TypeScriptCompile Include='tsfile.ts' />
 
-            // Files we expect to be included by default
-            var managed1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, sonarQubeExclude: null);
-            var content1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, sonarQubeExclude: null);
-            var embedded1 = AddFileToProject(projectRoot, "EmbeddedResource", sonarQubeExclude: null);
-            var none1 = AddFileToProject(projectRoot, "None", sonarQubeExclude: null);
-            var nativeCompile1 = AddFileToProject(projectRoot, "ClCompile", sonarQubeExclude: null);
-            AddFileToProject(projectRoot, "Page", sonarQubeExclude: null);
-            var typeScript1 = AddFileToProject(projectRoot, "TypeScriptCompile", sonarQubeExclude: null);
+</ItemGroup>
+";
+            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+            var projectDir = Path.GetDirectoryName(projectFilePath);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
 
             // Assert
-            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, managed1, content1, embedded1, none1, nativeCompile1, typeScript1);
-
-            projectRoot.AddProperty("SQAnalysisFileItemTypes", "$(SQAnalysisFileItemTypes);fooType;barType;");
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze,
+                projectDir + "\\compile.txt",
+                projectDir + "\\content.txt",
+                projectDir + "\\resource.res",
+                projectDir + "\\none.none",
+                projectDir + "\\code.cpp",
+                projectDir + "\\tsfile.ts");
         }
 
         [TestMethod]
@@ -163,28 +217,38 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void WriteProjectInfo_AnalysisFileList_FilesTypes_OnlySpecified()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
 
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "fileTypes.proj.txt");
-            var projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+            // Note: the included/excluded files don't actually have to exist
+            string projectXml = $@"
+<PropertyGroup>
+  <!-- Set the file types to be included -->
+  <SQAnalysisFileItemTypes>fooType;xxxType</SQAnalysisFileItemTypes>
+</PropertyGroup>
 
-            // Files we don't expect to be included by default
-            var fooType1 = AddFileToProject(projectRoot, "fooType", sonarQubeExclude: null);
-            var xxxType1 = AddFileToProject(projectRoot, "xxxType", sonarQubeExclude: null);
-            AddFileToProject(projectRoot, "barType", sonarQubeExclude: null);
+<ItemGroup>
 
-            // Files we'd normally expect to be included by default
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, sonarQubeExclude: null);
-            AddFileToProject(projectRoot, TargetProperties.ItemType_Content, sonarQubeExclude: null);
+  <!-- Files we don't expect to be excluded by default -->
+  <fooType Include='foo.foo' />
+  <xxxType Include='xxxType.xxx' />
+  <barType Include='barType.xxx' />
 
-            projectRoot.AddProperty("SQAnalysisFileItemTypes", "fooType;xxxType");
+  <!-- Files we normal expect to be included by default -->
+  <Compile Include='compile.txt' />
+  <Content Include='content.txt' />
+
+</ItemGroup>
+";
+            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+            var projectDir = Path.GetDirectoryName(projectFilePath);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
 
             // Assert
-            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, fooType1, xxxType1);
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze,
+                projectDir + "\\foo.foo",
+                projectDir + "\\xxxType.xxx");
         }
 
         [TestMethod]
@@ -193,33 +257,40 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void WriteProjectInfo_AnalysisFileList_FilesTypes_SpecifiedPlusDefaults()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
 
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "fileTypes.proj.txt");
-            var projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+            // Note: the included/excluded files don't actually have to exist
+            string projectXml = $@"
+<PropertyGroup>
+  <!-- Specify some additional types to be included -->
+  <SQAdditionalAnalysisFileItemTypes>fooType;xxxType</SQAdditionalAnalysisFileItemTypes>
+</PropertyGroup>
 
-            // Files we don't expect to be included by default
-            var fooType1 = AddFileToProject(projectRoot, "fooType", sonarQubeExclude: null);
-            var xxxType1 = AddFileToProject(projectRoot, "xxxType", sonarQubeExclude: null);
-            AddFileToProject(projectRoot, "barType", sonarQubeExclude: null);
+<ItemGroup>
 
-            // Files we'd normally expect to be included by default
-            var managed1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Compile, sonarQubeExclude: null);
-            var content1 = AddFileToProject(projectRoot, TargetProperties.ItemType_Content, sonarQubeExclude: null);
+  <!-- Files we don't expect to be excluded by default -->
+  <fooType Include='foo.foo' />
+  <xxxType Include='xxxType.xxx' />
+  <barType Include='barType.xxx' />
 
-            // Update the "item types" property to add some extra item type
-            // NB this has to be done *after* the integration targets have been imported
-            var group = projectRoot.CreatePropertyGroupElement();
-            projectRoot.AppendChild(group);
-            group.AddProperty("SQAnalysisFileItemTypes", "fooType;$(SQAnalysisFileItemTypes);xxxType");
-            projectRoot.Save();
+  <!-- Files we normal expect to be included by default -->
+  <Compile Include='compile.txt' />
+  <Content Include='content.txt' />
+
+</ItemGroup>
+";
+            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+            var projectDir = Path.GetDirectoryName(projectFilePath);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
 
             // Assert
-            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, fooType1, xxxType1, content1, managed1);
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze,
+                projectDir + "\\foo.foo",
+                projectDir + "\\xxxType.xxx",
+                projectDir + "\\compile.txt",
+                projectDir + "\\content.txt");
         }
 
         #endregion File list tests
@@ -236,15 +307,18 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var analysisConfig = new AnalysisConfig
+            {
+                LocalSettings = new AnalysisProperties
+                {
+                    new Property { Id = IsTestFileByName.TestRegExSettingId, Value = "pattern that won't match anything" }
+                }
+            };
 
-            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
-
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "f.proj");
+            var projectFilePath = CreateProjectFile(analysisConfig, null, rootOutputFolder);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
 
             // Assert
             AssertIsProductProject(projectInfo);
@@ -262,16 +336,23 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var analysisConfig = new AnalysisConfig
+            {
+                LocalSettings = new AnalysisProperties
+                {
+                    new Property { Id = IsTestFileByName.TestRegExSettingId, Value = "pattern that won't match anything" }
+                }
+            };
 
-            EnsureAnalysisConfig(rootInputFolder, "pattern that won't match anything");
-
-            var preImportProperties = CreateDefaultAnalysisProperties(rootInputFolder, rootOutputFolder);
-            preImportProperties.AssemblyName = "f.fAKes";
-
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "f.proj");
+            string projectXml = $@"
+<PropertyGroup>
+  <AssemblyName>f.fAKes</AssemblyName>
+</PropertyGroup>
+";
+            var projectFilePath = CreateProjectFile(analysisConfig, projectXml, rootOutputFolder);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(descriptor, preImportProperties, rootOutputFolder);
+            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
 
             // Assert
             AssertIsTestProject(projectInfo);
@@ -285,17 +366,26 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var analysisConfig = new AnalysisConfig
+            {
+                LocalSettings = new AnalysisProperties
+                {
+                    new Property { Id = IsTestFileByName.TestRegExSettingId, Value = "pattern that won't match anything" }
+                }
+            };
 
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
-            descriptor.Encoding = Encoding.GetEncoding(1250);
-
-            var projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+            string projectXml = $@"
+<PropertyGroup>
+  <CodePage>1250</CodePage>
+</PropertyGroup>
+";
+            var projectFilePath = CreateProjectFile(analysisConfig, projectXml, rootOutputFolder);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
+            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
 
             // Assert
-            projectInfo.Encoding.Should().Be(descriptor.Encoding.WebName);
+            projectInfo.Encoding.Should().Be("windows-1250");
         }
 
         [TestMethod]
@@ -306,12 +396,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
 
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder);
-            descriptor.Encoding = null;
-            var projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+            string projectXml = $@"
+<PropertyGroup>
+  <CodePage />
+</PropertyGroup>
+";
+            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
+            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
 
             // Assert
             projectInfo.Encoding.Should().BeNull();
@@ -326,22 +419,36 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
 
-            var descriptor = BuildUtilities.CreateValidProjectDescriptor(rootInputFolder, "content.proj.txt");
-            var projectRoot = CreateInitializedProject(descriptor, new WellKnownProjectProperties(), rootOutputFolder);
+            string projectXml = $@"
+<ItemGroup>
+  <!-- Items that should not produce settings in the projectInfo.xml -->
+  <UnrelatedItemType Include='irrelevantItem' />
+  <Compile Include='irrelevantFile.cs' />
+  <SonarQubeSetting Include='invalid.settings.no.value.metadata' />
 
-            // Invalid items
-            AddItem(projectRoot, "UnrelatedItemType", "irrelevantItem"); // should be ignored
-            AddItem(projectRoot, TargetProperties.ItemType_Compile, "IrrelevantFile.cs"); // should be ignored
-            AddItem(projectRoot, BuildTaskConstants.SettingItemName, "invalid.settings.no.value.metadata"); // invalid -> ignored
+  <!-- Items that should produce settings in the projectInfo.xml -->
+  <SonarQubeSetting Include='valid.setting1' >
+    <Value>value1</Value>
+  </SonarQubeSetting>
 
-            // Module-level settings
-            AddItem(projectRoot, BuildTaskConstants.SettingItemName, "valid.setting1", BuildTaskConstants.SettingValueMetadataName, "value1");
-            AddItem(projectRoot, BuildTaskConstants.SettingItemName, "valid.setting2...", BuildTaskConstants.SettingValueMetadataName, "value 2 with spaces");
-            AddItem(projectRoot, BuildTaskConstants.SettingItemName, "valid.path", BuildTaskConstants.SettingValueMetadataName, @"d:\aaa\bbb.txt");
-            AddItem(projectRoot, BuildTaskConstants.SettingItemName, "common.setting.name", BuildTaskConstants.SettingValueMetadataName, @"local value");
+  <SonarQubeSetting Include='valid.setting2...' >
+    <Value>value 2 with spaces</Value>
+  </SonarQubeSetting>
+
+  <SonarQubeSetting Include='valid.path' >
+    <Value>d:\aaa\bbb.txt</Value>
+  </SonarQubeSetting>
+
+  <SonarQubeSetting Include='common.setting.name' >
+    <Value>local value</Value>
+  </SonarQubeSetting>
+
+</ItemGroup>
+";
+            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
 
             // Act
-            var projectInfo = ExecuteWriteProjectInfo(projectRoot, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
+            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder, noWarningOrErrors: false /* expecting warnings */);
 
             // Assert
             AssertSettingExists(projectInfo, "valid.setting1", "value1");
@@ -449,55 +556,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         #endregion Miscellaneous tests
 
         #region Private methods
-
-        /// <summary>
-        /// Creates a new project using the supplied descriptor and properties, then
-        /// execute the WriteProjectInfoFile task. The method will check the build succeeded
-        /// and that a single project output file was created.
-        /// </summary>
-        /// <returns>The project info file that was created during the build</returns>
-        private ProjectInfo ExecuteWriteProjectInfo(ProjectDescriptor descriptor, WellKnownProjectProperties preImportProperties, string rootOutputFolder)
+        
+        private ProjectInfo ExecuteWriteProjectInfo(string projectFilePath, string rootOutputFolder, bool noWarningOrErrors = true)
         {
-            var projectRoot = CreateInitializedProject(descriptor, preImportProperties, rootOutputFolder);
-
-            return ExecuteWriteProjectInfo(projectRoot, rootOutputFolder);
-        }
-
-        private ProjectRootElement CreateInitializedProject(ProjectDescriptor descriptor, WellKnownProjectProperties preImportProperties, string rootOutputFolder)
-        {
-            // Still need to set the conditions so the target is invoked
-            preImportProperties.SonarQubeOutputPath = rootOutputFolder;
-
-            // The temp folder needs to be set for the targets to succeed. Use the temp folder
-            // if one has not been supplied.
-            if (string.IsNullOrEmpty(preImportProperties.SonarQubeTempPath))
-            {
-                preImportProperties.SonarQubeTempPath = Path.GetTempPath();
-            }
-
-            // The config folder needs to be set for the targets to succeed. Use the temp folder
-            // if one has not been supplied.
-            if (string.IsNullOrEmpty(preImportProperties.SonarQubeConfigPath))
-            {
-                preImportProperties.SonarQubeConfigPath = Path.GetTempPath();
-            }
-
-            var projectRoot = BuildUtilities.CreateInitializedProjectRoot(TestContext, descriptor, preImportProperties);
-
-            return projectRoot;
-        }
-
-        /// <summary>
-        /// Executes the WriteProjectInfoFile target in the the supplied project.
-        /// The method will check the build succeeded and that a single project
-        /// output file was created.
-        /// </summary>
-        /// <returns>The project info file that was created during the build</returns>
-        private ProjectInfo ExecuteWriteProjectInfo(ProjectRootElement projectRoot, string rootOutputFolder, bool noWarningOrErrors = true)
-        {
-            projectRoot.Save();
             // Act
-            var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
+            var result = BuildRunner.BuildTargets(TestContext, projectFilePath,
                 // The "write" target depends on a couple of other targets having executed first to set properties appropriately
                 TargetConstants.CategoriseProjectTarget,
                 TargetConstants.CalculateFilesToAnalyzeTarget,
@@ -518,123 +581,72 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             // Check expected project outputs
             Directory.EnumerateDirectories(rootOutputFolder).Should().HaveCount(1, "Only expecting one child directory to exist under the root analysis output folder");
-            var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
+            var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectFilePath);
 
             return projectInfo;
         }
 
-        /// <summary>
-        /// Creates an empty file on disc and adds it to the project as an
-        /// item with the specified ItemGroup include name.
-        /// The SonarQubeExclude metadata item is set to the specified value.
-        /// </summary>
-        /// <param name="includeName">The name of the item type e.g. Compile, Content</param>
-        /// <param name="sonarQubeExclude">The value to assign to the SonarExclude metadata item</param>
-        /// <returns>The full path to the new file</returns>
-        private string AddFileToProject(ProjectRootElement projectRoot, string includeName, string sonarQubeExclude)
+        private string CreateProjectFile(AnalysisConfig analysisConfig, string testSpecificProjectXml, string sonarQubeOutputPath)
         {
-            var newItem = AddFileToProject(projectRoot, includeName);
-            if (sonarQubeExclude != null)
+            var projectDirectory = TestUtils.CreateTestSpecificFolder(TestContext);
+
+            if (analysisConfig != null)
             {
-                newItem.AddMetadata(TargetProperties.SonarQubeExcludeMetadata, sonarQubeExclude);
+                var configFilePath = Path.Combine(projectDirectory, FileConstants.ConfigFileName);
+                analysisConfig.Save(configFilePath);
             }
 
-            return newItem.Include;
-        }
+            var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
+            File.Exists(sqTargetFile).Should().BeTrue("Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
+            TestContext.AddResultFile(sqTargetFile);
 
-        /// Creates an empty file on disc and adds it to the project as an
-        /// item with the specified ItemGroup include name.
-        /// The SonarQubeExclude metadata item is set to the specified value.
-        /// </summary>
-        /// <param name="includeName">The name of the item type e.g. Compile, Content</param>
-        /// <param name="sonarQubeExclude">The value to assign to the SonarExclude metadata item</param>
-        /// <returns>The full path to the new file</returns>
-        private string AddFileToProject(ProjectRootElement projectRoot, string includeName, string sonarQubeExclude, string autoGen)
-        {
-            var newItem = AddFileToProject(projectRoot, includeName);
-            if (sonarQubeExclude != null)
-            {
-                newItem.AddMetadata(TargetProperties.SonarQubeExcludeMetadata, sonarQubeExclude);
-            }
-            if (autoGen != null)
-            {
-                newItem.AddMetadata(TargetProperties.AutoGenMetadata, autoGen);
-            }
 
-            return newItem.Include;
-        }
+            var template = @"<?xml version='1.0' encoding='utf-8'?>
+<Project ToolsVersion='15.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
-        /// <summary>
-        /// Creates an empty file on disc and adds it to the project as an
-        /// item with the specified ItemGroup include name.
-        /// The SonarQubeExclude metadata item is set to the specified value.
-        /// </summary>
-        /// <param name="includeName">The name of the item type e.g. Compile, Content</param>
-        /// <returns>The new project item</returns>
-        private ProjectItemElement AddFileToProject(ProjectRootElement projectRoot, string includeName)
-        {
-            var projectPath = Path.GetDirectoryName(projectRoot.DirectoryPath); // project needs to have been saved for this to work
-            var fileName = includeName + "_" + System.Guid.NewGuid().ToString();
-            var fullPath = Path.Combine(projectPath, fileName);
-            File.WriteAllText(fullPath, "");
+  <!-- Boilerplate -->
+  <!-- All of these boilerplate properties can be overridden by setting the value again in the test-specific XML snippet -->
+  <PropertyGroup>
+    <ImportByWildcardBeforeMicrosoftCommonTargets>false</ImportByWildcardBeforeMicrosoftCommonTargets>
+    <ImportByWildcardAfterMicrosoftCommonTargets>false</ImportByWildcardAfterMicrosoftCommonTargets>
+    <ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>false</ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>
+    <ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>false</ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>
+    <OutputPath>bin\</OutputPath>
+    <OutputType>library</OutputType>
+    <ProjectGuid>ffdb93c0-2880-44c7-89a6-bbd4ddab034a</ProjectGuid>
+    <Language>C#</Language>
+  </PropertyGroup>
 
-            var element = projectRoot.AddItem(includeName, fullPath);
-            return element;
-        }
+  <PropertyGroup>
+    <!-- Standard values that need to be set for each/most tests -->
+    <SonarQubeBuildTasksAssemblyFile>SONARSCANNER_MSBUILD_TASKS_DLL</SonarQubeBuildTasksAssemblyFile>
+    <SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
+    <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>
+    <SonarQubeOutputPath>SQ_OUTPUT_PATH</SonarQubeOutputPath>
 
-        /// <summary>
-        /// Creates a default set of properties sufficient to trigger test analysis
-        /// </summary>
-        /// <param name="inputPath">The analysis config directory</param>
-        /// <param name="outputPath">The output path into which results should be written</param>
-        /// <returns></returns>
-        private static WellKnownProjectProperties CreateDefaultAnalysisProperties(string configPath, string outputPath)
-        {
-            var preImportProperties = new WellKnownProjectProperties
-            {
-                SonarQubeTempPath = configPath,
-                SonarQubeOutputPath = outputPath,
-                SonarQubeConfigPath = configPath
-            };
-            return preImportProperties;
-        }
+    <!-- Ensure the project is isolated from environment variables that could be picked up when running on a TeamBuild build agent-->
+    <TF_BUILD_BUILDDIRECTORY />
+    <AGENT_BUILDDIRECTORY />
+  </PropertyGroup>
 
-        /// <summary>
-        /// Ensures an analysis config file exists in the specified directory,
-        /// replacing one if it already exists.
-        /// If the supplied "regExExpression" is not null then the appropriate setting
-        /// entry will be created in the file
-        /// </summary>
-        private static void EnsureAnalysisConfig(string parentDir, string regExExpression)
-        {
-            var config = new AnalysisConfig();
-            if (regExExpression != null)
-            {
-                config.LocalSettings = new AnalysisProperties
-                {
-                    new Property { Id = IsTestFileByName.TestRegExSettingId, Value = regExExpression }
-                };
-            }
+  <!-- Test-specific data -->
+  TEST_SPECIFIC_XML
 
-            var fullPath = Path.Combine(parentDir, FileConstants.ConfigFileName);
-            if (File.Exists(fullPath))
-            {
-                File.Delete(fullPath);
-            }
-            config.Save(fullPath);
-        }
+  <!-- Standard boilerplate closing imports -->
+  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))SonarQube.Integration.targets' />
+  <Import Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
+</Project>
+";
+            var projectData = template.Replace("PROJECT_DIRECTORY_PATH", projectDirectory)
+                .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
+                .Replace("TEST_SPECIFIC_XML", testSpecificProjectXml ?? "<!-- none -->")
+                .Replace("SQ_OUTPUT_PATH", sonarQubeOutputPath);
 
-        private static void AddItem(ProjectRootElement projectRoot, string itemTypeName, string include, params string[] idAndValuePairs)
-        {
-            var item = projectRoot.AddItem(itemTypeName, include);
+            var projectFilePath = Path.Combine(projectDirectory, TestContext.TestName + ".proj.txt");
+            File.WriteAllText(projectFilePath, projectData);
+            TestContext.AddResultFile(projectFilePath);
 
-            Math.DivRem(idAndValuePairs.Length, 2, out int remainder);
-            remainder.Should().Be(0, "Test setup error: the supplied list should contain id-location pairs");
-
-            for (var index = 0; index < idAndValuePairs.Length; index += 2)
-            {
-                item.AddMetadata(idAndValuePairs[index], idAndValuePairs[index + 1]);
-            }
+            return projectFilePath;
         }
 
         #endregion Private methods
