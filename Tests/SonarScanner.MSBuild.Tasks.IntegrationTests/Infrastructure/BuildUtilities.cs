@@ -25,6 +25,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.Build.Construction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTests
@@ -58,20 +59,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             };
             return descriptor;
         }
-
-        /// <summary>
-        /// Creates and returns a valid, initialized MSBuild ProjectRootElement for a new project in the
-        /// specified parent folder
-        /// </summary>
-        /// <param name="projectDirectory">The folder in which the project should be created</param>
-        /// <param name="preImportProperties">Any MSBuild properties that should be set before any targets are imported</param>
-        public static ProjectRootElement CreateValidProjectRoot(TestContext testContext, string projectDirectory, IDictionary<string, string> preImportProperties, bool isVBProject = false)
-        {
-            var descriptor = CreateValidProjectDescriptor(projectDirectory, isVBProject: isVBProject);
-            var projectRoot = CreateInitializedProjectRoot(testContext, descriptor, preImportProperties);
-            return projectRoot;
-        }
-
+        
         /// <summary>
         /// Creates a project file on disk from the specified descriptor.
         /// Sets the SonarQube output folder property, if specified.
@@ -104,7 +92,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
         /// </summary>
         /// <param name="preImportProperties">Any properties that need to be set before the C# targets are imported. Can be null.</param>
         /// <param name="importsBeforeTargets">Any targets that should be imported before the C# targets are imported. Optional.</param>
-        public static ProjectRootElement CreateMinimalBuildableProject(IDictionary<string, string> preImportProperties, bool isVBProject, params string[] importsBeforeTargets)
+        private static ProjectRootElement CreateMinimalBuildableProject(IDictionary<string, string> preImportProperties, bool isVBProject, params string[] importsBeforeTargets)
         {
             var root = ProjectRootElement.Create();
 
@@ -196,16 +184,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
             properties[StandardImportAfterPropertyName] = "false";
             properties[UserImportBeforePropertyName] = "false";
             properties[UserImportAfterPropertyName] = "false";
-        }
-
-        public static void LogMessage(string message, params string[] args)
-        {
-            Console.WriteLine(message, args);
-        }
-
-        public static void LogMessage()
-        {
-            LogMessage(string.Empty);
         }
 
         #endregion Miscellaneous public methods
