@@ -35,7 +35,8 @@ namespace SonarScanner.MSBuild.Common
         {
         }
 
-        public AnalyzerSettings(string language, string ruleSetFilePath, IEnumerable<string> analyzerAssemblies, IEnumerable<string> additionalFiles)
+        public AnalyzerSettings(string language, string ruleSetFilePath, IEnumerable<string> analyzerAssemblies,
+            IEnumerable<string> additionalFiles)
         {
             if (string.IsNullOrWhiteSpace(ruleSetFilePath))
             {
