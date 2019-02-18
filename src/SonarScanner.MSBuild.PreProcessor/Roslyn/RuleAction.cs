@@ -23,6 +23,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
     public enum RuleAction
     {
         None,
+        Hidden,
         Info,
         Warning,
         Error,

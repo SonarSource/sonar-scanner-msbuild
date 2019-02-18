@@ -32,12 +32,28 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
 
         private readonly IDictionary<string, string> serverProperties;
 
+        private RuleAction activeRuleAction = RuleAction.Warning;
+
+        private string activeRuleActionText = GetActionText(RuleAction.Warning);
+        private string inactiveRuleActionText = GetActionText(RuleAction.None);
+
         public RoslynRuleSetGenerator(IDictionary<string, string> serverProperties)
         {
             this.serverProperties = serverProperties ?? throw new ArgumentNullException(nameof(serverProperties));
         }
 
-        public RuleAction ActiveRuleAction { get; set; } = RuleAction.Warning;
+        public RuleAction ActiveRuleAction
+        {
+            get
+            {
+                return activeRuleAction;
+            }
+            set
+            {
+                activeRuleAction = value;
+                activeRuleActionText = GetActionText(value);
+            }
+        }
 
         /// <summary>
         /// Generates a RuleSet that is serializable (XML).
@@ -96,9 +112,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
         }
 
         private Rule CreateRuleElement(SonarRule sonarRule) =>
-            new Rule(
-                sonarRule.RuleKey,
-                GetActionText(sonarRule.IsActive ? ActiveRuleAction : RuleAction.None));
+            new Rule(sonarRule.RuleKey, sonarRule.IsActive ? activeRuleActionText : inactiveRuleActionText);
 
         private static string GetActionText(RuleAction ruleAction)
         {
@@ -112,8 +126,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
                     return "Warning";
                 case RuleAction.Error:
                     return "Error";
+                case RuleAction.Hidden:
+                    return "Hidden";
                 default:
-                    throw new NotSupportedException($"RuleAction is not supported {ruleAction}");
+                    throw new NotSupportedException($"{ruleAction} is not a supported RuleAction.");
             }
         }
 
