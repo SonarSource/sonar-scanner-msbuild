@@ -99,19 +99,19 @@ namespace TestUtilities
             return match;
         }
 
-        public static void AssertNoAnalysisResultsExist(ProjectInfo projectInfo)
+        public static void AssertNoAnalysisResultsExist(this ProjectInfo projectInfo)
         {
             projectInfo.AnalysisResults.Should().BeNullOrEmpty("Not expecting analysis results to exist. Count: {0}", projectInfo.AnalysisResults.Count);
         }
 
-        public static void AssertAnalysisResultDoesNotExists(ProjectInfo projectInfo, string resultId)
+        public static void AssertAnalysisResultDoesNotExists(this ProjectInfo projectInfo, string resultId)
         {
             projectInfo.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
             var found = ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
             found.Should().BeFalse("Not expecting to find an analysis result for id. Id: {0}", resultId);
         }
 
-        public static AnalysisResult AssertAnalysisResultExists(ProjectInfo projectInfo, string resultId)
+        public static AnalysisResult AssertAnalysisResultExists(this ProjectInfo projectInfo, string resultId)
         {
             projectInfo.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
             var found = ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
@@ -120,7 +120,7 @@ namespace TestUtilities
             return result;
         }
 
-        public static AnalysisResult AssertAnalysisResultExists(ProjectInfo projectInfo, string resultId, string expectedLocation)
+        public static AnalysisResult AssertAnalysisResultExists(this ProjectInfo projectInfo, string resultId, string expectedLocation)
         {
             var result = AssertAnalysisResultExists(projectInfo, resultId);
             result.Location.Should().Be(expectedLocation,
