@@ -31,11 +31,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
         private const string ROSLYN_REPOSITORY_PREFIX = "roslyn.";
 
         private readonly IDictionary<string, string> serverProperties;
-
-        private RuleAction activeRuleAction = RuleAction.Warning;
+        private readonly string inactiveRuleActionText = GetActionText(RuleAction.None);
 
         private string activeRuleActionText = GetActionText(RuleAction.Warning);
-        private string inactiveRuleActionText = GetActionText(RuleAction.None);
+        private RuleAction activeRuleAction = RuleAction.Warning;
 
         public RoslynRuleSetGenerator(IDictionary<string, string> serverProperties)
         {

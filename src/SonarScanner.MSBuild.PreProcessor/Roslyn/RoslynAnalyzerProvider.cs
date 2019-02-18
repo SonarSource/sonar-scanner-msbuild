@@ -158,7 +158,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
         private IEnumerable<string> FetchAnalyzerAssemblies(string language, IEnumerable<SonarRule> activeRules)
         {
-            var partialRepoKeys = ActiveRulesPartialRepoKeys(language, activeRules);
+            var partialRepoKeys = ActiveRulesPartialRepoKeys(activeRules);
             IList<Plugin> plugins = new List<Plugin>();
 
             foreach (var partialRepoKey in partialRepoKeys)
@@ -192,7 +192,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         private bool TryGetPropertyValue(string propertyKey, out string propertyValue) =>
             this.serverProperties.TryGetValue(propertyKey, out propertyValue);
 
-        private static ICollection<string> ActiveRulesPartialRepoKeys(string language, IEnumerable<SonarRule> rules)
+        private static ICollection<string> ActiveRulesPartialRepoKeys(IEnumerable<SonarRule> rules)
         {
             var partialRepoKeys = new HashSet<string>
             {

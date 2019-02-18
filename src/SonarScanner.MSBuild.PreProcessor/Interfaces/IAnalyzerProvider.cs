@@ -34,7 +34,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </summary>
         /// <param name="projectKey">Identifier for the project being analyzed</param>
         /// <returns>The settings required to configure the build for Roslyn a analyzer</returns>
-        AnalyzerSettings SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings,
+        AnalyzerSettings SetupAnalyzer(TeamBuildSettings teamBuildSettings, IDictionary<string, string> serverProperties,
             IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, string language);
     }
 }
