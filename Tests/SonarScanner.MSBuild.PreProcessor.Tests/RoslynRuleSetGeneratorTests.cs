@@ -31,10 +31,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
     [TestClass]
     public class RoslynRuleSetGeneratorTests
     {
-        public TestContext TestContext { get; set; }
-
-        #region Tests
-
         [TestMethod]
         public void RoslynRuleSet_ConstructorArgumentChecks()
         {
@@ -51,106 +47,360 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             IEnumerable<SonarRule> inactiveRules = new List<SonarRule>();
             var language = "cs";
 
-            Action act1 = () => generator.Generate(activeRules, inactiveRules, null);
+            Action act1 = () => generator.Generate(null, activeRules, inactiveRules);
             act1.Should().ThrowExactly<ArgumentNullException>();
 
-            Action act2 = () => generator.Generate(activeRules, null, language);
+            Action act2 = () => generator.Generate(language, activeRules, null);
             act2.Should().ThrowExactly<ArgumentNullException>();
 
-            Action act3 = () => generator.Generate(null, inactiveRules, language);
+            Action act3 = () => generator.Generate(language, null, inactiveRules);
             act3.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
         public void RoslynRuleSet_Empty()
         {
-            IDictionary<string, string> dict = new Dictionary<string, string>();
-            var generator = new RoslynRuleSetGenerator(dict);
-            var activeRules = new List<SonarRule>();
-            IEnumerable<SonarRule> inactiveRules = new List<SonarRule>();
-            var language = "cs";
-            activeRules.Add(new SonarRule("repo", "key"));
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>());
+            var activeRules = new List<SonarRule>
+            {
+                new SonarRule("repo", "key"),
+            };
+            var inactiveRules = new List<SonarRule>();
 
-            var ruleSet = generator.Generate(activeRules, inactiveRules, language);
-            // No analyzer
-            ruleSet.Rules.Any().Should().BeFalse();
+            // Act
+            var ruleSet = generator.Generate("cs", activeRules, inactiveRules);
 
+            // Assert
+            ruleSet.Rules.Should().BeEmpty(); // No analyzers
             ruleSet.Description.Should().Be("This rule set was automatically generated from SonarQube");
             ruleSet.ToolsVersion.Should().Be("14.0");
             ruleSet.Name.Should().Be("Rules for SonarQube");
         }
 
         [TestMethod]
-        public void RoslynRuleSet_CSharp()
+        public void RoslynRuleSet_ActiveRuleAction_None()
         {
-            IDictionary<string, string> dict = new Dictionary<string, string>
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            {
+                ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
+                ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
+            });
+
+            var activeRules = new List<SonarRule>
+            {
+                new SonarRule("csharpsquid", "rule1", isActive: true),
+                new SonarRule("csharpsquid", "rule2", isActive: true),
+            };
+
+            // Act
+            generator.ActiveRuleAction = RuleAction.None;
+            var ruleSet = generator.Generate("cs", activeRules, Enumerable.Empty<SonarRule>());
+
+            // Assert
+            ruleSet.Rules.Should().HaveCount(1);
+            ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("None", "None");
+        }
+
+        [TestMethod]
+        public void RoslynRuleSet_ActiveRuleAction_Info()
+        {
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            {
+                ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
+                ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
+            });
+
+            var activeRules = new List<SonarRule>
+            {
+                new SonarRule("csharpsquid", "rule1", isActive: true),
+                new SonarRule("csharpsquid", "rule2", isActive: true),
+            };
+
+            // Act
+            generator.ActiveRuleAction = RuleAction.Info;
+            var ruleSet = generator.Generate("cs", activeRules, Enumerable.Empty<SonarRule>());
+
+            // Assert
+            ruleSet.Rules.Should().HaveCount(1);
+            ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Info", "Info");
+        }
+
+        [TestMethod]
+        public void RoslynRuleSet_ActiveRuleAction_Warning()
+        {
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            {
+                ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
+                ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
+            });
+
+            var activeRules = new List<SonarRule>
+            {
+                new SonarRule("csharpsquid", "rule1", isActive: true),
+                new SonarRule("csharpsquid", "rule2", isActive: true),
+            };
+
+            // Act
+            generator.ActiveRuleAction = RuleAction.Warning;
+            var ruleSet = generator.Generate("cs", activeRules, Enumerable.Empty<SonarRule>());
+
+            // Assert
+            ruleSet.Rules.Should().HaveCount(1);
+            ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Warning", "Warning");
+        }
+
+        [TestMethod]
+        public void RoslynRuleSet_ActiveRuleAction_Error()
+        {
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            {
+                ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
+                ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
+            });
+
+            var activeRules = new List<SonarRule>
+            {
+                new SonarRule("csharpsquid", "rule1", isActive: true),
+                new SonarRule("csharpsquid", "rule2", isActive: true),
+            };
+
+            // Act
+            generator.ActiveRuleAction = RuleAction.Error;
+            var ruleSet = generator.Generate("cs", activeRules, Enumerable.Empty<SonarRule>());
+
+            // Assert
+            ruleSet.Rules.Should().HaveCount(1);
+            ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Error", "Error");
+        }
+
+        [TestMethod]
+        public void RoslynRuleSet_ActiveRuleAction_Hidden()
+        {
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            {
+                ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
+                ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
+            });
+
+            var activeRules = new List<SonarRule>
+            {
+                new SonarRule("csharpsquid", "rule1", isActive: true),
+                new SonarRule("csharpsquid", "rule2", isActive: true),
+            };
+
+            // Act
+            generator.ActiveRuleAction = RuleAction.Hidden;
+            var ruleSet = generator.Generate("cs", activeRules, Enumerable.Empty<SonarRule>());
+
+            // Assert
+            ruleSet.Rules.Should().HaveCount(1);
+            ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Hidden", "Hidden");
+        }
+
+        [TestMethod]
+        public void RoslynRuleSet_ActiveRuleAction_Unsupported()
+        {
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>());
+
+            // Act & Assert
+            var action = new Action(() => generator.ActiveRuleAction = (RuleAction)5);
+            action.Should().ThrowExactly<NotSupportedException>().And
+                .Message.Should().Be("5 is not a supported RuleAction.");
+        }
+
+        [TestMethod]
+        public void RoslynRuleSet_InactiveRules_Always_None()
+        {
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            {
+                ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
+                ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
+            });
+
+            var inactiveRules = new List<SonarRule>
+            {
+                new SonarRule("csharpsquid", "rule1", isActive: false),
+                new SonarRule("csharpsquid", "rule2", isActive: false),
+            };
+
+            // Act
+            generator.ActiveRuleAction = RuleAction.Error;
+            var ruleSet = generator.Generate("cs", Enumerable.Empty<SonarRule>(), inactiveRules);
+
+            // Assert
+            ruleSet.Rules.Should().HaveCount(1);
+            ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("None", "None");
+        }
+
+        [TestMethod]
+        public void RoslynRuleSet_Unsupported_Rules_Ignored()
+        {
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>());
+
+            var activeRules = new[]
+            {
+                new SonarRule("other.repo", "other.rule1", true),
+            };
+            var inactiveRules = new[]
+            {
+                new SonarRule("other.repo", "other.rule2", false),
+            };
+
+            // Act
+            var ruleSet = generator.Generate("cs", activeRules, inactiveRules);
+
+            // Assert
+            ruleSet.Rules.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void RoslynRuleSet_RoslynSDK_Rules_Added()
+        {
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            {
+                ["custom1.analyzerId"] = "CustomAnalyzer1",
+                ["custom1.ruleNamespace"] = "CustomNamespace1",
+                ["custom2.analyzerId"] = "CustomAnalyzer2",
+                ["custom2.ruleNamespace"] = "CustomNamespace2",
+            });
+
+            var activeRules = new[]
+            {
+                new SonarRule("roslyn.custom1", "active1", true),
+                new SonarRule("roslyn.custom2", "active2", true),
+            };
+            var inactiveRules = new[]
+            {
+                new SonarRule("roslyn.custom1", "inactive1", false),
+                new SonarRule("roslyn.custom2", "inactive2", false),
+            };
+
+            // Act
+            var ruleSet = generator.Generate("cs", activeRules, inactiveRules);
+
+            // Assert
+            ruleSet.Rules.Should().HaveCount(2);
+
+            ruleSet.Rules[0].RuleNamespace.Should().Be("CustomNamespace1");
+            ruleSet.Rules[0].AnalyzerId.Should().Be("CustomAnalyzer1");
+            ruleSet.Rules[0].RuleList.Should().HaveCount(2);
+            ruleSet.Rules[0].RuleList.Select(r => r.Id).Should().BeEquivalentTo("active1", "inactive1");
+            ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Warning", "None");
+
+            ruleSet.Rules[1].RuleNamespace.Should().Be("CustomNamespace2");
+            ruleSet.Rules[1].AnalyzerId.Should().Be("CustomAnalyzer2");
+            ruleSet.Rules[1].RuleList.Should().HaveCount(2);
+            ruleSet.Rules[1].RuleList.Select(r => r.Id).Should().BeEquivalentTo("active2", "inactive2");
+            ruleSet.Rules[1].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Warning", "None");
+        }
+
+        [TestMethod]
+        public void RoslynRuleSet_Sonar_Rules_Added()
+        {
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
             {
                 { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
                 { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
-                { "sonaranalyzer-cs.pluginKey", "csharp" },
-                { "sonaranalyzer-cs.staticResourceName", "SonarAnalyzer.zip" },
-                { "sonaranalyzer-cs.nuget.packageId", "SonarAnalyzer.CSharp" },
-                { "sonaranalyzer-cs.pluginVersion", "1.13.0" },
-                { "sonaranalyzer-cs.nuget.packageVersion", "1.13.0" },
+            });
 
-                { "custom.analyzerId", "SonarAnalyzer.Custom" },
-                { "custom.ruleNamespace", "SonarAnalyzer.Custom" }
+            var activeRules = new[]
+            {
+                new SonarRule("csharpsquid", "active1", true),
+                // Even though this rule is for VB it will be added as C#, see NOTE below
+                new SonarRule("vbnet", "active2", true),
+            };
+            var inactiveRules = new[]
+            {
+                new SonarRule("csharpsquid", "inactive1", false),
+                // Even though this rule is for VB it will be added as C#, see NOTE below
+                new SonarRule("vbnet", "inactive2", false),
             };
 
-            var generator = new RoslynRuleSetGenerator(dict);
-            var activeRules = new List<SonarRule>();
-            var inactiveRules = new List<SonarRule>();
-            var language = "cs";
+            // Act
+            var ruleSet = generator.Generate("cs", activeRules, inactiveRules);
 
-            activeRules.Add(new SonarRule("csharpsquid", "S1000", true));
-            activeRules.Add(new SonarRule("csharpsquid", "S1001", true));
-            activeRules.Add(new SonarRule("roslyn.custom", "custom", "custom.internal", true));
-            activeRules.Add(new SonarRule("other.repo", "other.rule", true));
+            // Assert
+            ruleSet.Rules.Should().HaveCount(1);
 
-            inactiveRules.Add(new SonarRule("csharpsquid", "S1002", false));
-            inactiveRules.Add(new SonarRule("roslyn.custom", "S1005", false));
+            // NOTE: The RuleNamespace and AnalyzerId are taken from the language parameter of the
+            // Generate method. The FetchArgumentsAndRulesets method will retrieve active/inactive
+            // rules from SonarQube per language/quality profile and mixture of VB-C# rules is not
+            // expected.
+            ruleSet.Rules[0].RuleNamespace.Should().Be("SonarAnalyzer.CSharp");
+            ruleSet.Rules[0].AnalyzerId.Should().Be("SonarAnalyzer.CSharp");
+            ruleSet.Rules[0].RuleList.Should().HaveCount(4);
+            ruleSet.Rules[0].RuleList.Select(r => r.Id).Should().BeEquivalentTo(
+                "active1", "active2", "inactive1", "inactive2");
+            ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo(
+                "Warning", "Warning", "None", "None");
+        }
 
-            var ruleSet = generator.Generate(activeRules, inactiveRules, language);
-            string[] activatedCSharp = { "S1000", "S1001" };
-            string[] activatedCustom = { "custom" };
+        [TestMethod]
+        public void RoslynRuleSet_Common_Parameters()
+        {
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>());
 
-            string[] inactivatedCSharp = { "S1002" };
-            string[] inactivatedCustom = { "S1005" };
+            // Act
+            var ruleSet = generator.Generate("cs", Enumerable.Empty<SonarRule>(), Enumerable.Empty<SonarRule>());
 
-            ruleSet.Rules.Should().HaveCount(2);
-            AssertAnalyzerRules(ruleSet, "SonarAnalyzer.Custom", activatedCustom, inactivatedCustom);
-            AssertAnalyzerRules(ruleSet, "SonarAnalyzer.CSharp", activatedCSharp, inactivatedCSharp);
-
+            // Assert
             ruleSet.Description.Should().Be("This rule set was automatically generated from SonarQube");
             ruleSet.ToolsVersion.Should().Be("14.0");
             ruleSet.Name.Should().Be("Rules for SonarQube");
         }
 
-        #endregion Tests
-
-        #region Checks
-
-        private void AssertAnalyzerRules(RuleSet ruleSet, string analyzerId, string[] activatedRuleIds, string[] inactivatedRuleIds)
+        [TestMethod]
+        public void RoslynRuleSet_AnalyzerId_Proprety_Missing()
         {
-            var rules = ruleSet.Rules.First(r => r.AnalyzerId.Equals(analyzerId));
-            rules.RuleNamespace.Should().Be(analyzerId);
-            rules.RuleList.Should().HaveCount(activatedRuleIds.Count() + inactivatedRuleIds.Count());
-
-            // No repeated ids
-            rules.RuleList.GroupBy(x => x.Id).Any(g => g.Count() > 1).Should().BeFalse();
-
-            // Active correspond to Warning, inactive to None
-            foreach (var id in activatedRuleIds)
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
             {
-                rules.RuleList.Exists(r => r.Id.Equals(id) && r.Action.Equals("Warning")).Should().BeTrue();
-            }
+                { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
+            });
 
-            foreach (var id in inactivatedRuleIds)
+            var activeRules = new[]
             {
-                rules.RuleList.Exists(r => r.Id.Equals(id) && r.Action.Equals("None")).Should().BeTrue();
-            }
+                new SonarRule("csharpsquid", "active1", true),
+            };
+
+            // Act & Assert
+            var action = new Action(() => generator.Generate("cs", activeRules, Enumerable.Empty<SonarRule>()));
+            action.Should().ThrowExactly<AnalysisException>().And
+                .Message.Should().StartWith(
+                    "Property does not exist: sonaranalyzer-cs.analyzerId. This property should be set by the plugin in SonarQube.");
         }
 
-        #endregion Checks
+        [TestMethod]
+        public void RoslynRuleSet_RuleNamespace_Proprety_Missing()
+        {
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            {
+                { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
+            });
+
+            var activeRules = new[]
+            {
+                new SonarRule("csharpsquid", "active1", true),
+            };
+
+            // Act & Assert
+            var action = new Action(() => generator.Generate("cs", activeRules, Enumerable.Empty<SonarRule>()));
+            action.Should().ThrowExactly<AnalysisException>().And
+                .Message.Should().StartWith(
+                    "Property does not exist: sonaranalyzer-cs.ruleNamespace. This property should be set by the plugin in SonarQube.");
+        }
     }
 }

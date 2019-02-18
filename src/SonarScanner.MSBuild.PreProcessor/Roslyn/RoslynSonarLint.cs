@@ -29,8 +29,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
     internal static class RoslynSonarLint
     {
         public static string GenerateXml(IEnumerable<SonarRule> activeRules, IDictionary<string, string> serverSettings,
-            string language, string repoKey)
+            string language)
         {
+            var repoKey = language.Equals(RoslynAnalyzerProvider.CSharpLanguage) ? "csharpsquid" : "vbnet";
+
             var repoActiveRules = activeRules.Where(ar => repoKey.Equals(ar.RepoKey));
             var settings = serverSettings.Where(a => a.Key.StartsWith("sonar." + language + "."));
 

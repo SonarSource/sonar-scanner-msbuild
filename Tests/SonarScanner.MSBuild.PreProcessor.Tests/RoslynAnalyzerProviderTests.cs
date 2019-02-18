@@ -127,16 +127,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
 
-            CheckRuleset(actualSettings, rootFolder, language);
+            CheckRuleset(actualSettings.RuleSetFilePath, rootFolder, language);
+            CheckTestRuleset(actualSettings.TestProjectRuleSetFilePath, rootFolder, language);
+
             actualSettings.AnalyzerAssemblyPaths.Should().BeEmpty();
             var plugins = new List<string>();
             mockInstaller.AssertExpectedPluginsRequested(plugins);
-        }
-
-        [TestMethod]
-        public void RoslynConfig_GetRoslynFormatName()
-        {
-            RoslynAnalyzerProvider.GetRoslynFormatName(RoslynAnalyzerProvider.CSharpLanguage).Should().Be("roslyn-cs");
         }
 
         [TestMethod]
@@ -164,7 +160,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
 
-            CheckRuleset(actualSettings, rootFolder, language);
+            CheckRuleset(actualSettings.RuleSetFilePath, rootFolder, language);
+            CheckTestRuleset(actualSettings.TestProjectRuleSetFilePath, rootFolder, language);
+
             CheckExpectedAdditionalFiles(actualSettings);
             CheckExpectedAssemblies(actualSettings, "c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
             var plugins = new List<string>
@@ -256,11 +254,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             return settings;
         }
 
-        private static string GetExpectedRulesetFilePath(string rootDir, string language)
-        {
-            return Path.Combine(GetConfPath(rootDir), RoslynAnalyzerProvider.GetRoslynRulesetFileName(language));
-        }
-
         private static string GetConfPath(string rootDir)
         {
             return Path.Combine(rootDir, "conf");
@@ -290,19 +283,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             File.Exists(actualSettings.RuleSetFilePath).Should().BeTrue("Specified ruleset does not exist: {0}", actualSettings.RuleSetFilePath);
         }
 
-        private void CheckRuleset(AnalyzerSettings actualSettings, string rootTestDir, string language)
+        private void CheckRuleset(string ruleSetPath, string rootDir, string language)
         {
-            string.IsNullOrWhiteSpace(actualSettings.RuleSetFilePath).Should().BeFalse("Ruleset file path should be set");
-            Path.IsPathRooted(actualSettings.RuleSetFilePath).Should().BeTrue("Ruleset file path should be absolute");
-            File.Exists(actualSettings.RuleSetFilePath).Should().BeTrue("Specified ruleset file does not exist: {0}", actualSettings.RuleSetFilePath);
-            TestContext.AddResultFile(actualSettings.RuleSetFilePath);
+            ruleSetPath.Should().NotBeNullOrEmpty("Ruleset file path should be set");
 
-            CheckFileIsXml(actualSettings.RuleSetFilePath);
+            Path.IsPathRooted(ruleSetPath).Should().BeTrue("Ruleset file path should be absolute");
 
-            Path.GetFileName(actualSettings.RuleSetFilePath).Should().Be(RoslynAnalyzerProvider.GetRoslynRulesetFileName(language), "Ruleset file does not have the expected name");
+            File.Exists(ruleSetPath).Should().BeTrue("Specified ruleset file does not exist: {0}", ruleSetPath);
+            TestContext.AddResultFile(ruleSetPath);
 
-            var expectedFilePath = GetExpectedRulesetFilePath(rootTestDir, language);
-            actualSettings.RuleSetFilePath.Should().Be(expectedFilePath, "Ruleset was not written to the expected location");
+            CheckFileIsXml(ruleSetPath);
+
+            Path.GetFileName(ruleSetPath).Should().Be($"SonarQubeRoslyn-{language}.ruleset", "Ruleset file does not have the expected name");
+
+            Path.GetDirectoryName(ruleSetPath).Should().Be(GetConfPath(rootDir), "Ruleset was not written to the expected location");
 
             var expectedContent = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" Name=""Rules for SonarQube"" Description=""This rule set was automatically generated from SonarQube"" ToolsVersion=""14.0"">
@@ -315,7 +309,38 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
     <Rule Id=""Wintellect003"" Action=""Warning"" />
   </Rules>
 </RuleSet>";
-            File.ReadAllText(actualSettings.RuleSetFilePath).Should().Be(expectedContent, "Ruleset file does not have the expected content: {0}", actualSettings.RuleSetFilePath);
+
+            File.ReadAllText(ruleSetPath).Should().Be(expectedContent, "Ruleset file does not have the expected content: {0}", ruleSetPath);
+        }
+
+        private void CheckTestRuleset(string ruleSetPath, string rootDir, string language)
+        {
+            ruleSetPath.Should().NotBeNullOrEmpty("Ruleset file path should be set");
+
+            Path.IsPathRooted(ruleSetPath).Should().BeTrue("Ruleset file path should be absolute");
+
+            File.Exists(ruleSetPath).Should().BeTrue("Specified ruleset file does not exist: {0}", ruleSetPath);
+            TestContext.AddResultFile(ruleSetPath);
+
+            CheckFileIsXml(ruleSetPath);
+
+            Path.GetFileName(ruleSetPath).Should().Be($"SonarQubeRoslyn-{language}-test.ruleset", "Ruleset file does not have the expected name");
+
+            Path.GetDirectoryName(ruleSetPath).Should().Be(GetConfPath(rootDir), "Ruleset was not written to the expected location");
+
+            var expectedContent = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" Name=""Rules for SonarQube"" Description=""This rule set was automatically generated from SonarQube"" ToolsVersion=""14.0"">
+  <Rules AnalyzerId=""SonarAnalyzer.CSharp"" RuleNamespace=""SonarAnalyzer.CSharp"">
+    <Rule Id=""S1116"" Action=""None"" />
+    <Rule Id=""S1125"" Action=""None"" />
+    <Rule Id=""S1000"" Action=""None"" />
+  </Rules>
+  <Rules AnalyzerId=""Wintellect.Analyzers"" RuleNamespace=""Wintellect.Analyzers"">
+    <Rule Id=""Wintellect003"" Action=""None"" />
+  </Rules>
+</RuleSet>";
+
+            File.ReadAllText(ruleSetPath).Should().Be(expectedContent, "Ruleset file does not have the expected content: {0}", ruleSetPath);
         }
 
         private void CheckExpectedAdditionalFiles(AnalyzerSettings actualSettings)

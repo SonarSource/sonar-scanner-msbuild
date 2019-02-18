@@ -35,11 +35,16 @@ namespace SonarScanner.MSBuild.Common
         {
         }
 
-        public AnalyzerSettings(string language, string ruleSetFilePath, IEnumerable<string> analyzerAssemblies, IEnumerable<string> additionalFiles)
+        public AnalyzerSettings(string language, string ruleSetFilePath, string testProjectRuleSetFilePath,
+            IEnumerable<string> analyzerAssemblies, IEnumerable<string> additionalFiles)
         {
             if (string.IsNullOrWhiteSpace(ruleSetFilePath))
             {
                 throw new ArgumentNullException(nameof(ruleSetFilePath));
+            }
+            if (string.IsNullOrWhiteSpace(testProjectRuleSetFilePath))
+            {
+                throw new ArgumentNullException(nameof(testProjectRuleSetFilePath));
             }
             if (analyzerAssemblies == null)
             {
@@ -52,6 +57,7 @@ namespace SonarScanner.MSBuild.Common
 
             Language = language;
             RuleSetFilePath = ruleSetFilePath;
+            TestProjectRuleSetFilePath = testProjectRuleSetFilePath;
             AnalyzerAssemblyPaths = new List<string>(analyzerAssemblies);
             AdditionalFilePaths = new List<string>(additionalFiles);
         }
@@ -65,6 +71,11 @@ namespace SonarScanner.MSBuild.Common
         /// Path to the ruleset for the Roslyn analyzers
         /// </summary>
         public string RuleSetFilePath { get; set; }
+
+        /// <summary>
+        /// Path to the ruleset for the Roslyn analyzers for test projects
+        /// </summary>
+        public string TestProjectRuleSetFilePath { get; set; }
 
         /// <summary>
         /// File paths for all of the assemblies to pass to the compiler as analyzers
