@@ -305,6 +305,152 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
+        public void GetAnalyzerSettings_ConfigExists_Legacy_TestProject_SonarAnalyzerSettingsUsed_CSharp()
+        {
+            // Arrange and Act
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.3", "cs");
+
+            // Assert
+            executedTask.RuleSetFilePath.Should().Be("c:\\test.project.ruleset");
+            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\sonar.csharp1.dll", "c:\\Google.Protobuf.dll");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\replaced1.txt");
+        }
+
+        [TestMethod]
+        public void GetAnalyzerSettings_ConfigExists_NewBehaviour_TestProject_SonarAnalyzerSettingsUsed_CSharp()
+        {
+            // Arrange and Act
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.4", "cs");
+
+            // Assert
+            executedTask.RuleSetFilePath.Should().Be("c:\\test.project.ruleset");
+            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\sonar.csharp1.dll", "c:\\Google.Protobuf.dll");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\replaced1.txt");
+        }
+
+        [TestMethod]
+        public void GetAnalyzerSettings_ConfigExists_Legacy_TestProject_SonarAnalyzerSettingsUsed_VB()
+        {
+            // Arrange and Act
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.3", "vbnet");
+
+            // Assert
+            executedTask.RuleSetFilePath.Should().Be("c:\\test.project.ruleset.vb");
+            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\sonar.vbnet1.dll", "c:\\Google.Protobuf.dll");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt.vb", "d:\\replaced1.txt");
+        }
+
+        [TestMethod]
+        public void GetAnalyzerSettings_ConfigExists_NewBehaviour_TestProject_SonarAnalyzerSettingsUsed_VB()
+        {
+            // Arrange and Act
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.4", "vbnet");
+
+            // Assert
+            executedTask.RuleSetFilePath.Should().Be("c:\\test.project.ruleset.vb");
+            executedTask.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\sonar.vbnet1.dll", "c:\\Google.Protobuf.dll");
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt.vb", "d:\\replaced1.txt");
+        }
+
+        [TestMethod]
+        public void GetAnalyzerSettings_ConfigExists_NewBehaviour_TestProject_SonarAnalyzerSettingsUsed_UnknownLanguage()
+        {
+            // Arrange and Act
+            var executedTask = ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed("7.4", "unknownLang");
+
+            // Assert
+            executedTask.RuleSetFilePath.Should().BeNull();
+            executedTask.AnalyzerFilePaths.Should().BeNull();
+            executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.txt", "original.should.be.replaced\\replaced1.txt");
+        }
+
+        private GetAnalyzerSettings ExecuteGetAnalyzerSettings_ConfigExists_TestProject_SonarAnalyzerSettingsUsed(string sonarQubeVersion, string language)
+        {
+            // Want to test the behaviour with old and new SQ version. Expecting the same results in each case.
+
+            // Arrange
+            var config = new AnalysisConfig
+            {
+                SonarQubeVersion = sonarQubeVersion,
+                ServerSettings = new AnalysisProperties
+                {
+                    // Setting should be ignored
+                    new Property { Id = "sonar.cs.roslyn.ignoreIssues", Value = "true" }
+                },
+                AnalyzersSettings = new List<AnalyzerSettings>
+                {
+                    new AnalyzerSettings
+                    {
+                        Language = "cs",
+                        RuleSetFilePath = "f:\\yyy.ruleset",
+                        TestProjectRuleSetFilePath = "c:\\test.project.ruleset",
+                        AnalyzerPlugins = new List<AnalyzerPlugin>
+                        {
+                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource",
+                                new string[] { "c:\\wintellect1.dll", "c:\\wintellect\\bar.ps1", "c:\\Google.Protobuf.dll" }),
+
+                            new AnalyzerPlugin("csharp", "1.1", "dummy resource2",
+                                new string[] { "c:\\sonar.csharp1.dll", "c:\\foo.ps1", "c:\\Google.Protobuf.dll" }),
+
+                        },
+
+                        AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\replaced1.txt" }
+                    },
+
+                    new AnalyzerSettings
+                    {
+                        Language = "vbnet",
+                        RuleSetFilePath = "f:\\yyy.ruleset.vb",
+                        TestProjectRuleSetFilePath = "c:\\test.project.ruleset.vb",
+                        AnalyzerPlugins = new List<AnalyzerPlugin>
+                        {
+                            new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource",
+                                new string[] { "c:\\wintellect1.dll", "c:\\wintellect\\bar.ps1", "c:\\Google.Protobuf.dll" }),
+
+                            new AnalyzerPlugin("vbnet", "1.1", "dummy resource2",
+                                new string[] { "c:\\sonar.vbnet1.dll", "c:\\foo.ps1", "c:\\Google.Protobuf.dll" }),
+
+                        },
+
+                        AdditionalFilePaths = new List<string> { "c:\\add1.txt.vb", "d:\\replaced1.txt" }
+                    },
+
+                    new AnalyzerSettings // Settings for a different language
+                    {
+                        Language = "cobol",
+                        RuleSetFilePath = "f:\\xxx.ruleset",
+                        TestProjectRuleSetFilePath = "c:\\cobol\\test.project.ruleset",
+                        AnalyzerPlugins = new List<AnalyzerPlugin>
+                        {
+                            new AnalyzerPlugin("cobol.analyzer", "1.0", "dummy resource",
+                                new string[] { "c:\\cobol1.dll", "c:\\cobol2.dll" })
+                        },
+
+                        AdditionalFilePaths = new List<string> { "c:\\cobol.\\add1.txt", "d:\\cobol\\add2.txt" }
+                    }
+                }
+            };
+
+            var testSubject = CreateConfiguredTestSubject(config, language, TestContext);
+            testSubject.IsTestProject = true;
+            testSubject.OriginalAnalyzers = new string[]
+            {
+                 "c:\\analyzer1.should.be.replaced.dll",
+                 "c:\\analyzer2.should.be.replaced.dll",
+                 "c:\\Google.Protobuf.dll", // same name as an assembly in the csharp plugin (above)
+            };
+            testSubject.OriginalAdditionalFiles = new string[]
+            {
+                "original.should.be.removed.txt",
+                "original.should.be.replaced\\replaced1.txt",
+            };
+
+            // Act
+            ExecuteAndCheckSuccess(testSubject);
+            return testSubject;
+        }
+
+        [TestMethod]
         public void ShouldMerge_MissingLanguage_ReturnsFalse()
         {
             // Legacy server version - empty language

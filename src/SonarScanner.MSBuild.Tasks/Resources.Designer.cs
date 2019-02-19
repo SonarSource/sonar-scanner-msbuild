@@ -61,6 +61,15 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Overwritting analysis settings for a test project....
+        /// </summary>
+        internal static string AnalyzerSettings_ConfiguringTestProjectAnalysis {
+            get {
+                return ResourceManager.GetString("AnalyzerSettings_ConfiguringTestProjectAnalysis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Creating merged ruleset at &apos;{0}&apos;.
         /// </summary>
         internal static string AnalyzerSettings_CreatingMergedRuleset {
