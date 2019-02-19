@@ -73,7 +73,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
         #region IAnalyzerInstaller methods
 
-        public IEnumerable<string> InstallAssemblies(IEnumerable<Plugin> plugins)
+        public IEnumerable<AnalyzerPlugin> InstallAssemblies(IEnumerable<Plugin> plugins)
         {
             if (plugins == null)
             {
@@ -83,22 +83,24 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             if (!plugins.Any())
             {
                 this.logger.LogInfo(RoslynResources.EAI_NoPluginsSpecified);
-                return Enumerable.Empty<string>(); // nothing to deploy
+                return Enumerable.Empty<AnalyzerPlugin>(); // nothing to deploy
             }
 
             this.logger.LogInfo(RoslynResources.EAI_InstallingAnalyzers);
 
-            var allFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var analyzerPlugins = new List<AnalyzerPlugin>();
             foreach (var plugin in plugins)
             {
                 var files = GetPluginResourceFiles(plugin);
-                foreach (var file in files)
+                // Don't add the plugin to the list if it doesn't have any assemblies
+                if (files.Any())
                 {
-                    allFiles.Add(file);
+                    var analyzerPlugin = new AnalyzerPlugin(plugin.Key, plugin.Version, plugin.StaticResourceName, files);
+                    analyzerPlugins.Add(analyzerPlugin);
                 }
             }
 
-            return allFiles;
+            return analyzerPlugins;
         }
 
         #endregion IAnalyzerInstaller methods

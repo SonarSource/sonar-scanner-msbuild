@@ -19,44 +19,51 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Xml.Serialization;
 
-namespace SonarScanner.MSBuild.PreProcessor.Roslyn
+namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
-    /// Data class for a single SonarQube plugin containing an analyzer
+    /// XML-serializable data class for a single SonarQube plugin containing an analyzer
     /// </summary>
-    public class Plugin
+    public class AnalyzerPlugin
     {
-        public Plugin()
+        public AnalyzerPlugin()
         {
         }
 
-        public Plugin(string key, string version, string staticResourceName)
+        public AnalyzerPlugin(string key, string version, string staticResourceName, IEnumerable<string> assemblies)
         {
-            if (string.IsNullOrWhiteSpace(key))
+            Key = key ?? throw new ArgumentNullException(nameof(key));
+            Version = version ?? throw new ArgumentNullException(nameof(version));
+            StaticResourceName = staticResourceName ?? throw new ArgumentNullException(nameof(staticResourceName));
+
+            if (assemblies == null)
             {
-                throw new ArgumentNullException(nameof(key));
+                throw new ArgumentNullException(nameof(assemblies));
             }
-            if (string.IsNullOrWhiteSpace(version))
-            {
-                throw new ArgumentNullException(nameof(version));
-            }
-            if (string.IsNullOrWhiteSpace(staticResourceName))
-            {
-                throw new ArgumentNullException(nameof(staticResourceName));
-            }
-            Key = key;
-            Version = version;
-            StaticResourceName = staticResourceName;
+            AssemblyPaths = new List<string>(assemblies);
         }
 
+        [XmlAttribute("Key")]
         public string Key { get; set; }
 
+        [XmlAttribute("Version")]
         public string Version { get; set; }
 
         /// <summary>
         /// Name of the static resource in the plugin that contains the analyzer artifacts
         /// </summary>
+        [XmlAttribute("StaticResourceName")]
         public string StaticResourceName { get; set; }
+
+        /// <summary>
+        /// File paths for all of the assemblies to pass to the compiler as analyzers
+        /// </summary>
+        /// <remarks>This includes analyzer assemblies and their dependencies</remarks>
+        [XmlArray]
+        [XmlArrayItem("Path")]
+        public List<string> AssemblyPaths { get; set; }
     }
 }

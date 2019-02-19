@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -28,7 +29,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <summary>
         /// Provisions the analyzer assemblies belonging to the specified plugins
         /// </summary>
-        /// <returns>Paths to the analyzer assemblies and their dependencies</returns>
-        IEnumerable<string> InstallAssemblies(IEnumerable<Plugin> plugins);
+        /// <returns>Additional information about each analyzer plugin i.e. the paths to the analyzer assemblies and their dependencies</returns>
+        IEnumerable<AnalyzerPlugin> InstallAssemblies(IEnumerable<Plugin> plugins);
     }
 }

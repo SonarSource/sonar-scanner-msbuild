@@ -24,6 +24,7 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using TestUtilities;
 
@@ -88,14 +89,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
 
             // Act
-            var actualFiles = testSubject.InstallAssemblies(new Plugin[] { request1, request2, request3, request4 });
+            var actualPlugins = testSubject.InstallAssemblies(new Plugin[] { request1, request2, request3, request4 });
 
             // Assert
-            actualFiles.Should().NotBeNull("Returned list should not be null");
-            AssertExpectedFilesReturned(expectedPaths, actualFiles);
+            actualPlugins.Should().NotBeNull("Returned list should not be null");
+            AssertExpectedFilesReturned(expectedPaths, actualPlugins);
             AssertExpectedFilesExist(expectedPaths);
-            // 4 = zip files + index file
-            AssertExpectedFilesInCache(expectedPaths.Count + 4, localCacheDir);
+            // 8 = zip files + index file + contents
+            AssertExpectedFilesInCache(8, localCacheDir);
         }
 
         [TestMethod]
@@ -140,6 +141,41 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             actualFiles.Should().NotBeNull("Returned list should not be null");
             AssertExpectedFilesReturned(Enumerable.Empty<string>(), actualFiles);
             AssertExpectedFilesInCache(0, localCacheDir);
+        }
+
+        [TestMethod]
+        public void EmbeddedInstall_PluginWithNoFiles_Succeeds()
+        {
+            // Arrange
+            var localCacheDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var logger = new TestLogger();
+
+            var request1 = new Plugin("plugin1", "1.0", "p1.resource1.zip");
+            var request2 = new Plugin("plugin2", "2.0", "p2.resource1.zip");
+            
+            var mockServer = new MockSonarQubeServer();
+            AddPlugin(mockServer, request1, "p1.resource1.file1.dll", "p1.resource1.file2.dll");
+            AddPlugin(mockServer, request2 /* no assemblies */ );
+            
+            var expectedPaths = new List<string>();
+            expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 0, "p1.resource1.file1.dll", "p1.resource1.file2.dll"));
+
+            var testSubject = new EmbeddedAnalyzerInstaller(mockServer, localCacheDir, logger);
+
+            // Act
+            IEnumerable<AnalyzerPlugin> actualPlugins;
+            using (new AssertIgnoreScope())
+            {
+                actualPlugins = testSubject.InstallAssemblies(new Plugin[] { request1, request2 });
+            }
+
+            // Assert
+            actualPlugins.Should().NotBeNull("Returned list should not be null");
+            AssertExpectedFilesReturned(expectedPaths, actualPlugins);
+            AssertExpectedFilesExist(expectedPaths);
+            // 5 = zip files + index file + content files
+            AssertExpectedFilesInCache(5, localCacheDir);
+            actualPlugins.Select(p => p.Key).Should().BeEquivalentTo(new string[] { "plugin1" }); // plugin with no resources should not be included
         }
 
         #endregion Fetching from server tests
@@ -237,17 +273,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             return files;
         }
 
-        private void AssertExpectedFilesReturned(IEnumerable<string> expectedFileNames, IEnumerable<string> actualFilePaths)
+        private void AssertExpectedFilesReturned(IEnumerable<string> expectedFileNames, IEnumerable<AnalyzerPlugin> actualPlugins)
         {
+            var actualFileList = actualPlugins.SelectMany(x => x.AssemblyPaths).ToArray();
             DumpFileList("Expected files", expectedFileNames);
-            DumpFileList("Actual files", actualFilePaths);
+            DumpFileList("Actual files", actualFileList);
 
             foreach (var expected in expectedFileNames)
             {
-                actualFilePaths.Contains(expected, StringComparer.OrdinalIgnoreCase).Should().BeTrue("Expected file does not exist: {0}", expected);
+                actualFileList.Contains(expected, StringComparer.OrdinalIgnoreCase).Should().BeTrue("Expected file does not exist: {0}", expected);
             }
 
-            actualFilePaths.Should().HaveSameCount(expectedFileNames, "Too many files returned");
+            actualFileList.Should().HaveSameCount(expectedFileNames, "Too many files returned");
         }
 
         private void DumpFileList(string title, IEnumerable<string> files)

@@ -95,7 +95,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     {
                         Language = "cs",
                         RuleSetFilePath = "f:\\yyy.ruleset",
-                        AnalyzerAssemblyPaths = new List<string> { "c:\\local_analyzer.dll" },
+                        AnalyzerPlugins = new List<AnalyzerPlugin> { CreateAnalyzerPlugin("c:\\local_analyzer.dll") },
                         AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt" }
                     }
                 }
@@ -129,7 +129,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     {
                         Language = "cs",
                         RuleSetFilePath = "f:\\yyy.ruleset",
-                        AnalyzerAssemblyPaths = new List<string> { "c:\\local_analyzer.dll" },
+                        AnalyzerPlugins = new List<AnalyzerPlugin> { CreateAnalyzerPlugin("c:\\local_analyzer.dll") },
                         AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt" }
                     }
                 }
@@ -154,16 +154,19 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void GetAnalyzerSettings_ConfigExists_Legacy_SettingsOverwritten()
         {
             // Arrange
-            var expectedAnalyzers = new string[] { "c:\\analyzer1.DLL", "c:\\analyzer2.dll" };
-
             // SONARMSBRU-216: non-assembly files should be filtered out
-            var filesInConfig = new List<string>(expectedAnalyzers)
+            var filesInConfig = new List<AnalyzerPlugin>
             {
-                "c:\\not_an_assembly.exe",
-                "c:\\not_an_assembly.zip",
-                "c:\\not_an_assembly.txt",
-                "c:\\not_an_assembly.dll.foo",
-                "c:\\not_an_assembly.winmd"
+                CreateAnalyzerPlugin("c:\\analyzer1.DLL"),
+                CreateAnalyzerPlugin(
+                    "c:\\not_an_assembly.exe",
+                    "c:\\not_an_assembly.zip",
+                    "c:\\not_an_assembly.txt",
+                    "d:\\analyzer2.dll"),
+                CreateAnalyzerPlugin(
+                    "c:\\not_an_assembly.dll.foo",
+                    "c:\\not_an_assembly.winmd"),
+                CreateAnalyzerPlugin("e:\\analyzer3.dll")
             };
 
             var config = new AnalysisConfig
@@ -180,7 +183,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     {
                         Language = "cs",
                         RuleSetFilePath = "f:\\yyy.ruleset",
-                        AnalyzerAssemblyPaths = filesInConfig,
+                        AnalyzerPlugins = filesInConfig,
                         AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt" }
                     },
 
@@ -188,7 +191,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     {
                         Language = "cobol",
                         RuleSetFilePath = "f:\\xxx.ruleset",
-                        AnalyzerAssemblyPaths = filesInConfig,
+                        AnalyzerPlugins = filesInConfig,
                         AdditionalFilePaths = new List<string> { "c:\\cobol.\\add1.txt", "d:\\cobol\\add2.txt" }
                     }
                 }
@@ -207,7 +210,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             // Assert
             testSubject.RuleSetFilePath.Should().Be("f:\\yyy.ruleset");
-            testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(expectedAnalyzers);
+            testSubject.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\analyzer1.DLL", "d:\\analyzer2.dll", "e:\\analyzer3.dll");
             testSubject.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\add2.txt",
                 "e:\\subdir\\add3.txt", "original.should.be.preserved.txt");
         }
@@ -219,15 +222,27 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             // Arrange
             // SONARMSBRU-216: non-assembly files should be filtered out
-            var filesInConfig = new List<string>
+            var filesInConfig = new List<AnalyzerPlugin>
             {
-                "c:\\config\\analyzer1.DLL",
-                "c:\\config\\analyzer2.dll",
-                "c:\\not_an_assembly.exe",
-                "c:\\not_an_assembly.zip",
-                "c:\\not_an_assembly.txt",
-                "c:\\not_an_assembly.dll.foo",
-                "c:\\not_an_assembly.winmd"
+                new AnalyzerPlugin
+                {
+                    AssemblyPaths = new List<string>
+                    {
+                        "c:\\config\\analyzer1.DLL",
+                        "c:\\not_an_assembly.exe",
+                        "c:\\not_an_assembly.zip",
+                    }
+                },
+                new AnalyzerPlugin
+                {
+                    AssemblyPaths = new List<string>
+                    {
+                        "c:\\config\\analyzer2.dll",
+                        "c:\\not_an_assembly.txt",
+                        "c:\\not_an_assembly.dll.foo",
+                        "c:\\not_an_assembly.winmd"
+                    }
+                }
             };
 
             var config = new AnalysisConfig
@@ -243,7 +258,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     {
                         Language = "cs",
                         RuleSetFilePath = "f:\\yyy.ruleset",
-                        AnalyzerAssemblyPaths = filesInConfig,
+                        AnalyzerPlugins = filesInConfig,
                         AdditionalFilePaths = new List<string> { "c:\\config\\add1.txt", "d:\\config\\add2.txt" }
                     },
 
@@ -251,7 +266,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                     {
                         Language = "cobol",
                         RuleSetFilePath = "f:\\xxx.ruleset",
-                        AnalyzerAssemblyPaths = new List<string>(),
+                        AnalyzerPlugins = new List<AnalyzerPlugin>(),
                         AdditionalFilePaths = new List<string> { "c:\\cobol.\\add1.txt", "d:\\cobol\\add2.txt" }
                     }
 
@@ -288,7 +303,6 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 "d:\\config\\add2.txt",
                 "original.should.be.preserved.txt");
         }
-
 
         [TestMethod]
         public void ShouldMerge_MissingLanguage_ReturnsFalse()
@@ -535,6 +549,12 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var filePath = TestUtils.CreateTextFile(dir, fileNameWithoutExtension + ".ruleset", content);
             return filePath;
         }
+
+        private static AnalyzerPlugin CreateAnalyzerPlugin(params string[] fileList) =>
+            new AnalyzerPlugin
+            {
+                AssemblyPaths = new List<string>(fileList)
+            };
 
         #endregion
 

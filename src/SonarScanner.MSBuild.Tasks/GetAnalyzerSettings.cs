@@ -185,9 +185,9 @@ namespace SonarScanner.MSBuild.Tasks
 
             RuleSetFilePath = settings.RuleSetFilePath;
 
-            if (settings.AnalyzerAssemblyPaths != null)
+            if (settings.AnalyzerPlugins != null)
             {
-                AnalyzerFilePaths = RemoveNonAnalyzerFiles(settings.AnalyzerAssemblyPaths);
+                AnalyzerFilePaths = RemoveNonAnalyzerFiles(settings.AnalyzerPlugins.SelectMany(ap => ap.AssemblyPaths));
             }
 
             AdditionalFilePaths = MergeFileLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
@@ -209,7 +209,7 @@ namespace SonarScanner.MSBuild.Tasks
 
             RuleSetFilePath = CreateMergedRuleset(settings);
 
-            AnalyzerFilePaths = MergeFileLists(RemoveNonAnalyzerFiles(settings.AnalyzerAssemblyPaths), OriginalAnalyzers);
+            AnalyzerFilePaths = MergeFileLists(RemoveNonAnalyzerFiles(settings.AnalyzerPlugins.SelectMany(ap => ap.AssemblyPaths)), OriginalAnalyzers);
             AdditionalFilePaths = MergeFileLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
         }
 

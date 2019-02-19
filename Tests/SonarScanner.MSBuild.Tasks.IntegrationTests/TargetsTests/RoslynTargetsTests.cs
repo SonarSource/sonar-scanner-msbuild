@@ -57,7 +57,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             {
                 Language = "cs",
                 RuleSetFilePath = "d:\\my.ruleset",
-                AnalyzerAssemblyPaths = new List<string> { "c:\\data\\config.analyzer1.dll", "c:\\config2.dll" },
+                AnalyzerPlugins = new List<AnalyzerPlugin>
+                {
+                    CreateAnalyzerPlugin("c:\\data\\config.analyzer1.dll"),
+                    CreateAnalyzerPlugin("c:\\config2.dll")
+                },
                 AdditionalFilePaths = new List<string> { "c:\\config.1.txt", "c:\\config.2.txt" }
             };
 
@@ -122,7 +126,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                     {
                         Language = "cs",
                         RuleSetFilePath = "d:\\my.ruleset",
-                        AnalyzerAssemblyPaths = new List<string> { "c:\\data\\new.analyzer1.dll", "c:\\new.analyzer2.dll" },
+                        AnalyzerPlugins = new List<AnalyzerPlugin>
+                        {
+                            CreateAnalyzerPlugin("c:\\data\\new.analyzer1.dll"),
+                            CreateAnalyzerPlugin("c:\\new.analyzer2.dll")
+                        },
                         AdditionalFilePaths = new List<string> { "c:\\config.1.txt", "c:\\config.2.txt" }
                     }
                 }
@@ -202,7 +210,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                     {
                         Language = "cs",
                         RuleSetFilePath = dummyQpRulesetPath,
-                        AnalyzerAssemblyPaths = new List<string> { "c:\\data\\new\\analyzer1.dll", "c:\\new.analyzer2.dll" },
+                        AnalyzerPlugins = new List<AnalyzerPlugin>
+                        {
+                            CreateAnalyzerPlugin("c:\\data\\new\\analyzer1.dll", "c:\\new.analyzer2.dll")                            
+                        },
                         AdditionalFilePaths = new List<string> { "c:\\config\\duplicate.1.txt", "c:\\duplicate.2.txt" }
                     }
                 }
@@ -870,6 +881,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             TestContext.AddResultFile(filePath);
             return filePath;
         }
+
+        private static AnalyzerPlugin CreateAnalyzerPlugin(params string[] fileList) =>
+            new AnalyzerPlugin
+            {
+                AssemblyPaths = new List<string>(fileList)
+            };
 
         #endregion Setup
     }

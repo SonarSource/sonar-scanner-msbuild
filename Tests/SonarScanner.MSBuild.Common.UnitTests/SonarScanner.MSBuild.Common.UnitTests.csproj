@@ -75,6 +75,7 @@
     </Compile>
     <Compile Include="AggregatePropertiesProviderTests.cs" />
     <Compile Include="AnalysisConfig\AnalysisConfigExtensionsTests.cs" />
+    <Compile Include="AnalysisConfig\AnalyzerPluginTests.cs" />
     <Compile Include="AnalysisConfig\AnalyzerSettingsTests.cs" />
     <Compile Include="AnalysisConfig\RuleSetTests.cs" />
     <Compile Include="AnalysisProperties\AnalysisPropertiesTests.cs" />
