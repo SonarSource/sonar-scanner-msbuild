@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Overwritting analysis settings for a test project....
+        ///   Looks up a localized string similar to Overwriting analysis settings for a test project....
         /// </summary>
         internal static string AnalyzerSettings_ConfiguringTestProjectAnalysis {
             get {

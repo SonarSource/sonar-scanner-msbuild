@@ -164,11 +164,8 @@ namespace SonarScanner.MSBuild.Tasks
         internal /* for testing */ static bool ShouldMergeAnalysisSettings(string language, AnalysisConfig config,
             SonarScanner.MSBuild.Common.ILogger logger)
         {
-            if (string.IsNullOrEmpty(language))
-            {
-                logger.LogInfo(Resources.AnalyzerSettings_LanguageNotSpecified);
-                return false;
-            }
+            Debug.Assert(!string.IsNullOrEmpty(language));
+            Debug.Assert(config != null);
 
             // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/561
             // Legacy behaviour is to overwrite.

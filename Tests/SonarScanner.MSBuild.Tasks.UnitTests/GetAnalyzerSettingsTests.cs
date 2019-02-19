@@ -451,18 +451,6 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         }
 
         [TestMethod]
-        public void ShouldMerge_MissingLanguage_ReturnsFalse()
-        {
-            // Legacy server version - empty language
-            var logger = CheckShouldMerge("7.3.1", "", ignoreExternalIssues: "true", expected: false);
-            logger.AssertInfoMessageExists("Analysis language is not specified");
-
-            // New server version - null language
-            logger = CheckShouldMerge("7.4", null, ignoreExternalIssues: "true", expected: false);
-            logger.AssertInfoMessageExists("Analysis language is not specified");
-        }
-
-        [TestMethod]
         public void ShouldMerge_OldServerVersion_ReturnsFalse()
         {
             // The "importAllValue" setting should be ignored for old server versions
