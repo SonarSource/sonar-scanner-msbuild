@@ -113,7 +113,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             var mockInstaller = new MockAnalyzerInstaller
             {
-                AssemblyPathsToReturn = new HashSet<string>(new string[] { "c:\\assembly1.dll", "d:\\foo\\assembly2.dll" })
+                AnalyzerPluginsToReturn = new List<AnalyzerPlugin> { CreateAnalyzerPlugin("c:\\assembly1.dll", "d:\\foo\\assembly2.dll") }
             };
             var settings = CreateSettings(rootFolder);
 
@@ -130,7 +130,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             CheckRuleset(actualSettings.RuleSetFilePath, rootFolder, language);
             CheckTestRuleset(actualSettings.TestProjectRuleSetFilePath, rootFolder, language);
 
-            actualSettings.AnalyzerAssemblyPaths.Should().BeEmpty();
+            actualSettings.AnalyzerPlugins.Should().BeEmpty();
             var plugins = new List<string>();
             mockInstaller.AssertExpectedPluginsRequested(plugins);
         }
@@ -146,7 +146,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var language = RoslynAnalyzerProvider.CSharpLanguage;
             var mockInstaller = new MockAnalyzerInstaller
             {
-                AssemblyPathsToReturn = new HashSet<string>(new string[] { "c:\\assembly1.dll", "d:\\foo\\assembly2.dll" })
+                AnalyzerPluginsToReturn = new List<AnalyzerPlugin>
+                {
+                    CreateAnalyzerPlugin("c:\\assembly1.dll"),
+                    CreateAnalyzerPlugin("d:\\foo\\assembly2.dll")
+                }
             };
             var settings = CreateSettings(rootFolder);
 
@@ -264,6 +268,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             return Path.Combine(rootDir, "bin");
         }
 
+        private static AnalyzerPlugin CreateAnalyzerPlugin(params string[] fileList) =>
+            new AnalyzerPlugin
+            {
+                AssemblyPaths = new List<string>(fileList)
+            };
+
         #endregion Private methods
 
         #region Checks
@@ -272,7 +282,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             actualSettings.Should().NotBeNull("Not expecting the config to be null");
             actualSettings.AdditionalFilePaths.Should().NotBeNull();
-            actualSettings.AnalyzerAssemblyPaths.Should().NotBeNull();
+            actualSettings.AnalyzerPlugins.Should().NotBeNull();
             string.IsNullOrEmpty(actualSettings.RuleSetFilePath).Should().BeFalse();
 
             // Any file paths returned in the config should exist
@@ -406,10 +416,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         {
             foreach (var expectedItem in expected)
             {
-                actualSettings.AnalyzerAssemblyPaths.Contains(expectedItem, StringComparer.OrdinalIgnoreCase)
+                actualSettings.AnalyzerPlugins
+                    .SelectMany(x => x.AssemblyPaths)
+                    .Contains(expectedItem, StringComparer.OrdinalIgnoreCase)
                     .Should().BeTrue("Expected assembly file path was not returned: {0}", expectedItem);
             }
-            actualSettings.AnalyzerAssemblyPaths.Should().HaveCount(expected.Length, "Too many assembly file paths returned");
+            actualSettings.AnalyzerPlugins.Should().HaveCount(expected.Length, "Too many assembly file paths returned");
         }
 
         #endregion Checks

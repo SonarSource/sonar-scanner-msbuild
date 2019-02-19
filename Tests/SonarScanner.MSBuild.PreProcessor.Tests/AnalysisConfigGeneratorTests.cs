@@ -129,9 +129,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 AdditionalFilePaths = new List<string>()
             };
             analyzerSettings.AdditionalFilePaths.Add("f:\\additionalPath1.txt");
-            analyzerSettings.AnalyzerAssemblyPaths = new List<string>
+            analyzerSettings.AnalyzerPlugins = new List<AnalyzerPlugin>
             {
-                "f:\\temp\\analyzer1.dll"
+                new AnalyzerPlugin
+                {
+                    AssemblyPaths = new List<string> { "f:\\temp\\analyzer1.dll" }
+                }
             };
 
             var analyzersSettings = new List<AnalyzerSettings>

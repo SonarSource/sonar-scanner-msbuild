@@ -84,10 +84,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
             var rulesetFilePath = CreateRuleSet(language, activeRules, inactiveRules, ProjectType.Product);
             var testProjectRuleSetFilePath = CreateRuleSet(language, activeRules, inactiveRules, ProjectType.Test);
-            var analyzersAssemblies = FetchAnalyzerAssemblies(language, activeRules);
+            var analyzerPlugins = FetchAnalyzerPlugins(language, activeRules);
             var additionalFiles = WriteAdditionalFiles(language, activeRules);
 
-            return new AnalyzerSettings(language, rulesetFilePath, testProjectRuleSetFilePath, analyzersAssemblies, additionalFiles);
+            return new AnalyzerSettings(language, rulesetFilePath, testProjectRuleSetFilePath, analyzerPlugins, additionalFiles);
         }
 
         public static string GetRoslynRulesetFileName(string language, ProjectType projectType)
@@ -156,7 +156,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             return true;
         }
 
-        private IEnumerable<string> FetchAnalyzerAssemblies(string language, IEnumerable<SonarRule> activeRules)
+        private IEnumerable<AnalyzerPlugin> FetchAnalyzerPlugins(string language, IEnumerable<SonarRule> activeRules)
         {
             var partialRepoKeys = ActiveRulesPartialRepoKeys(activeRules);
             IList<Plugin> plugins = new List<Plugin>();
@@ -180,7 +180,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             if (plugins.Count == 0)
             {
                 this.logger.LogInfo(Resources.RAP_NoAnalyzerPluginsSpecified, language);
-                return Enumerable.Empty<string>();
+                return Enumerable.Empty<AnalyzerPlugin>();
             }
             else
             {

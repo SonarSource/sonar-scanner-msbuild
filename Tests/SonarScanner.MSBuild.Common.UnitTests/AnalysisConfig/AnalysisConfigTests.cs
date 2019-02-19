@@ -95,10 +95,10 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             settings.AdditionalFilePaths.Add("additional path1");
             settings.AdditionalFilePaths.Add("additional path2");
 
-            settings.AnalyzerAssemblyPaths = new List<string>
+            settings.AnalyzerPlugins = new List<AnalyzerPlugin>
             {
-                "analyzer path1",
-                "analyzer path2"
+                new AnalyzerPlugin("pluginkey1", "1.2.3.4", "static-resource.zip", new List<string> { "analyzer path1", "analyzer path2" }),
+                new AnalyzerPlugin("plugin-key2", "a-version", "a/b/c/d.zip", new List<string> { "analyzer path3", "analyzer path4" })
             };
 
             originalConfig.AnalyzersSettings = new List<AnalyzerSettings>
@@ -191,9 +191,19 @@ namespace SonarScanner.MSBuild.Common.UnitTests
   <AnalyzersSettings>
     <AnalyzerSettings>
       <RuleSetFilePath>d:\ruleset path.ruleset</RuleSetFilePath>
-      <AnalyzerAssemblyPaths>
-        <Path>c:\analyzer1.dll</Path>
-      </AnalyzerAssemblyPaths>
+      <AnalyzerPlugins>
+        <AnalyzerPlugin Key='csharp' Version='7.10.0.7896' StaticResourceName='SonarAnalyzer-7.10.0.7896.zip'>
+          <AssemblyPaths>
+            <Path>c:\assembly1.dll</Path>
+            <Path>C:\assembly2.dll</Path>
+          </AssemblyPaths>
+        </AnalyzerPlugin>
+        <AnalyzerPlugin Key='pluginkey2' Version='1.2.3' StaticResourceName='staticresource.zip'>
+          <AssemblyPaths>
+            <Path>C:\assembly3.dll</Path>
+          </AssemblyPaths>
+        </AnalyzerPlugin>
+      </AnalyzerPlugins>
       <AdditionalFilePaths>
 
         <MoreUnexpectedData><Foo /></MoreUnexpectedData>
@@ -232,9 +242,10 @@ namespace SonarScanner.MSBuild.Common.UnitTests
                 AdditionalFilePaths = new List<string>()
             };
             settings.AdditionalFilePaths.Add("c:\\additional1.txt");
-            settings.AnalyzerAssemblyPaths = new List<string>
+            settings.AnalyzerPlugins = new List<AnalyzerPlugin>
             {
-                "c:\\analyzer1.dll"
+                new AnalyzerPlugin("csharp","7.10.0.7896","SonarAnalyzer-7.10.0.7896.zip", new List<string> { "c:\\assembly1.dll", "C:\\assembly2.dll" } ),
+                new AnalyzerPlugin("pluginkey2", "1.2.3", "staticresource.zip", new List<string> { "C:\\assembly3.dll" })
             };
 
             expected.AnalyzersSettings = new List<AnalyzerSettings>
@@ -324,7 +335,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
 
                 actual.RuleSetFilePath.Should().Be(expected.RuleSetFilePath, "Unexpected Ruleset value");
 
-                actual.AnalyzerAssemblyPaths.Should().BeEquivalentTo(expected.AnalyzerAssemblyPaths, "Analyzer assembly paths do not match");
+                actual.AnalyzerPlugins.Should().BeEquivalentTo(expected.AnalyzerPlugins, "Analyzer plugins do not match");
                 actual.AdditionalFilePaths.Should().BeEquivalentTo(expected.AdditionalFilePaths, "Additional file paths do not match");
             }
         }

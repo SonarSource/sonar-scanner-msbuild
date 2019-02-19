@@ -36,7 +36,7 @@ namespace SonarScanner.MSBuild.Common
         }
 
         public AnalyzerSettings(string language, string ruleSetFilePath, string testProjectRuleSetFilePath,
-            IEnumerable<string> analyzerAssemblies, IEnumerable<string> additionalFiles)
+            IEnumerable<AnalyzerPlugin> analyzerPlugins, IEnumerable<string> additionalFiles)
         {
             if (string.IsNullOrWhiteSpace(ruleSetFilePath))
             {
@@ -46,9 +46,9 @@ namespace SonarScanner.MSBuild.Common
             {
                 throw new ArgumentNullException(nameof(testProjectRuleSetFilePath));
             }
-            if (analyzerAssemblies == null)
+            if (analyzerPlugins == null)
             {
-                throw new ArgumentNullException(nameof(analyzerAssemblies));
+                throw new ArgumentNullException(nameof(analyzerPlugins));
             }
             if (additionalFiles == null)
             {
@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.Common
             Language = language;
             RuleSetFilePath = ruleSetFilePath;
             TestProjectRuleSetFilePath = testProjectRuleSetFilePath;
-            AnalyzerAssemblyPaths = new List<string>(analyzerAssemblies);
+            AnalyzerPlugins = new List<AnalyzerPlugin>(analyzerPlugins);
             AdditionalFilePaths = new List<string>(additionalFiles);
         }
 
@@ -82,8 +82,8 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         /// <remarks>This includes analyzer assemblies and their dependencies</remarks>
         [XmlArray]
-        [XmlArrayItem("Path")]
-        public List<string> AnalyzerAssemblyPaths { get; set; }
+        [XmlArrayItem("AnalyzerPlugin")]
+        public List<AnalyzerPlugin> AnalyzerPlugins { get; set; }
 
         /// <summary>
         /// File paths for all files to pass as "AdditionalFiles" to the compiler

@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using FluentAssertions;
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
@@ -30,7 +31,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
     {
         #region Test helpers
 
-        public ISet<string> AssemblyPathsToReturn { get; set; }
+        public IList<AnalyzerPlugin> AnalyzerPluginsToReturn { get; set; }
 
         public List<Plugin> SuppliedPlugins = new List<Plugin>();
 
@@ -58,7 +59,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         #region IAnalyzerInstaller methods
 
-        IEnumerable<string> IAnalyzerInstaller.InstallAssemblies(IEnumerable<Plugin> plugins)
+        IEnumerable<AnalyzerPlugin> IAnalyzerInstaller.InstallAssemblies(IEnumerable<Plugin> plugins)
         {
             plugins.Should().NotBeNull("Supplied list of plugins should not be null");
             foreach(var p in plugins)
@@ -67,7 +68,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             }
             this.SuppliedPlugins.AddRange(plugins);
 
-            return AssemblyPathsToReturn;
+            return AnalyzerPluginsToReturn;
         }
 
         #endregion IAnalyzerInstaller methods
