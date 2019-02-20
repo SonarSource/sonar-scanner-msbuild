@@ -341,5 +341,14 @@ namespace SonarScanner.MSBuild.Tasks {
                 return ResourceManager.GetString("WPIF_WARN_MissingValueMetadata", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Writing zero-length file:{0}.
+        /// </summary>
+        internal static string WriteZeroLengthFiles_WritingFile {
+            get {
+                return ResourceManager.GetString("WriteZeroLengthFiles_WritingFile", resourceCulture);
+            }
+        }
     }
 }

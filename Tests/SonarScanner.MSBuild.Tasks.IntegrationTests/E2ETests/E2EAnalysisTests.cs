@@ -632,13 +632,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
         public void E2E_TestProjects_ProtobufsUpdated()
         {
             // Arrange and Act
-            var result = Execute_E2E_TestProjects_ProtobufsUpdated(true);
+            var result = Execute_E2E_TestProjects_ProtobufsUpdated(true, "subdir1");
 
             // Assert
-            var projectSpecificOutputDir = result.GetCapturedPropertyValue("ProjectSpecificOutDir");
+            result.AssertTargetExecuted("FixUpTestProjectOutputs");
 
-            AssertFilesExistsAndAreNotEmpty(projectSpecificOutputDir, "encoding.pb", "file-metadata.pb", "symrefs.pb", "token-type.pb");
-            AssertFilesExistsAndAreEmpty(projectSpecificOutputDir, "metrics.pb", "token-cpd.pb");
+            var protobufDir = Path.Combine(result.GetCapturedPropertyValue("ProjectSpecificOutDir"), "subdir1");
+
+            AssertFilesExistsAndAreNotEmpty(protobufDir, "encoding.pb", "file-metadata.pb", "symrefs.pb", "token-type.pb");
+            AssertFilesExistsAndAreEmpty(protobufDir, "metrics.pb", "token-cpd.pb");
         }
 
         [TestMethod]
@@ -646,16 +648,18 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
         public void E2E_NonTestProjects_ProtobufsNotUpdated()
         {
             // Arrange and Act
-            var result = Execute_E2E_TestProjects_ProtobufsUpdated(false);
+            var result = Execute_E2E_TestProjects_ProtobufsUpdated(false, "subdir2");
 
             // Assert
-            var projectSpecificOutputDir = result.GetCapturedPropertyValue("ProjectSpecificOutDir");
+            result.AssertTargetNotExecuted("FixUpTestProjectOutputs");
+
+            var protobufDir = Path.Combine(result.GetCapturedPropertyValue("ProjectSpecificOutDir"), "subdir2");
 
             // Protobufs should not changed for non-test project
-            AssertFilesExistsAndAreNotEmpty(projectSpecificOutputDir, ProtobufFileNames);
+            AssertFilesExistsAndAreNotEmpty(protobufDir, ProtobufFileNames);
         }
 
-        private BuildLog Execute_E2E_TestProjects_ProtobufsUpdated(bool isTestProject)
+        private BuildLog Execute_E2E_TestProjects_ProtobufsUpdated(bool isTestProject, string projectSpecificSubDir)
         {
             // Protobuf files containing metrics information should be created for test projects.
             // However, some of the metrics files should be empty, as should the issues report.
@@ -686,12 +690,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
   <Error Condition=""$(ProjectSpecificOutDir)==''"" Text='Test error: ProjectSpecificOutDir is not set' />
   <Message Text='CAPTURE___PROPERTY___ProjectSpecificOutDir___$(ProjectSpecificOutDir)' Importance='high' />
 
-  <WriteLinesToFile File='$(ProjectSpecificOutDir)\encoding.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
-  <WriteLinesToFile File='$(ProjectSpecificOutDir)\file-metadata.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
-  <WriteLinesToFile File='$(ProjectSpecificOutDir)\metrics.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
-  <WriteLinesToFile File='$(ProjectSpecificOutDir)\symrefs.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
-  <WriteLinesToFile File='$(ProjectSpecificOutDir)\token-cpd.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
-  <WriteLinesToFile File='$(ProjectSpecificOutDir)\token-type.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+  <!-- Write the protobufs to an arbitrary subdirectory under the project-specific folder. -->
+  <MakeDir Directories='$(ProjectSpecificOutDir)\{projectSpecificSubDir}' />
+
+  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\encoding.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\file-metadata.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\metrics.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\symrefs.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\token-cpd.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\token-type.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
   
 </Target>
 ";
@@ -887,7 +894,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                 var fullPath = Path.Combine(directory, item);
                 var fileInfo = new FileInfo(fullPath);
 
-                fileInfo.Exists.Should().BeTrue();
+                fileInfo.Exists.Should().BeTrue($"file {item} should exist");
 
                 if (shouldBeEmpty)
                 {
