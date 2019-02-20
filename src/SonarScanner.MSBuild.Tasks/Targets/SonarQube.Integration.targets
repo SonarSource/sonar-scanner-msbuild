@@ -392,7 +392,8 @@
                          OriginalAnalyzers="@(Analyzer)"
                          OriginalAdditionalFiles="@(AdditionalFiles)"
                          OriginalRulesetFilePath="$(ResolvedCodeAnalysisRuleset)"
-                         ProjectSpecificConfigDirectory="$(ProjectSpecificConfDir)">
+                         ProjectSpecificConfigDirectory="$(ProjectSpecificConfDir)"
+                         IsTestProject="$(SonarQubeTestProject)">
       <Output TaskParameter="RuleSetFilePath" PropertyName="SQRuleSetFilePath" />
       <Output TaskParameter="AnalyzerFilePaths" ItemName="SQAnalyzerFilePaths" />
       <Output TaskParameter="AdditionalFilePaths" ItemName="SQAdditionalFiles" />

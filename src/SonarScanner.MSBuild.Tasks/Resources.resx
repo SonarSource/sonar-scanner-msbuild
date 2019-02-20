@@ -211,4 +211,7 @@ Error: {1}</value>
   <data name="AnalyzerSettings_LanguageNotSpecified" xml:space="preserve">
     <value>Analysis language is not specified</value>
   </data>
+  <data name="AnalyzerSettings_ConfiguringTestProjectAnalysis" xml:space="preserve">
+    <value>Overwriting analysis settings for a test project...</value>
+  </data>
 </root>
