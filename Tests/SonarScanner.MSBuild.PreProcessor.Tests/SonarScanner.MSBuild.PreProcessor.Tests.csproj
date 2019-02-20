@@ -54,6 +54,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.1.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Threading.Tasks.Extensions.4.3.0\lib\portable-net45+win8+wp8+wpa81\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
@@ -98,6 +99,7 @@
     <Compile Include="Roslyn\PluginTests.cs" />
     <Compile Include="RulesetWriterTest.cs" />
     <Compile Include="DataModel\QualityProfile.cs" />
+    <Compile Include="SonarQubeServerTest.cs" />
     <Compile Include="SonarWebServiceTest.cs" />
     <Compile Include="TargetsInstallerTests.cs" />
     <Compile Include="WebClientDownloaderTest.cs" />

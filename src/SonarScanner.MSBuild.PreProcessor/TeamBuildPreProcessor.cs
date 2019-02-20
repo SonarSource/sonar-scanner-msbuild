@@ -24,6 +24,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using SonarQube.Client;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS;
 
@@ -37,10 +39,10 @@ namespace SonarScanner.MSBuild.PreProcessor
         public const string VBNetLanguage = "vbnet";
         public const string VBNetPluginKey = "vbnet";
 
-        private readonly static PluginDefinition csharp = new PluginDefinition(CSharpLanguage, CSharpPluginKey);
-        private readonly static PluginDefinition vbnet = new PluginDefinition(VBNetLanguage, VBNetPluginKey);
+        private static readonly PluginDefinition csharp = new PluginDefinition(CSharpLanguage, CSharpPluginKey);
+        private static readonly PluginDefinition vbnet = new PluginDefinition(VBNetLanguage, VBNetPluginKey);
 
-        private readonly static List<PluginDefinition> plugins = new List<PluginDefinition>
+        private static readonly List<PluginDefinition> plugins = new List<PluginDefinition>
         {
             csharp,
             vbnet
@@ -207,8 +209,10 @@ namespace SonarScanner.MSBuild.PreProcessor
                     }
                 }
             }
-            catch (WebException ex)
+            catch (HttpRequestException e) when (e.InnerException is WebException ex)
             {
+                // For all errors in HttpClient a HttpRequestException will be thrown - both low level
+                // and HttpStatusCode-related.
                 if (Utilities.HandleHostUrlWebException(ex, args.SonarQubeUrl, this.logger))
                 {
                     return false;

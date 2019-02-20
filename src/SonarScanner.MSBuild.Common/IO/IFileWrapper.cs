@@ -28,5 +28,6 @@ namespace SonarScanner.MSBuild.Common
         string ReadAllText(string path);
         void Copy(string sourceFileName, string destFileName, bool overwrite);
         Stream Open(string path);
+        Stream Create(string path);
     }
 }

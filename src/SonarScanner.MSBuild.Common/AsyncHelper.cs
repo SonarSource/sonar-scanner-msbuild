@@ -18,31 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SonarScanner.MSBuild.Common
 {
-    [ExcludeFromCodeCoverage]
-    public class FileWrapper : IFileWrapper
+    // Source https://cpratt.co/async-tips-tricks/
+    public static class AsyncHelper
     {
-        public static IFileWrapper Instance { get; } = new FileWrapper();
+        private static readonly TaskFactory _taskFactory =
+            new TaskFactory(CancellationToken.None, TaskCreationOptions.None, TaskContinuationOptions.None, TaskScheduler.Default);
 
-        private FileWrapper() { }
+        public static TResult RunSync<TResult>(Func<Task<TResult>> func)
+            => _taskFactory
+                .StartNew(func)
+                .Unwrap()
+                .GetAwaiter()
+                .GetResult();
 
-        public void Copy(string sourceFileName, string destFileName, bool overwrite) =>
-            File.Copy(sourceFileName, destFileName, overwrite);
-
-        public bool Exists(string path) =>
-            File.Exists(path);
-
-        public string ReadAllText(string path) =>
-            File.ReadAllText(path);
-
-        public Stream Open(string path) =>
-            File.OpenRead(path);
-
-        public Stream Create(string path) =>
-            File.Create(path);
+        public static void RunSync(Func<Task> func)
+            => _taskFactory
+                .StartNew(func)
+                .Unwrap()
+                .GetAwaiter()
+                .GetResult();
     }
 }
