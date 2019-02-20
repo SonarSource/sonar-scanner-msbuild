@@ -363,7 +363,7 @@
 
     <PropertyGroup>
       <!-- Check whether to turn off code analysis logging -->
-      <SonarQubeDisableRoslynCodeAnalysis Condition="$(SonarQubeExclude) == 'true' OR $(SonarQubeTestProject) == 'true' ">true</SonarQubeDisableRoslynCodeAnalysis>
+      <SonarQubeDisableRoslynCodeAnalysis Condition="$(SonarQubeExclude) == 'true' ">true</SonarQubeDisableRoslynCodeAnalysis>
 
       <!-- Make sure no warnings are treated as errors -->
       <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
