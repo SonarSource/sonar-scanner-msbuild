@@ -33,6 +33,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
     {
         private const string ExpectedAnalysisFilesListFileName = "FilesToAnalyze.txt";
 
+        /// <summary>
+        /// File names of all of the protobuf files created by the utility analyzers
+        /// </summary>
+        private readonly string[] ProtobufFileNames = { "encoding.pb", "file-metadata.pb", "metrics.pb", "symrefs.pb", "token-cpd.pb", "token-type.pb" };
+
         public TestContext TestContext { get; set; }
 
         #region Tests
@@ -622,14 +627,116 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             projectInfo.AnalysisResults.Should().BeEmpty("Unexpected number of analysis results created");
         }
 
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_TestProjects_ProtobufsUpdated()
+        {
+            // Arrange and Act
+            var result = Execute_E2E_TestProjects_ProtobufsUpdated(true, "subdir1");
+
+            // Assert
+            result.AssertTargetExecuted("FixUpTestProjectOutputs");
+
+            var protobufDir = Path.Combine(result.GetCapturedPropertyValue("ProjectSpecificOutDir"), "subdir1");
+
+            AssertFilesExistsAndAreNotEmpty(protobufDir, "encoding.pb", "file-metadata.pb", "symrefs.pb", "token-type.pb");
+            AssertFilesExistsAndAreEmpty(protobufDir, "metrics.pb", "token-cpd.pb");
+        }
+
+        [TestMethod]
+        [TestCategory("E2E"), TestCategory("Targets")]
+        public void E2E_NonTestProjects_ProtobufsNotUpdated()
+        {
+            // Arrange and Act
+            var result = Execute_E2E_TestProjects_ProtobufsUpdated(false, "subdir2");
+
+            // Assert
+            result.AssertTargetNotExecuted("FixUpTestProjectOutputs");
+
+            var protobufDir = Path.Combine(result.GetCapturedPropertyValue("ProjectSpecificOutDir"), "subdir2");
+
+            // Protobufs should not changed for non-test project
+            AssertFilesExistsAndAreNotEmpty(protobufDir, ProtobufFileNames);
+        }
+
+        private BuildLog Execute_E2E_TestProjects_ProtobufsUpdated(bool isTestProject, string projectSpecificSubDir)
+        {
+            // Protobuf files containing metrics information should be created for test projects.
+            // However, some of the metrics files should be empty, as should the issues report.
+            // See [MMF-485] : https://jira.sonarsource.com/browse/MMF-486
+            // This method creates some non-empty dummy protobuf files during a build.
+            // The caller can should check that the protobufs have been updated/not-updated,
+            // as expected, depending on the type of the project being built.
+
+            // Arrange
+            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+
+            var code1 = CreateEmptyFile(rootInputFolder, "code1.cs");
+
+            var projectXml = $@"
+<PropertyGroup>
+  <SonarQubeTestProject>{isTestProject.ToString()}</SonarQubeTestProject>
+</PropertyGroup>
+<ItemGroup>
+  <Compile Include='{code1}' />
+</ItemGroup>
+
+<!-- Target to create dummy, non-empty protobuf files. We can't do this from code since the targets create
+     a unique folder. We have to insert this target into the build after the unique folder has been created,
+     but before the targets that modify the protobufs are executed -->
+<Target Name='CreateDummyProtobufFiles' DependsOnTargets='CreateProjectSpecificDirs' BeforeTargets='OverrideRoslynCodeAnalysisProperties'>
+
+  <Error Condition=""$(ProjectSpecificOutDir)==''"" Text='Test error: ProjectSpecificOutDir is not set' />
+  <Message Text='CAPTURE___PROPERTY___ProjectSpecificOutDir___$(ProjectSpecificOutDir)' Importance='high' />
+
+  <!-- Write the protobufs to an arbitrary subdirectory under the project-specific folder. -->
+  <MakeDir Directories='$(ProjectSpecificOutDir)\{projectSpecificSubDir}' />
+
+  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\encoding.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\file-metadata.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\metrics.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\symrefs.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\token-cpd.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+  <WriteLinesToFile File='$(ProjectSpecificOutDir)\{projectSpecificSubDir}\token-type.pb' Lines='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' />
+  
+</Target>
+";
+            var projectFilePath = CreateProjectFile(projectXml, rootOutputFolder);
+
+            // Act
+            var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
+
+            // Assert
+            result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget); // Build should succeed with warnings
+            var projectSpecificOutputDir = CheckProjectSpecificOutputStructure(rootOutputFolder);
+
+            // Sanity check that the above target was executed
+            result.AssertTargetExecuted("CreateDummyProtobufFiles");
+
+            var projectSpecificOutputDir2 = result.GetCapturedPropertyValue("ProjectSpecificOutDir");
+            projectSpecificOutputDir2.Should().Be(projectSpecificOutputDir);
+
+            AssertNoAdditionalFilesInFolder(projectSpecificOutputDir,
+                ProtobufFileNames.Concat(new string[] { ExpectedAnalysisFilesListFileName, FileConstants.ProjectInfoFileName })
+                .ToArray());
+
+            return result;
+        }
+
         #endregion Tests
 
         #region Private methods
 
         private static string CreateEmptyFile(string folder, string fileName)
         {
+            return CreateFile(folder, fileName, string.Empty);
+        }
+
+        private static string CreateFile(string folder, string fileName, string content)
+        {
             var filePath = Path.Combine(folder, fileName);
-            File.WriteAllText(filePath, string.Empty);
+            File.WriteAllText(filePath, content);
 
             return filePath;
         }
@@ -767,6 +874,36 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                     Console.WriteLine("\t{0}", additionalFile);
                 }
                 Assert.Fail("Additional files exist in the project output folder: {0}", folderPath);
+            }
+        }
+
+        private void AssertFilesExistsAndAreNotEmpty(string directory, params string[] fileNames)
+        {
+            CheckFilesExistenceAndSize(false, directory, fileNames);
+        }
+
+        private void AssertFilesExistsAndAreEmpty(string directory, params string[] fileNames)
+        {
+            CheckFilesExistenceAndSize(true, directory, fileNames);
+        }
+
+        private void CheckFilesExistenceAndSize(bool shouldBeEmpty, string directory, params string[] fileNames)
+        {
+            foreach (var item in fileNames)
+            {
+                var fullPath = Path.Combine(directory, item);
+                var fileInfo = new FileInfo(fullPath);
+
+                fileInfo.Exists.Should().BeTrue($"file {item} should exist");
+
+                if (shouldBeEmpty)
+                {
+                    fileInfo.Length.Should().Be(0, $"file {item} should be empty");
+                }
+                else
+                {
+                    fileInfo.Length.Should().BeGreaterThan(0, $"file {item} should be not empty");
+                }
             }
         }
 

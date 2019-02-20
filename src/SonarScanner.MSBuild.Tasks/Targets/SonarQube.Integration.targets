@@ -127,6 +127,7 @@
   <UsingTask TaskName="IsTestFileByName" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="GetAnalyzerSettings" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="MakeUniqueDir" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
+  <UsingTask TaskName="WriteZeroLengthFiles" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
 
   <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
@@ -299,7 +300,8 @@
 
     <Message Importance="low" Condition=" $(SonarQubeTestProject) == 'true' "
              Text="SonarQube: project will be treated as a test project : $(MSBuildProjectName)" />
-
+    <CallTarget Targets="FixUpTestProjectOutputs" />
+    
     <WriteProjectInfoFile ProjectName="$(MSBuildProjectName)"
        FullProjectPath="$(MSBuildProjectFullPath)"
        ProjectLanguage="$(Language)"
@@ -315,6 +317,21 @@
        Platform="$(Platform)"
        TargetFramework="$(TargetFramework)" />
   </Target>
+
+  <Target Name="FixUpTestProjectOutputs" Condition="$(SonarQubeTestProject)=='true'" >
+    <Message Importance="low" Text="Fixing up test project outputs..." />
+
+    <ItemGroup>
+      <!-- Select specific metrics files that should not be uploaded for test files.
+           Assumption: these files will be in a sub-folder under the project-specific output folder. -->
+      <SQTestMetricFiles Include="$(ProjectSpecificOutDir)\*\metrics.pb" />
+      <SQTestMetricFiles Include="$(ProjectSpecificOutDir)\*\token-cpd.pb" />
+    </ItemGroup>
+
+    <Message Importance="low" Text="Selected test metric file: @(SQTestMetricFiles)" />
+    <WriteZeroLengthFiles FullFilePaths="@(SQTestMetricFiles)" />
+  </Target>
+
 
   <!-- **************************************************************************** -->
   <!-- Code analysis -->
@@ -363,7 +380,7 @@
 
     <PropertyGroup>
       <!-- Check whether to turn off code analysis logging -->
-      <SonarQubeDisableRoslynCodeAnalysis Condition="$(SonarQubeExclude) == 'true' OR $(SonarQubeTestProject) == 'true' ">true</SonarQubeDisableRoslynCodeAnalysis>
+      <SonarQubeDisableRoslynCodeAnalysis Condition="$(SonarQubeExclude) == 'true' ">true</SonarQubeDisableRoslynCodeAnalysis>
 
       <!-- Make sure no warnings are treated as errors -->
       <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
