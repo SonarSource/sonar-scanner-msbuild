@@ -257,4 +257,7 @@
   <data name="ERROR_InvalidPropertyName" xml:space="preserve">
     <value>At least one property name is missing. Please check that the settings file is valid.</value>
   </data>
+  <data name="ERROR_CmdLine_MustUseOrganization" xml:space="preserve">
+    <value>Please use the parameter prefix '/o:' to define the organization of the SonarQube project instead of injecting this organization with the help of the 'sonar.organization' property.</value>
+  </data>
 </root>

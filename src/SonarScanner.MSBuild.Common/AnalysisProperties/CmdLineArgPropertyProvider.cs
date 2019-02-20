@@ -147,6 +147,8 @@ namespace SonarScanner.MSBuild.Common
                 Resources.ERROR_CmdLine_MustUseProjectName);
             var containsProjectVersion = ContainsNamedParameter(SonarProperties.ProjectVersion, validProperties, logger,
                 Resources.ERROR_CmdLine_MustUseProjectVersion);
+            var containsOrganization = ContainsNamedParameter(SonarProperties.Organization, validProperties, logger,
+                Resources.ERROR_CmdLine_MustUseOrganization);
 
             // Check for others properties that can't be set
             var containsUnsettableWorkingDirectory = ContainsUnsettableParameter(SonarProperties.WorkingDirectory, validProperties,
@@ -159,6 +161,7 @@ namespace SonarScanner.MSBuild.Common
                 !containsProjectKey &&
                 !containsProjectName &&
                 !containsProjectVersion &&
+                !containsOrganization &&
                 !containsUnsettableWorkingDirectory;
         }
 
