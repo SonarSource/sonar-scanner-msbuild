@@ -134,6 +134,15 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/o:&apos; to define the organization of the SonarQube project instead of injecting this organization with the help of the &apos;sonar.organization&apos; property..
+        /// </summary>
+        internal static string ERROR_CmdLine_MustUseOrganization {
+            get {
+                return ResourceManager.GetString("ERROR_CmdLine_MustUseOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Please use the parameter prefix &apos;/k:&apos; to define the key of the SonarQube project instead of injecting this key with the help of the &apos;sonar.projectKey&apos; property..
         /// </summary>
         internal static string ERROR_CmdLine_MustUseProjectKey {

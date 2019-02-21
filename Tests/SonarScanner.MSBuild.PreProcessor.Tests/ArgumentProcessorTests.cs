@@ -365,6 +365,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 "/d:sonar.projectVersion=value1");
             logger.AssertSingleErrorExists(SonarProperties.ProjectVersion, "/v");
 
+            logger = CheckProcessingFails(
+                "/key:my.key", "/name:my name", "/version:1.2", "/organization:my_org",
+                "/d:sonar.organization=value1");
+            logger.AssertSingleErrorExists(SonarProperties.Organization, "/o");
+
             // 2. Other values that can't be set
 
             logger = CheckProcessingFails(
