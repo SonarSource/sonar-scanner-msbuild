@@ -32,7 +32,18 @@ namespace SonarScanner.MSBuild.Common
         /// errors from the Integration targets in case we detect we are running under
         /// not supported MSBuild.
         /// </summary>
-        private readonly string[] msBuildVersions = new[] { "4.0", "10.0", "11.0", "12.0", "14.0", "15.0", };
+        /// <remarks>
+        /// From MSBuild 16.0 onwards, there will no longer be a version-specific folder. Instead,
+        /// all versions of MSBuild use "Current".
+        /// This means that if we ever need to provide version-specific behaviour in the ImportBefore
+        /// targets, we will need to put all of the behaviours in a single file, and use the
+        /// property $(MSBuildAssemblyVersion) to determine version of MSBuild is executing.
+        /// See the following tickest for more info:
+        /// * https://github.com/SonarSource/sonar-scanner-msbuild/issues/676
+        /// * https://github.com/Microsoft/msbuild/issues/3778
+        /// * https://github.com/Microsoft/msbuild/issues/4149 (closed as "Won't fix")
+        /// </remarks>
+        private readonly string[] msBuildVersions = new[] { "4.0", "10.0", "11.0", "12.0", "14.0", "15.0", "Current" };
 
         private readonly Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> environmentGetFolderPath;
         private readonly Func<bool> isWindows;
@@ -96,7 +107,8 @@ namespace SonarScanner.MSBuild.Common
             // MSBuildUserExtensionsPath --> in Local AppData
 
             // "dotnet build" and "dotnet msbuild" on non-Windows use a different path for import before
-            return new[] { GetMsBuildImportBeforePath(userProfilePath, "15.0") }; // Older versions are not supported on non-Windows OS
+            return new[] { GetMsBuildImportBeforePath(userProfilePath, "15.0"),
+                           GetMsBuildImportBeforePath(userProfilePath, "Current") }; // Older versions are not supported on non-Windows OS
         }
 
         /// <summary>
@@ -170,7 +182,10 @@ namespace SonarScanner.MSBuild.Common
 
             return new[]
             {
+                // Up to v15, global targets are dropped under Program Files (x86)\MSBuild.
+                // This doesn't appear to be the case for later versions.
                 Path.Combine(programFiles, "MSBuild", "14.0", "Microsoft.Common.Targets", "ImportBefore"),
+                Path.Combine(programFiles, "MSBuild", "15.0", "Microsoft.Common.Targets", "ImportBefore")
             };
         }
 

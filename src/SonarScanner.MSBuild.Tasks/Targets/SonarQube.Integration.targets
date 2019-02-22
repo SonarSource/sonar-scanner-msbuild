@@ -141,9 +141,11 @@
   </Target>
 
   <Target Name="FailIfLowerThanMSBuild14"
-          Condition=" $(SonarQubeTempPath) != '' AND $(MSBuildToolsVersion) != '14.0' AND $(MSBuildToolsVersion) != '15.0'"
+          Condition=" $(SonarQubeTempPath) != '' AND $(MSBuildToolsVersion) != '14.0' AND $(MSBuildToolsVersion) != '15.0' AND $(MSBuildToolsVersion) != 'Current'"
           BeforeTargets="Build">
-    <Error Text="SonarQube analysis is only supported with MSBuild 14 or MSBuild 15" />
+    <Message Importance="high" Text="Current MSBuildToolsVersion: $(MSBuildToolsVersion)" />
+    <Message Importance="high" Text="Current MSBuildAssemblyVersion: $(MSBuildAssemblyVersion)" />
+    <Error Text="SonarQube analysis is only supported with MSBuild 14 or later." />
   </Target>
 
   <!-- **************************************************************************** -->

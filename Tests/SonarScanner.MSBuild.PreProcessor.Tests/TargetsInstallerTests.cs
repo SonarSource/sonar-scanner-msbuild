@@ -90,7 +90,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             var msBuildPathSettings = new MsBuildPathSettings();
 
             InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
-            msBuildPathSettings.GetImportBeforePaths().Should().HaveCount(6, "Expecting six destination directories");
+            msBuildPathSettings.GetImportBeforePaths().Should().HaveCount(7, "Expecting six destination directories");
 
             var path = Path.Combine(msBuildPathSettings.GetImportBeforePaths().First(), FileConstants.ImportBeforeTargetsName);
             File.Delete(path);
