@@ -63,9 +63,9 @@ namespace SonarScanner.MSBuild.PostProcessor
                 throw new ArgumentNullException(nameof(settings));
             }
 
-            targetUninstaller.UninstallTargets();
-
             logger.SuspendOutput();
+
+            targetUninstaller.UninstallTargets();
 
             if (!ArgumentProcessor.TryProcessArgs(args, logger, out IAnalysisPropertyProvider provider))
             {

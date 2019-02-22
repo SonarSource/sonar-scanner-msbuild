@@ -282,6 +282,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             recorder.AssertNoOutput();
 
             // 3. Suspend and log some output
+            logger.Verbosity = LoggerVerbosity.Info;
             logger.SuspendOutput();
             logger.LogDebug("debug 1 {0}", "xxx");
             logger.LogWarning("warning 1 {0}", "xxx");
@@ -291,6 +292,9 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             recorder.AssertNoOutput();
 
             // 4. Resume -> check expected output and ordering
+            // The verbosity should be checked when ResumeOutput is called, not
+            // when the message is originally logged.
+            logger.Verbosity = LoggerVerbosity.Debug;
             logger.ResumeOutput();
 
             recorder.AssertExpectedOutputText(
