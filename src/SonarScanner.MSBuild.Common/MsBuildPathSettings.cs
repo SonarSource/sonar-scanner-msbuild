@@ -107,8 +107,12 @@ namespace SonarScanner.MSBuild.Common
             // MSBuildUserExtensionsPath --> in Local AppData
 
             // "dotnet build" and "dotnet msbuild" on non-Windows use a different path for import before
-            return new[] { GetMsBuildImportBeforePath(userProfilePath, "15.0"),
-                           GetMsBuildImportBeforePath(userProfilePath, "Current") }; // Older versions are not supported on non-Windows OS
+            return new[]
+            {
+                // Older versions are not supported on non-Windows OS
+                GetMsBuildImportBeforePath(userProfilePath, "15.0"),
+                GetMsBuildImportBeforePath(userProfilePath, "Current")
+            };
         }
 
         /// <summary>
