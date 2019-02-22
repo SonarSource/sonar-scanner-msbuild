@@ -126,12 +126,8 @@ namespace SonarScanner.MSBuild.Common
 
         public void LogDebug(string message, params object[] args)
         {
-            if (Verbosity == LoggerVerbosity.Debug)
-            {
-                Write(MessageType.Debug, message, args);
-            }
+            Write(MessageType.Debug, message, args);
         }
-
         public void LogInfo(string message, params object[] args)
         {
             Write(MessageType.Info, message, args);
@@ -191,10 +187,15 @@ namespace SonarScanner.MSBuild.Common
             }
             else
             {
-                var textColor = GetConsoleColor(messageType);
+                // We always write out info, warnings and errors, but only write debug message
+                // if the verbosity is Debug.
+                if (messageType != MessageType.Debug || (Verbosity == LoggerVerbosity.Debug))
+                {
+                    var textColor = GetConsoleColor(messageType);
 
-                Debug.Assert(outputWriter != null, "OutputWriter should not be null");
-                outputWriter.WriteLine(finalMessage, textColor, messageType == MessageType.Error);
+                    Debug.Assert(outputWriter != null, "OutputWriter should not be null");
+                    outputWriter.WriteLine(finalMessage, textColor, messageType == MessageType.Error);
+                }
             }
         }
 
