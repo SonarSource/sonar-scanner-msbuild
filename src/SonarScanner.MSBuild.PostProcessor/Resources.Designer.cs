@@ -138,6 +138,15 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Uninstalling target: {0}\{1}.
+        /// </summary>
+        internal static string MSG_UninstallTargets_Uninstalling {
+            get {
+                return ResourceManager.GetString("MSG_UninstallTargets_Uninstalling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Analysis failed for SonarQube project {0}.
         /// </summary>
         internal static string Report_AnalysisFailed {
