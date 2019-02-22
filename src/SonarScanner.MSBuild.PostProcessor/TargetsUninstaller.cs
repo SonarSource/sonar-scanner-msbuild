@@ -51,6 +51,7 @@ namespace SonarScanner.MSBuild.PostProcessor
 
                 try
                 {
+                    logger.LogDebug(Resources.MSG_UninstallTargets_Uninstalling, directoryPath, FileConstants.ImportBeforeTargetsName);
                     File.Delete(destinationPath);
                 }
                 catch (IOException)
