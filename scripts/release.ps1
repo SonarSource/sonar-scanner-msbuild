@@ -43,6 +43,8 @@ function Get-ScannerArtifact($artifactKind, $localName) {
 
     Write-Host "Downloading artifact from '${url}' to '${downloadFolder}'"
 
+    # NB: the WebClient class defaults to TLS v1, which is no longer supported by GitHub/Artifactory online
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
     (New-Object System.Net.WebClient).DownloadFile($url, (Join-Path $downloadFolder $localName))
 }
 

@@ -110,6 +110,7 @@
           System.IO.Directory.CreateDirectory(directory);
         }
 
+        System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
         var fileName = File ?? System.IO.Path.GetFileName(new Uri(Url).LocalPath);
         client.DownloadFile(Url, directory + fileName);
     }
