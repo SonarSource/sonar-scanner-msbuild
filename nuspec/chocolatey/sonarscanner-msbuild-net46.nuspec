@@ -11,7 +11,7 @@
     <projectSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild</projectSourceUrl>
     <packageSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild/tree/master/nuspec/chocolatey</packageSourceUrl>
     <iconUrl>https://cdn.rawgit.com/SonarSource/sonar-scanner-msbuild/cdd1f588/icon.png</iconUrl>
-    <licenseUrl>https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/LICENSE.txt</licenseUrl>
     <docsUrl>https://redirect.sonarsource.com/doc/install-configure-scanner-msbuild.html</docsUrl>
     <mailingListUrl>https://community.sonarsource.com/</mailingListUrl>
     <bugTrackerUrl>https://github.com/SonarSource/sonar-scanner-msbuild/issues</bugTrackerUrl>
