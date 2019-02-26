@@ -22,7 +22,26 @@ if ($PSBoundParameters['Verbose'] -Or $PSBoundParameters['Debug']) {
 }
 
 function Get-ScannerArtifact($artifactKind, $localName) {
-    $url = "https://repox.sonarsource.com/sonarsource-public-releases/org/sonarsource/scanner/msbuild/sonar-scanner-msbuild/$version/sonar-scanner-msbuild-$version-$artifactKind"
+
+# We're not expecting the ARTIFACTORY_URL environment variable to be set on
+# developers machines, but it if is we'll use it
+
+    $repoUrl=$env:ARTIFACTORY_URL
+
+    if ($repoUrl)
+    {
+        Write-Host "Using the repository specified in the Artifactory URL: $repoURl"
+    }
+    else
+    {
+        # New hosted version of repox. Old version = https://repox.sonarsource.com
+        $repoUrl = "https://repox.jfrog.io/repox" 
+        Write-Host "Environment variable 'ARTIFACTORY_URL' is not set. Using the default repox registry: $repoURl"
+    }
+
+    $url = "$repoUrl/sonarsource-public-releases/org/sonarsource/scanner/msbuild/sonar-scanner-msbuild/$version/sonar-scanner-msbuild-$version-$artifactKind"
+
+    #$url = "https://repox.sonarsource.com/sonarsource-public-releases/org/sonarsource/scanner/msbuild/sonar-scanner-msbuild/$version/sonar-scanner-msbuild-$version-$artifactKind"
 
     Write-Host "Downloading artifact from '${url}' to '${downloadFolder}'"
 
