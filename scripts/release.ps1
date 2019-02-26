@@ -41,8 +41,6 @@ function Get-ScannerArtifact($artifactKind, $localName) {
 
     $url = "$repoUrl/sonarsource-public-releases/org/sonarsource/scanner/msbuild/sonar-scanner-msbuild/$version/sonar-scanner-msbuild-$version-$artifactKind"
 
-    #$url = "https://repox.sonarsource.com/sonarsource-public-releases/org/sonarsource/scanner/msbuild/sonar-scanner-msbuild/$version/sonar-scanner-msbuild-$version-$artifactKind"
-
     Write-Host "Downloading artifact from '${url}' to '${downloadFolder}'"
 
     (New-Object System.Net.WebClient).DownloadFile($url, (Join-Path $downloadFolder $localName))
