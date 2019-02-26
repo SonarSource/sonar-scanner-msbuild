@@ -111,6 +111,9 @@ function Get-ScannerMsBuildPath() {
         $scannerMsbuildZip = Join-Path $currentDir "\SonarScanner.MSBuild.zip"
 
         Write-Host "Downloading scanner from '${downloadLink}' at '${currentDir}'"
+
+        # NB: the WebClient class defaults to TLS v1, which is no longer supported by some online providers
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
         (New-Object System.Net.WebClient).DownloadFile($downloadLink, $scannerMsbuildZip)
 
         # perhaps we could use other folder, not the repository root
