@@ -93,7 +93,7 @@ function Get-ScannerMsBuildPath() {
     $scannerMsbuild = Join-Path $currentDir "SonarScanner.MSBuild.exe"
 
     if (-Not (Test-Path $scannerMsbuild)) {
-        Write-Debug "Scanner for MSBuild not found, downloading it"
+        Write-Host "Scanner for MSBuild not found, downloading it"
 
         if ($env:ARTIFACTORY_URL)
         {
@@ -110,17 +110,17 @@ function Get-ScannerMsBuildPath() {
             "sonar-scanner-msbuild/%5BRELEASE%5D/sonar-scanner-msbuild-%5BRELEASE%5D-net46.zip"
         $scannerMsbuildZip = Join-Path $currentDir "\SonarScanner.MSBuild.zip"
 
-        Write-Debug "Downloading scanner from '${downloadLink}' at '${currentDir}'"
+        Write-Host "Downloading scanner from '${downloadLink}' at '${currentDir}'"
         (New-Object System.Net.WebClient).DownloadFile($downloadLink, $scannerMsbuildZip)
 
         # perhaps we could use other folder, not the repository root
         Expand-ZIPFile $scannerMsbuildZip $currentDir
 
-        Write-Debug "Deleting downloaded zip"
+        Write-Host "Deleting downloaded zip"
         Remove-Item $scannerMsbuildZip -Force
     }
 
-    Write-Debug "Scanner for MSBuild found at '$scannerMsbuild'"
+    Write-Host "Scanner for MSBuild found at '$scannerMsbuild'"
     return $scannerMsbuild
 }
 
