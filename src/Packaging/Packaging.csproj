@@ -22,7 +22,6 @@
     <!-- This version needs to be in sync with version in src/SonarScanner.MSBuild.Shim/SonarScanner.Wrapper.cs -->
     <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.3.0.1492</ScannerCliVersion>
     <ScannerCliArtifact>sonar-scanner-cli-$(ScannerCliVersion).zip</ScannerCliArtifact>
-    <MavenCentralUrl>https://repox.sonarsource.com/sonarsource-public-releases/org/sonarsource/scanner/cli/sonar-scanner-cli/$(ScannerCliVersion)/$(ScannerCliArtifact)</MavenCentralUrl>
     <SourcesRoot>$(MSBuildThisFileDirectory)..</SourcesRoot>
     <BuildAgentPayloadDir>$(SourcesRoot)\..\DeploymentArtifacts\BuildAgentPayload\</BuildAgentPayloadDir>
     <WorkDestinationRootDir>$(BuildAgentPayloadDir)$(Configuration)\</WorkDestinationRootDir>
@@ -111,6 +110,7 @@
           System.IO.Directory.CreateDirectory(directory);
         }
 
+        System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
         var fileName = File ?? System.IO.Path.GetFileName(new Uri(Url).LocalPath);
         client.DownloadFile(Url, directory + fileName);
     }
@@ -120,7 +120,16 @@
   </UsingTask>
 
   <Target Name="DownloadScannerCli" Condition=" '$(TargetFramework)' == '' AND !Exists('$(BuildAgentPayloadDir)\$(ScannerCliArtifact)')">
+    <PropertyGroup>
+      <MavenUrlRoot>$(ARTIFACTORY_URL)</MavenUrlRoot>
+      <MavenUrlRoot Condition="$(MavenUrlRoot)==''">https://repox.jfrog.io/repox</MavenUrlRoot>
+      <MavenCentralUrl>$(MavenUrlRoot)/sonarsource-public-releases/org/sonarsource/scanner/cli/sonar-scanner-cli/$(ScannerCliVersion)/$(ScannerCliArtifact)</MavenCentralUrl>
+    </PropertyGroup>
+    
+    <Message Condition="$(ARTIFACTORY_URL)==''" Importance="high" Text="Environment variable ARTIFACTORY_URL is not set. Using default value." />
+
     <Message Importance="high" Text="Begin downloading scanner cli version $(ScannerCliVersion)" />
+    <Message Importance="high" Text="  Downloading from $(MavenCentralUrl)" />
     <DownloadFile Url="$(MavenCentralUrl)" OutputFolder="$(BuildAgentPayloadDir)" />
     <Message Importance="high" Text="End downloading scanner cli" />
   </Target>
