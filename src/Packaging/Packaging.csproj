@@ -175,6 +175,9 @@
   </Target>
 
   <Target Name="CreateNuGetPackage" Condition=" '$(TargetFramework)' == '$(ScannerNetCoreGlobalToolVersion)' AND $(Configuration) == 'Release' ">
+    <!-- Execute nuget without any parameters to dump the version being executed to the console -->
+    <Exec WorkingDirectory="$(GlobalToolNuspecDir)" Command="&quot;nuget&quot;" />
+    
     <Exec WorkingDirectory="$(GlobalToolNuspecDir)" Command="&quot;nuget&quot; pack -OutputDirectory $(WorkDestinationRootDir) -Prop Configuration=Release" />
   </Target>
 
