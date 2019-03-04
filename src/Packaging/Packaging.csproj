@@ -165,6 +165,71 @@
     </Task>
   </UsingTask>
   
+  <!-- There are MS-supplied Unzip and ZipDirectory tasks.
+       See https://docs.microsoft.com/en-us/visualstudio/msbuild/unzip-task?view=vs-2017
+       
+      However, the Zip task automatically changes forward-slashes to backslashes, which causes failures
+      when the final zipped artifacts are used on non-Windows machines.
+      So, we use a custom inline task that preserves any forward-slashes.
+      Note: the built-in ZipDirectory task uses a compression level of "optimal". We're currently using "fastest".
+-->
+  <UsingTask TaskName="CustomUnzip" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+    <ParameterGroup>
+      <SourcePath ParameterType="System.String" Required="true" />
+      <SourceFileName ParameterType="System.String" Required="true" />
+      <TargetPath ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System.IO.Compression.FileSystem" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[    
+    var fullSourcePath = System.IO.Path.Combine(SourcePath, SourceFileName);
+    System.IO.Compression.ZipFile.ExtractToDirectory(fullSourcePath, TargetPath);
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <UsingTask TaskName="CustomZipDirectory" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+    <ParameterGroup>
+      <SourceDirectoryPath ParameterType="System.String" Required="true" />
+      <TargetFilePath ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System.IO.Compression.FileSystem" />
+      <Code Type="Class" Language="cs">
+        <![CDATA[    
+    public class CustomZipDirectory : Microsoft.Build.Utilities.Task
+    {
+        [Microsoft.Build.Framework.Required]
+        public string SourceDirectoryPath { get; set; }
+
+        [Microsoft.Build.Framework.Required]
+        public string TargetFilePath { get; set; }
+
+        private class MyEncoder : System.Text.UTF8Encoding
+        {
+            public MyEncoder() : base(true) { }
+            public override byte[] GetBytes(string s)
+            {
+              // Replace backslashes with forward-slashes to make sure the zip
+              // file works correctly on non-Windows platforms
+              return base.GetBytes(s.Replace((char)92, (char)47));
+            }
+        }
+
+        public override bool Execute()
+        {
+            var encoder = new MyEncoder();
+            System.IO.Compression.ZipFile.CreateFromDirectory(SourceDirectoryPath, TargetFilePath, System.IO.Compression.CompressionLevel.Fastest, false, encoder);
+            return true;
+        }
+    }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
   <!-- Because of TargetFrameworks, the build is actually called 4 times (bootstrapping + the actual frameworks) -->
   <Target Name="CreatePayload" AfterTargets="Build" Condition=" '$(TargetFramework)' != '' ">
     <Message Importance="high" Text="Begin building artifact for scanner-msbuild $(TargetFramework)" />
@@ -179,6 +244,7 @@
   </Target>
 
   <Target Name="CleanExistingPayload" AfterTargets="Clean">
+    <Message Importance="high" Text="Removing directory: $(WorkDestinationDir)" />
     <RemoveDir Directories="$(WorkDestinationDir)" />
     <Delete Files="$(DestinationArtifactPath)" />
   </Target>
@@ -189,7 +255,10 @@
   </Target>
 
   <Target Name="UnzipScannerCli">
-    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; [io.compression.zipfile]::ExtractToDirectory('$(BuildAgentPayloadDir)$(ScannerCliArtifact)', '$(WorkDestinationDir)')&quot;" />
+    <Message Importance="high" Text="Unzipping ScannerCli:" />
+    <Message Importance="high" Text="  Source: $(BuildAgentPayloadDir)$(ScannerCliArtifact)" />
+    <Message Importance="high" Text="  Target: $(WorkDestinationDir)" />
+    <CustomUnzip SourcePath="$(BuildAgentPayloadDir)" SourceFileName="$(ScannerCliArtifact)" TargetPath="$(WorkDestinationDir)" />
   </Target>
 
   <Target Name="SignDlls" Condition="'$(SignAssembly)' == 'true'">
@@ -202,7 +271,10 @@
 
   <!-- Don't create the zip for netcoreapp2.1 -->
   <Target Name="ZipPayloadFiles" Condition=" '$(TargetFramework)' != '$(ScannerNetCoreGlobalToolVersion)' AND $(Configuration) == 'Release' ">
-    <Exec Command="powershell.exe -executionpolicy bypass -command &quot;Add-Type -assembly system.io.compression.filesystem; Add-Type -assembly system.text.encoding; Add-Type -TypeDefinition 'public class MyEncoder : System.Text.UTF8Encoding { public MyEncoder() : base(true) {} public override byte[] GetBytes(string s) { return base.GetBytes(s.Replace((char) 92, (char) 47)); } }'; $enc = New-Object MyEncoder; [io.compression.zipfile]::CreateFromDirectory('$(WorkDestinationDir)', '$(DestinationArtifactPath)', [io.compression.compressionlevel]::fastest, $false, $enc)&quot;" />
+    <Message Importance="high" Text="Zipping ScannerCli:" />
+    <Message Importance="high" Text="  Source: $(WorkDestinationDir)" />
+    <Message Importance="high" Text="  Target: $(DestinationArtifactPath)" />
+    <CustomZipDirectory SourceDirectoryPath="$(WorkDestinationDir)" TargetFilePath="$(DestinationArtifactPath)" />
 
     <Message Importance="high" Text="Checking zip artifact '$(DestinationArtifactPath)'..." />
     <ValidateZipFile FullFilePath="$(DestinationArtifactPath)" />
