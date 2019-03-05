@@ -2,7 +2,7 @@
 <Project>
 
   <PropertyGroup>
-    <CodeAnalysisRuleSet>..\..\.sonarlint\sonar-scanner-msbuildCSharp.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\..\.sonarlint\sonarscanner-msbuildCSharp.ruleset</CodeAnalysisRuleSet>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
