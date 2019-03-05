@@ -1,11 +1,14 @@
 {
-  "ServerUri": "https://next.sonarqube.com/sonarqube/",
-  "Organization": null,
-  "ProjectKey": "sonar-scanner-msbuild",
+  "ServerUri": "https://sonarcloud.io/",
+  "Organization": {
+    "Key": "sonarsource",
+    "Name": "SonarSource"
+  },
+  "ProjectKey": "sonarscanner-msbuild",
   "Profiles": {
     "CSharp": {
-      "ProfileKey": "cs-c-qp-for-sonarsource-73109",
-      "ProfileTimestamp": "2018-11-22T12:09:54+01:00"
+      "ProfileKey": "AVxYKDdrFTbgxqUNcakm",
+      "ProfileTimestamp": "2019-01-14T09:58:53+00:00"
     }
   }
 }
