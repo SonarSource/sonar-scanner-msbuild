@@ -141,25 +141,25 @@
     <Task>
       <Code Type="Fragment" Language="cs">
         <![CDATA[    
-        // Sanity check that the zip file has the expected header. This isn't a foolproof check, but
-        // it does catch errors encountered previously due differences between zipping/unzipping on
-        // different platforms.
+    // Sanity check that the zip file has the expected header. This isn't a foolproof check, but
+    // it does catch errors encountered previously due differences between zipping/unzipping on
+    // different platforms.
         
-        // See http://petlibrary.tripod.com/ZIP.HTM
-          byte[] expectedHeader = new byte[] { 0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x00, 0x08 };
+    // See http://petlibrary.tripod.com/ZIP.HTM
+    var expectedHeader = new byte[] { 0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x00, 0x08 };
 
-          var data = System.IO.File.ReadAllBytes(FullFilePath);
-          for(int i = 0; i < expectedHeader.Length; i++)
-          {
-              if (data[i] != expectedHeader[i])
-              {
-                  Log.LogError("Invalid zip artifact: {0}. Unexpected value in zip header at index {1}",
-                    FullFilePath, i);
-                  return false;
-              }
-          }
+    var data = System.IO.File.ReadAllBytes(FullFilePath);
+    for (int i = 0; i < expectedHeader.Length; i++)
+    {
+        if (data[i] != expectedHeader[i])
+        {
+            Log.LogError("Invalid zip artifact: {0}. Unexpected value in zip header at index {1}",
+              FullFilePath, i);
+            return false;
+        }
+    }
 
-        return true;
+    return true;
         ]]>
       </Code>
     </Task>
@@ -212,16 +212,17 @@
             public MyEncoder() : base(true) { }
             public override byte[] GetBytes(string s)
             {
-              // Replace backslashes with forward-slashes to make sure the zip
-              // file works correctly on non-Windows platforms
-              return base.GetBytes(s.Replace((char)92, (char)47));
+                // Replace backslashes with forward-slashes to make sure the zip
+                // file works correctly on non-Windows platforms
+                return base.GetBytes(s.Replace((char)92, (char)47));
             }
         }
 
         public override bool Execute()
         {
             var encoder = new MyEncoder();
-            System.IO.Compression.ZipFile.CreateFromDirectory(SourceDirectoryPath, TargetFilePath, System.IO.Compression.CompressionLevel.Fastest, false, encoder);
+            System.IO.Compression.ZipFile.CreateFromDirectory(SourceDirectoryPath,
+                TargetFilePath, System.IO.Compression.CompressionLevel.Fastest, false, encoder);
             return true;
         }
     }
