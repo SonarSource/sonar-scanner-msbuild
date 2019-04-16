@@ -234,13 +234,15 @@ public class ScannerMSBuildTest {
       .addArgument("end"));
 
     // all issues and nloc are in the normal project
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    // TODO: currently the test imports two packages that expose an "Issue" class. Modify
+    // the remaining tests so they use this version of Issue.
+    List<org.sonarqube.ws.Issues.Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2);
 
-    issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create().componentRoots(normalProjectKey)).list();
+    issues = TestUtils.issuesForComponent(ORCHESTRATOR, normalProjectKey);
     assertThat(issues).hasSize(2);
 
-    issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create().componentRoots(testProjectKey)).list();
+    issues = TestUtils.issuesForComponent(ORCHESTRATOR, testProjectKey);
     assertThat(issues).hasSize(0);
 
     // excluded project doesn't exist in SonarQube
