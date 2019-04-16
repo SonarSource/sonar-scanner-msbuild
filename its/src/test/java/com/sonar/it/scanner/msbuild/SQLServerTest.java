@@ -31,8 +31,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.sonar.wsclient.issue.Issue;
-import org.sonar.wsclient.issue.IssueQuery;
+import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.WsMeasures;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
@@ -75,7 +74,7 @@ public class SQLServerTest {
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end"));
 
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(3);
     assertThat(getMeasureAsInteger(getFileKey(), "ncloc")).isEqualTo(19);
     assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(25);

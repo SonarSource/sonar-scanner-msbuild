@@ -37,8 +37,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.sonar.wsclient.issue.Issue;
-import org.sonar.wsclient.issue.IssueQuery;
+import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.WsMeasures;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
@@ -97,10 +96,10 @@ public class VBNetTest {
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end"));
 
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
 
-    List<String> keys = issues.stream().map(Issue::ruleKey).collect(Collectors.toList());
-    assertThat(keys).containsAll(Arrays.asList("vbnet:S3385",
+    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+    assertThat(ruleKeys).containsAll(Arrays.asList("vbnet:S3385",
       "vbnet:S2358"));
 
     assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(23);
@@ -125,19 +124,19 @@ public class VBNetTest {
     BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end"));
 
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    List<String> keys = issues.stream().map(Issue::ruleKey).collect(Collectors.toList());
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
 
     // The same set of Sonar issues should be reported, regardless of whether
     // external issues are imported or not
-    assertThat(keys).containsAll(Arrays.asList(
+    assertThat(ruleKeys).containsAll(Arrays.asList(
       "vbnet:S112",
       "vbnet:S3385"));
 
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7,4))
     {
       // if external issues are imported, then there should also be some CodeCracker errors.
-      assertThat(keys).containsAll(Arrays.asList(
+      assertThat(ruleKeys).containsAll(Arrays.asList(
         "external_roslyn:CC0021",
         "external_roslyn:CC0062"));
 

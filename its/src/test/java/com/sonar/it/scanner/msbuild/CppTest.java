@@ -40,8 +40,7 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.sonar.wsclient.issue.Issue;
-import org.sonar.wsclient.issue.IssueQuery;
+import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.WsMeasures;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
@@ -109,9 +108,9 @@ public class CppTest {
       .addArgument("end"));
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
 
-    List<String> keys = issues.stream().map(i -> i.ruleKey()).collect(Collectors.toList());
+    List<String> keys = issues.stream().map(i -> i.getRule()).collect(Collectors.toList());
     assertThat(keys).containsAll(Arrays.asList("cpp:S106"));
 
     assertThat(getMeasureAsInteger(projectKey, "ncloc")).isEqualTo(15);
@@ -148,9 +147,9 @@ public class CppTest {
       .addArgument("end"));
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
 
-    List<String> keys = issues.stream().map(i -> i.ruleKey()).collect(Collectors.toList());
+    List<String> keys = issues.stream().map(i -> i.getRule()).collect(Collectors.toList());
     assertThat(keys).containsAll(Arrays.asList("cpp:S106"));
 
     assertThat(getMeasureAsInteger(projectKey, "ncloc")).isEqualTo(22);
