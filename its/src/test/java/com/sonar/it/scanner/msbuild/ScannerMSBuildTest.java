@@ -65,8 +65,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.sonar.wsclient.issue.Issue;
-import org.sonar.wsclient.issue.IssueQuery;
+import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.WsComponents;
 import org.sonarqube.ws.WsMeasures;
 import org.sonarqube.ws.client.WsClient;
@@ -130,7 +129,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end"));
 
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2);
     assertLineCountForProjectUnderTest();
   }
@@ -164,7 +163,7 @@ public class ScannerMSBuildTest {
       .setEnvironmentVariable("SONAR_SCANNER_OPTS",
         "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort + " -Dhttp.proxyUser=" + PROXY_USER + " -Dhttp.proxyPassword=" + PROXY_PASSWORD));
 
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2);
     assertLineCountForProjectUnderTest();
 
@@ -201,7 +200,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end"));
 
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2);
     assertLineCountForProjectUnderTest();
   }
@@ -234,13 +233,13 @@ public class ScannerMSBuildTest {
       .addArgument("end"));
 
     // all issues and nloc are in the normal project
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2);
 
-    issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create().componentRoots(normalProjectKey)).list();
+    issues = TestUtils.issuesForComponent(ORCHESTRATOR, normalProjectKey);
     assertThat(issues).hasSize(2);
 
-    issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create().componentRoots(testProjectKey)).list();
+    issues = TestUtils.issuesForComponent(ORCHESTRATOR, testProjectKey);
     assertThat(issues).hasSize(0);
 
     // excluded project doesn't exist in SonarQube
@@ -270,12 +269,13 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end"));
 
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     // 2 CS, 2 vbnet
     assertThat(issues).hasSize(4);
 
-    List<String> keys = issues.stream().map(Issue::ruleKey).collect(Collectors.toList());
-    assertThat(keys).containsAll(Arrays.asList("vbnet:S3385",
+    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+    assertThat(ruleKeys).containsAll(Arrays.asList("vbnet:S3385",
       "vbnet:S2358",
       "csharpsquid:S2228",
       "csharpsquid:S1134"));
@@ -305,10 +305,10 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("end"));
 
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(1);
-    assertThat(issues.get(0).message()).isEqualTo("Method has 3 parameters, which is greater than the 2 authorized.");
-    assertThat(issues.get(0).ruleKey()).isEqualTo("csharpsquid:S107");
+    assertThat(issues.get(0).getMessage()).isEqualTo("Method has 3 parameters, which is greater than the 2 authorized.");
+    assertThat(issues.get(0).getRule()).isEqualTo("csharpsquid:S107");
   }
 
   @Test
@@ -383,7 +383,8 @@ public class ScannerMSBuildTest {
       .addArgument("end"));
 
     assertThat(result.isSuccess()).isTrue();
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).isEmpty();
   }
 
@@ -428,12 +429,12 @@ public class ScannerMSBuildTest {
       .addArgument("end"));
     assertTrue(result.isSuccess());
 
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    List<String> keys = issues.stream().map(Issue::ruleKey).collect(Collectors.toList());
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
 
     // The same set of Sonar issues should be reported, regardless of whether
     // external issues are imported or not
-    assertThat(keys).containsAll(Arrays.asList(
+    assertThat(ruleKeys).containsAll(Arrays.asList(
       "csharpsquid:S125",
       "csharpsquid:S1134"));
 
@@ -441,7 +442,7 @@ public class ScannerMSBuildTest {
     {
       // if external issues are imported, then there should also be some
       // Wintellect errors.  However, only file-level issues are imported.
-      assertThat(keys).containsAll(Arrays.asList(
+      assertThat(ruleKeys).containsAll(Arrays.asList(
         "external_roslyn:Wintellect004"));
 
       assertThat(issues).hasSize(3);
@@ -473,10 +474,10 @@ public class ScannerMSBuildTest {
       .addArgument("end"));
     assertTrue(result.isSuccess());
 
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
-    List<String> keys = issues.stream().map(Issue::ruleKey).collect(Collectors.toList());
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
 
-    assertThat(keys).containsAll(Arrays.asList(
+    assertThat(ruleKeys).containsAll(Arrays.asList(
       "csharpsquid:S1118",
       "csharpsquid:S1186"));
   }
@@ -492,7 +493,7 @@ public class ScannerMSBuildTest {
 
     runBeginBuildAndEndForStandardProject(folderName, false);
 
-    List<Issue> issues = ORCHESTRATOR.getServer().wsClient().issueClient().find(IssueQuery.create()).list();
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2 + 37 + 1);
   }
 
@@ -527,7 +528,7 @@ public class ScannerMSBuildTest {
     assertThat(getComponent(programComponentId1))
       .isNotNull();
     String programComponentId2 = TestUtils.hasModules(ORCHESTRATOR) ? "CSharpSharedProjectType:CSharpSharedProjectType:F96D8AA1-BCE1-4655-8D65-08F2A5FAC15B:Program.cs" : "CSharpSharedProjectType:ConsoleApp2/Program.cs";
-      assertThat(getComponent(programComponentId2))
+    assertThat(getComponent(programComponentId2))
       .isNotNull();
   }
 

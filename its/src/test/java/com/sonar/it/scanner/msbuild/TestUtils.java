@@ -44,6 +44,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.WsComponents;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
@@ -243,6 +244,20 @@ public class TestUtils {
     for(String key: componentKeys) {
       LOG.info("  Key: " + key);
     }
+  }
+
+  public static List<Issue> issuesForComponent(Orchestrator orchestrator, String componentKey) {
+    return newWsClient(orchestrator)
+      .issues()
+      .search(new org.sonarqube.ws.client.issue.SearchWsRequest().setComponentKeys(Collections.singletonList(componentKey)))
+      .getIssuesList();
+  }
+
+  public static List<Issue> allIssues(Orchestrator orchestrator) {
+    return newWsClient(orchestrator)
+      .issues()
+      .search(new org.sonarqube.ws.client.issue.SearchWsRequest())
+      .getIssuesList();
   }
 
   static WsClient newWsClient(Orchestrator orchestrator) {
