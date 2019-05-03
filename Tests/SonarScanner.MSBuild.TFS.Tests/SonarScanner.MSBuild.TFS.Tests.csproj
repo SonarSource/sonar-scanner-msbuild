@@ -78,15 +78,19 @@
     <Compile Include="..\..\AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
+    <Compile Include="BuildVNextCoverageSearchFallbackTests.cs" />
+    <Compile Include="BuildVNextCoverageReportProcessorTests.cs" />
     <Compile Include="Classic\LegacyTeamBuildFactoryTests.cs" />
     <Compile Include="Classic\CoverageReportUrlProviderTests.cs" />
     <Compile Include="Classic\CoverageReportDownloaderTests.cs" />
     <Compile Include="Classic\LegacyBuildSummaryLoggerTests.cs" />
     <Compile Include="Classic\TfsLegacyCoverageReportProcessorTests.cs" />
     <Compile Include="Classic\BinaryToXmlCoverageReportConverterTests.cs" />
+    <Compile Include="Infrastructure\MockBuildSettings.cs" />
     <Compile Include="Infrastructure\MockReportDownloader.cs" />
     <Compile Include="Infrastructure\MockReportConverter.cs" />
     <Compile Include="Infrastructure\MockReportUrlProvider.cs" />
+    <Compile Include="Infrastructure\MockSearchFallback.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TeamBuildSettingsTests.cs" />
     <Compile Include="TrxFileReaderTests.cs" />
