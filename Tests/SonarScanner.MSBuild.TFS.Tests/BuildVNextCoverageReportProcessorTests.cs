@@ -202,15 +202,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             }
 
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
-
-            var resourceNameCovXml = "TestUtilities.Embedded.testresults.coveragexml";
-
-            using (Stream stream = assembly.GetManifestResourceStream(resourceNameCovXml))
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                string text = reader.ReadToEnd();
-                TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
-            }
+            TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
 
             var converter = new MockReportConverter();
             converter.CanConvert = true;
@@ -262,15 +254,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             }
 
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
-
-            var resourceNameCovXml = "TestUtilities.Embedded.testresults.coveragexml";
-
-            using (Stream stream = assembly.GetManifestResourceStream(resourceNameCovXml))
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                string text = reader.ReadToEnd();
-                TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
-            }
+            TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
 
             var converter = new MockReportConverter();
             converter.CanConvert = true;
@@ -280,7 +264,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             {
                 BuildDirectory = testDir
             };
-
 
             testSubject.Initialise(analysisConfig, settings);
 
