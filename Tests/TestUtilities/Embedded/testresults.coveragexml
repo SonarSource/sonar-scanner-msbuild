@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<results>
+  <modules>
+    <module name="web.views.dll" path="web.views.dll" id="01AFF4BC110632488A00ED5CE9EA227701000000" block_coverage="24.95" line_coverage="24.24" blocks_covered="1960" blocks_not_covered="5897" lines_covered="56" lines_partially_covered="0" lines_not_covered="175">
+      <functions>
+        <function id="76348" token="0x6000315" name="MoveNext()" namespace="Microsoft.eShopWeb.Web.Pages.Manage" type_name="Views_Manage__Layout.&lt;ExecuteAsync&gt;d__8" block_coverage="0.00" line_coverage="0.00" blocks_covered="0" blocks_not_covered="62" lines_covered="0" lines_partially_covered="0" lines_not_covered="2">
+          <ranges>
+            <range source_id="13" covered="no" start_line="2" start_column="5" end_line="2" end_column="45" />
+            <range source_id="13" covered="no" start_line="15" start_column="8" end_line="15" end_column="28" />
+          </ranges>
+        </function>
+      </functions>
+      <source_files>
+        <source_file id="0" path="C:\agent\_work\1\s\src\Web\Views\Account\Register.cshtml" checksum_type="SHA1" checksum="75D9DF7178795C8D61E2329B051D33F5DF2B67F1">
+        </source_file>
+      </source_files>
+    </module>
+  </modules>
+</results>

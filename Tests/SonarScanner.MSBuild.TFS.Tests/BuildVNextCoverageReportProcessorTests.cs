@@ -147,6 +147,37 @@ namespace SonarScanner.MSBuild.TFS.Tests
         }
 
         [TestMethod]
+        public void ProcessCoverageReports_VsTestReportsPathsProvided_ShouldSkipSearching()
+        {
+            // Arrange
+            var mockSearchFallback = new MockSearchFallback();
+            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
+            var testLogger = new TestLogger();
+
+            var converter = new MockReportConverter();
+            converter.CanConvert = true;
+
+            var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
+            var settings = new MockBuildSettings
+            {
+                BuildDirectory = testDir
+            };
+
+            analysisConfig.LocalSettings.Add(new Property { Id = SonarProperties.VsTestReportsPaths, Value = String.Empty });
+
+            testSubject.Initialise(analysisConfig, settings);
+
+            // Act
+            var result = testSubject.ProcessCoverageReports();
+
+            // Assert
+            // 1) Property vstestreportPaths provided, we skip the search for trx files.
+            result.Should().BeTrue();
+            testSubject.TrxFilesLocated.Should().BeFalse();
+        }
+
+        [TestMethod]
         public void ProcessCoverageReports_VsCoverageXmlPathProvided_CoverageXmlFileAlreadyPresent_NotShouldTryConverting()
         {
             // Arrange
@@ -171,7 +202,15 @@ namespace SonarScanner.MSBuild.TFS.Tests
             }
 
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
-            TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
+
+            var resourceNameCovXml = "TestUtilities.Embedded.testresults.coveragexml";
+
+            using (Stream stream = assembly.GetManifestResourceStream(resourceNameCovXml))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                string text = reader.ReadToEnd();
+                TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
+            }
 
             var converter = new MockReportConverter();
             converter.CanConvert = true;
@@ -211,9 +250,9 @@ namespace SonarScanner.MSBuild.TFS.Tests
             Directory.CreateDirectory(coverageDir);
 
             var assembly = Assembly.GetAssembly(typeof(TestUtils));
-            var resourceName = "TestUtilities.Embedded.testresult.trx";
+            var resourceNameTrx = "TestUtilities.Embedded.testresult.trx";
 
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            using (Stream stream = assembly.GetManifestResourceStream(resourceNameTrx))
             using (StreamReader reader = new StreamReader(stream))
             {
                 string text = reader.ReadToEnd();
@@ -221,7 +260,15 @@ namespace SonarScanner.MSBuild.TFS.Tests
             }
 
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
-            TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
+
+            var resourceNameCovXml = "TestUtilities.Embedded.testresults.coveragexml";
+
+            using (Stream stream = assembly.GetManifestResourceStream(resourceNameCovXml))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                string text = reader.ReadToEnd();
+                TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
+            }
 
             var converter = new MockReportConverter();
             converter.CanConvert = true;
@@ -240,8 +287,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Assert
             result.Should().BeTrue();
-            converter.AssertConvertNotCalled();
-            testLogger.AssertWarningsLogged(1);
+            converter.AssertConvertCalledAtLeastOnce();
         }
 
         [TestMethod]
