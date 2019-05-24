@@ -22,12 +22,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS.Interfaces;
 using SonarScanner.MSBuild.TFS.Tests.Infrastructure;
 using TestUtilities;
 
@@ -37,6 +34,21 @@ namespace SonarScanner.MSBuild.TFS.Tests
     public class BuildVNextCoverageReportProcessorTests
     {
         public TestContext TestContext { get; set; }
+
+        private const string TRX_PAYLOAD = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>" +
+                                            "<x:TestRun id=\"4e4e4073-b17c-4bd0-a8bc-051bbc5a63e4\" name=\"John@JOHN-DOE 2019-05-22 14:26:54:768\" runUser=\"JOHN-DO\\John\" xmlns:x=\"http://microsoft.com/schemas/VisualStudio/TeamTest/2010\">"+
+                                              "<x:ResultSummary outcome=\"Completed\">"+
+                                                "<x:CollectorDataEntries>"+
+                                                    "<x:Collector uri=\"datacollector://microsoft/CodeCoverage/2.0\">"+
+                                                        "<x:UriAttachments>"+
+                                                            "<x:UriAttachment>"+
+                                                                "<x:A href=\"dummy.coverage\">dummy.coverage</x:A>"+
+                                                            "</x:UriAttachment>"+
+                                                        "</x:UriAttachments>"+
+                                                    "</x:Collector>"+
+                                                "</x:CollectorDataEntries>"+
+                                              "</x:ResultSummary>"+
+                                            "</x:TestRun>";
 
         [TestMethod]
         public void SearchFallbackShouldBeCalled_IfNoTrxFilesFound()
@@ -112,16 +124,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
             Directory.CreateDirectory(coverageDir);
 
-            var assembly = Assembly.GetAssembly(typeof(TestUtils));
-            var resourceName = "TestUtilities.Embedded.testresult.trx";
-
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                string text = reader.ReadToEnd();
-                TestUtils.CreateTextFile(testResultsDir, "dummy.trx", text);
-            }
-
+           TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
 
             var converter = new MockReportConverter();
@@ -191,15 +194,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
             Directory.CreateDirectory(coverageDir);
 
-            var assembly = Assembly.GetAssembly(typeof(TestUtils));
-            var resourceName = "TestUtilities.Embedded.testresult.trx";
-
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                string text = reader.ReadToEnd();
-                TestUtils.CreateTextFile(testResultsDir, "dummy.trx", text);
-            }
+            TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
 
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
             TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
@@ -243,15 +238,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
             Directory.CreateDirectory(coverageDir);
 
-            var assembly = Assembly.GetAssembly(typeof(TestUtils));
-            var resourceNameTrx = "TestUtilities.Embedded.testresult.trx";
-
-            using (Stream stream = assembly.GetManifestResourceStream(resourceNameTrx))
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                string text = reader.ReadToEnd();
-                TestUtils.CreateTextFile(testResultsDir, "dummy.trx", text);
-            }
+            TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
 
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
             TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
@@ -292,15 +279,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
             Directory.CreateDirectory(coverageDir);
 
-            var assembly = Assembly.GetAssembly(typeof(TestUtils));
-            var resourceName = "TestUtilities.Embedded.testresult.trx";
-
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                string text = reader.ReadToEnd();
-                TestUtils.CreateTextFile(testResultsDir, "dummy.trx", text);
-            }
+            TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
 
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
 
@@ -312,7 +291,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             {
                 BuildDirectory = testDir
             };
-
 
             testSubject.Initialise(analysisConfig, settings);
 

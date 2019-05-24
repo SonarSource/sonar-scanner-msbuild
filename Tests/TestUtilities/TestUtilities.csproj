@@ -97,7 +97,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Embedded\testresult.trx" />
     <None Include="packages.config" />
     <None Include="TestUtilities.ruleset" />
   </ItemGroup>
