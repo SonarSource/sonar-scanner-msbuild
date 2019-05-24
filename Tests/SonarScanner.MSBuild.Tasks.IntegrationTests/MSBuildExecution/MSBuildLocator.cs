@@ -31,13 +31,38 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
     internal static class MSBuildLocator
     {
         /// <summary>
+        /// Returns a path to an instance of msbuild.exe or null if one could
+        /// not be found.
+        /// </summary>
+        /// <remarks>If there are multiple instances of VS on the machine there is no guarantee which
+        /// one will be returned, except that instances of VS2019 or later will be returned in preference
+        /// to VS2017.</remarks>
+        public static string GetMSBuildPath(TestContext testContext)
+        {
+            testContext.WriteLine($"Test setup: attempting to locate an MSBuild instance...");
+
+            var path = GetMSBuildPath("Current", testContext) // VS2019 or later
+                ?? GetMSBuildPath("15.0", testContext); // VS2017
+
+            if (path == null)
+            {
+                testContext.WriteLine($"Test setup: failed to locate any version of MSBuild");
+            }
+            return path;
+        }
+
+        /// <summary>
         /// Returns the path to the specified version of msbuild.exe or
         /// null if it could not be found
         /// </summary>
         /// <param name="msBuildMajorVersion">MSBuild major version number e.g. 15.0</param>
-        public static string GetMSBuildPath(string msBuildMajorVersion, TestContext testContext)
+        private static string GetMSBuildPath(string msBuildMajorVersion, TestContext testContext)
         {
-            testContext.WriteLine($"Test setup: attempting to location MSBuild instance. Version: {msBuildMajorVersion}");
+            // Note: we're using a Microsoft component that locates instances of VS, and then
+            // we're searching for an expected path under VS.
+            // A more robust and flexible approach would be to use https://www.nuget.org/packages/vswhere/
+            // which would allow us to search for a specific version of MSBuild directly.
+            testContext.WriteLine($"Test setup: attempting to locate an MSBuild instance. Version: {msBuildMajorVersion}");
             ISetupConfiguration config = new SetupConfiguration();
 
             var instances = new ISetupInstance[100];
