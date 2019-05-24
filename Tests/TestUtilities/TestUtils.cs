@@ -82,6 +82,18 @@ namespace TestUtilities
         }
 
         /// <summary>
+        /// Deletes a file in the specified directory
+        /// </summary>
+        public static void DeleteTextFile(string parentDir, string fileName)
+        {
+            Directory.Exists(parentDir).Should().BeTrue("Test setup error: expecting the parent directory to exist: {0}", parentDir);
+            var fullPath = Path.Combine(parentDir, fileName);
+            File.Delete(fullPath);
+
+            File.Exists(fullPath).Should().BeFalse("File still exists.");
+        }
+
+        /// <summary>
         /// Ensures that the ImportBefore targets exist in a test-specific folder
         /// </summary>
         public static string EnsureImportBeforeTargetsExists(TestContext testContext)

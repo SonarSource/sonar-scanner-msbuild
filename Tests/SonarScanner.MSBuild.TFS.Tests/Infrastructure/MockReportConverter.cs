@@ -41,6 +41,11 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
             convertCallCount.Should().Be(expected, "ConvertToXml called an unexpected number of times");
         }
 
+        public void AssertConvertCalledAtLeastOnce()
+        {
+            convertCallCount.Should().BeGreaterThan(0, "ConvertToXml called less than once.");
+        }
+
         public void AssertConvertNotCalled()
         {
             convertCallCount.Should().Be(0, "Not expecting ConvertToXml to have been called");

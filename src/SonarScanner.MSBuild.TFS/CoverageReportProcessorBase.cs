@@ -64,24 +64,41 @@ namespace SonarScanner.MSBuild.TFS
 
             Debug.Assert(this.config != null, "Expecting the config to not be null. Did you call Initialize() ?");
 
-            // Fetch all of the report URLs
-            Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
-
-            if (TryGetTrxFiles(this.config, this.settings, out var trxPaths) &&
-                trxPaths.Any() &&
-                config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null) == null)
+            if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null) != null)
             {
-                this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsTestReportsPaths, Value = string.Join(",", trxPaths) });
+                Logger.LogInfo(Resources.TRX_DIAG_SkippingCoverageCheckPropertyProvided);
+            }
+            else
+            {
+                // Fetch all of the report URLs
+                Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
+
+                if (TryGetTrxFiles(this.config, this.settings, out var trxPaths) &&
+                    trxPaths.Any())
+                {
+                    this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsTestReportsPaths, Value = string.Join(",", trxPaths) });
+                }
             }
 
-            var success = TryGetVsCoverageFiles(this.config, this.settings, out var vscoveragePaths);
-            if (success &&
-                vscoveragePaths.Any() &&
-                TryConvertCoverageReports(vscoveragePaths, out var coverageReportPaths) &&
-                coverageReportPaths.Any() &&
-                config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null) == null)
+            var success = true;
+
+            if (config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null) != null)
             {
-                this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = string.Join(",", coverageReportPaths) });
+                Logger.LogInfo(Resources.COVXML_DIAG_SkippingCoverageCheckPropertyProvided);
+            }
+            else
+            {
+                success = TryGetVsCoverageFiles(this.config, this.settings, out var vscoveragePaths);
+
+                if(success && vscoveragePaths.Any())
+                {
+                    if (TryConvertCoverageReports(vscoveragePaths, out var coverageReportPaths) &&
+                    coverageReportPaths.Any())
+                    {
+                        this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = string.Join(",", coverageReportPaths) });
+                    }
+                }
+
             }
 
             return success;
