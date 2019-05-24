@@ -35,20 +35,20 @@ namespace SonarScanner.MSBuild.TFS.Tests
     {
         public TestContext TestContext { get; set; }
 
-        private const string TRX_PAYLOAD = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>" +
-                                            "<x:TestRun id=\"4e4e4073-b17c-4bd0-a8bc-051bbc5a63e4\" name=\"John@JOHN-DOE 2019-05-22 14:26:54:768\" runUser=\"JOHN-DO\\John\" xmlns:x=\"http://microsoft.com/schemas/VisualStudio/TeamTest/2010\">"+
-                                              "<x:ResultSummary outcome=\"Completed\">"+
-                                                "<x:CollectorDataEntries>"+
-                                                    "<x:Collector uri=\"datacollector://microsoft/CodeCoverage/2.0\">"+
-                                                        "<x:UriAttachments>"+
-                                                            "<x:UriAttachment>"+
-                                                                "<x:A href=\"dummy.coverage\">dummy.coverage</x:A>"+
-                                                            "</x:UriAttachment>"+
-                                                        "</x:UriAttachments>"+
-                                                    "</x:Collector>"+
-                                                "</x:CollectorDataEntries>"+
-                                              "</x:ResultSummary>"+
-                                            "</x:TestRun>";
+        private const string TRX_PAYLOAD = @"<?xml version=""1.0"" encoding=""utf-8"" ?>
+                                            <x:TestRun id=""4e4e4073-b17c-4bd0-a8bc-051bbc5a63e4"" name=""John@JOHN-DOE 2019-05-22 14:26:54:768"" runUser=""JOHN-DO\John"" xmlns:x=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
+                                              <x:ResultSummary outcome=""Completed"">
+                                                <x:CollectorDataEntries>
+                                                    <x:Collector uri=""datacollector://microsoft/CodeCoverage/2.0"">
+                                                        <x:UriAttachments>
+                                                            <x:UriAttachment>
+                                                                <x:A href=""dummy.coverage"">dummy.coverage</x:A>
+                                                           </x:UriAttachment>
+                                                        </x:UriAttachments>
+                                                    </x:Collector>
+                                                </x:CollectorDataEntries>
+                                              </x:ResultSummary>
+                                           </x:TestRun>";
 
         [TestMethod]
         public void SearchFallbackShouldBeCalled_IfNoTrxFilesFound()
