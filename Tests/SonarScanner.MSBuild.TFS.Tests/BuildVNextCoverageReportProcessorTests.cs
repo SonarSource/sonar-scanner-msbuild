@@ -232,6 +232,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
             result.Should().BeTrue();
             converter.AssertConvertNotCalled();
             testLogger.AssertWarningsLogged(0);
+
+            TestUtils.DeleteTextFile(coverageDir, "dummy.coveragexml");
         }
 
         [TestMethod]
@@ -288,6 +290,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // Assert
             result.Should().BeTrue();
             converter.AssertConvertCalledAtLeastOnce();
+
+            TestUtils.DeleteTextFile(coverageDir, "dummy.coveragexml");
         }
 
         [TestMethod]
