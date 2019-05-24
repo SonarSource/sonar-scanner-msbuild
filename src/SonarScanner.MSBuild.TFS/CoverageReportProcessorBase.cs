@@ -64,24 +64,38 @@ namespace SonarScanner.MSBuild.TFS
 
             Debug.Assert(this.config != null, "Expecting the config to not be null. Did you call Initialize() ?");
 
-            // Fetch all of the report URLs
-            Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
-
-            if (TryGetTrxFiles(this.config, this.settings, out var trxPaths) &&
-                trxPaths.Any() &&
-                config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null) == null)
+            if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null) != null)
             {
-                this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsTestReportsPaths, Value = string.Join(",", trxPaths) });
+                Logger.LogInfo(Resources.TRX_DIAG_SkippingCoverageCheckPropertyProvided);
+            }
+            else
+            {
+                // Fetch all of the report URLs
+                Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
+
+                if (TryGetTrxFiles(this.config, this.settings, out var trxPaths) &&
+                    trxPaths.Any())
+                {
+                    this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsTestReportsPaths, Value = string.Join(",", trxPaths) });
+                }
             }
 
             var success = TryGetVsCoverageFiles(this.config, this.settings, out var vscoveragePaths);
-            if (success &&
-                vscoveragePaths.Any() &&
-                TryConvertCoverageReports(vscoveragePaths, out var coverageReportPaths) &&
-                coverageReportPaths.Any() &&
-                config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null) == null)
+
+            if (success && vscoveragePaths.Any())
             {
-                this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = string.Join(",", coverageReportPaths) });
+                if (config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null) != null)
+                {
+                    Logger.LogInfo(Resources.COVXML_DIAG_SkippingCoverageCheckPropertyProvided);
+                }
+                else
+                {
+                    if (TryConvertCoverageReports(vscoveragePaths, out var coverageReportPaths) &&
+                    coverageReportPaths.Any())
+                    {
+                        this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = string.Join(",", coverageReportPaths) });
+                    }
+                }
             }
 
             return success;
@@ -95,16 +109,20 @@ namespace SonarScanner.MSBuild.TFS
         {
             var xmlFileNames = vscoverageFilePaths.Select(x => Path.ChangeExtension(x, XmlReportFileExtension));
 
-            Debug.Assert(!xmlFileNames.Any(x => File.Exists(x)),
-                "Not expecting a file with the name of the binary-to-XML conversion output to already exist.");
-
-            var anyFailedConversion = vscoverageFilePaths.Zip(xmlFileNames, (x, y) => new { coverage = x, xml = y })
-                .Any(x => !this.converter.ConvertToXml(x.coverage, x.xml));
-
-            if (anyFailedConversion)
+            if (xmlFileNames.Any(x => File.Exists(x)))
             {
-                vscoveragexmlPaths = Enumerable.Empty<string>();
-                return false;
+                Logger.LogWarning("Not expecting a file with the name of the binary-to-XML conversion output to already exist.");
+            }
+            else
+            {
+                var anyFailedConversion = vscoverageFilePaths.Zip(xmlFileNames, (x, y) => new { coverage = x, xml = y })
+                    .Any(x => !this.converter.ConvertToXml(x.coverage, x.xml));
+
+                if (anyFailedConversion)
+                {
+                    vscoveragexmlPaths = Enumerable.Empty<string>();
+                    return false;
+                }
             }
 
             vscoveragexmlPaths = xmlFileNames;

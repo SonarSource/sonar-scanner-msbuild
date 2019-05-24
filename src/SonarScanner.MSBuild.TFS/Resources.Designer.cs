@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.TFS {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -57,6 +57,15 @@ namespace SonarScanner.MSBuild.TFS {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property &apos;sonar.cs.vscoveragexml.reportsPaths&apos; provided, skipping the search of coveragexml file in default folders....
+        /// </summary>
+        internal static string COVXML_DIAG_SkippingCoverageCheckPropertyProvided {
+            get {
+                return ResourceManager.GetString("COVXML_DIAG_SkippingCoverageCheckPropertyProvided", resourceCulture);
             }
         }
         
@@ -129,6 +138,15 @@ namespace SonarScanner.MSBuild.TFS {
         internal static string TRX_DIAG_NoTestResultsFound {
             get {
                 return ResourceManager.GetString("TRX_DIAG_NoTestResultsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property &apos;sonar.cs.vstest.reportsPaths&apos; provided, skipping the search of TRX files in default folders....
+        /// </summary>
+        internal static string TRX_DIAG_SkippingCoverageCheckPropertyProvided {
+            get {
+                return ResourceManager.GetString("TRX_DIAG_SkippingCoverageCheckPropertyProvided", resourceCulture);
             }
         }
         
