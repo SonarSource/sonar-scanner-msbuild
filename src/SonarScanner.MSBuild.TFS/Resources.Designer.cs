@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Property &apos;sonar.cs.vscoveragexml.reportsPaths&apos; provided, skipping the search of coveragexml file in default folders....
+        ///   Looks up a localized string similar to Property &apos;sonar.cs.vscoveragexml.reportsPaths&apos; provided, skipping the search for coveragexml file in default folders....
         /// </summary>
         internal static string COVXML_DIAG_SkippingCoverageCheckPropertyProvided {
             get {
@@ -142,7 +142,7 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Property &apos;sonar.cs.vstest.reportsPaths&apos; provided, skipping the search of TRX files in default folders....
+        ///   Looks up a localized string similar to Property &apos;sonar.cs.vstest.reportsPaths&apos; provided, skipping the search for TRX files in default folders....
         /// </summary>
         internal static string TRX_DIAG_SkippingCoverageCheckPropertyProvided {
             get {

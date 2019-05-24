@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="COVXML_DIAG_SkippingCoverageCheckPropertyProvided" xml:space="preserve">
-    <value>Property 'sonar.cs.vscoveragexml.reportsPaths' provided, skipping the search of coveragexml file in default folders...</value>
+    <value>Property 'sonar.cs.vscoveragexml.reportsPaths' provided, skipping the search for coveragexml file in default folders...</value>
   </data>
   <data name="EX_CoverageReportProcessorNotInitialised" xml:space="preserve">
     <value>The Coverage Report Processor was not initialized before use.</value>
@@ -145,7 +145,7 @@
     <value>No test results files found</value>
   </data>
   <data name="TRX_DIAG_SkippingCoverageCheckPropertyProvided" xml:space="preserve">
-    <value>Property 'sonar.cs.vstest.reportsPaths' provided, skipping the search of TRX files in default folders...</value>
+    <value>Property 'sonar.cs.vstest.reportsPaths' provided, skipping the search for TRX files in default folders...</value>
   </data>
   <data name="TRX_DIAG_TestResultsDirectoryNotFound" xml:space="preserve">
     <value>Test results directory does not exist in {0}</value>
