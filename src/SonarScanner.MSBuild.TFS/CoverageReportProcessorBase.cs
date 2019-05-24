@@ -80,15 +80,17 @@ namespace SonarScanner.MSBuild.TFS
                 }
             }
 
-            var success = TryGetVsCoverageFiles(this.config, this.settings, out var vscoveragePaths);
+            var success = true;
 
-            if (success && vscoveragePaths.Any())
+            if (config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null) != null)
             {
-                if (config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null) != null)
-                {
-                    Logger.LogInfo(Resources.COVXML_DIAG_SkippingCoverageCheckPropertyProvided);
-                }
-                else
+                Logger.LogInfo(Resources.COVXML_DIAG_SkippingCoverageCheckPropertyProvided);
+            }
+            else
+            {
+                success = TryGetVsCoverageFiles(this.config, this.settings, out var vscoveragePaths);
+
+                if(success && vscoveragePaths.Any())
                 {
                     if (TryConvertCoverageReports(vscoveragePaths, out var coverageReportPaths) &&
                     coverageReportPaths.Any())
@@ -96,6 +98,7 @@ namespace SonarScanner.MSBuild.TFS
                         this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = string.Join(",", coverageReportPaths) });
                     }
                 }
+
             }
 
             return success;

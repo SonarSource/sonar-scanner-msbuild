@@ -255,10 +255,13 @@ namespace SonarScanner.MSBuild.TFS.Tests
             testSubject.Initialise(analysisConfig, settings);
 
             // Act
-            var result = testSubject.ProcessCoverageReports();
+            using (new AssertIgnoreScope())
+            {
+                var result = testSubject.ProcessCoverageReports();
 
-            // Assert
-            result.Should().BeTrue();
+                // Assert
+                result.Should().BeTrue();
+            }
             converter.AssertConvertCalledAtLeastOnce();
 
             TestUtils.DeleteTextFile(coverageDir, "dummy.coveragexml");
