@@ -117,7 +117,7 @@ namespace SonarScanner.MSBuild.TFS
                 var xmlFilePath = Path.ChangeExtension(vscoverageFilePath, XmlReportFileExtension);
                 if(File.Exists(xmlFilePath))
                 {
-                    this.Logger.LogInfo($"Found corresponding Binary-to-XML conversion output file for {vscoverageFilePath}, no conversion will be tried.");
+                    this.Logger.LogInfo($"Found corresponding Binary-to-XML conversion output file for {vscoverageFilePath}, no conversion will be performed.");
                 }
                 else
                 {
