@@ -110,18 +110,25 @@ namespace SonarScanner.MSBuild.TFS
 
         private bool TryConvertCoverageReports(IEnumerable<string> vscoverageFilePaths, out IEnumerable<string> vscoveragexmlPaths)
         {
-            var xmlFileNames = vscoverageFilePaths.Select(x => Path.ChangeExtension(x, XmlReportFileExtension));
+            var xmlFileNames = new List<string>();
 
-            Debug.Assert(!xmlFileNames.Any(x => File.Exists(x)),
-                "Not expecting a file with the name of the binary-to-XML conversion output to already exist.");
-
-            var anyFailedConversion = vscoverageFilePaths.Zip(xmlFileNames, (x, y) => new { coverage = x, xml = y })
-                .Any(x => !this.converter.ConvertToXml(x.coverage, x.xml));
-
-            if (anyFailedConversion)
+            foreach (var vscoverageFilePath in vscoverageFilePaths)
             {
-                vscoveragexmlPaths = Enumerable.Empty<string>();
-                return false;
+                var xmlFilePath = Path.ChangeExtension(vscoverageFilePath, XmlReportFileExtension);
+                if(File.Exists(xmlFilePath))
+                {
+                    this.Logger.LogInfo($"Found corresponding Binary-to-XML conversion output file for {vscoverageFilePath}, no conversion will be tried.");
+                }
+                else
+                {
+                    if (!this.converter.ConvertToXml(vscoverageFilePath, xmlFilePath))
+                    {
+                        vscoveragexmlPaths = Enumerable.Empty<string>();
+                        return false;
+                    }
+                }
+
+                xmlFileNames.Add(xmlFilePath);
             }
 
             vscoveragexmlPaths = xmlFileNames;
