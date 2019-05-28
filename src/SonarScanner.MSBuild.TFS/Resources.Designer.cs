@@ -61,6 +61,15 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Found corresponding Binary-to-XML conversion output file for {0}, no conversion will be attempted..
+        /// </summary>
+        internal static string COVXML_DIAG_FileAlreadyExist_NoConversionAttempted {
+            get {
+                return ResourceManager.GetString("COVXML_DIAG_FileAlreadyExist_NoConversionAttempted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Property &apos;sonar.cs.vscoveragexml.reportsPaths&apos; provided, skipping the search for coveragexml file in default folders....
         /// </summary>
         internal static string COVXML_DIAG_SkippingCoverageCheckPropertyProvided {
