@@ -29,10 +29,20 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
         #region Test helpers
 
         public bool CanConvert { get; set; }
+        public bool ShouldNotFailConversion { get; set; }
 
         public bool ConversionResult { get; set; }
 
         #endregion Test helpers
+
+        #region Constructors
+
+        public MockReportConverter()
+        {
+            ShouldNotFailConversion = true;
+        }
+
+        #endregion
 
         #region Assertions
 
@@ -61,7 +71,7 @@ namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure
         {
             convertCallCount++;
 
-            return true;
+            return ShouldNotFailConversion;
         }
 
         #endregion ICoverageReportConverter interface
