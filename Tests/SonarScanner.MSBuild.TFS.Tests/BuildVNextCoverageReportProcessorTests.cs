@@ -337,8 +337,9 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
 
-            var converter = new MockReportConverterFailing();
+            var converter = new MockReportConverter();
             converter.CanConvert = true;
+            converter.ShouldNotFailConversion = false;
 
             var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
             var settings = new MockBuildSettings
