@@ -317,5 +317,43 @@ namespace SonarScanner.MSBuild.TFS.Tests
             result.Should().BeTrue();
             converter.AssertConvertCalledAtLeastOnce();
         }
+
+        [TestMethod]
+        public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_NotCoverageXmlFileAlreadyPresent_ShouldTryConverting_ConversionFailed()
+        {
+            // Arrange
+            var mockSearchFallback = new MockSearchFallback();
+            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testResultsDir = Path.Combine(testDir, "TestResults");
+            var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
+            var testLogger = new TestLogger();
+
+            Directory.CreateDirectory(testResultsDir);
+
+            var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
+            Directory.CreateDirectory(coverageDir);
+
+            TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
+
+            TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
+
+            var converter = new MockReportConverterFailing();
+            converter.CanConvert = true;
+
+            var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
+            var settings = new MockBuildSettings
+            {
+                BuildDirectory = testDir
+            };
+
+            testSubject.Initialise(analysisConfig, settings);
+
+            // Act
+            var result = testSubject.ProcessCoverageReports();
+
+            // Assert
+            result.Should().BeTrue();
+            converter.AssertExpectedNumberOfConversions(1);
+        }
     }
 }
