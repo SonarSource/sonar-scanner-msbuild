@@ -136,7 +136,9 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 BuildDirectory = testDir
             };
 
-            analysisConfig.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = String.Empty });
+            var coveragePathValue = "ThisIsADummyPath";
+
+            analysisConfig.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = coveragePathValue });
 
             testSubject.Initialise(analysisConfig, settings);
 
@@ -146,6 +148,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // Assert
             result.Should().BeTrue();
             converter.AssertExpectedNumberOfConversions(1);
+
+            Assert.AreEqual(analysisConfig.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null), coveragePathValue);
         }
 
         [TestMethod]
