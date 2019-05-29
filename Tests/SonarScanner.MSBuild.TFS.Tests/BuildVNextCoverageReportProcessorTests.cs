@@ -145,8 +145,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Assert
             result.Should().BeTrue();
-            converter.AssertConvertNotCalled();
-            testLogger.AssertWarningsLogged(0);
+            converter.AssertExpectedNumberOfConversions(1);
         }
 
         [TestMethod]
