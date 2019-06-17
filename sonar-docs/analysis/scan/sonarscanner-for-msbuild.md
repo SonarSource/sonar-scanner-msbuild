@@ -14,7 +14,7 @@ url: /analysis/scan/sonarscanner-for-msbuild/
 
 The SonarScanner for MSBuild is the recommended way to launch an analysis for projects/solutions using MSBuild or dotnet command as a build tool. It is the result of a [collaboration between SonarSource and Microsoft](http://www.sonarqube.org/announcing-sonarqube-integration-with-msbuild-and-team-build/). 
 
-SonarScanner for MSBuild is distributed as a standalone command line executable, as a extension for <!-- sonarcloud -->[Azure DevOps](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarcloud --><!-- sonarqube -->, [Azure DevOps Server](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarqube -->, and as a plugin for [Jenkins](/analysis/scan/sonarscanner-for-jenkins/).
+SonarScanner for MSBuild is distributed as a standalone command line executable, as a extension for <!-- sonarcloud -->[Azure DevOps](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarcloud --><!-- sonarqube -->[Azure DevOps Server](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarqube -->, and as a plugin for [Jenkins](/analysis/scan/sonarscanner-for-jenkins/).
 
 It supports .Net Core multi-platform projects and it can be used on non-Windows platforms.
 
@@ -59,18 +59,12 @@ There are two versions of the SonarScanner for MSBuild.
 
 The first version is based on the “classic” .NET Framework. To use it, execute the following commands from the root folder of your project:
 ```
-SonarScanner.MSBuild.exe begin /k:"project-key"
+SonarScanner.MSBuild.exe begin /k:"project-key" <!-- sonarcloud -->/d:sonar.organization="<organization>" /d:sonar.login="<token>" <!-- /sonarcloud -->
 MSBuild.exe <path to solution.sln> /t:Rebuild
-SonarScanner.MSBuild.exe end
+SonarScanner.MSBuild.exe end <!-- sonarcloud -->/d:sonar.login="<token>" <!-- /sonarcloud -->
 ```
 Note: On Mac OS or Linux, you can also use `mono <path to SonarScanner.MSBuild.exe>`.
 
-If you are targeting a SonarCloud project, will have to add both the organization and a login for authentication:
-```
-SonarScanner.MSBuild.exe begin /k:"project-key" /d:sonar.organization="<organization>" /d:sonar.login="<token>"
-MSBuild.exe <path to solution.sln> /t:Rebuild
-SonarScanner.MSBuild.exe end /d:sonar.login="<token>"
-```
 
 The second version is based on .NET Core which has a very similar usage:
 ```
