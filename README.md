@@ -10,7 +10,7 @@ The SonarScanner for MSBuild is the recommended way to launch a SonarQube or Son
 SonarScanner for MSBuild is distributed as a
 
 * [Standalone tool](https://github.com/SonarSource/sonar-scanner-msbuild)
-* [VSTS/TFS extension](https://github.com/SonarSource/sonar-scanner-vsts)
+* [Azure DevOps extension](https://github.com/SonarSource/sonar-scanner-vsts)
 * [Jenkins plugin](https://github.com/SonarSource/sonar-scanner-jenkins)
 
 For more info please look our [documentation page](https://docs.sonarqube.org/x/Lx9q).
