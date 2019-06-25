@@ -40,16 +40,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.WsComponents;
+import org.sonarqube.ws.WsMeasures;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.component.SearchWsRequest;
+import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -269,4 +272,25 @@ public class TestUtils {
   public static boolean hasModules(Orchestrator orch) {
     return !orch.getServer().version().isGreaterThanOrEquals(7, 6);
   }
+
+  @CheckForNull
+  public static Integer getMeasureAsInteger(String componentKey, String metricKey, Orchestrator orchestrator) {
+    WsMeasures.Measure measure = getMeasure(componentKey, metricKey, orchestrator);
+
+    Integer result = (measure == null) ? null : Integer.parseInt(measure.getValue());
+    LOG.info("Component: " + componentKey + 
+              "  metric key: " + metricKey + 
+              "  value: " + result);
+
+    return result;
+  }
+
+  @CheckForNull
+  private static WsMeasures.Measure getMeasure(@Nullable String componentKey, String metricKey, Orchestrator orchestrator) {
+    WsMeasures.ComponentWsResponse response = newWsClient(orchestrator).measures().component(new ComponentWsRequest()
+      .setComponentKey(componentKey)
+      .setMetricKeys(Collections.singletonList(metricKey)));
+    List<WsMeasures.Measure> measures = response.getComponent().getMeasuresList();
+    return measures.size() == 1 ? measures.get(0) : null;
+  }  
 }

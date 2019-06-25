@@ -30,8 +30,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assume;
 import org.junit.Before;
@@ -113,8 +111,8 @@ public class CppTest {
     List<String> keys = issues.stream().map(i -> i.getRule()).collect(Collectors.toList());
     assertThat(keys).containsAll(Arrays.asList("cpp:S106"));
 
-    assertThat(getMeasureAsInteger(projectKey, "ncloc")).isEqualTo(15);
-    assertThat(getMeasureAsInteger(fileKey, "ncloc")).isEqualTo(8);
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(15);
+    assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(8);
   }
 
   @Test
@@ -152,28 +150,7 @@ public class CppTest {
     List<String> keys = issues.stream().map(i -> i.getRule()).collect(Collectors.toList());
     assertThat(keys).containsAll(Arrays.asList("cpp:S106"));
 
-    assertThat(getMeasureAsInteger(projectKey, "ncloc")).isEqualTo(22);
-    assertThat(getMeasureAsInteger(fileKey, "ncloc")).isEqualTo(8);
-  }
-
-  @CheckForNull
-  static Integer getMeasureAsInteger(String componentKey, String metricKey) {
-    WsMeasures.Measure measure = getMeasure(componentKey, metricKey);
-    return (measure == null) ? null : Integer.parseInt(measure.getValue());
-  }
-
-  @CheckForNull
-  static WsMeasures.Measure getMeasure(@Nullable String componentKey, String metricKey) {
-    WsMeasures.ComponentWsResponse response = newWsClient().measures().component(new ComponentWsRequest()
-      .setComponentKey(componentKey)
-      .setMetricKeys(Arrays.asList(metricKey)));
-    List<WsMeasures.Measure> measures = response.getComponent().getMeasuresList();
-    return measures.size() == 1 ? measures.get(0) : null;
-  }
-
-  static WsClient newWsClient() {
-    return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
-      .url(ORCHESTRATOR.getServer().getUrl())
-      .build());
+    assertThat(TestUtils.getMeasureAsInteger(projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(22);
+    assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(8);
   }
 }
