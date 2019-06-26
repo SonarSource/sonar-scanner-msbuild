@@ -36,8 +36,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -206,9 +204,9 @@ public class ScannerMSBuildTest {
   }
 
   private void assertLineCountForProjectUnderTest() {
-    assertThat(getMeasureAsInteger(getFileKey(), "ncloc")).isEqualTo(23);
-    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(37);
-    assertThat(getMeasureAsInteger(getFileKey(), "lines")).isEqualTo(71);
+    assertThat(TestUtils.getMeasureAsInteger(getFileKey(), "ncloc", ORCHESTRATOR)).isEqualTo(23);
+    assertThat(TestUtils.getMeasureAsInteger(PROJECT_KEY, "ncloc", ORCHESTRATOR)).isEqualTo(37);
+    assertThat(TestUtils.getMeasureAsInteger(getFileKey(), "lines", ORCHESTRATOR)).isEqualTo(71);
   }
 
   @Test
@@ -244,8 +242,8 @@ public class ScannerMSBuildTest {
 
     // excluded project doesn't exist in SonarQube
 
-    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(45);
-    assertThat(getMeasureAsInteger(normalProjectKey, "ncloc")).isEqualTo(45);
+    assertThat(TestUtils.getMeasureAsInteger(PROJECT_KEY, "ncloc", ORCHESTRATOR)).isEqualTo(45);
+    assertThat(TestUtils.getMeasureAsInteger(normalProjectKey, "ncloc", ORCHESTRATOR)).isEqualTo(45);
   }
 
   @Test
@@ -284,7 +282,7 @@ public class ScannerMSBuildTest {
     // Properties/AssemblyInfo.cs 15
     // Ny Properties/AssemblyInfo.cs 13
     // Module1.vb 10
-    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(68);
+    assertThat(TestUtils.getMeasureAsInteger(PROJECT_KEY, "ncloc", ORCHESTRATOR)).isEqualTo(68);
   }
 
   @Test
@@ -633,21 +631,6 @@ public class ScannerMSBuildTest {
 
   private static WsComponents.Component getComponent(String componentKey) {
     return newWsClient().components().show(new ShowWsRequest().setKey(componentKey)).getComponent();
-  }
-
-  @CheckForNull
-  private static Integer getMeasureAsInteger(String componentKey, String metricKey) {
-    WsMeasures.Measure measure = getMeasure(componentKey, metricKey);
-    return (measure == null) ? null : Integer.parseInt(measure.getValue());
-  }
-
-  @CheckForNull
-  private static WsMeasures.Measure getMeasure(@Nullable String componentKey, String metricKey) {
-    WsMeasures.ComponentWsResponse response = newWsClient().measures().component(new ComponentWsRequest()
-      .setComponentKey(componentKey)
-      .setMetricKeys(Collections.singletonList(metricKey)));
-    List<WsMeasures.Measure> measures = response.getComponent().getMeasuresList();
-    return measures.size() == 1 ? measures.get(0) : null;
   }
 
   private static WsClient newWsClient() {

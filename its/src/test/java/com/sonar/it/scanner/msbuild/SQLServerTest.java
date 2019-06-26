@@ -26,13 +26,11 @@ import com.sonar.orchestrator.locator.MavenLocation;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.CheckForNull;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonarqube.ws.Issues.Issue;
-import org.sonarqube.ws.WsMeasures;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
@@ -76,30 +74,9 @@ public class SQLServerTest {
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(3);
-    assertThat(getMeasureAsInteger(getFileKey(), "ncloc")).isEqualTo(19);
-    assertThat(getMeasureAsInteger(PROJECT_KEY, "ncloc")).isEqualTo(25);
-    assertThat(getMeasureAsInteger(getFileKey(), "lines")).isEqualTo(23);
-  }
-
-  @CheckForNull
-  private static Integer getMeasureAsInteger(String componentKey, String metricKey) {
-    WsMeasures.Measure measure = getMeasure(componentKey, metricKey);
-    return (measure == null) ? null : Integer.parseInt(measure.getValue());
-  }
-
-  @CheckForNull
-  private static WsMeasures.Measure getMeasure(String componentKey, String metricKey) {
-    WsMeasures.ComponentWsResponse response = newWsClient().measures().component(new ComponentWsRequest()
-      .setComponentKey(componentKey)
-      .setMetricKeys(Collections.singletonList(metricKey)));
-    List<WsMeasures.Measure> measures = response.getComponent().getMeasuresList();
-    return measures.size() == 1 ? measures.get(0) : null;
-  }
-
-  private static WsClient newWsClient() {
-    return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
-      .url(ORCHESTRATOR.getServer().getUrl())
-      .build());
+    assertThat(TestUtils.getMeasureAsInteger(getFileKey(), "ncloc", ORCHESTRATOR)).isEqualTo(19);
+    assertThat(TestUtils.getMeasureAsInteger(PROJECT_KEY, "ncloc", ORCHESTRATOR)).isEqualTo(25);
+    assertThat(TestUtils.getMeasureAsInteger(getFileKey(), "lines", ORCHESTRATOR)).isEqualTo(23);
   }
 
   private static String getFileKey() {
