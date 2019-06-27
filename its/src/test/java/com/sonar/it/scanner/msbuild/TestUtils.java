@@ -66,7 +66,7 @@ public class TestUtils {
     return orchestrator.getConfiguration().getString("scannerForMSBuild.version");
   }
 
-  private static MavenLocation mavenLocation(String scannerVersion) {
+  private static MavenLocation getScannerMavenLocation(String scannerVersion) {
     String groupId = "org.sonarsource.scanner.msbuild";
     String artifactId = "sonar-scanner-msbuild";
     return MavenLocation.builder()
@@ -84,7 +84,7 @@ public class TestUtils {
     Location scannerLocation;
     if (scannerVersion != null) {
       LOG.info("Using Scanner for MSBuild " + scannerVersion);
-      scannerLocation = mavenLocation(scannerVersion);
+      scannerLocation = getScannerMavenLocation(scannerVersion);
     }
     else {
       String scannerLocationEnv = System.getenv("SCANNER_LOCATION");
@@ -113,6 +113,7 @@ public class TestUtils {
   }
 
   public static Path getCustomRoslynPlugin() {
+    LOG.info("TEST SETUP: calculating custom Roslyn plugin path...");
     Path customPluginDir = Paths.get("").resolve("analyzers");
 
     DirectoryStream.Filter<Path> jarFilter = file -> Files.isRegularFile(file) && file.toString().endsWith(".jar");
@@ -128,22 +129,36 @@ public class TestUtils {
       throw new IllegalStateException("Several jars found in " + customPluginDir.toString());
     }
 
+    LOG.info("TEST SETUP: custom plugin path = " + jars.get(0));
+
     return jars.get(0);
   }
 
+  public static Location getMavenLocation(String groupId, String artifactId, String version) {
+    TestUtils.LOG.info("TEST SETUP: getting Maven location: " + groupId + " " + artifactId + " " + version);
+    Location location = MavenLocation.of(groupId, artifactId, version);
+
+    TestUtils.LOG.info("TEST SETUP: location = " + location.toString());
+    return location;
+  }
+
   public static TemporaryFolder createTempFolder() {
+    LOG.info("TEST SETUP: creating temporary folder...");
+
     // If the test is being run under VSTS then the Scanner will
     // expect the project to be under the VSTS sources directory
     File baseDirectory = null;
     if (VstsUtils.isRunningUnderVsts()){
       String vstsSourcePath = VstsUtils.getSourcesDirectory();
-      LOG.info("Tests are running under VSTS. Build dir:  " + vstsSourcePath);
+      LOG.info("TEST SETUP: Tests are running under VSTS. Build dir:  " + vstsSourcePath);
       baseDirectory = new File(vstsSourcePath);
     }
     else {
-      LOG.info("Tests are not running under VSTS");
+      LOG.info("TEST SETUP: Tests are not running under VSTS");
     }
-    return new TemporaryFolder(baseDirectory);
+    TemporaryFolder folder = new TemporaryFolder(baseDirectory);
+    LOG.info("TEST SETUP: Temporary folder created. Base directory: " + baseDirectory);
+    return folder;
   }
 
   public static Path projectDir(TemporaryFolder temp, String projectName) throws IOException {
@@ -198,6 +213,7 @@ public class TestUtils {
   }
 
   private static Path getNuGetPath(Orchestrator orch) {
+    LOG.info("TEST SETUP: calculating path to NuGet.exe...");
     String toolsFolder = Paths.get("tools").resolve("nuget.exe").toAbsolutePath().toString();
     String nugetPathStr = orch.getConfiguration().getString(NUGET_PATH, toolsFolder);
     Path nugetPath = Paths.get(nugetPathStr).toAbsolutePath();
@@ -205,6 +221,8 @@ public class TestUtils {
       throw new IllegalStateException("Unable to find NuGet at '" + nugetPath.toString() +
         "'. Please configure property '" + NUGET_PATH + "'");
     }
+
+    LOG.info("TEST SETUP: nuget.exe path = " + nugetPath);
     return nugetPath;
   }
 
