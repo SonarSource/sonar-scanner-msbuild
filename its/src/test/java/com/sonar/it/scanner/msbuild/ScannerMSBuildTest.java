@@ -23,6 +23,7 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
 import com.sonar.orchestrator.container.Edition;
+import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.NetworkUtils;
@@ -84,14 +85,29 @@ public class ScannerMSBuildTest {
   private static ConcurrentLinkedDeque<String> seenByProxy = new ConcurrentLinkedDeque<>();
 
   @ClassRule
-  public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    .setSonarVersion(TestUtils.replaceLtsVersion(System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE")))
-    .setEdition(Edition.DEVELOPER)
-    .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
-    .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-csharp-plugin", "LATEST_RELEASE"))
-    .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-vbnet-plugin", "LATEST_RELEASE"))
-    .activateLicense()
-    .build();
+  public static Orchestrator ORCHESTRATOR = initializeOrchestrator();
+
+  private static Orchestrator initializeOrchestrator() {
+    TestUtils.LOG.info("TEST SETUP: Initializing orchestrator...");
+
+    String sonarRuntimeVersion = System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE");
+    TestUtils.LOG.info("TEST SETUP: sonarRuntimeVersion = " + sonarRuntimeVersion);
+
+    Location csharpLocation = TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-csharp-plugin", "LATEST_RELEASE");
+    Location vbLocation = TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-vbnet-plugin", "LATEST_RELEASE");
+
+    Orchestrator orchestrator = Orchestrator.builderEnv()
+      .setSonarVersion(TestUtils.replaceLtsVersion(sonarRuntimeVersion))
+      .setEdition(Edition.DEVELOPER)
+      .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
+      .addPlugin(csharpLocation)
+      .addPlugin(vbLocation)
+      .activateLicense()
+      .build();
+
+    TestUtils.LOG.info("TEST SETUP: orchestrator initialized.");
+    return orchestrator;
+  }
 
   @ClassRule
   public static TemporaryFolder temp = TestUtils.createTempFolder();
