@@ -85,6 +85,7 @@
     <Compile Include="CmdLineArgsPropertiesProviderTests.cs" />
     <Compile Include="CommandLine\ArgumentDescriptorTests.cs" />
     <Compile Include="CommandLine\ArgumentInstanceTests.cs" />
+    <Compile Include="CommandLine\CommandLineFlagPrefixTests.cs" />
     <Compile Include="CommandLine\CommandLineParserTests.cs" />
     <Compile Include="ConsoleLoggerTests.cs" />
     <Compile Include="AnalysisConfig\AnalysisConfigTests.cs" />

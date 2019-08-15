@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SonarScanner.MSBuild.Common.CommandLine;
 
 namespace SonarScanner.MSBuild.Common
 {
@@ -32,7 +33,7 @@ namespace SonarScanner.MSBuild.Common
         public const string DynamicPropertyArgumentId = "dynamic.property";
 
         public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(
-            id: DynamicPropertyArgumentId, prefixes: new string[] { "/d:" }, required: false, allowMultiple: true,
+            id: DynamicPropertyArgumentId, prefixes: CommandLineFlagPrefix.GetPrefixFlag(new[] { "d:" }), required: false, allowMultiple: true,
             description: Resources.CmdLine_ArgDescription_DynamicProperty);
 
         private readonly IEnumerable<Property> properties;

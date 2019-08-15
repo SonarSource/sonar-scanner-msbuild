@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SonarScanner.MSBuild.Common.CommandLine;
 
 namespace SonarScanner.MSBuild.Common
 {
@@ -32,9 +33,9 @@ namespace SonarScanner.MSBuild.Common
     {
         private const string DescriptorId = "properties.file.argument";
         public const string DefaultFileName = "SonarQube.Analysis.xml";
-        public const string Prefix = "/s:";
+        public static readonly string[] Prefix = new[] { "s:" };
 
-        public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(DescriptorId, new string[] { Prefix },
+        public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(DescriptorId, CommandLineFlagPrefix.GetPrefixFlag(Prefix),
             false, Resources.CmdLine_ArgDescription_PropertiesFilePath, false);
 
         #region Public methods
