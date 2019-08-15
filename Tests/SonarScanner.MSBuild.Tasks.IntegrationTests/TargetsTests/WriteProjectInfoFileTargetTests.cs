@@ -208,7 +208,55 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 projectDir + "\\resource.res",
                 projectDir + "\\none.none",
                 projectDir + "\\code.cpp",
-                projectDir + "\\tsfile.ts");
+                projectDir + "\\tsfile.ts",
+                projectDir + "\\page.page");
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        [TestCategory("Lists")]
+        public void WriteProjectInfo_AnalysisFileList_FilesTypes_PageAndApplicationDefinition()
+        {
+            // Check that all default item types are included for analysis
+
+            // Arrange
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+
+            // Note: the included/excluded files don't actually have to exist
+            string projectXml = $@"
+<ItemGroup>
+
+  <!-- Files we expect to be included -->
+  <ApplicationDefinition Include='MyApp.xaml'>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+  </ApplicationDefinition>
+  <Page Include='HomePage.xaml'>
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  <Compile Include='MyApp.cs'>
+      <DependentUpon>MyApp.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+<Compile Include='HomePage.cs'>
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+</ItemGroup>
+";
+            var projectFilePath = CreateProjectFile(null, projectXml, rootOutputFolder);
+            var projectDir = Path.GetDirectoryName(projectFilePath);
+
+            // Act
+            var projectInfo = ExecuteWriteProjectInfo(projectFilePath, rootOutputFolder);
+
+            // Assert
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze,
+                projectDir + "\\MyApp.xaml",
+                projectDir + "\\MyApp.cs",
+                projectDir + "\\HomePage.xaml",
+                projectDir + "\\HomePage.cs");
         }
 
         [TestMethod]

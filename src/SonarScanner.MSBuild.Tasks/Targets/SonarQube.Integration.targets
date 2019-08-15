@@ -109,7 +109,7 @@
     <SonarQubeOutputPath Condition=" $(SonarQubeOutputPath) == '' ">$(SonarQubeTempPath)\out</SonarQubeOutputPath>
 
     <!-- Specify the ItemGroups to be analyzed -->
-    <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">AndroidEnvironment;AndroidJavaSource;AndroidResource;Build;ClCompile;ClInclude;Compile;Content;DeploymentExtensionConfiguration;EmbeddedResource;EntityDeploy;None;PostDeploy;PRIResource;PreDeploy;RefactorLog;Resource;Script;ScriptCode;TypeScriptCompile;$(SQAdditionalAnalysisFileItemTypes)</SQAnalysisFileItemTypes>
+    <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">AndroidEnvironment;AndroidJavaSource;AndroidResource;ApplicationDefinition;Build;ClCompile;ClInclude;Compile;Content;DeploymentExtensionConfiguration;EmbeddedResource;EntityDeploy;None;Page;PostDeploy;PRIResource;PreDeploy;RefactorLog;Resource;Script;ScriptCode;TypeScriptCompile;$(SQAdditionalAnalysisFileItemTypes)</SQAnalysisFileItemTypes>
   </PropertyGroup>
 
   <!-- **************************************************************************** -->
