@@ -37,7 +37,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             var expectedResult = new string[] { "-a:", "/a:", "-alias:", "/alias:" };
 
             //act
-            var argsPrefixed = CommandLineFlagPrefix.GetPrefixFlag(args);
+            var argsPrefixed = CommandLineFlagPrefix.GetPrefixedFlags(args);
 
             //assert
             CollectionAssert.AreEqual(argsPrefixed, expectedResult);

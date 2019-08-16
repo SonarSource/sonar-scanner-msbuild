@@ -75,7 +75,7 @@ namespace SonarScanner.MSBuild
 
         public static bool IsHelp(string[] commandLineArgs)
         {
-            var helpPrefixes = CommandLineFlagPrefix.GetPrefixFlag(new[] { "h", "?" });
+            var helpPrefixes = CommandLineFlagPrefix.GetPrefixedFlags(new[] { "h", "?" });
 
             foreach (var helpPrefix in helpPrefixes)
             {
