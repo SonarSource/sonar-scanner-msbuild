@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.Common
         public const string DynamicPropertyArgumentId = "dynamic.property";
 
         public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(
-            id: DynamicPropertyArgumentId, prefixes: CommandLineFlagPrefix.GetPrefixedFlags(new[] { "d:" }), required: false, allowMultiple: true,
+            id: DynamicPropertyArgumentId, prefixes: CommandLineFlagPrefix.GetPrefixedFlags("d:"), required: false, allowMultiple: true,
             description: Resources.CmdLine_ArgDescription_DynamicProperty);
 
         private readonly IEnumerable<Property> properties;

@@ -33,9 +33,10 @@ namespace SonarScanner.MSBuild.Common
     {
         private const string DescriptorId = "properties.file.argument";
         public const string DefaultFileName = "SonarQube.Analysis.xml";
-        public const string Prefix = "s:";
+        public const string Prefix = "/s:";
+        public const string DescriptorPrefix = "s:";
 
-        public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(DescriptorId, CommandLineFlagPrefix.GetPrefixedFlags(new string[] { Prefix }),
+        public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(DescriptorId, CommandLineFlagPrefix.GetPrefixedFlags(DescriptorPrefix),
             false, Resources.CmdLine_ArgDescription_PropertiesFilePath, false);
 
         #region Public methods

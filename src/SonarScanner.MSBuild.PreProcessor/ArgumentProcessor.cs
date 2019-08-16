@@ -66,23 +66,23 @@ namespace SonarScanner.MSBuild.PreProcessor
             Descriptors = new List<ArgumentDescriptor>
             {
                 new ArgumentDescriptor(
-                id: KeywordIds.ProjectKey, prefixes:  CommandLineFlagPrefix.GetPrefixedFlags(new string[] { "key:","k:" }), required: true, allowMultiple: false,
+                id: KeywordIds.ProjectKey, prefixes:  CommandLineFlagPrefix.GetPrefixedFlags("key:","k:"), required: true, allowMultiple: false,
                 description: Resources.CmdLine_ArgDescription_ProjectKey),
 
                 new ArgumentDescriptor(
-                id: KeywordIds.ProjectName, prefixes: CommandLineFlagPrefix.GetPrefixedFlags(new string[] { "name:","n:" }), required: false, allowMultiple: false,
+                id: KeywordIds.ProjectName, prefixes: CommandLineFlagPrefix.GetPrefixedFlags("name:","n:"), required: false, allowMultiple: false,
                 description: Resources.CmdLine_ArgDescription_ProjectName),
 
                 new ArgumentDescriptor(
-                id: KeywordIds.ProjectVersion, prefixes: CommandLineFlagPrefix.GetPrefixedFlags(new string[] { "version:","v:" }), required: false,
+                id: KeywordIds.ProjectVersion, prefixes: CommandLineFlagPrefix.GetPrefixedFlags("version:","v:"), required: false,
                 allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion),
 
                 new ArgumentDescriptor(
-                id: KeywordIds.Organization, prefixes: CommandLineFlagPrefix.GetPrefixedFlags(new string[] { "organization:","o:" }), required: false,
+                id: KeywordIds.Organization, prefixes: CommandLineFlagPrefix.GetPrefixedFlags("organization:","o:"), required: false,
                 allowMultiple: false, description: Resources.CmdLine_ArgDescription_Organization),
 
                 new ArgumentDescriptor(
-                id: KeywordIds.InstallLoaderTargets,prefixes:CommandLineFlagPrefix.GetPrefixedFlags(new string[] { "install:"}), required: false,
+                id: KeywordIds.InstallLoaderTargets,prefixes:CommandLineFlagPrefix.GetPrefixedFlags("install:"), required: false,
                 allowMultiple: false, description: Resources.CmdLine_ArgDescription_InstallTargets),
 
                 FilePropertyProvider.Descriptor,
