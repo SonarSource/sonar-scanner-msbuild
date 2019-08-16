@@ -147,7 +147,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
                 return false;
             }
 
-            var content = RoslynSonarLint.GenerateXml(activeRules, serverProperties, language);
+            var serverPropertiesProvider = new ListPropertiesProvider(serverProperties);
+            var content = RoslynSonarLint.GenerateXml(activeRules, serverPropertiesProvider, language);
 
             this.logger.LogDebug(Resources.RAP_WritingAdditionalFile, sonarLintXmlPath);
 

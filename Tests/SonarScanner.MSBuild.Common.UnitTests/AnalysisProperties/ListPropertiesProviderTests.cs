@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -30,11 +32,60 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         [TestMethod]
         public void Ctor_WhenPropertiesIsNull_ThrowsArgumentNullException()
         {
-            // Arrange
-            Action action = () => new ListPropertiesProvider(null);
-
-            // Act & Assert
+            // 1. IEnumerable<Property> constructor
+            Action action = () => new ListPropertiesProvider((IEnumerable<Property>)null);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
+
+            // 2. Dictionary constructor
+            action = () => new ListPropertiesProvider((IDictionary<string, string>)null);
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("keyValuePairs");
+        }
+
+        [TestMethod]
+        public void Ctor_InitializeFromProperties()
+        {
+            // Arrange
+            var properties = new List<Property>
+            {
+                new Property { Id = "id1", Value = "value1" },
+                new Property { Id = "id2", Value = "value2" },
+            };
+
+            // Act
+            var listPropertiesProvider = new ListPropertiesProvider(properties);
+
+            // Assert
+            listPropertiesProvider.GetAllProperties().Count().Should().Be(2);
+
+            CheckPropertyExists(listPropertiesProvider, "id1", "value1");
+            CheckPropertyExists(listPropertiesProvider, "id2", "value2");
+        }
+
+        [TestMethod]
+        public void Ctor_InitializeFromDictionary()
+        {
+            // Arrange
+            var dict = new Dictionary<string, string>
+            {
+                { "id1", "value1" },
+                { "id2", "value2" }
+            };
+
+            // Act
+            var listPropertiesProvider = new ListPropertiesProvider(dict);
+
+            // Assert
+            listPropertiesProvider.GetAllProperties().Count().Should().Be(2);
+
+            CheckPropertyExists(listPropertiesProvider, "id1", "value1");
+            CheckPropertyExists(listPropertiesProvider, "id2", "value2");
+        }
+
+        private static void CheckPropertyExists(IAnalysisPropertyProvider provider, string id, string value)
+        {
+            provider.TryGetProperty(id, out Property foundProp).Should().BeTrue();
+            foundProp.Id.Should().Be(id);
+            foundProp.Value.Should().Be(value);
         }
 
         [TestMethod]
