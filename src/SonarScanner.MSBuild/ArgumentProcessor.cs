@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.CommandLine;
 
 namespace SonarScanner.MSBuild
 {
@@ -74,7 +75,15 @@ namespace SonarScanner.MSBuild
 
         public static bool IsHelp(string[] commandLineArgs)
         {
-            return commandLineArgs.Contains("/h") || commandLineArgs.Contains("/?");
+            var helpPrefixes = CommandLineFlagPrefix.GetPrefixedFlags("h", "?");
+
+            foreach (var helpPrefix in helpPrefixes)
+            {
+                if (commandLineArgs.Contains(helpPrefix))
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>

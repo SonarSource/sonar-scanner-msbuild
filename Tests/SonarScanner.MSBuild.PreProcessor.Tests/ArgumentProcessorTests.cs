@@ -344,6 +344,39 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         }
 
         [TestMethod]
+        public void PreArgProc_Arguments_Duplicates_WithDifferentFlagsPrefixes()
+        {
+            // Arrange
+            TestLogger logger;
+
+            // Act
+            logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "-version:1.2",
+                    "/d:dup1=value1", "-d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4",
+                    "/d:unique=value5");
+
+            // Assert
+            logger.AssertSingleErrorExists("-version:1.2", "1.2");
+            logger.AssertErrorsLogged(1);
+        }
+
+        [TestMethod]
+        public void PreArgProc_DynamicSettings_Duplicates_WithDifferentFlagsPrefixes()
+        {
+            // Arrange
+            TestLogger logger;
+
+            // Act
+            logger = CheckProcessingFails("/key:my.key", "/name:my name",
+                    "/d:dup1=value1", "-d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4",
+                    "/d:unique=value5");
+
+            // Assert
+            logger.AssertSingleErrorExists("dup1=value2", "value1");
+            logger.AssertSingleErrorExists("dup2=value4", "value3");
+            logger.AssertErrorsLogged(2);
+        }
+
+        [TestMethod]
         public void PreArgProc_Disallowed_DynamicSettings()
         {
             // 0. Setup

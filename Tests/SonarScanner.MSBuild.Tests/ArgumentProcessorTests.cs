@@ -142,6 +142,36 @@ namespace SonarQube.Bootstrapper.Tests
         }
 
         [TestMethod]
+        public void ArgProc_WithDashedArguments_Long()
+        {
+            // Incorrectly formed /d:[key]=[value] arguments
+            TestLogger logger = new TestLogger();
+
+            var arguments = "-d:sonar.host.url=http://foo -version:1.2 -organization:123456789 -key:gggzzz -login:ddddd";
+
+            var settings = CheckProcessingSucceeds(logger, arguments, "begin");
+
+            AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
+            logger.AssertWarningsLogged(0);
+            AssertExpectedChildArguments(settings, arguments);
+        }
+
+        [TestMethod]
+        public void ArgProc_WithDashedArguments_Short()
+        {
+            // Incorrectly formed /d:[key]=[value] arguments
+            TestLogger logger= new TestLogger();
+
+            var arguments = "-d:sonar.host.url=http://foo -v:1.2 -k:123456789";
+
+            var settings = CheckProcessingSucceeds(logger, arguments, "begin");
+
+            AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
+            logger.AssertWarningsLogged(0);
+            AssertExpectedChildArguments(settings, arguments);
+        }
+
+        [TestMethod]
         public void ArgProc_BeginVerb()
         {
             // Arrange
