@@ -48,7 +48,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         private readonly IAnalyzerInstaller analyzerInstaller;
         private readonly ILogger logger;
         private TeamBuildSettings teamBuildSettings;
-        private IDictionary<string, string> serverProperties;
+        private IAnalysisPropertyProvider sonarProperties;
 
         public RoslynAnalyzerProvider(IAnalyzerInstaller analyzerInstaller, ILogger logger)
         {
@@ -61,11 +61,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
         /// Active rules should never be empty, but depending on the server settings of repo keys, we might have no rules in the ruleset.
         /// In that case, this method returns null.
         /// </summary>
-        public AnalyzerSettings SetupAnalyzer(TeamBuildSettings teamBuildSettings, IDictionary<string, string> serverProperties,
+        public AnalyzerSettings SetupAnalyzer(TeamBuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties,
             IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, string language)
         {
             this.teamBuildSettings = teamBuildSettings ?? throw new ArgumentNullException(nameof(teamBuildSettings));
-            this.serverProperties = serverProperties ?? throw new ArgumentNullException(nameof(serverProperties));
+            this.sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));
 
             if (language == null)
             {
@@ -98,7 +98,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
         private string CreateRuleSet(string language, IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, ProjectType projectType)
         {
-            var ruleSetGenerator = new RoslynRuleSetGenerator(this.serverProperties);
+            var ruleSetGenerator = new RoslynRuleSetGenerator(this.sonarProperties);
             if (projectType == ProjectType.Test)
             {
                 ruleSetGenerator.ActiveRuleAction = RuleAction.None;
@@ -147,8 +147,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
                 return false;
             }
 
-            var serverPropertiesProvider = new ListPropertiesProvider(serverProperties);
-            var content = RoslynSonarLint.GenerateXml(activeRules, serverPropertiesProvider, language);
+            var content = RoslynSonarLint.GenerateXml(activeRules, sonarProperties, language);
 
             this.logger.LogDebug(Resources.RAP_WritingAdditionalFile, sonarLintXmlPath);
 
@@ -164,9 +163,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
             foreach (var partialRepoKey in partialRepoKeys)
             {
-                if (!TryGetPropertyValue($"{partialRepoKey}.pluginKey", out var pluginkey) ||
-                    !TryGetPropertyValue($"{partialRepoKey}.pluginVersion", out var pluginVersion) ||
-                    !TryGetPropertyValue($"{partialRepoKey}.staticResourceName", out var staticResourceName))
+                if (!sonarProperties.TryGetValue($"{partialRepoKey}.pluginKey", out var pluginkey) ||
+                    !sonarProperties.TryGetValue($"{partialRepoKey}.pluginVersion", out var pluginVersion) ||
+                    !sonarProperties.TryGetValue($"{partialRepoKey}.staticResourceName", out var staticResourceName))
                 {
                     if (!partialRepoKey.StartsWith(SONARANALYZER_PARTIAL_REPO_KEY_PREFIX))
                     {
@@ -189,9 +188,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
                 return this.analyzerInstaller.InstallAssemblies(plugins);
             }
         }
-
-        private bool TryGetPropertyValue(string propertyKey, out string propertyValue) =>
-            this.serverProperties.TryGetValue(propertyKey, out propertyValue);
 
         private static ICollection<string> ActiveRulesPartialRepoKeys(IEnumerable<SonarRule> rules)
         {

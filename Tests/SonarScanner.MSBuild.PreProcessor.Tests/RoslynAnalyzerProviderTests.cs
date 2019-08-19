@@ -57,21 +57,21 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             IList<SonarRule> activeRules = new List<SonarRule>();
             IList<SonarRule> inactiveRules = new List<SonarRule>();
             var pluginKey = RoslynAnalyzerProvider.CSharpPluginKey;
-            IDictionary<string, string> serverSettings = new Dictionary<string, string>();
+            var sonarProperties = new ListPropertiesProvider();
             var settings = CreateSettings(TestUtils.CreateTestSpecificFolder(TestContext));
 
             var testSubject = CreateTestSubject(logger);
 
             // Act and assert
-            Action act = () => testSubject.SetupAnalyzer(null, serverSettings, activeRules, inactiveRules, pluginKey);
+            Action act = () => testSubject.SetupAnalyzer(null, sonarProperties, activeRules, inactiveRules, pluginKey);
             act.Should().ThrowExactly<ArgumentNullException>();
             act = () => testSubject.SetupAnalyzer(settings, null, activeRules, inactiveRules, pluginKey);
             act.Should().ThrowExactly<ArgumentNullException>();
-            act = () => testSubject.SetupAnalyzer(settings, serverSettings, null, inactiveRules, pluginKey);
+            act = () => testSubject.SetupAnalyzer(settings, sonarProperties, null, inactiveRules, pluginKey);
             act.Should().ThrowExactly<ArgumentNullException>();
-            act = () => testSubject.SetupAnalyzer(settings, serverSettings, activeRules, null, pluginKey);
+            act = () => testSubject.SetupAnalyzer(settings, sonarProperties, activeRules, null, pluginKey);
             act.Should().ThrowExactly<ArgumentNullException>();
-            act = () => testSubject.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, null);
+            act = () => testSubject.SetupAnalyzer(settings, sonarProperties, activeRules, inactiveRules, null);
             act.Should().ThrowExactly<ArgumentNullException>();
         }
 
@@ -83,13 +83,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             IList<SonarRule> activeRules = new List<SonarRule>();
             IList<SonarRule> inactiveRules = new List<SonarRule>();
             var pluginKey = "csharp";
-            IDictionary<string, string> serverSettings = new Dictionary<string, string>();
+            var sonarProperties = new ListPropertiesProvider();
             var settings = CreateSettings(TestUtils.CreateTestSpecificFolder(TestContext));
 
             var testSubject = CreateTestSubject(logger);
 
             // Act and assert
-            testSubject.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, pluginKey).Should().NotBeNull();
+            testSubject.SetupAnalyzer(settings, sonarProperties, activeRules, inactiveRules, pluginKey).Should().NotBeNull();
         }
 
         [TestMethod]
@@ -103,13 +103,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var language = RoslynAnalyzerProvider.CSharpLanguage;
 
             // missing properties to get plugin related properties
-            IDictionary<string, string> serverSettings = new Dictionary<string, string>
+            var sonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
             {
                 { "wintellect.analyzerId", "Wintellect.Analyzers" },
                 { "wintellect.ruleNamespace", "Wintellect.Analyzers" },
                 { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
                 { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" }
-            };
+            });
 
             var mockInstaller = new MockAnalyzerInstaller
             {
@@ -120,7 +120,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
             // Act
-            var actualSettings = testSubject.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, language);
+            var actualSettings = testSubject.SetupAnalyzer(settings, sonarProperties, activeRules, inactiveRules, language);
 
             // Assert
             CheckSettingsInvariants(actualSettings);
@@ -157,7 +157,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             var testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
             // Act
-            var actualSettings = testSubject.SetupAnalyzer(settings, ServerSettings, activeRules, inactiveRules, language);
+            var actualSettings = testSubject.SetupAnalyzer(settings, SonarProperties, activeRules, inactiveRules, language);
 
             // Assert
             CheckSettingsInvariants(actualSettings);
@@ -215,7 +215,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             return rules;
         }
 
-        private static readonly IDictionary<string, string> ServerSettings = new Dictionary<string, string>
+        private static readonly IAnalysisPropertyProvider SonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
         {
             // for ruleset
             {"wintellect.analyzerId", "Wintellect.Analyzers" },
@@ -232,8 +232,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             {"sonaranalyzer-cs.staticResourceName", "SonarAnalyzer.zip"},
             {"sonaranalyzer-cs.nuget.packageId", "SonarAnalyzer.CSharp"},
             {"sonaranalyzer-cs.pluginVersion", "1.13.0"},
-            {"sonaranalyzer-cs.nuget.packageVersion", "1.13.0"}
-        };
+            {"sonaranalyzer-cs.nuget.packageVersion", "1.13.0"},
+
+            // Unrelated properties that should be ignored
+            {"sonar.cs.testPropertyPattern", "foo"},
+            {"sonar.sources", "**/*.*"}
+        });
 
         private string CreateTestFolders()
         {

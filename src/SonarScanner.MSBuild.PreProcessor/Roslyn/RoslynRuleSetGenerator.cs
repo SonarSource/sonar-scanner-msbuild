@@ -30,15 +30,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
         private const string SONARANALYZER_PARTIAL_REPO_KEY = "sonaranalyzer-{0}";
         private const string ROSLYN_REPOSITORY_PREFIX = "roslyn.";
 
-        private readonly IDictionary<string, string> serverProperties;
+        private readonly IAnalysisPropertyProvider sonarProperties;
         private readonly string inactiveRuleActionText = GetActionText(RuleAction.None);
 
         private string activeRuleActionText = GetActionText(RuleAction.Warning);
         private RuleAction activeRuleAction = RuleAction.Warning;
 
-        public RoslynRuleSetGenerator(IDictionary<string, string> serverProperties)
+        public RoslynRuleSetGenerator(IAnalysisPropertyProvider sonarProperties)
         {
-            this.serverProperties = serverProperties ?? throw new ArgumentNullException(nameof(serverProperties));
+            this.sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));
         }
 
         public RuleAction ActiveRuleAction
@@ -150,7 +150,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn.Model
 
         private string GetRequiredPropertyValue(string propertyKey)
         {
-            if (!this.serverProperties.TryGetValue(propertyKey, out var propertyValue))
+            if (!this.sonarProperties.TryGetValue(propertyKey, out var propertyValue))
             {
                 var message = $"Property does not exist: {propertyKey}. This property should be set by the plugin in SonarQube.";
 
