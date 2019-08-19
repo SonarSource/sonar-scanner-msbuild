@@ -32,6 +32,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public AnalyzerSettings SettingsToReturn { get; set; }
 
+        public IAnalysisPropertyProvider SuppliedSonarProperties { get; private set; }
+
         #endregion Test helpers
 
         #region IAnalyzerProvider methods
@@ -42,6 +44,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             teamBuildSettings.Should().NotBeNull();
             sonarProperties.Should().NotBeNull();
             language.Should().NotBeNullOrWhiteSpace();
+
+            SuppliedSonarProperties = sonarProperties;
 
             return SettingsToReturn;
         }

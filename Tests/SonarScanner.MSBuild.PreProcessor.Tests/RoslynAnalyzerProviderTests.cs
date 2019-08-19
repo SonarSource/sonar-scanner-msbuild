@@ -154,10 +154,65 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             };
             var settings = CreateSettings(rootFolder);
 
+            var sonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
+            {
+                // for ruleset
+                {"wintellect.analyzerId", "Wintellect.Analyzers" },
+                {"wintellect.ruleNamespace", "Wintellect.Analyzers" },
+
+                // to fetch assemblies
+                {"wintellect.pluginKey", "wintellect"},
+                {"wintellect.pluginVersion", "1.13.0"},
+                {"wintellect.staticResourceName", "SonarAnalyzer.zip"},
+
+                {"sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp"},
+                {"sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp"},
+                {"sonaranalyzer-cs.pluginKey", "csharp"},
+                {"sonaranalyzer-cs.staticResourceName", "SonarAnalyzer.zip"},
+                {"sonaranalyzer-cs.nuget.packageId", "SonarAnalyzer.CSharp"},
+                {"sonaranalyzer-cs.pluginVersion", "1.13.0"},
+                {"sonaranalyzer-cs.nuget.packageVersion", "1.13.0"},
+
+                // Extra properties - those started sonar.cs should be included, the others ignored
+                {"sonar.vb.testPropertyPattern", "foo"},
+                {"sonar.cs.testPropertyPattern", "foo"},
+                {"sonar.sources", "**/*.*"},
+                {"sonar.cs.foo", "bar"}
+            });
+            var expectedSonarLintXml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<AnalysisInput>
+  <Settings>
+    <Setting>
+      <Key>sonar.cs.testPropertyPattern</Key>
+      <Value>foo</Value>
+    </Setting>
+    <Setting>
+      <Key>sonar.cs.foo</Key>
+      <Value>bar</Value>
+    </Setting>
+  </Settings>
+  <Rules>
+    <Rule>
+      <Key>S1116</Key>
+      <Parameters>
+        <Parameter>
+          <Key>key</Key>
+          <Value>value</Value>
+        </Parameter>
+      </Parameters>
+    </Rule>
+    <Rule>
+      <Key>S1125</Key>
+    </Rule>
+  </Rules>
+  <Files>
+  </Files>
+</AnalysisInput>
+";
             var testSubject = new RoslynAnalyzerProvider(mockInstaller, logger);
 
             // Act
-            var actualSettings = testSubject.SetupAnalyzer(settings, SonarProperties, activeRules, inactiveRules, language);
+            var actualSettings = testSubject.SetupAnalyzer(settings, sonarProperties, activeRules, inactiveRules, language);
 
             // Assert
             CheckSettingsInvariants(actualSettings);
@@ -167,7 +222,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             CheckRuleset(actualSettings.RuleSetFilePath, rootFolder, language);
             CheckTestRuleset(actualSettings.TestProjectRuleSetFilePath, rootFolder, language);
 
-            CheckExpectedAdditionalFiles(actualSettings);
+            // Currently, only SonarLint.xml is written
+            var filePaths = actualSettings.AdditionalFilePaths;
+            filePaths.Should().ContainSingle();
+            CheckExpectedAdditionalFileExists("SonarLint.xml", expectedSonarLintXml, actualSettings);
+
             CheckExpectedAssemblies(actualSettings, "c:\\assembly1.dll", "d:\\foo\\assembly2.dll");
             var plugins = new List<string>
             {
@@ -214,30 +273,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             return rules;
         }
-
-        private static readonly IAnalysisPropertyProvider SonarProperties = new ListPropertiesProvider(new Dictionary<string, string>
-        {
-            // for ruleset
-            {"wintellect.analyzerId", "Wintellect.Analyzers" },
-            {"wintellect.ruleNamespace", "Wintellect.Analyzers" },
-
-            // to fetch assemblies
-            {"wintellect.pluginKey", "wintellect"},
-            {"wintellect.pluginVersion", "1.13.0"},
-            {"wintellect.staticResourceName", "SonarAnalyzer.zip"},
-
-            {"sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp"},
-            {"sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp"},
-            {"sonaranalyzer-cs.pluginKey", "csharp"},
-            {"sonaranalyzer-cs.staticResourceName", "SonarAnalyzer.zip"},
-            {"sonaranalyzer-cs.nuget.packageId", "SonarAnalyzer.CSharp"},
-            {"sonaranalyzer-cs.pluginVersion", "1.13.0"},
-            {"sonaranalyzer-cs.nuget.packageVersion", "1.13.0"},
-
-            // Unrelated properties that should be ignored
-            {"sonar.cs.testPropertyPattern", "foo"},
-            {"sonar.sources", "**/*.*"}
-        });
 
         private string CreateTestFolders()
         {
@@ -355,36 +390,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 </RuleSet>";
 
             File.ReadAllText(ruleSetPath).Should().Be(expectedContent, "Ruleset file does not have the expected content: {0}", ruleSetPath);
-        }
-
-        private void CheckExpectedAdditionalFiles(AnalyzerSettings actualSettings)
-        {
-            // Currently, only SonarLint.xml is written
-            var filePaths = actualSettings.AdditionalFilePaths;
-            filePaths.Should().ContainSingle();
-
-            CheckExpectedAdditionalFileExists("SonarLint.xml", @"<?xml version=""1.0"" encoding=""UTF-8""?>
-<AnalysisInput>
-  <Settings>
-  </Settings>
-  <Rules>
-    <Rule>
-      <Key>S1116</Key>
-      <Parameters>
-        <Parameter>
-          <Key>key</Key>
-          <Value>value</Value>
-        </Parameter>
-      </Parameters>
-    </Rule>
-    <Rule>
-      <Key>S1125</Key>
-    </Rule>
-  </Rules>
-  <Files>
-  </Files>
-</AnalysisInput>
-", actualSettings);
         }
 
         private void CheckExpectedAdditionalFileExists(string expectedFileName, string expectedContent, AnalyzerSettings actualSettings)
