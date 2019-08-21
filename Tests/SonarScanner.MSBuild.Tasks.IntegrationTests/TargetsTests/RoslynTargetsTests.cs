@@ -678,12 +678,17 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
             var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
             var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
-            
+
+            // We need to set the CodeAnalyisRuleSet property if we want ResolveCodeAnalysisRuleSet
+            // to be executed. See test bug https://github.com/SonarSource/sonar-scanner-msbuild/issues/776
+            var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(rootInputFolder, "dummyQp");
+
             var projectSnippet = $@"
 <PropertyGroup>
   <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
   <SonarQubeOutputPath>{rootInputFolder}</SonarQubeOutputPath>
   <SonarQubeConfigPath>{rootOutputFolder}</SonarQubeConfigPath>
+  <CodeAnalysisRuleSet>{dummyQpRulesetPath}</CodeAnalysisRuleSet>
 </PropertyGroup>
 
 <ItemGroup>
@@ -702,9 +707,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             result.AssertTargetSucceeded(TargetConstants.DefaultBuildTarget);
             result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysisTarget);
 
-            // Note: this test will fail if you are running in VS2017 but have VS2019 installed on the machine.
-            // The test fails with the message "...because Specified target was not executed: ResolveCodeAnalysisRuleSet."
-            // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/732.
             result.AssertExpectedTargetOrdering(
                 TargetConstants.ResolveCodeAnalysisRuleSet,
                 TargetConstants.CategoriseProjectTarget,
