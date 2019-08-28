@@ -47,14 +47,14 @@
     </PropertyGroup>
 
     <!-- Diagnostic messages for troubleshooting -->
-    <Message Importance="low" Text="SonarQube.Integration.ImportBefore.targets was loaded" />
-    <Message Importance="low" Text="SonarQube analysis targets file found: $(AnalysisTargetsFileFound)" />
-    <Message Importance="low" Text="SonarQube analysis targets imported: $(SonarQubeTargetsImported)" />
+    <Message Importance="normal" Text="Sonar: ($(MSBuildProjectName)) SonarQube.Integration.ImportBefore.targets was loaded" />
+    <Message Importance="low" Text="Sonar: ($(MSBuildProjectFile)) SonarQube analysis targets file found: $(AnalysisTargetsFileFound)" />
+    <Message Importance="low" Text="Sonar: ($(MSBuildProjectFile)) SonarQube analysis targets imported: $(SonarQubeTargetsImported)" />
 
     <!-- Conditionally raise an error that will fail the build -->
     <Message Condition=" $(ReportAnalysisTargetsError) == 'true'"
       Importance="high"
-      Text="Calculated location for the analysis targets file: $(SonarQubeTargetFilePath)" />
+      Text="Sonar: ($(MSBuildProjectFile)) Calculated location for the analysis targets file: $(SonarQubeTargetFilePath)" />
 
     <!-- We include name of the project being built in the error message as
       it helps provide some context in TeamBuild scenarios when the error message
