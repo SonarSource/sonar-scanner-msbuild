@@ -246,7 +246,7 @@ public class TestUtils {
     Path msBuildPath = Paths.get(msBuildPathStr).toAbsolutePath();
     if (!Files.exists(msBuildPath)) {
       throw new IllegalStateException("Unable to find MSBuild at " + msBuildPath.toString()
-        + ". Please configure property 'msbuild.path' or 'MSBUILD_PATH'.");
+        + ". Please configure property 'msbuild.path' or 'MSBUILD_PATH' environment variable to the full path to MSBuild.exe.");
     }
     return msBuildPath;
   }
