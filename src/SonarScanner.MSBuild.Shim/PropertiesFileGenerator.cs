@@ -276,8 +276,7 @@ namespace SonarScanner.MSBuild.Shim
             };
 
             // Find projects with different paths within the same group
-
-            var projectPathsInGroup = new List<string>();
+            List<string> projectPathsInGroup = null;
 
             if (runtimeInformationWrapper.IsOS(OSPlatform.Windows))
             {
