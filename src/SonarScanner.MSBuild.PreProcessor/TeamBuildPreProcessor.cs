@@ -37,10 +37,10 @@ namespace SonarScanner.MSBuild.PreProcessor
         public const string VBNetLanguage = "vbnet";
         public const string VBNetPluginKey = "vbnet";
 
-        private readonly static PluginDefinition csharp = new PluginDefinition(CSharpLanguage, CSharpPluginKey);
-        private readonly static PluginDefinition vbnet = new PluginDefinition(VBNetLanguage, VBNetPluginKey);
+        private static readonly PluginDefinition csharp = new PluginDefinition(CSharpLanguage, CSharpPluginKey);
+        private static readonly PluginDefinition vbnet = new PluginDefinition(VBNetLanguage, VBNetPluginKey);
 
-        private readonly static List<PluginDefinition> plugins = new List<PluginDefinition>
+        private static readonly List<PluginDefinition> plugins = new List<PluginDefinition>
         {
             csharp,
             vbnet
@@ -199,7 +199,12 @@ namespace SonarScanner.MSBuild.PreProcessor
                     Debug.Assert(analyzerProvider != null, "Factory should not return null");
 
                     // Will be null if the processing of server settings and active rules resulted in an empty ruleset
-                    var analyzer = analyzerProvider.SetupAnalyzer(settings, serverSettings, activeRules, inactiveRules, plugin.Language);
+
+                    // Use the aggregate of local and server properties when generating the analyzer configuration
+                    // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
+                    var serverProperties = new ListPropertiesProvider(serverSettings);
+                    var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
+                    var analyzer = analyzerProvider.SetupAnalyzer(settings, allProperties, activeRules, inactiveRules, plugin.Language);
 
                     if (analyzer != null)
                     {

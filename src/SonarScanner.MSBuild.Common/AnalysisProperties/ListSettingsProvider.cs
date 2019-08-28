@@ -47,6 +47,20 @@ namespace SonarScanner.MSBuild.Common
             this.properties = new List<Property>(properties);
         }
 
+        public ListPropertiesProvider(IDictionary<string, string> keyValuePairs)
+            : this()
+        {
+            if (keyValuePairs == null)
+            {
+                throw new ArgumentNullException(nameof(keyValuePairs));
+            }
+
+            foreach(var kvp in keyValuePairs)
+            {
+                AddProperty(kvp.Key, kvp.Value);
+            }
+        }
+
         public Property AddProperty(string key, string value)
         {
             if (string.IsNullOrWhiteSpace(key))

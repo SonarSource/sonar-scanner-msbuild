@@ -32,16 +32,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         public AnalyzerSettings SettingsToReturn { get; set; }
 
+        public IAnalysisPropertyProvider SuppliedSonarProperties { get; private set; }
+
         #endregion Test helpers
 
         #region IAnalyzerProvider methods
 
-        AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(TeamBuildSettings settings, IDictionary<string, string> serverSettings,
+        AnalyzerSettings IAnalyzerProvider.SetupAnalyzer(TeamBuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties,
             IEnumerable<SonarRule> activeRules, IEnumerable<SonarRule> inactiveRules, string language)
         {
-            settings.Should().NotBeNull();
-            serverSettings.Should().NotBeNull();
+            teamBuildSettings.Should().NotBeNull();
+            sonarProperties.Should().NotBeNull();
             language.Should().NotBeNullOrWhiteSpace();
+
+            SuppliedSonarProperties = sonarProperties;
 
             return SettingsToReturn;
         }

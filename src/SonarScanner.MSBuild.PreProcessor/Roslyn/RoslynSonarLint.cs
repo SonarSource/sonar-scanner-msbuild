@@ -28,13 +28,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 {
     internal static class RoslynSonarLint
     {
-        public static string GenerateXml(IEnumerable<SonarRule> activeRules, IDictionary<string, string> serverSettings,
+        public static string GenerateXml(IEnumerable<SonarRule> activeRules, IAnalysisPropertyProvider analysisProperties,
             string language)
         {
             var repoKey = language.Equals(RoslynAnalyzerProvider.CSharpLanguage) ? "csharpsquid" : "vbnet";
 
             var repoActiveRules = activeRules.Where(ar => repoKey.Equals(ar.RepoKey));
-            var settings = serverSettings.Where(a => a.Key.StartsWith("sonar." + language + "."));
+            var settings = analysisProperties.GetAllProperties().Where(a => a.Id.StartsWith("sonar." + language + "."));
 
             var builder = new StringBuilder();
             builder.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -43,9 +43,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
             builder.AppendLine("  <Settings>");
             foreach (var pair in settings)
             {
-                if (!Utilities.IsSecuredServerProperty(pair.Key))
+                if (!Utilities.IsSecuredServerProperty(pair.Id))
                 {
-                    WriteSetting(builder, pair.Key, pair.Value);
+                    WriteSetting(builder, pair.Id, pair.Value);
                 }
             }
             builder.AppendLine("  </Settings>");

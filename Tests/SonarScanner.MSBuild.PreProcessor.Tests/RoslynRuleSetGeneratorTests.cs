@@ -41,8 +41,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         [TestMethod]
         public void RoslynRuleSet_GeneratorArgumentChecks()
         {
-            IDictionary<string, string> dict = new Dictionary<string, string>();
-            var generator = new RoslynRuleSetGenerator(dict);
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider());
             IEnumerable<SonarRule> activeRules = new List<SonarRule>();
             IEnumerable<SonarRule> inactiveRules = new List<SonarRule>();
             var language = "cs";
@@ -61,7 +60,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_Empty()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>());
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider());
             var activeRules = new List<SonarRule>
             {
                 new SonarRule("repo", "key"),
@@ -82,11 +81,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_ActiveRuleAction_None()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(new Dictionary<string, string>
             {
                 ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
                 ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
-            });
+            }));
 
             var activeRules = new List<SonarRule>
             {
@@ -107,11 +106,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_ActiveRuleAction_Info()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(new Dictionary<string, string>
             {
                 ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
                 ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
-            });
+            }));
 
             var activeRules = new List<SonarRule>
             {
@@ -132,11 +131,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_ActiveRuleAction_Warning()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(new Dictionary<string, string>
             {
                 ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
                 ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
-            });
+            }));
 
             var activeRules = new List<SonarRule>
             {
@@ -157,11 +156,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_ActiveRuleAction_Error()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(new Dictionary<string, string>
             {
                 ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
                 ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
-            });
+            }));
 
             var activeRules = new List<SonarRule>
             {
@@ -182,11 +181,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_ActiveRuleAction_Hidden()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(new Dictionary<string, string>
             {
                 ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
                 ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
-            });
+            }));
 
             var activeRules = new List<SonarRule>
             {
@@ -207,7 +206,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_ActiveRuleAction_Unsupported()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>());
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider());
 
             // Act & Assert
             var action = new Action(() => generator.ActiveRuleAction = (RuleAction)5);
@@ -219,11 +218,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_InactiveRules_Always_None()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(new Dictionary<string, string>
             {
                 ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
                 ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
-            });
+            }));
 
             var inactiveRules = new List<SonarRule>
             {
@@ -244,7 +243,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_Unsupported_Rules_Ignored()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>());
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider());
 
             var activeRules = new[]
             {
@@ -266,13 +265,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_RoslynSDK_Rules_Added()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(new Dictionary<string, string>
             {
                 ["custom1.analyzerId"] = "CustomAnalyzer1",
                 ["custom1.ruleNamespace"] = "CustomNamespace1",
                 ["custom2.analyzerId"] = "CustomAnalyzer2",
                 ["custom2.ruleNamespace"] = "CustomNamespace2",
-            });
+            }));
 
             var activeRules = new[]
             {
@@ -308,11 +307,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_Sonar_Rules_Added()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(new Dictionary<string, string>
             {
                 { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
                 { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
-            });
+            }));
 
             var activeRules = new[]
             {
@@ -350,7 +349,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_Common_Parameters()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>());
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider());
 
             // Act
             var ruleSet = generator.Generate("cs", Enumerable.Empty<SonarRule>(), Enumerable.Empty<SonarRule>());
@@ -365,10 +364,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_AnalyzerId_Proprety_Missing()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(new Dictionary<string, string>
             {
                 { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
-            });
+            }));
 
             var activeRules = new[]
             {
@@ -386,10 +385,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void RoslynRuleSet_RuleNamespace_Proprety_Missing()
         {
             // Arrange
-            var generator = new RoslynRuleSetGenerator(new Dictionary<string, string>
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(new Dictionary<string, string>
             {
                 { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
-            });
+            }));
 
             var activeRules = new[]
             {
@@ -402,5 +401,28 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 .Message.Should().StartWith(
                     "Property does not exist: sonaranalyzer-cs.ruleNamespace. This property should be set by the plugin in SonarQube.");
         }
+
+        [TestMethod]
+        public void RoslynRuleSet_PropertyName_IsCaseSensitive()
+        {
+            // Arrange
+            var generator = new RoslynRuleSetGenerator(new ListPropertiesProvider(new Dictionary<string, string>
+            {
+                { "sonaranalyzer-cs.ANALYZERId", "SonarAnalyzer.CSharp" },
+                { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
+            }));
+
+            var activeRules = new[]
+            {
+                new SonarRule("csharpsquid", "active1", true),
+            };
+
+            // Act & Assert
+            var action = new Action(() => generator.Generate("cs", activeRules, Enumerable.Empty<SonarRule>()));
+            action.Should().ThrowExactly<AnalysisException>().And
+                .Message.Should().StartWith(
+                    "Property does not exist: sonaranalyzer-cs.analyzerId. This property should be set by the plugin in SonarQube.");
+        }
+
     }
 }

@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -35,8 +36,6 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
     public class PreProcessorTests
     {
         public TestContext TestContext { get; set; }
-
-
 
         #region Tests
 
@@ -392,6 +391,85 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             AssertDirectoryContains(settings.SonarConfigDirectory, Path.GetFileName(settings.AnalysisConfigFilePath));
         }
 
+        [TestMethod]
+        // Regression test for https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
+        public void PreProc_EndToEnd_Success_LocalSettingsAreUsedInSonarLintXML()
+        {
+            // Checks that local settings are used when creating the SonarLint.xml file,
+            // overriding 
+
+            // Arrange
+            var workingDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var logger = new TestLogger();
+
+            // Configure the server
+            var mockServer = new MockSonarQubeServer();
+
+            var data = mockServer.Data;
+            data.Languages.Add("cs");
+            data.AddQualityProfile("qp1", "cs", null)
+                .AddProject("key")
+                .AddRule(new SonarRule("csharpsquid", "cs.rule3"));
+
+            // Server-side settings
+            data.ServerProperties.Add("server.key", "server value 1");
+            data.ServerProperties.Add("shared.key1", "server shared value 1");
+            data.ServerProperties.Add("shared.CASING", "server upper case value");
+
+            // Local settings that should override matching server settings
+            var args = new List<string>(CreateValidArgs("key", "name", "1.0"));
+            args.Add("/d:local.key=local value 1");
+            args.Add("/d:shared.key1=local shared value 1 - should override server value");
+            args.Add("/d:shared.casing=local lower case value");
+
+            var mockAnalyzerProvider = new MockRoslynAnalyzerProvider
+            {
+                SettingsToReturn = new AnalyzerSettings
+                {
+                    RuleSetFilePath = "c:\\xxx.ruleset"
+                }
+            };
+            var mockTargetsInstaller = new Mock<ITargetsInstaller>();
+            var mockFactory = new MockObjectFactory(mockServer, mockTargetsInstaller.Object, mockAnalyzerProvider);
+
+            TeamBuildSettings settings;
+            using (PreprocessTestUtils.CreateValidNonTeamBuildScope())
+            using (new WorkingDirectoryScope(workingDir))
+            {
+                settings = TeamBuildSettings.GetSettingsFromEnvironment(new TestLogger());
+                settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
+                settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+
+                var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
+
+                // Act
+                var success = preProcessor.Execute(args.ToArray());
+                success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+            }
+
+            // Assert
+
+            // Check the settings used when creating the SonarLint file - local and server settings should be merged
+            mockAnalyzerProvider.SuppliedSonarProperties.Should().NotBeNull();
+            mockAnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("server.key", "server value 1");
+            mockAnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("local.key", "local value 1");
+            mockAnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.key1", "local shared value 1 - should override server value");
+            // Keys are case-sensitive so differently cased values should be preserved
+            mockAnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.CASING", "server upper case value");
+            mockAnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.casing", "local lower case value");
+
+            // Check the settings used when creating the config file - settings should be separate
+            var actualConfig = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 1, logger);
+
+            AssertExpectedLocalSetting("local.key", "local value 1", actualConfig);
+            AssertExpectedLocalSetting("shared.key1", "local shared value 1 - should override server value", actualConfig);
+            AssertExpectedLocalSetting("shared.casing", "local lower case value", actualConfig);
+
+            AssertExpectedServerSetting("server.key", "server value 1", actualConfig);
+            AssertExpectedServerSetting("shared.key1", "server shared value 1", actualConfig);
+            AssertExpectedServerSetting("shared.CASING", "server upper case value", actualConfig);
+        }
+
         #endregion Tests
 
         #region Setup
@@ -426,7 +504,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             // The bootstrapper is responsible for creating the bin directory
         }
 
-        private void AssertAnalysisConfig(string filePath, int noAnalyzers, TestLogger logger)
+        private AnalysisConfig AssertAnalysisConfig(string filePath, int noAnalyzers, TestLogger logger)
         {
             logger.AssertErrorsLogged(0);
             logger.AssertWarningsLogged(0);
@@ -445,6 +523,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             AssertExpectedLocalSetting(SonarProperties.HostUrl, "http://host", actualConfig);
             AssertExpectedLocalSetting("cmd.line1", "cmdline.value.1", actualConfig);
             AssertExpectedServerSetting("server.key", "server value 1", actualConfig);
+
+            return actualConfig;
         }
 
         private void AssertConfigFileExists(string filePath)
