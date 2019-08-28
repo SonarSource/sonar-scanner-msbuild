@@ -24,6 +24,7 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -90,6 +91,70 @@ namespace SonarScanner.MSBuild.Shim.Tests
         }
 
         [TestMethod]
+        public void FileGen_Duplicate_SameGuid_DifferentCase_ShouldNotIgnoreCase()
+        {
+            // Casing can be ignored on windows OS
+
+            // Arrange
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+
+            var mockRuntimeInformation = new Mock<IRuntimeInformationWrapper>();
+            mockRuntimeInformation.Setup(m => m.IsOS(System.Runtime.InteropServices.OSPlatform.Windows)).Returns(false);
+
+            var guid = Guid.NewGuid();
+
+            CreateProjectInfoInSubDir(testDir, "withoutFiles", guid, ProjectType.Product, false, "c:\\abc\\withoutfile.proj", "UTF-8");
+            CreateProjectInfoInSubDir(testDir, "withoutFiles1", guid, ProjectType.Product, false, "C:\\abc\\withoutFile.proj", "UTF-8"); // not excluded
+
+            var logger = new TestLogger();
+            var config = CreateValidConfig(testDir);
+
+            // Act
+            var result = new PropertiesFileGenerator(config, logger, new RoslynV1SarifFixer(logger), mockRuntimeInformation.Object).GenerateFile();
+
+            // Assert
+            AssertExpectedStatus("withoutFiles", ProjectInfoValidity.DuplicateGuid, result);
+            AssertExpectedProjectCount(1, result);
+
+            logger.Warnings.Should().HaveCount(2);
+
+            logger.Warnings.Should().BeEquivalentTo(
+               new[]
+               {
+                    $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed by SonarQube. Project file: \"c:\\abc\\withoutfile.proj\"",
+                    $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed by SonarQube. Project file: \"C:\\abc\\withoutFile.proj\"",
+               });
+        }
+
+        [TestMethod]
+        public void FileGen_Duplicate_SameGuid_DifferentCase_ShouldIgnoreCase()
+        {
+            // Casing can be ignored on windows OS
+
+            // Arrange
+            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+
+            var mockRuntimeInformation = new Mock<IRuntimeInformationWrapper>();
+            mockRuntimeInformation.Setup(m => m.IsOS(System.Runtime.InteropServices.OSPlatform.Windows)).Returns(true);
+
+            var guid = Guid.NewGuid();
+
+            CreateProjectInfoInSubDir(testDir, "withoutFiles", guid, ProjectType.Product, false, "c:\\abc\\withoutfile.proj", "UTF-8");
+            CreateProjectInfoInSubDir(testDir, "withoutFiles1", guid, ProjectType.Product, false, "C:\\abc\\withoutFile.proj", "UTF-8"); // not excluded
+
+            var logger = new TestLogger();
+            var config = CreateValidConfig(testDir);
+
+            // Act
+            var result = new PropertiesFileGenerator(config, logger, new RoslynV1SarifFixer(logger), mockRuntimeInformation.Object).GenerateFile();
+
+            // Assert
+            AssertExpectedStatus("withoutFiles", ProjectInfoValidity.NoFilesToAnalyze, result);
+            AssertExpectedProjectCount(1, result);
+
+        }
+
+        [TestMethod]
         public void FileGen_ValidFiles_SourceEncoding_Provided()
         {
             // Arrange
@@ -132,7 +197,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             };
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+            var result = new PropertiesFileGenerator(config, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper()).GenerateFile();
 
             // Assert
             var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
@@ -166,10 +231,10 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var mockReturnPath = mockSarifFixer.ReturnVal;
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer).GenerateFile();
+            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer, new RuntimeInformationWrapper()).GenerateFile();
 
             // Assert
-             mockSarifFixer.CallCount.Should().Be(1);
+            mockSarifFixer.CallCount.Should().Be(1);
 
             // Already valid SARIF -> no change in file -> unchanged property
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
@@ -204,11 +269,11 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var escapedMockReturnPath = mockSarifFixer.ReturnVal.Replace(@"\", @"\\");
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer).GenerateFile();
+            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer, new RuntimeInformationWrapper()).GenerateFile();
 
             // Assert
-             mockSarifFixer.CallCount.Should().Be(1);
-             mockSarifFixer.LastLanguage.Should().Be(RoslynV1SarifFixer.CSharpLanguage);
+            mockSarifFixer.CallCount.Should().Be(1);
+            mockSarifFixer.LastLanguage.Should().Be(RoslynV1SarifFixer.CSharpLanguage);
 
             // Fixable SARIF -> new file saved -> changed property
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
@@ -243,11 +308,11 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var escapedMockReturnPath = mockSarifFixer.ReturnVal.Replace(@"\", @"\\");
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer).GenerateFile();
+            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer, new RuntimeInformationWrapper()).GenerateFile();
 
             // Assert
-             mockSarifFixer.CallCount.Should().Be(1);
-             mockSarifFixer.LastLanguage.Should().Be(RoslynV1SarifFixer.VBNetLanguage);
+            mockSarifFixer.CallCount.Should().Be(1);
+            mockSarifFixer.LastLanguage.Should().Be(RoslynV1SarifFixer.VBNetLanguage);
 
             // Fixable SARIF -> new file saved -> changed property
             var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
@@ -278,10 +343,10 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var mockSarifFixer = new MockRoslynV1SarifFixer(null);
 
             // Act
-            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer).GenerateFile();
+            var result = new PropertiesFileGenerator(config, logger, mockSarifFixer, new RuntimeInformationWrapper()).GenerateFile();
 
             // Assert
-             mockSarifFixer.CallCount.Should().Be(1);
+            mockSarifFixer.CallCount.Should().Be(1);
 
             // One valid project info file -> file created
             AssertPropertiesFilesCreated(result, logger);
@@ -743,8 +808,10 @@ namespace SonarScanner.MSBuild.Shim.Tests
                 },
             };
 
+            var logger = new TestLogger();
+
             var analysisRootDir = TestUtils.CreateTestSpecificFolder(TestContext, "project");
-            var propertiesFileGenerator = new PropertiesFileGenerator(CreateValidConfig(analysisRootDir), new TestLogger());
+            var propertiesFileGenerator = new PropertiesFileGenerator(CreateValidConfig(analysisRootDir), logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper());
             var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First()).AnalyzerOutPaths.ToList();
 
             results.Should().HaveCount(4);
@@ -753,6 +820,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             results[2].FullName.Should().Be(new FileInfo("4").FullName);
             results[3].FullName.Should().Be(new FileInfo("1").FullName);
         }
+
 
         [TestMethod]
         public void ToProjectData_ProjectsWithDuplicateGuid()

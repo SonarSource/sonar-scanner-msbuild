@@ -72,6 +72,7 @@
 
     <!-- Third-parties dlls -->
     <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild.TFS.Classic\bin\$(Configuration)\$(ScannerNetFxVersion)\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" />
+	  <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetFxVersion)\System.Runtime.InteropServices.RuntimeInformation.dll" /> 
     <ScannerFiles Include="$(SourcesRoot)\SonarScanner.MSBuild\bin\$(Configuration)\$(ScannerNetFxVersion)\System.ValueTuple.dll" />
 
     <!-- Entry points -->

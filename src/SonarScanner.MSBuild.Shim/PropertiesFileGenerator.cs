@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
@@ -42,17 +43,19 @@ namespace SonarScanner.MSBuild.Shim
         private readonly AnalysisConfig analysisConfig;
         private readonly ILogger logger;
         private readonly IRoslynV1SarifFixer fixer;
+        private readonly IRuntimeInformationWrapper runtimeInformationWrapper;
 
         public /*for testing*/ PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger,
-            IRoslynV1SarifFixer fixer)
+            IRoslynV1SarifFixer fixer, IRuntimeInformationWrapper runtimeInformationWrapper)
         {
             this.analysisConfig = analysisConfig ?? throw new ArgumentNullException(nameof(analysisConfig));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fixer = fixer ?? throw new ArgumentNullException(nameof(fixer));
+            this.runtimeInformationWrapper = runtimeInformationWrapper ?? throw new ArgumentNullException(nameof(runtimeInformationWrapper));
         }
 
         public PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger)
-            : this(analysisConfig, logger, new RoslynV1SarifFixer(logger))
+            : this(analysisConfig, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper())
         {
         }
 
@@ -273,10 +276,23 @@ namespace SonarScanner.MSBuild.Shim
             };
 
             // Find projects with different paths within the same group
-            var projectPathsInGroup = projectsGroupedByGuid
+            List<string> projectPathsInGroup = null;
+
+            if (runtimeInformationWrapper.IsOS(OSPlatform.Windows))
+            {
+                projectPathsInGroup = projectsGroupedByGuid
+                .Select(x => x.FullPath?.ToLowerInvariant())
+                .Distinct()
+                .ToList();
+            }
+            else
+            {
+                projectPathsInGroup = projectsGroupedByGuid
                 .Select(x => x.FullPath)
                 .Distinct()
                 .ToList();
+            }
+
             if (projectPathsInGroup.Count > 1)
             {
                 projectData.Status = ProjectInfoValidity.DuplicateGuid;
