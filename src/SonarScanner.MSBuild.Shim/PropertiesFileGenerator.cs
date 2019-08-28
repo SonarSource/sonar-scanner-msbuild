@@ -279,7 +279,7 @@ namespace SonarScanner.MSBuild.Shim
 
             var projectPathsInGroup = new List<string>();
 
-            if (!runtimeInformationWrapper.IsOS(OSPlatform.Linux) && !runtimeInformationWrapper.IsOS(OSPlatform.OSX))
+            if (runtimeInformationWrapper.IsOS(OSPlatform.Windows))
             {
                 projectPathsInGroup = projectsGroupedByGuid
                 .Select(x => x.FullPath?.ToLowerInvariant())

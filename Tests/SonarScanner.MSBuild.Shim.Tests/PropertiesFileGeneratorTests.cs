@@ -99,8 +99,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
             var mockRuntimeInformation = new Mock<IRuntimeInformationWrapper>();
-            mockRuntimeInformation.Setup(m => m.IsOS(System.Runtime.InteropServices.OSPlatform.OSX)).Returns(true);
-            mockRuntimeInformation.Setup(m => m.IsOS(System.Runtime.InteropServices.OSPlatform.Linux)).Returns(false);
+            mockRuntimeInformation.Setup(m => m.IsOS(System.Runtime.InteropServices.OSPlatform.Windows)).Returns(false);
 
             var guid = Guid.NewGuid();
 
@@ -136,8 +135,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
 
             var mockRuntimeInformation = new Mock<IRuntimeInformationWrapper>();
-            mockRuntimeInformation.Setup(m => m.IsOS(System.Runtime.InteropServices.OSPlatform.OSX)).Returns(false);
-            mockRuntimeInformation.Setup(m => m.IsOS(System.Runtime.InteropServices.OSPlatform.Linux)).Returns(false);
+            mockRuntimeInformation.Setup(m => m.IsOS(System.Runtime.InteropServices.OSPlatform.Windows)).Returns(true);
 
             var guid = Guid.NewGuid();
 
