@@ -45,7 +45,7 @@ Consider setting file system permissions to restrict access to this file.:
 
 ### Installation of the SonarScanner for MSBuild .NET Core Global Tool
 ```
-dotnet tool install --global dotnet-sonarscanner --version 4.3.1
+dotnet tool install --global dotnet-sonarscanner --version 4.6.2
 ```
 The _--version_ argument is optional. If it is omitted the latest version will be installed.
 
@@ -59,7 +59,7 @@ There are two versions of the SonarScanner for MSBuild.
 
 The first version is based on the “classic” .NET Framework. To use it, execute the following commands from the root folder of your project:
 ```
-SonarScanner.MSBuild.exe begin /k:"project-key" <!-- sonarcloud -->/d:sonar.organization="<organization>" /d:sonar.login="<token>" <!-- /sonarcloud -->
+SonarScanner.MSBuild.exe begin /k:"project-key" <!-- sonarcloud -->/o:"<organization>" /d:sonar.login="<token>" <!-- /sonarcloud -->
 MSBuild.exe <path to solution.sln> /t:Rebuild
 SonarScanner.MSBuild.exe end <!-- sonarcloud -->/d:sonar.login="<token>" <!-- /sonarcloud -->
 ```
@@ -68,20 +68,20 @@ Note: On Mac OS or Linux, you can also use `mono <path to SonarScanner.MSBuild.e
 
 The second version is based on .NET Core which has a very similar usage:
 ```
-dotnet <path to SonarScanner.MSBuild.dll> begin /k:"project-key"
+dotnet <path to SonarScanner.MSBuild.dll> begin /k:"project-key" <!-- sonarcloud -->/o:"<organization>" /d:sonar.login="<token>" <!-- /sonarcloud -->
 dotnet build <path to solution.sln>
-dotnet <path to SonarScanner.MSBuild.dll> end
+dotnet <path to SonarScanner.MSBuild.dll> end <!-- sonarcloud -->/d:sonar.login="<token>" <!-- /sonarcloud -->
 ```
 The .NET Core version can also be used as a .NET Core Global Tool.
 After installing the Scanner as a global tool as described above it can be invoked as follows:
 ```
 dotnet tool install --global dotnet-sonarscanner
-dotnet sonarscanner begin /k:"project-key"
+dotnet sonarscanner begin /k:"project-key" <!-- sonarcloud -->/o:"<organization>" /d:sonar.login="<token>" <!-- /sonarcloud -->
 dotnet build <path to solution.sln>
-dotnet sonarscanner end
+dotnet sonarscanner end <!-- sonarcloud -->/d:sonar.login="<token>" <!-- /sonarcloud -->
 ```
 
-Same as above, if you are targetting a SonarCloud project, will have to add both the organization and a login for authentication.
+Same as above, if you are targeting a SonarCloud project, you will have to add both the organization and a login for authentication.
 
 Notes:
 
@@ -99,7 +99,7 @@ Parameter|Description
 `/k:<project-key>`|[required] Specifies the key of the analyzed project in SonarQube
 `/n:<project name>`|[optional] Specifies the name of the analyzed project in SonarQube. Adding this argument will overwrite the project name in SonarQube if it already exists.
 `/v:<version>`|[recommended] Specifies the version of your project.
-<!-- sonarcloud --> `/d:sonar.organization=<organization>`|[required] Specifies the name of the target organization in SonarCloud <!-- /sonarcloud -->
+<!-- sonarcloud --> `/o:<organization>`|[required] Specifies the name of the target organization in SonarCloud. <!-- /sonarcloud -->
 `/d:sonar.login=<username> or <token>`| [optional] Specifies the username or access token to authenticate with to SonarQube. If this argument is added to the begin step, it must also be added on the end step.
 `/d:sonar.password=<password>`|[optional] Specifies the password for the SonarQube username in the `sonar.login` argument. This argument is not needed if you use authentication token. If this argument is added to the begin step, it must also be added on the end step.
 `/d:sonar.verbose=true`|[optional] Sets the logging verbosity to detailed. Add this argument before sending logs for troubleshooting.
@@ -188,7 +188,7 @@ Concurrent analyses (i.e. parallel analysis of two solutions on the same build m
 1. Go in the `Targets` folder and copy the folder `SonarQube.Integration.ImportBefore.targets`
 1. Paste it under your build tool global `ImportBefore` folder (if the folder doesn't exist, create it).
    * For MSBuild, the path is `<MSBUILD_INSTALL_DIR>\<Version>\Microsoft.Common.targets\ImportBefore` where <MSBUILD_INSTALL_DIR> is:
-      *For v14, default path is: `C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.Targets\ImportBefore`
+      * For v14, default path is: `C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.Targets\ImportBefore`
       * For v15, default path is: `C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Microsoft.Common.targets\ImportBefore` (for VS Community Edition)
       * For v16, default path is: `C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Microsoft.Common.targets` (for VS Community Edition)
    * For dotnet, the path is `<DOTNET_SDK_INSTALL_DIR>\15.0\Microsoft.Common.targets\ImportBefore` where `<DOTNET_SDK_INSTALL_DIR>` can be found using the `dotnet --info` and looking for the Base Path property.
@@ -204,5 +204,5 @@ To instruct the Java VM to use specific proxy settings or when there is no syste
 ```
 SONAR_SCANNER_OPTS = "-Dhttp.proxyHost=yourProxyHost -Dhttp.proxyPort=yourProxyPort"
 ```
-Where _yourProxyHost_ and _yourProxyPort_ are the hostname and the port of your proxy server. There are additional proxy settings for https, authentication and exclusions that could be passed to the Java VM, for full reference visit the following article: https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
+Where _yourProxyHost_ and _yourProxyPort_ are the hostname and the port of your proxy server. There are additional proxy settings for https, authentication and exclusions that could be passed to the Java VM. For more information see the following article: https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
 
