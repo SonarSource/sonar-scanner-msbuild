@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild;
 
+import com.sonar.it.scanner.SonarScannerTestSuite;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
@@ -46,6 +47,7 @@ import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.security.SecurityHandler;
+import org.eclipse.jetty.security.UserStore;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -85,32 +87,10 @@ public class ScannerMSBuildTest {
   private static ConcurrentLinkedDeque<String> seenByProxy = new ConcurrentLinkedDeque<>();
 
   @ClassRule
-  public static Orchestrator ORCHESTRATOR = initializeOrchestrator();
-
-  private static Orchestrator initializeOrchestrator() {
-    TestUtils.LOG.info("TEST SETUP: Initializing orchestrator...");
-
-    String sonarRuntimeVersion = System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE");
-    TestUtils.LOG.info("TEST SETUP: sonarRuntimeVersion = " + sonarRuntimeVersion);
-
-    Location csharpLocation = TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-csharp-plugin", "LATEST_RELEASE");
-    Location vbLocation = TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-vbnet-plugin", "LATEST_RELEASE");
-
-    Orchestrator orchestrator = Orchestrator.builderEnv()
-      .setSonarVersion(TestUtils.replaceLtsVersion(sonarRuntimeVersion))
-      .setEdition(Edition.DEVELOPER)
-      .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
-      .addPlugin(csharpLocation)
-      .addPlugin(vbLocation)
-      .activateLicense()
-      .build();
-
-    TestUtils.LOG.info("TEST SETUP: orchestrator initialized.");
-    return orchestrator;
-  }
+  public static TemporaryFolder temp = TestUtils.createTempFolder();
 
   @ClassRule
-  public static TemporaryFolder temp = TestUtils.createTempFolder();
+  public static Orchestrator ORCHESTRATOR = SonarScannerTestSuite.ORCHESTRATOR;
 
   @Before
   public void setUp() {
@@ -136,6 +116,7 @@ public class ScannerMSBuildTest {
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
+      .setEnvironmentVariable("github.token", "d0fc57eef3212b637aa77101fa05ab2054ea4e22")
       .setProjectVersion("1.0"));
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
@@ -299,6 +280,47 @@ public class ScannerMSBuildTest {
     // Ny Properties/AssemblyInfo.cs 13
     // Module1.vb 10
     assertThat(TestUtils.getMeasureAsInteger(PROJECT_KEY, "ncloc", ORCHESTRATOR)).isEqualTo(68);
+  }
+
+  public void checkExternalIssuesVB() throws Exception {
+    ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssuesVB/TestQualityProfileExternalIssuesVB.xml"));
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
+    ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, "vbnet", "ProfileForTestExternalIssuesVB");
+
+    Path projectDir = TestUtils.projectDir(temp, "ExternalIssuesVB");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectName("sample")
+      .setProjectVersion("1.0"));
+
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
+
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("end"));
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+
+    // The same set of Sonar issues should be reported, regardless of whether
+    // external issues are imported or not
+    assertThat(ruleKeys).containsAll(Arrays.asList(
+      "vbnet:S112",
+      "vbnet:S3385"));
+
+    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7,4))
+    {
+      // if external issues are imported, then there should also be some CodeCracker errors.
+      assertThat(ruleKeys).containsAll(Arrays.asList(
+        "external_roslyn:CC0021",
+        "external_roslyn:CC0062"));
+
+      assertThat(issues).hasSize(4);
+
+    } else {
+      // Not expecting any external issues
+      assertThat(issues).hasSize(2);
+    }
   }
 
   @Test
@@ -465,6 +487,35 @@ public class ScannerMSBuildTest {
       // Not expecting any external issues
       assertThat(issues).hasSize(2);
     }
+  }
+
+  @Test
+  public void testXamlCompilation() throws IOException {
+    ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "Razor");
+
+    if (TestUtils.getMsBuildPath(ORCHESTRATOR).toString().contains("14.0")) {
+      return; // This test is not supported on Visual Studio 2015
+    }
+
+    Path projectDir = TestUtils.projectDir(temp, "RazorWebApplication");
+    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("begin")
+      .setProjectKey(PROJECT_KEY)
+      .setProjectVersion("1.0"));
+
+    TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
+    TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
+
+    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
+      .addArgument("end"));
+    assertTrue(result.isSuccess());
+
+    List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
+    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
+
+    assertThat(ruleKeys).containsAll(Arrays.asList(
+      "csharpsquid:S1118",
+      "csharpsquid:S1186"));
   }
 
   @Test
@@ -692,7 +743,12 @@ public class ScannerMSBuildTest {
   private static SecurityHandler basicAuth(String username, String password, String realm) {
 
     HashLoginService l = new HashLoginService();
-    l.putUser(username, Credential.getCredential(password), new String[]{"user"});
+
+    UserStore userStore = new UserStore();
+    userStore.addUser(username, Credential.getCredential(password), new String[] { "user"});
+
+    l.setUserStore(userStore);
+
     l.setName(realm);
 
     Constraint constraint = new Constraint();
