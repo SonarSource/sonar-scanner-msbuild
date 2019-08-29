@@ -116,7 +116,6 @@ public class ScannerMSBuildTest {
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
-      .setEnvironmentVariable("github.token", "d0fc57eef3212b637aa77101fa05ab2054ea4e22")
       .setProjectVersion("1.0"));
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
