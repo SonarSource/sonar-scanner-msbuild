@@ -19,9 +19,9 @@
  */
 package com.sonar.it.scanner.msbuild;
 
+import com.sonar.it.scanner.SonarScannerTestSuite;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
@@ -31,19 +31,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assume;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonarqube.ws.Issues.Issue;
-import org.sonarqube.ws.WsMeasures;
-import org.sonarqube.ws.client.HttpConnector;
-import org.sonarqube.ws.client.WsClient;
-import org.sonarqube.ws.client.WsClientFactories;
-import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -51,22 +43,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Only cpp, without C# plugin
  *
  */
-@Ignore("Do not pass on cix")
 public class CppTest {
 
-  @BeforeClass
-  public static void checkSkip() {
-    Assume.assumeTrue("Disable for old scanner (needs C# plugin installed to get the payload)",
-      TestUtils.getScannerVersion(ORCHESTRATOR) == null || !TestUtils.getScannerVersion(ORCHESTRATOR).equals("2.1.0.0"));
-  }
-
   @ClassRule
-  public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    .setOrchestratorProperty("cppVersion", "LATEST_RELEASE")
-    .setEdition(Edition.DEVELOPER)
-    //.addPlugin("cpp")       // FIXME: add cpp plugin
-    .activateLicense()
-    .build();
+  public static Orchestrator ORCHESTRATOR = SonarScannerTestSuite.ORCHESTRATOR;
 
   @ClassRule
   public static TemporaryFolder temp = TestUtils.createTempFolder();
