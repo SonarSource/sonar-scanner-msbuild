@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonarqube.ws.Issues.Issue;
@@ -43,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Only cpp, without C# plugin
  *
  */
+@Ignore
 public class CppTest {
 
   @ClassRule
