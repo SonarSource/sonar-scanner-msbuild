@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild;
 
+import com.sonar.it.scanner.SonarScannerTestSuite;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
@@ -43,12 +44,7 @@ public class SQLServerTest {
   private static final String PROJECT_KEY = "my.project";
 
   @ClassRule
-  public static Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    .setSonarVersion(TestUtils.replaceLtsVersion(System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE")))
-    .setEdition(Edition.DEVELOPER)
-    .addPlugin(MavenLocation.of("org.sonarsource.dotnet","sonar-csharp-plugin", "LATEST_RELEASE"))
-    .activateLicense()
-    .build();
+  public static Orchestrator ORCHESTRATOR = SonarScannerTestSuite.ORCHESTRATOR;
 
   @ClassRule
   public static TemporaryFolder temp = TestUtils.createTempFolder();

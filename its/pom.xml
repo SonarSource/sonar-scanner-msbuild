@@ -18,7 +18,7 @@
   <inceptionYear>2016</inceptionYear>
 
   <properties>
-    <jetty.version>9.3.11.v20160721</jetty.version>
+    <jetty.version>9.4.20.v20190813</jetty.version>
   </properties>
 
   <dependencies>
@@ -69,6 +69,21 @@
       <version>${jetty.version}</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <trimStackTrace>false</trimStackTrace>
+          <includes>
+            <include>**/SonarScannerTestSuite.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
   <profiles>
     <profile>
