@@ -281,6 +281,7 @@ public class ScannerMSBuildTest {
     assertThat(TestUtils.getMeasureAsInteger(PROJECT_KEY, "ncloc", ORCHESTRATOR)).isEqualTo(68);
   }
 
+  @Test
   public void checkExternalIssuesVB() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ExternalIssuesVB/TestQualityProfileExternalIssuesVB.xml"));
     ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, "sample");
@@ -307,8 +308,7 @@ public class ScannerMSBuildTest {
       "vbnet:S112",
       "vbnet:S3385"));
 
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7,4))
-    {
+    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7,4)) {
       // if external issues are imported, then there should also be some CodeCracker errors.
       assertThat(ruleKeys).containsAll(Arrays.asList(
         "external_roslyn:CC0021",

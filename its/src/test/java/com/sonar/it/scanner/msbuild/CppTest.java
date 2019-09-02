@@ -44,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Only cpp, without C# plugin
  *
  */
-@Ignore
+@Ignore // See task https://github.com/SonarSource/sonar-scanner-msbuild/issues/789
 public class CppTest {
 
   @ClassRule
