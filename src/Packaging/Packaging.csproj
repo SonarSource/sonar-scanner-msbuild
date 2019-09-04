@@ -20,7 +20,7 @@
   <PropertyGroup>
     <!-- Check the latest released version at https://search.maven.org/search?q=sonar-scanner-cli -->
     <!-- This version needs to be in sync with version in src/SonarScanner.MSBuild.Shim/SonarScanner.Wrapper.cs -->
-    <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">3.3.0.1492</ScannerCliVersion>
+    <ScannerCliVersion Condition=" $(ScannerCliVersion) == '' ">4.1.0.1821</ScannerCliVersion>
     <ScannerCliArtifact>sonar-scanner-cli-$(ScannerCliVersion).zip</ScannerCliArtifact>
     <SourcesRoot>$(MSBuildThisFileDirectory)..</SourcesRoot>
     <BuildAgentPayloadDir>$(SourcesRoot)\..\DeploymentArtifacts\BuildAgentPayload\</BuildAgentPayloadDir>
