@@ -1,0 +1,71 @@
+# SonarScanner for MSBuild
+# Build, QA 
+# Add steps that publish symbols, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/apps/aspnet/build-aspnet-4
+
+trigger:
+- azure-pipelines
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  group: sonarsource-build-variables
+  solution: 'SonarScanner.MSBuild.sln'
+  sonarCloudConnection: 'SonarCloud'
+  sonarCloudOrganization: 'SonarSource'
+  sonarCloudMsBuildProjectKey: 'sonarscanner-msbuild'
+  sonarCloudMsBuildProjectName: 'SonarScanner for MSBuild'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+stages:
+- stage: Build
+  displayName: Build solution
+  jobs:
+    - job: build
+      displayName: 'Build and analyze on SonarCloud'
+      steps:
+      - checkout: self
+        fetchDepth: 1
+      - task: NuGetToolInstaller@1
+        displayName: 'Use NuGet 4.9.3'
+        inputs:
+          versionSpec: '4.9.3'
+      - task: NuGetCommand@2
+        displayName: 'NuGet restore'
+        inputs:
+          command: 'restore'
+          restoreSolution: '$(solution)'
+          feedsToUse: 'select'
+      - task: SonarCloudPrepare@1
+        condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master')))
+        inputs: 
+          SonarCloud: '$(sonarCloudConnection)'
+          organization: '$(sonarCloudOrganization)'
+          projectKey: '$(sonarCloudMsBuildProjectKey)'
+          projectName: '$(sonarCloudMsBuildProjectName)'
+          projectVersion: '$(SONAR_PROJECT_VERSION)'
+          scannerMode: MSBuild
+      - task: VSBuild@1
+        inputs:
+          solution: '$(solution)'
+          vsVersion: '15.0'
+          platform: '$(BuildPlatform)'
+          configuration: '$(BuildConfiguration)'
+          maximumCpuCount: true
+      - task: VSTest@2
+        inputs:
+          testSelector: 'testAssemblies'
+          testAssemblyVer2: |
+            **\$(BuildConfiguration)\*test*.dll
+            !**\obj\**
+          searchFolder: '$(System.DefaultWorkingDirectory)'
+      - task: SonarCloudAnalyze@1
+        condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master')))
+      - task: SonarCloudPublish@1
+        condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master')))
+
+
+
+
