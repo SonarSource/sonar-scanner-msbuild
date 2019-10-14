@@ -1,7 +1,5 @@
 # SonarScanner for MSBuild
-# Build, QA 
-# Add steps that publish symbols, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/apps/aspnet/build-aspnet-4
+# Build, QA
 
 trigger:
 - azure-pipelines
@@ -65,6 +63,63 @@ stages:
         condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master')))
       - task: SonarCloudPublish@1
         condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master')))
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: 'DeploymentArtifacts/BuildAgentPayload/$(BuildConfiguration)'
+          artifact: 'scanner-zips'
+
+- stage: QA
+  displayName: Run Integration tests
+  dependsOn: Build
+  jobs:
+  - job: its
+    displayName: 'Run its'
+    strategy: 
+      matrix: 
+        vs2015_dev: 
+          imageName: "vs2015-win2012r2"
+          SQ_VERSION: "DEV"
+        vs2015_latest67: 
+          imageName: "vs2015-win2012r2"
+          SQ_VERSION: "LATEST_RELEASE[6.7]"
+        vs2015_latest79: 
+          imageName: "vs2015-win2012r2"
+          SQ_VERSION: "LATEST_RELEASE[7.9]"
+        vs2017_dev: 
+          imageName: "vs2017-win2016"
+          SQ_VERSION: "DEV"
+        vs2017_latest67: 
+          imageName: "vs2017-win2016"
+          SQ_VERSION: "LATEST_RELEASE[6.7]"
+        vs2017_latest79: 
+          imageName: "vs2017-win2016"
+          SQ_VERSION: "LATEST_RELEASE[7.9]"
+      maxParallel: 2
+    steps:
+      - checkout: self
+        fetchDepth: 1
+      - task: DownloadSecureFile@1
+        displayName: 'Download Maven private settings'
+        name: mavenSettings
+        inputs:
+          secureFile: 'maven-settings-private-with-p2-mirrors.xml'
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          itemPattern: '*.zip'
+          targetPath: '$(Pipeline.Workspace)'
+          artifactName: scanner-zips
+      - task: Maven@3
+        displayName: 'Run Maven verify'
+        inputs:
+          goals: 'verify -Dcommercial'
+          options: '--settings $(mavenSettings.secureFilePath) -B -e -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$SCANNER_VERSION -Dmsbuild.path=$MSBUILD_PATH'
+          publishJUnitResults: true
+          testResultsFiles: '**/surefire-reports/TEST-*.xml'
+          javaHomeOption: 'JDKVersion'
+          jdkVersionOption: '1.11'
+          mavenOptions: '-Xmx3072m'
+     
 
 
 
