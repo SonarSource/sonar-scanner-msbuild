@@ -5,7 +5,7 @@ trigger:
 - azure-pipelines
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'vs2017-win2016'
 
 variables:
   group: sonarsource-build-variables
@@ -65,7 +65,7 @@ stages:
       - task: VSBuild@1
         inputs:
           solution: '$(solution)'
-          vsVersion: 'latest'
+          vsVersion: '15.0'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
           maximumCpuCount: true
@@ -76,7 +76,7 @@ stages:
             **\$(BuildConfiguration)\*test*.dll
             !**\obj\**
           searchFolder: '$(System.DefaultWorkingDirectory)'
-          vsTestVersion: '16.0'
+          vsTestVersion: '15.0'
       - task: SonarCloudAnalyze@1
         condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master')))
       - task: SonarCloudPublish@1
