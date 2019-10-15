@@ -49,7 +49,6 @@ stages:
             [xml]$versionProps = Get-Content "$versionFilePath"
             $sonarProjectVersion = $versionProps.Project.PropertyGroup.MainVersion
             Write-Host "Sonar project version is '${sonarProjectVersion}'"
-            Write-Host "Build number is $(Build.BuildId)"
             
             # Set the variable to it can be used by other tasks
             Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION;]$sonarProjectVersion"
@@ -77,6 +76,18 @@ stages:
             !**\obj\**
           searchFolder: '$(System.DefaultWorkingDirectory)'
           vsTestVersion: '15.0'
+          codeCoverageEnabled: true
+      - task: PowerShell@2
+        displayName: 'HACK: delete .trx files created by tests'
+        inputs:
+          targetType: 'inline'
+          script: |
+            Write-Host "HACK: delete .trx files created by tests."
+            Write-Host "The Scanner for MSBuild can only handle one trx file, so it won't upload coverage if it finds multiple files."
+            
+            # Delete all trx files below the current directory
+            $current = Get-ChildItem -Filter "*.trx"
+            Get-ChildItem -Filter "*.trx" -Recurse -Exclude $current | Remove-Item
       - task: SonarCloudAnalyze@1
         condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master')))
       - task: SonarCloudPublish@1
