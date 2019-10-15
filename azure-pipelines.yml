@@ -36,6 +36,10 @@ stages:
           command: 'restore'
           restoreSolution: '$(solution)'
           feedsToUse: 'select'
+      - task: DownloadSecureFile@1
+        inputs:
+          secureFile: 'SonarSourceSecret.snk'
+        displayName: 'Download snk'
       - task: PowerShell@2
         displayName: 'Promote project version'
         inputs:
@@ -68,6 +72,7 @@ stages:
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
           maximumCpuCount: true
+          #msbuildArgs: '/p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:defineConstants="SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
       - task: VSTest@2
         inputs:
           testSelector: 'testAssemblies'
@@ -155,8 +160,80 @@ stages:
           jdkVersionOption: '1.11'
           mavenOptions: '-Xmx3072m'
 
-
-
-
-
-
+- stage: Deploy to Test
+  dependsOn: 
+  - Build
+  - QA
+  jobs:
+  - deployment: deploy_chocolatey_test
+    displayName: Deploy to Chocolatey (Test)
+    variables:
+     pipelineArtifactOutputPath: $(Pipeline.Workspace)/scanner-zips
+    pool:
+      vmImage: 'windows-latest'
+    # creates an environment if it doesn't exist
+    environment: 'ScannerForMsBuild-Test'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            enabled: false
+            inputs:
+              buildType: 'current'
+              itemPattern: '*.nupkg'
+              targetPath: '$(Pipeline.Workspace)'
+              artifactName: 'scanner-zips'
+          - task: PowerShell@2
+            displayName: "Install chocolatey"
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "Installing chocolatey...."
+                Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+                Write-Host "Choco is ready to use !"
+          - task: PowerShell@2
+            enabled: false
+            displayName: "Push .Net Fwk 46 package to chocolatey"
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "Publishing .net 46 package...."
+                choco push $(pipelineArtifactOutputPath)/sonarscanner-msbuild-net46.$(build.SONAR_PROJECT_VERSION).$(Build.BuildId).nupkg -k $CHOCO_TEST_API_KEY -source "https://chocolatey.org/" --yes --whatif
+          - task: PowerShell@2
+            enabled: false
+            displayName: "Push .Net Core 2 package to chocolatey"
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "Installing chocolatey...."
+                choco push $(pipelineArtifactOutputPath)/sonarscanner-msbuild-netcoreapp2.0.$(build.SONAR_PROJECT_VERSION).$(Build.BuildId).nupkg -k $CHOCO_TEST_API_KEY -source "https://chocolatey.org/" --yes --whatif
+  - deployment: deploy_github_test
+    displayName: Deploy to GitHub (Test)
+    variables:
+     pipelineArtifactOutputPath: $(Pipeline.Workspace)/scanner-zips
+    pool:
+      vmImage: 'windows-latest'
+    # creates an environment if it doesn't exist
+    environment: 'ScannerForMsBuild-Test'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              itemPattern: 
+              targetPath: '$(Pipeline.Workspace)'
+              artifactName: 'scanner-zips'
+          - task: GitHubRelease@1
+            enabled: false
+            inputs:
+              gitHubConnection: 'Github'
+              repositoryName: '$(Build.Repository.Name)'
+              action: 'create'
+              target: '$(Build.SourceVersion)'
+              tagSource: 'userSpecifiedTag'
+              title: '$(SONAR_PROJECT_VERSION)'
+              releaseNotesSource: 'inline'
+              addChangeLog: false
