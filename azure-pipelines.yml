@@ -11,7 +11,7 @@ variables:
   group: sonarsource-build-variables
   solution: 'SonarScanner.MSBuild.sln'
   sonarCloudConnection: 'SonarCloud'
-  sonarCloudOrganization: 'SonarSource'
+  sonarCloudOrganization: 'sonarsource'
   sonarCloudMsBuildProjectKey: 'sonarscanner-msbuild'
   sonarCloudMsBuildProjectName: 'SonarScanner for MSBuild'
   buildPlatform: 'Any CPU'
@@ -36,6 +36,23 @@ stages:
           command: 'restore'
           restoreSolution: '$(solution)'
           feedsToUse: 'select'
+      - task: PowerShell@2
+        displayName: 'Promote project version'
+        inputs:
+          targetType: 'inline'
+          script: |
+            # Calculate the file path
+            $versionFilePath = "$env:BUILD_SOURCESDIRECTORY\scripts\version\Version.props"
+            Write-Host "Reading the Sonar project version from '${versionFilePath}' ..."
+            
+            # Read the version from the file
+            [xml]$versionProps = Get-Content "$versionFilePath"
+            $sonarProjectVersion = $versionProps.Project.PropertyGroup.MainVersion
+            Write-Host "Sonar project version is '${sonarProjectVersion}'"
+            Write-Host "Build number is $(Build.BuildId)"
+            
+            # Set the variable to it can be used by other tasks
+            Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION;]$sonarProjectVersion"
       - task: SonarCloudPrepare@1
         condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master')))
         inputs: 
@@ -79,21 +96,27 @@ stages:
         vs2015_dev: 
           imageName: "vs2015-win2012r2"
           SQ_VERSION: "DEV"
+          MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\msbuild.exe"
         vs2015_latest67: 
           imageName: "vs2015-win2012r2"
           SQ_VERSION: "LATEST_RELEASE[6.7]"
+          MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\msbuild.exe"
         vs2015_latest79: 
           imageName: "vs2015-win2012r2"
           SQ_VERSION: "LATEST_RELEASE[7.9]"
+          MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\msbuild.exe"
         vs2017_dev: 
           imageName: "vs2017-win2016"
           SQ_VERSION: "DEV"
+          MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\msbuild.exe"
         vs2017_latest67: 
           imageName: "vs2017-win2016"
           SQ_VERSION: "LATEST_RELEASE[6.7]"
+          MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\msbuild.exe"
         vs2017_latest79: 
           imageName: "vs2017-win2016"
           SQ_VERSION: "LATEST_RELEASE[7.9]"
+          MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\msbuild.exe"
       maxParallel: 2
     steps:
       - checkout: self
@@ -112,14 +135,15 @@ stages:
       - task: Maven@3
         displayName: 'Run Maven verify'
         inputs:
-          goals: 'verify -Dcommercial'
-          options: '--settings $(mavenSettings.secureFilePath) -B -e -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$SCANNER_VERSION -Dmsbuild.path=$MSBUILD_PATH'
+          goals: 'verify'
+          options: '--settings $(mavenSettings.secureFilePath) -B -e -Dsonar.runtimeVersion=$SQ_VERSION -DscannerForMSBuild.version=$SCANNER_VERSION.$(Build.BuildId) -Dmsbuild.path=$MSBUILD_PATH'
           publishJUnitResults: true
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
           javaHomeOption: 'JDKVersion'
           jdkVersionOption: '1.11'
           mavenOptions: '-Xmx3072m'
-     
+
+
 
 
 
