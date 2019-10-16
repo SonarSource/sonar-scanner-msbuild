@@ -83,16 +83,20 @@ stages:
           vsTestVersion: '15.0'
           codeCoverageEnabled: true
       - task: PowerShell@2
-        displayName: 'HACK: delete .trx files created by tests'
+        displayName: 'Delete files created by unit tests'
         inputs:
           targetType: 'inline'
           script: |
-            Write-Host "HACK: delete .trx files created by tests."
-            Write-Host "The Scanner for MSBuild can only handle one trx file, so it won't upload coverage if it finds multiple files."
+            Write-Host "Delete files created by unit tests, so that they will not be taken by the SonarCloud analysis."
             
-            # Delete all trx files below the current directory
-            $current = Get-ChildItem -Filter "*.trx"
-            Get-ChildItem -Filter "*.trx" -Recurse -Exclude $current | Remove-Item
+            $files = Get-ChildItem env:TEST_FILES_TO_DELETE
+            $listOfFiles = $files.Split(";;")
+            foreach ($file in $listOfFiles) {
+              if([System.IO.File]::Exists($file))
+              {
+                Remove-Item -Path $file
+              }
+            }
       - task: SonarCloudAnalyze@1
         condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master')))
       - task: SonarCloudPublish@1
