@@ -88,7 +88,7 @@ stages:
           targetType: 'inline'
           script: |
             Write-Host "Delete files created by unit tests, so that they will not be taken by the SonarCloud analysis."
-            
+
             $files = Get-ChildItem env:TEST_FILES_TO_DELETE
             $listOfFiles = $files.Split(";;")
             foreach ($file in $listOfFiles) {
@@ -164,7 +164,8 @@ stages:
           jdkVersionOption: '1.11'
           mavenOptions: '-Xmx3072m'
 
-- stage: Deploy to Test
+- stage: DeployToTest
+  displayName: Deploy to test environment
   dependsOn: 
   - Build
   - QA
