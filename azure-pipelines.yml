@@ -35,6 +35,7 @@ stages:
           restoreSolution: '$(solution)'
           feedsToUse: 'select'
       - task: DownloadSecureFile@1
+        name: snk
         inputs:
           secureFile: 'SonarSourceSecret.snk'
         displayName: 'Download snk'
