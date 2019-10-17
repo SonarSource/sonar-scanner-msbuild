@@ -71,7 +71,8 @@ stages:
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
           maximumCpuCount: true
-          msbuildArgs: '/p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:defineConstants="SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
+          logFileVerbosity: detailed
+          msbuildArgs: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:defineConstants="SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
       - task: VSTest@2
         inputs:
           testSelector: 'testAssemblies'
