@@ -157,14 +157,14 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             filesToDelete = filesToDelete.Distinct().ToList();
 
-            var currentEnvValue = Environment.GetEnvironmentVariable("TEST_FILE_TO_DELETE", EnvironmentVariableTarget.Machine) ?? String.Empty;
+            var currentEnvValue = Environment.GetEnvironmentVariable("TEST_FILE_TO_DELETE", EnvironmentVariableTarget.User) ?? String.Empty;
             if (!string.IsNullOrEmpty(currentEnvValue))
             {
                 currentEnvValue += ";;";
             }
 
             Environment.SetEnvironmentVariable("TEST_FILE_TO_DELETE", currentEnvValue + string.Join(";;",
-                filesToDelete), EnvironmentVariableTarget.Machine);
+                filesToDelete), EnvironmentVariableTarget.User);
         }
     }
 }

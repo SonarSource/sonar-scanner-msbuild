@@ -387,7 +387,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             filesToDelete = filesToDelete.Distinct().ToList();
 
-            var currentEnvValue = Environment.GetEnvironmentVariable("TEST_FILE_TO_DELETE", EnvironmentVariableTarget.Machine) ?? String.Empty;
+            var currentEnvValue = Environment.GetEnvironmentVariable("TEST_FILE_TO_DELETE", EnvironmentVariableTarget.User) ?? String.Empty;
             if (!string.IsNullOrEmpty(currentEnvValue))
             {
                 currentEnvValue += ";;";

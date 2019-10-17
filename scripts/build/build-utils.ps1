@@ -8,10 +8,7 @@ function Get-VsWherePath {
     return Get-ExecutablePath -name "vswhere.exe" -envVar "VSWHERE_PATH"
 }
 
-function Get-MsBuildPath([ValidateSet("14.0", "15.0")][string]$msbuildVersion) {
-    if ($msbuildVersion -eq "14.0") {
-        return Get-ExecutablePath -name "msbuild.exe" -envVar "MSBUILD_PATH"
-    }
+function Get-MsBuildPath([ValidateSet("15.0")][string]$msbuildVersion) {
 
     Write-Debug "Trying to find 'msbuild.exe 15' using 'MSBUILD_PATH' environment variable"
     $msbuild15Env = "MSBUILD_PATH"
@@ -24,8 +21,7 @@ function Get-MsBuildPath([ValidateSet("14.0", "15.0")][string]$msbuildVersion) {
         # Sets the path to MSBuild 15 into an the MSBUILD_PATH environment variable
         # All subsequent builds after this command will use MSBuild 15!
         # Test if vswhere.exe is in your path. Download from: https://github.com/Microsoft/vswhere/releases
-        $path = Exec { & (Get-VsWherePath) -latest -products * -requires Microsoft.Component.MSBuild `
-            -property installationPath } | Select-Object -First 1
+        $path = "C:\\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise"
         if ($path) {
             $msbuild15Path = Join-Path $path "MSBuild\15.0\Bin\MSBuild.exe"
             [environment]::SetEnvironmentVariable($msbuild15Env, $msbuild15Path)
