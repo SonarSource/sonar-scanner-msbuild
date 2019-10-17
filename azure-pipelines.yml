@@ -73,7 +73,7 @@ stages:
           scannerMode: MSBuild
       - task: VSBuild@1
         env: 
-          PFX_PASSWORD: $(pfwPassword)
+          PFX_PASSWORD: $(pfxPassword)
           PFX_SHA1: $(pfxSha1)
         inputs:
           solution: '$(solution)'
