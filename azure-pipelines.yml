@@ -79,7 +79,7 @@ stages:
           configuration: '$(BuildConfiguration)'
           maximumCpuCount: true
           logFileVerbosity: detailed
-          msbuildArgs: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:defineConstants="SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)" /p:pfxCertificatePath="$(pfx.secureFilePath)" /p:pfxPassword="$(pfxPassword)" /p:pfxSha1=$(pfxSha1)'
+          msbuildArgs: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:defineConstants="SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)" /p:PFX_PATH="$(pfx.secureFilePath)" /p:PFX_PASSWORD="$(pfxPassword)" /p:PFX_SHA1=$(pfxSha1)'
       - task: VSTest@2
         inputs:
           testSelector: 'testAssemblies'
