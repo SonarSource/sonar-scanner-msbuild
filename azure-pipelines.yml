@@ -160,10 +160,10 @@ stages:
     steps:
       - checkout: self
       - task: DownloadSecureFile@1
-        displayName: 'Download Maven private settings'
+        displayName: 'Download maven settings'
         name: mavenSettings
         inputs:
-          secureFile: 'maven-settings-private-with-p2-mirrors.xml'
+          secureFile: 'maven-settings.xml'
       - task: DownloadPipelineArtifact@2
         inputs:
           buildType: 'current'
