@@ -75,12 +75,15 @@ function Get-LeakPeriodVersion() {
 
 function Generate-Artifacts() {
     $artifactsFolder = ".\DeploymentArtifacts\BuildAgentPayload\Release"
+	
+	$version = Get-DotNetVersion
+	
+	Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-net46.zip" -NewName "sonarscanner-msbuild-$version-net46.zip"
+	Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip" -NewName "sonarscanner-msbuild-$version-netcoreapp2.0.zip"
 
     $classicScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-net46.zip"
     $dotnetScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip"
     $dotnetScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$leakPeriodVersion.nupkg"
-
-    $version = Get-DotNetVersion
 
     Write-Host "Generating the chocolatey packages"
     $classicZipHash = (Get-FileHash $classicScannerZipPath -Algorithm SHA256).hash
