@@ -124,8 +124,8 @@ function Generate-Artifacts() {
     $env:PROJECT_VERSION = $version
     $env:BUILD_ID=$env:BUILD_BUILDID
 
-    Exec { & mvn deploy -Pdeploy-sonarsource -B -e -V `
-    } -errorMessage "ERROR: Deployment FAILED."
+    #Exec { & mvn deploy -Pdeploy-sonarsource -B -e -V `
+    #} -errorMessage "ERROR: Deployment FAILED."
 }
 
 try {
