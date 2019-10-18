@@ -170,7 +170,6 @@ stages:
           MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\msbuild.exe"
       maxParallel: 2
     steps:
-      - checkout: self
       - task: DownloadSecureFile@1
         displayName: 'Download maven settings'
         name: mavenSettings
@@ -189,6 +188,7 @@ stages:
         inputs:
           targetType: 'inline'
           script: |
+             Get-ChildItem -Path $(pipelineArtifactOutputPath) -Recurse
              $projectVersion = Get-Content "$(pipelineArtifactOutputPath)/version.txt"
              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION;isOutput=true]$projectVersion"
       - task: Maven@3
