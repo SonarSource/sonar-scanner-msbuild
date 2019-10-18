@@ -15,6 +15,7 @@ variables:
   sonarCloudMsBuildProjectName: 'SonarScanner for MSBuild'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  system.debug: true
 
 stages:
 - stage: Build
@@ -189,11 +190,19 @@ stages:
           targetType: 'inline'
           script: |
              $projectVersion = Get-Content "$(pipelineArtifactOutputPath)/version.txt"
+             Rename-Item -Path "$(pipelineArtifactOutputPath)\\sonarscanner-msbuild-$projectVersion.$env:Build_BuildId-net46.zip" -NewName "sonarscanner-msbuild-net46.zip"
+             $env:SCANNER_LOCATION= $(pipelineArtifactOutputPath)
              $env:SONAR_PROJECT_VERSION = $projectVersion
              gci env:
              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION;isOutput=true]$projectVersion"
       - task: Maven@3
-        displayName: 'Run Maven verify'
+        displayName: 'Run Maven ITs for SQ $(SQ_VERSION)'
+        env:
+          ARTIFACTORY_QA_READER_USERNAME: $(ARTIFACTORY_QA_READER_USERNAME)
+          ARTIFACTORY_QA_READER_PASSWORD: $(ARTIFACTORY_QA_READER_PASSWORD)
+          # For Orchestrator
+          ARTIFACTORY_API_KEY: $(ARTIFACTORY_API_KEY)
+          GITHUB_TOKEN: $(GITHUB_TOKEN)
         inputs:
           goals: 'verify'
           options: --settings $(mavenSettings.secureFilePath) -B -e -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)"
