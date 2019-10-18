@@ -155,7 +155,7 @@ stages:
     burgrType: 'QA'
     stageName: 'qa'
     stageDisplayName: Run ITs
-    stageDependencies: Build
+    stageDependencies: build
     jobs:
     - job: its
       displayName: 'Run its'
