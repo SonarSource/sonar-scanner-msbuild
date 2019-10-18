@@ -203,9 +203,10 @@ stages:
           # For Orchestrator
           ARTIFACTORY_API_KEY: $(ARTIFACTORY_API_KEY)
           GITHUB_TOKEN: $(GITHUB_TOKEN)
+          MSB_VERSION: $(SONAR_PROJECT_VERSION).$(Build.BuildId)
         inputs:
           goals: 'verify'
-          options: --settings $(mavenSettings.secureFilePath) -B -e -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)"
+          options: --settings $(mavenSettings.secureFilePath) -B -e -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(MSB_VERSION) -Dmsbuild.path="$(MSBUILD_PATH)"
           publishJUnitResults: true
           mavenPomFile: 'its/pom.xml'
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
