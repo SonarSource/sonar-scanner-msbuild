@@ -77,9 +77,6 @@ function Generate-Artifacts() {
     $artifactsFolder = ".\DeploymentArtifacts\BuildAgentPayload\Release"
 	
 	$version = Get-DotNetVersion
-	
-	Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-net46.zip" -NewName "sonarscanner-msbuild-$version-net46.zip"
-	Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip" -NewName "sonarscanner-msbuild-$version-netcoreapp2.0.zip"
 
     $classicScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-net46.zip"
     $dotnetScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip"
@@ -121,6 +118,9 @@ function Generate-Artifacts() {
     Exec { & mvn org.codehaus.mojo:versions-maven-plugin:2.2:set "-DnewVersion=${version}" `
         -DgenerateBackupPoms=false -B -e `
     } -errorMessage "ERROR: Maven set version FAILED."
+	
+	Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-net46.zip" -NewName "sonarscanner-msbuild-$version-net46.zip"
+	Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip" -NewName "sonarscanner-msbuild-$version-netcoreapp2.0.zip"
 
     #Write-Host "Deploying artifacts to repox"
     # Set the version used by Jenkins to associate artifacts to the right version
