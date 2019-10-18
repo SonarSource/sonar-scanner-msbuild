@@ -1,5 +1,5 @@
 # SonarScanner for MSBuild
-# Build, QA
+# Build, QA, Deploy
 
 trigger: none
 
@@ -8,23 +8,34 @@ pool:
 
 variables:
   group: sonarsource-build-variables
-  solution: 'SonarScanner.MSBuild.sln'
-  sonarCloudConnection: 'SonarCloud'
-  sonarCloudOrganization: 'sonarsource'
-  sonarCloudMsBuildProjectKey: 'sonarscanner-msbuild'
-  sonarCloudMsBuildProjectName: 'SonarScanner for MSBuild'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
   system.debug: true
 
+resources:
+  repositories:
+    - repository: commonTemplates
+      type: git
+      name: pipelines-yaml-templates
+      ref: refs/tags/v1.0
+
 stages:
-- stage: Build
-  displayName: Build solution
-  variables:
-    SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
-  jobs:
+- template: stage-with-burgr-notifications.yml@commonTemplates
+  parameters:
+    burgrName: 'build'
+    burgrType: 'build'
+    stageName: 'build'
+    stageDisplayName: Build and stage to repox
+    jobs:
     - job: build
-      displayName: 'Build and analyze on SonarCloud'
+      displayName: 'Build and stage to repox'
+      variables:
+       SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
+       solution: 'SonarScanner.MSBuild.sln'
+       sonarCloudConnection: 'SonarCloud'
+       sonarCloudOrganization: 'sonarsource'
+       sonarCloudMsBuildProjectKey: 'sonarscanner-msbuild'
+       sonarCloudMsBuildProjectName: 'SonarScanner for MSBuild'
+       buildPlatform: 'Any CPU'
+       buildConfiguration: 'Release'
       steps:
       - checkout: self
       - task: NuGetToolInstaller@1
@@ -64,6 +75,7 @@ stages:
             [System.Environment]::SetEnvironmentVariable("SONAR_PROJECT_VERSION",$sonarProjectVersion, "User")
             Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION;isOutput=true]$sonarProjectVersion"
       - task: SonarCloudPrepare@1
+        enabled: false
         condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master')))
         inputs: 
           SonarCloud: '$(sonarCloudConnection)'
@@ -122,11 +134,13 @@ stages:
             Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
             Get-ChildItem $(Agent.TempDirectory) -Filter 'VSCodeCoverageReport.*' -Recurse -Attributes !Directory | Remove-Item
       - task: SonarCloudAnalyze@1
+        enabled: false
         condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master')))
       - task: SonarCloudPublish@1
+        enabled: false
         condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master')))
       - task: PowerShell@2
-        displayName: 'Generate artifacts'
+        displayName: 'Generate artifacts and stage to repox'
         inputs:
           filePath: 'scripts\\build\\ci-build.ps1'
       - task: PublishPipelineArtifact@1
@@ -135,87 +149,93 @@ stages:
           targetPath: 'DeploymentArtifacts/BuildAgentPayload/$(BuildConfiguration)'
           artifact: 'scanner-packages'
 
-- stage: QA
-  displayName: Run Integration tests
-  dependsOn: Build
-  jobs:
-  - job: its
-    displayName: 'Run its'
-    variables:
-      pipelineArtifactOutputPath: $(Pipeline.Workspace)\\scanner-packages
-    strategy: 
-      matrix: 
-        vs2015_dev: 
-          imageName: "vs2015-win2012r2"
-          SQ_VERSION: "DEV"
-          MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\msbuild.exe"
-        vs2015_latest67: 
-          imageName: "vs2015-win2012r2"
-          SQ_VERSION: "LATEST_RELEASE[6.7]"
-          MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\msbuild.exe"
-        vs2015_latest79: 
-          imageName: "vs2015-win2012r2"
-          SQ_VERSION: "LATEST_RELEASE[7.9]"
-          MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\msbuild.exe"
-        vs2017_dev: 
-          imageName: "vs2017-win2016"
-          SQ_VERSION: "DEV"
-          MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\msbuild.exe"
-        vs2017_latest67: 
-          imageName: "vs2017-win2016"
-          SQ_VERSION: "LATEST_RELEASE[6.7]"
-          MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\msbuild.exe"
-        vs2017_latest79: 
-          imageName: "vs2017-win2016"
-          SQ_VERSION: "LATEST_RELEASE[7.9]"
-          MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\msbuild.exe"
-      maxParallel: 2
-    steps:
-      - task: DownloadSecureFile@1
-        displayName: 'Download maven settings'
-        name: mavenSettings
-        inputs:
+- template: stage-with-burgr-notifications.yml@commonTemplates
+  parameters:
+    burgrName: 'qa'
+    burgrType: 'QA'
+    stageName: 'qa'
+    stageDisplayName: Run ITs
+    stageDependencies: Build
+    jobs:
+    - job: its
+      displayName: 'Run its'
+      strategy: 
+        matrix: 
+          vs2015_dev: 
+            imageName: "vs2015-win2012r2"
+            SQ_VERSION: "DEV"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\msbuild.exe"
+          vs2015_latest67: 
+            imageName: "vs2015-win2012r2"
+            SQ_VERSION: "LATEST_RELEASE[6.7]"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\msbuild.exe"
+          vs2015_latest79: 
+            imageName: "vs2015-win2012r2"
+            SQ_VERSION: "LATEST_RELEASE[7.9]"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\msbuild.exe"
+          vs2017_dev: 
+            imageName: "vs2017-win2016"
+            SQ_VERSION: "DEV"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\msbuild.exe"
+          vs2017_latest67: 
+            imageName: "vs2017-win2016"
+            SQ_VERSION: "LATEST_RELEASE[6.7]"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\msbuild.exe"
+          vs2017_latest79: 
+            imageName: "vs2017-win2016"
+            SQ_VERSION: "LATEST_RELEASE[7.9]"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\msbuild.exe"
+        maxParallel: 2
+      steps:
+       - checkout: self
+         fetchDepth: 1
+       - task: DownloadSecureFile@1
+         displayName: 'Download maven settings'
+         name: mavenSettings
+         inputs:
           secureFile: 'maven-settings.xml'
-      - task: DownloadPipelineArtifact@2
-        inputs:
+       - task: DownloadPipelineArtifact@2
+         inputs:
           buildType: 'current'
           itemPattern: |
             *.zip
             version.txt
           targetPath: '$(Pipeline.Workspace)\\scanner-packages'
           artifactName: scanner-packages
-      - task: PowerShell@2
-        displayName: "Get version from artifact file"
-        inputs:
+       - task: PowerShell@2
+         displayName: "Get version from artifact file"
+         inputs:
           targetType: 'inline'
           script: |
-             $projectVersion = Get-Content "$(pipelineArtifactOutputPath)\\version.txt"
-             Rename-Item -Path "$(pipelineArtifactOutputPath)\\sonarscanner-msbuild-$projectVersion.$env:Build_BuildId-net46.zip" -NewName "sonarscanner-msbuild-net46.zip"
+             $projectVersion = Get-Content "$(Pipeline.Workspace)\\scanner-packages\\version.txt"
+             Rename-Item -Path "$(Pipeline.Workspace)\\scanner-packages\\sonarscanner-msbuild-$projectVersion.$env:Build_BuildId-net46.zip" -NewName "sonarscanner-msbuild-net46.zip"
              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
-      - task: Maven@3
-        displayName: 'Run Maven ITs for SQ $(SQ_VERSION)'
-        env:
-          ARTIFACTORY_QA_READER_USERNAME: $(ARTIFACTORY_QA_READER_USERNAME)
-          ARTIFACTORY_QA_READER_PASSWORD: $(ARTIFACTORY_QA_READER_PASSWORD)
-          # For Orchestrator
-          ARTIFACTORY_API_KEY: $(ARTIFACTORY_API_KEY)
-          GITHUB_TOKEN: $(GITHUB_TOKEN)
-          SCANNER_LOCATION: $(pipelineArtifactOutputPath)
-        inputs:
+       - task: Maven@3
+         displayName: 'Run Maven ITs for SQ $(SQ_VERSION)'
+         env:
+           ARTIFACTORY_QA_READER_USERNAME: $(ARTIFACTORY_QA_READER_USERNAME)
+           ARTIFACTORY_QA_READER_PASSWORD: $(ARTIFACTORY_QA_READER_PASSWORD)
+           # For Orchestrator
+           ARTIFACTORY_API_KEY: $(ARTIFACTORY_API_KEY)
+           GITHUB_TOKEN: $(GITHUB_TOKEN)
+         inputs:
           goals: 'verify'
-          options: --settings $(mavenSettings.secureFilePath) -B -e -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)"
+          options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)"
           publishJUnitResults: true
           mavenPomFile: 'its/pom.xml'
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
           javaHomeOption: 'JDKVersion'
           jdkVersionOption: '1.11'
           mavenOptions: '-Xmx3072m'
-
+- template: promote-stage.yml@commonTemplates
+  parameters:
+    stageDependencies:
+    - qa
 - stage: DeployToChocolateyTest
   displayName: Upload to Chocolatey
   dependsOn: 
-  - Build
-  - QA
+  - build
+  - qa
   jobs:
   - deployment: deploy_chocolatey_test
     displayName: Deploy to Chocolatey (Test)
@@ -263,8 +283,8 @@ stages:
 - stage: DeployToGitHubTest
   displayName: Release to GitHub
   dependsOn: 
-  - Build
-  - QA
+  - build
+  - qa
   jobs:
   - deployment: deploy_github_test
     displayName: Deploy to GitHub (Test)
@@ -329,8 +349,8 @@ stages:
 - stage: DeployToNugetTest
   displayName: Upload to Nuget
   dependsOn: 
-  - Build
-  - QA
+  - build
+  - qa
   jobs:
   - deployment: deploy_nuget_test
     displayName: Deploy to Nuget (Test)
