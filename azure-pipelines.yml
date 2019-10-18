@@ -139,10 +139,36 @@ stages:
       - task: SonarCloudPublish@1
         enabled: false
         condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master')))
+      - task: DownloadSecureFile@1
+        displayName: 'Download Maven settings'
+        name: mavenSettings
+        inputs:
+          secureFile: 'maven-settings.xml'
+      - task: DownloadSecureFile@1
+        displayName: 'Download JKS keystore'
+        name: jks
+        inputs:
+          secureFile: 'SonarSource-2019-2021.jks'
       - task: PowerShell@2
-        displayName: 'Generate artifacts and stage to repox'
+        displayName: 'Generate artifacts'
         inputs:
           filePath: 'scripts\\build\\ci-build.ps1'
+      - task: Maven@3
+        inputs:
+        mavenPomFile: 'pom.xml'
+        env:
+          PROJECT_VERSION: $(SONAR_PROJECT_VERSION)
+          BUILD_ID: $(Build.BuildId)
+          ARTIFACTORY_DEPLOY_USERNAME: $(ARTIFACTORY_DEPLOY_USERNAME)
+          ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_DEPLOY_PASSWORD)
+        goals: 'deploy'
+        options: '-settings $(mavenSettings.secureFilePath) -Djarsigner.skip=false -Dsonarsource.keystore.path=$(jks.secureFilePath) -Dsonarsource.keystore.password=$(jksPassword) -Pdeploy-sonarsource -B -e -V'
+        publishJUnitResults: false
+        javaHomeOption: 'JDKVersion'
+        mavenVersionOption: 'Default'
+        mavenAuthenticateFeed: false
+        effectivePomSkip: false
+        sonarQubeRunAnalysis: false
       - task: PublishPipelineArtifact@1
         displayName: 'Publish packages as artifacts'
         inputs:
