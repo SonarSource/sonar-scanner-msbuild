@@ -188,7 +188,9 @@ stages:
         inputs:
           targetType: 'inline'
           script: |
+             Write-Host 'listing content of directory $(pipelineArtifactOutputPath)'
              Get-ChildItem -Path $(pipelineArtifactOutputPath) -Recurse
+             Write-Host 'End of listing, getting version.txt file content'
              $projectVersion = Get-Content "$(pipelineArtifactOutputPath)/version.txt"
              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION;isOutput=true]$projectVersion"
       - task: Maven@3
