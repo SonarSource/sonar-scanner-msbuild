@@ -230,6 +230,7 @@ stages:
 - template: promote-stage.yml@commonTemplates
   parameters:
     stageDependencies:
+    - build
     - qa
 - stage: DeployToChocolateyTest
   displayName: Upload to Chocolatey
