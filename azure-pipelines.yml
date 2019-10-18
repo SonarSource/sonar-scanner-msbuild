@@ -155,7 +155,7 @@ stages:
     burgrType: 'QA'
     stageName: 'qa'
     stageDisplayName: Run ITs
-    stageDependencies: Build
+    stageDependencies: build
     jobs:
     - job: its
       displayName: 'Run its'
@@ -230,6 +230,7 @@ stages:
 - template: promote-stage.yml@commonTemplates
   parameters:
     stageDependencies:
+    - build
     - qa
 - stage: DeployToChocolateyTest
   displayName: Upload to Chocolatey
