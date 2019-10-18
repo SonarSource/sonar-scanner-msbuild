@@ -190,6 +190,7 @@ stages:
           script: |
              $projectVersion = Get-Content "$(pipelineArtifactOutputPath)/version.txt"
              $env:SONAR_PROJECT_VERSION = $projectVersion
+             gci env:
              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION;isOutput=true]$projectVersion"
       - task: Maven@3
         displayName: 'Run Maven verify'
