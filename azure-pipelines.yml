@@ -142,7 +142,7 @@ stages:
   - job: its
     displayName: 'Run its'
     variables:
-      pipelineArtifactOutputPath: $(Pipeline.Workspace)/scanner-packages
+      pipelineArtifactOutputPath: $(Pipeline.Workspace)\\scanner-packages
     strategy: 
       matrix: 
         vs2015_dev: 
@@ -182,17 +182,17 @@ stages:
           itemPattern: |
             *.zip
             version.txt
-          targetPath: '$(Pipeline.Workspace)/scanner-packages'
+          targetPath: '$(Pipeline.Workspace)\\scanner-packages'
           artifactName: scanner-packages
       - task: PowerShell@2
         displayName: "Get version from artifact file"
         inputs:
           targetType: 'inline'
           script: |
-             $projectVersion = Get-Content "$(pipelineArtifactOutputPath)/version.txt"
+             $projectVersion = Get-Content "$(pipelineArtifactOutputPath)\\version.txt"
              Rename-Item -Path "$(pipelineArtifactOutputPath)\\sonarscanner-msbuild-$projectVersion.$env:Build_BuildId-net46.zip" -NewName "sonarscanner-msbuild-net46.zip"
-             $env:SCANNER_LOCATION= $(pipelineArtifactOutputPath)
-             $env:SONAR_PROJECT_VERSION = $projectVersion
+             [System.Environment]::SetEnvironmentVariable("SCANNER_LOCATION",$(pipelineArtifactOutputPath), "User")
+             [System.Environment]::SetEnvironmentVariable("SONAR_PROJECT_VERSION",$projectVersion, "User")
              gci env:
              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION;isOutput=true]$projectVersion"
       - task: Maven@3
@@ -222,7 +222,7 @@ stages:
   - deployment: deploy_chocolatey_test
     displayName: Deploy to Chocolatey (Test)
     variables:
-     pipelineArtifactOutputPath: $(Pipeline.Workspace)/scanner-packages
+     pipelineArtifactOutputPath: $(Pipeline.Workspace)\\scanner-packages
      chocoApiKey: $(CHOCO_TEST_API_KEY)
     # creates an environment if it doesn't exist
     environment: 'ScannerForMsBuild-Test'
@@ -236,7 +236,7 @@ stages:
               itemPattern: |
                 sonarscanner-msbuild-*.nupkg
                 version.txt
-              targetPath: '$(Pipeline.Workspace)'
+              targetPath: '$(Pipeline.Workspace)\\scanner-packages'
               artifactName: 'scanner-packages'
           - task: PowerShell@2
             displayName: "Install chocolatey"
@@ -252,16 +252,16 @@ stages:
               targetType: 'inline'
               script: |
                 Write-Host "Publishing .net 46 package...."
-                $projectVersion = Get-Content "$(pipelineArtifactOutputPath)/version.txt"
-                choco push $(pipelineArtifactOutputPath)/sonarscanner-msbuild-net46.$projectVersion.$env:BUILD_BUILDID.nupkg -k $env:chocoApiKey -source "https://chocolatey.org/" --yes --whatif
+                $projectVersion = Get-Content "$(pipelineArtifactOutputPath)\\version.txt"
+                choco push $(pipelineArtifactOutputPath)\\sonarscanner-msbuild-net46.$projectVersion.$env:BUILD_BUILDID.nupkg -k $env:chocoApiKey -source "https://chocolatey.org/" --yes --whatif
           - task: PowerShell@2
             displayName: "Push .Net Core 2 package to chocolatey"
             inputs:
               targetType: 'inline'
               script: |
                 Write-Host "Installing chocolatey...."
-                $projectVersion = Get-Content "$(pipelineArtifactOutputPath)/version.txt"
-                choco push $(pipelineArtifactOutputPath)/sonarscanner-msbuild-netcoreapp2.0.$projectVersion.$env:BUILD_BUILDID.nupkg -k $env:chocoApiKey -source "https://chocolatey.org/" --yes --whatif
+                $projectVersion = Get-Content "$(pipelineArtifactOutputPath)\\version.txt"
+                choco push $(pipelineArtifactOutputPath)\\sonarscanner-msbuild-netcoreapp2.0.$projectVersion.$env:BUILD_BUILDID.nupkg -k $env:chocoApiKey -source "https://chocolatey.org/" --yes --whatif
 - stage: DeployToGitHubTest
   displayName: Release to GitHub
   dependsOn: 
