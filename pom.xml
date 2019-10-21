@@ -4,7 +4,8 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>52</version>
+    <version>53.0.560</version>
+    <relativePath />
   </parent>
 
   <groupId>org.sonarsource.scanner.msbuild</groupId>
@@ -29,15 +30,15 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:git@github.com:SonarSource-VisualStudio/sonar-scanner-msbuild.git</connection>
-    <developerConnection>scm:git:git@github.com:SonarSource-VisualStudio/sonar-scanner-msbuild.git</developerConnection>
-    <url>https://github.com/SonarSource-VisualStudio/sonar-scanner-msbuild</url>
+    <connection>scm:git:git@github.com:SonarSource/sonar-scanner-msbuild.git</connection>
+    <developerConnection>scm:git:git@github.com:SonarSource/sonar-scanner-msbuild.git</developerConnection>
+    <url>https://github.com/SonarSource/sonar-scanner-msbuild</url>
     <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
-    <system>JIRA</system>
-    <url>https://jira.sonarsource.com/browse/SONARMSBRU</url>
+    <system>GitHub</system>
+    <url>https://github.com/SonarSource/sonar-scanner-msbuild/issues</url>
   </issueManagement>
 
   <properties>

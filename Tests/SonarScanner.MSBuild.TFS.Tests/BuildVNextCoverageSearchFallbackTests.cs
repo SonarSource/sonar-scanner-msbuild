@@ -19,6 +19,8 @@
  */
 
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -31,6 +33,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
     public class BuildVNextCoverageSeachFallbackTests
     {
         public TestContext TestContext { get; set; }
+        private static List<string> filesToDelete = new List<string>();
 
         [TestMethod]
         public void Fallback_AgentDirectory_CalculatedCorrectly()
@@ -73,6 +76,17 @@ namespace SonarScanner.MSBuild.TFS.Tests
             TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", "");
             TestUtils.CreateTextFile(dir, "Duplicate.coverage", ""); // appears in both places - only one should be returned
             var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", ""); // should be found
+
+            filesToDelete.AddRange(new List<string>()
+            {
+                Path.Combine(dir, "foo.coverageXXX"),
+                Path.Combine(dir, "abc.trx"),
+                Path.Combine(dir, "foo.coverage"),
+                Path.Combine(dir, "DUPLICATE.coverage"),
+                Path.Combine(dir, "BAR.coverage.XXX"),
+                Path.Combine(dir, "Duplicate.coverage"),
+                Path.Combine(subDir, "BAR.COVERAGE")
+            });
 
             using (var envVars = new EnvironmentVariableScope())
             {
@@ -136,6 +150,21 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 "c:/aaa/FILE2.TXT",
                 "file3.txt"
                 );
+        }
+
+        [ClassCleanup]
+        public static void AddFilesToDeleteToEnv()
+        {
+            filesToDelete = filesToDelete.Distinct().ToList();
+
+            var currentEnvValue = Environment.GetEnvironmentVariable("TEST_FILE_TO_DELETE", EnvironmentVariableTarget.User) ?? String.Empty;
+            if (!string.IsNullOrEmpty(currentEnvValue))
+            {
+                currentEnvValue += ";;";
+            }
+
+            Environment.SetEnvironmentVariable("TEST_FILE_TO_DELETE", currentEnvValue + string.Join(";;",
+                filesToDelete), EnvironmentVariableTarget.User);
         }
     }
 }
