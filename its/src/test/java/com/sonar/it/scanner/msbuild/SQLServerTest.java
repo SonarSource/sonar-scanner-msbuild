@@ -65,8 +65,7 @@ public class SQLServerTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
+    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(3);

@@ -84,8 +84,8 @@ public class CppTest {
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild");
 
-    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
+    assertThat(result.isSuccess()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
@@ -123,8 +123,8 @@ public class CppTest {
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild");
 
-    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
+    assertThat(result.isSuccess()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
