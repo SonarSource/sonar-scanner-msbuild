@@ -208,7 +208,7 @@ public class TestUtils {
     int r = CommandExecutor.create().execute(Command.create(nugetPath.toString())
       .addArguments(arguments)
       .addArguments("-MSBuildPath", TestUtils.getMsBuildPath(orch).getParent().toString())
-      .setDirectory(projectDir.toFile()), 60 * 1000);
+      .setDirectory(projectDir.toFile()), 300 * 1000);
     assertThat(r).isEqualTo(0);
   }
 
@@ -267,6 +267,29 @@ public class TestUtils {
     }
   }
 
+  static void dumpAllIssues(Orchestrator orchestrator) {
+    LOG.info("Dumping all issues:");
+    for (Issue issue : allIssues(orchestrator)) {
+      LOG.info("  Key: " + issue.getKey() + "   Rule: " + issue.getRule() + "  Component:" + issue.getComponent());
+    }
+  }
+
+  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir){
+    BuildResult result = orchestrator.executeBuild(TestUtils.newScanner(orchestrator, projectDir)
+      .addArgument("end"));
+
+    if (result.isSuccess()) {
+      TestUtils.dumpComponentList(orchestrator);
+      TestUtils.dumpAllIssues(orchestrator);
+    }
+    else
+    {
+      LOG.warn("End step was not successful - skipping dumping issues data");
+    }
+
+    return result;
+  }
+
   public static List<Issue> issuesForComponent(Orchestrator orchestrator, String componentKey) {
     return newWsClient(orchestrator)
       .issues()
@@ -306,7 +329,7 @@ public class TestUtils {
   @CheckForNull
   private static WsMeasures.Measure getMeasure(@Nullable String componentKey, String metricKey, Orchestrator orchestrator) {
     WsMeasures.ComponentWsResponse response = newWsClient(orchestrator).measures().component(new ComponentWsRequest()
-      .setComponentKey(componentKey)
+      .setComponent(componentKey)
       .setMetricKeys(Collections.singletonList(metricKey)));
     List<WsMeasures.Measure> measures = response.getComponent().getMeasuresList();
     return measures.size() == 1 ? measures.get(0) : null;

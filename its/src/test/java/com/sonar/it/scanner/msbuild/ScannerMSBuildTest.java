@@ -66,6 +66,8 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.WsComponents;
 import org.sonarqube.ws.WsMeasures;
@@ -78,6 +80,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class ScannerMSBuildTest {
+  final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
+
   private static final String PROJECT_KEY = "my.project";
   private static final String PROXY_USER = "scott";
   private static final String PROXY_PASSWORD = "tiger";
@@ -120,9 +124,8 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
-
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
+    assertTrue(result.isSuccess());
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2);
     assertLineCountForProjectUnderTest();
@@ -156,6 +159,9 @@ public class ScannerMSBuildTest {
       .addArgument("end")
       .setEnvironmentVariable("SONAR_SCANNER_OPTS",
         "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort + " -Dhttp.proxyUser=" + PROXY_USER + " -Dhttp.proxyPassword=" + PROXY_PASSWORD));
+
+    TestUtils.dumpComponentList(ORCHESTRATOR);
+    TestUtils.dumpAllIssues(ORCHESTRATOR);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2);
@@ -191,8 +197,7 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
+    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2);
@@ -223,12 +228,17 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
+    assertTrue(result.isSuccess());
+
+    // Dump debug info
+    LOG.info("normalProjectKey = " + normalProjectKey);
+    LOG.info("testProjectKey = " + testProjectKey);
 
     // all issues and nloc are in the normal project
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2);
+
 
     issues = TestUtils.issuesForComponent(ORCHESTRATOR, normalProjectKey);
     assertThat(issues).hasSize(2);
@@ -260,9 +270,8 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
-
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
+    assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     // 2 CS, 2 vbnet
@@ -296,9 +305,8 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
-
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
+    assertTrue(result.isSuccess());
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
 
@@ -337,8 +345,8 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
+    assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(1);
@@ -414,9 +422,7 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    BuildResult result = ORCHESTRATOR.executeBuildQuietly(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
-
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
     assertThat(result.isSuccess()).isTrue();
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
@@ -438,8 +444,7 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
 
     assertThat(result.getLogs()).doesNotContain("File is not under the project directory and cannot currently be analysed by SonarQube");
     assertThat(result.getLogs()).doesNotContain("AssemblyAttributes.cs");
@@ -460,8 +465,7 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
@@ -505,8 +509,7 @@ public class ScannerMSBuildTest {
     TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
 
-    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
@@ -534,8 +537,7 @@ public class ScannerMSBuildTest {
     TestUtils.runNuGet(ORCHESTRATOR, projectDir, "restore");
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", "/nr:false");
 
-    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
     assertTrue(result.isSuccess());
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
@@ -655,9 +657,8 @@ public class ScannerMSBuildTest {
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
-
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
+    assertTrue(result.isSuccess());
     assertThat(getComponent(folderName + ":Common.cs"))
       .isNotNull();
     String class1ComponentId = TestUtils.hasModules(ORCHESTRATOR) ? folderName + ":" + folderName + ":D8FEDBA2-D056-42FB-B146-5A409727B65D:Class1.cs" : folderName + ":ClassLib1/Class1.cs";
@@ -688,11 +689,7 @@ public class ScannerMSBuildTest {
 
     ORCHESTRATOR.executeBuild(scanner);
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild", folderName + ".sln");
-
-    ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
-
-    TestUtils.dumpComponentList(ORCHESTRATOR);
+    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
   }
 
   private static WsComponents.Component getComponent(String componentKey) {
