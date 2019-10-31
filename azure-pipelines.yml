@@ -83,21 +83,6 @@ stages:
             Write-Host "Sonar project version is '${sonarProjectVersion}'"
             # Set the variable to it can be used by other tasks
             Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$sonarProjectVersion"
-            Write-Host "Setting versions, sha1 and build number to Version.props file"
-
-            $branchName = $env:BUILD_SOURCEBRANCH
-
-            if ($env:BUILD_SOURCEBRANCH.StartsWith("refs/heads/")) {
-              $branchName = $env:BUILD_SOURCEBRANCH.Substring(11)
-            }
-
-            (Get-Content $versionFilePath) `
-                -Replace '<Sha1>.*</Sha1>', "<Sha1>$env:BUILD_SOURCEVERSION</Sha1>" `
-                -Replace '<BuildNumber>\d+</BuildNumber>', "<BuildNumber>$env:BUILD_BUILDID</BuildNumber>" `
-                -Replace '<BranchName>.*</BranchName>', "<BranchName>$branchName</BranchName>" `
-            | Set-Content $versionFilePath
-
-            Write-Host "Version successfully set to '${sonarProjectVersion}.$env:BUILD_BUILDID'"
       - task: VSBuild@1
         displayName: 'Set BranchName, Sha1 and BuildNumber properties from Azdo pipeline variables'
         inputs:
@@ -149,6 +134,7 @@ stages:
           codeCoverageEnabled: true
       - task: PowerShell@2
         displayName: 'Delete files created by unit tests'
+        enabled: false
         inputs:
           targetType: 'inline'
           script: |
@@ -302,7 +288,7 @@ stages:
             imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[7.9]"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-        maxParallel: 2
+        maxParallel: 4
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
         MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'

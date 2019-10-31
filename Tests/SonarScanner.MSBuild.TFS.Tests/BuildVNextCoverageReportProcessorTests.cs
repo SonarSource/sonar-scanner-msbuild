@@ -35,7 +35,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
     public class BuildVNextCoverageReportProcessorTests
     {
         public TestContext TestContext { get; set; }
-        private static List<string> filesToDelete = new List<string>();
 
         private const string TRX_PAYLOAD = @"<?xml version=""1.0"" encoding=""utf-8"" ?>
                                             <x:TestRun id=""4e4e4073-b17c-4bd0-a8bc-051bbc5a63e4"" name=""John@JOHN-DOE 2019-05-22 14:26:54:768"" runUser=""JOHN-DO\John"" xmlns:x=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
@@ -57,7 +56,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             var mockSearchFallback = new MockSearchFallback();
             mockSearchFallback.SetReturnedFiles("file1.txt", "file2.txt");
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(testDir);
             var testSubject = new BuildVNextCoverageReportProcessor(new MockReportConverter(), new TestLogger(), mockSearchFallback);
 
             var settings = new MockBuildSettings
@@ -84,12 +84,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void SearchFallbackNotShouldBeCalled_IfTrxFilesFound()
         {
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.GetTempPath();
             var testResultsDir = Path.Combine(testDir, "TestResults");
             Directory.CreateDirectory(testResultsDir);
             TestUtils.CreateTextFile(testResultsDir, "dummy.trx", "");
-
-            filesToDelete.Add(Path.Combine(testResultsDir, "dummy.trx"));
 
             var testSubject = new BuildVNextCoverageReportProcessor(new MockReportConverter(), new TestLogger(), mockSearchFallback);
 
@@ -119,7 +117,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var testResultsDir = Path.Combine(testDir, "TestResults");
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();
@@ -161,7 +159,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.GetTempPath();
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();
 
@@ -193,7 +191,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var testResultsDir = Path.Combine(testDir, "TestResults");
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();
@@ -203,13 +201,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
             Directory.CreateDirectory(coverageDir);
 
             TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
-            filesToDelete.Add(Path.Combine(testResultsDir, "dummy.trx"));
-
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
-            filesToDelete.Add(Path.Combine(coverageDir, "dummy.coverage"));
-
             TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
-            filesToDelete.Add(Path.Combine(coverageDir, "dummy.coveragexml"));
 
             var converter = new MockReportConverter();
             converter.CanConvert = true;
@@ -243,10 +236,9 @@ namespace SonarScanner.MSBuild.TFS.Tests
         [TestMethod]
         public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_CoverageXmlFileAlreadyPresent_NotShouldTryConverting()
         {
-
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.GetTempPath();
             var testResultsDir = Path.Combine(testDir, "TestResults");
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();
@@ -260,12 +252,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
             TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
-
-            filesToDelete.AddRange(new List<string>()
-            {
-                Path.Combine(testResultsDir, "dummy.trx"),
-                Path.Combine(coverageDir, "dummy.coverage")
-            });
 
             var converter = new MockReportConverter();
             converter.CanConvert = true;
@@ -302,7 +288,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var testResultsDir = Path.Combine(testDir, "TestResults");
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();
@@ -313,10 +299,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             Directory.CreateDirectory(coverageDir);
 
             TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
-            filesToDelete.Add(Path.Combine(testResultsDir, "dummy.trx"));
-
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
-            filesToDelete.Add(Path.Combine(coverageDir, "dummy.coverage"));
 
             var converter = new MockReportConverter();
             converter.CanConvert = true;
@@ -342,7 +325,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var testResultsDir = Path.Combine(testDir, "TestResults");
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();
@@ -355,12 +338,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
 
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
-
-            filesToDelete.AddRange(new List<string>()
-            {
-                Path.Combine(testResultsDir, "dummy.trx"),
-                Path.Combine(coverageDir, "dummy.coverage")
-            });
 
             var converter = new MockReportConverter();
             converter.CanConvert = true;
@@ -380,21 +357,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // Assert
             result.Should().BeTrue();
             converter.AssertExpectedNumberOfConversions(1);
-        }
-
-        [ClassCleanup]
-        public static void AddFilesToDeleteToEnv() {
-
-            filesToDelete = filesToDelete.Distinct().ToList();
-
-            var currentEnvValue = Environment.GetEnvironmentVariable("TEST_FILE_TO_DELETE", EnvironmentVariableTarget.User) ?? String.Empty;
-            if (!string.IsNullOrEmpty(currentEnvValue))
-            {
-                currentEnvValue += ";;";
-            }
-
-            Environment.SetEnvironmentVariable("TEST_FILE_TO_DELETE", currentEnvValue + string.Join(";;",
-                filesToDelete), EnvironmentVariableTarget.User);
         }
     }
 }

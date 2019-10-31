@@ -37,7 +37,7 @@ public class SonarScannerTestSuite {
 
   @ClassRule
   public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    .setSonarVersion(TestUtils.replaceLtsVersion(System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE[6.7]")))
+    .setSonarVersion(TestUtils.replaceLtsVersion(System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE")))
     .setEdition(Edition.DEVELOPER)
     .addPlugin(TestUtils.getMavenLocation("com.sonarsource.cpp", "sonar-cfamily-plugin", "LATEST_RELEASE"))
     .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
