@@ -134,24 +134,9 @@ stages:
           codeCoverageEnabled: true
       - task: PowerShell@2
         displayName: 'Delete files created by unit tests'
-        enabled: false
         inputs:
           targetType: 'inline'
           script: |
-            Write-Host "Delete files created by unit tests, so that they will not be taken by the SonarCloud analysis."
-            $env:TEST_FILE_TO_DELETE = [System.Environment]::GetEnvironmentVariable("TEST_FILE_TO_DELETE","User")
-            Write-Host "env value : $env:TEST_FILE_TO_DELETE"
-            $files = $env:TEST_FILE_TO_DELETE
-            $listOfFiles = $files.Split(";;")
-            foreach ($file in $listOfFiles) {
-              Write-Host "Try to delete : $file"
-              if([System.IO.File]::Exists($file))
-              {
-                Write-Host "$file exists, deleting..."
-                Remove-Item -Path $file
-                Write-Host "$file deleted."
-              }
-            }
             Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
             Get-ChildItem $(Agent.TempDirectory) -Filter 'VSCodeCoverageReport.*' -Recurse -Attributes !Directory | Remove-Item
       - task: SonarCloudAnalyze@1
