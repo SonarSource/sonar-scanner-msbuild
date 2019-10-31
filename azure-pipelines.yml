@@ -273,7 +273,6 @@ stages:
             imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[7.9]"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-        maxParallel: 4
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
         MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
