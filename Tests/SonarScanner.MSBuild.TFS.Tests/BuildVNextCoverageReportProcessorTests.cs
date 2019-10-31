@@ -238,7 +238,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = Path.GetTempPath();
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var testResultsDir = Path.Combine(testDir, "TestResults");
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();
