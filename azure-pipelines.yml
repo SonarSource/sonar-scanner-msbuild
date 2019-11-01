@@ -130,7 +130,6 @@ stages:
             **\$(BuildConfiguration)\*test*.dll
             !**\obj\**
           searchFolder: '$(System.DefaultWorkingDirectory)'
-          vsTestVersion: '15.0'
           codeCoverageEnabled: true
 
       - task: PowerShell@2
@@ -147,7 +146,6 @@ stages:
           packagesToPack: 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec'
           packDestination: 'DeploymentArtifacts\BuildAgentPayload\$(BuildConfiguration)'
           versioningScheme: 'off'
-          buildProperties: 'Configuration=$(BuildConfiguration)'
       - task: SonarCloudAnalyze@1
         displayName: 'Run SonarCloud analysis'
       - task: PowerShell@2
@@ -260,7 +258,7 @@ stages:
         matrix: 
           vs2015_dev: 
             imageName: "vs2015-win2012r2"
-            SQ_VERSION: "DEV"
+            SQ_VERSION: "LATEST_RELEASE[8.0]"
             MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\MSBuild.exe"
           vs2015_latest67: 
             imageName: "vs2015-win2012r2"
@@ -272,7 +270,7 @@ stages:
             MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\MSBuild.exe"
           vs2017_dev: 
             imageName: "vs2017-win2016"
-            SQ_VERSION: "DEV"
+            SQ_VERSION: "LATEST_RELEASE[8.0]"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
           vs2017_latest67: 
             imageName: "vs2017-win2016"
