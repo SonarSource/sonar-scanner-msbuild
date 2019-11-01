@@ -156,6 +156,7 @@ public class TestUtils {
     else {
       LOG.info("TEST SETUP: Tests are not running under VSTS");
     }
+
     TemporaryFolder folder = new TemporaryFolder(baseDirectory);
     LOG.info("TEST SETUP: Temporary folder created. Base directory: " + baseDirectory);
     return folder;
@@ -164,7 +165,8 @@ public class TestUtils {
   public static Path projectDir(TemporaryFolder temp, String projectName) throws IOException {
     Path projectDir = Paths.get("projects").resolve(projectName);
     FileUtils.deleteDirectory(new File(temp.getRoot(), projectName));
-    Path tmpProjectDir = Paths.get(temp.newFolder(projectName).getCanonicalPath());
+    File newFolder = temp.newFolder(projectName);
+    Path tmpProjectDir = Paths.get(newFolder.getCanonicalPath());
     FileUtils.copyDirectory(projectDir.toFile(), tmpProjectDir.toFile());
     return tmpProjectDir;
   }

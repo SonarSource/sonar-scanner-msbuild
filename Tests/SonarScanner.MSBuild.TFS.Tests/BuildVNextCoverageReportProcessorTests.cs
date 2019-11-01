@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
@@ -55,7 +56,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             var mockSearchFallback = new MockSearchFallback();
             mockSearchFallback.SetReturnedFiles("file1.txt", "file2.txt");
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(testDir);
             var testSubject = new BuildVNextCoverageReportProcessor(new MockReportConverter(), new TestLogger(), mockSearchFallback);
 
             var settings = new MockBuildSettings
@@ -82,7 +84,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void SearchFallbackNotShouldBeCalled_IfTrxFilesFound()
         {
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.GetTempPath();
             var testResultsDir = Path.Combine(testDir, "TestResults");
             Directory.CreateDirectory(testResultsDir);
             TestUtils.CreateTextFile(testResultsDir, "dummy.trx", "");
@@ -115,7 +117,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var testResultsDir = Path.Combine(testDir, "TestResults");
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();
@@ -157,7 +159,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.GetTempPath();
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();
 
@@ -189,7 +191,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var testResultsDir = Path.Combine(testDir, "TestResults");
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();
@@ -199,7 +201,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             Directory.CreateDirectory(coverageDir);
 
             TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
-
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
             TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
 
@@ -235,10 +236,9 @@ namespace SonarScanner.MSBuild.TFS.Tests
         [TestMethod]
         public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_CoverageXmlFileAlreadyPresent_NotShouldTryConverting()
         {
-
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var testResultsDir = Path.Combine(testDir, "TestResults");
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();
@@ -288,7 +288,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var testResultsDir = Path.Combine(testDir, "TestResults");
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();
@@ -299,7 +299,6 @@ namespace SonarScanner.MSBuild.TFS.Tests
             Directory.CreateDirectory(coverageDir);
 
             TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
-
             TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
 
             var converter = new MockReportConverter();
@@ -326,7 +325,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var testResultsDir = Path.Combine(testDir, "TestResults");
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();

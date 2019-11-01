@@ -31,6 +31,7 @@ import com.sonar.orchestrator.util.NetworkUtils;
 import java.io.IOException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -109,6 +110,8 @@ public class ScannerMSBuildTest {
     }
   }
 
+
+
   @Test
   public void testSample() throws Exception {
     ORCHESTRATOR.getServer().restoreProfile(FileLocation.of("projects/ProjectUnderTest/TestQualityProfile.xml"));
@@ -120,6 +123,7 @@ public class ScannerMSBuildTest {
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
       .setProjectVersion("1.0"));
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
@@ -143,6 +147,7 @@ public class ScannerMSBuildTest {
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
       .setProjectVersion("1.0"));
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
@@ -193,6 +198,7 @@ public class ScannerMSBuildTest {
     Path projectDir = TestUtils.projectDir(temp, "ProjectUnderTest");
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
+      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
       .setProjectKey(PROJECT_KEY));
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
@@ -224,6 +230,7 @@ public class ScannerMSBuildTest {
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("excludedAndTest")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       .setProjectVersion("1.0"));
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
@@ -266,6 +273,7 @@ public class ScannerMSBuildTest {
       .setProjectKey(PROJECT_KEY)
       .setProjectName("multilang")
       .setProjectVersion("1.0")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       .setDebugLogs(true));
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
@@ -301,6 +309,7 @@ public class ScannerMSBuildTest {
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
       .setProjectVersion("1.0"));
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
@@ -341,6 +350,7 @@ public class ScannerMSBuildTest {
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("parameters")
+      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
       .setProjectVersion("1.0"));
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
@@ -366,6 +376,7 @@ public class ScannerMSBuildTest {
       .setProjectKey(PROJECT_KEY)
       .setProjectName("verbose")
       .setProjectVersion("1.0")
+      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ProjectUnderTest").toString())
       .addArgument("/d:sonar.verbose=true"));
 
     assertThat(result.getLogs()).contains("Downloading from http://");
@@ -557,7 +568,7 @@ public class ScannerMSBuildTest {
     ORCHESTRATOR.getServer().associateProjectToQualityProfile(folderName, "cs",
       "ProfileForTestCustomRoslyn");
 
-    runBeginBuildAndEndForStandardProject(folderName, false);
+    runBeginBuildAndEndForStandardProject(folderName,"" ,false);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(2 + 37 + 1);
@@ -565,14 +576,14 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpAllFlat() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpAllFlat", true);
+    runBeginBuildAndEndForStandardProject("CSharpAllFlat","",  true);
 
     assertThat(getComponent("CSharpAllFlat:Common.cs")).isNotNull();
   }
 
   @Test
   public void testCSharpSharedFiles() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedFiles", true);
+    runBeginBuildAndEndForStandardProject("CSharpSharedFiles", "",true);
 
     assertThat(getComponent("CSharpSharedFiles:Common.cs"))
       .isNotNull();
@@ -586,7 +597,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSharedProjectType() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedProjectType", true);
+    runBeginBuildAndEndForStandardProject("CSharpSharedProjectType", "",true);
 
     assertThat(getComponent("CSharpSharedProjectType:SharedProject/TestEventInvoke.cs"))
       .isNotNull();
@@ -600,7 +611,7 @@ public class ScannerMSBuildTest {
 
   @Test
   public void testCSharpSharedFileWithOneProjectWithoutProjectBaseDir() throws IOException {
-    runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject", false);
+    runBeginBuildAndEndForStandardProject("CSharpSharedFileWithOneProject", "ClassLib1",true);
 
     Set<String> componentKeys = newWsClient()
       .components()
@@ -666,7 +677,7 @@ public class ScannerMSBuildTest {
       .isNotNull();
   }
 
-  private void runBeginBuildAndEndForStandardProject(String folderName, Boolean setProjectBaseDirExplicitly) throws IOException {
+  private void runBeginBuildAndEndForStandardProject(String folderName, String projectName, Boolean setProjectBaseDirExplicitly) throws IOException {
     Path projectDir = TestUtils.projectDir(temp, folderName);
 
     ScannerForMSBuild scanner = TestUtils.newScanner(ORCHESTRATOR, projectDir)
@@ -684,7 +695,13 @@ public class ScannerMSBuildTest {
       // the issue is to explicitly set the projectBaseDir to the project directory, as this
       // will take precedence, so then then key for the shared file is what is expected by
       // the tests.
-      scanner.addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath());
+      if(projectName.isEmpty())
+      {
+        scanner.addArgument("/d:sonar.projectBaseDir=" + projectDir.toAbsolutePath());
+      }else{
+        scanner.addArgument("/d:sonar.projectBaseDir=" + Paths.get(projectDir.toAbsolutePath().toString(), projectName).toString());
+      }
+
     }
 
     ORCHESTRATOR.executeBuild(scanner);
