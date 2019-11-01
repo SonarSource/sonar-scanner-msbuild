@@ -139,6 +139,14 @@ stages:
           script: |
             Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
             Get-ChildItem $(Agent.TempDirectory) -Filter 'VSCodeCoverageReport.*' -Recurse -Attributes !Directory | Remove-Item
+      - task: NuGetCommand@2
+        displayName: 'Package dotnet global tool'
+        inputs:
+          command: 'pack'
+          packagesToPack: 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec'
+          packDestination: 'DeploymentArtifacts\BuildAgentPayload\$(BuildConfiguration)'
+          versioningScheme: 'off'
+          buildProperties: 'Configuration=$(BuildConfiguration)'
       - task: SonarCloudAnalyze@1
         displayName: 'Run SonarCloud analysis'
       - task: PowerShell@2

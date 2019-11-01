@@ -4,7 +4,7 @@
   <PropertyGroup>
     <ScannerNetStandardVersion>netstandard2.0</ScannerNetStandardVersion>
     <ScannerNetCoreAppVersion>netcoreapp2.0</ScannerNetCoreAppVersion>
-    <ScannerNetCoreGlobalToolVersion>netcoreapp2.1</ScannerNetCoreGlobalToolVersion>
+    <ScannerNetCoreGlobalToolVersion>netcoreapp2.1;netcoreapp3.0</ScannerNetCoreGlobalToolVersion>
     <ScannerNetFxVersion>net46</ScannerNetFxVersion>
   </PropertyGroup>
 
