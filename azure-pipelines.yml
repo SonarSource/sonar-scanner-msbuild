@@ -29,6 +29,8 @@ stages:
     stageDisplayName: Build, UT, analyze on SonarCloud and stage to repox
     jobs:
     - job: build
+      pool:
+       vmImage: 'windows-latest'
       displayName: 'Build, UT, analyze on SonarCloud and stage to repox'
       variables:
        SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
@@ -106,7 +108,6 @@ stages:
           PFX_PATH: $(pfx.secureFilePath)
         inputs:
           solution: '$(solution)'
-          vsVersion: '15.0'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
           maximumCpuCount: true
@@ -117,7 +118,6 @@ stages:
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
         inputs:
           solution: '$(solution)'
-          vsVersion: '15.0'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
           maximumCpuCount: true
@@ -130,7 +130,6 @@ stages:
             **\$(BuildConfiguration)\*test*.dll
             !**\obj\**
           searchFolder: '$(System.DefaultWorkingDirectory)'
-          vsTestVersion: '15.0'
           codeCoverageEnabled: true
       - task: PowerShell@2
         displayName: 'Delete files created by unit tests'
