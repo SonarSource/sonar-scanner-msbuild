@@ -130,7 +130,6 @@ stages:
             **\$(BuildConfiguration)\*test*.dll
             !**\obj\**
           searchFolder: '$(System.DefaultWorkingDirectory)'
-          vsTestVersion: '15.0'
           codeCoverageEnabled: true
 
       - task: PowerShell@2
