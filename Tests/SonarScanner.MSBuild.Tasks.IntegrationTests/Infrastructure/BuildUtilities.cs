@@ -29,7 +29,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests
     {
         // TODO: work out some way to automatically set the tools version depending on the version of VS being used
         //public const string MSBuildToolsVersionForTestProjects = "14.0"; // use this line for VS2015
-        public const string MSBuildToolsVersionForTestProjects = "15.0"; // use this line for VS2017
+        //public const string MSBuildToolsVersionForTestProjects = MSBuildLocator.GetMSBuildPath(; // use this line for VS2017
 
         #region Project creation helpers
 
