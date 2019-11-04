@@ -124,6 +124,7 @@ stages:
           logFileVerbosity: detailed
           msbuildArgs: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal'
       - task: VSTest@2
+        displayName: 'Run Unit Tests'
         inputs:
           testSelector: 'testAssemblies'
           testAssemblyVer2: |
