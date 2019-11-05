@@ -4,15 +4,15 @@ url: /analysis/scan/sonarscanner-for-msbuild/
 ---
 
 [[info]]
-| **Download SonarScanner for MSBuild 4.6.2.2108** - Compatible with SonarQube 6.7+ (LTS)  
+| **Download SonarScanner for MSBuild** - Compatible with SonarQube 6.7+ (LTS)  
 | By [SonarSource](https://www.sonarsource.com/) – GNU LGPL 3 – [Issue Tracker](https://github.com/SonarSource/sonar-scanner-msbuild/issues) – [Source](https://github.com/SonarSource/sonar-scanner-msbuild)
 |
-| [.NET Framework 4.6+](https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/4.6.2.2108/sonar-scanner-msbuild-4.6.2.2108-net46.zip) |
-| [.NET Core 2.0+](https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/4.6.2.2108/sonar-scanner-msbuild-4.6.2.2108-netcoreapp2.0.zip) |
+| [.NET Framework 4.6+](https://github.com/SonarSource/sonar-scanner-msbuild/releases) |
+| [.NET Core 2.0+](https://github.com/SonarSource/sonar-scanner-msbuild/releases) |
 | [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner)
 
 
-The SonarScanner for MSBuild is the recommended way to launch an analysis for projects/solutions using MSBuild or dotnet command as a build tool. It is the result of a [collaboration between SonarSource and Microsoft](http://www.sonarqube.org/announcing-sonarqube-integration-with-msbuild-and-team-build/). 
+The SonarScanner for MSBuild is the recommended way to launch an analysis for projects/solutions using MSBuild or dotnet command as a build tool. It is the result of a [collaboration between SonarSource and Microsoft](http://www.sonarqube.org/announcing-sonarqube-integration-with-msbuild-and-team-build/).
 
 SonarScanner for MSBuild is distributed as a standalone command line executable, as a extension for <!-- sonarcloud -->[Azure DevOps](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarcloud --><!-- sonarqube -->[Azure DevOps Server](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarqube -->, and as a plugin for [Jenkins](/analysis/scan/sonarscanner-for-jenkins/).
 
@@ -23,7 +23,7 @@ It supports .Net Core multi-platform projects and it can be used on non-Windows 
 * The SDK corresponding to your build system:
    *  [.NET Framework v4.6+](https://www.microsoft.com/fr-fr/download/details.aspx?id=53344) - either [Build Tools for Visual Studio 2015 Update 3](https://go.microsoft.com/fwlink/?LinkId=615458) or the [Build Tools for Visual Studio 2017](https://www.visualstudio.com/downloads/)
    * .NET Core 2.0 - [.NET Core SDK 2.0](https://www.microsoft.com/net/learn/get-started/) (for .NET Core version of the scanner)
-   * .NET Core 2.1 - [NET Core SDK 2.1.3](https://www.microsoft.com/net/learn/get-started/) (for .NET Core version of the scanner or if you plan to use [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner)
+   * .NET Core 2.1 and above - [NET Core SDK 2.1.3](https://www.microsoft.com/net/learn/get-started/) (for .NET Core version of the scanner or if you plan to use [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner)
 
 
 ## Installation
@@ -45,14 +45,14 @@ Consider setting file system permissions to restrict access to this file.:
 
 ### Installation of the SonarScanner for MSBuild .NET Core Global Tool
 ```
-dotnet tool install --global dotnet-sonarscanner --version 4.6.2
+dotnet tool install --global dotnet-sonarscanner
 ```
-The _--version_ argument is optional. If it is omitted the latest version will be installed.
+.NET Core Global Tool is available from .NETCore 2.1+ and 3.0 (starting from version 4.8.0)
 
 ### On Linux/OSX, if your SonarQube server is secured:
 
 1. Copy the server's CA certs to `/usr/local/share/ca-certificates`
-1. Run `sudo update-ca-certificates`
+2. Run `sudo update-ca-certificates`
 
 ## Use
 There are two versions of the SonarScanner for MSBuild.

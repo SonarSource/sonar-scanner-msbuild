@@ -29,6 +29,8 @@ stages:
     stageDisplayName: Build, UT, analyze on SonarCloud and stage to repox
     jobs:
     - job: build
+      pool:
+       vmImage: 'windows-latest'
       displayName: 'Build, UT, analyze on SonarCloud and stage to repox'
       variables:
        SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
@@ -44,9 +46,9 @@ stages:
       steps:
       - checkout: self
       - task: NuGetToolInstaller@1
-        displayName: 'Use NuGet 4.9.3'
+        displayName: 'Use NuGet 5.3.1'
         inputs:
-          versionSpec: '4.9.3'
+          versionSpec: '5.3.1'
       - task: CacheBeta@0
         displayName: Cache Maven local repo
         inputs:
@@ -106,7 +108,6 @@ stages:
           PFX_PATH: $(pfx.secureFilePath)
         inputs:
           solution: '$(solution)'
-          vsVersion: '15.0'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
           maximumCpuCount: true
@@ -117,21 +118,21 @@ stages:
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
         inputs:
           solution: '$(solution)'
-          vsVersion: '15.0'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
           maximumCpuCount: true
           logFileVerbosity: detailed
           msbuildArgs: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal'
       - task: VSTest@2
+        displayName: 'Run Unit Tests'
         inputs:
           testSelector: 'testAssemblies'
           testAssemblyVer2: |
             **\$(BuildConfiguration)\*test*.dll
             !**\obj\**
           searchFolder: '$(System.DefaultWorkingDirectory)'
-          vsTestVersion: '15.0'
           codeCoverageEnabled: true
+
       - task: PowerShell@2
         displayName: 'Delete files created by unit tests'
         inputs:
@@ -139,6 +140,13 @@ stages:
           script: |
             Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
             Get-ChildItem $(Agent.TempDirectory) -Filter 'VSCodeCoverageReport.*' -Recurse -Attributes !Directory | Remove-Item
+      - task: NuGetCommand@2
+        displayName: 'Package dotnet global tool'
+        inputs:
+          command: 'pack'
+          packagesToPack: 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec'
+          packDestination: 'DeploymentArtifacts\BuildAgentPayload\$(BuildConfiguration)'
+          versioningScheme: 'off'
       - task: SonarCloudAnalyze@1
         displayName: 'Run SonarCloud analysis'
       - task: PowerShell@2
