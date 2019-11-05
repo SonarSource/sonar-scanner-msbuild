@@ -27,6 +27,7 @@ import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Only cpp, without C# plugin
  *
  */
-@Ignore // See task https://github.com/SonarSource/sonar-scanner-msbuild/issues/789
+// See task https://github.com/SonarSource/sonar-scanner-msbuild/issues/789
 public class CppTest {
 
   @ClassRule
@@ -75,7 +76,9 @@ public class CppTest {
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
       .setProjectVersion("1.0")
-      .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString()));
+      .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
+      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ConsoleApp").toString()));
+
     File buildWrapper = temp.newFile();
     File buildWrapperDir = temp.newFolder();
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapper);
@@ -84,8 +87,8 @@ public class CppTest {
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild");
 
-    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
+    assertThat(result.isSuccess()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
@@ -114,7 +117,9 @@ public class CppTest {
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
       .setProjectVersion("1.0")
-      .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString()));
+      .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString()));
+
     File buildWrapper = temp.newFile();
     File buildWrapperDir = temp.newFolder();
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapper);
@@ -123,8 +128,8 @@ public class CppTest {
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
       wrapperOutDir, "/t:Rebuild");
 
-    BuildResult result = ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
-      .addArgument("end"));
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
+    assertThat(result.isSuccess()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);

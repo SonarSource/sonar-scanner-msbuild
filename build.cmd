@@ -1,10 +1,5 @@
 @echo off
 setlocal ENABLEDELAYEDEXPANSION
 
-if "%DEBUG%" == "true" (
-    PowerShell -NonInteractive -NoProfile -ExecutionPolicy Unrestricted -Command "scripts\build\ci-build.ps1" -Verbose
-) else (
-    PowerShell -NonInteractive -NoProfile -ExecutionPolicy Unrestricted -Command "scripts\build\ci-build.ps1"
-)
-echo From Cmd.exe: sonar-scanner-msbuild ci-build.ps1 exited with exit code !errorlevel!
+echo "Build has been moved to Azure pipeline, link is here : https://sonarsource.visualstudio.com/DotNetTeam%20Project/_build?definitionId=64&_a=summary"
 exit !errorlevel!

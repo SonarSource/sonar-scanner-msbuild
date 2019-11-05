@@ -852,7 +852,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
 
             var template = @"<?xml version='1.0' encoding='utf-8'?>
-<Project ToolsVersion='15.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+<Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
   <!-- Boilerplate -->
   <!-- All of these boilerplate properties can be overridden by setting the value again in the test-specific XML snippet -->
@@ -914,7 +914,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 );
 
             string xml = $@"<?xml version='1.0' encoding='utf-8'?>
-<Project ToolsVersion='15.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+<Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
   
   <Target Name='CaptureValues' AfterTargets='{afterTargets}'>
     <Message Importance='high' Text='CAPTURE::PROPERTY::TargetDir::$(TargetDir)' />

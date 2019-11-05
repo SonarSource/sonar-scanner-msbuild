@@ -244,7 +244,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             File.Exists(importsBeforeTargets).Should().BeTrue("Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
 
             var template = @"<?xml version='1.0' encoding='utf-8'?>
-<Project ToolsVersion='15.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+<Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
 
   <!-- Test-specific data -->
   TEST_SPECIFIC_XML
