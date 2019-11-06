@@ -271,7 +271,7 @@
   </Target>
 
   <!-- Don't create the zip for netcoreapp2.1 -->
-  <Target Name="ZipPayloadFiles" Condition=" '$(TargetFramework)' != '$(ScannerNetCoreGlobalToolVersion)' AND $(Configuration) == 'Release' ">
+  <Target Name="ZipPayloadFiles" Condition=" '$(TargetFramework)' != 'netcoreapp2.1' AND '$(Configuration)' == 'Release' ">
     <Message Importance="high" Text="Zipping ScannerCli:" />
     <Message Importance="high" Text="  Source: $(WorkDestinationDir)" />
     <Message Importance="high" Text="  Target: $(DestinationArtifactPath)" />
