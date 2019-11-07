@@ -254,9 +254,9 @@ stages:
           targetType: 'inline'
           script: |
             $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\DeploymentArtifacts\\BuildAgentPayload\\Release"
-            Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-net46.zip" -NewName sonarscanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net46.zip
-            Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip" -NewName sonarscanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-netcoreapp2.0.zip
-            Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip" -NewName sonarscanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-netcoreapp3.0.zip
+            Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-net46.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net46.zip
+            Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-netcoreapp2.0.zip
+            Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-netcoreapp3.0.zip
       - task: PublishPipelineArtifact@1
         displayName: 'Publish packages as artifacts'
         inputs:
