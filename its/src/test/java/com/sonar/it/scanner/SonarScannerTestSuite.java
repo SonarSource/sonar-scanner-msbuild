@@ -39,10 +39,10 @@ public class SonarScannerTestSuite {
   public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setSonarVersion(TestUtils.replaceLtsVersion(System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE")))
     .setEdition(Edition.DEVELOPER)
-    .addPlugin(TestUtils.getMavenLocation("com.sonarsource.cpp", "sonar-cfamily-plugin", "LATEST_RELEASE"))
+    .addPlugin(TestUtils.getMavenLocation("com.sonarsource.cpp", "sonar-cfamily-plugin", System.getProperty("sonar.cfamilyplugin.version","LATEST_RELEASE")))
     .addPlugin(FileLocation.of(TestUtils.getCustomRoslynPlugin().toFile()))
-    .addPlugin(TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-csharp-plugin", "LATEST_RELEASE[7.17]"))
-    .addPlugin(TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-vbnet-plugin", "LATEST_RELEASE[7.17]"))
+    .addPlugin(TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-csharp-plugin", System.getProperty("sonar.csharpplugin.version","LATEST_RELEASE")))
+    .addPlugin(TestUtils.getMavenLocation("org.sonarsource.dotnet", "sonar-vbnet-plugin", System.getProperty("sonar.vbnetplugin.version","LATEST_RELEASE")))
     .activateLicense()
     .build();
 
