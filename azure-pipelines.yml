@@ -284,26 +284,44 @@ stages:
           vs2015_dev: 
             imageName: "vs2015-win2012r2"
             SQ_VERSION: "LATEST_RELEASE[8.0]"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
             MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\MSBuild.exe"
           vs2015_latest67: 
             imageName: "vs2015-win2012r2"
             SQ_VERSION: "LATEST_RELEASE[6.7]"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE[6.4]"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
             MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\MSBuild.exe"
           vs2015_latest79: 
             imageName: "vs2015-win2012r2"
             SQ_VERSION: "LATEST_RELEASE[7.9]"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
             MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\MSBuild.exe"
           vs2017_dev: 
             imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[8.0]"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
           vs2017_latest67: 
             imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[6.7]"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE[6.4]"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
           vs2017_latest79: 
             imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[7.9]"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
@@ -383,7 +401,7 @@ stages:
            NUGET_PATH: $(NUGETEXETOOLPATH)
          inputs:
           goals: 'verify'
-          options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)"
+          options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_CSHARPPLUGIN_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_VBNETPLUGIN_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)"
           publishJUnitResults: true
           mavenPomFile: 'its/pom.xml'
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
