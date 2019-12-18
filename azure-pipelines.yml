@@ -351,7 +351,7 @@ stages:
           targetPath: '$(Pipeline.Workspace)\\scanner-packages'
           artifactName: scanner-packages
        ## This JDK11 task uses hardcoded java version that is
-       ## - downloaded from chocolatey for VS image 2015 (because JDK8 is installed by default, and we need 11+ to run DEV / LTS7.9+)
+       ## - downloaded from github release for VS image 2015 (because JDK8 is installed by default, and we need 11+ to run DEV / LTS7.9+)
        ## - Defined as per the java version installed and not used by default for VS2017 image (see : https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/win/Vs2017-Server2016-Readme.md)
        - task: PowerShell@2
          displayName: "Fix JDK11 install if needed"
@@ -361,10 +361,8 @@ stages:
             
             If($env:IMAGENAME -eq "vs2015-win2012r2")
             {
-              Write-Host "Installing chocolatey...."
-              Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-              Write-Host "Choco is ready to use !"
-              choco install openjdk11 --yes --version 11.0.5.10
+              Invoke-WebRequest -Uri 'https://github.com/AdoptOpenJDK/openjdk11-upstream-binaries/releases/download/jdk-11.0.5%2B10/OpenJDK11U-jdk_x64_windows_11.0.5_10.zip' -OutFile '$(Agent.TempDirectory)\openjdk.zip'
+              Expand-Archive -Path '$(Agent.TempDirectory)\openjdk.zip' -DestinationPath 'C:\Program Files\OpenJDK' -Force
               Write-Host "Install of JDK11 done !"
             }
 
