@@ -19,6 +19,8 @@
  */
 
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -61,7 +63,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
-            var dir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
             var subDir = Path.Combine(dir, "subDir", "subDir2");
             Directory.CreateDirectory(subDir);
 

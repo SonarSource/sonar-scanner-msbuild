@@ -1,10 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>52</version>
+    <version>53</version>
+    <relativePath />
   </parent>
 
   <groupId>org.sonarsource.scanner.msbuild</groupId>
@@ -29,22 +30,22 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:git@github.com:SonarSource-VisualStudio/sonar-scanner-msbuild.git</connection>
-    <developerConnection>scm:git:git@github.com:SonarSource-VisualStudio/sonar-scanner-msbuild.git</developerConnection>
-    <url>https://github.com/SonarSource-VisualStudio/sonar-scanner-msbuild</url>
+    <connection>scm:git:git@github.com:SonarSource/sonar-scanner-msbuild.git</connection>
+    <developerConnection>scm:git:git@github.com:SonarSource/sonar-scanner-msbuild.git</developerConnection>
+    <url>https://github.com/SonarSource/sonar-scanner-msbuild</url>
     <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
-    <system>JIRA</system>
-    <url>https://jira.sonarsource.com/browse/SONARMSBRU</url>
+    <system>GitHub</system>
+    <url>https://github.com/SonarSource/sonar-scanner-msbuild/issues</url>
   </issueManagement>
 
   <properties>
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <gitRepositoryName>sonar-scanner-msbuild</gitRepositoryName>
     <!-- Release: enable publication to Bintray -->
-    <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net46,${project.groupId}:${project.artifactId}:zip:netcoreapp2.0</artifactsToPublish>
+    <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net46,${project.groupId}:${project.artifactId}:zip:netcoreapp2.0,${project.groupId}:${project.artifactId}:zip:netcoreapp3.0</artifactsToPublish>
   </properties>
 
   <build>
@@ -75,7 +76,7 @@
                 <artifact>
                   <file>dotnetScannerGlobalToolPath</file>
                   <type>nupkg</type>
-                  <classifier>netcoreapp2.1</classifier>
+                  <classifier>netcoreapp2.1;netcoreapp3.0</classifier>
                 </artifact>
                 <artifact>
                   <file>classicScannerChocoPath</file>
@@ -83,15 +84,20 @@
                   <classifier>net46</classifier>
                 </artifact>
                 <artifact>
-                  <file>dotnetScannerChocoPath</file>
+                  <file>dotnetcore2ScannerChocoPath</file>
                   <type>nupkg</type>
                   <classifier>netcoreapp2.0</classifier>
+                </artifact>
+                <artifact>
+                  <file>dotnetcore3ScannerChocoPath</file>
+                  <type>nupkg</type>
+                  <classifier>netcoreapp3.0</classifier>
                 </artifact>
               </artifacts>
             </configuration>
           </execution>
         </executions>
-        </plugin>
+      </plugin>
     </plugins>
   </build>
 </project>
