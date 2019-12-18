@@ -18,11 +18,12 @@ resources:
     - repository: commonTemplates
       type: git
       name: pipelines-yaml-templates
-      ref: refs/tags/v1.0.1
+      ref: refs/tags/v1.0.7
 
 stages:
 - template: stage-with-burgr-notifications.yml@commonTemplates
   parameters:
+    condition: and(succeeded(), eq(variables['System.PullRequest.IsFork	'], 'false'))
     burgrName: 'build'
     burgrType: 'build'
     stageName: 'build'
@@ -270,6 +271,7 @@ stages:
         displayName: Revert changes made to pom.xml to not break cache feature
 - template: stage-with-burgr-notifications.yml@commonTemplates
   parameters:
+    condition: and(succeeded(), eq(variables['System.PullRequest.IsFork	'], 'false'))
     burgrName: 'qa'
     burgrType: 'qa'
     stageName: 'qa'
@@ -326,7 +328,6 @@ stages:
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
         MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
-        system.debug: true
       pool:
        vmImage: $(imageName)
       steps:
@@ -412,6 +413,91 @@ stages:
          displayName: Revert changes made to pom.xml to not break cache feature
 - template: promote-stage.yml@commonTemplates
   parameters:
+    condition: and(succeeded(), eq(variables['System.PullRequest.IsFork	'], 'false'))
     stageDependencies:
     - build
     - qa
+
+- stage: Build, UT, analyze on SonarCloud
+  condition: and(succeeded(), eq(variables['System.PullRequest.IsFork	'], 'true'))
+  jobs:
+    - job: build
+      pool:
+       vmImage: 'windows-latest'
+      displayName: 'Build, UT, analyze on SonarCloud'
+      variables:
+       solution: 'SonarScanner.MSBuild.sln'
+       sonarCloudOrganization: 'sonarsource'
+       sonarCloudMsBuildProjectKey: 'sonarscanner-msbuild'
+       sonarCloudMsBuildProjectName: 'SonarScanner for MSBuild'
+       buildPlatform: 'Any CPU'
+       buildConfiguration: 'Release'
+      steps:
+      - checkout: self
+      - task: NuGetToolInstaller@1
+        displayName: 'Use NuGet 5.3.1'
+        inputs:
+          versionSpec: '5.3.1'
+      - task: NuGetCommand@2
+        displayName: 'NuGet restore'
+        inputs:
+          command: 'restore'
+          restoreSolution: '$(solution)'
+          feedsToUse: 'select'
+      - task: PowerShell@2
+        displayName: 'Promote project version'
+        inputs:
+          targetType: 'inline'
+          script: |
+            # Calculate the file path
+            $versionFilePath = "$env:BUILD_SOURCESDIRECTORY\scripts\version\Version.props"
+            Write-Host "Reading the Sonar project version from '${versionFilePath}' ..."
+            
+            # Read the version from the file
+            [xml]$versionProps = Get-Content "$versionFilePath"
+            $sonarProjectVersion = $versionProps.Project.PropertyGroup.MainVersion
+            Write-Host "Sonar project version is '${sonarProjectVersion}'"
+            # Set the variable to it can be used by other tasks
+            Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$sonarProjectVersion"
+      - task: VSBuild@1
+        displayName: 'Set BranchName, Sha1 and BuildNumber properties from Azdo pipeline variables'
+        inputs:
+          solution: 'scripts\version\ChangeVersion.proj'
+          msbuildArgs: '/p:Sha1=$(Build.SourceVersion) /p:BranchName=$(Build.SourceBranchName) /p:BuildNumber=$(Build.BuildId)  /p:BuildConfiguration=$(BuildConfiguration)'
+      - task: SonarCloudPrepare@1
+        displayName: 'Prepare analysis on SonarCloud'
+        inputs: 
+          SonarCloud: 'SonarCloud'
+          organization: '$(sonarCloudOrganization)'
+          projectKey: '$(sonarCloudMsBuildProjectKey)'
+          projectName: '$(sonarCloudMsBuildProjectName)'
+          projectVersion: '$(SONAR_PROJECT_VERSION)b$(Build.BuildId)-F'
+          scannerMode: MSBuild
+      - task: VSBuild@1
+        displayName: 'Build Scanner for MSBuild solution'
+        inputs:
+          solution: '$(solution)'
+          platform: '$(BuildPlatform)'
+          configuration: '$(BuildConfiguration)'
+          maximumCpuCount: true
+          logFileVerbosity: detailed
+          msbuildArgs: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal'
+      - task: VSTest@2
+        displayName: 'Run Unit Tests'
+        inputs:
+          testSelector: 'testAssemblies'
+          testAssemblyVer2: |
+            **\$(BuildConfiguration)\*test*.dll
+            !**\obj\**
+          searchFolder: '$(System.DefaultWorkingDirectory)'
+          codeCoverageEnabled: true
+
+      - task: PowerShell@2
+        displayName: 'Delete files created by unit tests'
+        inputs:
+          targetType: 'inline'
+          script: |
+            Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
+            Get-ChildItem $(Agent.TempDirectory) -Filter 'VSCodeCoverageReport.*' -Recurse -Attributes !Directory | Remove-Item
+      - task: SonarCloudAnalyze@1
+        displayName: 'Run SonarCloud analysis'
