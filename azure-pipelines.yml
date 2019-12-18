@@ -418,7 +418,8 @@ stages:
     - build
     - qa
 
-- stage: Build, UT, analyze on SonarCloud
+- stage: build-fork
+  displayName: Build, UT, analyze on SonarCloud
   condition: and(succeeded(), eq(variables['System.PullRequest.IsFork	'], 'true'))
   jobs:
     - job: build
