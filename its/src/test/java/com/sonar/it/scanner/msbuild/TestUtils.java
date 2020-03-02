@@ -1,6 +1,6 @@
 /*
  * Scanner for MSBuild :: Integration Tests
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -45,14 +45,14 @@ import org.apache.commons.io.FileUtils;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
-import org.sonarqube.ws.WsComponents;
-import org.sonarqube.ws.WsMeasures;
+import org.sonarqube.ws.Measures;
+import org.sonarqube.ws.client.components.SearchRequest;
+import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
-import org.sonarqube.ws.client.component.SearchWsRequest;
-import org.sonarqube.ws.client.measure.ComponentWsRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -257,10 +257,10 @@ public class TestUtils {
   {
     Set<String> componentKeys = newWsClient(orchestrator)
       .components()
-      .search(new SearchWsRequest().setLanguage("cs").setQualifiers(Collections.singletonList("FIL")))
+      .search(new SearchRequest().setLanguage("cs").setQualifiers(Collections.singletonList("FIL")))
       .getComponentsList()
       .stream()
-      .map(WsComponents.Component::getKey)
+      .map(Components.Component::getKey)
       .collect(Collectors.toSet());
 
     LOG.info("Dumping C# component keys:");
@@ -295,14 +295,14 @@ public class TestUtils {
   public static List<Issue> issuesForComponent(Orchestrator orchestrator, String componentKey) {
     return newWsClient(orchestrator)
       .issues()
-      .search(new org.sonarqube.ws.client.issue.SearchWsRequest().setComponentKeys(Collections.singletonList(componentKey)))
+      .search(new org.sonarqube.ws.client.issues.SearchRequest().setComponentKeys(Collections.singletonList(componentKey)))
       .getIssuesList();
   }
 
   public static List<Issue> allIssues(Orchestrator orchestrator) {
     return newWsClient(orchestrator)
       .issues()
-      .search(new org.sonarqube.ws.client.issue.SearchWsRequest())
+      .search(new org.sonarqube.ws.client.issues.SearchRequest())
       .getIssuesList();
   }
 
@@ -318,7 +318,7 @@ public class TestUtils {
 
   @CheckForNull
   public static Integer getMeasureAsInteger(String componentKey, String metricKey, Orchestrator orchestrator) {
-    WsMeasures.Measure measure = getMeasure(componentKey, metricKey, orchestrator);
+    Measures.Measure measure = getMeasure(componentKey, metricKey, orchestrator);
 
     Integer result = (measure == null) ? null : Integer.parseInt(measure.getValue());
     LOG.info("Component: " + componentKey + 
@@ -329,11 +329,11 @@ public class TestUtils {
   }
 
   @CheckForNull
-  private static WsMeasures.Measure getMeasure(@Nullable String componentKey, String metricKey, Orchestrator orchestrator) {
-    WsMeasures.ComponentWsResponse response = newWsClient(orchestrator).measures().component(new ComponentWsRequest()
+  private static Measures.Measure getMeasure(@Nullable String componentKey, String metricKey, Orchestrator orchestrator) {
+    Measures.ComponentWsResponse response = newWsClient(orchestrator).measures().component(new ComponentRequest()
       .setComponent(componentKey)
       .setMetricKeys(Collections.singletonList(metricKey)));
-    List<WsMeasures.Measure> measures = response.getComponent().getMeasuresList();
+    List<Measures.Measure> measures = response.getComponent().getMeasuresList();
     return measures.size() == 1 ? measures.get(0) : null;
   }  
 }
