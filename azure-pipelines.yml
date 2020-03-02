@@ -387,6 +387,9 @@ stages:
           script: |
              $projectVersion = Get-Content "$(Pipeline.Workspace)\\scanner-packages\\version.txt"
              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
+       - template: update-maven-version-steps.yml
+         parameters:
+          mavenSettingsFilePath: $(mavenSettings.secureFilePath)
        - task: Maven@3
          displayName: 'Run Maven ITs for SQ $(SQ_VERSION)_$(imageName)'
          env:
