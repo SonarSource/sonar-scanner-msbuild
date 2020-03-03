@@ -436,7 +436,7 @@ stages:
           jdkDirectory: $(JDK_PATH)
           mavenOptions: $(MAVEN_OPTS)
           mavenVersionSelection: 'Path'
-          mavenPath: 'C:\Program Files\Maven\363\bin'
+          mavenPath: 'C:\Program Files\Maven\363\apache-maven-3.6.3\bin'
        - bash: git checkout .
          name: revertPomChanges
          displayName: Revert changes made to pom.xml to not break cache feature
