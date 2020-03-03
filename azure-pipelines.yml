@@ -288,6 +288,8 @@ stages:
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v140"
+            WINDOWSSDKTARGET: "10.0.17763.0"
           vs2017_latest67: 
             imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[6.7]"
@@ -295,6 +297,8 @@ stages:
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v140"
+            WINDOWSSDKTARGET: "10.0.17763.0"
           vs2017_latest79: 
             imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[7.9]"
@@ -302,6 +306,8 @@ stages:
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v140"
+            WINDOWSSDKTARGET: "10.0.17763.0"
           vs2019_dev: 
             imageName: "windows-latest"
             SQ_VERSION: "DEV"
@@ -309,6 +315,8 @@ stages:
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v141"
+            WINDOWSSDKTARGET: "10.0"
           vs2019_latest67: 
             imageName: "windows-latest"
             SQ_VERSION: "LATEST_RELEASE[6.7]"
@@ -316,6 +324,8 @@ stages:
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v141"
+            WINDOWSSDKTARGET: "10.0"
           vs2019_latest79: 
             imageName: "windows-latest"
             SQ_VERSION: "LATEST_RELEASE[7.9]"
@@ -323,6 +333,8 @@ stages:
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v141"
+            WINDOWSSDKTARGET: "10.0"
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
         MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
@@ -388,7 +400,7 @@ stages:
            NUGET_PATH: $(NUGETEXETOOLPATH)
          inputs:
           goals: 'verify'
-          options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_CSHARPPLUGIN_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_VBNETPLUGIN_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)"
+          options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_CSHARPPLUGIN_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_VBNETPLUGIN_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.plateformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
           publishJUnitResults: true
           mavenPomFile: 'its/pom.xml'
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
