@@ -323,6 +323,27 @@ stages:
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+          vs2019_dev: 
+            imageName: "windows-latest"
+            SQ_VERSION: "DEV"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
+          vs2019_latest67: 
+            imageName: "windows-latest"
+            SQ_VERSION: "LATEST_RELEASE[6.7]"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE[6.4]"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
+          vs2019_latest79: 
+            imageName: "windows-latest"
+            SQ_VERSION: "LATEST_RELEASE[7.9]"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
         MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
@@ -387,9 +408,13 @@ stages:
           script: |
              $projectVersion = Get-Content "$(Pipeline.Workspace)\\scanner-packages\\version.txt"
              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
-       - template: update-maven-version-steps.yml
-         parameters:
-          mavenSettingsFilePath: $(mavenSettings.secureFilePath)
+       - task: PowerShell@2
+         displayName: "Install Maven 3.6.3"
+         inputs:
+          targetType: 'inline'
+          script: |
+             Invoke-WebRequest -Uri 'https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.zip' -OutFile '$(Agent.TempDirectory)\maven.zip'
+             Expand-Archive -Path '$(Agent.TempDirectory)\maven.zip' -DestinationPath '- task: Maven@3
        - task: Maven@3
          displayName: 'Run Maven ITs for SQ $(SQ_VERSION)_$(imageName)'
          env:
@@ -410,6 +435,9 @@ stages:
           javaHomeOption: 'Path'
           jdkDirectory: $(JDK_PATH)
           mavenOptions: $(MAVEN_OPTS)
+          mavenVersionOption: 'Path'
+          mavenDirectory: 'C:\Program Files\Maven\363\bin'
+      
        - bash: git checkout .
          name: revertPomChanges
          displayName: Revert changes made to pom.xml to not break cache feature
