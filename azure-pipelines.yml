@@ -316,7 +316,7 @@ stages:
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v141"
-            WINDOWSSDKTARGET: "10.0"
+            WINDOWSSDKTARGET: "10.0.17763.0"
           vs2019_latest67: 
             imageName: "windows-latest"
             SQ_VERSION: "LATEST_RELEASE[6.7]"
@@ -325,7 +325,7 @@ stages:
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v141"
-            WINDOWSSDKTARGET: "10.0"
+            WINDOWSSDKTARGET: "10.0.17763.0"
           vs2019_latest79: 
             imageName: "windows-latest"
             SQ_VERSION: "LATEST_RELEASE[7.9]"
@@ -334,7 +334,7 @@ stages:
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v141"
-            WINDOWSSDKTARGET: "10.0"
+            WINDOWSSDKTARGET: "10.0.17763.0"
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
         MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
