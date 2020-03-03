@@ -360,7 +360,6 @@ stages:
                $jdkPath = 'C:\Program Files\Java\zulu-11-azure-jdk_11.33.15-11.0.4-win_x64'
                Write-Host "##vso[task.setvariable variable=JDK_PATH]$jdkPath"
        - task: NuGetToolInstaller@1
-         condition: and(succeeded(), eq(variables['ImageName'], 'vs2017-win2016'))
          inputs:
           versionSpec: '4.9.3'
        - task: PowerShell@2
