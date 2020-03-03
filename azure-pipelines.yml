@@ -347,7 +347,6 @@ stages:
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
         MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
-        system.debug: true
       pool:
        vmImage: $(imageName)
       steps:
@@ -392,7 +391,7 @@ stages:
                $jdkPath = 'C:\Program Files\OpenJDK\openjdk-11.0.5_10'
                Write-Host "##vso[task.setvariable variable=JDK_PATH]$jdkPath"
                
-             }ElseIf($env:IMAGENAME -eq "vs2017-win2016")
+             }Else
              {
                $jdkPath = 'C:\Program Files\Java\zulu-11-azure-jdk_11.33.15-11.0.4-win_x64'
                Write-Host "##vso[task.setvariable variable=JDK_PATH]$jdkPath"
