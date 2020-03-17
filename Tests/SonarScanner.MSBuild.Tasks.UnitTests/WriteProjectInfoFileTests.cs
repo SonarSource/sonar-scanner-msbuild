@@ -47,7 +47,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_FileCreated()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var projectGuid = Guid.NewGuid();
 
@@ -88,7 +88,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_AnalysisResults()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var projectGuid = Guid.NewGuid();
 
@@ -137,7 +137,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_AnalysisSettings()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var projectGuid = Guid.NewGuid();
 
@@ -210,7 +210,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_MissingProjectGuid()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var task = new WriteProjectInfoFile
             {
@@ -244,7 +244,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_UseSolutionProjectGuid()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var projectGuid = Guid.NewGuid();
 
@@ -291,7 +291,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
                 // 1. Null language
                 ProjectLanguage = null,
-                OutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "null.language")
+                OutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "null.language")
             };
 
             var actual = ExecuteAndCheckSucceeds(task, task.OutputFolder);
@@ -299,7 +299,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             // 2. Unrecognized language
             task.ProjectLanguage = "unrecognized language";
-            task.OutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "unrecog.language");
+            task.OutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "unrecog.language");
 
             actual = ExecuteAndCheckSucceeds(task, task.OutputFolder);
             actual.ProjectLanguage.Should().Be("unrecognized language", "Unexpected value for project language");
@@ -420,7 +420,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 ProjectGuid = Guid.NewGuid().ToString("B"),
                 ProjectLanguage = projectLanguage,
                 CodePage = codePage.ToString(),
-                OutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, folderName)
+                OutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, folderName)
             };
 
             // Act

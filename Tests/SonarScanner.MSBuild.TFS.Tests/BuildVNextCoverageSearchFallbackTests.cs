@@ -39,7 +39,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
-            var rootDir = TestUtils.CreateTestSpecificFolder(this.TestContext);
+            var rootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(this.TestContext);
             var envDir = Path.Combine(rootDir, "DirSpecifiedInEnvDir");
 
             using (var envVars = new EnvironmentVariableScope())

@@ -49,8 +49,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Checks the output folder structure is correct for a simple solution
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             var codeFilePath = CreateEmptyFile(rootInputFolder, "codeFile1.txt");
             var projectXml = $@"
@@ -88,8 +88,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // should still be generated.
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // Include a compilable file to avoid warnings about no files
             var codeFilePath = CreateEmptyFile(rootInputFolder, "codeFile1.txt");
@@ -130,8 +130,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // should not be generated.
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // Include a compilable file to avoid warnings about no files
             var codeFilePath = CreateEmptyFile(rootInputFolder, "codeFile1.txt");
@@ -168,8 +168,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
         public void E2E_HasAnalyzableFiles()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // Mix of analyzable and non-analyzable files
             var none1 = CreateEmptyFile(rootInputFolder, "none1.txt");
@@ -233,8 +233,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
         public void E2E_NoAnalyzableFiles()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // Only non-analyzable files
             var foo1 = CreateEmptyFile(rootInputFolder, "foo1.txt");
@@ -269,8 +269,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
         public void E2E_HasManagedAndContentFiles_VB()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // Mix of analyzable and non-analyzable files
             var none1 = CreateEmptyFile(rootInputFolder, "none1.txt");
@@ -317,8 +317,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
         public void E2E_IntermediateOutputFilesAreExcluded()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext);
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // Add files that should be analyzed
             var nonObjFolder = Path.Combine(rootInputFolder, "foo");
@@ -375,8 +375,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
         public void E2E_UsingTaskHandlesBracketsInName()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "folder with brackets in name (SONARMSBRU-12)");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "folder with brackets in name (SONARMSBRU-12)");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // Copy the task assembly and supporting assemblies to a folder with brackets in the name
             var taskAssemblyFilePath = typeof(WriteProjectInfoFile).Assembly.Location;
@@ -426,8 +426,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
         {
             // Project info should still be written for files with $(SonarQubeExclude) set to true
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // Mix of analyzable and non-analyzable files
             var foo1 = CreateEmptyFile(rootInputFolder, "foo1.txt");
@@ -476,8 +476,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // The project info should be created as normal and the correct files to analyze detected.
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
@@ -563,8 +563,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // processed correctly e.g. can be excluded, marked as test projects etc
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
@@ -669,8 +669,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // as expected, depending on the type of the project being built.
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             var code1 = CreateEmptyFile(rootInputFolder, "code1.cs");
 
@@ -743,7 +743,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
         private string CreateProjectFile(string testSpecificProjectXml, string sonarQubeOutputPath, bool isVB = false)
         {
-            var projectDirectory = TestUtils.CreateTestSpecificFolder(TestContext);
+            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var language = isVB ? "VB" : "C#";
 

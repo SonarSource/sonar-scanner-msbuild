@@ -37,7 +37,7 @@ namespace SonarQube.Bootstrapper.Tests
         public void Load_WhenUsingDefaultFile_ReturnsEmptyList()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var propertiesFile = TestUtils.EnsureDefaultPropertiesFileExists(testDir, TestContext);
 
             // Act - will error if the file is badly-formed
@@ -50,7 +50,7 @@ namespace SonarQube.Bootstrapper.Tests
         public void Load_WhenUsingProperties_ReturnsExpectedProperties()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var propertiesFile = TestUtils.EnsureDefaultPropertiesFileExists(testDir, TestContext);
             File.WriteAllText(propertiesFile, @"<SonarQubeAnalysisProperties  xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns=""http://www.sonarsource.com/msbuild/integration/2015/1"">
     <Property Name=""sonar.host.url"">http://localhost:9000</Property>
@@ -74,7 +74,7 @@ namespace SonarQube.Bootstrapper.Tests
         public void Load_WhenUsingInvalidName_ThrowsXmlException()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var propertiesFile = TestUtils.EnsureDefaultPropertiesFileExists(testDir, TestContext);
             File.WriteAllText(propertiesFile, @"<SonarQubeAnalysisProperties  xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns=""http://www.sonarsource.com/msbuild/integration/2015/1"">
     <Property name=""sonar.verbose"">true</Property>

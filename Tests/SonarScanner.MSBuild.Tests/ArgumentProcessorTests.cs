@@ -104,7 +104,7 @@ namespace SonarQube.Bootstrapper.Tests
             // Command line properties should take precedence
 
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext, "settings");
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "settings");
             var fullPropertiesPath = Path.Combine(testDir, "settings.txt");
             var properties = new AnalysisProperties
             {
@@ -315,7 +315,7 @@ namespace SonarQube.Bootstrapper.Tests
         public void ArgProc_SonarVerbose_CmdAndFile()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext, "settings");
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "settings");
             var fullPropertiesPath = Path.Combine(testDir, "settings.txt");
             var properties = new AnalysisProperties
             {

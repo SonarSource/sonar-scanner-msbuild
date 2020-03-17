@@ -83,7 +83,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         [TestMethod]
         public void PropertiesWriterToString()
         {
-            var productBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_ProductBaseDir");
+            var productBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "PropertiesWriterTest_ProductBaseDir");
             var productProject = CreateEmptyFile(productBaseDir, "MyProduct.csproj");
             var productFile = CreateEmptyFile(productBaseDir, "File.cs");
             var productChineseFile = CreateEmptyFile(productBaseDir, "你好.cs");
@@ -92,7 +92,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             CreateEmptyFile(productBaseDir, "productTrx.trx");
             var productFileListFilePath = Path.Combine(productBaseDir, "productManagedFiles.txt");
 
-            var otherDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_OtherDir");
+            var otherDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "PropertiesWriterTest_OtherDir");
             var missingFileOutsideProjectDir = new FileInfo(Path.Combine(otherDir, "missing.cs"));
 
             var productFiles = new List<FileInfo>
@@ -109,7 +109,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var productVB = new ProjectData(CreateProjectInfo("vbProject", "B51622CF-82F4-48C9-9F38-FB981FAFAF3A", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.VisualBasic, "UTF-8"));
             productVB.SonarQubeModuleFiles.Add(productFile);
 
-            var testBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_TestBaseDir");
+            var testBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "PropertiesWriterTest_TestBaseDir");
             var testProject = CreateEmptyFile(testBaseDir, "MyTest.csproj");
             var testFile = CreateEmptyFile(testBaseDir, "File.cs");
             var testFileListFilePath = Path.Combine(testBaseDir, "testManagedFiles.txt");
@@ -211,7 +211,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
                 SonarProjectKey = "key",
                 SonarProjectName = "name",
                 SonarProjectVersion = "1.0",
-                SonarOutputDir = TestUtils.CreateTestSpecificFolder(TestContext)
+                SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
             };
 
             var writer = new PropertiesWriter(validConfig, new TestLogger());
@@ -231,7 +231,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
                 SonarProjectKey = "key",
                 SonarProjectName = "name",
                 SonarProjectVersion = "1.0",
-                SonarOutputDir = TestUtils.CreateTestSpecificFolder(TestContext)
+                SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
             };
 
             var writer = new PropertiesWriter(validConfig, new TestLogger());
@@ -250,7 +250,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
         {
             // Tests that analysis settings in the ProjectInfo are written to the file
             // Arrange
-            var projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_AnalysisSettingsWritten");
+            var projectBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "PropertiesWriterTest_AnalysisSettingsWritten");
             var productProject = CreateEmptyFile(projectBaseDir, "MyProduct.csproj");
 
             var productFile = CreateEmptyFile(projectBaseDir, "File.cs");
@@ -294,7 +294,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             // Tests that .sonar.working.directory is explicitly set per module
 
             // Arrange
-            var projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_AnalysisSettingsWritten");
+            var projectBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "PropertiesWriterTest_AnalysisSettingsWritten");
             var productProject = CreateEmptyFile(projectBaseDir, "MyProduct.csproj");
 
             var productFile = CreateEmptyFile(projectBaseDir, "File.cs");
@@ -343,7 +343,7 @@ sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981
             // Tests that global settings in the ProjectInfo are written to the file
 
             // Arrange
-            var projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "PropertiesWriterTest_GlobalSettingsWritten");
+            var projectBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "PropertiesWriterTest_GlobalSettingsWritten");
 
             var config = new AnalysisConfig()
             {

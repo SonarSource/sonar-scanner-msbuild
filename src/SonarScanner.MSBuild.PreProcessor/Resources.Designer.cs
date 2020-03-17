@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -270,6 +270,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_FetchingQualityProfile {
             get {
                 return ResourceManager.GetString("MSG_FetchingQualityProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To analyze private projects make sure the scanner user has &apos;Browse&apos; permission..
+        /// </summary>
+        internal static string MSG_Forbidden_BrowsePermission {
+            get {
+                return ResourceManager.GetString("MSG_Forbidden_BrowsePermission", resourceCulture);
             }
         }
         

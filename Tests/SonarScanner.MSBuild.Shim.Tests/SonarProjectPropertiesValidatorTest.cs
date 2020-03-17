@@ -37,7 +37,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         [TestMethod]
         public void SonarProjectPropertiesValidatorTest_FailCurrentDirectory()
         {
-            var folder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var folder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             File.Create(Path.Combine(folder, "sonar-project.properties"));
 
             var called = false;
@@ -56,7 +56,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         [TestMethod]
         public void SonarProjectPropertiesValidatorTest_FailProjectDirectory()
         {
-            var folder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var folder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var p1 = new ProjectData(MockProject(folder, "Project1")) { Status = ProjectInfoValidity.Valid };
             var p2 = new ProjectData(MockProject(folder, "Project2")) { Status = ProjectInfoValidity.Valid };
@@ -89,7 +89,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         [TestMethod]
         public void SonarProjectPropertiesValidatorTest_SucceedAndSkipInvalidProjects()
         {
-            var folder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var folder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var p1 = new ProjectData(MockProject(folder, "Project1")) { Status = ProjectInfoValidity.Valid  };
             var p2 = new ProjectData(MockProject(folder, "Project3")) { Status = ProjectInfoValidity.ExcludeFlagSet };

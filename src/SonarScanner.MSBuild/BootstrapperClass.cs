@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS;
 using SonarScanner.MSBuild.TFS.Interfaces;
@@ -59,7 +60,7 @@ namespace SonarScanner.MSBuild
         /// <summary>
         /// Bootstraps a begin or end step, based on the bootstrap settings.
         /// </summary>
-        public int Execute()
+        public async Task<int> Execute()
         {
             int exitCode;
 
@@ -73,7 +74,7 @@ namespace SonarScanner.MSBuild
             {
                 if (phase == AnalysisPhase.PreProcessing)
                 {
-                    exitCode = PreProcess();
+                    exitCode = await PreProcess();
                 }
                 else
                 {
@@ -90,7 +91,7 @@ namespace SonarScanner.MSBuild
             return exitCode;
         }
 
-        private int PreProcess()
+        private async Task<int> PreProcess()
         {
             this.logger.LogInfo(Resources.MSG_PreparingDirectories);
 
@@ -104,7 +105,7 @@ namespace SonarScanner.MSBuild
 
             var preProcessor = this.processorFactory.CreatePreProcessor();
             Directory.SetCurrentDirectory(this.bootstrapSettings.TempDirectory);
-            var success = preProcessor.Execute(this.bootstrapSettings.ChildCmdLineArgs.ToArray());
+            var success = await preProcessor.Execute(this.bootstrapSettings.ChildCmdLineArgs.ToArray());
 
             return success ? SuccessCode : ErrorCode;
         }
