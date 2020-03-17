@@ -1,6 +1,6 @@
 /*
  * Scanner for MSBuild :: Integration Tests
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -23,10 +23,7 @@ import com.sonar.it.scanner.SonarScannerTestSuite;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
-import com.sonar.orchestrator.container.Edition;
-import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.NetworkUtils;
 import java.io.IOException;
 import java.nio.file.LinkOption;
@@ -69,13 +66,11 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
-import org.sonarqube.ws.WsComponents;
-import org.sonarqube.ws.WsMeasures;
 import org.sonarqube.ws.client.WsClient;
-import org.sonarqube.ws.client.component.SearchWsRequest;
-import org.sonarqube.ws.client.component.ShowWsRequest;
-import org.sonarqube.ws.client.measure.ComponentWsRequest;
+import org.sonarqube.ws.client.components.SearchRequest;
+import org.sonarqube.ws.client.components.ShowRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -615,10 +610,10 @@ public class ScannerMSBuildTest {
 
     Set<String> componentKeys = newWsClient()
       .components()
-      .search(new SearchWsRequest().setLanguage("cs").setQualifiers(Collections.singletonList("FIL")))
+      .search(new SearchRequest().setLanguage("cs").setQualifiers(Collections.singletonList("FIL")))
       .getComponentsList()
       .stream()
-      .map(WsComponents.Component::getKey)
+      .map(Components.Component::getKey)
       .collect(Collectors.toSet());
 
     // When not using /d:sonar.projectBaseDir the root dir will be set at the level of the project so that the
@@ -709,8 +704,8 @@ public class ScannerMSBuildTest {
     TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
   }
 
-  private static WsComponents.Component getComponent(String componentKey) {
-    return newWsClient().components().show(new ShowWsRequest().setKey(componentKey)).getComponent();
+  private static Components.Component getComponent(String componentKey) {
+    return newWsClient().components().show(new ShowRequest().setComponent(componentKey)).getComponent();
   }
 
   private static WsClient newWsClient() {

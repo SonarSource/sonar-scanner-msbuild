@@ -281,27 +281,6 @@ stages:
       displayName: 'Run its'
       strategy: 
         matrix: 
-          vs2015_dev: 
-            imageName: "vs2015-win2012r2"
-            SQ_VERSION: "LATEST_RELEASE[8.0]"
-            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\MSBuild.exe"
-          vs2015_latest67: 
-            imageName: "vs2015-win2012r2"
-            SQ_VERSION: "LATEST_RELEASE[6.7]"
-            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE[6.4]"
-            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
-            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\MSBuild.exe"
-          vs2015_latest79: 
-            imageName: "vs2015-win2012r2"
-            SQ_VERSION: "LATEST_RELEASE[7.9]"
-            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
-            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\MSBuild\\14.0\\Bin\\MSBuild.exe"
           vs2017_dev: 
             imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[8.0]"
@@ -309,6 +288,8 @@ stages:
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v140"
+            WINDOWSSDKTARGET: "10.0.17763.0"
           vs2017_latest67: 
             imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[6.7]"
@@ -316,6 +297,8 @@ stages:
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v140"
+            WINDOWSSDKTARGET: "10.0.17763.0"
           vs2017_latest79: 
             imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[7.9]"
@@ -323,10 +306,38 @@ stages:
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v140"
+            WINDOWSSDKTARGET: "10.0.17763.0"
+          vs2019_dev: 
+            imageName: "windows-latest"
+            SQ_VERSION: "DEV"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v140"
+            WINDOWSSDKTARGET: "10.0.17763.0"
+          vs2019_latest67: 
+            imageName: "windows-latest"
+            SQ_VERSION: "LATEST_RELEASE[6.7]"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE[6.4]"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v140"
+            WINDOWSSDKTARGET: "10.0.17763.0"
+          vs2019_latest79: 
+            imageName: "windows-latest"
+            SQ_VERSION: "LATEST_RELEASE[7.9]"
+            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
+            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
+            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
+            PLATFORMTOOLSET: "v140"
+            WINDOWSSDKTARGET: "10.0.17763.0"
       variables:
         MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
         MAVEN_OPTS: '-Xmx3072m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
-        system.debug: true
       pool:
        vmImage: $(imageName)
       steps:
@@ -354,30 +365,13 @@ stages:
        ## - downloaded from github release for VS image 2015 (because JDK8 is installed by default, and we need 11+ to run DEV / LTS7.9+)
        ## - Defined as per the java version installed and not used by default for VS2017 image (see : https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/win/Vs2017-Server2016-Readme.md)
        - task: PowerShell@2
-         displayName: "Fix JDK11 install if needed"
+         displayName: "Write JDK11 path to JDK_PATH"
          inputs:
           targetType: 'inline'
           script: |
-            
-            If($env:IMAGENAME -eq "vs2015-win2012r2")
-            {
-              Invoke-WebRequest -Uri 'https://github.com/AdoptOpenJDK/openjdk11-upstream-binaries/releases/download/jdk-11.0.5%2B10/OpenJDK11U-jdk_x64_windows_11.0.5_10.zip' -OutFile '$(Agent.TempDirectory)\openjdk.zip'
-              Expand-Archive -Path '$(Agent.TempDirectory)\openjdk.zip' -DestinationPath 'C:\Program Files\OpenJDK' -Force
-              Write-Host "Install of JDK11 done !"
-            }
-
-             If($env:IMAGENAME -eq "vs2015-win2012r2")
-             {
-               $jdkPath = 'C:\Program Files\OpenJDK\openjdk-11.0.5_10'
-               Write-Host "##vso[task.setvariable variable=JDK_PATH]$jdkPath"
-               
-             }ElseIf($env:IMAGENAME -eq "vs2017-win2016")
-             {
                $jdkPath = 'C:\Program Files\Java\zulu-11-azure-jdk_11.33.15-11.0.4-win_x64'
                Write-Host "##vso[task.setvariable variable=JDK_PATH]$jdkPath"
-             }
        - task: NuGetToolInstaller@1
-         condition: and(succeeded(), eq(variables['ImageName'], 'vs2017-win2016'))
          inputs:
           versionSpec: '4.9.3'
        - task: PowerShell@2
@@ -387,6 +381,13 @@ stages:
           script: |
              $projectVersion = Get-Content "$(Pipeline.Workspace)\\scanner-packages\\version.txt"
              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
+       - task: PowerShell@2
+         displayName: "Install Maven 3.6.3"
+         inputs:
+          targetType: 'inline'
+          script: |
+             Invoke-WebRequest -Uri 'https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.zip' -OutFile '$(Agent.TempDirectory)\maven.zip'
+             Expand-Archive -Path '$(Agent.TempDirectory)\maven.zip' -DestinationPath 'C:\Program Files\Maven\363' -Force
        - task: Maven@3
          displayName: 'Run Maven ITs for SQ $(SQ_VERSION)_$(imageName)'
          env:
@@ -399,7 +400,7 @@ stages:
            NUGET_PATH: $(NUGETEXETOOLPATH)
          inputs:
           goals: 'verify'
-          options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_CSHARPPLUGIN_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_VBNETPLUGIN_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)"
+          options: --settings $(mavenSettings.secureFilePath) -B -e -Denable-repo=qa -Dsonar.cfamilyplugin.version=$(SONAR_CFAMILYPLUGIN_VERSION) -Dsonar.csharpplugin.version=$(SONAR_CSHARPPLUGIN_VERSION) -Dsonar.vbnetplugin.version=$(SONAR_VBNETPLUGIN_VERSION) -Dsonar.runtimeVersion=$(SQ_VERSION) -DscannerForMSBuild.version=$(SONAR_PROJECT_VERSION).$(Build.BuildId) -Dmsbuild.path="$(MSBUILD_PATH)" -Dmsbuild.plateformtoolset=$(PLATFORMTOOLSET) -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
           publishJUnitResults: true
           mavenPomFile: 'its/pom.xml'
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
@@ -407,6 +408,8 @@ stages:
           javaHomeOption: 'Path'
           jdkDirectory: $(JDK_PATH)
           mavenOptions: $(MAVEN_OPTS)
+          mavenVersionSelection: 'Path'
+          mavenPath: 'C:\Program Files\Maven\363\apache-maven-3.6.3'
        - bash: git checkout .
          name: revertPomChanges
          displayName: Revert changes made to pom.xml to not break cache feature

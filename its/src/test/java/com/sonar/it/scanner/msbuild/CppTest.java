@@ -1,6 +1,6 @@
 /*
  * Scanner for MSBuild :: Integration Tests
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonarqube.ws.Issues.Issue;
@@ -84,8 +83,13 @@ public class CppTest {
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapper);
     ZipUtils.unzip(buildWrapper, buildWrapperDir);
 
+    String plateformToolset = System.getProperty("msbuild.plateformtoolset","v140");
+    String windowsSdk = System.getProperty("msbuild.windowssdk","10.0.18362.0");
+
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
-      wrapperOutDir, "/t:Rebuild");
+      wrapperOutDir, "/t:Rebuild",
+      String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
+      String.format("/p:PlatformToolset=%s", plateformToolset));
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
     assertThat(result.isSuccess()).isTrue();
@@ -125,8 +129,13 @@ public class CppTest {
     FileUtils.copyURLToFile(new URL(ORCHESTRATOR.getServer().getUrl() + "/static/cpp/build-wrapper-win-x86.zip"), buildWrapper);
     ZipUtils.unzip(buildWrapper, buildWrapperDir);
 
+    String plateformToolset = System.getProperty("msbuild.plateformtoolset","v140");
+    String windowsSdk = System.getProperty("msbuild.windowssdk","10.0.18362.0");
+
     TestUtils.runMSBuildWithBuildWrapper(ORCHESTRATOR, projectDir, new File(buildWrapperDir, "build-wrapper-win-x86/build-wrapper-win-x86-64.exe"),
-      wrapperOutDir, "/t:Rebuild");
+      wrapperOutDir, "/t:Rebuild",
+      String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
+      String.format("/p:PlatformToolset=%s", plateformToolset));;
 
     BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir);
     assertThat(result.isSuccess()).isTrue();
