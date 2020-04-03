@@ -105,6 +105,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var expected2 = TestUtils.CreateTextFile(dir, fileTwo, fileTwo);
             var expected3 = TestUtils.CreateTextFile(dir, fileThree, fileThree);
             TestUtils.CreateTextFile(dir, fileOneDuplicate, fileOne); // Same content as fileOne, should not be expected
+            TestUtils.CreateTextFile(subDir, fileOne, fileOne); // Same content and filename, but in other dir, as fileOne, should not be expected
 
             using (var envVars = new EnvironmentVariableScope())
             {
@@ -126,20 +127,20 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Identical content hash, identical file name -> same
             testSubject.Equals(
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", "contenthash"),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", "contenthash")
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[]{ 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[]{ 1, 2 })
             ).Should().BeTrue();
 
             // Identical content hash, different file name -> same
             testSubject.Equals(
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", "contenthash"),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", "contenthash")
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[]{ 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", new byte[]{ 1, 2 })
             ).Should().BeTrue();
 
             // Different content hash, identical file name -> different
             testSubject.Equals(
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", "contenthash"),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", "contenthash2")
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[]{ 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", new byte[]{ 1, 3 })
             ).Should().BeFalse();
         }
 
@@ -149,12 +150,12 @@ namespace SonarScanner.MSBuild.TFS.Tests
             // Arrange
             var comparer = new BuildVNextCoverageSearchFallback.FileHashComparer();
             BuildVNextCoverageSearchFallback.FileWithContentHash[] input = {
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", "contenthash1"),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", "contenthash1"),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", "contenthash2"),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", "contenthash2"),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", "contenthash3"),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", "contenthash3")
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2, 3 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2, 3 })
             };
 
             // Act
@@ -162,9 +163,9 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Assert
             actual.Should().BeEquivalentTo(
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", "contenthash1"),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", "contenthash2"),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", "contenthash3")
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2, 3 })
             );
         }
     }

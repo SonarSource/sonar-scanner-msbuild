@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.TFS
                 using (var bufferedStream = new BufferedStream(fileStream))
                 using (var sha = new SHA256Managed())
                 {
-                    var contentHash = sha.ComputeHash(bufferedStream).ToString();
+                    var contentHash = sha.ComputeHash(bufferedStream);
 
                     return new FileWithContentHash(fullFilePath, contentHash);
                 }
@@ -133,18 +133,19 @@ namespace SonarScanner.MSBuild.TFS
         {
             public bool Equals(FileWithContentHash x, FileWithContentHash y)
             {
-                return string.Equals(x.ContentHash, y.ContentHash, StringComparison.Ordinal);
+                return x.ContentHash.SequenceEqual(y.ContentHash);
             }
 
             public int GetHashCode(FileWithContentHash obj)
             {
-                return obj.ContentHash.GetHashCode();
+                // We solely rely on `Equals`
+                return 0;
             }
         }
 
         internal class FileWithContentHash
         {
-            public FileWithContentHash(string fullFilePath, string contentHash)
+            public FileWithContentHash(string fullFilePath, byte[] contentHash)
             {
                 FullFilePath = fullFilePath;
                 ContentHash = contentHash;
@@ -152,7 +153,7 @@ namespace SonarScanner.MSBuild.TFS
 
             public string FullFilePath { get; }
 
-            public string ContentHash { get; }
+            public byte[] ContentHash { get; }
         }
     }
 }
