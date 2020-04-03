@@ -73,7 +73,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var expected2 = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
 
             TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", "");
-            TestUtils.CreateTextFile(dir, "Duplicate.coverage", ""); // appears in both places - only one should be returned
+            TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4"); // appears in both places - only one should be returned
             var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5"); // should be found
 
             using (var envVars = new EnvironmentVariableScope())
