@@ -64,6 +64,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             this.client = new PersistentUserAgentWebClient($"ScannerMSBuild/{Utilities.ScannerVersion}");
+            this.client.Encoding = Encoding.UTF8;
 
             if (userName != null)
             {
