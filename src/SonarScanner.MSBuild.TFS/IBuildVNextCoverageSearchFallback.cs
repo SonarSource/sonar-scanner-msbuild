@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using SonarScanner.MSBuild.Common;
 
 // HACK: Workaround for VSTS-179
@@ -74,16 +75,28 @@ namespace SonarScanner.MSBuild.TFS
                 Logger.LogInfo($"No coverage files found in the agent temp directory.");
                 return Enumerable.Empty<string>();
             }
-            else
-            {
-                LogDebugFileList("All matching files:", files);
 
-                // The same file might appear in multiple paths.
-                // We're assuming the files are identical so it doesn't matter which one we pick.
-                files = files.Distinct(new FileNameComparer()).ToArray();
-                LogDebugFileList("Unique coverage files:", files);
-                return files;
-            }
+            LogDebugFileList("All matching files:", files);
+
+            var fileWithContentHashes = files.Select(fullFilePath =>
+            {
+                using (var fileStream = new FileStream(fullFilePath, FileMode.Open))
+                using (var bufferedStream = new BufferedStream(fileStream))
+                using (var sha = new SHA256Managed())
+                {
+                    var contentHash = sha.ComputeHash(bufferedStream).ToString();
+
+                    return new FileWithContentHash(fullFilePath, contentHash);
+                }
+            });
+
+            files = fileWithContentHashes
+                .Distinct(new FileHashComparer())
+                .Select(s => s.FullFilePath)
+                .ToArray();
+
+            LogDebugFileList("Unique coverage files:", files);
+            return files;
         }
 
         internal /* for testing */ string GetAgentTempDirectory()
@@ -114,25 +127,32 @@ namespace SonarScanner.MSBuild.TFS
         }
 
         /// <summary>
-        /// Compares full file paths based on just the file name part
-        /// i.e. c:\aaa\bbb\file1.txt and c:\aaa\file1.txt are equal.
+        /// Compares file name and content hash tuples based on their hashes
         /// </summary>
-        internal class FileNameComparer : IEqualityComparer<string>
+        internal class FileHashComparer : IEqualityComparer<FileWithContentHash>
         {
-            public bool Equals(string x, string y)
+            public bool Equals(FileWithContentHash x, FileWithContentHash y)
             {
-                bool result = string.Equals(GetFileNameFromPath(x), GetFileNameFromPath(y), StringComparison.OrdinalIgnoreCase);
-                return result;
+                return string.Equals(x.ContentHash, y.ContentHash, StringComparison.OrdinalIgnoreCase);
             }
 
-            public int GetHashCode(string obj)
+            public int GetHashCode(FileWithContentHash obj)
             {
-                return GetFileNameFromPath(obj).GetHashCode();
+                return obj.ContentHash.GetHashCode();
             }
-
-            private static string GetFileNameFromPath(string fullPath) =>
-                Path.GetFileName(fullPath).ToUpperInvariant();
         }
 
+        internal class FileWithContentHash
+        {
+            public FileWithContentHash(string fullFilePath, string contentHash)
+            {
+                FullFilePath = fullFilePath;
+                ContentHash = contentHash;
+            }
+
+            public string FullFilePath { get; }
+
+            public string ContentHash { get; }
+        }
     }
 }
