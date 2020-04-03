@@ -133,7 +133,7 @@ namespace SonarScanner.MSBuild.TFS
         {
             public bool Equals(FileWithContentHash x, FileWithContentHash y)
             {
-                return string.Equals(x.ContentHash, y.ContentHash, StringComparison.OrdinalIgnoreCase);
+                return string.Equals(x.ContentHash, y.ContentHash, StringComparison.Ordinal);
             }
 
             public int GetHashCode(FileWithContentHash obj)
