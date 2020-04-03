@@ -67,14 +67,14 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var subDir = Path.Combine(dir, "subDir", "subDir2");
             Directory.CreateDirectory(subDir);
 
-            TestUtils.CreateTextFile(dir, "foo.coverageXXX", "");
-            TestUtils.CreateTextFile(dir, "abc.trx", "");
-            var expected1 = TestUtils.CreateTextFile(dir, "foo.coverage", "");
-            var expected2 = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "");
+            TestUtils.CreateTextFile(dir, "foo.coverageXXX", "1");
+            TestUtils.CreateTextFile(dir, "abc.trx", "2");
+            var expected1 = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
+            var expected2 = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
 
             TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", "");
             TestUtils.CreateTextFile(dir, "Duplicate.coverage", ""); // appears in both places - only one should be returned
-            var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", ""); // should be found
+            var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5"); // should be found
 
             using (var envVars = new EnvironmentVariableScope())
             {
@@ -140,7 +140,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             testSubject.Equals(
                 new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", "contenthash"),
                 new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", "contenthash2")
-            ).Should().BeTrue();
+            ).Should().BeFalse();
         }
 
         [TestMethod]
