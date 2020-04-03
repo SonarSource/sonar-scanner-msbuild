@@ -20,15 +20,17 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.TFS.Tests
 {
     [TestClass]
-    public class BuildVNextCoverageSeachFallbackTests
+    public class BuildVNextCoverageSearchFallbackTests
     {
         public TestContext TestContext { get; set; }
 
