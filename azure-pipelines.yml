@@ -4,10 +4,6 @@
 trigger:
 - master
 
-pr:
-- master
-- branch-*
-
 pool:
   vmImage: 'vs2017-win2016'
 
