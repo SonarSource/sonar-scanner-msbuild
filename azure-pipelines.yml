@@ -6,6 +6,7 @@ trigger:
 
 pr:
 - master
+- branch-*
 
 pool:
   vmImage: 'vs2017-win2016'
@@ -18,7 +19,7 @@ resources:
     - repository: commonTemplates
       type: git
       name: pipelines-yaml-templates
-      ref: refs/tags/v1.0.1
+      ref: refs/tags/v1.0.8
 
 stages:
 - template: stage-with-burgr-notifications.yml@commonTemplates
@@ -290,15 +291,6 @@ stages:
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v140"
             WINDOWSSDKTARGET: "10.0.17763.0"
-          vs2017_latest67: 
-            imageName: "vs2017-win2016"
-            SQ_VERSION: "LATEST_RELEASE[6.7]"
-            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE[6.4]"
-            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
-            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-            PLATFORMTOOLSET: "v140"
-            WINDOWSSDKTARGET: "10.0.17763.0"
           vs2017_latest79: 
             imageName: "vs2017-win2016"
             SQ_VERSION: "LATEST_RELEASE[7.9]"
@@ -314,15 +306,6 @@ stages:
             SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE"
             SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE"
-            MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
-            PLATFORMTOOLSET: "v140"
-            WINDOWSSDKTARGET: "10.0.17763.0"
-          vs2019_latest67: 
-            imageName: "windows-latest"
-            SQ_VERSION: "LATEST_RELEASE[6.7]"
-            SONAR_CFAMILYPLUGIN_VERSION: "LATEST_RELEASE[6.4]"
-            SONAR_CSHARPPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
-            SONAR_VBNETPLUGIN_VERSION: "LATEST_RELEASE[7.17]"
             MSBUILD_PATH: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
             PLATFORMTOOLSET: "v140"
             WINDOWSSDKTARGET: "10.0.17763.0"
