@@ -20,3 +20,6 @@ early feedback on this idea.
 
 To submit a contribution, create a pull request for this repository. Please make sure that you follow our
 [code style](https://github.com/SonarSource/sonar-developer-toolset#code-style)
+
+
+EDIT 2020
