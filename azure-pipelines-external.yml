@@ -5,6 +5,7 @@ variables:
   - group: sonarsource-build-variables
 
 stages:
+- stage: buildAndTests
   displayName: Build and run Unit tests
   jobs:
     - job: build
