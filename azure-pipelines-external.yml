@@ -1,0 +1,47 @@
+pool:
+  vmImage: 'vs2017-win2016'
+
+variables:
+  - group: sonarsource-build-variables
+
+stages:
+  displayName: Build and run Unit tests
+  jobs:
+    - job: build
+      pool:
+       vmImage: 'windows-latest'
+      displayName: 'Build, UT, analyze on SonarCloud'
+      variables:
+       solution: 'SonarScanner.MSBuild.sln'
+       buildPlatform: 'Any CPU'
+       buildConfiguration: 'Release'
+      steps:
+      - checkout: self
+      - task: NuGetToolInstaller@1
+        displayName: 'Use NuGet 5.3.1'
+        inputs:
+          versionSpec: '5.3.1'
+      - task: NuGetCommand@2
+        displayName: 'NuGet restore'
+        inputs:
+          command: 'restore'
+          restoreSolution: '$(solution)'
+          feedsToUse: 'select'
+      - task: VSBuild@1
+        displayName: 'Build Scanner for MSBuild solution'
+        inputs:
+          solution: '$(solution)'
+          platform: '$(BuildPlatform)'
+          configuration: '$(BuildConfiguration)'
+          maximumCpuCount: true
+          logFileVerbosity: detailed
+          msbuildArgs: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal'
+      - task: VSTest@2
+        displayName: 'Run Unit Tests'
+        inputs:
+          testSelector: 'testAssemblies'
+          testAssemblyVer2: |
+            **\$(BuildConfiguration)\*test*.dll
+            !**\obj\**
+          searchFolder: '$(System.DefaultWorkingDirectory)'
+          codeCoverageEnabled: true
