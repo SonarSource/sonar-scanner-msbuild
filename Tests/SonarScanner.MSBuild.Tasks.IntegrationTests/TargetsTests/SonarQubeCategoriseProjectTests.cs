@@ -290,7 +290,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [TestCategory("ProjectInfo")] // SONARMSBRU-26: MS Fakes should be excluded from analysis
-        public void FakesProjects_AreExcluded()
+        public void FakesProjects_AreExcluded_WhenNoExplicitSonarProperties()
         {
             const string projectXmlSnippet = @"
 <PropertyGroup>
@@ -326,7 +326,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [TestCategory("ProjectInfo")]
-        public void FakesProjects_ExplicitSonarTestPropertyIsSatisfied() // @odalet - Issue #844
+        public void FakesProjects_AreNotTestProjects_WhenExplicitSonarTestProperty() // @odalet - Issue #844
         {
             // Checks that fakes projects are not marked as test if the project
             // says otherwise.
@@ -346,7 +346,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [TestCategory("ProjectInfo")]
-        public void FakesProjects_ExplicitSonarExcludePropertyIsSatisfied() // @odalet - Issue #844
+        public void FakesProjects_AreNotExcluded_WhenExplicitSonarExcludeProperty() // @odalet - Issue #844
         {
             // Checks that fakes projects are not excluded if the project
             // says otherwise.
