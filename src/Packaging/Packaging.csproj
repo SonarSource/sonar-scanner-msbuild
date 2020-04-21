@@ -263,11 +263,11 @@
   </Target>
 
   <Target Name="SignDlls" Condition="'$(SignAssembly)' == 'true'">
-    <Exec WorkingDirectory="$(WorkDestinationDir)" Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /f $(PFX_PATH) /p $(PFX_PASSWORD) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp Sonar*.dll" />
+    <Exec WorkingDirectory="$(WorkDestinationDir)" Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /f $(PFX_PATH) /p $(PFX_PASSWORD) /tr http://timestamp.digicert.com?alg=sha256 Sonar*.dll" />
   </Target>
 
   <Target Name="SignExes" Condition="'$(SignAssembly)' == 'true' AND $(WorkDestinationDir.EndsWith('net46', System.StringComparison.OrdinalIgnoreCase))">
-    <Exec WorkingDirectory="$(WorkDestinationDir)" Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /f $(PFX_PATH) /p $(PFX_PASSWORD) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp Sonar*.exe" />
+    <Exec WorkingDirectory="$(WorkDestinationDir)" Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /f $(PFX_PATH) /p $(PFX_PASSWORD) /tr http://timestamp.digicert.com?alg=sha256 Sonar*.exe" />
   </Target>
 
   <!-- Don't create the zip for netcoreapp2.1 -->
