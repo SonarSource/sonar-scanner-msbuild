@@ -121,7 +121,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
 
         [TestMethod]
-        public void Fallback_FileNameComparer_SimpleComparisons()
+        public void Fallback_FileHashComparer_SimpleComparisons()
         {
             var testSubject = new BuildVNextCoverageSearchFallback.FileHashComparer();
 
@@ -145,7 +145,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         }
 
         [TestMethod]
-        public void Fallback_FileNameComparer_CorrectlyDeDupesList()
+        public void Fallback_FileHashComparer_CorrectlyDeDupesList()
         {
             // Arrange
             var comparer = new BuildVNextCoverageSearchFallback.FileHashComparer();
