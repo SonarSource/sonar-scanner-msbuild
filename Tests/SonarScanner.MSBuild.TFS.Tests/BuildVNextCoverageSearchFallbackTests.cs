@@ -30,7 +30,7 @@ using TestUtilities;
 namespace SonarScanner.MSBuild.TFS.Tests
 {
     [TestClass]
-    public class BuildVNextCoverageSeachFallbackTests
+    public class BuildVNextCoverageSearchFallbackTests
     {
         public TestContext TestContext { get; set; }
 
@@ -67,14 +67,45 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var subDir = Path.Combine(dir, "subDir", "subDir2");
             Directory.CreateDirectory(subDir);
 
-            TestUtils.CreateTextFile(dir, "foo.coverageXXX", "");
-            TestUtils.CreateTextFile(dir, "abc.trx", "");
-            var expected1 = TestUtils.CreateTextFile(dir, "foo.coverage", "");
-            var expected2 = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "");
+            TestUtils.CreateTextFile(dir, "foo.coverageXXX", "1");
+            TestUtils.CreateTextFile(dir, "abc.trx", "2");
+            var expected1 = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
+            var expected2 = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
 
             TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", "");
-            TestUtils.CreateTextFile(dir, "Duplicate.coverage", ""); // appears in both places - only one should be returned
-            var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", ""); // should be found
+            TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4"); // appears in both places - only one should be returned
+            var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5"); // should be found
+
+            using (var envVars = new EnvironmentVariableScope())
+            {
+                envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
+
+                // Act
+                var actual = testSubject.FindCoverageFiles();
+
+                // Assert
+                actual.Should().BeEquivalentTo(expected1, expected2, expected3);
+            }
+        }
+
+        [TestMethod]
+        public void Fallback_CalculatesAndDeDupesOnContentCorrectly()
+        {
+            // Arrange
+            var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
+            var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
+            var subDir = Path.Combine(dir, "subDir", "subDir2");
+            Directory.CreateDirectory(subDir);
+
+            var fileOne = "fileNameOne.coverage";
+            var fileTwo = "fileNameTwo.coverage";
+            var fileThree = "fileNameThree.coverage";
+            var fileOneDuplicate = "fileNameOneDuplicate.coverage";
+            var expected1 = TestUtils.CreateTextFile(dir, fileOne, fileOne);
+            var expected2 = TestUtils.CreateTextFile(dir, fileTwo, fileTwo);
+            var expected3 = TestUtils.CreateTextFile(dir, fileThree, fileThree);
+            TestUtils.CreateTextFile(dir, fileOneDuplicate, fileOne); // Same content as fileOne, should not be expected
+            TestUtils.CreateTextFile(subDir, fileOne, fileOne); // Same content and filename, but in other dir, as fileOne, should not be expected
 
             using (var envVars = new EnvironmentVariableScope())
             {
@@ -90,43 +121,41 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
 
         [TestMethod]
-        public void Fallback_FileNameComparer_SimpleComparisons()
+        public void Fallback_FileHashComparer_SimpleComparisons()
         {
-            var testSubject = new BuildVNextCoverageSearchFallback.FileNameComparer();
+            var testSubject = new BuildVNextCoverageSearchFallback.FileHashComparer();
 
-            // Identical string -> same
-            testSubject.Equals("c:\\File1.txt", "c:\\File1.txt").Should().BeTrue();
+            // Identical content hash, identical file name -> same
+            testSubject.Equals(
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[]{ 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[]{ 1, 2 })
+            ).Should().BeTrue();
 
-            // Case only -> same
-            testSubject.Equals("c:\\File1.txt", "c:\\FILE1.txt").Should().BeTrue();
+            // Identical content hash, different file name -> same
+            testSubject.Equals(
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[]{ 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", new byte[]{ 1, 2 })
+            ).Should().BeTrue();
 
-            // Different folders -> same
-            testSubject.Equals("c:\\File1.txt", "c:\\aaa\\File1.txt").Should().BeTrue();
-            testSubject.Equals("c:\\aaa\\bbb\\File1.txt", "c:\\aaa\\File1.txt").Should().BeTrue();
-
-            // Different folders and path separators -> same
-            testSubject.Equals("c:/File1.txt", "c:/aaa/File1.txt").Should().BeTrue();
-            testSubject.Equals("c:/aaa/bbb/File1.txt", "c:/aaa/File1.txt").Should().BeTrue();
-
-            // Diferent name -> different
-            testSubject.Equals("c:\\File1.txt", "c:\\File2.txt").Should().BeFalse();
+            // Different content hash, identical file name -> different
+            testSubject.Equals(
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[]{ 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", new byte[]{ 1, 3 })
+            ).Should().BeFalse();
         }
 
         [TestMethod]
-        public void Fallback_FileNameComparer_CorrectlyDeDupesList()
+        public void Fallback_FileHashComparer_CorrectlyDeDupesList()
         {
             // Arrange
-            var comparer = new BuildVNextCoverageSearchFallback.FileNameComparer();
-            string[] input = {
-                "c:\\File1.txt",
-                "c:\\File1.txt",
-                "c:\\aaa\\FILE1.txt",
-                "c:\\aaa\\bbb\\file1.TXT",
-
-                "c:/aaa/FILE2.TXT",
-                "d:\\FILE2.txt",
-
-                "file3.txt"
+            var comparer = new BuildVNextCoverageSearchFallback.FileHashComparer();
+            BuildVNextCoverageSearchFallback.FileWithContentHash[] input = {
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2, 3 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2, 3 })
             };
 
             // Act
@@ -134,10 +163,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             // Assert
             actual.Should().BeEquivalentTo(
-                "c:\\File1.txt",
-                "c:/aaa/FILE2.TXT",
-                "file3.txt"
-                );
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2 }),
+                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2, 3 })
+            );
         }
     }
 }
