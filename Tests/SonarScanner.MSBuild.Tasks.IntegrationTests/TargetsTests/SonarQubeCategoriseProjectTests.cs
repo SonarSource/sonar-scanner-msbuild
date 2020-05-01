@@ -290,7 +290,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [TestCategory("ProjectInfo")] // SONARMSBRU-26: MS Fakes should be excluded from analysis
-        public void FakesProjects_AreExcluded()
+        public void FakesProjects_AreExcluded_WhenNoExplicitSonarProperties()
         {
             const string projectXmlSnippet = @"
 <PropertyGroup>
@@ -326,11 +326,10 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         [TestMethod]
         [TestCategory("ProjectInfo")]
-        public void FakesProjects_ExplicitSonarTestPropertyIsIgnored()
+        public void FakesProjects_AreNotTestProjects_WhenExplicitSonarTestProperty() // @odalet - Issue #844
         {
-            // Checks that fakes projects are recognized and marked as test
-            // projects, irrespective of whether the SonarQubeTestProject is
-            // already set.
+            // Checks that fakes projects are not marked as test if the project
+            // says otherwise.
 
             const string projectXmlSnippet = @"
 <PropertyGroup>
@@ -342,8 +341,27 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var result = BuildAndRunTarget("f.proj", projectXmlSnippet);
 
             // Assert
-            AssertIsTestProject(result);
-            AssertProjectIsExcluded(result);
+            AssertIsNotTestProject(result);
+        }
+
+        [TestMethod]
+        [TestCategory("ProjectInfo")]
+        public void FakesProjects_AreNotExcluded_WhenExplicitSonarExcludeProperty() // @odalet - Issue #844
+        {
+            // Checks that fakes projects are not excluded if the project
+            // says otherwise.
+
+            const string projectXmlSnippet = @"
+<PropertyGroup>
+  <SonarQubeExclude>false</SonarQubeExclude>
+  <AssemblyName>MyFakeProject.fakes</AssemblyName>
+</PropertyGroup>
+";
+            // Act
+            var result = BuildAndRunTarget("f.proj", projectXmlSnippet);
+
+            // Assert
+            AssertProjectIsNotExcluded(result);
         }
 
         #endregion Fakes projects tests
@@ -484,7 +502,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         {
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeExcludeMetadata).Should().BeTrue();
         }
-
+        
         private static void AssertProjectIsNotExcluded(BuildLog log)
         {
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeExcludeMetadata).Should().BeFalse();
