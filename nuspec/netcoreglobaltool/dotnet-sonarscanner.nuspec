@@ -3,18 +3,18 @@
   <metadata>
     <id>dotnet-sonarscanner</id>
     <version>4.9.0</version>
-    <title>SonarScanner for .Net Core 2.1</title>
+    <title>SonarScanner for .Net Core</title>
     <authors>SonarSource,Microsoft</authors>
     <projectUrl>http://redirect.sonarsource.com/doc/msbuild-sq-runner.html</projectUrl>
     <iconUrl>https://cdn.rawgit.com/SonarSource/sonar-scanner-msbuild/cdd1f588/icon.png</iconUrl>
     <license type="file">License.txt</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <summary>The SonarScanner for .Net Core 2.1 allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
-    <description>The SonarScanner for .Net Core 2.1 allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
+    <summary>The SonarScanner for .Net Core allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
+    <description>The SonarScanner for .Net Core from version 2.1 allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
     <tags>sonarqube sonarcloud msbuild scanner sonarsource sonar sonar-scanner sonarscanner</tags>
     <copyright>SonarSource SA and Microsoft Corporation</copyright>
     <releaseNotes>
-All release notes for SonarScanner .Net Core 2.1 can be found on the GitHub site - https://github.com/SonarSource/sonar-scanner-msbuild/releases
+All release notes for SonarScanner .Net Core can be found on the GitHub site - https://github.com/SonarSource/sonar-scanner-msbuild/releases
     </releaseNotes>
     <packageTypes>
       <packageType name="DotnetTool" />
