@@ -5,7 +5,7 @@
     <ScannerNetStandardVersion>netstandard2.0</ScannerNetStandardVersion>
     <ScannerNetCoreAppVersion>netcoreapp2.0;netcoreapp3.0</ScannerNetCoreAppVersion>
     <ScannerNetCoreGlobalToolVersion>netcoreapp2.1;netcoreapp3.0</ScannerNetCoreGlobalToolVersion>
-    <ScannerNetFxVersion>net46</ScannerNetFxVersion>
+    <ScannerNetFxVersion>net462</ScannerNetFxVersion>
   </PropertyGroup>
 
 </Project>
