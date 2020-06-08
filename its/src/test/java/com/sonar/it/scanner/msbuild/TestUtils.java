@@ -90,7 +90,7 @@ public class TestUtils {
       String scannerLocationEnv = System.getenv("SCANNER_LOCATION");
       if(scannerLocationEnv != null) {
         LOG.info("Using Scanner for MSBuild specified by %SCANNER_LOCATION%: " + scannerLocationEnv);
-        Path scannerPath = Paths.get(scannerLocationEnv, "sonarscanner-msbuild-net46.zip");
+        Path scannerPath = Paths.get(scannerLocationEnv, "sonarscanner-msbuild-net462.zip");
         scannerLocation = FileLocation.of(scannerPath.toFile());
       }
       else {
@@ -107,7 +107,7 @@ public class TestUtils {
 
   private static Location FindScannerZip(String folderPath){
     Path root = Paths.get(folderPath);
-    Path scannerZip = Paths.get(folderPath + "/sonarscanner-msbuild-net46.zip");
+    Path scannerZip = Paths.get(folderPath + "/sonarscanner-msbuild-net462.zip");
     Location scannerLocation = FileLocation.of(scannerZip.toFile());
     return scannerLocation;
   }
