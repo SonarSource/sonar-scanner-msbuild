@@ -82,7 +82,7 @@ namespace SonarScanner.MSBuild.TFS
             {
                 using (var fileStream = new FileStream(fullFilePath, FileMode.Open))
                 using (var bufferedStream = new BufferedStream(fileStream))
-                using (var sha = new SHA256Managed())
+                using (var sha = new SHA256CryptoServiceProvider())
                 {
                     var contentHash = sha.ComputeHash(bufferedStream);
 
