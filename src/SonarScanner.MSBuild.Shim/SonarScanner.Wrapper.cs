@@ -207,9 +207,9 @@ namespace SonarScanner.MSBuild.Shim
             args.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}={2}", CmdLineArgPrefix,
                 ProjectSettingsFileArgName, projectSettingsFilePath));
 
-            // Let the scanner cli know it is run as an embedded tool (allows to tweak the behavior)
-            // See https://jira.sonarsource.com/browse/SQSCANNER-49
-            args.Add("--embedded");
+            // Let the scanner cli know it has been ran from this MSBuild Scanner. (allows to tweak the behavior)
+            // See https://jira.sonarsource.com/browse/SQSCANNER-65
+            args.Add("--from=ScannerMSBuild/" + Utilities.ScannerVersion);
 
             // For debug mode, we need to pass the debug option to the scanner cli in order to see correctly stack traces.
             // Note that in addition to this change, the sonar.verbose=true was removed from the config file.
