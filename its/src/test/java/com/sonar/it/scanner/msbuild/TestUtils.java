@@ -49,6 +49,7 @@ import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
 import org.sonarqube.ws.Measures;
 import org.sonarqube.ws.client.components.SearchRequest;
+import org.sonarqube.ws.client.components.TreeRequest;
 import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
@@ -253,11 +254,11 @@ public class TestUtils {
     return msBuildPath;
   }
 
-  static void dumpComponentList(Orchestrator orchestrator)
+  static void dumpComponentList(Orchestrator orchestrator, String projectKey)
   {
     Set<String> componentKeys = newWsClient(orchestrator)
       .components()
-      .search(new SearchRequest().setLanguage("cs").setQualifiers(Collections.singletonList("FIL")))
+      .tree(new TreeRequest().setQualifiers(Collections.singletonList("FIL")).setComponent(projectKey))
       .getComponentsList()
       .stream()
       .map(Components.Component::getKey)
@@ -276,12 +277,12 @@ public class TestUtils {
     }
   }
 
-  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir){
+  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey){
     BuildResult result = orchestrator.executeBuild(TestUtils.newScanner(orchestrator, projectDir)
       .addArgument("end"));
 
     if (result.isSuccess()) {
-      TestUtils.dumpComponentList(orchestrator);
+      TestUtils.dumpComponentList(orchestrator, projectKey);
       TestUtils.dumpAllIssues(orchestrator);
     }
     else
