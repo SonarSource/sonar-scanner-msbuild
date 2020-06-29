@@ -257,7 +257,7 @@ namespace SonarScanner.MSBuild.Shim
                 }
             }
 
-            return closestProjects.Items.Count == 1
+            return closestProjects.Items.Count >= 1
                 ? closestProjects.Items[0]
                 : null;
         }
