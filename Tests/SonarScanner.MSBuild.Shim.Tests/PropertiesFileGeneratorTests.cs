@@ -963,7 +963,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         }
 
         [TestMethod]
-        public void GetClosestProjectOrDefault_WhenMultipleProjectsMatchWithSameLength_ReturnsNull()
+        public void GetClosestProjectOrDefault_WhenMultipleProjectsMatchWithSameLength_ReturnsClosestProject()
         {
             // Arrange
             var projects = new[]
@@ -977,7 +977,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("C:\\foo\\foo.cs"), projects);
 
             // Assert
-            actual.Should().BeNull();
+            actual.Should().Be(projects[0]);
         }
         #endregion Tests
 
