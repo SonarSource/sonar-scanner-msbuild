@@ -348,8 +348,13 @@ stages:
          inputs:
           targetType: 'inline'
           script: |
-               $jdkPath = 'C:\Program Files\Java\zulu-11-azure-jdk_11.33.15-11.0.4-win_x64'
-               Write-Host "##vso[task.setvariable variable=JDK_PATH]$jdkPath"
+               Write-Host "##vso[task.setvariable variable=JDK_PATH]$JAVA_HOME_11_X64"
+       - task: UseDotNet@2
+         inputs:
+          packageType: sdk
+          version: 5.0.100-preview.7.20366.6
+          installationPath: $(Agent.ToolsDirectory)/dotnet
+         displayName: "Install NET 5 SDK preview"
        - task: NuGetToolInstaller@1
          inputs:
           versionSpec: '4.9.3'
