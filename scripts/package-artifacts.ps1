@@ -17,40 +17,23 @@ function Package-Net46Scanner(){
     Compress-Archive -Path $fullBuildOutputDir\sonarscanner-msbuild-net46\* -DestinationPath $fullBuildOutputDir\sonarscanner-msbuild-net46.zip -Force
 }
 
-function Package-NetCoreApp2Scanner(){
-    if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0" -Type Directory}
-    if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0\Targets")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0\Targets" -Type Directory}
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0\Targets" -Recurse
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp2.1\SonarQube.Analysis.xml" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp2.1\SonarScanner.MSBuild.Common.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp2.1\SonarScanner.MSBuild.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp2.1\SonarScanner.MSBuild.PostProcessor.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp2.1\SonarScanner.MSBuild.PreProcessor.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp2.1\SonarScanner.MSBuild.runtimeconfig.json" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp2.1\SonarScanner.MSBuild.Shim.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1\Newtonsoft.Json.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\netstandard2.0\SonarScanner.MSBuild.Tasks.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0"
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("$scannerCliDownloadDir\$scannerCliArtifact", "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0")
-    Compress-Archive -Path $fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0\* -DestinationPath $fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0.zip -Force
+function Package-NetScanner([string]$tfm)
+{
+    if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-$tfm")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-$tfm" -Type Directory}
+    if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-$tfm\Targets")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-$tfm\Targets" -Type Directory}
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$tfm\Targets" -Recurse
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$tfm\SonarQube.Analysis.xml" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$tfm"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$tfm\SonarScanner.MSBuild.Common.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$tfm"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$tfm\SonarScanner.MSBuild.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$tfm"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$tfm\SonarScanner.MSBuild.PostProcessor.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$tfm"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$tfm\SonarScanner.MSBuild.PreProcessor.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$tfm"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$tfm\SonarScanner.MSBuild.runtimeconfig.json" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$tfm"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\$tfm\SonarScanner.MSBuild.Shim.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$tfm"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.0\Newtonsoft.Json.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$tfm"
+    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\netstandard2.0\SonarScanner.MSBuild.Tasks.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-$tfm"
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("$scannerCliDownloadDir\$scannerCliArtifact", "$fullBuildOutputDir\sonarscanner-msbuild-$tfm")
+    Compress-Archive -Path $fullBuildOutputDir\sonarscanner-msbuild-$tfm\* -DestinationPath $fullBuildOutputDir\sonarscanner-msbuild-$tfm.zip -Force
 }
-
-function Package-NetCoreApp3Scanner(){
-    if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0" -Type Directory}
-    if (!(Test-Path -path "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0\Targets")) {New-Item "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0\Targets" -Type Directory}
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0\Targets" -Recurse
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1\SonarQube.Analysis.xml" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1\SonarScanner.MSBuild.Common.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1\SonarScanner.MSBuild.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1\SonarScanner.MSBuild.PostProcessor.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1\SonarScanner.MSBuild.PreProcessor.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1\SonarScanner.MSBuild.runtimeconfig.json" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1\SonarScanner.MSBuild.Shim.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1\Newtonsoft.Json.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0"
-    Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\netstandard2.0\SonarScanner.MSBuild.Tasks.dll" -Destination "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0"
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("$scannerCliDownloadDir\$scannerCliArtifact", "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0")
-    Compress-Archive -Path $fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0\* -DestinationPath $fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0.zip -Force
-}
-
 function Download-ScannerCli() {
     $artifactoryUrlEnv = "ARTIFACTORY_URL"
     
