@@ -390,7 +390,7 @@ stages:
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
           testRunTitle: 'ITs $(SQ_VERSION)_$(imageName)'
           javaHomeOption: 'Path'
-          jdkDirectory: $(JDK_PATH)
+          jdkDirectory: $(JAVA_HOME_11_X64)
           mavenOptions: $(MAVEN_OPTS)
           mavenVersionSelection: 'Path'
           mavenPath: 'C:\Program Files\Maven\363\apache-maven-3.6.3'
