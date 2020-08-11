@@ -10,7 +10,7 @@
 
   <groupId>org.sonarsource.scanner.msbuild</groupId>
   <artifactId>sonar-scanner-msbuild</artifactId>
-  <version>1.0</version>
+  <version>4.11-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>SonarQube.Scanner.MSBuild</name>
   <url>http://redirect.sonarsource.com/doc/msbuild-sq-runner.html</url>
@@ -76,7 +76,6 @@
                 <artifact>
                   <file>dotnetScannerGlobalToolPath</file>
                   <type>nupkg</type>
-                  <classifier>netcoreapp2.1;netcoreapp3.0</classifier>
                 </artifact>
                 <artifact>
                   <file>classicScannerChocoPath</file>
