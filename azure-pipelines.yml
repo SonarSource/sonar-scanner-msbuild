@@ -403,6 +403,7 @@ stages:
        - bash: git checkout .
          name: revertPomChanges
          displayName: Revert changes made to pom.xml to not break cache feature
+
 - template: promote-stage.yml@commonTemplates
   parameters:
     stageDependencies:
