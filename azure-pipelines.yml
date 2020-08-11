@@ -97,11 +97,11 @@ stages:
           projectVersion: '$(SONAR_PROJECT_VERSION)'
           scannerMode: MSBuild
       - task: UseDotNet@2
-         inputs:
+        inputs:
           packageType: sdk
           version: 5.0.100-preview.7.20366.6
           installationPath: $(Agent.ToolsDirectory)/dotnet
-         displayName: "Install NET 5 SDK preview"
+        displayName: "Install NET 5 SDK preview"
       - task: VSBuild@1
         displayName: 'Build and sign Scanner for MSBuild solution'
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
