@@ -96,6 +96,12 @@ stages:
           projectName: '$(sonarCloudMsBuildProjectName)'
           projectVersion: '$(SONAR_PROJECT_VERSION)'
           scannerMode: MSBuild
+      - task: UseDotNet@2
+         inputs:
+          packageType: sdk
+          version: 5.0.100-preview.7.20366.6
+          installationPath: $(Agent.ToolsDirectory)/dotnet
+         displayName: "Install NET 5 SDK preview"
       - task: VSBuild@1
         displayName: 'Build and sign Scanner for MSBuild solution'
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
@@ -349,12 +355,6 @@ stages:
           targetType: 'inline'
           script: |
                Write-Host "##vso[task.setvariable variable=JDK_PATH]$JAVA_HOME_11_X64"
-       - task: UseDotNet@2
-         inputs:
-          packageType: sdk
-          version: 5.0.100-preview.7.20366.6
-          installationPath: $(Agent.ToolsDirectory)/dotnet
-         displayName: "Install NET 5 SDK preview"
        - task: NuGetToolInstaller@1
          inputs:
           versionSpec: '4.9.3'
