@@ -4,15 +4,15 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>53</version>
+    <version>54</version>
     <relativePath />
   </parent>
 
   <groupId>org.sonarsource.scanner.msbuild</groupId>
   <artifactId>sonar-scanner-msbuild</artifactId>
-  <version>4.11-SNAPSHOT</version>
+  <version>5.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>SonarQube.Scanner.MSBuild</name>
+  <name>SonarScanner.MSBuild</name>
   <url>http://redirect.sonarsource.com/doc/msbuild-sq-runner.html</url>
   <inceptionYear>2016</inceptionYear>
 
