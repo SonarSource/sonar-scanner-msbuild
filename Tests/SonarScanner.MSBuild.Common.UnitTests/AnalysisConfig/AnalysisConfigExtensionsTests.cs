@@ -256,7 +256,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             // and that the file name config property is set and retrieved correctly
 
             // 0. Setup
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var config = new AnalysisConfig();
 
@@ -289,7 +289,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             // Expected precedence: local -> file -> server
 
             // 0. Setup
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var config = new AnalysisConfig();
 

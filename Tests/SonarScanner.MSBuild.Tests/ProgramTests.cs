@@ -32,7 +32,7 @@ namespace SonarQube.Bootstrapper.Tests
         public void Execute_WhenIsHelp_ReturnsTrue()
         {
             var logger = new TestLogger();
-            var result = Program.Execute(new string[] { "/h", "/blah", "/xxx" }, logger);
+            var result = Program.Execute(new string[] { "/h", "/blah", "/xxx" }, logger).Result;
 
             // Assert
             result.Should().Be(0);
@@ -45,7 +45,7 @@ namespace SonarQube.Bootstrapper.Tests
         public void Execute_WhenInvalidDuplicateBeginArgument_ReturnsFalse()
         {
             var logger = new TestLogger();
-            var result = Program.Execute(new string[] { "begin", "begin" }, logger);
+            var result = Program.Execute(new string[] { "begin", "begin" }, logger).Result;
 
             // Assert
             result.Should().Be(1);

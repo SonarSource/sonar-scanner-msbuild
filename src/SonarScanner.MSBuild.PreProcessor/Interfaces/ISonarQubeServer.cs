@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -29,24 +30,24 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// </summary>
     public interface ISonarQubeServer
     {
-        IList<SonarRule> GetInactiveRules(string qprofile, string language);
+        Task<IList<SonarRule>> GetInactiveRules(string qprofile, string language);
 
-        IList<SonarRule> GetActiveRules(string qprofile);
+        Task<IList<SonarRule>> GetActiveRules(string qprofile);
 
         /// <summary>
         /// Get all keys of all available languages
         /// </summary>
-        IEnumerable<string> GetAllLanguages();
+        Task<IEnumerable<string>> GetAllLanguages();
 
         /// <summary>
         /// Get all the properties of a project
         /// </summary>
-        IDictionary<string, string> GetProperties(string projectKey, string projectBranch);
+        Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch);
 
         /// <summary>
         /// Get the name of the quality profile (of the given language) to be used by the given project key
         /// </summary>
-        bool TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language, out string qualityProfileKey);
+        Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language);
 
         /// <summary>
         /// Attempts to download a file embedded in the "static" folder in a plugin jar
@@ -54,8 +55,8 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <param name="pluginKey">The key of the plugin containing the file</param>
         /// <param name="embeddedFileName">The name of the file to download</param>
         /// <param name="targetDirectory">The directory to which the file should be downloaded</param>
-        bool TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory);
+        Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory);
 
-        Version GetServerVersion();
+        Task<Version> GetServerVersion();
     }
 }

@@ -18,10 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading.Tasks;
+
 namespace SonarScanner.MSBuild.PreProcessor
 {
     public interface ITeamBuildPreProcessor
     {
-        bool Execute(string[] args);
+        Task<bool> Execute(string[] args);
     }
 }

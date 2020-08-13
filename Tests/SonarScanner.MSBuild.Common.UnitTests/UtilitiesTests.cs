@@ -137,7 +137,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void EnsureDirectoryExists_WhenDirectoryMissing_IsCreated()
         {
             // Arrange
-            var baseDir =TestUtils.CreateTestSpecificFolder(TestContext);
+            var baseDir =TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var newDir = Path.Combine(baseDir, "newDir");
             var logger = new TestLogger();
 
@@ -154,7 +154,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void EnsureDirectoryExists_WhenDirectoryExists_IsNoOp()
         {
             // Arrange
-            var baseDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var baseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
             // Act
@@ -202,7 +202,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void EnsureEmptyDirectory_WhenDirectoryMissing_IsCreated()
         {
             // Arrange
-            var baseDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var baseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var newDir = Path.Combine(baseDir, "newDir");
             var logger = new TestLogger();
 
@@ -219,7 +219,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void EnsureEmptyDirectory_WhenDirectoryExistsAndHasFiles_FilesAreDeleted()
         {
             // Arrange
-            var baseDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var baseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             File.WriteAllText(Path.Combine(baseDir, "file1.txt"), "xxx");
             File.WriteAllText(Path.Combine(baseDir, "file2.txt"), "xxx");
             Directory.CreateDirectory(Path.Combine(baseDir, "subdir1"));
@@ -250,16 +250,16 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             // Arrange
             // Directory with file
-            var baseDir1 = TestUtils.CreateTestSpecificFolder(TestContext, "baseDir1");
+            var baseDir1 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "baseDir1");
             File.WriteAllText(Path.Combine(baseDir1, "file1.txt"), "xxx");
 
             // Directory with file and sub-directory
-            var baseDir2 = TestUtils.CreateTestSpecificFolder(TestContext, "baseDir2");
+            var baseDir2 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "baseDir2");
             File.WriteAllText(Path.Combine(baseDir2, "file2.txt"), "xxx");
             Directory.CreateDirectory(Path.Combine(baseDir2, "subdir1"));
 
             // Empty directory
-            var baseDir3 = TestUtils.CreateTestSpecificFolder(TestContext, "baseDir3");
+            var baseDir3 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "baseDir3");
 
             var logger = new TestLogger();
 
@@ -287,12 +287,12 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             // Arrange
             // Directory with file
-            var baseDir1 = TestUtils.CreateTestSpecificFolder(TestContext, "baseDir1");
+            var baseDir1 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "baseDir1");
             var filePath = Path.Combine(baseDir1, "file1.txt");
             File.WriteAllText(filePath, "xxx");
 
             // Directory with file
-            var baseDir2 = TestUtils.CreateTestSpecificFolder(TestContext, "baseDir2");
+            var baseDir2 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "baseDir2");
             File.WriteAllText(Path.Combine(baseDir2, "file2.txt"), "xxx");
 
             var logger = new TestLogger();

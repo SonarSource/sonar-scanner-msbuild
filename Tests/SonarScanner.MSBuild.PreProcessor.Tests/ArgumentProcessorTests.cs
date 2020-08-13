@@ -194,7 +194,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void PreArgProc_PropertiesFileSpecifiedOnCommandLine()
         {
             // 0. Setup
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
 
             // 1. File exists -> args ok

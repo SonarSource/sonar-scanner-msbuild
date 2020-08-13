@@ -171,7 +171,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         public static string CreateProjectFile(TestContext testContext, string testSpecificProjectXml)
         {
-            var projectDirectory = TestUtils.CreateTestSpecificFolder(testContext);
+            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(testContext);
             File.Exists(sqTargetFile).Should().BeTrue("Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);

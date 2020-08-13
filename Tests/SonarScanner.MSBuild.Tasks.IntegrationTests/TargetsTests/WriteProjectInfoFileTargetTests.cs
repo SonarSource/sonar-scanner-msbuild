@@ -44,8 +44,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // The content file list should not be created if there are no files
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             var projectFilePath = CreateProjectFile(null, null, rootOutputFolder);
 
@@ -64,7 +64,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // The analysis file list should be created with the expected files
 
             // Arrange
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // Note: the included/excluded files don't actually have to exist
             string projectXml = $@"
@@ -114,7 +114,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // The content file list should not include items with <AutoGen>true</AutoGen> metadata
 
             // Arrange
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
             
             // Note: the included/excluded files don't actually have to exist
             string projectXml = $@"
@@ -169,7 +169,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Check that all default item types are included for analysis
 
             // Arrange
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // Note: the included/excluded files don't actually have to exist
             string projectXml = $@"
@@ -220,7 +220,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Check that all default item types are included for analysis
 
             // Arrange
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // Note: the included/excluded files don't actually have to exist
             string projectXml = $@"
@@ -265,7 +265,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void WriteProjectInfo_AnalysisFileList_FilesTypes_OnlySpecified()
         {
             // Arrange
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // Note: the included/excluded files don't actually have to exist
             string projectXml = $@"
@@ -305,7 +305,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void WriteProjectInfo_AnalysisFileList_FilesTypes_SpecifiedPlusDefaults()
         {
             // Arrange
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // Note: the included/excluded files don't actually have to exist
             string projectXml = $@"
@@ -353,8 +353,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // correctly set for "normal" projects
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
             var analysisConfig = new AnalysisConfig
             {
                 LocalSettings = new AnalysisProperties
@@ -382,8 +382,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // both values should be set to true.
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
             var analysisConfig = new AnalysisConfig
             {
                 LocalSettings = new AnalysisProperties
@@ -412,8 +412,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void WriteProjectInfo_ProjectWithCodePage()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
             var analysisConfig = new AnalysisConfig
             {
                 LocalSettings = new AnalysisProperties
@@ -441,8 +441,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void WriteProjectInfo_ProjectWithNoCodePage()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             string projectXml = $@"
 <PropertyGroup>
@@ -464,8 +464,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Check analysis settings are correctly passed from the targets to the task
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             string projectXml = $@"
 <ItemGroup>
@@ -513,8 +513,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // that don't import the standard targets or set the expected properties
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
@@ -562,8 +562,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Checks the WriteProjectInfo target handles projects with unrecognized languages
 
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, "unrecognisedLanguage.proj.txt");
@@ -636,7 +636,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         private string CreateProjectFile(AnalysisConfig analysisConfig, string testSpecificProjectXml, string sonarQubeOutputPath)
         {
-            var projectDirectory = TestUtils.CreateTestSpecificFolder(TestContext);
+            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             if (analysisConfig != null)
             {

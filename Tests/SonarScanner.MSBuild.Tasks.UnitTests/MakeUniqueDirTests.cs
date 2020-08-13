@@ -36,7 +36,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Arrange
 
             // Create an empty folder, representing the .sonarqube/out folder
-            var root = TestUtils.CreateTestSpecificFolder(TestContext);
+            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var task = new MakeUniqueDir { Path = root };
 
             // Act
@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Arrange
 
             // Create an empty folder, representing the .sonarqube/out folder
-            var root = TestUtils.CreateTestSpecificFolder(TestContext);
+            var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             // Simulate a folder was already created
             Directory.CreateDirectory(Path.Combine(root, "0"));

@@ -39,7 +39,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void TaskUtils_LoadConfig_RetryIfConfigLocked_ValueReturned()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var configFile = CreateAnalysisConfig(testFolder);
 
             var logger = new TestLogger();
@@ -60,7 +60,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         {
             // Arrange
             // We'll lock the file and sleep for long enough for the task to timeout
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var configFile = CreateAnalysisConfig(testFolder);
 
             var logger = new TestLogger();

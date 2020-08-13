@@ -244,7 +244,7 @@ xxx yyy
             // Checks arguments passed to the child process are correctly quoted
 
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             // Create a dummy exe that will produce a log file showing any input args
             var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
 
@@ -289,7 +289,7 @@ xxx yyy
             // Checks arguments passed to a batch script which itself passes them on are correctly escaped
 
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             // Create a dummy exe that will produce a log file showing any input args
             var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
 
@@ -335,7 +335,7 @@ xxx yyy
         public void ProcRunner_DoNotLogSensitiveData()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             // Create a dummy exe that will produce a log file showing any input args
             var exeName = DummyExeHelper.CreateDummyPostProcessor(testDir, 0);
 

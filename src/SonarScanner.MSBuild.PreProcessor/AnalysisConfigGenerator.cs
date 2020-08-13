@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 SonarProjectVersion = localSettings.ProjectVersion,
                 SonarQubeHostUrl = localSettings.SonarQubeUrl,
                 HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName),
-                SonarQubeVersion = sonarQubeServer.GetServerVersion().ToString()
+                SonarQubeVersion = sonarQubeServer.GetServerVersion().Result.ToString()
             };
 
             config.SetBuildUri(buildSettings.BuildUri);

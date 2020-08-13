@@ -59,7 +59,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Arrange
             var testSubject = new GetAnalyzerSettings
             {
-                AnalysisConfigDir = TestUtils.CreateTestSpecificFolder(TestContext)
+                AnalysisConfigDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
             };
 
             // Act
@@ -556,7 +556,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         {
             // Arrange
 
-            var dir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
             var config = CreateMergingAnalysisConfig("xxx", dummyQpRulesetPath);
 
@@ -577,7 +577,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         {
             // Arrange
 
-            var dir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
             var config = CreateMergingAnalysisConfig("xxx", dummyQpRulesetPath);
 
@@ -646,7 +646,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
         private static GetAnalyzerSettings CreateConfiguredTestSubject(AnalysisConfig config, string language, TestContext testContext)
         {
-            var testDir = TestUtils.CreateTestSpecificFolder(testContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
             var testSubject = new GetAnalyzerSettings
             {
                 Language = language
@@ -679,7 +679,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
         public string CreateRuleset(string fileNameWithoutExtension, string content)
         {
-            var dir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var filePath = TestUtils.CreateTextFile(dir, fileNameWithoutExtension + ".ruleset", content);
             return filePath;
         }

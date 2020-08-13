@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             IList<SonarRule> inactiveRules = new List<SonarRule>();
             var pluginKey = RoslynAnalyzerProvider.CSharpPluginKey;
             var sonarProperties = new ListPropertiesProvider();
-            var settings = CreateSettings(TestUtils.CreateTestSpecificFolder(TestContext));
+            var settings = CreateSettings(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
 
             var testSubject = CreateTestSubject(logger);
 
@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             IList<SonarRule> inactiveRules = new List<SonarRule>();
             var pluginKey = "csharp";
             var sonarProperties = new ListPropertiesProvider();
-            var settings = CreateSettings(TestUtils.CreateTestSpecificFolder(TestContext));
+            var settings = CreateSettings(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
 
             var testSubject = CreateTestSubject(logger);
 
@@ -276,7 +276,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         private string CreateTestFolders()
         {
-            var rootFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var rootFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             // Create the binary and conf folders that are created by the bootstrapper
             Directory.CreateDirectory(GetBinaryPath(rootFolder));

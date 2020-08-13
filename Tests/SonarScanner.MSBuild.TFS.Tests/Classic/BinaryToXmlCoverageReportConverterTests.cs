@@ -72,7 +72,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var outputFilePath = Path.Combine(testDir, "output.txt");
 
@@ -106,7 +106,7 @@ echo foo > """ + outputFilePath + @"""");
         {
             // Arrange
             var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var outputFilePath = Path.Combine(testDir, "output.txt");
 
@@ -133,7 +133,7 @@ echo foo > """ + outputFilePath + @"""");
         {
             // Arrange
             var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var outputFilePath = Path.Combine(testDir, "output.txt");
 
@@ -159,7 +159,7 @@ echo foo > """ + outputFilePath + @"""");
         {
             // Arrange
             var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var outputFilePath = Path.Combine(testDir, "output.txt");
 

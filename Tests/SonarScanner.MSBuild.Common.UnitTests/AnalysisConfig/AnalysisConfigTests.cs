@@ -67,7 +67,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void AnalysisConfig_Serialization_SaveAndReload()
         {
             // 0. Setup
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var originalConfig = new AnalysisConfig
             {
@@ -116,7 +116,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void AnalysisConfig_Serialization_SaveAndReload_EmptySettings()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var originalConfig = new AnalysisConfig();
             var fileName = Path.Combine(testFolder, "empty_config.xml");
@@ -130,7 +130,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void AnalysisConfig_Serialization_AdditionalConfig()
         {
             // 0. Setup
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var originalConfig = new AnalysisConfig();
 
@@ -154,7 +154,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void AnalysisConfig_SharedReadAllowed()
         {
             // 0. Setup
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var filePath = Path.Combine(testFolder, "config.txt");
 
             var config = new AnalysisConfig();
@@ -214,7 +214,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
   </AnalyzersSettings>
 </AnalysisConfig>";
 
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var fullPath = TestUtils.CreateTextFile(testDir, "input.txt", xml);
 
             // Act

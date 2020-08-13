@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         public void Init()
         {
             CleanupMsbuildDirectories();
-            this.WorkingDirectory = TestUtils.CreateTestSpecificFolder(TestContext, "sonarqube");
+            this.WorkingDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "sonarqube");
 
             this.logger = new TestLogger();
             this.msBuildPathSettingsMock = new Mock<IMsBuildPathsSettings>();

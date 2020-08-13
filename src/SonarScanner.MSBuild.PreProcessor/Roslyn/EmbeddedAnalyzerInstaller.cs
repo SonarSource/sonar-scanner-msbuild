@@ -158,7 +158,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 
             Directory.CreateDirectory(targetDir);
 
-            var success = this.server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir);
+            var success = this.server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir).Result;
 
             if (success)
             {

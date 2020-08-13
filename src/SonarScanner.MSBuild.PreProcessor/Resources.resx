@@ -192,6 +192,9 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_FetchingQualityProfile" xml:space="preserve">
     <value>Fetching quality profile for project '{0}' from {1}...</value>
   </data>
+  <data name="MSG_Forbidden_BrowsePermission" xml:space="preserve">
+    <value>To analyze private projects make sure the scanner user has 'Browse' permission.</value>
+  </data>
   <data name="MSG_GeneratingRulesets" xml:space="preserve">
     <value>Generating rulesets...</value>
   </data>

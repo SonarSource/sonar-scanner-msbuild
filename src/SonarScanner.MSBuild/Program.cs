@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS;
 
@@ -29,23 +30,23 @@ namespace SonarScanner.MSBuild
         public const int ErrorCode = 1;
         public const int SuccessCode = 0;
 
-        private static int Main(string[] args)
-            => Execute(args, false);
+        private static async Task<int> Main(string[] args)
+            => await Execute(args, false);
 
-        public static int ExecuteFromLegacyEntryPoint(string[] args)
-            => Execute(args, true);
+        public static async Task<int> ExecuteFromLegacyEntryPoint(string[] args)
+            => await Execute(args, true);
 
-        private static int Execute(string[] args, bool showDeprecatedWarning)
+        private static async Task<int> Execute(string[] args, bool showDeprecatedWarning)
         {
             var logger = new ConsoleLogger(includeTimestamp: false);
             if (showDeprecatedWarning)
             {
                 logger.LogWarning(Resources.WARN_Deprecated_Entry_Point);
             }
-            return Execute(args, logger);
+            return await Execute(args, logger);
         }
 
-        public static int Execute(string[] args, ILogger logger)
+        public static async Task<int> Execute(string[] args, ILogger logger)
         {
             Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
 #if IS_NET_FRAMEWORK
@@ -85,7 +86,7 @@ namespace SonarScanner.MSBuild
                 var processorFactory = new DefaultProcessorFactory(logger, GetLegacyTeamBuildFactory(logger),
                     GetCoverageReportConverter(logger));
                 var bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
-                var exitCode = bootstrapper.Execute();
+                var exitCode = await bootstrapper.Execute();
                 Environment.ExitCode = exitCode;
                 return exitCode;
             }

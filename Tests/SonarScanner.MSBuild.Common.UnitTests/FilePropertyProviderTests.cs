@@ -62,7 +62,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
             // Arrange
             IAnalysisPropertyProvider provider;
             var logger = new TestLogger();
-            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             // Act
             provider = CheckProcessingSucceeds(Enumerable.Empty<ArgumentInstance>(), defaultPropertiesDir, logger);
@@ -77,7 +77,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void FileProvider_UseDefaultPropertiesFile()
         {
             // Arrange
-            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var validPropertiesFile = CreateValidPropertiesFile(defaultPropertiesDir, FilePropertyProvider.DefaultFileName, "key1", "value1");
             var logger = new TestLogger();
 
@@ -97,10 +97,10 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void FileProvider_UseSpecifiedPropertiesFile()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var validPropertiesFile = CreateValidPropertiesFile(testDir, "myPropertiesFile.xml", "xxx", "value with spaces");
 
-            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(TestContext, "Default");
+            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Default");
             CreateFile(defaultPropertiesDir, FilePropertyProvider.DefaultFileName, "invalid file - will error if this file is loaded");
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>
@@ -125,7 +125,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             // Arrange
             var logger = new TestLogger();
-            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>
             {
@@ -147,7 +147,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             // Arrange
             var logger = new TestLogger();
-            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var invalidFile = CreateFile(defaultPropertiesDir, FilePropertyProvider.DefaultFileName, "not a valid XML properties file");
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>();
@@ -166,7 +166,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         {
             // Arrange
             var logger = new TestLogger();
-            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var defaultPropertiesDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var invalidFile = CreateFile(defaultPropertiesDir, "invalidPropertiesFile.txt", "not a valid XML properties file");
 
             IList<ArgumentInstance> args = new List<ArgumentInstance>

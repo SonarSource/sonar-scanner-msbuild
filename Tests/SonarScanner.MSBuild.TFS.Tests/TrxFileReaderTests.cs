@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         /// we don't create actual files, but regardless we still use test-specific folders.
         /// </summary>
         private string RootDirectory =>
-            TestUtils.CreateTestSpecificFolder(TestContext);
+            TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
         [TestInitialize]
         public void TestInitialize()

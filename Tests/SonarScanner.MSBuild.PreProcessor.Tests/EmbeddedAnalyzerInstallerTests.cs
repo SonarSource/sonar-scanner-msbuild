@@ -43,7 +43,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void EmbeddedInstall_SinglePlugin_SingleResource_Succeeds()
         {
             // Arrange
-            var localCacheDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
             var requestedPlugin = new Plugin("plugin1", "1.0", "embeddedFile1.zip");
@@ -68,7 +68,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void EmbeddedInstall_MultiplePlugins_Succeeds()
         {
             // Arrange
-            var localCacheDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
             var request1 = new Plugin("no.matching.resource.plugin", "2.0", "non.existent.resource.zip");
@@ -103,7 +103,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void EmbeddedInstall_MissingResource_SucceedsWithWarningAndNoFiles()
         {
             // Arrange
-            var localCacheDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var logger = new TestLogger();
             var mockServer = CreateServerWithDummyPlugin("plugin1");
@@ -127,7 +127,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void EmbeddedInstall_NoPluginsSpecified_SucceedsButNoFiles()
         {
             // Arrange
-            var localCacheDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var logger = new TestLogger();
             var mockServer = CreateServerWithDummyPlugin("plugin1");
@@ -147,7 +147,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void EmbeddedInstall_PluginWithNoFiles_Succeeds()
         {
             // Arrange
-            var localCacheDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
             var request1 = new Plugin("plugin1", "1.0", "p1.resource1.zip");
@@ -186,7 +186,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void EmbeddedInstall_CachingScenarios()
         {
             // Arrange
-            var localCacheDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
             var requestA = new Plugin("p111", "1.0-SNAPSHOT", "p1.zip");
