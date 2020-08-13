@@ -49,7 +49,7 @@ namespace TestUtilities
         /// full path to the new folder. This method will return the same path
         /// if called multiple times from within the same test.
         /// </summary>
-        public static string CreateTestSpecificFolder(TestContext testContext, params string[] subDirNames)
+        public static string CreateTestSpecificFolderWithSubPaths(TestContext testContext, params string[] subDirNames)
         {
             var fullPath = CreateTestSpecificFolder(testContext);
             if (subDirNames.Length > 0)

@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.Common;
@@ -52,22 +53,25 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         #region ISonarQubeServer interface
 
-        public bool TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language, out string qualityProfileKey)
+        public async Task<Tuple<bool, string>> TryGetQualityProfile(string projectKey, string projectBranch, string organization, string language)
         {
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
 
-            var ws = AddOrganization(GetUrl("/api/qualityprofiles/search?projectKey={0}", projectId), organization);
+            var ws = await AddOrganization(GetUrl("/api/qualityprofiles/search?projectKey={0}", projectId), organization);
             this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
 
-            qualityProfileKey = DoLogExceptions(() =>
+            var qualityProfileKey = await DoLogExceptions(async () =>
             {
-                if (!this.downloader.TryDownloadIfExists(ws, out var contents))
+                var result = await this.downloader.TryDownloadIfExists(ws);
+                string contents = result.Item2;
+                if (!result.Item1)
                 {
-                    ws = AddOrganization(GetUrl("/api/qualityprofiles/search?defaults=true"), organization);
+                    ws = await AddOrganization(GetUrl("/api/qualityprofiles/search?defaults=true"), organization);
 
                     this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
-                    contents = this.downloader.Download(ws);
+                    contents = await this.downloader.Download(ws);
                 }
+
                 var json = JObject.Parse(contents);
                 var profiles = json["profiles"].Children<JObject>();
 
@@ -80,7 +84,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                 return profile["key"].ToString();
             }, ws);
 
-            return qualityProfileKey != null;
+            return new Tuple<bool, string>(qualityProfileKey != null, qualityProfileKey);
         }
 
         /// <summary>
@@ -90,7 +94,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <param name="qprofile">Quality profile key.</param>
         /// <param name="language">Rule Language.</param>
         /// <returns>Non-activated rule keys, including repo. Example: csharpsquid:S1100</returns>
-        public IList<SonarRule> GetInactiveRules(string qprofile, string language)
+        public async Task<IList<SonarRule>> GetInactiveRules(string qprofile, string language)
         {
             var fetched = 0;
             var page = 1;
@@ -102,9 +106,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                 var ws = GetUrl("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params&ps=500&activation=false&qprofile={0}&p={1}&languages={2}", qprofile, page.ToString(), language);
                 this.logger.LogDebug(Resources.MSG_FetchingInactiveRules, qprofile, language, ws);
 
-                ruleList.AddRange(DoLogExceptions(() =>
+                ruleList.AddRange(await DoLogExceptions(async () =>
                 {
-                    var contents = this.downloader.Download(ws);
+                    var contents = await this.downloader.Download(ws);
                     var json = JObject.Parse(contents);
                     total = json["total"].ToObject<int>();
                     fetched += json["ps"].ToObject<int>();
@@ -124,7 +128,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// </summary>
         /// <param name="qprofile">Quality profile id.</param>
         /// <returns>List of active rules</returns>
-        public IList<SonarRule> GetActiveRules(string qprofile)
+        public async Task<IList<SonarRule>> GetActiveRules(string qprofile)
         {
             var fetched = 0;
             var page = 1;
@@ -136,9 +140,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                 var ws = GetUrl("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile={0}&p={1}", qprofile, page.ToString());
                 this.logger.LogDebug(Resources.MSG_FetchingActiveRules, qprofile, ws);
 
-                activeRuleList.AddRange(DoLogExceptions(() =>
+                activeRuleList.AddRange(await DoLogExceptions(async () =>
                 {
-                    var contents = this.downloader.Download(ws);
+                    var contents = await this.downloader.Download(ws);
                     var json = JObject.Parse(contents);
                     total = json["total"].ToObject<int>();
                     fetched += json["ps"].ToObject<int>();
@@ -149,40 +153,45 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                     return rules.Select(r =>
                     {
-                        var activeRulesForRuleKey = actives.Value<JArray>(r["key"].ToString());
-
-                        if (activeRulesForRuleKey == null ||
-                            activeRulesForRuleKey.Count != 1)
-                        {
-                            // Because of the parameters we use we expect to have only actives rules. So rules and actives
-                            // should both contain the same number of elements (i.e. the same rules).
-                            throw new JsonException($"Malformed json response, \"actives\" field should contain rule '{r["key"].ToString()}'");
-                        }
-
-                        var activeRule = new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), true);
-                        if (r["internalKey"] != null)
-                        {
-                            activeRule.InternalKey = r["internalKey"].ToString();
-                        }
-                        if (r["templateKey"] != null)
-                        {
-                            activeRule.TemplateKey = r["templateKey"].ToString();
-                        }
-
-                        var activeRuleParams = activeRulesForRuleKey[0]["params"].Children<JObject>();
-                        activeRule.Parameters = activeRuleParams.ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
-
-                        if (activeRule.Parameters.ContainsKey("CheckId"))
-                        {
-                            activeRule.RuleKey = activeRule.Parameters["CheckId"];
-                        }
-
-                        return activeRule;
+                        return FilterRule(r, actives);
                     });
                 }, ws));
             } while (fetched < total);
 
             return activeRuleList;
+        }
+
+        private static SonarRule FilterRule(JObject r, JToken actives)
+        {
+            var activeRulesForRuleKey = actives.Value<JArray>(r["key"].ToString());
+
+            if (activeRulesForRuleKey == null ||
+                activeRulesForRuleKey.Count != 1)
+            {
+                // Because of the parameters we use we expect to have only actives rules. So rules and actives
+                // should both contain the same number of elements (i.e. the same rules).
+                throw new JsonException($"Malformed json response, \"actives\" field should contain rule '{r["key"].ToString()}'");
+            }
+
+            var activeRule = new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), true);
+            if (r["internalKey"] != null)
+            {
+                activeRule.InternalKey = r["internalKey"].ToString();
+            }
+            if (r["templateKey"] != null)
+            {
+                activeRule.TemplateKey = r["templateKey"].ToString();
+            }
+
+            var activeRuleParams = activeRulesForRuleKey[0]["params"].Children<JObject>();
+            activeRule.Parameters = activeRuleParams.ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
+
+            if (activeRule.Parameters.ContainsKey("CheckId"))
+            {
+                activeRule.RuleKey = activeRule.Parameters["CheckId"];
+            }
+
+            return activeRule;
         }
 
         /// <summary>
@@ -194,46 +203,47 @@ namespace SonarScanner.MSBuild.PreProcessor
         /// <param name="projectBranch">The SonarQube project branch to retrieve properties for (optional).</param>
         /// <returns>A dictionary of key-value property pairs.</returns>
         ///
-        public IDictionary<string, string> GetProperties(string projectKey, string projectBranch)
+        public async Task<IDictionary<string, string>> GetProperties(string projectKey, string projectBranch)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
             {
                 throw new ArgumentNullException(nameof(projectKey));
             }
+
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
 
-            if (GetServerVersion().CompareTo(new Version(6, 3)) >= 0)
+            if (this.serverUrl.Contains("sonarcloud.io") || (await GetServerVersion()).CompareTo(new Version(6, 3)) >= 0)
             {
-                return GetProperties63(projectId);
+                return await GetComponentProperties(projectId);
             }
             else
             {
-                return GetPropertiesOld(projectId);
+                return await GetComponentPropertiesLegacy(projectId);
             }
         }
 
-        public Version GetServerVersion()
+        public async Task<Version> GetServerVersion()
         {
             if (this.serverVersion == null)
             {
-                DownloadServerVersion();
+                await DownloadServerVersion();
             }
             return this.serverVersion;
         }
 
-        public IEnumerable<string> GetAllLanguages()
+        public async Task<IEnumerable<string>> GetAllLanguages()
         {
             var ws = GetUrl("/api/languages/list");
-            return DoLogExceptions(() =>
+            return await DoLogExceptions(async () =>
             {
-                var contents = this.downloader.Download(ws);
+                var contents = await this.downloader.Download(ws);
 
                 var langArray = JObject.Parse(contents).Value<JArray>("languages");
                 return langArray.Select(obj => obj["key"].ToString());
             }, ws);
         }
 
-        public bool TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
+        public async Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
         {
             if (string.IsNullOrWhiteSpace(pluginKey))
             {
@@ -250,12 +260,12 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             var url = GetUrl("/static/{0}/{1}", pluginKey, embeddedFileName);
 
-            return DoLogExceptions(() =>
+            return await DoLogExceptions(async () =>
             {
                 var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
 
                 this.logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, url, targetDirectory);
-                return this.downloader.TryDownloadFileIfExists(url, targetFilePath);
+                return await this.downloader.TryDownloadFileIfExists(url, targetFilePath);
             }, url);
         }
 
@@ -263,13 +273,13 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         #region Private methods
 
-        private string AddOrganization(string encodedUrl, string organization)
+        private async Task<string> AddOrganization(string encodedUrl, string organization)
         {
             if (string.IsNullOrEmpty(organization))
             {
                 return encodedUrl;
             }
-            var version = GetServerVersion();
+            var version = await GetServerVersion();
             if (version.CompareTo(new Version(6, 3)) >= 0)
             {
                 return EscapeQuery(encodedUrl + "&organization={0}", organization);
@@ -278,62 +288,61 @@ namespace SonarScanner.MSBuild.PreProcessor
             return encodedUrl;
         }
 
-        private T DoLogExceptions<T>(Func<T> op, string url, Action<Exception> onError = null)
+        private async Task<T> DoLogExceptions<T>(Func<Task<T>> op, string url)
         {
             try
             {
-                return op();
+                return await op();
             }
             catch (Exception e)
             {
-                onError?.Invoke(e);
-
                 this.logger.LogError("Failed to request and parse '{0}': {1}", url, e.Message);
                 throw;
             }
         }
 
-        private void DownloadServerVersion()
+        private async Task DownloadServerVersion()
         {
             var ws = GetUrl("api/server/version");
-            this.serverVersion = DoLogExceptions(() =>
+            this.serverVersion = await DoLogExceptions(async () =>
             {
-                var contents = this.downloader.Download(ws);
+                var contents = await this.downloader.Download(ws);
                 var separator = contents.IndexOf('-');
                 return separator >= 0 ? new Version(contents.Substring(0, separator)) : new Version(contents);
             }, ws);
         }
 
-        private IDictionary<string, string> GetPropertiesOld(string projectId)
+        private async Task<IDictionary<string, string>> GetComponentPropertiesLegacy(string projectId)
         {
             var ws = GetUrl("/api/properties?resource={0}", projectId);
             this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
-            var result = DoLogExceptions(() =>
+            var result = await DoLogExceptions(async () =>
             {
-                var contents = this.downloader.Download(ws);
+                var contents = await this.downloader.Download(ws, true);
                 var properties = JArray.Parse(contents);
                 return properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString());
-            }, ws, LogPermissionRequired);
+            }, ws);
 
             return CheckTestProjectPattern(result);
         }
 
-        private IDictionary<string, string> GetProperties63(string projectId)
+        private async Task<IDictionary<string, string>> GetComponentProperties(string projectId)
         {
             var ws = GetUrl("/api/settings/values?component={0}", projectId);
             this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
 
-            var contents = string.Empty;
-            var projectFound = DoLogExceptions(() => this.downloader.TryDownloadIfExists(ws, out contents), ws, LogPermissionRequired);
+            var projectFound = await DoLogExceptions(async() => await this.downloader.TryDownloadIfExists(ws, true), ws);
 
-            if (!projectFound)
+            var contents = projectFound?.Item2;
+
+            if (projectFound != null && !projectFound.Item1)
             {
                 ws = GetUrl("/api/settings/values");
                 this.logger.LogDebug("No settings for project {0}. Getting global settings: {1}", projectId, ws);
-                contents = DoLogExceptions(() => this.downloader.Download(ws), ws);
+                contents = await DoLogExceptions(async() => await this.downloader.Download(ws), ws);
             }
 
-            return DoLogExceptions(() => ParseSettingsResponse(contents), ws);
+            return await DoLogExceptions(async() => ParseSettingsResponse(contents), ws);
         }
 
         private Dictionary<string, string> ParseSettingsResponse(string contents)
@@ -440,16 +449,6 @@ namespace SonarScanner.MSBuild.PreProcessor
         private string EscapeQuery(string format, params string[] args)
         {
             return string.Format(System.Globalization.CultureInfo.InvariantCulture, format, args.Select(a => WebUtility.UrlEncode(a)).ToArray());
-        }
-
-        private void LogPermissionRequired(Exception e)
-        {
-            if (e is WebException exception &&
-                exception.Response is HttpWebResponse response &&
-                response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                this.logger.LogWarning("To analyze private projects make sure the scanner user has 'Browse' permission.");
-            }
         }
 
         #endregion Private methods

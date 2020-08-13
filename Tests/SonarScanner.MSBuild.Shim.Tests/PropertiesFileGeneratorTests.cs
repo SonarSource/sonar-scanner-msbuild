@@ -44,9 +44,9 @@ namespace SonarScanner.MSBuild.Shim.Tests
             // Properties file should not be generated if there are no project info files.
 
             // Arrange - two sub-directories, neither containing a ProjectInfo.xml
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var subDir1 = TestUtils.CreateTestSpecificFolder(TestContext, "dir1");
-            var subDir2 = TestUtils.CreateTestSpecificFolder(TestContext, "dir2");
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var subDir1 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "dir1");
+            var subDir2 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "dir2");
 
             CreateEmptyFile(subDir1, "file1.txt");
             CreateEmptyFile(subDir2, "file2.txt");
@@ -68,7 +68,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             // Only non-excluded projects with files to analyze should be marked as valid
 
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             CreateProjectInfoInSubDir(testDir, "withoutFiles", Guid.NewGuid(), ProjectType.Product, false, "c:\\abc\\withoutfile.proj", "UTF-8"); // not excluded
             CreateProjectWithFiles("withFiles1", testDir);
@@ -96,7 +96,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             // Casing can be ignored on windows OS
 
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var mockRuntimeInformation = new Mock<IRuntimeInformationWrapper>();
             mockRuntimeInformation.Setup(m => m.IsOS(System.Runtime.InteropServices.OSPlatform.Windows)).Returns(false);
@@ -132,7 +132,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             // Casing can be ignored on windows OS
 
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var mockRuntimeInformation = new Mock<IRuntimeInformationWrapper>();
             mockRuntimeInformation.Setup(m => m.IsOS(System.Runtime.InteropServices.OSPlatform.Windows)).Returns(true);
@@ -158,7 +158,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void FileGen_ValidFiles_SourceEncoding_Provided()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             CreateProjectWithFiles("withFiles1", testDir);
 
@@ -183,7 +183,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void FileGen_TFS_Coverage_Trx_Are_Written()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             CreateProjectWithFiles("withFiles1", testDir);
 
@@ -210,7 +210,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void FileGen_ValidFiles_WithAlreadyValidSarif()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             // SARIF file path
             var testSarifPath = Path.Combine(testDir, "testSarif.json");
@@ -245,7 +245,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void FileGen_ValidFiles_WithFixableSarif()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             // SARIF file path
             var testSarifPath = Path.Combine(testDir, "testSarif.json");
@@ -284,7 +284,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void FileGen_ValidFiles_WithFixableSarif_VBNet()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             // SARIF file path
             var testSarifPath = Path.Combine(testDir, "testSarif.json");
@@ -323,7 +323,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void FileGen_ValidFiles_WithUnfixableSarif()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             // SARIF file path
             var testSarifPath = Path.Combine(testDir, "testSarif.json");
@@ -362,9 +362,9 @@ namespace SonarScanner.MSBuild.Shim.Tests
             // Files outside the project root should be ignored
 
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
-            var projectDir = TestUtils.CreateTestSpecificFolder(TestContext, "project");
+            var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
             var projectPath = Path.Combine(projectDir, "project.proj");
             var projectInfo = CreateProjectInfoInSubDir(testDir, "projectName", Guid.NewGuid(), ProjectType.Product, false, "UTF-8", projectPath); // not excluded
 
@@ -392,9 +392,9 @@ namespace SonarScanner.MSBuild.Shim.Tests
             // Shared files should be attached to the root project
 
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
-            var project1Dir = TestUtils.CreateTestSpecificFolder(TestContext, "project1");
+            var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project1");
             var project1Path = Path.Combine(project1Dir, "project1.proj");
             var project1Info = CreateProjectInfoInSubDir(testDir, "projectName1", Guid.NewGuid(), ProjectType.Product, false, project1Path, "UTF-8"); // not excluded
             var sharedFile = Path.Combine(testDir, "contentFile.txt");
@@ -404,7 +404,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var contentFileList1 = CreateFile(project1Dir, "contentList.txt", sharedFile);
             AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
 
-            var project2Dir = TestUtils.CreateTestSpecificFolder(TestContext, "project2");
+            var project2Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project2");
             var project2Path = Path.Combine(project2Dir, "project2.proj");
             var project2Info = CreateProjectInfoInSubDir(testDir, "projectName2", Guid.NewGuid(), ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
 
@@ -429,12 +429,12 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void FileGen_SharedFiles_CaseInsensitive()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             // Create 2 uuids and order them so that test is reproducible
             var uuids = new Guid[] { Guid.NewGuid(), Guid.NewGuid() };
             Array.Sort(uuids);
 
-            var project1Dir = TestUtils.CreateTestSpecificFolder(TestContext, "project1");
+            var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project1");
             var project1Path = Path.Combine(project1Dir, "project1.proj");
             var project1Info = CreateProjectInfoInSubDir(testDir, "projectName1", uuids[0], ProjectType.Product, false, project1Path, "UTF-8"); // not excluded
             var sharedFile = Path.Combine(testDir, "contentFile.txt");
@@ -445,7 +445,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var contentFileList1 = CreateFile(project1Dir, "contentList.txt", sharedFile);
             AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
 
-            var project2Dir = TestUtils.CreateTestSpecificFolder(TestContext, "project2");
+            var project2Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project2");
             var project2Path = Path.Combine(project2Dir, "project2.proj");
             var project2Info = CreateProjectInfoInSubDir(testDir, "projectName2", uuids[1], ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
 
@@ -473,9 +473,9 @@ namespace SonarScanner.MSBuild.Shim.Tests
             // Shared files that belong to another project should NOT be attached to the root project
 
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
-            var project1Dir = TestUtils.CreateTestSpecificFolder(TestContext, "project1");
+            var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project1");
             var project1Path = Path.Combine(project1Dir, "project1.proj");
             var project1Guid = Guid.NewGuid();
             var project1Info = CreateProjectInfoInSubDir(testDir, "projectName1", project1Guid, ProjectType.Product, false, project1Path, "UTF-8"); // not excluded
@@ -486,7 +486,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var contentFileList1 = CreateFile(project1Dir, "contentList.txt", fileInProject1);
             AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
 
-            var project2Dir = TestUtils.CreateTestSpecificFolder(TestContext, "project2");
+            var project2Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project2");
             var project2Path = Path.Combine(project2Dir, "project2.proj");
             var project2Info = CreateProjectInfoInSubDir(testDir, "projectName2", Guid.NewGuid(), ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
 
@@ -515,8 +515,8 @@ namespace SonarScanner.MSBuild.Shim.Tests
             // The missing files should not appear in the generated properties file.
 
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
-            var projectBaseDir = TestUtils.CreateTestSpecificFolder(TestContext, "Project1");
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var projectBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Project1");
             var projectFullPath = CreateEmptyFile(projectBaseDir, "project1.proj");
 
             var existingManagedFile = CreateEmptyFile(projectBaseDir, "File1.cs");
@@ -539,7 +539,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var analysisFileList = CreateFileList(projectBaseDir, "filesToAnalyze.txt", existingManagedFile, missingManagedFile, existingContentFile, missingContentFile);
             projectInfo.AddAnalyzerResult(AnalysisType.FilesToAnalyze, analysisFileList);
 
-            var projectInfoDir = TestUtils.CreateTestSpecificFolder(TestContext, "ProjectInfo1Dir");
+            var projectInfoDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "ProjectInfo1Dir");
             var projectInfoFilePath = Path.Combine(projectInfoDir, FileConstants.ProjectInfoFileName);
             projectInfo.Save(projectInfoFilePath);
 
@@ -573,7 +573,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void FileGen_AdditionalProperties()
         {
             // 0. Arrange
-            var analysisRootDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
             CreateProjectWithFiles("project1", analysisRootDir);
@@ -621,7 +621,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void FileGen_WhenNoGuid_LogWarnings()
         {
             // Arrange
-            var analysisRootDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
             CreateProjectWithFiles("project1", analysisRootDir, Guid.Empty);
@@ -810,7 +810,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
 
             var logger = new TestLogger();
 
-            var analysisRootDir = TestUtils.CreateTestSpecificFolder(TestContext, "project");
+            var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
             var propertiesFileGenerator = new PropertiesFileGenerator(CreateValidConfig(analysisRootDir), logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper());
             var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First()).AnalyzerOutPaths.ToList();
 
@@ -847,7 +847,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             };
 
             var logger = new TestLogger();
-            var analysisRootDir = TestUtils.CreateTestSpecificFolder(TestContext, "project");
+            var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
             var propertiesFileGenerator = new PropertiesFileGenerator(CreateValidConfig(analysisRootDir), logger);
             var result = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First());
 
@@ -989,7 +989,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         /// </summary>
         private ProjectInfoAnalysisResult ExecuteAndCheckSucceeds(string projectName, TestLogger logger, params Property[] localSettings)
         {
-            var analysisRootDir = TestUtils.CreateTestSpecificFolder(TestContext, projectName);
+            var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, projectName);
 
             CreateProjectWithFiles(projectName, analysisRootDir);
             var config = CreateValidConfig(analysisRootDir);
@@ -1112,7 +1112,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         private void CreateProjectWithFiles(string projectName, string analysisRootPath, Guid projectGuid, bool createContentFiles = true, AnalysisProperties additionalProperties = null)
         {
             // Create a project with content files in a new subdirectory
-            var projectDir = TestUtils.CreateTestSpecificFolder(TestContext, Path.Combine("projects", projectName));
+            var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Path.Combine("projects", projectName));
             var projectFilePath = Path.Combine(projectDir, Path.ChangeExtension(projectName, "proj"));
 
             // Create a project info file in the correct location under the analysis root

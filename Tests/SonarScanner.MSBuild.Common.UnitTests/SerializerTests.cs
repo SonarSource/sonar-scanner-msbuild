@@ -62,7 +62,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void Serializer_RoundTrip_Succeeds()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var filePath = Path.Combine(testDir, "file1.txt");
 
             var original = new MyDataClass() { Value1 = "val1", Value2 = 22 };

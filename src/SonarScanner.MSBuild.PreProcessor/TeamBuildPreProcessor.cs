@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS;
 
@@ -77,7 +78,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         #region Public methods
 
-        public bool Execute(string[] args)
+        public async Task<bool> Execute(string[] args)
         {
             this.logger.SuspendOutput();
             var processedArgs = ArgumentProcessor.TryProcessArgs(args, this.logger);
@@ -90,11 +91,11 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
             else
             {
-                return DoExecute(processedArgs);
+                return await DoExecute(processedArgs);
             }
         }
 
-        private bool DoExecute(ProcessedArgs localSettings)
+        private async Task<bool> DoExecute(ProcessedArgs localSettings)
         {
             Debug.Assert(localSettings != null, "Not expecting the process arguments to be null");
 
@@ -122,14 +123,15 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             var server = this.factory.CreateSonarQubeServer(localSettings);
-            if (!FetchArgumentsAndRulesets(server, localSettings, teamBuildSettings, out var serverSettings, out var analyzersSettings))
+            var argumentsAndRuleSets = await FetchArgumentsAndRulesets(server, localSettings, teamBuildSettings);
+            if (!argumentsAndRuleSets.IsSuccess)
             {
                 return false;
             }
-            Debug.Assert(analyzersSettings != null, "Not expecting the analyzers settings to be null");
+            Debug.Assert(argumentsAndRuleSets.AnalyzersSettings != null, "Not expecting the analyzers settings to be null");
 
             // analyzerSettings can be empty
-            AnalysisConfigGenerator.GenerateFile(localSettings, teamBuildSettings, serverSettings, analyzersSettings, server, this.logger);
+            AnalysisConfigGenerator.GenerateFile(localSettings, teamBuildSettings, argumentsAndRuleSets.ServerSettings, argumentsAndRuleSets.AnalyzersSettings, server, this.logger);
 
             return true;
         }
@@ -152,10 +154,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
         }
 
-        private bool FetchArgumentsAndRulesets(ISonarQubeServer server, ProcessedArgs args, TeamBuildSettings settings, out IDictionary<string, string> serverSettings, out List<AnalyzerSettings> analyzersSettings)
+        private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRulesets(ISonarQubeServer server, ProcessedArgs args, TeamBuildSettings settings)
         {
-            serverSettings = null;
-            analyzersSettings = new List<AnalyzerSettings>();
+            ArgumentsAndRuleSets argumentsAndRuleSets = new ArgumentsAndRuleSets();
 
             try
             {
@@ -165,10 +166,10 @@ namespace SonarScanner.MSBuild.PreProcessor
                 args.TryGetSetting(SonarProperties.ProjectBranch, out var projectBranch);
 
                 // Fetch the SonarQube project properties
-                serverSettings = server.GetProperties(args.ProjectKey, projectBranch);
+                argumentsAndRuleSets.ServerSettings = await server.GetProperties(args.ProjectKey, projectBranch);
 
                 // Fetch installed plugins
-                var availableLanguages = server.GetAllLanguages();
+                var availableLanguages = await server.GetAllLanguages();
 
                 foreach (var plugin in plugins)
                 {
@@ -177,22 +178,24 @@ namespace SonarScanner.MSBuild.PreProcessor
                         continue;
                     }
 
+                    var qualityProfile = await server.TryGetQualityProfile(args.ProjectKey, projectBranch, args.Organization, plugin.Language);
+
                     // Fetch project quality profile
-                    if (!server.TryGetQualityProfile(args.ProjectKey, projectBranch, args.Organization, plugin.Language, out var qualityProfile))
+                    if (!qualityProfile.Item1)
                     {
                         this.logger.LogDebug(Resources.RAP_NoQualityProfile, plugin.Language, args.ProjectKey);
                         continue;
                     }
 
                     // Fetch rules (active and not active)
-                    var activeRules = server.GetActiveRules(qualityProfile);
+                    var activeRules = await server.GetActiveRules(qualityProfile.Item2);
 
                     if (!activeRules.Any())
                     {
                         this.logger.LogDebug(Resources.RAP_NoActiveRules, plugin.Language);
                     }
 
-                    var inactiveRules = server.GetInactiveRules(qualityProfile, plugin.Language);
+                    var inactiveRules = await server.GetInactiveRules(qualityProfile.Item2, plugin.Language);
 
                     // Generate Roslyn analyzers settings and rulesets
                     var analyzerProvider = this.factory.CreateRoslynAnalyzerProvider();
@@ -202,13 +205,13 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                     // Use the aggregate of local and server properties when generating the analyzer configuration
                     // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
-                    var serverProperties = new ListPropertiesProvider(serverSettings);
+                    var serverProperties = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings);
                     var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
                     var analyzer = analyzerProvider.SetupAnalyzer(settings, allProperties, activeRules, inactiveRules, plugin.Language);
 
                     if (analyzer != null)
                     {
-                        analyzersSettings.Add(analyzer);
+                        argumentsAndRuleSets.AnalyzersSettings.Add(analyzer);
                     }
                 }
             }
@@ -216,7 +219,8 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 if (Utilities.HandleHostUrlWebException(ex, args.SonarQubeUrl, this.logger))
                 {
-                    return false;
+                    argumentsAndRuleSets.IsSuccess = false;
+                    return argumentsAndRuleSets;
                 }
 
                 throw;
@@ -226,9 +230,24 @@ namespace SonarScanner.MSBuild.PreProcessor
                 Utilities.SafeDispose(server);
             }
 
-            return true;
+            argumentsAndRuleSets.IsSuccess = true;
+            return argumentsAndRuleSets;
         }
 
         #endregion Private methods
+
+        public class ArgumentsAndRuleSets
+        {
+            public ArgumentsAndRuleSets()
+            {
+                AnalyzersSettings = new List<AnalyzerSettings>();
+            }
+
+            public bool IsSuccess { get; set; }
+
+            public IDictionary<string, string> ServerSettings { get; set; }
+
+            public List<AnalyzerSettings> AnalyzersSettings { get; set; }
+        }
     }
 }

@@ -85,9 +85,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             var mockSearchFallback = new MockSearchFallback();
             var testDir = Path.GetTempPath();
+            var testFileName = Path.GetTempFileName();
             var testResultsDir = Path.Combine(testDir, "TestResults");
             Directory.CreateDirectory(testResultsDir);
-            TestUtils.CreateTextFile(testResultsDir, "dummy.trx", "");
+            TestUtils.CreateTextFile(testResultsDir, testFileName, "");
 
             var testSubject = new BuildVNextCoverageReportProcessor(new MockReportConverter(), new TestLogger(), mockSearchFallback);
 

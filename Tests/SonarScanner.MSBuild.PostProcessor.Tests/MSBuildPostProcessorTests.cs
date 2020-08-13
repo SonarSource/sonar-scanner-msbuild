@@ -388,7 +388,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             public PostProcTestContext(TestContext testContext)
             {
                 Config = new AnalysisConfig();
-                Settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolder(testContext));
+                Settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
 
                 Logger = new TestLogger();
                 CodeCoverage = new MockCodeCoverageProcessor();

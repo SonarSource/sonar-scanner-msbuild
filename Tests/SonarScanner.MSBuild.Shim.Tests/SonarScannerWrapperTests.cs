@@ -179,7 +179,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
                 new Property() { Id = "file.not.sensitive.key", Value = "not sensitive value" }
             };
 
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var settingsFilePath = Path.Combine(testDir, "fileSettings.txt");
             fileSettings.Save(settingsFilePath);
 

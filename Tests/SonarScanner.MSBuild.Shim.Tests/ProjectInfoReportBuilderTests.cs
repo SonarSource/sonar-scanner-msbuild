@@ -57,7 +57,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         public void PIRB_WriteSummaryReport_ValidArgs_FileCreated()
         {
             // Arrange
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var analysisConfig = new AnalysisConfig()
             {

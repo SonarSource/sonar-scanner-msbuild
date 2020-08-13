@@ -38,7 +38,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void IsTestFile_NoRegex()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             // 1. Check file names
             CheckFilePathIsNotTest(testFolder, "test"); // file name alone, no extension
@@ -82,7 +82,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [Description(@"Validate the default regex that determines if a project is test or not if the filename contains the 'test' token (not the file path!)")]
         public void IsTestFile_DefaultRegex()
         {
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             EnsureAnalysisConfig(testFolder, null);
 
             CheckFilePathIsTest(testFolder, @"Test.csproj");
@@ -119,7 +119,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void IsTestFile_InvalidRegexInConfig()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var invalidRegEx = "Invalid regex ((";
             EnsureAnalysisConfig(testFolder, invalidRegEx);
 
@@ -142,7 +142,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void IsTestFile_TimeoutIfConfigLocked_TaskFails()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var configFile = EnsureAnalysisConfig(testFolder, ".XX.");
 
@@ -167,7 +167,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void IsTestFile_RegExFromConfig()
         {
             // 0. Setup
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             // 1a. Check the config setting is used if valid
             EnsureAnalysisConfig(testFolder, ".*aProject.*");

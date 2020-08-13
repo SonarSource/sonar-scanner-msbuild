@@ -23,6 +23,6 @@ namespace SonarQube.Scanner.MSBuild
     internal static class Program
     {
         private static int Main(string[] args)
-            => SonarScanner.MSBuild.Program.ExecuteFromLegacyEntryPoint(args);
+            => SonarScanner.MSBuild.Program.ExecuteFromLegacyEntryPoint(args).Result;
     }
 }
