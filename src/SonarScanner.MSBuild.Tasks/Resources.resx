@@ -217,4 +217,7 @@ Error: {1}</value>
   <data name="WriteZeroLengthFiles_WritingFile" xml:space="preserve">
     <value>Writing zero-length file:{0}</value>
   </data>
+  <data name="WPIF_GeneratingRandomGuid" xml:space="preserve">
+    <value>No ProjectGuid has been found in neither the csproj nor the solution (Project {0}). Generating a random one.</value>
+  </data>
 </root>
