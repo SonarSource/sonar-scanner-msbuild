@@ -21,7 +21,7 @@
 using System.IO;
 using SonarScanner.MSBuild.Common;
 
-namespace SonarQube.Bootstrapper.Tests
+namespace SonarScanner.Bootstrapper.Tests
 {
     internal static class BootstrapperTestUtils
     {

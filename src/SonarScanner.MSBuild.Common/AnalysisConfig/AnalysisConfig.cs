@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         public bool HasBeginStepCommandLineCredentials { get; set; }
 
-        #region SonarQube project properties
+        #region Sonar project properties
 
         public string SonarQubeHostUrl { get; set; }
 
@@ -93,7 +93,7 @@ namespace SonarScanner.MSBuild.Common
         /// </summary>
         public List<AnalyzerSettings> AnalyzersSettings { get; set; }
 
-        #endregion SonarQube project properties
+        #endregion Sonar project properties
 
         #region Serialization
 

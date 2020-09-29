@@ -25,7 +25,6 @@ using System.IO;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn
 {

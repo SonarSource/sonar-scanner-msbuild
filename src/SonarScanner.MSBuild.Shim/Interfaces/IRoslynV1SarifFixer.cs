@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common;
-
-namespace SonarScanner.MSBuild.Shim
+namespace SonarScanner.MSBuild.Shim.Interfaces
 {
     public interface IRoslynV1SarifFixer
     {

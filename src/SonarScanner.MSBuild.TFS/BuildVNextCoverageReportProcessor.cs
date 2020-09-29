@@ -21,7 +21,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild.TFS
 {

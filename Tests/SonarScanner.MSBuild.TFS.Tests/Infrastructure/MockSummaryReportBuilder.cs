@@ -20,8 +20,8 @@
 
 using FluentAssertions;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Shim;
-using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Common.Interfaces;
+using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild.PostProcessor.Tests
 {
@@ -31,7 +31,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
         #region ISummaryReportBuilder interface
 
-        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result)
+        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath)
         {
             methodCalled.Should().BeFalse("Generate reports has already been called");
 

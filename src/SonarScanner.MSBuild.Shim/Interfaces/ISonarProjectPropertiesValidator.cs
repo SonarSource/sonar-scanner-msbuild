@@ -18,15 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.TFS;
+using System.Collections.Generic;
 
-namespace SonarScanner.MSBuild
+namespace SonarScanner.MSBuild.Shim.Interfaces
 {
-    public class NullCoverageReportConverter : ICoverageReportConverter
+    public interface ISonarProjectPropertiesValidator
     {
-        public bool ConvertToXml(string inputFilePath, string outputFilePath)
-            => false;
-
-        public bool Initialize() => true;
+        bool AreExistingSonarPropertiesFilesPresent(string sonarScannerCwd, ICollection<ProjectData> projects, out IEnumerable<string> invalidFolders);
     }
 }

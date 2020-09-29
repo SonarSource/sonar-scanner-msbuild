@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim
 {
@@ -60,7 +61,7 @@ namespace SonarScanner.MSBuild.Shim
 
         #region ISonarScanner interface
 
-        public ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
+        public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, String propertiesFilePath)
         {
             if (config == null)
             {
@@ -71,26 +72,7 @@ namespace SonarScanner.MSBuild.Shim
                 throw new ArgumentNullException(nameof(userCmdLineArguments));
             }
 
-            var result = new PropertiesFileGenerator(config, logger).GenerateFile();
-            Debug.Assert(result != null, "Not expecting the file generator to return null");
-            result.RanToCompletion = false;
-
-            SonarProjectPropertiesValidator.Validate(
-                config.SonarScannerWorkingDirectory,
-                result.Projects,
-                onValid: () =>
-                {
-                    ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
-
-                    result.RanToCompletion = InternalExecute(config, userCmdLineArguments, logger, result.FullPropertiesFilePath);
-                },
-                onInvalid: (invalidFolders) =>
-                {
-                    // LOG error message
-                    logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
-                });
-
-            return result;
+            return InternalExecute(config, userCmdLineArguments, logger, propertiesFilePath);
         }
 
         #endregion ISonarScanner interface

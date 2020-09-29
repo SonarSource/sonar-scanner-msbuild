@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild.PreProcessor
 {

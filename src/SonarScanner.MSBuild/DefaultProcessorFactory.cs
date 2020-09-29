@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
 using SonarScanner.MSBuild.PostProcessor;
 using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor;
@@ -31,28 +29,20 @@ namespace SonarScanner.MSBuild
     public class DefaultProcessorFactory : IProcessorFactory
     {
         private readonly ILogger logger;
-        private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
-        private readonly ICoverageReportConverter coverageReportConverter;
 
-        public DefaultProcessorFactory(ILogger logger,
-            ILegacyTeamBuildFactory legacyTeamBuildFactory,
-            ICoverageReportConverter coverageReportConverter)
+        public DefaultProcessorFactory(ILogger logger)
         {
             this.logger = logger;
-            this.legacyTeamBuildFactory
-                = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
-            this.coverageReportConverter
-                = coverageReportConverter ?? throw new ArgumentNullException(nameof(coverageReportConverter));
         }
 
         public IMSBuildPostProcessor CreatePostProcessor()
         {
             return new MSBuildPostProcessor(
-                new CoverageReportProcessor(legacyTeamBuildFactory, coverageReportConverter, logger),
                 new SonarScannerWrapper(logger),
-                new SummaryReportBuilder(legacyTeamBuildFactory, logger),
                 logger,
-                new TargetsUninstaller(logger));
+                new TargetsUninstaller(logger),
+                new TfsProcessorWrapper(logger),
+                new SonarProjectPropertiesValidator());
         }
 
         public ITeamBuildPreProcessor CreatePreProcessor()

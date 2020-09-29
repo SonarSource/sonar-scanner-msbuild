@@ -20,7 +20,6 @@
 
 using System.Collections.Generic;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor

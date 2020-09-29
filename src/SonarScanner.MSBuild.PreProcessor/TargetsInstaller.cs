@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// </summary>
     public class TargetsInstaller : ITargetsInstaller
     {
-        private static readonly string AssemblyLocation = Path.GetDirectoryName(typeof(TeamBuildPreProcessor).Assembly.Location);
+        private static readonly string AssemblyLocation = Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location);
 
         /// <summary>
         /// Controls the default value for installing the loader targets.

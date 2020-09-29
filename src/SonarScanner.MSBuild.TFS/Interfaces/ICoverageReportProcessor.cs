@@ -19,7 +19,7 @@
  */
 
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild.TFS
 {
@@ -29,7 +29,7 @@ namespace SonarScanner.MSBuild.TFS
         /// Initializes the converter
         /// </summary>
         /// <returns>Operation success</returns>
-        bool Initialise(AnalysisConfig config, ITeamBuildSettings settings);
+        bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, string propertiesFilePath);
 
         /// <summary>
         /// Locate, download and convert the code coverage report

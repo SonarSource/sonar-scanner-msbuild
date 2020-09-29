@@ -21,10 +21,10 @@
 using System;
 using System.Diagnostics;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
-using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Common.Interfaces;
+using SonarScanner.MSBuild.Common.TFS;
 
-namespace SonarScanner.MSBuild.PostProcessor
+namespace SonarScanner.MSBuild.TFS
 {
     public class CoverageReportProcessor : ICoverageReportProcessor
     {
@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.PostProcessor
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings)
+        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, string propertiesFilePath)
         {
             if (settings == null)
             {
@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.PostProcessor
 
             TryCreateCoverageReportProcessor(settings);
 
-            initialisedSuccesfully = (processor != null && processor.Initialise(config, settings));
+            initialisedSuccesfully = (processor != null && processor.Initialise(config, settings, propertiesFilePath));
             return initialisedSuccesfully;
         }
 

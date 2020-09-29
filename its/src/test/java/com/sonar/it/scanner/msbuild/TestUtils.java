@@ -97,7 +97,7 @@ public class TestUtils {
       else {
         // run locally
         LOG.info("Using Scanner for MSBuild from the local build");
-        scannerLocation = FindScannerZip("../DeploymentArtifacts/BuildAgentPayload/Release");
+        scannerLocation = FindScannerZip("../build");
       }
     }
 
