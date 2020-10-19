@@ -49,6 +49,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             var context = new PostProcTestContext(TestContext);
             context.Config.SonarOutputDir = Environment.CurrentDirectory;
             context.Config.SonarConfigDir = Environment.CurrentDirectory;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
             context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
             context.Scanner.ValueToReturn = false;
             context.TfsProcessor.ValueToReturn = true;
@@ -76,6 +77,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             var context = new PostProcTestContext(TestContext);
             context.Config.SonarOutputDir = Environment.CurrentDirectory;
             context.Config.SonarConfigDir = Environment.CurrentDirectory;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
             context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
             context.Scanner.ValueToReturn = true;
             context.TfsProcessor.ValueToReturn = true;
@@ -107,6 +109,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             var context = new PostProcTestContext(TestContext);
             context.Config.SonarOutputDir = Environment.CurrentDirectory;
             context.Config.SonarConfigDir = Environment.CurrentDirectory;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
             context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
             context.Scanner.ValueToReturn = true;
             context.TfsProcessor.ValueToReturn = true;
@@ -165,6 +168,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             context.Config.HasBeginStepCommandLineCredentials = true;
             context.Config.SonarOutputDir = Environment.CurrentDirectory;
             context.Config.SonarConfigDir = Environment.CurrentDirectory;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
             context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
             context.Scanner.ValueToReturn = true;
             context.TfsProcessor.ValueToReturn = true;
@@ -213,6 +217,8 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             // Arrange
             var context = new PostProcTestContext(TestContext);
             context.Config.HasBeginStepCommandLineCredentials = true;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
             context.TfsProcessor.ValueToReturn = false;
 
             // Act
@@ -234,6 +240,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             // Arrange
             var context = new PostProcTestContext(TestContext);
             context.Config.SonarOutputDir = Environment.CurrentDirectory;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
             context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
             context.Config.AdditionalConfig = new List<ConfigSetting>();
             context.Scanner.ValueToReturn = true;
@@ -259,6 +266,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             var context = new PostProcTestContext(TestContext);
             context.Config.SonarOutputDir = Environment.CurrentDirectory;
             context.Config.SonarConfigDir = Environment.CurrentDirectory;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
             context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
             context.Config.AdditionalConfig = new List<ConfigSetting>();
             context.Scanner.ValueToReturn = true;
@@ -278,6 +286,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             var context = new PostProcTestContext(TestContext);
             context.Config.HasBeginStepCommandLineCredentials = true;
             context.Config.SonarConfigDir = Environment.CurrentDirectory;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
             context.Config.SonarOutputDir = Environment.CurrentDirectory;
             context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
             context.Scanner.ValueToReturn = true;

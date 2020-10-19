@@ -481,7 +481,7 @@ C:\foobar.cs");
             // Assert
             actual.Should().Be(@"C:\foo.cs");
             logger.Warnings.Should().HaveCount(1);
-            logger.Warnings[0].Should().Be("The following paths contain invalid characters for this version of SonarQube and will be excluded from this analysis: C:\\foo,bar.cs");
+            logger.Warnings[0].Should().Be("The following paths contain invalid characters and will be excluded from this analysis: C:\\foo,bar.cs");
         }
 
         #endregion Tests

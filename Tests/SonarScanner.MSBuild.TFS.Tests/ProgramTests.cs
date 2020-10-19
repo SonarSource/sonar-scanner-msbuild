@@ -117,7 +117,7 @@ namespace SonarScanner.MSBuild.TFS.Classic.Tests
 
                 result.Should().Be(0);
                 logger.Errors.Should().HaveCount(1);
-                logger.Errors.Should().Contain(@"The SonarQube MSBuild integration failed: SonarQube was unable to collect the required information about your projects.
+                logger.Errors.Should().Contain(@"The SonarScanner for MSBuild integration failed: SonarQube was unable to collect the required information about your projects.
 Possible causes:
   1. The project has not been built - the project must be built in between the begin and end steps
   2. An unsupported version of MSBuild has been used to build the project. Currently MSBuild 14.0.25420.1 and higher are supported.

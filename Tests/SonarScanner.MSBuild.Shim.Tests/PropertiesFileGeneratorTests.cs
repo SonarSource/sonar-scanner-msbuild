@@ -26,7 +26,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Shim.Interfaces;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.Shim.Tests
@@ -53,7 +52,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             CreateEmptyFile(subDir2, "file2.txt");
 
             var logger = new TestLogger();
-            var config = new AnalysisConfig() { SonarOutputDir = testDir };
+            var config = new AnalysisConfig() { SonarOutputDir = testDir, SonarQubeHostUrl = "http://sonarqube.com" };
 
             // Act
             var result = new PropertiesFileGenerator(config, logger).GenerateFile();
@@ -122,8 +121,8 @@ namespace SonarScanner.MSBuild.Shim.Tests
             logger.Warnings.Should().BeEquivalentTo(
                new[]
                {
-                    $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed by SonarQube. Project file: \"c:\\abc\\withoutfile.proj\"",
-                    $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed by SonarQube. Project file: \"C:\\abc\\withoutFile.proj\"",
+                    $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"c:\\abc\\withoutfile.proj\"",
+                    $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"C:\\abc\\withoutFile.proj\"",
                });
         }
 
@@ -547,6 +546,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var logger = new TestLogger();
             var config = new AnalysisConfig()
             {
+                SonarQubeHostUrl = "http://sonarqube.com",
                 SonarProjectKey = "my_project_key",
                 SonarProjectName = "my_project_name",
                 SonarProjectVersion = "1.0",
@@ -856,8 +856,8 @@ namespace SonarScanner.MSBuild.Shim.Tests
             logger.Warnings.Should().BeEquivalentTo(
                 new[]
                 {
-                    $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed by SonarQube. Project file: \"path1\"",
-                    $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed by SonarQube. Project file: \"path2\"",
+                    $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"path1\"",
+                    $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"path2\"",
                 });
         }
 
@@ -1135,7 +1135,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var config = new AnalysisConfig()
             {
                 SonarOutputDir = outputDir,
-
+                SonarQubeHostUrl = "http://sonarqube.com",
                 SonarProjectKey = dummyProjectKey,
                 SonarProjectName = dummyProjectKey,
                 SonarConfigDir = Path.Combine(outputDir, "config"),

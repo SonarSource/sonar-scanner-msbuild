@@ -176,25 +176,25 @@ namespace SonarScanner.MSBuild.Common
             var response = ex.Response as HttpWebResponse;
             if (response != null && response.StatusCode == HttpStatusCode.NotFound)
             {
-                logger.LogError(Resources.ERROR_FileNotFound, response.ResponseUri);
+                logger.LogError(Resources.ERROR_FileNotFound, response.ResponseUri, SonarProduct.GetSonarProductToLog(hostUrl));
                 return true;
             }
 
             if (response != null && response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                logger.LogError(Resources.ERROR_UnauthorizedConnection, response.ResponseUri);
+                logger.LogError(Resources.ERROR_UnauthorizedConnection, response.ResponseUri, SonarProduct.GetSonarProductToLog(hostUrl));
                 return true;
             }
 
             if (ex.Status == WebExceptionStatus.NameResolutionFailure)
             {
-                logger.LogError(Resources.ERROR_UrlNameResolutionFailed, hostUrl);
+                logger.LogError(Resources.ERROR_UrlNameResolutionFailed, hostUrl, SonarProduct.GetSonarProductToLog(hostUrl));
                 return true;
             }
 
             if (ex.Status == WebExceptionStatus.ConnectFailure)
             {
-                logger.LogError(Resources.ERROR_ConnectionFailed, hostUrl);
+                logger.LogError(Resources.ERROR_ConnectionFailed, hostUrl, SonarProduct.GetSonarProductToLog(hostUrl));
                 return true;
             }
 

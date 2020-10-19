@@ -134,7 +134,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/o:&apos; to define the organization of the SonarQube project instead of injecting this organization with the help of the &apos;sonar.organization&apos; property..
+        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/o:&apos; to define the organization of the project instead of injecting this organization with the help of the &apos;sonar.organization&apos; property..
         /// </summary>
         internal static string ERROR_CmdLine_MustUseOrganization {
             get {
@@ -143,7 +143,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/k:&apos; to define the key of the SonarQube project instead of injecting this key with the help of the &apos;sonar.projectKey&apos; property..
+        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/k:&apos; to define the key of the project instead of injecting this key with the help of the &apos;sonar.projectKey&apos; property..
         /// </summary>
         internal static string ERROR_CmdLine_MustUseProjectKey {
             get {
@@ -152,7 +152,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/n:&apos; to define the name of the SonarQube project instead of injecting this name with the help of the &apos;sonar.projectName&apos; property..
+        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/n:&apos; to define the name of the project instead of injecting this name with the help of the &apos;sonar.projectName&apos; property..
         /// </summary>
         internal static string ERROR_CmdLine_MustUseProjectName {
             get {
@@ -161,7 +161,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/v:&apos; to define the version of the SonarQube project instead of injecting this version with the help of the &apos;sonar.projectVersion&apos; property..
+        ///   Looks up a localized string similar to Please use the parameter prefix &apos;/v:&apos; to define the version of the project instead of injecting this version with the help of the &apos;sonar.projectVersion&apos; property..
         /// </summary>
         internal static string ERROR_CmdLine_MustUseProjectVersion {
             get {
@@ -179,7 +179,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: {0}.
+        ///   Looks up a localized string similar to Could not connect to the {1} server. Check that the URL is correct and that the server is available. URL: {0}.
         /// </summary>
         internal static string ERROR_ConnectionFailed {
             get {
@@ -197,7 +197,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find a file on the SonarQube server. URL: {0}.
+        ///   Looks up a localized string similar to Could not find a file on the {1} server. URL: {0}.
         /// </summary>
         internal static string ERROR_FileNotFound {
             get {
@@ -233,7 +233,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to find the SonarQube analysis settings file &apos;{0}&apos;. Please fix the path to this settings file..
+        ///   Looks up a localized string similar to Unable to find the analysis settings file &apos;{0}&apos;. Please fix the path to this settings file..
         /// </summary>
         internal static string ERROR_Properties_GlobalPropertiesFileDoesNotExist {
             get {
@@ -242,7 +242,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to read the SonarQube analysis settings file &apos;{0}&apos;. Please fix the content of this file..
+        ///   Looks up a localized string similar to Unable to read the analysis settings file &apos;{0}&apos;. Please fix the content of this file..
         /// </summary>
         internal static string ERROR_Properties_InvalidPropertiesFile {
             get {
@@ -269,7 +269,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not authorize while connecting to the SonarQube server. Check your credentials and try again..
+        ///   Looks up a localized string similar to Could not authorize while connecting to the {0} server. Check your credentials and try again..
         /// </summary>
         internal static string ERROR_UnauthorizedConnection {
             get {
@@ -278,7 +278,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The name of the SonarQube server could not be resolved. Check the url is correct and that the server is available. Url: {0}.
+        ///   Looks up a localized string similar to The name of the {1} server could not be resolved. Check the url is correct and that the server is available. Url: {0}.
         /// </summary>
         internal static string ERROR_UrlNameResolutionFailed {
             get {
