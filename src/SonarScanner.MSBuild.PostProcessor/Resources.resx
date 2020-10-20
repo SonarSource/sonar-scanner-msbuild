@@ -137,6 +137,9 @@ Expected location: {0}</value>
   <data name="ERROR_CredentialsNotSpecified" xml:space="preserve">
     <value>Credentials must be passed in both begin and end steps or not at all</value>
   </data>
+  <data name="ERR_ConflictingSonarProjectProperties" xml:space="preserve">
+    <value>sonar-project.properties files are not understood by the SonarScanner for MSBuild. Remove those files from the following folders: {0}</value>
+  </data>
   <data name="MSG_LoadingConfig" xml:space="preserve">
     <value>Loading the SonarQube analysis config from {0}</value>
   </data>
@@ -149,17 +152,8 @@ Expected location: {0}</value>
   <data name="MSG_UninstallTargets_Uninstalling" xml:space="preserve">
     <value>Uninstalling target: {0}\{1}</value>
   </data>
-  <data name="Report_AnalysisFailed" xml:space="preserve">
-    <value>Analysis failed for SonarQube project {0}</value>
-  </data>
-  <data name="Report_AnalysisSucceeded" xml:space="preserve">
-    <value>Analysis succeeded for SonarQube project {0} [(Analysis results)] ({1})</value>
-  </data>
   <data name="Report_CreatingSummaryMarkdown" xml:space="preserve">
     <value>Creating a summary markdown file...</value>
-  </data>
-  <data name="Report_InvalidSkippedAndExcludedMessage" xml:space="preserve">
-    <value>  Invalid projects: {0}, skipped projects: {1}, excluded projects: {2}</value>
   </data>
   <data name="Report_MdSummaryAnalysisFailed" xml:space="preserve">
     <value>Analysis failed for SonarQube project {0}</value>
@@ -172,15 +166,6 @@ Expected location: {0}</value>
   </data>
   <data name="Report_MdSummaryProductAndTestMessage" xml:space="preserve">
     <value>- Product projects: {0}, test projects: {1}</value>
-  </data>
-  <data name="Report_ProductAndTestMessage" xml:space="preserve">
-    <value>  Product projects: {0}, test projects: {1}</value>
-  </data>
-  <data name="Report_SonarQubeProjectDescription" xml:space="preserve">
-    <value>"{0}", version {2}</value>
-  </data>
-  <data name="Report_UpdatingTeamBuildSummary" xml:space="preserve">
-    <value>Updating the TeamBuild summary...</value>
   </data>
   <data name="SETTINGS_InLegacyTeamBuild" xml:space="preserve">
     <value>Legacy TeamBuild environment detected</value>
@@ -201,8 +186,5 @@ Config file: {5}</value>
   </data>
   <data name="WARN_CannotProcessCoverage" xml:space="preserve">
     <value>Cannot process the code coverage information. Look at the previous warnings for details.</value>
-  </data>
-  <data name="WARN_XamlBuildDeprecated" xml:space="preserve">
-    <value>** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for MSBuild **</value>
   </data>
 </root>

@@ -382,7 +382,7 @@ public class ScannerMSBuildTest {
       .addArgument("/?"));
 
     assertThat(result.getLogs()).contains("Usage:");
-    assertThat(result.getLogs()).contains("SonarQube.Scanner.MSBuild.exe");
+    assertThat(result.getLogs()).contains("SonarScanner.MSBuild.exe");
   }
 
   @Test

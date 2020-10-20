@@ -20,13 +20,13 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim;
-using SonarScanner.MSBuild.TFS;
-using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.Interfaces;
+using SonarScanner.MSBuild.Common.TFS;
+using System.Linq;
 
-namespace SonarScanner.MSBuild.PostProcessor
+namespace SonarScanner.MSBuild.TFS
 {
     /// <summary>
     /// Generates summary reports for various build systems
@@ -68,16 +68,23 @@ namespace SonarScanner.MSBuild.PostProcessor
         /// <summary>
         /// Generates summary reports for LegacyTeamBuild and for Build Vnext
         /// </summary>
-        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result)
+        public void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.config = config ?? throw new ArgumentNullException(nameof(config));
-            this.result = result ?? throw new ArgumentNullException(nameof(result));
+
+            result = new ProjectInfoAnalysisResult();
+            result.RanToCompletion = ranToCompletion;
+            result.FullPropertiesFilePath = fullPropertiesFilePath;
+
+            new PropertiesFileGenerator(config, logger).TryWriteProperties(new PropertiesWriter(config, logger), out var allProjects);
+
+            result.Projects.AddRange(allProjects);
 
             GenerateReports();
         }
 
-        #endregion IReportBuilder interface methods
+        #endregion IReportBuilder interface methods 
 
         private void GenerateReports()
         {
@@ -158,7 +165,7 @@ namespace SonarScanner.MSBuild.PostProcessor
 
             return branch;
         }
-
+         
         private void UpdateLegacyTeamBuildSummary(SummaryReportData summaryData)
         {
             logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);

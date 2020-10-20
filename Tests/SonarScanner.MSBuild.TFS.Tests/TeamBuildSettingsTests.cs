@@ -22,6 +22,7 @@ using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.TFS;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.TFS.Tests

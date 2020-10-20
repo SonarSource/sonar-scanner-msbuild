@@ -197,9 +197,6 @@ Possible causes:
   <data name="MSG_MandatorySettingIsCorrectlySpecified" xml:space="preserve">
     <value>Analysis property is already correctly set: {0}={1}</value>
   </data>
-  <data name="ERR_ConflictingSonarProjectProperties" xml:space="preserve">
-    <value>sonar-project.properties files are not understood by the SonarScanner for MSBuild. Remove those files from the following folders: {0}</value>
-  </data>
   <data name="MSG_SarifFileNotFound" xml:space="preserve">
     <value>No Code Analysis ErrorLog file found at {0}.</value>
   </data>
@@ -236,5 +233,14 @@ Possible causes:
 ------------------------------------------------------------------------
 {0}
 ------------------------------------------------------------------------</value>
+  </data>
+  <data name="ERR_TFSProcessorExecutionFailed" xml:space="preserve">
+    <value>The TFS Processor did not complete successfully</value>
+  </data>
+  <data name="MSG_TFSProcessorCalling" xml:space="preserve">
+    <value>Calling the TFS Processor executable...</value>
+  </data>
+  <data name="MSG_TFSProcessorCompleted" xml:space="preserve">
+    <value>The TFS Processor has finished</value>
   </data>
 </root>

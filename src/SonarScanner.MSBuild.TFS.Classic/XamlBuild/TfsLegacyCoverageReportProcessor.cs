@@ -24,7 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 {

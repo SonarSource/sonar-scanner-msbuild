@@ -97,6 +97,60 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analysis failed for SonarQube project {0}.
+        /// </summary>
+        internal static string Report_AnalysisFailed {
+            get {
+                return ResourceManager.GetString("Report_AnalysisFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analysis succeeded for SonarQube project {0} [(Analysis results)] ({1}).
+        /// </summary>
+        internal static string Report_AnalysisSucceeded {
+            get {
+                return ResourceManager.GetString("Report_AnalysisSucceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to   Invalid projects: {0}, skipped projects: {1}, excluded projects: {2}.
+        /// </summary>
+        internal static string Report_InvalidSkippedAndExcludedMessage {
+            get {
+                return ResourceManager.GetString("Report_InvalidSkippedAndExcludedMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to   Product projects: {0}, test projects: {1}.
+        /// </summary>
+        internal static string Report_ProductAndTestMessage {
+            get {
+                return ResourceManager.GetString("Report_ProductAndTestMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;{0}&quot;, version {2}.
+        /// </summary>
+        internal static string Report_SonarQubeProjectDescription {
+            get {
+                return ResourceManager.GetString("Report_SonarQubeProjectDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating the TeamBuild summary....
+        /// </summary>
+        internal static string Report_UpdatingTeamBuildSummary {
+            get {
+                return ResourceManager.GetString("Report_UpdatingTeamBuildSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Absolute path to coverage file: {0}.
         /// </summary>
         internal static string TRX_DIAG_AbsoluteTrxPath {
@@ -201,6 +255,15 @@ namespace SonarScanner.MSBuild.TFS {
         internal static string TRX_WARN_InvalidTrx {
             get {
                 return ResourceManager.GetString("TRX_WARN_InvalidTrx", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for MSBuild **.
+        /// </summary>
+        internal static string WARN_XamlBuildDeprecated {
+            get {
+                return ResourceManager.GetString("WARN_XamlBuildDeprecated", resourceCulture);
             }
         }
     }

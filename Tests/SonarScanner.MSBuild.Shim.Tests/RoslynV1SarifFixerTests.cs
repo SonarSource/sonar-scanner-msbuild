@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Shim;
 using TestUtilities;
 
-namespace SonarQube.Shim.Tests
+namespace SonarScanner.Shim.Tests
 {
     [TestClass]
     public class RoslynV1SarifFixerTests

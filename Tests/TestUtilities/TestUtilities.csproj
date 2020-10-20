@@ -68,6 +68,7 @@
     <Compile Include="DummyExeHelper.cs" />
     <Compile Include="JavaProperties.cs" />
     <Compile Include="JavaPropertyReader.cs" />
+    <Compile Include="MockTeamBuildSettings.cs" />
     <Compile Include="ParseException.cs" />
     <Compile Include="RuleSetAssertions.cs" />
     <Compile Include="TestEncodingProvider.cs" />

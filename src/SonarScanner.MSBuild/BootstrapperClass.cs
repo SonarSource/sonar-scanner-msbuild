@@ -25,8 +25,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
-using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild
 {

@@ -27,12 +27,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor;
-using SonarScanner.MSBuild.TFS.Interfaces;
 using TestUtilities;
 
-namespace SonarQube.Bootstrapper.Tests
+namespace SonarScanner.Bootstrapper.Tests
 {
     [TestClass]
     public class BootstrapperClassTests

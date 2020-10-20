@@ -18,21 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarScanner.MSBuild.TFS;
+using SonarScanner.MSBuild.Common.TFS;
 
-namespace SonarScanner.MSBuild
+namespace SonarScanner.MSBuild.Common.Interfaces
 {
-    public class NotSupportedLegacyTeamBuildFactory : ILegacyTeamBuildFactory
+    public interface ITeamBuildSettings
     {
-        private const string message
-            = "Legacy XAML builds are not supported by .NET Core version of Scanner for MSBuild. " +
-              "Please use the .NET Framework executable instead.";
-
-        public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri)
-            => throw new NotSupportedException(message);
-
-        public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
-            => throw new NotSupportedException(message);
+        BuildEnvironment BuildEnvironment { get; }
+        string TfsUri { get; }
+        string BuildUri { get; }
+        string SourcesDirectory { get; }
+        string AnalysisBaseDirectory { get; }
+        string BuildDirectory { get; }
+        string SonarConfigDirectory { get; }
+        string SonarOutputDirectory { get; }
+        string SonarBinDirectory { get; }
+        string AnalysisConfigFilePath { get; }
     }
 }

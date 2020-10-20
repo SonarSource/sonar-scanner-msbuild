@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.PostProcessor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -66,6 +66,15 @@ namespace SonarScanner.MSBuild.PostProcessor {
         internal static string AssemblyDescription {
             get {
                 return ResourceManager.GetString("AssemblyDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to sonar-project.properties files are not understood by the SonarScanner for MSBuild. Remove those files from the following folders: {0}.
+        /// </summary>
+        internal static string ERR_ConflictingSonarProjectProperties {
+            get {
+                return ResourceManager.GetString("ERR_ConflictingSonarProjectProperties", resourceCulture);
             }
         }
         
@@ -147,38 +156,11 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analysis failed for SonarQube project {0}.
-        /// </summary>
-        internal static string Report_AnalysisFailed {
-            get {
-                return ResourceManager.GetString("Report_AnalysisFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Analysis succeeded for SonarQube project {0} [(Analysis results)] ({1}).
-        /// </summary>
-        internal static string Report_AnalysisSucceeded {
-            get {
-                return ResourceManager.GetString("Report_AnalysisSucceeded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Creating a summary markdown file....
         /// </summary>
         internal static string Report_CreatingSummaryMarkdown {
             get {
                 return ResourceManager.GetString("Report_CreatingSummaryMarkdown", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to   Invalid projects: {0}, skipped projects: {1}, excluded projects: {2}.
-        /// </summary>
-        internal static string Report_InvalidSkippedAndExcludedMessage {
-            get {
-                return ResourceManager.GetString("Report_InvalidSkippedAndExcludedMessage", resourceCulture);
             }
         }
         
@@ -215,33 +197,6 @@ namespace SonarScanner.MSBuild.PostProcessor {
         internal static string Report_MdSummaryProductAndTestMessage {
             get {
                 return ResourceManager.GetString("Report_MdSummaryProductAndTestMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to   Product projects: {0}, test projects: {1}.
-        /// </summary>
-        internal static string Report_ProductAndTestMessage {
-            get {
-                return ResourceManager.GetString("Report_ProductAndTestMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &quot;{0}&quot;, version {2}.
-        /// </summary>
-        internal static string Report_SonarQubeProjectDescription {
-            get {
-                return ResourceManager.GetString("Report_SonarQubeProjectDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Updating the TeamBuild summary....
-        /// </summary>
-        internal static string Report_UpdatingTeamBuildSummary {
-            get {
-                return ResourceManager.GetString("Report_UpdatingTeamBuildSummary", resourceCulture);
             }
         }
         
@@ -292,15 +247,6 @@ namespace SonarScanner.MSBuild.PostProcessor {
         internal static string WARN_CannotProcessCoverage {
             get {
                 return ResourceManager.GetString("WARN_CannotProcessCoverage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for MSBuild **.
-        /// </summary>
-        internal static string WARN_XamlBuildDeprecated {
-            get {
-                return ResourceManager.GetString("WARN_XamlBuildDeprecated", resourceCulture);
             }
         }
     }

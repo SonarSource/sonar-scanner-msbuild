@@ -18,27 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild;
-
-namespace SonarQube.Bootstrapper.Tests
+namespace SonarScanner.MSBuild.Common.TFS
 {
-    [TestClass]
-    public class NullCoverageReportConverterTests
+    /// <summary>
+    /// Lists the recognized build environments
+    /// </summary>
+    public enum BuildEnvironment
     {
-        [TestMethod]
-        public void ConvertToXml_Returns_False()
-        {
-            var converter = new NullCoverageReportConverter();
-            converter.ConvertToXml("any", "any").Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void Initialize_Returns_True()
-        {
-            var converter = new NullCoverageReportConverter();
-            converter.Initialize().Should().BeTrue();
-        }
+        NotTeamBuild,
+        LegacyTeamBuild,
+        TeamBuild
     }
 }

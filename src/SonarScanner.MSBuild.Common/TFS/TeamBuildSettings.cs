@@ -20,10 +20,10 @@
 
 using System;
 using System.IO;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Common.TFS;
+using SonarScanner.MSBuild.Common.Interfaces;
 
-namespace SonarScanner.MSBuild.TFS
+namespace SonarScanner.MSBuild.Common
 {
     /// <summary>
     /// Provides access to TeamBuild-specific settings and settings calculated

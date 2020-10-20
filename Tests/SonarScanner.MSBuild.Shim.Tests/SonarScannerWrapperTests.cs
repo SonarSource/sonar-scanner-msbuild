@@ -43,7 +43,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         {
             // Arrange
             var testSubject = new SonarScannerWrapper(new TestLogger());
-            Action act = () => testSubject.Execute(null, new string[] { });
+            Action act = () => testSubject.Execute(null, new string[] { }, String.Empty);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         {
             // Arrange
             var testSubject = new SonarScannerWrapper(new TestLogger());
-            Action act = () => testSubject.Execute(new AnalysisConfig(), null);
+            Action act = () => testSubject.Execute(new AnalysisConfig(), null, String.Empty);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userCmdLineArguments");

@@ -99,6 +99,7 @@
     <Compile Include="RoslynV1SarifFixerTests.cs" />
     <Compile Include="SonarProjectPropertiesValidatorTest.cs" />
     <Compile Include="SonarScannerWrapperTests.cs" />
+    <Compile Include="TFSProcessorWrapperTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj">
@@ -108,6 +109,10 @@
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj">
       <Project>{c28a09bf-6025-4ea1-90d7-4d5ec0af815d}</Project>
       <Name>SonarScanner.MSBuild.Shim</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj">
+      <Project>{aeff9994-48e2-4d7a-9c97-641e3db82411}</Project>
+      <Name>SonarScanner.MSBuild.TFS.Classic</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj">
       <Project>{2fa8e679-3bec-4679-a543-8cadb117c9eb}</Project>

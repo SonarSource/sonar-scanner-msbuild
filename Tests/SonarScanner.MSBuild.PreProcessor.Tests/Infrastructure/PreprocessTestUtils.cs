@@ -19,7 +19,6 @@
  */
 
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests

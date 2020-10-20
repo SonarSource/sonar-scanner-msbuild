@@ -20,19 +20,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PostProcessor;
-using SonarScanner.MSBuild.PostProcessor.Tests;
+using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
-using SonarScanner.MSBuild.TFS;
-using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 using TestUtilities;
 
-namespace SonarScanner.MSBuild.PostProcessorTests
+namespace SonarScanner.MSBuild.TFS.Tests
 {
     [TestClass]
     public class SummaryReportBuilderTests
@@ -175,7 +171,7 @@ namespace SonarScanner.MSBuild.PostProcessorTests
             config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
 
             // Act
-            builder.GenerateReports(settings, config, result);
+            builder.GenerateReports(settings, config, result.RanToCompletion, result.FullPropertiesFilePath);
 
             // Assert
             summaryLogger.Messages[0].Should().Be("** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for MSBuild **");
