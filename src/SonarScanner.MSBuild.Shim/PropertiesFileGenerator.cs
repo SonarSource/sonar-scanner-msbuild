@@ -26,10 +26,11 @@ using System.Runtime.InteropServices;
 using System.Text;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
+using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim
 {
-    public class PropertiesFileGenerator
+    public class PropertiesFileGenerator : IPropertiesFileGenerator
     {
         private const string ProjectPropertiesFileName = "sonar-project.properties";
         public const string ReportFileCsharpPropertyKey = "sonar.cs.roslyn.reportFilePath";
@@ -85,6 +86,10 @@ namespace SonarScanner.MSBuild.Shim
                 logger.LogDebug(Resources.DEBUG_DumpSonarProjectProperties, contents);
 
                 result.FullPropertiesFilePath = projectPropertiesPath;
+            }
+            else
+            {
+                logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
             }
 
             result.Projects.AddRange(projects);

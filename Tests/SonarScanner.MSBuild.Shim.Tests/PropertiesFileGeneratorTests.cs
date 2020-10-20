@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Shim.Interfaces;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.Shim.Tests

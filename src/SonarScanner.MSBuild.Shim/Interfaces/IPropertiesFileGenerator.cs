@@ -18,18 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Shim
+using System.IO;
+using System.Collections.Generic;
+
+namespace SonarScanner.MSBuild.Shim.Interfaces
 {
-    /// <summary>
-    /// Enumeration listing processing status codes that indicate whether a project
-    /// can be analyzed or not
-    /// </summary>
-    public enum ProjectInfoValidity
+    public interface IPropertiesFileGenerator
     {
-        Valid,
-        InvalidGuid,
-        ExcludeFlagSet,
-        NoFilesToAnalyze,
-        DuplicateGuid
+        ProjectInfoAnalysisResult GenerateFile();
+        bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects);
+        DirectoryInfo ComputeRootProjectBaseDir(IEnumerable<DirectoryInfo> projectPaths);
+
     }
 }

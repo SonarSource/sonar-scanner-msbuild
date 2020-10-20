@@ -26,38 +26,16 @@ using SonarScanner.MSBuild.PostProcessor;
 using SonarScanner.MSBuild.PreProcessor;
 using TestUtilities;
 
-namespace SonarQube.Bootstrapper.Tests
+namespace SonarScanner.Bootstrapper.Tests
 {
     [TestClass]
     public class DefaultProcessorFactoryTests
-    {
-        [TestMethod]
-        public void Ctor_WhenLegacyTeamBuildFactoryIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new DefaultProcessorFactory(new TestLogger(), null, new NullCoverageReportConverter());
-
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
-        }
-
-        [TestMethod]
-        public void Ctor_WhenCoverageReportConverterIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange
-            Action action = () => new DefaultProcessorFactory(new TestLogger(), new NotSupportedLegacyTeamBuildFactory(), null);
-
-            // Act & Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("coverageReportConverter");
-        }
-
+    { 
         [TestMethod]
         public void CreatePreProcessor_Returns_New_Instance()
         {
             var factory = new DefaultProcessorFactory(
-                new TestLogger(),
-                new NotSupportedLegacyTeamBuildFactory(),
-                new NullCoverageReportConverter());
+                new TestLogger());
 
             factory.CreatePreProcessor().Should().BeOfType<TeamBuildPreProcessor>();
         }
@@ -66,9 +44,7 @@ namespace SonarQube.Bootstrapper.Tests
         public void CreatePostProcessor_Returns_New_Instance()
         {
             var factory = new DefaultProcessorFactory(
-                new TestLogger(),
-                new NotSupportedLegacyTeamBuildFactory(),
-                new NullCoverageReportConverter());
+                new TestLogger());
 
             factory.CreatePostProcessor().Should().BeOfType<MSBuildPostProcessor>();
         }

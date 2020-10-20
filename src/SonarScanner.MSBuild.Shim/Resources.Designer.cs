@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.Shim {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -82,15 +82,6 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to sonar-project.properties files are not understood by the SonarScanner for MSBuild. Remove those files from the following folders: {0}.
-        /// </summary>
-        internal static string ERR_ConflictingSonarProjectProperties {
-            get {
-                return ResourceManager.GetString("ERR_ConflictingSonarProjectProperties", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The SonarQube MSBuild integration failed: SonarQube was unable to collect the required information about your projects.
         ///Possible causes:
         ///  1. The project has not been built - the project must be built in between the begin and end steps
@@ -128,6 +119,15 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string ERR_SonarScannerExecutionFailed {
             get {
                 return ResourceManager.GetString("ERR_SonarScannerExecutionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The TFS Processor did not complete successfully.
+        /// </summary>
+        internal static string ERR_TFSProcessorExecutionFailed {
+            get {
+                return ResourceManager.GetString("ERR_TFSProcessorExecutionFailed", resourceCulture);
             }
         }
         
@@ -245,6 +245,24 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string MSG_SonarScannerHomeIsSet {
             get {
                 return ResourceManager.GetString("MSG_SonarScannerHomeIsSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Calling the TFS Processor executable....
+        /// </summary>
+        internal static string MSG_TFSProcessorCalling {
+            get {
+                return ResourceManager.GetString("MSG_TFSProcessorCalling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The TFS Processor has finished.
+        /// </summary>
+        internal static string MSG_TFSProcessorCompleted {
+            get {
+                return ResourceManager.GetString("MSG_TFSProcessorCompleted", resourceCulture);
             }
         }
         

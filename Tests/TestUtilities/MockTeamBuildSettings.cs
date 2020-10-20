@@ -18,18 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.Interfaces;
+using SonarScanner.MSBuild.Common.TFS;
 
-namespace SonarScanner.MSBuild.Shim
+namespace TestUtilities
 {
-    /// <summary>
-    /// Encapsulate the interaction with the sonar-scanner
-    /// </summary>
-    /// <remarks>Accepts the ProjectInfo.xml files as input, generates a sonar-scanner.properties
-    /// file from them, then executes the Java sonar-scanner</remarks>
-    public interface ISonarScanner
+    public class MockTeamBuildSettings : ITeamBuildSettings
     {
-        ProjectInfoAnalysisResult Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments);
+        public BuildEnvironment BuildEnvironment { get; set; }
+
+        public string TfsUri { get; set; }
+
+        public string BuildUri { get; set; }
+
+        public string SourcesDirectory { get; set; }
+
+        public string AnalysisBaseDirectory { get; set; }
+
+        public string BuildDirectory { get; set; }
+
+        public string SonarConfigDirectory { get; set; }
+
+        public string SonarOutputDirectory { get; set; }
+
+        public string SonarBinDirectory { get; set; }
+
+        public string AnalysisConfigFilePath { get; set; }
     }
 }

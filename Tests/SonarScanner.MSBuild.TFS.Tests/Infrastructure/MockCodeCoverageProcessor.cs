@@ -20,10 +20,9 @@
 
 using FluentAssertions;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
-using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Common.Interfaces;
 
-namespace SonarScanner.MSBuild.PostProcessor.Tests
+namespace SonarScanner.MSBuild.TFS.Tests
 {
     internal class MockCodeCoverageProcessor : ICoverageReportProcessor
     {
@@ -39,7 +38,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
         #region ICoverageReportProcessor interface
 
-        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings)
+        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, string propertiesFilePath)
         {
             initalisedCalled.Should().BeFalse("Expecting Initialize to be called only once");
             initalisedCalled = true;

@@ -31,7 +31,7 @@ namespace SonarScanner.MSBuild.Shim
     /// Outputs a report summarizing the project info files that were found.
     /// This is not used by SonarQube: it is only for debugging purposes.
     /// </summary>
-    internal class ProjectInfoReportBuilder
+    public class ProjectInfoReportBuilder
     {
         internal const string ReportFileName = "ProjectInfo.log";
 

@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using FluentAssertions;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
 {

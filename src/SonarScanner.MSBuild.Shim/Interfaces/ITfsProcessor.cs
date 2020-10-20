@@ -18,18 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS.Interfaces;
-using SonarScanner.MSBuild.Shim;
 
-namespace SonarScanner.MSBuild.PostProcessor
+namespace SonarScanner.MSBuild.Shim.Interfaces
 {
-    /// <summary>
-    /// Encapsulates summary report building functionality
-    /// </summary>
-    /// <remarks>Interface added for testability</remarks>
-    public interface ISummaryReportBuilder
+    public interface ITfsProcessor
     {
-        void GenerateReports(ITeamBuildSettings settings, AnalysisConfig config, ProjectInfoAnalysisResult result);
+        bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, String fullPropertiesFilePath);
     }
 }

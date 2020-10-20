@@ -18,8 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Reflection;
-
-[assembly: AssemblyTitle("SonarQube.Old.Bootstrapper")]
-[assembly: AssemblyProduct("SonarQube.Old.Bootstrapper")]
-[assembly: AssemblyDescription("")]
+namespace SonarScanner.MSBuild.Common
+{
+    /// <summary>
+    /// Enumeration listing processing status codes that indicate whether a project
+    /// can be analyzed or not
+    /// </summary>
+    public enum ProjectInfoValidity
+    {
+        Valid,
+        InvalidGuid,
+        ExcludeFlagSet,
+        NoFilesToAnalyze,
+        DuplicateGuid
+    }
+}

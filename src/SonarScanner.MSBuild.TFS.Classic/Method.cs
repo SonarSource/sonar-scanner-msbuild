@@ -18,11 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.Scanner.MSBuild
+
+namespace SonarScanner.MSBuild.TFS.Classic
 {
-    internal static class Program
+    public enum Method
     {
-        private static int Main(string[] args)
-            => SonarScanner.MSBuild.Program.ExecuteFromLegacyEntryPoint(args).Result;
+        ConvertCoverage,
+        SummaryReportBuilder
     }
 }

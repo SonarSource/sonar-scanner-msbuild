@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>$(ScannerNetFxVersion)</TargetFramework>
-    <AssemblyName>SonarScanner.MSBuild.TFS.Classic</AssemblyName>
+    <AssemblyName>SonarScanner.MSBuild.TFSProcessor</AssemblyName>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <OutputType>Exe</OutputType>
+    <StartupObject>SonarScanner.MSBuild.TFS.Classic.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />

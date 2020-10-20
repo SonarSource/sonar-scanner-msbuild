@@ -21,7 +21,6 @@
 using System;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild
 {
@@ -31,25 +30,18 @@ namespace SonarScanner.MSBuild
         public const int SuccessCode = 0;
 
         private static async Task<int> Main(string[] args)
-            => await Execute(args, false);
+            => await Execute(args);
 
-        public static async Task<int> ExecuteFromLegacyEntryPoint(string[] args)
-            => await Execute(args, true);
-
-        private static async Task<int> Execute(string[] args, bool showDeprecatedWarning)
+        private static async Task<int> Execute(string[] args)
         {
             var logger = new ConsoleLogger(includeTimestamp: false);
-            if (showDeprecatedWarning)
-            {
-                logger.LogWarning(Resources.WARN_Deprecated_Entry_Point);
-            }
             return await Execute(args, logger);
         }
 
         public static async Task<int> Execute(string[] args, ILogger logger)
         {
             Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
-#if IS_NET_FRAMEWORK
+#if NET46
             logger.LogInfo("Using the .NET Framework version of the Scanner for MSBuild");
 #else
             logger.LogInfo("Using the .NET Core version of the Scanner for MSBuild");
@@ -72,7 +64,7 @@ namespace SonarScanner.MSBuild
                 logger.ResumeOutput();
                 return SuccessCode;
             }
-
+             
             try
             {
                 if (!ArgumentProcessor.TryProcessArgs(args, logger, out IBootstrapperSettings settings))
@@ -83,8 +75,7 @@ namespace SonarScanner.MSBuild
                     return ErrorCode;
                 }
 
-                var processorFactory = new DefaultProcessorFactory(logger, GetLegacyTeamBuildFactory(logger),
-                    GetCoverageReportConverter(logger));
+                var processorFactory = new DefaultProcessorFactory(logger);
                 var bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
                 var exitCode = await bootstrapper.Execute();
                 Environment.ExitCode = exitCode;
@@ -96,24 +87,6 @@ namespace SonarScanner.MSBuild
                 DEBUG_DumpLoadedAssemblies(logger);
 #endif
             }
-        }
-
-        private static ICoverageReportConverter GetCoverageReportConverter(ILogger logger)
-        {
-#if IS_NET_FRAMEWORK
-            return new SonarScanner.MSBuild.TFS.Classic.BinaryToXmlCoverageReportConverter(logger);
-#else
-            return new NullCoverageReportConverter();
-#endif
-        }
-
-        private static ILegacyTeamBuildFactory GetLegacyTeamBuildFactory(ILogger logger)
-        {
-#if IS_NET_FRAMEWORK
-            return new SonarScanner.MSBuild.TFS.Classic.XamlBuild.LegacyTeamBuildFactory(logger);
-#else
-            return new NotSupportedLegacyTeamBuildFactory();
-#endif
         }
 
 #if DEBUG

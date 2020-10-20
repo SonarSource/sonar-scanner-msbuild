@@ -26,7 +26,7 @@ using SonarScanner.MSBuild;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
-namespace SonarQube.Bootstrapper.Tests
+namespace SonarScanner.Bootstrapper.Tests
 {
     [TestClass]
     public class ArgumentProcessorTests

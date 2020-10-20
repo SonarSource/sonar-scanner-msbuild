@@ -75,29 +75,17 @@
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
     <Compile Include="ArgumentProcessorTests.cs" />
-    <Compile Include="CoverageReportProcessorTests.cs" />
-    <Compile Include="Infrastructure\MockCodeCoverageProcessor.cs" />
+    <Compile Include="Infrastructure\MockTFSProcessor.cs" />
     <Compile Include="Infrastructure\MockSonarScanner.cs" />
-    <Compile Include="Infrastructure\MockSummaryReportBuilder.cs" />
     <Compile Include="Infrastructure\MockTeamBuildSettings.cs" />
-    <Compile Include="Infrastructure\MockLegacyTeamBuildFactory.cs" />
     <Compile Include="MSBuildPostProcessorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SummaryReportBuilderTests.cs" />
     <Compile Include="TargetsUninstallerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj">
       <Project>{e312fdbb-bc13-4559-8f21-76ca5b88ebc5}</Project>
       <Name>SonarScanner.MSBuild.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj">
-      <Project>{C3466723-5499-4FAD-B236-5C96094DE276}</Project>
-      <Name>SonarScanner.MSBuild.TFS.Classic</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj">
-      <Project>{66ce9491-1c14-45d2-beb6-a0695c63ebb2}</Project>
-      <Name>SonarScanner.MSBuild.TFS</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.PostProcessor\SonarScanner.MSBuild.PostProcessor.csproj">
       <Project>{80f02fad-fe7e-41b6-9151-bb650fdd6103}</Project>

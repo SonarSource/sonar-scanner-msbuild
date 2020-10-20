@@ -20,11 +20,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
-using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Common.Interfaces;
+using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.Shim;
+using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.PostProcessor
 {
@@ -32,20 +34,27 @@ namespace SonarScanner.MSBuild.PostProcessor
     {
         private const string scanAllFiles = "-Dsonar.scanAllFiles=true";
 
-        private readonly ICoverageReportProcessor codeCoverageProcessor;
-        private readonly ISummaryReportBuilder reportBuilder;
         private readonly ISonarScanner sonarScanner;
         private readonly ILogger logger;
         private readonly ITargetsUninstaller targetUninstaller;
+        private readonly ISonarProjectPropertiesValidator sonarProjectPropertiesValidator;
+        private readonly ITfsProcessor tfsProcessor;
 
-        public MSBuildPostProcessor(ICoverageReportProcessor codeCoverageProcessor, ISonarScanner scanner,
-            ISummaryReportBuilder reportBuilder, ILogger logger, ITargetsUninstaller targetUninstaller)
+        private IPropertiesFileGenerator propertiesFileGenerator;
+
+        public MSBuildPostProcessor(ISonarScanner scanner,
+            ILogger logger, ITargetsUninstaller targetUninstaller, ITfsProcessor tfsProcessor, ISonarProjectPropertiesValidator sonarProjectPropertiesValidator)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.codeCoverageProcessor = codeCoverageProcessor ?? throw new ArgumentNullException(nameof(codeCoverageProcessor));
             sonarScanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
-            this.reportBuilder = reportBuilder ?? throw new ArgumentNullException(nameof(reportBuilder));
             this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
+            this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
+            this.tfsProcessor = tfsProcessor ?? throw new ArgumentNullException(nameof(tfsProcessor));
+        }
+
+        public void /* for testing purposes */ SetPropertiesFileGenerator(IPropertiesFileGenerator propertiesFileGenerator)
+        {
+            this.propertiesFileGenerator = propertiesFileGenerator;
         }
 
         public bool Execute(string[] args, AnalysisConfig config, ITeamBuildSettings settings)
@@ -85,18 +94,47 @@ namespace SonarScanner.MSBuild.PostProcessor
                 return false;
             }
 
-            // if initialization fails a warning will have been logged at the source of the failure
-            var initialised = codeCoverageProcessor.Initialise(config, settings);
+            var propertyResult = GenerateAndValidatePropertiesFile(config);
 
-            if (initialised && !codeCoverageProcessor.ProcessCoverageReports())
+            if (propertyResult.RanToCompletion)
             {
-                // if processing fails, stop the workflow
-                return false;
+#if NET46
+                ProcessCoverageReport(config, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult.FullPropertiesFilePath);
+#endif
+                var result = InvokeSonarScanner(provider, config, propertyResult.FullPropertiesFilePath);
+#if NET46
+                if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
+                {
+                    ProcessSummaryReportBuilder(config, result, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult.FullPropertiesFilePath);
+                }
+#endif
+                return result;
             }
 
-            var result = InvokeSonarScanner(provider, config);
-            reportBuilder.GenerateReports(settings, config, result);
-            return result.RanToCompletion;
+            return false;
+        }
+
+        private ProjectInfoAnalysisResult GenerateAndValidatePropertiesFile(AnalysisConfig config)
+        {
+            if (this.propertiesFileGenerator == null)
+            {
+                this.propertiesFileGenerator = new PropertiesFileGenerator(config, logger);
+            }
+
+            var result = this.propertiesFileGenerator.GenerateFile();
+
+            if(this.sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
+            {
+                logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
+                result.RanToCompletion = false;
+            }
+            else
+            {
+                ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
+                result.RanToCompletion = true;
+            }
+
+            return result;
         }
 
         private void LogStartupSettings(AnalysisConfig config, ITeamBuildSettings settings)
@@ -179,12 +217,37 @@ namespace SonarScanner.MSBuild.PostProcessor
             return true;
         }
 
-        private ProjectInfoAnalysisResult InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config)
+        private void ProcessSummaryReportBuilder(AnalysisConfig config, bool ranToCompletion, String sonarAnalysisConfigFilePath, string propertiesFilePath)
+        {
+            IList<string> args = new List<string>();
+            args.Add("SummaryReportBuilder");
+            args.Add(sonarAnalysisConfigFilePath);
+            args.Add(propertiesFilePath);
+            args.Add(ranToCompletion.ToString());
+
+            logger.IncludeTimestamp = false;
+            this.tfsProcessor.Execute(config, args, propertiesFilePath);
+            logger.IncludeTimestamp = true;
+        }
+
+        private void ProcessCoverageReport(AnalysisConfig config, String sonarAnalysisConfigFilePath, String propertiesFilePath)
+        {
+            IList<string> args = new List<string>();
+            args.Add("ConvertCoverage");
+            args.Add(sonarAnalysisConfigFilePath);
+            args.Add(propertiesFilePath);
+
+            logger.IncludeTimestamp = false;
+            this.tfsProcessor.Execute(config, args, propertiesFilePath);
+            logger.IncludeTimestamp = true;
+        }
+
+        private bool InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, String propertiesFilePath)
         {
             var args = GetSonarScannerArgs(cmdLineArgs);
 
             logger.IncludeTimestamp = false;
-            var result = sonarScanner.Execute(config, args);
+            var result = sonarScanner.Execute(config, args, propertiesFilePath);
             logger.IncludeTimestamp = true;
             return result;
         }
