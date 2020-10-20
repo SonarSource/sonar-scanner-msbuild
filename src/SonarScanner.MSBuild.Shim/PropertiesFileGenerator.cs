@@ -33,13 +33,12 @@ namespace SonarScanner.MSBuild.Shim
     public class PropertiesFileGenerator : IPropertiesFileGenerator
     {
         private const string ProjectPropertiesFileName = "sonar-project.properties";
-        public const string ReportFileCsharpPropertyKey = "sonar.cs.roslyn.reportFilePath";
         public const string ReportFilesCsharpPropertyKey = "sonar.cs.roslyn.reportFilePaths";
-        public const string ReportFileVbnetPropertyKey = "sonar.vbnet.roslyn.reportFilePath";
         public const string ReportFilesVbnetPropertyKey = "sonar.vbnet.roslyn.reportFilePaths";
 
         // This delimiter needs to be the same as the one used in the Integration.targets
-        private const char RoslynReportPathsDelimiter = '|';
+        internal const char RoslynReportPathsDelimiter = '|';
+        internal const char AnalyzerOutputPathsDelimiter = ',';
 
         private readonly AnalysisConfig analysisConfig;
         private readonly ILogger logger;
@@ -319,8 +318,8 @@ namespace SonarScanner.MSBuild.Shim
                 {
                     projectData.Status = ProjectInfoValidity.Valid;
                     p.GetAllAnalysisFiles().ToList().ForEach(path => projectData.ReferencedFiles.Add(path));
-                    AddRoslynOutputFilePath(p, projectData);
-                    AddAnalyzerOutputFilePath(p, projectData);
+                    AddRoslynOutputFilePaths(p, projectData);
+                    AddAnalyzerOutputFilePaths(p, projectData);
                 }
             }
 
@@ -335,27 +334,27 @@ namespace SonarScanner.MSBuild.Shim
         private void LogDuplicateGuidWarning(Guid projectGuid, string projectPath) =>
             logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectGuid, projectPath, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
 
-        private void AddAnalyzerOutputFilePath(ProjectInfo project, ProjectData projectData)
+        private void AddAnalyzerOutputFilePaths(ProjectInfo project, ProjectData projectData)
         {
-            var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".analyzer.projectOutPath"));
+            var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".analyzer.projectOutPaths"));
             if (property != null)
             {
-                projectData.AnalyzerOutPaths.Add(new FileInfo(property.Value));
+                foreach (var filePath in property.Value.Split(AnalyzerOutputPathsDelimiter))
+                {
+                    projectData.AnalyzerOutPaths.Add(new FileInfo(filePath));
+                }
             }
         }
 
-        private void AddRoslynOutputFilePath(ProjectInfo project, ProjectData projectData)
+        private void AddRoslynOutputFilePaths(ProjectInfo project, ProjectData projectData)
         {
-            var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".roslyn.reportFilePath"));
+            var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".roslyn.reportFilePaths"));
             if (property != null)
             {
-                var reportFilePaths = property.Value.Split(RoslynReportPathsDelimiter);
-                foreach (var reportFilePath in reportFilePaths)
+                foreach (var filePath in property.Value.Split(RoslynReportPathsDelimiter))
                 {
-                    projectData.RoslynReportFilePaths.Add(new FileInfo(reportFilePath));
+                    projectData.RoslynReportFilePaths.Add(new FileInfo(filePath));
                 }
-                // For compatibility with old SonarC#/VB.NET plugins we need to have only one path in this property
-                property.Value = reportFilePaths.First();
             }
         }
 
@@ -372,8 +371,8 @@ namespace SonarScanner.MSBuild.Shim
 
         private void TryFixSarifReport(ProjectInfo project)
         {
-            TryFixSarifReport(project, RoslynV1SarifFixer.CSharpLanguage, ReportFileCsharpPropertyKey);
-            TryFixSarifReport(project, RoslynV1SarifFixer.VBNetLanguage, ReportFileVbnetPropertyKey);
+            TryFixSarifReport(project, RoslynV1SarifFixer.CSharpLanguage, ReportFilesCsharpPropertyKey);
+            TryFixSarifReport(project, RoslynV1SarifFixer.VBNetLanguage, ReportFilesVbnetPropertyKey);
         }
 
         /// <summary>
@@ -420,32 +419,38 @@ namespace SonarScanner.MSBuild.Shim
         /// Loads SARIF reports from the given projects and attempts to fix
         /// improper escaping from Roslyn V1 (VS 2015 RTM) where appropriate.
         /// </summary>
-        private void TryFixSarifReport(ProjectInfo project, string language, string reportFilePropertyKey)
+        private void TryFixSarifReport(ProjectInfo project, string language, string reportFilesPropertyKey)
         {
-            var tryResult = project.TryGetAnalysisSetting(reportFilePropertyKey, out Property reportPathProperty);
+            var tryResult = project.TryGetAnalysisSetting(reportFilesPropertyKey, out Property reportPathsProperty);
             if (tryResult)
             {
-                foreach (var reportPath in reportPathProperty.Value.Split(RoslynReportPathsDelimiter))
+                var newPropertyValueBuilder = new StringBuilder();
+                project.AnalysisSettings.Remove(reportPathsProperty);
+                foreach (var reportPath in reportPathsProperty.Value.Split(RoslynReportPathsDelimiter))
                 {
                     var fixedPath = fixer.LoadAndFixFile(reportPath, language);
 
-                    if (!reportPath.Equals(fixedPath)) // only need to alter the property if there was no change
+                    if (!reportPath.Equals(fixedPath)) // only need to alter the property if there was a change
                     {
-                        // remove the property ahead of changing it
-                        // if the new path is null, the file was unfixable and we should leave the property out
-                        project.AnalysisSettings.Remove(reportPathProperty);
-
                         if (fixedPath != null)
                         {
-                            // otherwise, set the property value (results in no change if the file was already valid)
-                            var newReportPathProperty = new Property
-                            {
-                                Id = reportFilePropertyKey,
-                                Value = fixedPath,
-                            };
-                            project.AnalysisSettings.Add(newReportPathProperty);
+                            newPropertyValueBuilder.Append($"{fixedPath}{RoslynReportPathsDelimiter}");
                         }
                     }
+                    else
+                    {
+                        newPropertyValueBuilder.Append($"{reportPath}{RoslynReportPathsDelimiter}");
+                    }
+                }
+
+                if (newPropertyValueBuilder.Length > 0)
+                {
+                    var newReportPathProperty = new Property
+                    {
+                        Id = reportFilesPropertyKey,
+                        Value = newPropertyValueBuilder.ToString().TrimEnd(RoslynReportPathsDelimiter)
+                    };
+                    project.AnalysisSettings.Add(newReportPathProperty);
                 }
             }
         }

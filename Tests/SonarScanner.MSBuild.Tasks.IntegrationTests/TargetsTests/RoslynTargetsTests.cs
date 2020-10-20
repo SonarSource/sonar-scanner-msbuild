@@ -23,7 +23,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
-using Microsoft.Build.Construction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -33,8 +32,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     [TestClass]
     public class RoslynTargetsTests
     {
-        private const string RoslynAnalysisResultsSettingName = "sonar.cs.roslyn.reportFilePath";
-        private const string AnalyzerWorkDirectoryResultsSettingName = "sonar.cs.analyzer.projectOutPath";
+        private const string RoslynAnalysisResultsSettingName = "sonar.cs.roslyn.reportFilePaths";
+        private const string AnalyzerWorkDirectoryResultsSettingName = "sonar.cs.analyzer.projectOutPaths";
         private const string ErrorLogFilePattern = "{0}.RoslynCA.json";
 
         public TestContext TestContext { get; set; }
