@@ -416,13 +416,6 @@ stages:
           script: |
              $projectVersion = Get-Content "$(Pipeline.Workspace)\\scanner-packages\\version.txt"
              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
-       - task: PowerShell@2
-         displayName: "Install Maven 3.6.3"
-         inputs:
-          targetType: 'inline'
-          script: |
-             Invoke-WebRequest -Uri 'https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.zip' -OutFile '$(Agent.TempDirectory)\maven.zip'
-             Expand-Archive -Path '$(Agent.TempDirectory)\maven.zip' -DestinationPath 'C:\Program Files\Maven\363' -Force
        - task: Maven@3
          displayName: 'Run Maven ITs for SQ $(SQ_VERSION)_$(imageName)'
          env:
@@ -443,8 +436,7 @@ stages:
           javaHomeOption: 'Path'
           jdkDirectory: $(JAVA_HOME_11_X64)
           mavenOptions: $(MAVEN_OPTS)
-          mavenVersionSelection: 'Path'
-          mavenPath: 'C:\Program Files\Maven\363\apache-maven-3.6.3'
+          mavenVersionOption: 'Default'
        - bash: git checkout .
          name: revertPomChanges
          displayName: Revert changes made to pom.xml to not break cache feature
