@@ -143,7 +143,8 @@ namespace SonarScanner.MSBuild.PreProcessor
                     installLoaderTargets,
                     cmdLineProperties,
                     globalFileProperties,
-                    scannerEnvProperties);
+                    scannerEnvProperties,
+                    logger);
 
                 if (!AreParsedArgumentsValid(processed, logger))
                 {
@@ -176,6 +177,11 @@ namespace SonarScanner.MSBuild.PreProcessor
             if (!IsValidProjectKey(projectKey))
             {
                 logger.LogError(Resources.ERROR_InvalidProjectKeyArg);
+                areValid = false;
+            }
+
+            if (!args.IsOrganizationValid)
+            {
                 areValid = false;
             }
 

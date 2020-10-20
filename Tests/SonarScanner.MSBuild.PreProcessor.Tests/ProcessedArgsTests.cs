@@ -22,6 +22,7 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
+using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
 {
@@ -29,11 +30,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
     public class ProcessedArgsTests
     {
         private ProcessedArgs args;
+        private TestLogger logger;
 
         [TestInitialize]
         public void TestInitialize()
         {
             // 0. Setup
+            logger = new TestLogger();
             var cmdLineProps = new ListPropertiesProvider();
             cmdLineProps.AddProperty("cmd.key.1", "cmd value 1");
             cmdLineProps.AddProperty("shared.key.1", "shared cmd value");
@@ -48,7 +51,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             envProps.AddProperty("shared.key.1", "shared env value");
             envProps.AddProperty("shared.key.2", "shared env value");
 
-            this.args = new ProcessedArgs("key", "branch", "ver", null, true, cmdLineProps, fileProps, envProps);
+            this.args = new ProcessedArgs("key", "branch", "ver", null, true, cmdLineProps, fileProps, envProps, logger);
         }
 
         #region Tests
@@ -57,7 +60,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void ProcArgs_Organization()
         {
             this.args.Organization.Should().BeNull();
-            this.args = new ProcessedArgs("key", "branch", "ver", "organization", true, new ListPropertiesProvider(), new ListPropertiesProvider(), new ListPropertiesProvider());
+            this.args = new ProcessedArgs("key", "branch", "ver", "organization", true, new ListPropertiesProvider(), new ListPropertiesProvider(), new ListPropertiesProvider(), logger);
             this.args.Organization.Should().Be("organization");
         }
 
@@ -139,7 +142,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             fileProperties.AddProperty("XXX", "file line value XXX - upper case");
 
             // Act
-            var processedArgs = new ProcessedArgs("key", "branch", "version", null, false, cmdLineProperties, fileProperties, EmptyPropertyProvider.Instance);
+            var processedArgs = new ProcessedArgs("key", "branch", "version", null, false, cmdLineProperties, fileProperties, EmptyPropertyProvider.Instance, logger);
 
             AssertExpectedValue("shared.key1", "cmd line value1 - should override server value", processedArgs);
             AssertExpectedValue("cmd.line.only", "cmd line value4 - only on command line", processedArgs);

@@ -175,6 +175,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to sonar.organization parameter has been detected in the provided SonarQube.Analysis.xml config file. Please pass it in the command line instead, using /o: flag..
+        /// </summary>
+        internal static string ERROR_Organization_Provided_In_SonarQubeAnalysis_file {
+            get {
+                return ResourceManager.GetString("ERROR_Organization_Provided_In_SonarQubeAnalysis_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Internal error: cannot create an analyzer provider without a SonarQube server instance.
         /// </summary>
         internal static string FACTORY_InternalError_MissingServer {

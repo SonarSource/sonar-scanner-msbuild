@@ -159,6 +159,9 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERROR_MissingSetting" xml:space="preserve">
     <value>Missing analysis setting: {0}</value>
   </data>
+  <data name="ERROR_Organization_Provided_In_SonarQubeAnalysis_file" xml:space="preserve">
+    <value>sonar.organization parameter has been detected in the provided SonarQube.Analysis.xml config file. Please pass it in the command line instead, using /o: flag.</value>
+  </data>
   <data name="FACTORY_InternalError_MissingServer" xml:space="preserve">
     <value>Internal error: cannot create an analyzer provider without a SonarQube server instance</value>
   </data>

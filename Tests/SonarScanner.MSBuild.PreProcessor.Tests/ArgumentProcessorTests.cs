@@ -217,6 +217,25 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         }
 
         [TestMethod]
+        public void PreArgProc_With_PropertiesFileSpecifiedOnCommandLine_Organization_Set_Only_In_It_Should_Fail()
+        {
+            // 0. Setup
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
+
+            // 1. File exists -> args ok
+            var properties = new AnalysisProperties
+            {
+                new Property() { Id = SonarProperties.Organization, Value = "myorg1" },
+                new Property() { Id = SonarProperties.HostUrl, Value = "url" } // required property
+            };
+            properties.Save(propertiesFilePath);
+
+            var logger = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
+            logger.AssertErrorsLogged(1);
+        }
+
+        [TestMethod]
         public void PreArgProc_Aliases()
         {
             // 0. Setup
