@@ -40,7 +40,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         [TestMethod]
         public void Conv_Ctor_InvalidArgs_Throws()
         {
-            Action op = () => new BinaryToXmlCoverageReportConverter(null);
+            Action op = () => new BinaryToXmlCoverageReportConverter(null, new AnalysisConfig());
 
             op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
@@ -49,7 +49,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void Conv_ConvertToXml_InvalidArgs_Throws()
         {
             ILogger loggerMock = new Mock<ILogger>().Object;
-            var testSubject = new BinaryToXmlCoverageReportConverter(loggerMock);
+            var testSubject = new BinaryToXmlCoverageReportConverter(loggerMock, new AnalysisConfig());
 
             // 1. Null input path
             Action op = () => testSubject.ConvertToXml(null, "dummypath");
@@ -192,7 +192,7 @@ echo success > """ + outputFilePath + @"""");
 
             var factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage");
 
-            var reporter = new BinaryToXmlCoverageReportConverter(factory, logger);
+            var reporter = new BinaryToXmlCoverageReportConverter(factory, logger, new AnalysisConfig());
 
             // Act
             var result = reporter.Initialize();
@@ -204,6 +204,25 @@ echo success > """ + outputFilePath + @"""");
         }
 
         [TestMethod]
+        public void Initialize_CanGetGetExeToolPathFromEnvironmentVariable()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var config = new AnalysisConfig();
+            config.SetVsCoverageConverterToolPath(@"My:\Path\To\CodeCoverage.exe");
+
+            var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
+
+            // Act
+            var result = reporter.Initialize();
+
+            // Assert
+            result.Should().BeTrue();
+
+            logger.AssertDebugLogged(@"VsTestToolsInstallerInstalledToolLocation environment variable detected, taking this one as tool path for CodeCoverage.exe.");
+        }
+
+        [TestMethod]
         public void Initialize_CanGetGetExeToolPathFromSetupConfigurationForBuildAgent()
         {
             // Arrange
@@ -211,7 +230,7 @@ echo success > """ + outputFilePath + @"""");
 
             var factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage.Msi");
 
-            var reporter = new BinaryToXmlCoverageReportConverter(factory, logger);
+            var reporter = new BinaryToXmlCoverageReportConverter(factory, logger, new AnalysisConfig());
 
             // Act
             var result = reporter.Initialize();

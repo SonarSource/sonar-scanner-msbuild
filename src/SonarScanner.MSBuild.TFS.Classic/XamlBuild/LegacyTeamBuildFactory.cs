@@ -26,16 +26,18 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
     public class LegacyTeamBuildFactory : ILegacyTeamBuildFactory
     {
         private readonly ILogger logger;
+        private readonly AnalysisConfig config;
 
-        public LegacyTeamBuildFactory(ILogger logger)
+        public LegacyTeamBuildFactory(ILogger logger, AnalysisConfig config)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         public ILegacyBuildSummaryLogger BuildLegacyBuildSummaryLogger(string tfsUri, string buildUri)
             => new LegacyBuildSummaryLogger(tfsUri, buildUri);
 
         public ICoverageReportProcessor BuildTfsLegacyCoverageReportProcessor()
-            => new TfsLegacyCoverageReportProcessor(this.logger);
+            => new TfsLegacyCoverageReportProcessor(this.logger, this.config);
     }
 }
