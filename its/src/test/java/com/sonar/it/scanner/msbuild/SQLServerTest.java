@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.it.scanner.SonarScannerTestSuite;
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.http.HttpMethod;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -42,8 +43,8 @@ public class SQLServerTest {
   public static TemporaryFolder temp = TestUtils.createTempFolder();
 
   @Before
-  public void setUp() {
-    ORCHESTRATOR.resetData();
+  public void setUp(){
+    TestUtils.reset(ORCHESTRATOR);
   }
 
   @Test
