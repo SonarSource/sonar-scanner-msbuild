@@ -22,6 +22,7 @@ package com.sonar.it.scanner.msbuild;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.ScannerForMSBuild;
+import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
@@ -34,6 +35,10 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -111,6 +116,25 @@ public class TestUtils {
     Path scannerZip = Paths.get(folderPath + "/sonarscanner-msbuild-net46.zip");
     Location scannerLocation = FileLocation.of(scannerZip.toFile());
     return scannerLocation;
+  }
+
+  public static void reset(Orchestrator orchestrator) {
+    // We add one day to ensure that today's entries are deleted.
+    Instant instant = Instant.now().plus(1, ChronoUnit.DAYS);
+
+    // The expected format is yyyy-MM-dd.
+    String currentDateTime = DateTimeFormatter.ISO_LOCAL_DATE
+      .withZone(ZoneId.of("UTC"))
+      .format(instant);
+
+    LOG.info("TEST SETUP: deleting projects analyzed before: " + currentDateTime);
+
+    orchestrator.getServer()
+      .newHttpCall("/api/projects/bulk_delete")
+      .setAdminCredentials()
+      .setMethod(HttpMethod.POST)
+      .setParams("analyzedBefore", currentDateTime)
+      .execute();
   }
 
   public static Path getCustomRoslynPlugin() {

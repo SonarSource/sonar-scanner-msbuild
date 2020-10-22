@@ -22,6 +22,7 @@ package com.sonar.it.scanner.msbuild;
 import com.sonar.it.scanner.SonarScannerTestSuite;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
+import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
@@ -54,8 +55,8 @@ public class CppTest {
   public static TemporaryFolder temp = TestUtils.createTempFolder();
 
   @Before
-  public void cleanup() {
-    ORCHESTRATOR.resetData();
+  public void setUp(){
+    TestUtils.reset(ORCHESTRATOR);
   }
 
   @Test
