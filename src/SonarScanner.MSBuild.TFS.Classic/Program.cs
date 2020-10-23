@@ -55,9 +55,9 @@ namespace SonarScanner.MSBuild.TFS.Classic
                     return 1;
                 }
 
-                var legacyTeamBuildFactory = new LegacyTeamBuildFactory(logger);
                 var teamBuildSettings = TeamBuildSettings.GetSettingsFromEnvironment(logger);
                 AnalysisConfig config = AnalysisConfig.Load(commandLineArgs.SonarQubeAnalysisConfigPath);
+                var legacyTeamBuildFactory = new LegacyTeamBuildFactory(logger, config);
 
                 switch (commandLineArgs.ProcessToExecute)
                 {
@@ -86,7 +86,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
 
         private static void ExecuteCoverageConverter(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, ITeamBuildSettings teamBuildSettings, string fullPropertiesFilePath)
         {
-            var binaryConverter = new BinaryToXmlCoverageReportConverter(logger);
+            var binaryConverter = new BinaryToXmlCoverageReportConverter(logger, config);
             var coverageReportProcessor = new CoverageReportProcessor(teamBuildFactory, binaryConverter, logger);
 
             if (coverageReportProcessor.Initialise(config, teamBuildSettings, fullPropertiesFilePath))

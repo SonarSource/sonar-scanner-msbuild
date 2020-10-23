@@ -129,6 +129,9 @@
   <data name="CONV_DIAG_LocatingCodeCoverageToolSetupConfiguration" xml:space="preserve">
     <value>Attempting to locate the CodeCoverage.exe tool using setup configuration...</value>
   </data>
+  <data name="CONV_DIAG_LocatingCodeCoverageToolUserSuppliedProperty" xml:space="preserve">
+    <value>VsTestToolsInstallerInstalledToolLocation environment variable detected, taking this one as tool path for CodeCoverage.exe.</value>
+  </data>
   <data name="CONV_DIAG_MultipleVsVersionsInstalled" xml:space="preserve">
     <value>Multiple versions of VS are installed: {0}</value>
     <comment>First parameter: a list of VS versions</comment>
