@@ -62,6 +62,10 @@ namespace SonarScanner.MSBuild.Common
             public const string BuildUri_TFS2015 = "BUILD_BUILDURI";
             public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
             public const string SourcesDirectory_TFS2015 = "BUILD_SOURCESDIRECTORY";
+
+            //This env variable can be set by the VSTest platform installer tool available on AzDo : https://github.com/microsoft/azure-pipelines-tasks/blob/1538fd6fdb8efd93539b7fe65b00df900d963c1a/Tasks/VsTestPlatformToolInstallerV1/helpers.ts#L8
+            //This will be also used if the user want to set a custom location.
+            public const string VsTestTool_CustomInstall = "VsTestToolsInstallerInstalledToolLocation";
         }
 
         #region Public static methods
@@ -103,6 +107,7 @@ namespace SonarScanner.MSBuild.Common
                         TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUri_TFS2015),
                         BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectory_TFS2015),
                         SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectory_TFS2015),
+                        CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestTool_CustomInstall)
                     };
 
                     break;
@@ -113,6 +118,7 @@ namespace SonarScanner.MSBuild.Common
                     {
                         BuildEnvironment = env,
                         // there's no reliable of way of finding the SourcesDirectory, except after the build
+                        CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestTool_CustomInstall)
                     };
 
                     break;
@@ -222,6 +228,12 @@ namespace SonarScanner.MSBuild.Common
         /// The build directory as specified by the build system
         /// </summary>
         public string BuildDirectory
+        {
+            get;
+            private set;
+        }
+
+        public string CoverageToolUserSuppliedPath
         {
             get;
             private set;

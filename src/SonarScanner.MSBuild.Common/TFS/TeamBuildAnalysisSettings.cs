@@ -27,6 +27,7 @@ namespace SonarScanner.MSBuild.Common
     {
         internal const string TfsUriSettingId = "TfsUri";
         internal const string BuildUriSettingId = "BuildUri";
+        internal const string VsCoverageConverterToolPathId = "VsCoverageConverterToolPath";
 
         #region Public methods
 
@@ -48,6 +49,16 @@ namespace SonarScanner.MSBuild.Common
         public static void SetBuildUri(this AnalysisConfig config, string uri)
         {
             config.SetConfigValue(BuildUriSettingId, uri);
+        }
+
+        public static void SetVsCoverageConverterToolPath(this AnalysisConfig config, string path)
+        {
+            config.SetConfigValue(VsCoverageConverterToolPathId, path);
+        }
+
+        public static string GetVsCoverageConverterToolPath(this AnalysisConfig config)
+        {
+            return config.GetConfigValue(VsCoverageConverterToolPathId, null);
         }
 
         #endregion Public methods

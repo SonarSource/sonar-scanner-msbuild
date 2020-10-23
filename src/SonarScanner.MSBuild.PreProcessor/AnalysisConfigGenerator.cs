@@ -74,6 +74,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             config.SetBuildUri(buildSettings.BuildUri);
             config.SetTfsUri(buildSettings.TfsUri);
+            config.SetVsCoverageConverterToolPath(buildSettings.CoverageToolUserSuppliedPath);
 
             config.SonarConfigDir = buildSettings.SonarConfigDirectory;
             config.SonarOutputDir = buildSettings.SonarOutputDirectory;
