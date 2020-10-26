@@ -197,7 +197,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to More than one code coverage result file was created. Only one report can be uploaded to SonarQube. Please modify the build definition so either SonarQube analysis is disabled or only one platform/flavor is built.
+        ///   Looks up a localized string similar to More than one code coverage result file was created. Only one report can be uploaded to SonarQube. Please modify the build definition so either {0} analysis is disabled or only one platform/flavor is built.
         /// </summary>
         internal static string PROC_ERROR_MultipleCodeCoverageReportsFound {
             get {

@@ -171,6 +171,7 @@ namespace SonarScanner.MSBuild.Common
         /// are handled by logging user friendly errors.
         /// </summary>
         /// <returns>True if the exception was handled</returns>
+        //TODO: change this to reflect new Http Exceptions.
         public static bool HandleHostUrlWebException(WebException ex, string hostUrl, ILogger logger)
         {
             var response = ex.Response as HttpWebResponse;

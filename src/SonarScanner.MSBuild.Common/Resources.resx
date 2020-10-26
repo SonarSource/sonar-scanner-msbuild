@@ -182,10 +182,10 @@
     <value>Loading analysis properties from {0}</value>
   </data>
   <data name="ERROR_Properties_GlobalPropertiesFileDoesNotExist" xml:space="preserve">
-    <value>Unable to find the SonarQube analysis settings file '{0}'. Please fix the path to this settings file.</value>
+    <value>Unable to find the analysis settings file '{0}'. Please fix the path to this settings file.</value>
   </data>
   <data name="ERROR_Properties_InvalidPropertiesFile" xml:space="preserve">
-    <value>Unable to read the SonarQube analysis settings file '{0}'. Please fix the content of this file.</value>
+    <value>Unable to read the analysis settings file '{0}'. Please fix the content of this file.</value>
   </data>
   <data name="CmdLine_ArgDescription_DynamicProperty" xml:space="preserve">
     <value>/d:[key]=[value]</value>
@@ -200,13 +200,13 @@
     <value>The format of the analysis property {0} is invalid</value>
   </data>
   <data name="ERROR_CmdLine_MustUseProjectKey" xml:space="preserve">
-    <value>Please use the parameter prefix '/k:' to define the key of the SonarQube project instead of injecting this key with the help of the 'sonar.projectKey' property.</value>
+    <value>Please use the parameter prefix '/k:' to define the key of the project instead of injecting this key with the help of the 'sonar.projectKey' property.</value>
   </data>
   <data name="ERROR_CmdLine_MustUseProjectName" xml:space="preserve">
-    <value>Please use the parameter prefix '/n:' to define the name of the SonarQube project instead of injecting this name with the help of the 'sonar.projectName' property.</value>
+    <value>Please use the parameter prefix '/n:' to define the name of the project instead of injecting this name with the help of the 'sonar.projectName' property.</value>
   </data>
   <data name="ERROR_CmdLine_MustUseProjectVersion" xml:space="preserve">
-    <value>Please use the parameter prefix '/v:' to define the version of the SonarQube project instead of injecting this version with the help of the 'sonar.projectVersion' property.</value>
+    <value>Please use the parameter prefix '/v:' to define the version of the project instead of injecting this version with the help of the 'sonar.projectVersion' property.</value>
   </data>
   <data name="ERROR_Parser_UniqueDescriptorIds" xml:space="preserve">
     <value>Descriptor ids must be unique</value>
@@ -258,6 +258,6 @@
     <value>At least one property name is missing. Please check that the settings file is valid.</value>
   </data>
   <data name="ERROR_CmdLine_MustUseOrganization" xml:space="preserve">
-    <value>Please use the parameter prefix '/o:' to define the organization of the SonarQube project instead of injecting this organization with the help of the 'sonar.organization' property.</value>
+    <value>Please use the parameter prefix '/o:' to define the organization of the project instead of injecting this organization with the help of the 'sonar.organization' property.</value>
   </data>
 </root>

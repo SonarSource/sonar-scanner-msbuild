@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.Shim
         public ProjectInfoAnalysisResult GenerateFile()
         {
             var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
-            logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
+            logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
 
             var result = new ProjectInfoAnalysisResult();
 
@@ -103,7 +103,7 @@ namespace SonarScanner.MSBuild.Shim
 
             if (!projects.Any())
             {
-                logger.LogError(Resources.ERR_NoProjectInfoFilesFound);
+                logger.LogError(Resources.ERR_NoProjectInfoFilesFound, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
                 allProjects = Enumerable.Empty<ProjectData>();
                 return false;
             }
@@ -130,7 +130,7 @@ namespace SonarScanner.MSBuild.Shim
 
             if (validProjects.Count == 0)
             {
-                logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
+                logger.LogError(Resources.ERR_NoValidProjectInfoFiles, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
                 return false;
             }
 
@@ -148,7 +148,7 @@ namespace SonarScanner.MSBuild.Shim
             if (rootModuleFiles.Count == 0 &&
                 validProjects.All(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze))
             {
-                logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
+                logger.LogError(Resources.ERR_NoValidProjectInfoFiles, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
                 return false;
             }
 
@@ -333,7 +333,7 @@ namespace SonarScanner.MSBuild.Shim
         }
 
         private void LogDuplicateGuidWarning(Guid projectGuid, string projectPath) =>
-            logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectGuid, projectPath);
+            logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectGuid, projectPath, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
 
         private void AddAnalyzerOutputFilePath(ProjectInfo project, ProjectData projectData)
         {

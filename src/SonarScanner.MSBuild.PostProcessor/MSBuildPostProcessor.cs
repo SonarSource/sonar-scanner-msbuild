@@ -140,7 +140,7 @@ namespace SonarScanner.MSBuild.PostProcessor
         private void LogStartupSettings(AnalysisConfig config, ITeamBuildSettings settings)
         {
             var configFileName = config == null ? string.Empty : config.FileName;
-            logger.LogDebug(Resources.MSG_LoadingConfig, configFileName);
+            logger.LogDebug(Resources.MSG_LoadingConfig, configFileName, config != null ? SonarProduct.GetSonarProductToLog(config.SonarQubeHostUrl) : "Sonar");
 
             switch (settings.BuildEnvironment)
             {

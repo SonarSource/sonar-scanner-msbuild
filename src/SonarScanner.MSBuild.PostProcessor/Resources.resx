@@ -131,7 +131,7 @@ Please delete the analysis config file and try the build again.</value>
     <value>This setting is not valid in the "end" phase in this version of the C# plugin: {0}</value>
   </data>
   <data name="ERROR_ConfigFileNotFound" xml:space="preserve">
-    <value>SonarQube analysis could not be completed because the analysis configuration file could not be found.
+    <value>The analysis could not be completed because the analysis configuration file could not be found.
 Expected location: {0}</value>
   </data>
   <data name="ERROR_CredentialsNotSpecified" xml:space="preserve">
@@ -141,7 +141,7 @@ Expected location: {0}</value>
     <value>sonar-project.properties files are not understood by the SonarScanner for MSBuild. Remove those files from the following folders: {0}</value>
   </data>
   <data name="MSG_LoadingConfig" xml:space="preserve">
-    <value>Loading the SonarQube analysis config from {0}</value>
+    <value>Loading the {1} analysis config from {0}</value>
   </data>
   <data name="MSG_UninstallTargets_CouldNotDelete" xml:space="preserve">
     <value>Could not delete {0} from {1}</value>

@@ -88,7 +88,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /key:[SonarQube project key].
+        ///   Looks up a localized string similar to /key:[SonarQube/SonarCloud project key].
         /// </summary>
         internal static string CmdLine_ArgDescription_ProjectKey {
             get {
@@ -97,7 +97,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /name:[SonarQube project name] - required for SonarQube &lt; 6.1.
+        ///   Looks up a localized string similar to /name:[SonarQube/SonarCloud project name] - required for SonarQube &lt; 6.1.
         /// </summary>
         internal static string CmdLine_ArgDescription_ProjectName {
             get {
@@ -106,7 +106,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /version:[SonarQube project version] - required for SonarQube &lt; 6.1.
+        ///   Looks up a localized string similar to /version:[SonarQube/SonarCloud project version] - required for SonarQube &lt; 6.1.
         /// </summary>
         internal static string CmdLine_ArgDescription_ProjectVersion {
             get {
@@ -115,7 +115,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube pre-processing cannot be performed - required settings are missing.
+        ///   Looks up a localized string similar to SonarScanner pre-processing cannot be performed - required settings are missing.
         /// </summary>
         internal static string ERROR_CannotPerformProcessing {
             get {
@@ -143,10 +143,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         
         /// <summary>
         ///   Looks up a localized string similar to Expecting at least the following command line argument:
-        ///- SonarQube project key
-        ///When connecting to a SonarQube server earlier than version 6.1, the following command line arguments are also required:
-        ///- SonarQube project name
-        ///- SonarQube project version
+        ///- SonarQube/SonarCloud project key
         ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
         ///Use &apos;/?&apos; or &apos;/h&apos; to see the help message..
         /// </summary>
