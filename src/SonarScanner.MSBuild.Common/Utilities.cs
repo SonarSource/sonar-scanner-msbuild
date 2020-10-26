@@ -171,30 +171,31 @@ namespace SonarScanner.MSBuild.Common
         /// are handled by logging user friendly errors.
         /// </summary>
         /// <returns>True if the exception was handled</returns>
+        //TODO: change this to reflect new Http Exceptions.
         public static bool HandleHostUrlWebException(WebException ex, string hostUrl, ILogger logger)
         {
             var response = ex.Response as HttpWebResponse;
             if (response != null && response.StatusCode == HttpStatusCode.NotFound)
             {
-                logger.LogError(Resources.ERROR_FileNotFound, response.ResponseUri, SonarProduct.GetSonarProductToLog(hostUrl));
+                logger.LogError(Resources.ERROR_FileNotFound, response.ResponseUri);
                 return true;
             }
 
             if (response != null && response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                logger.LogError(Resources.ERROR_UnauthorizedConnection, response.ResponseUri, SonarProduct.GetSonarProductToLog(hostUrl));
+                logger.LogError(Resources.ERROR_UnauthorizedConnection, response.ResponseUri);
                 return true;
             }
 
             if (ex.Status == WebExceptionStatus.NameResolutionFailure)
             {
-                logger.LogError(Resources.ERROR_UrlNameResolutionFailed, hostUrl, SonarProduct.GetSonarProductToLog(hostUrl));
+                logger.LogError(Resources.ERROR_UrlNameResolutionFailed, hostUrl);
                 return true;
             }
 
             if (ex.Status == WebExceptionStatus.ConnectFailure)
             {
-                logger.LogError(Resources.ERROR_ConnectionFailed, hostUrl, SonarProduct.GetSonarProductToLog(hostUrl));
+                logger.LogError(Resources.ERROR_ConnectionFailed, hostUrl);
                 return true;
             }
 
