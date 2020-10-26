@@ -88,13 +88,15 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         private ProcessedArgs CreateValidArguments()
         {
+            var logger = new TestLogger();
             var cmdLineArgs = new Common.ListPropertiesProvider();
             cmdLineArgs.AddProperty(Common.SonarProperties.HostUrl, "http://foo");
 
             var validArgs = new ProcessedArgs("key", "name", "verions", "organization", false,
                 cmdLineArgs,
                 new Common.ListPropertiesProvider(),
-                EmptyPropertyProvider.Instance);
+                EmptyPropertyProvider.Instance,
+                logger);
             return validArgs;
         }
 
