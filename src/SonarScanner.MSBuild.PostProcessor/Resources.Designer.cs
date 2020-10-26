@@ -101,7 +101,7 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube analysis could not be completed because the analysis configuration file could not be found.
+        ///   Looks up a localized string similar to The analysis could not be completed because the analysis configuration file could not be found.
         ///Expected location: {0}.
         /// </summary>
         internal static string ERROR_ConfigFileNotFound {
@@ -120,7 +120,7 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Loading the SonarQube analysis config from {0}.
+        ///   Looks up a localized string similar to Loading the {1} analysis config from {0}.
         /// </summary>
         internal static string MSG_LoadingConfig {
             get {

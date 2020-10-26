@@ -171,6 +171,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             var config = new AnalysisConfig
             {
+                SonarQubeHostUrl = "http://sonarqube.com",
                 SonarQubeVersion = "7.3",
                 ServerSettings = new AnalysisProperties
                 {
@@ -508,6 +509,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var logger = new TestLogger();
             var config = new AnalysisConfig
             {
+                SonarQubeHostUrl = "http://sonarqube.com",
                 SonarQubeVersion = serverVersion
             };
             if (ignoreExternalIssues != null)

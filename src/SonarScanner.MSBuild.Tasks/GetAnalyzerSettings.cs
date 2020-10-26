@@ -173,7 +173,7 @@ namespace SonarScanner.MSBuild.Tasks
             var serverVersion = config?.FindServerVersion();
             if (serverVersion == null || serverVersion < new Version("7.4"))
             {
-                logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported);
+                logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported, SonarProduct.GetSonarProductToLog(config?.SonarQubeHostUrl));
                 return false;
             }
 

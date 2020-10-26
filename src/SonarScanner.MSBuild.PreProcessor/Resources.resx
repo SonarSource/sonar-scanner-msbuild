@@ -127,16 +127,16 @@
     <value>/organization:[Organization to which the project belongs]</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectKey" xml:space="preserve">
-    <value>/key:[SonarQube project key]</value>
+    <value>/key:[SonarQube/SonarCloud project key]</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectName" xml:space="preserve">
-    <value>/name:[SonarQube project name] - required for SonarQube &lt; 6.1</value>
+    <value>/name:[SonarQube/SonarCloud project name] - required for SonarQube &lt; 6.1</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectVersion" xml:space="preserve">
-    <value>/version:[SonarQube project version] - required for SonarQube &lt; 6.1</value>
+    <value>/version:[SonarQube/SonarCloud project version] - required for SonarQube &lt; 6.1</value>
   </data>
   <data name="ERROR_CannotPerformProcessing" xml:space="preserve">
-    <value>SonarQube pre-processing cannot be performed - required settings are missing</value>
+    <value>SonarScanner pre-processing cannot be performed - required settings are missing</value>
   </data>
   <data name="ERROR_CmdLine_InvalidInstallTargetsValue" xml:space="preserve">
     <value>Invalid value for /install: {0}. Valid values are "true" or "false".</value>
@@ -146,10 +146,7 @@
   </data>
   <data name="ERROR_InvalidCommandLineArgs" xml:space="preserve">
     <value>Expecting at least the following command line argument:
-- SonarQube project key
-When connecting to a SonarQube server earlier than version 6.1, the following command line arguments are also required:
-- SonarQube project name
-- SonarQube project version
+- SonarQube/SonarCloud project key
 The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
 Use '/?' or '/h' to see the help message.</value>
   </data>

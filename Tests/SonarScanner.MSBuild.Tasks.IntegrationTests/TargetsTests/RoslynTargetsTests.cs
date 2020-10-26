@@ -140,6 +140,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Create a valid config file containing analyzer settings for both VB and C#
             var config = new AnalysisConfig
             {
+                SonarQubeHostUrl = "http://sonarqube.com",
                 SonarQubeVersion = "7.3", // legacy behaviour i.e. overwrite existing analyzer settings
                 AnalyzersSettings = new List<AnalyzerSettings>
                     {
@@ -215,6 +216,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Create a valid config containing analyzer settings
             var config = new AnalysisConfig
             {
+                SonarQubeHostUrl = "http://sonarqube.com",
                 SonarQubeVersion = "6.7", // legacy version
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
