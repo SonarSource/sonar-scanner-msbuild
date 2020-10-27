@@ -376,6 +376,46 @@ namespace SonarScanner.MSBuild.Shim
         }
 
         /// <summary>
+        /// Loads SARIF reports from the given projects and attempts to fix
+        /// improper escaping from Roslyn V1 (VS 2015 RTM) where appropriate.
+        /// </summary>
+        private void TryFixSarifReport(ProjectInfo project, string language, string reportFilesPropertyKey)
+        {
+            var tryResult = project.TryGetAnalysisSetting(reportFilesPropertyKey, out Property reportPathsProperty);
+            if (tryResult)
+            {
+                var listOfPaths = new List<string>();
+                project.AnalysisSettings.Remove(reportPathsProperty);
+                foreach (var reportPath in reportPathsProperty.Value.Split(RoslynReportPathsDelimiter))
+                {
+                    var fixedPath = fixer.LoadAndFixFile(reportPath, language);
+
+                    if (!reportPath.Equals(fixedPath)) // only need to alter the property if there was a change
+                    {
+                        if (fixedPath != null)
+                        {
+                            listOfPaths.Add(fixedPath);
+                        }
+                    }
+                    else
+                    {
+                        listOfPaths.Add(reportPath);
+                    }
+                }
+
+                if (listOfPaths.Any())
+                {
+                    var newReportPathProperty = new Property
+                    {
+                        Id = reportFilesPropertyKey,
+                        Value = string.Join(RoslynReportPathsDelimiter.ToString(), listOfPaths)
+                    };
+                    project.AnalysisSettings.Add(newReportPathProperty);
+                }
+            }
+        }
+
+        /// <summary>
         /// Appends the sonar.projectBaseDir value. This is calculated as follows:
         /// 1. the user supplied value, or if none
         /// 2. the sources directory if running from TFS Build or XAML Build, or
@@ -413,46 +453,6 @@ namespace SonarScanner.MSBuild.Shim
             rootDirectory = new DirectoryInfo(analysisConfig.SonarOutputDir);
             logger.LogDebug("Using fallback project base directory: '{0}'.", rootDirectory.FullName);
             return rootDirectory;
-        }
-
-        /// <summary>
-        /// Loads SARIF reports from the given projects and attempts to fix
-        /// improper escaping from Roslyn V1 (VS 2015 RTM) where appropriate.
-        /// </summary>
-        private void TryFixSarifReport(ProjectInfo project, string language, string reportFilesPropertyKey)
-        {
-            var tryResult = project.TryGetAnalysisSetting(reportFilesPropertyKey, out Property reportPathsProperty);
-            if (tryResult)
-            {
-                var newPropertyValueBuilder = new StringBuilder();
-                project.AnalysisSettings.Remove(reportPathsProperty);
-                foreach (var reportPath in reportPathsProperty.Value.Split(RoslynReportPathsDelimiter))
-                {
-                    var fixedPath = fixer.LoadAndFixFile(reportPath, language);
-
-                    if (!reportPath.Equals(fixedPath)) // only need to alter the property if there was a change
-                    {
-                        if (fixedPath != null)
-                        {
-                            newPropertyValueBuilder.Append($"{fixedPath}{RoslynReportPathsDelimiter}");
-                        }
-                    }
-                    else
-                    {
-                        newPropertyValueBuilder.Append($"{reportPath}{RoslynReportPathsDelimiter}");
-                    }
-                }
-
-                if (newPropertyValueBuilder.Length > 0)
-                {
-                    var newReportPathProperty = new Property
-                    {
-                        Id = reportFilesPropertyKey,
-                        Value = newPropertyValueBuilder.ToString().TrimEnd(RoslynReportPathsDelimiter)
-                    };
-                    project.AnalysisSettings.Add(newReportPathProperty);
-                }
-            }
         }
 
         private static string GetSourceEncoding(AnalysisProperties properties, IEncodingProvider encodingProvider)

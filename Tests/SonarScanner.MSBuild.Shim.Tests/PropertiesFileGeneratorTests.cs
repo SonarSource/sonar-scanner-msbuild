@@ -328,19 +328,19 @@ namespace SonarScanner.MSBuild.Shim.Tests
             var logger = new TestLogger();
             var config = CreateValidConfig(testDir);
 
-            var testSarifPath = Path.Combine(testDir, "testSarif.json");
+            var testSarifPath1 = Path.Combine(testDir, "testSarif1.json");
             var testSarifPath2 = Path.Combine(testDir, "testSarif2.json");
             var testSarifPath3 = Path.Combine(testDir, "testSarif3.json");
 
             // Mock SARIF fixer simulates fixable SARIF with fixed name
 
-            var mockSarifFixer = new MockRoslynV1SarifFixer(testSarifPath);
+            var mockSarifFixer = new MockRoslynV1SarifFixer(testSarifPath1);
 
             var projectSettings = new AnalysisProperties
             {
                 new Property() {
                     Id = PropertiesFileGenerator.ReportFilesVbnetPropertyKey,
-                    Value = String.Join(PropertiesFileGenerator.RoslynReportPathsDelimiter.ToString(), testSarifPath, testSarifPath2, testSarifPath3)
+                    Value = String.Join(PropertiesFileGenerator.RoslynReportPathsDelimiter.ToString(), testSarifPath1, testSarifPath2, testSarifPath3)
                 }
             };
 
@@ -353,7 +353,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             provider.AssertSettingExists
                 (projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilesVbnetPropertyKey,
                 //MockRoslynSarifFixer takes only one path as a param, so the same one will be output 3 times instead of the 3 different ones.
-                String.Join(PropertiesFileGenerator.RoslynReportPathsDelimiter.ToString(), testSarifPath, testSarifPath, testSarifPath));
+                String.Join(PropertiesFileGenerator.RoslynReportPathsDelimiter.ToString(), testSarifPath1, testSarifPath1, testSarifPath1));
 
         }
 
