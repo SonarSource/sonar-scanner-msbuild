@@ -192,11 +192,11 @@ namespace SonarScanner.MSBuild.Shim
             string property = null;
             if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
             {
-                property = "sonar.cs.roslyn.reportFilePaths";
+                property = PropertiesFileGenerator.ReportFilesCsharpPropertyKey;
             }
             else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
             {
-                property = "sonar.vbnet.roslyn.reportFilePaths";
+                property = PropertiesFileGenerator.ReportFilesVbnetPropertyKey;
             }
 
             sb.AppendLine($"{project.Guid}.{property}=\\");
