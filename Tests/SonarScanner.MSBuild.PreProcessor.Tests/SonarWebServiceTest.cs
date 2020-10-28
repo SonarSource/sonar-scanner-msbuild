@@ -83,7 +83,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         [TestMethod]
         public void LogWSOnError()
         {
-            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] = "trash";
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=foo+bar"] = "trash";
             try
             {
                 _ = this.ws.TryGetQualityProfile("foo bar", null, null, "cs").Result;
@@ -91,7 +91,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             catch (Exception)
             {
-                this.logger.AssertErrorLogged("Failed to request and parse 'http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar': Error parsing boolean value. Path '', line 1, position 2.");
+                this.logger.AssertErrorLogged("Failed to request and parse 'http://myhost:222/api/qualityprofiles/search?project=foo+bar': Error parsing boolean value. Path '', line 1, position 2.");
             }
         }
 
@@ -101,11 +101,11 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             this.downloader.Pages["http://myhost:222/api/server/version"] = "6.4";
             Tuple<bool, string> result;
 
-            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=foo+bar"] =
                 "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AaBranch"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=foo+bar%3AaBranch"] =
                 "{ profiles: [{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AanotherBranch"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=foo+bar%3AanotherBranch"] =
                 "{ profiles: [{\"key\":\"profile3k\",\"name\":\"profile3\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
 
             // main
@@ -123,7 +123,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             result.Item2.Should().Be("profile3k");
 
             // with organizations
-            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar&organization=my+org"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=foo+bar&organization=my+org"] =
                "{ profiles: [{\"key\":\"profileOrganization\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
             result = this.ws.TryGetQualityProfile("foo bar", null, "my org", "cs").Result;
             result.Item1.Should().BeTrue();
@@ -144,14 +144,14 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             result.Item2.Should().Be("profileOrganizationDefault");
 
             // no cs in list of profiles
-            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=java+foo+bar"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=java+foo+bar"] =
                 "{ profiles: [{\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
             result = this.ws.TryGetQualityProfile("java foo bar", null, null, "cs").Result;
             result.Item1.Should().BeFalse();
             result.Item2.Should().BeNull();
 
             // empty
-            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=empty+foo+bar"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=empty+foo+bar"] =
                 "{ profiles: []}";
             result = this.ws.TryGetQualityProfile("empty foo bar", null, null, "cs").Result;
             result.Item1.Should().BeFalse();
@@ -163,11 +163,11 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         {
             Tuple<bool, string> result;
 
-            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=foo+bar"] =
                 "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AaBranch"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=foo+bar%3AaBranch"] =
                 "{ profiles: [{\"key\":\"profile2k\",\"name\":\"profile2\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
-            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=foo+bar%3AanotherBranch"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=foo+bar%3AanotherBranch"] =
                 "{ profiles: [{\"key\":\"profile3k\",\"name\":\"profile3\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
 
             // main
@@ -202,14 +202,14 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             result.Item2.Should().Be("profileDefault");
 
             // no cs in list of profiles
-            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=java+foo+bar"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=java+foo+bar"] =
                 "{ profiles: [{\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";
             result = this.ws.TryGetQualityProfile("java foo bar", null, null, "cs").Result;
             result.Item1.Should().BeFalse();
             result.Item2.Should().BeNull();
 
             // empty
-            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?projectKey=empty+foo+bar"] =
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=empty+foo+bar"] =
                 "{ profiles: []}";
             result = this.ws.TryGetQualityProfile("empty foo bar", null, null, "cs").Result;
             result.Item1.Should().BeFalse();
