@@ -298,7 +298,16 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded. Project file: {0}.
+        ///   Looks up a localized string similar to No ProjectGuid has been found in neither the csproj nor the solution (Project {0}). A random one has been generated ({1})..
+        /// </summary>
+        internal static string WPIF_GeneratingRandomGuid {
+            get {
+                return ResourceManager.GetString("WPIF_GeneratingRandomGuid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded to SonarQube. Project file: {0}.
         /// </summary>
         internal static string WPIF_MissingOrInvalidProjectGuid {
             get {
