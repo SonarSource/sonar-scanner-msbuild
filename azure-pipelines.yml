@@ -5,7 +5,7 @@ trigger:
 - master
 
 pool:
-  vmImage: 'vs2017-win2016'
+  vmImage: 'windows-latest'
 
 variables:
   - group: sonarsource-build-variables
@@ -26,11 +26,11 @@ stages:
     stageDisplayName: Build, UT, analyze on SonarCloud and stage to repox
     jobs:
     - job: build
-      pool:
-       vmImage: 'windows-latest'
+      pool: mickael
       displayName: 'Build, UT, analyze on SonarCloud and stage to repox'
+      workspace: 
+        clean: all
       variables:
-       SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
        solution: 'SonarScanner.MSBuild.sln'
        tfsProcessorSolution: 'SonarScanner.MSBuild.TFS.sln'
        sonarCloudOrganization: 'sonarsource'
@@ -44,26 +44,15 @@ stages:
       steps:
       - checkout: self
       - task: NuGetToolInstaller@1
-        displayName: 'Use NuGet 5.3.1'
+        displayName: 'Use NuGet 5.7.0'
         inputs:
-          versionSpec: '5.3.1'
+          versionSpec: '5.7.0'
       - task: CacheBeta@0
         displayName: Cache Maven local repo
         inputs:
           key: maven | pom.xml
           path: $(MAVEN_CACHE_FOLDER)
-      - task: NuGetCommand@2
-        displayName: 'NuGet restore'
-        inputs:
-          command: 'restore'
-          restoreSolution: '$(solution)'
-          feedsToUse: 'select'
-      - task: NuGetCommand@2
-        displayName: 'NuGet restore TFS Processor'
-        inputs:
-          command: 'restore'
-          restoreSolution: '$(tfsProcessorSolution)'
-          feedsToUse: 'select'
+
       - task: DownloadSecureFile@1
         name: snk
         inputs:
@@ -89,6 +78,10 @@ stages:
             Write-Host "Sonar project version is '${sonarProjectVersion}'"
             # Set the variable to it can be used by other tasks
             Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$sonarProjectVersion"
+            $path = Get-ChildItem -Path $env:LOCALAPPDATA\Microsoft\VisualStudio -Filter "16.0_*"
+            $pathName = $path.FullName
+            $filePath = Join-Path -Path $pathName -ChildPath "sdk.txt"
+            Set-Content -Path $filePath -Value "UsePreviews=True" -Force
       - task: VSBuild@1
         displayName: 'Set BranchName, Sha1 and BuildNumber properties from Azdo pipeline variables'
         inputs:
@@ -103,66 +96,65 @@ stages:
           projectName: '$(sonarCloudMsBuildProjectName)'
           projectVersion: '$(SONAR_PROJECT_VERSION)'
           scannerMode: MSBuild
+      - task: DotNetCoreCLI@2
+        displayName: Dotnet restore $(tfsProcessorSolution)
+        inputs:
+          command: 'restore'
+          projects: '$(tfsProcessorSolution)'
+          feedsToUse: 'select'
+      - task: NuGetCommand@2
+        displayName: 'NuGet restore TFS Processor'
+        inputs:
+          command: 'restore'
+          restoreSolution: '$(tfsProcessorSolution)'
+          feedsToUse: 'select'
+      - task: DotNetCoreCLI@2
+        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+        displayName: 'Build and prepare signing $(tfsProcessorSolution)'
+        inputs:
+          command: 'build'
+          projects: '$(tfsProcessorSolution)'
+          arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal "/p:DefineConstants=SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
+      - task: DotNetCoreCLI@2
+        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+        displayName: 'Build $(tfsProcessorSolution)'
+        inputs:
+          command: 'build'
+          projects: '$(tfsProcessorSolution)'
+          arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)"'
       - task: UseDotNet@2
         inputs:
           packageType: sdk
-          version: 5.0.100-preview.7.20366.6
+          version: 5.0.100-rc.2.20479.15
+          includePreviewVersions: true
           installationPath: $(Agent.ToolsDirectory)/dotnet
         displayName: "Install NET 5 SDK preview"
-      - task: UseDotNet@2
+      - task: NuGetCommand@2
+        displayName: 'NuGet restore $(solution)'
         inputs:
-          packageType: sdk
-          version: 3.1.201
-          installationPath: $(Agent.ToolsDirectory)/dotnet
-        displayName: "Install dotnet 3.1 LTS"
-      - task: VSBuild@1
-        displayName: 'Build and sign Scanner for MSBuild solution'
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-        env: 
-          PFX_PASSWORD: $(pfxPassword)
-          PFX_SHA1: $(pfxSha1)
-          PFX_PATH: $(pfx.secureFilePath)
+          command: 'restore'
+          restoreSolution: '$(solution)'
+          feedsToUse: 'select'
+      - task: DotNetCoreCLI@2
+        displayName: Dotnet restore $(solution)
         inputs:
-          solution: '$(solution)'
-          platform: '$(BuildPlatform)'
-          configuration: '$(BuildConfiguration)'
-          maximumCpuCount: true
-          logFileVerbosity: detailed
-          msbuildArgs: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:defineConstants="SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
-      - task: VSBuild@1
-        displayName: 'Build and sign TFS Processor solution'
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-        env: 
-          PFX_PASSWORD: $(pfxPassword)
-          PFX_SHA1: $(pfxSha1)
-          PFX_PATH: $(pfx.secureFilePath)
-        inputs:
-          solution: '$(tfsProcessorSolution)'
-          platform: '$(BuildPlatform)'
-          configuration: '$(BuildConfiguration)'
-          maximumCpuCount: true
-          logFileVerbosity: detailed
-          msbuildArgs: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:defineConstants="SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
-      - task: VSBuild@1
-        displayName: 'Build Scanner for MSBuild solution'
+          command: 'restore'
+          projects: '$(solution)'
+          feedsToUse: 'select'
+      - task: DotNetCoreCLI@2
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+        displayName: 'Build and prepare signing $(solution)'
         inputs:
-          solution: '$(solution)'
-          platform: '$(BuildPlatform)'
-          configuration: '$(BuildConfiguration)'
-          maximumCpuCount: true
-          logFileVerbosity: detailed
-          msbuildArgs: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal'
-      - task: VSBuild@1
-        displayName: 'Build TFS Processor solution'
+          command: 'build'
+          projects: '$(solution)'
+          arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)" "/p:DefineConstants=SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
+      - task: DotNetCoreCLI@2
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+        displayName: 'Build $(solution)'
         inputs:
-          solution: '$(tfsProcessorSolution)'
-          platform: '$(BuildPlatform)'
-          configuration: '$(BuildConfiguration)'
-          maximumCpuCount: true
-          logFileVerbosity: detailed
-          msbuildArgs: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal'
+          command: 'build'
+          projects: '$(solution)'
+          arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)"'
       - task: VSTest@2
         displayName: 'Run Unit Tests'
         inputs:
@@ -191,8 +183,19 @@ stages:
             
             Download-ScannerCli
             Package-Net46Scanner
-            Package-NetCoreApp2Scanner
-            Package-NetCoreApp3Scanner
+            Package-NetScanner "netcoreapp3.0"
+            Package-NetScanner "netcoreapp2.0"
+            Package-NetScanner "net5.0"
+          pwsh: true
+      - task: PowerShell@2
+        displayName: Sign assemblies
+        env: 
+          SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
+          PFX_PASSWORD: $(pfxPassword)
+          PFX_SHA1: $(pfxSha1)
+          PFX_PATH: $(pfx.secureFilePath)
+        inputs:
+          filePath: 'scripts\sign.ps1'
           pwsh: true
       - task: NuGetCommand@2
         displayName: 'Package dotnet global tool'
@@ -228,6 +231,7 @@ stages:
             $classicScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-net46.zip"
             $dotnetScannerZipPath = Get-Item "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip"
             $dotnetScannerZipPath3 = Get-Item "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip"
+            $dotnetScannerZipPath5 = Get-Item "$artifactsFolder\\sonarscanner-msbuild-net5.0.zip"
             $dotnetScannerGlobalToolPath = Get-Item "$artifactsFolder\\dotnet-sonarscanner.$leakPeriodVersion.nupkg"
 
             Write-Host "Generating the chocolatey packages"
@@ -252,6 +256,13 @@ stages:
               -Replace "__PackageVersion__", "$version" `
             | Set-Content $netcoreps13
 
+            $dotnetZipHash5 = (Get-FileHash $dotnetScannerZipPath5 -Algorithm SHA256).hash
+            $netcoreps15 = "nuspec\chocolatey\chocolateyInstall-net5.0.ps1"
+            (Get-Content $netcoreps15) `
+              -Replace '-Checksum "not-set"', "-Checksum $dotnetZipHash5" `
+              -Replace "__PackageVersion__", "$version" `
+            | Set-Content $netcoreps15
+
             choco pack nuspec\chocolatey\sonarscanner-msbuild-net46.nuspec `
             --outputdirectory $artifactsFolder `
             --version $version
@@ -264,15 +275,22 @@ stages:
             --outputdirectory $artifactsFolder `
             --version $version
 
+            choco pack nuspec\chocolatey\sonarscanner-msbuild-net5.0.nuspec `
+            --outputdirectory $artifactsFolder `
+            --version $version
+
             Write-Host "Update artifacts locations in pom.xml"
             $pomFile = ".\pom.xml"
             (Get-Content $pomFile) `
              -Replace 'classicScannerZipPath', "$classicScannerZipPath" `
              -Replace 'dotnetScannerZipPath', "$dotnetScannerZipPath" `
+             -Replace 'dotnet3ScannerZipPath', "$dotnetScannerZipPath3" `
+             -Replace 'dotnet5ScannerZipPath', "$dotnetScannerZipPath5" `
              -Replace 'dotnetScannerGlobalToolPath', "$dotnetScannerGlobalToolPath" `
              -Replace 'classicScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-net46.$version.nupkg" `
              -Replace 'dotnetcore2ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.$version.nupkg" `
              -Replace 'dotnetcore3ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-netcoreapp30.$version.nupkg" `
+             -Replace 'dotnet5ScannerChocoPath', "$artifactsFolder\\sonarscanner-msbuild-net50.$version.nupkg" `
             | Set-Content $pomFile
       - task: Maven@3
         displayName: Promote new version in pom
@@ -314,14 +332,17 @@ stages:
             Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-net46.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net46.zip
             Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp2.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-netcoreapp2.0.zip
             Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-netcoreapp3.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-netcoreapp3.0.zip
+            Rename-Item -Path "$artifactsFolder\\sonarscanner-msbuild-net5.0.zip" -NewName sonar-scanner-msbuild-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net5.0.zip
       - task: PublishPipelineArtifact@1
         displayName: 'Publish packages as artifacts'
         inputs:
           targetPath: 'build'
           artifact: 'scanner-packages'
-      - bash: git checkout .
-        name: revertPomChanges
+      - task: CmdLine@2
         displayName: Revert changes made to pom.xml to not break cache feature
+        inputs:
+          script: 'git checkout .'
+        
 - template: stage-with-burgr-notifications.yml@commonTemplates
   parameters:
     burgrName: 'qa'

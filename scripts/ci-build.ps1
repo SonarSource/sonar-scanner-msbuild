@@ -3,25 +3,21 @@ $ErrorActionPreference = "Stop"
 
 function Build-TFSProcessor() {
     Write-Host "Building TFSProcessor"
+    Invoke-MSBuild "SonarScanner.MSBuild.TFS.sln" "/t:Restore"
     Invoke-MSBuild "SonarScanner.MSBuild.TFS.sln" "/t:Rebuild" "/p:Configuration=Release"
     Write-Host "TFSProcessor build has completed."
 }
 
 function Build-Scanner() {
     Write-Host "Building SonarScanner for MSBuild"
+    Invoke-MSBuild "SonarScanner.MSBuild.sln" "/t:Restore"
     Invoke-MSBuild "SonarScanner.MSBuild.sln" "/t:Rebuild" "/p:Configuration=Release"
     Write-Host "Build for SonarScanner has completed."
 }
 
-function CleanAndRecreate-BuildDirectories() {
-    if (Test-Path("$fullBuildOutputDir\sonarscanner-msbuild-net46")) {
-        Remove-Item "$fullBuildOutputDir\sonarscanner-msbuild-net46\*" -Recurse -Force
-    }
-    if (Test-Path("$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0")) {
-        Remove-Item "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp2.0\*" -Recurse -Force
-    }
-    if (Test-Path("$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0")) {
-        Remove-Item "$fullBuildOutputDir\sonarscanner-msbuild-netcoreapp3.0\*" -Recurse -Force
+function CleanAndRecreate-BuildDirectories([string]$tfm) {
+    if (Test-Path("$fullBuildOutputDir\sonarscanner-msbuild-$tfm")) {
+        Remove-Item "$fullBuildOutputDir\sonarscanner-msbuild-$tfm\*" -Recurse -Force
     }
 }
 
@@ -32,15 +28,19 @@ try {
     . (Join-Path $PSScriptRoot "package-artifacts.ps1")
     . (Join-Path $PSScriptRoot "variables.ps1")
 
-    CleanAndRecreate-BuildDirectories
+    CleanAndRecreate-BuildDirectories "net46"
+    CleanAndRecreate-BuildDirectories "netcoreapp2.0"
+    CleanAndRecreate-BuildDirectories "netcoreapp3.0"
+    CleanAndRecreate-BuildDirectories "net5.0"
     Download-ScannerCli
 
     Build-TFSProcessor
     Build-Scanner
 
     Package-Net46Scanner
-    Package-NetCoreApp2Scanner
-    Package-NetCoreApp3Scanner
+    Package-NetScanner "netcoreapp3.0"
+    Package-NetScanner "netcoreapp2.0"
+    Package-NetScanner "net5.0"
     
     Write-Host -ForegroundColor Green "SUCCESS: CI job was successful!"
     exit 0
