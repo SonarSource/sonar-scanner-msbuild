@@ -43,7 +43,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
 
         [TestMethod]
-        public void PostProc_ExecutionFailsIfSonarScannerFails()
+        public void PostProc_ExecutionFailsIfScannerFails()
         {
             // Arrange
             var context = new PostProcTestContext(TestContext);
@@ -361,7 +361,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
         private static bool Execute(PostProcTestContext context, params string[] args)
         {
-
             var sonarProjectPropertiesValidator = new Mock<ISonarProjectPropertiesValidator>();
 
             IEnumerable<string> expectedValue;

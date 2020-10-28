@@ -97,12 +97,16 @@ namespace SonarScanner.MSBuild.PostProcessor
 
             var propertyResult = GenerateAndValidatePropertiesFile(config);
 
-            if (propertyResult.RanToCompletion)
+            if (propertyResult != null)
             {
 #if NET46
                 ProcessCoverageReport(config, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult.FullPropertiesFilePath);
 #endif
-                var result = InvokeSonarScanner(provider, config, propertyResult.FullPropertiesFilePath);
+                bool result = false;
+                if (propertyResult.RanToCompletion)
+                {
+                    result = InvokeSonarScanner(provider, config, propertyResult.FullPropertiesFilePath);
+                }
 #if NET46
                 if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
                 {
@@ -124,18 +128,15 @@ namespace SonarScanner.MSBuild.PostProcessor
 
             var result = this.propertiesFileGenerator.GenerateFile();
 
-            if (result.Projects.Any())
+            if (this.sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
             {
-                if (this.sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
-                {
-                    logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
-                    result.RanToCompletion = false;
-                }
-                else
-                {
-                    ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
-                    result.RanToCompletion = true;
-                }
+                logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
+                result.RanToCompletion = false;
+            }
+            else
+            {
+                ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
+                result.RanToCompletion = true;
             }
 
             return result;
