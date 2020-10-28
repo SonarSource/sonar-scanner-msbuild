@@ -57,7 +57,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         {
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
 
-            var ws = await AddOrganization(GetUrl("/api/qualityprofiles/search?projectKey={0}", projectId), organization);
+            var ws = await AddOrganization(GetUrl("/api/qualityprofiles/search?project={0}", projectId), organization);
             this.logger.LogDebug(Resources.MSG_FetchingQualityProfile, projectId, ws);
 
             var qualityProfileKey = await DoLogExceptions(async () =>
