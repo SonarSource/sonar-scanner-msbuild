@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
@@ -123,15 +124,18 @@ namespace SonarScanner.MSBuild.PostProcessor
 
             var result = this.propertiesFileGenerator.GenerateFile();
 
-            if(this.sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
+            if (result.Projects.Any())
             {
-                logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
-                result.RanToCompletion = false;
-            }
-            else
-            {
-                ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
-                result.RanToCompletion = true;
+                if (this.sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
+                {
+                    logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
+                    result.RanToCompletion = false;
+                }
+                else
+                {
+                    ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
+                    result.RanToCompletion = true;
+                }
             }
 
             return result;

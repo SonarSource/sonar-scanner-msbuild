@@ -85,13 +85,13 @@ namespace SonarScanner.MSBuild.Shim
                 logger.LogDebug(Resources.DEBUG_DumpSonarProjectProperties, contents);
 
                 result.FullPropertiesFilePath = projectPropertiesPath;
+                result.Projects.AddRange(projects);
             }
             else
             {
                 logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
+                result.RanToCompletion = false;
             }
-
-            result.Projects.AddRange(projects);
 
             return result;
         }
