@@ -122,6 +122,11 @@ namespace SonarScanner.MSBuild.PreProcessor
             }
 
             var server = this.factory.CreateSonarQubeServer(localSettings);
+            if (!await server.IsServerLicenseValid())
+            {
+                this.logger.LogError(Resources.ERR_UnlicensedServer, localSettings.SonarQubeUrl);
+                return false;
+            }
             var argumentsAndRuleSets = await FetchArgumentsAndRulesets(server, localSettings, teamBuildSettings);
             if (!argumentsAndRuleSets.IsSuccess)
             {

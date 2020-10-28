@@ -44,5 +44,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false);
 
         Task<string> Download(string url, bool logPermissionDenied = false);
+
+        Task<bool> IsLicenseValid(string url);
     }
 }

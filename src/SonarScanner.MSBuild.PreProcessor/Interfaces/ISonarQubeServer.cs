@@ -58,5 +58,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory);
 
         Task<Version> GetServerVersion();
+
+        Task<bool> IsServerLicenseValid();
     }
 }

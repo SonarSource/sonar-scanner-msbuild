@@ -159,8 +159,17 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERROR_Organization_Provided_In_SonarQubeAnalysis_file" xml:space="preserve">
     <value>sonar.organization parameter has been detected in the provided SonarQube.Analysis.xml config file. Please pass it in the command line instead, using /o: flag.</value>
   </data>
+  <data name="ERR_UnlicensedServer" xml:space="preserve">
+    <value>Your SonarQube instance seems to have an invalid license. Please check it. Server url : {0}</value>
+  </data>
   <data name="FACTORY_InternalError_MissingServer" xml:space="preserve">
     <value>Internal error: cannot create an analyzer provider without a SonarQube server instance</value>
+  </data>
+  <data name="MSG_CE_Detected_LicenseValid" xml:space="preserve">
+    <value>SonarQube Community Edition detected, license is valid.</value>
+  </data>
+  <data name="MSG_CheckingLicenseValidity" xml:space="preserve">
+    <value>Checking validity of server license</value>
   </data>
   <data name="MSG_CreatingFolders" xml:space="preserve">
     <value>Creating config and output folders...</value>
@@ -215,6 +224,9 @@ Use '/?' or '/h' to see the help message.</value>
   </data>
   <data name="MSG_NotCopyingTargets" xml:space="preserve">
     <value>Skipping installing the ImportsBefore targets file</value>
+  </data>
+  <data name="MSG_SonarCloudDetected_SkipLicenseCheck" xml:space="preserve">
+    <value>SonarCloud detected, skipping license check.</value>
   </data>
   <data name="MSG_UpdatingMSBuildTargets" xml:space="preserve">
     <value>Updating build integration targets...</value>

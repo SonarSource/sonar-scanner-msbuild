@@ -25,6 +25,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -79,6 +81,41 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
 
         #region IDownloaderMethods
+        public async Task<bool> IsLicenseValid(string url)
+        {
+            this.logger.LogDebug(Resources.MSG_Downloading, url);
+            var response = await this.client.GetAsync(url);
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                var json = JObject.Parse(content);
+
+                if (json["errors"] != null)
+                {
+                    return false;
+                }
+
+                this.logger.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
+                return true; //High probability that this is a SQ CE edition.
+            }
+            else
+            {
+                try
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var json = JObject.Parse(responseContent);
+
+                    return json["isValidLicense"].ToObject<bool>();
+                }
+                catch
+                {
+                    this.logger.LogWarning("Failed to fetch license status from server.");
+                    return false;
+                }
+            }
+        }
 
         public async Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false)
         {
@@ -144,7 +181,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             this.logger.LogDebug(Resources.MSG_Downloading, url);
             var response = await this.client.GetAsync(url);
 
-            if(response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadAsStringAsync();
             }
