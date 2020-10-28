@@ -390,16 +390,9 @@ namespace SonarScanner.MSBuild.Shim
                 {
                     var fixedPath = fixer.LoadAndFixFile(reportPath, language);
 
-                    if (!reportPath.Equals(fixedPath)) // only need to alter the property if there was a change
+                    if (fixedPath != null)
                     {
-                        if (fixedPath != null)
-                        {
-                            listOfPaths.Add(fixedPath);
-                        }
-                    }
-                    else
-                    {
-                        listOfPaths.Add(reportPath);
+                        listOfPaths.Add(fixedPath);
                     }
                 }
 
