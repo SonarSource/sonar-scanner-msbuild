@@ -82,7 +82,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The SonarQube MSBuild integration failed: SonarQube was unable to collect the required information about your projects.
+        ///   Looks up a localized string similar to The SonarScanner for MSBuild integration failed: {0} was unable to collect the required information about your projects.
         ///Possible causes:
         ///  1. The project has not been built - the project must be built in between the begin and end steps
         ///  2. An unsupported version of MSBuild has been used to build the project. Currently MSBuild 14.0.25420.1 and higher are supported.
@@ -258,11 +258,38 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Using TFS/Azure DevOps sources directory as project base directory: &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_UsingAzDoSourceDirectoryAsProjectBaseDir {
+            get {
+                return ResourceManager.GetString("MSG_UsingAzDoSourceDirectoryAsProjectBaseDir", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using longest common projects root path as project base directory: &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_UsingLongestCommonRootProjectBaseDir {
+            get {
+                return ResourceManager.GetString("MSG_UsingLongestCommonRootProjectBaseDir", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Using the supplied value for {0}. Value: {1}.
         /// </summary>
         internal static string MSG_UsingSuppliedSonarScannerOptsValue {
             get {
                 return ResourceManager.GetString("MSG_UsingSuppliedSonarScannerOptsValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using user supplied project base directory: &apos;{0}&apos;.
+        /// </summary>
+        internal static string MSG_UsingUserSuppliedProjectBaseDir {
+            get {
+                return ResourceManager.GetString("MSG_UsingUserSuppliedProjectBaseDir", resourceCulture);
             }
         }
         
@@ -408,6 +435,15 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string WARN_SarifFixFail {
             get {
                 return ResourceManager.GetString("WARN_SarifFixFail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not determine a suitable project base directory. Using the fallback {0} . Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis..
+        /// </summary>
+        internal static string WARN_UsingFallbackProjectBaseDir {
+            get {
+                return ResourceManager.GetString("WARN_UsingFallbackProjectBaseDir", resourceCulture);
             }
         }
     }
