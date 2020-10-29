@@ -363,7 +363,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             };
 
             var projectGuid = Guid.NewGuid();
-            CreateProjectWithFiles("withFiles1", testDir, projectGuid, true, projectSettings);
+            TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir, projectGuid, true, projectSettings);
 
             var result = new PropertiesFileGenerator(config, logger, mockSarifFixer, new RuntimeInformationWrapper()).GenerateFile();
 
