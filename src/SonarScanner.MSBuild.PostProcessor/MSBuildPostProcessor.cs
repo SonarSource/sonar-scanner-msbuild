@@ -97,7 +97,7 @@ namespace SonarScanner.MSBuild.PostProcessor
 
             var propertyResult = GenerateAndValidatePropertiesFile(config);
 
-            if (propertyResult != null)
+            if (propertyResult.FullPropertiesFilePath != null)
             {
 #if NET46
                 ProcessCoverageReport(config, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult.FullPropertiesFilePath);

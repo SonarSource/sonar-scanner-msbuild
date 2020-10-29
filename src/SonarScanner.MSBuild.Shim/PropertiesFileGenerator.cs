@@ -89,7 +89,6 @@ namespace SonarScanner.MSBuild.Shim
             else
             {
                 logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
-                return null;
             }
 
             result.Projects.AddRange(projects);
