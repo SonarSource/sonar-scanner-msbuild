@@ -340,7 +340,12 @@ namespace SonarScanner.MSBuild.Tasks
                     .FirstOrDefault();
             }
 
-            return null;
+            var generatedGuid = Guid.NewGuid().ToString();
+
+            Log.LogMessage(Resources.WPIF_GeneratingRandomGuid, FullProjectPath, generatedGuid);
+
+            //Generating a new guid for projects without one
+            return generatedGuid;
 
             bool ArePathEquals(string filePath, FileInfo file) =>
                 filePath != null &&

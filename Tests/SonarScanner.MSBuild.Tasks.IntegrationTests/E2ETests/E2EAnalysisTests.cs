@@ -76,13 +76,13 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
                 TargetConstants.WriteProjectDataTarget);
 
             var projectSpecificOutputDir = CheckProjectSpecificOutputStructure(rootOutputFolder);
-            var actualProjectInfo = CheckProjectInfoExists(projectSpecificOutputDir);
+            CheckProjectInfoExists(projectSpecificOutputDir);
         }
 
         [TestMethod]
         [TestCategory("E2E"), TestCategory("Targets")]
         [Description("Tests that projects with missing project guids are handled correctly")]
-        public void E2E_MissingProjectGuid()
+        public void E2E_MissingProjectGuid_ShouldGenerateRandomOne()
         {
             // Projects with missing guids should have a warning emitted. The project info
             // should still be generated.
@@ -112,13 +112,10 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
 
             var projectSpecificOutputDir = CheckProjectSpecificOutputStructure(rootOutputFolder);
             var actualProjectInfo = CheckProjectInfoExists(projectSpecificOutputDir);
-            actualProjectInfo.ProjectGuid.Should().Be(Guid.Empty);
+            actualProjectInfo.ProjectGuid.Should().NotBeEmpty();
+            actualProjectInfo.ProjectGuid.Should().NotBe(Guid.Empty);
 
-            result.AssertExpectedErrorCount(0);
-            result.AssertExpectedWarningCount(1);
-
-            var warning = result.Warnings[0];
-            warning.Should().Contain(projectFilePath, "Expecting the warning to contain the full path to the bad project file");
+            result.AssertNoWarningsOrErrors();
         }
 
         [TestMethod]
@@ -208,7 +205,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Check the list of files to be analyzed
             var expectedFilesToAnalyzeFilePath = AssertFileExists(projectSpecificOutputDir, ExpectedAnalysisFilesListFileName);
             var fileList = File.ReadLines(expectedFilesToAnalyzeFilePath);
-            fileList.Should().BeEquivalentTo(new string []
+            fileList.Should().BeEquivalentTo(new string[]
             {
                 rootInputFolder + "\\none1.txt",
                 rootInputFolder + "\\content1.txt",
@@ -311,7 +308,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var actualFilesToAnalyze = actualProjectInfo.AssertAnalysisResultExists("FilesToAnalyze");
             actualFilesToAnalyze.Location.Should().Be(expectedFilesToAnalyzeFilePath);
         }
-        
+
         [TestMethod]
         [TestCategory("E2E"), TestCategory("Targets")] // SONARMSBRU-104: files under the obj folder should be excluded from analysis
         public void E2E_IntermediateOutputFilesAreExcluded()
@@ -323,8 +320,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             // Add files that should be analyzed
             var nonObjFolder = Path.Combine(rootInputFolder, "foo");
             Directory.CreateDirectory(nonObjFolder);
-            var compile1 = CreateEmptyFile(rootInputFolder,  "compile1.cs");
-            var foo_compile2 = CreateEmptyFile(nonObjFolder, "compile2.cs");
+            var compile1 = CreateEmptyFile(rootInputFolder, "compile1.cs");
+            CreateEmptyFile(nonObjFolder, "compile2.cs");
 
             // Add files under the obj folder that should not be analyzed
             var objFolder = Path.Combine(rootInputFolder, "obj");
@@ -337,7 +334,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             var objFile = CreateEmptyFile(objFolder, "objFile1.cs");
 
             // File in obj\debug
-            var objDebugFile = CreateEmptyFile(objSubFolder1, "objDebugFile1.cs");
+            CreateEmptyFile(objSubFolder1, "objDebugFile1.cs");
 
             // File in obj\xxx
             var objFooFile = CreateEmptyFile(objSubFolder2, "objFooFile.cs");
@@ -417,7 +414,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.E2E
             fileList.Should().BeEquivalentTo(rootInputFolder + "\\code1.vb");
 
             // Check the projectInfo.xml file points to the file containing the list of files to analyze
-            var actualProjectInfo = CheckProjectInfoExists(projectSpecificOutputDir);
+            CheckProjectInfoExists(projectSpecificOutputDir);
         }
 
         [TestMethod]
