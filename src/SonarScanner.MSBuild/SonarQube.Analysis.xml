@@ -12,8 +12,8 @@
   - A property defined in the SonarQube User Interface at global level which can't override anything.
 
   Note that the following properties cannot be set through an MSBuild project file or an SonarQube.Analysis.xml file:
-  sonar.projectName, sonar.projectKey, sonar.projectVersion
-  The following flags need to be used to set their value: /n:[SonarQube Project Name] /k:[SonarQube Project Key] /v:[SonarQube Project Version]
+  sonar.projectName, sonar.projectKey, sonar.projectVersion, sonar.organization
+  The following flags need to be used to set their value: /n:[SonarQube Project Name] /k:[SonarQube Project Key] /v:[SonarQube Project Version] /o:[Sonar Project Organization]
 
 -->
 <SonarQubeAnalysisProperties  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
