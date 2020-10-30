@@ -29,6 +29,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.UnitTests
@@ -93,6 +94,73 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             {
                 this.logger.AssertErrorLogged("Failed to request and parse 'http://myhost:222/api/qualityprofiles/search?project=foo+bar': Error parsing boolean value. Path '', line 1, position 2.");
             }
+        }
+
+        [TestMethod]
+        public void IsLicenseValid_IsSonarCloud_ShouldReturnTrue()
+        {
+            this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
+            this.downloader.Pages["http://myhost:222/api/server/version"] = "8.0.0.68001";
+
+            var result = this.ws.IsServerLicenseValid().Result;
+
+            Assert.AreEqual(true, result);
+        }
+
+        [TestMethod]
+        public void IsLicenseValid_SonarQube_InvalidLicense()
+        {
+            this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
+            this.downloader.Pages["http://myhost:222/api/server/version"] = "8.5.1.34001";
+            this.downloader.Pages["http://myhost:222/api/editions/is_valid_license"] =
+                @"{
+                       ""isValidLicense"": false
+                   }";
+
+            var result = this.ws.IsServerLicenseValid().Result;
+
+            Assert.AreEqual(false, result);
+        }
+
+        [TestMethod]
+        public void IsLicenseValid_SonarQube_ValidLicense()
+        {
+            this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
+            this.downloader.Pages["http://myhost:222/api/server/version"] = "8.5.1.34001";
+            this.downloader.Pages["http://myhost:222/api/editions/is_valid_license"] =
+                @"{
+                       ""isValidLicense"": true
+                   }";
+
+            var result = this.ws.IsServerLicenseValid().Result;
+
+            Assert.AreEqual(true, result);
+        }
+
+        [TestMethod]
+        public void IsLicenseValid_SonarQube_ServerNotLicensed()
+        {
+            this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
+            this.downloader.Pages["http://myhost:222/api/server/version"] = "8.5.1.34001";
+            this.downloader.Pages["http://myhost:222/api/editions/is_valid_license"] =
+                @"{
+                       ""errors"":[{""msg"":""License not found""}]
+                   }";
+
+            var result = this.ws.IsServerLicenseValid().Result;
+
+            Assert.AreEqual(false, result);
+        }
+
+        [TestMethod]
+        public void IsLicenseValid_SonarQube_CE_SkipLicenseCheck()
+        {
+            this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
+            this.downloader.Pages["http://myhost:222/api/server/version"] = "8.5.1.34001";
+
+            var result = this.ws.IsServerLicenseValid().Result;
+
+            Assert.AreEqual(true, result);
         }
 
         [TestMethod]
@@ -445,7 +513,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             }";
 
-            Func<Task> act = async() => await this.ws.GetActiveRules("qp");
+            Func<Task> act = async () => await this.ws.GetActiveRules("qp");
 
             // Act &  Assert
             act.Should().ThrowExactly<JsonException>().WithMessage("Malformed json response, \"actives\" field should contain rule 'key1'");
@@ -472,7 +540,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             }";
 
-            Func<Task> act = async() => await this.ws.GetActiveRules("qp");
+            Func<Task> act = async () => await this.ws.GetActiveRules("qp");
 
             // Act &  Assert
             act.Should().ThrowExactly<JsonException>().WithMessage("Malformed json response, \"actives\" field should contain rule 'key1'");
@@ -524,7 +592,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             }
             }";
 
-            Func<Task> act = async() => await this.ws.GetActiveRules("qp");
+            Func<Task> act = async () => await this.ws.GetActiveRules("qp");
 
             // Act &  Assert
             act.Should().ThrowExactly<JsonException>().WithMessage("Malformed json response, \"actives\" field should contain rule 'key1'");
@@ -639,7 +707,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         {
             // Arrange
             var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
-            Func<Task> act = async() => await testSubject.TryDownloadEmbeddedFile(null, "filename", "targetDir");
+            Func<Task> act = async () => await testSubject.TryDownloadEmbeddedFile(null, "filename", "targetDir");
 
             // Act & Assert
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("pluginKey");
@@ -650,7 +718,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         {
             // Arrange
             var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
-            Func<Task> act = async() => await testSubject.TryDownloadEmbeddedFile("key", null, "targetDir");
+            Func<Task> act = async () => await testSubject.TryDownloadEmbeddedFile("key", null, "targetDir");
 
             // Act & Assert
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("embeddedFileName");
@@ -661,7 +729,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         {
             // Arrange
             var testSubject = new SonarWebService(new TestDownloader(), "http://myserver", new TestLogger());
-            Func<Task> act = async() => await testSubject.TryDownloadEmbeddedFile("pluginKey", "filename", null);
+            Func<Task> act = async () => await testSubject.TryDownloadEmbeddedFile("pluginKey", "filename", null);
 
             // Act & Assert
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("targetDirectory");
@@ -717,7 +785,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
 
             var service = new SonarWebService(downloaderMock.Object, serverUrl, this.logger);
 
-            Func<Task> action = async() => await service.GetProperties(projectKey, null);
+            Func<Task> action = async () => await service.GetProperties(projectKey, null);
             action.Should().Throw<HttpRequestException>();
 
             this.logger.Errors.Should().HaveCount(1);
@@ -792,6 +860,27 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             public void Dispose()
             {
                 // Nothing to do here
+            }
+
+            public Task<bool> IsLicenseValid(string url)
+            {
+                this.AccessedUrls.Add(url);
+                if (this.Pages.ContainsKey(url))
+                {
+                    var json = JObject.Parse(this.Pages[url]);
+
+                    if (json["errors"] != null)
+                    {
+                        return Task.FromResult(false);
+                    }
+
+                    return Task.FromResult(json["isValidLicense"].ToObject<bool>());
+                }
+                else
+                {
+                    //Simulating a 404 on that one.
+                    return Task.FromResult(true);
+                }
             }
         }
     }

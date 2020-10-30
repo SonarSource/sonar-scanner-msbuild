@@ -115,6 +115,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your SonarQube instance seems to have an invalid license. Please check it. Server url : {0}.
+        /// </summary>
+        internal static string ERR_UnlicensedServer {
+            get {
+                return ResourceManager.GetString("ERR_UnlicensedServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarScanner pre-processing cannot be performed - required settings are missing.
         /// </summary>
         internal static string ERROR_CannotPerformProcessing {
@@ -186,6 +195,24 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string FACTORY_InternalError_MissingServer {
             get {
                 return ResourceManager.GetString("FACTORY_InternalError_MissingServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube Community Edition detected, license is valid..
+        /// </summary>
+        internal static string MSG_CE_Detected_LicenseValid {
+            get {
+                return ResourceManager.GetString("MSG_CE_Detected_LicenseValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Checking validity of server license.
+        /// </summary>
+        internal static string MSG_CheckingLicenseValidity {
+            get {
+                return ResourceManager.GetString("MSG_CheckingLicenseValidity", resourceCulture);
             }
         }
         
@@ -348,6 +375,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_NotCopyingTargets {
             get {
                 return ResourceManager.GetString("MSG_NotCopyingTargets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarCloud detected, skipping license check..
+        /// </summary>
+        internal static string MSG_SonarCloudDetected_SkipLicenseCheck {
+            get {
+                return ResourceManager.GetString("MSG_SonarCloudDetected_SkipLicenseCheck", resourceCulture);
             }
         }
         

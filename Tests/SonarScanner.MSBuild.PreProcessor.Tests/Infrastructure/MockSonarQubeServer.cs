@@ -53,6 +53,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         #region ISonarQubeServer methods
 
+        Task<bool> ISonarQubeServer.IsServerLicenseValid()
+        {
+            LogMethodCalled();
+            return Task.FromResult(true);
+        }
+
         Task<IList<SonarRule>> ISonarQubeServer.GetActiveRules(string qprofile)
         {
             LogMethodCalled();

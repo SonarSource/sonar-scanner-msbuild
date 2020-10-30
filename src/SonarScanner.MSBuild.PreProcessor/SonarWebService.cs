@@ -161,6 +161,32 @@ namespace SonarScanner.MSBuild.PreProcessor
             return activeRuleList;
         }
 
+        private async Task<bool> IsSonarCloud()
+        {
+            var version = await GetServerVersion();
+            if (version.CompareTo(new Version(8, 0)) < 0 || version.CompareTo(new Version(8, 1)) >= 0)
+                return false;
+            else
+            {
+                return this.serverUrl.Contains("sonarcloud.io") || version != new Version(8, 0, 0, 29455); //this is the build number of SQ 8.0
+            }
+        }
+
+        public async Task<bool> IsServerLicenseValid()
+        {
+            if (await IsSonarCloud())
+            {
+                this.logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipLicenseCheck);
+                return true;
+            }
+            else
+            {
+                this.logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
+                var ws = GetUrl("/api/editions/is_valid_license");
+                return await this.downloader.IsLicenseValid(ws);
+            }
+        }
+
         private static SonarRule FilterRule(JObject r, JToken actives)
         {
             var activeRulesForRuleKey = actives.Value<JArray>(r["key"].ToString());
@@ -212,7 +238,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             var projectId = GetProjectIdentifier(projectKey, projectBranch);
 
-            if (this.serverUrl.Contains("sonarcloud.io") || (await GetServerVersion()).CompareTo(new Version(6, 3)) >= 0)
+            if (await IsSonarCloud() || (await GetServerVersion()).CompareTo(new Version(6, 3)) >= 0)
             {
                 return await GetComponentProperties(projectId);
             }
