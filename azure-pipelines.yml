@@ -48,6 +48,7 @@ stages:
         inputs:
           versionSpec: '5.7.0'
       - task: CacheBeta@0
+        enabled: false
         displayName: Cache Maven local repo
         inputs:
           key: maven | pom.xml
@@ -109,7 +110,7 @@ stages:
           restoreSolution: '$(tfsProcessorSolution)'
           feedsToUse: 'select'
       - task: DotNetCoreCLI@2
-        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         displayName: 'Build and prepare signing $(tfsProcessorSolution)'
         inputs:
           command: 'build'
@@ -142,7 +143,7 @@ stages:
           projects: '$(solution)'
           feedsToUse: 'select'
       - task: DotNetCoreCLI@2
-        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         displayName: 'Build and prepare signing $(solution)'
         inputs:
           command: 'build'
@@ -189,6 +190,7 @@ stages:
           pwsh: true
       - task: PowerShell@2
         displayName: Sign assemblies
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         env: 
           SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
           PFX_PASSWORD: $(pfxPassword)

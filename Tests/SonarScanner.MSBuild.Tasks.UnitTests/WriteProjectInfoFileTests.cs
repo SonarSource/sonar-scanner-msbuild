@@ -230,10 +230,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Assert
             success.Should().BeTrue("Not expecting the task to fail as this would fail the build");
             engine.AssertNoErrors();
-            engine.Warnings.Should().HaveCount(1, "Expecting a build warning as the ProjectGuid is missing");
-
-            var firstWarning = engine.Warnings[0];
-            firstWarning.Message.Should().NotBeNull("Warning message should not be null");
+            engine.AssertNoWarnings();
 
             var projectInfoFilePath = Path.Combine(testFolder, ExpectedProjectInfoFileName);
             File.Exists(projectInfoFilePath).Should().BeTrue("Expecting the project info file to have been created");
@@ -430,41 +427,48 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [TestMethod]
         public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreNull_ReturnsNull()
         {
-            AssertProjectGuidIsNull(null, null);
+            AssertProjectGuidIsRandomlyGenerated(null, null, @"C:\NetCorePrj\MyNetCoreProject.csproj");
         }
 
         [TestMethod]
-        public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreEmptyString_ReturnsNull()
+        public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreEmptyString_ReturnsRandomGuid()
         {
-            AssertProjectGuidIsNull("", "");
+            AssertProjectGuidIsRandomlyGenerated("", "", @"C:\NetCorePrj\MyNetCoreProject.csproj");
         }
 
         [TestMethod]
         public void GetProjectGuid_WhenProjectGuidNullAndSolutionConfigurationContentsEmptyString_ReturnsNull()
         {
-            AssertProjectGuidIsNull(null, "");
+            AssertProjectGuidIsRandomlyGenerated(null, "", @"C:\NetCorePrj\MyNetCoreProject.csproj"); 
         }
 
         [TestMethod]
         public void GetProjectGuid_WhenProjectGuidEmptyStringAndSolutionConfigurationContentsNull_ReturnsNull()
         {
-            AssertProjectGuidIsNull("", null);
+            AssertProjectGuidIsRandomlyGenerated("", null, @"C:\NetCorePrj\MyNetCoreProject.csproj");
         }
 
-        private void AssertProjectGuidIsNull(string projectGuid, string solutionConfigurationContents)
+        private void AssertProjectGuidIsRandomlyGenerated(string projectGuid, string solutionConfigurationContents, string fullProjectPath)
         {
+            
             // Arrange
             var testSubject = new WriteProjectInfoFile
             {
+                FullProjectPath = fullProjectPath,
                 ProjectGuid = projectGuid,
                 SolutionConfigurationContents = solutionConfigurationContents
             };
+
+            var engine = new DummyBuildEngine();
+            testSubject.BuildEngine = engine;
+
 
             // Act
             var actual = testSubject.GetProjectGuid();
 
             // Assert
-            actual.Should().BeNull();
+            actual.Should().NotBeNullOrEmpty();
+            actual.Should().NotBe(Guid.Empty.ToString());
         }
 
         [TestMethod]
