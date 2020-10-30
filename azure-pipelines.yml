@@ -110,19 +110,12 @@ stages:
           restoreSolution: '$(tfsProcessorSolution)'
           feedsToUse: 'select'
       - task: DotNetCoreCLI@2
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+        condition: and(succeeded(), ne(variables['System.PullRequest.IsFork'], 'True'))
         displayName: 'Build and prepare signing $(tfsProcessorSolution)'
         inputs:
           command: 'build'
           projects: '$(tfsProcessorSolution)'
-          arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal "/p:DefineConstants=SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
-      - task: DotNetCoreCLI@2
-        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
-        displayName: 'Build $(tfsProcessorSolution)'
-        inputs:
-          command: 'build'
-          projects: '$(tfsProcessorSolution)'
-          arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)"'
+          arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:ZipPackageCompressionLevel=normal "/p:DefineConstants=SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
       - task: UseDotNet@2
         inputs:
           packageType: sdk
@@ -143,19 +136,12 @@ stages:
           projects: '$(solution)'
           feedsToUse: 'select'
       - task: DotNetCoreCLI@2
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+        condition: and(succeeded(), ne(variables['System.PullRequest.IsFork'], 'True'))
         displayName: 'Build and prepare signing $(solution)'
         inputs:
           command: 'build'
           projects: '$(solution)'
           arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)" "/p:DefineConstants=SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
-      - task: DotNetCoreCLI@2
-        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
-        displayName: 'Build $(solution)'
-        inputs:
-          command: 'build'
-          projects: '$(solution)'
-          arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)"'
       - task: VSTest@2
         displayName: 'Run Unit Tests'
         inputs:
@@ -190,7 +176,7 @@ stages:
           pwsh: true
       - task: PowerShell@2
         displayName: Sign assemblies
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+        condition: and(succeeded(), ne(variables['System.PullRequest.IsFork'], 'True'))
         env: 
           SIGNTOOL_PATH: 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.17763.0\\x64\\signtool.exe'
           PFX_PASSWORD: $(pfxPassword)

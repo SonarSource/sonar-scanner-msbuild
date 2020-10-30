@@ -425,26 +425,26 @@ namespace SonarScanner.MSBuild.Shim
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
                 rootDirectory = new DirectoryInfo(projectBaseDir);
-                logger.LogDebug("Using user supplied project base directory: '{0}'.", rootDirectory.FullName);
+                logger.LogDebug(Resources.MSG_UsingUserSuppliedProjectBaseDir, rootDirectory.FullName);
                 return rootDirectory;
             }
 
             if (!string.IsNullOrWhiteSpace(analysisConfig.SourcesDirectory))
             {
                 rootDirectory = new DirectoryInfo(analysisConfig.SourcesDirectory);
-                logger.LogDebug("Using TFS/VSTS sources directory as project base directory: '{0}'.", rootDirectory.FullName);
+                logger.LogDebug(Resources.MSG_UsingAzDoSourceDirectoryAsProjectBaseDir, rootDirectory.FullName);
                 return rootDirectory;
             }
 
             var commonRoot = PathHelper.GetCommonRoot(projectPaths);
             if (commonRoot != null)
             {
-                logger.LogDebug("Using longest common projects root path as project base directory: '{0}'.", commonRoot.FullName);
+                logger.LogDebug(Resources.MSG_UsingLongestCommonRootProjectBaseDir, commonRoot.FullName);
                 return commonRoot;
             }
 
             rootDirectory = new DirectoryInfo(analysisConfig.SonarOutputDir);
-            logger.LogDebug("Using fallback project base directory: '{0}'.", rootDirectory.FullName);
+            logger.LogWarning(Resources.WARN_UsingFallbackProjectBaseDir, rootDirectory.FullName);
             return rootDirectory;
         }
 
