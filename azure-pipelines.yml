@@ -115,14 +115,14 @@ stages:
         inputs:
           command: 'build'
           projects: '$(tfsProcessorSolution)'
-          arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:ZipPackageCompressionLevel=normal "/p:DefineConstants=SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
+          arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:BuildConfiguration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal "/p:DefineConstants=SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
       - task: DotNetCoreCLI@2
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
         displayName: 'Build $(tfsProcessorSolution)'
         inputs:
           command: 'build'
           projects: '$(tfsProcessorSolution)'
-          arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:ZipPackageCompressionLevel=normal'
+          arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:BuildConfiguration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal'
       - task: UseDotNet@2
         inputs:
           packageType: sdk
