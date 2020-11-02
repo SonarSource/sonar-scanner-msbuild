@@ -373,7 +373,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
             var proc = new MSBuildPostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
 
-            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Guid.NewGuid().ToString());
 
             var projectInfo = TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
 
