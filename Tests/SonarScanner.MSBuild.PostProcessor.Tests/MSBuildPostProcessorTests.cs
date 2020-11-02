@@ -90,7 +90,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             // Assert
             success.Should().BeTrue("Expecting post-processor to have succeeded");
 
-            context.TfsProcessor.AssertExecuted();
             context.Scanner.AssertExecuted();
 
             context.Scanner.SuppliedCommandLineArgs.Should().Equal(
@@ -165,9 +164,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             // Assert
             success.Should().BeTrue("Expecting post-processor to have succeeded");
 
-            context.TfsProcessor.AssertExecuted();
             context.Scanner.AssertExecuted();
-
 
             context.Scanner.SuppliedCommandLineArgs.Should().Equal(
                 expectedArgs,
