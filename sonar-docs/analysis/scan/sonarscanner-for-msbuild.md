@@ -1,6 +1,6 @@
 ---
-title: SonarScanner for MSBuild
 url: /analysis/scan/sonarscanner-for-msbuild/
+title: SonarScanner for .NET
 ---
 
 <!-- sonarqube -->
@@ -9,7 +9,7 @@ url: /analysis/scan/sonarscanner-for-msbuild/
 
 <!-- sonarcloud -->
 [[info]]
-| **Download SonarScanner for MSBuild 5.0.0** - [Issue Tracker](https://github.com/SonarSource/sonar-scanner-msbuild/issues) – [Source](https://github.com/SonarSource/sonar-scanner-msbuild)
+| **Download SonarScanner for .NET 5.0.0** - [Issue Tracker](https://github.com/SonarSource/sonar-scanner-msbuild/issues) – [Source](https://github.com/SonarSource/sonar-scanner-msbuild)
 |
 | [.NET Framework 4.6](https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/4.10.0.19059/sonar-scanner-msbuild-4.10.0.19059-net46.zip) |
 | [.NET Core 2.x](https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/4.10.0.19059/sonar-scanner-msbuild-4.10.0.19059-netcoreapp2.0.zip) |
@@ -18,9 +18,13 @@ url: /analysis/scan/sonarscanner-for-msbuild/
 | [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner)
 <!-- /sonarcloud -->
 
-The SonarScanner for MSBuild is the recommended way to launch an analysis for projects/solutions using MSBuild or dotnet command as a build tool. It is the result of a [collaboration between SonarSource and Microsoft](http://www.sonarqube.org/announcing-sonarqube-integration-with-msbuild-and-team-build/).
+[[info]]
+| Since version 5.0, the SonarScanner for MSBuild is now the SonarScanner for .NET. 
+| documentation is updated with that new name, artifacts and links will remain with the old name for now.
 
-SonarScanner for MSBuild is distributed as a standalone command line executable, as a extension for <!-- sonarcloud -->[Azure DevOps](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarcloud --><!-- sonarqube -->[Azure DevOps Server](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarqube -->, and as a plugin for [Jenkins](/analysis/scan/sonarscanner-for-jenkins/).
+The SonarScanner for .NET is the recommended way to launch an analysis for projects/solutions using .NET or dotnet command as a build tool. It is the result of a [collaboration between SonarSource and Microsoft](http://www.sonarqube.org/announcing-sonarqube-integration-with-msbuild-and-team-build/).
+
+SonarScanner for .NET is distributed as a standalone command line executable, as a extension for <!-- sonarcloud -->[Azure DevOps](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarcloud --><!-- sonarqube -->[Azure DevOps Server](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarqube -->, and as a plugin for [Jenkins](/analysis/scan/sonarscanner-for-jenkins/).
 
 It supports .Net Core multi-platform projects and it can be used on non-Windows platforms.
 
@@ -36,13 +40,13 @@ It supports .Net Core multi-platform projects and it can be used on non-Windows 
    * [.NET Core SDK 2.0 and above](https://www.microsoft.com/net/learn/get-started/) (for .NET Core version of the scanner or if you plan to use [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner)
 
 [[info]]
-| The flavor used to compile the Scanner for MSBuild (either .NET Framework or .NET Core) is independant of the .NET version the 
+| The flavor used to compile the Scanner for .NET (either .NET Framework or .NET Core) is independant of the .NET version the 
 | project you want to analyze has been built with. Concretely, you can analyze .NET Core code with the .NET Framework version of 
 | the Scanner. It's only relevant depending on your OS, and on the versions of .NET SDKs that are installed on your build machine.
 
 ## Installation
 
-### SonarScanner for MSBuild for .NET Framework, .NET Core and .NET
+### SonarScanner for .NET for .NET Framework, .NET Core and .NET
 
 * Expand the downloaded file into the directory of your choice. We'll refer to it as `$install_directory` in the next steps.
   * On Windows, you might need to unblock the ZIP file first (Right click on file > Properties > Unblock).
@@ -60,7 +64,7 @@ Consider setting file system permissions to restrict access to this file.:
 
 * Add `$install_directory` to your PATH environment variable.
 
-### Installation of the SonarScanner for MSBuild .NET Core Global Tool
+### Installation of the SonarScanner for .NET (.NET Core Global Tool)
 
 ```bash
 dotnet tool install --global dotnet-sonarscanner --version x.x.x
@@ -82,7 +86,7 @@ The _--version_ argument is optional. If it is omitted the latest version will b
 | You can invoke the Scanner using arguments with both dash (-) or forward-slash (/) separators.
 | Example : SonarScanner.MSBuild.exe begin /k:"project-key" or SonarScanner.MSBuild.exe begin -k:"project-key" will work.
 
-There are two versions of the SonarScanner for MSBuild.
+There are two versions of the SonarScanner for .NET.
 
 The first version is based on the "classic" .NET Framework. To use it, execute the following commands from the root folder of your project:
 
@@ -118,7 +122,7 @@ Notes:
 
 ## Analysis steps
 ### Begin
-The begin step is executed when you add the `begin` command line argument. It hooks into the MSBuild pipeline, downloads SonarQube quality profiles and settings and prepares your project for the analysis.
+The begin step is executed when you add the `begin` command line argument. It hooks into the build pipeline, downloads {instance} quality profiles and settings and prepares your project for the analysis.
 
 Command Line Parameters:
 
@@ -146,7 +150,7 @@ For detailed information about all available parameters, see [Analysis Parameter
 Between the `begin` and `end` steps, you need to build your project, execute tests and generate code coverage data. This part is specific to your needs and it is not detailed here.
 
 ### End
-The end step is executed when you add the "end" command line argument. It cleans the MSBuild hooks, collects the analysis data generated by the build, the test results, the code coverage and then uploads everything to {instance}
+The end step is executed when you add the "end" command line argument. It cleans the MSBuild/dotnet build hooks, collects the analysis data generated by the build, the test results, the code coverage and then uploads everything to {instance}
 
 There are only two additional arguments that are allowed for the end step:
 
@@ -189,7 +193,7 @@ Some project types, such as [Microsoft Fakes](https://msdn.microsoft.com/en-us/l
 ## Advanced topics
 
 **Analyzing MSBuild 12 projects with MSBuild 14**  
-The Sonar Scanner for MSBuild requires your project to be built with MSBuild 14.0. We recommend installing Visual Studio 2015 update 3 or later on the analysis machine in order to benefit from the integration and features provided with the Visual Studio ecosystem (VSTest, MSTest unit tests, etc.).
+The Sonar Scanner for .NET requires your project to be built with MSBuild 14.0. We recommend installing Visual Studio 2015 update 3 or later on the analysis machine in order to benefit from the integration and features provided with the Visual Studio ecosystem (VSTest, MSTest unit tests, etc.).
 
 Projects targeting older versions of the .NET Framework can be built using MSBuild 14.0 by setting the "TargetFrameworkVersion" MSBuild property as documented by Microsoft:
 
@@ -215,9 +219,9 @@ Some analysis parameters can be set for a single MSBuild project by adding them 
 ```
 
 **Concurrent Analyses on the Same Build Machine**  
-Concurrent analyses (i.e. parallel analysis of two solutions on the same build machine using a unique service account) are not supported by default by the Scanner for MSBuild. You can enable it as follows:
+Concurrent analyses (i.e. parallel analysis of two solutions on the same build machine using a unique service account) are not supported by default by the Scanner for .NET. You can enable it as follows:
 
-1. Locate the folder containing the Scanner for MSBuild
+1. Locate the folder containing the Scanner for .NET
 1. Go in the `Targets` folder and copy the folder `SonarQube.Integration.ImportBefore.targets`
 1. Paste it under your build tool global `ImportBefore` folder (if the folder doesn't exist, create it).
    * For MSBuild, the path is `<MSBUILD_INSTALL_DIR>\<Version>\Microsoft.Common.targets\ImportBefore` where <MSBUILD_INSTALL_DIR> is:
@@ -228,8 +232,8 @@ Concurrent analyses (i.e. parallel analysis of two solutions on the same build m
 
 The performance impact of this global installation for projects that aren't analyzed is negligible as this target is only a bootstrapper and will bail out nearly instantaneously when the `.sonarqube` folder is not found under the folder being built.
 
-**Using SonarScanner for MSBuild with a Proxy**  
-On build machines that connect to the Internet through a proxy server you might experience difficulties connecting to {instance}. To instruct the Java VM to use the system proxy settings, you need to set the following environment variable before running the SonarScanner for MSBuild:
+**Using SonarScanner for .NET with a Proxy**  
+On build machines that connect to the Internet through a proxy server you might experience difficulties connecting to {instance}. To instruct the Java VM to use the system proxy settings, you need to set the following environment variable before running the SonarScanner for .NET:
 
 ```bash
 SONAR_SCANNER_OPTS = "-Djava.net.useSystemProxies=true"
@@ -242,6 +246,6 @@ SONAR_SCANNER_OPTS = "-Dhttp.proxyHost=yourProxyHost -Dhttp.proxyPort=yourProxyP
 ```
 Where _yourProxyHost_ and _yourProxyPort_ are the hostname and the port of your proxy server. There are additional proxy settings for https, authentication and exclusions that could be passed to the Java VM. For more information see the following article: https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html.
 
-Since version 5.0 of the scanner, HTTP_PROXY, HTTPS_PROXY, ALL_PROXY and NO_PROXY will be automatically recognized and use to make call against {instance}. The Scanner for MSBuild makes HTTP calls, independant from the settings above concerning the Java VM, to fetch the Quality Profile and other useful settings for the "end" step.
+Since version 5.0 of the scanner, HTTP_PROXY, HTTPS_PROXY, ALL_PROXY and NO_PROXY will be automatically recognized and use to make call against {instance}. The Scanner for .NET makes HTTP calls, independant from the settings above concerning the Java VM, to fetch the Quality Profile and other useful settings for the "end" step.
 
 Where _yourProxyHost_ and _yourProxyPort_ are the hostname and the port of your proxy server. There are additional proxy settings for https, authentication and exclusions that could be passed to the Java VM. For more information see the following article: https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
