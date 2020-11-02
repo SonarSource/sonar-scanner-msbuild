@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,43 +18,34 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim
 {
-    public static class SonarProjectPropertiesValidator
+    public class SonarProjectPropertiesValidator : ISonarProjectPropertiesValidator
     {
         /// <summary>
         /// Verifies that no sonar-project.properties conflicting with the generated one exists within the project
         /// </summary>
         /// <param name="sonarScannerCwd">Solution folder to check</param>
         /// <param name="projects">MSBuild projects to check, only valid ones will be verified</param>
-        /// <param name="onValid">Called when validation succeeded</param>
-        /// <param name="onInvalid">Called when validation fails, with the list of folders containing a sonar-project.properties file</param>
-        public static void Validate(string sonarScannerCwd, ICollection<ProjectData> projects, Action onValid, Action<IList<string>> onInvalid)
+        public bool AreExistingSonarPropertiesFilesPresent(string sonarScannerCwd, ICollection<ProjectData> projects, out IEnumerable<string> invalidFolders)
         {
-            var invalidFolders = projects
+            invalidFolders = projects
                 .Where(p => p.Status == ProjectInfoValidity.Valid)
                 .Select(p => p.Project.GetDirectory().FullName)
                 .Union(new[] { sonarScannerCwd })
                 .Where(SonarProjectPropertiesExists)
                 .ToList();
 
-            if (invalidFolders.Count > 0)
-            {
-                onInvalid(invalidFolders);
-            }
-            else
-            {
-                onValid();
-            }
+            return invalidFolders.Any();
         }
 
-        private static bool SonarProjectPropertiesExists(string folder)
+        private bool SonarProjectPropertiesExists(string folder)
         {
             return File.Exists(Path.Combine(folder, "sonar-project.properties"));
         }

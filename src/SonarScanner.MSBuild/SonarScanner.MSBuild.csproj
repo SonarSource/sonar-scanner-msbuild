@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>$(ScannerNetCoreAppVersion);$(ScannerNetFxVersion);$(ScannerNetCoreGlobalToolVersion)</TargetFrameworks>
+    <TargetFrameworks>$(ScannerNetCoreVersion);$(ScannerNetFxVersion);$(ScannerNetVersion)</TargetFrameworks>
     <AssemblyName>SonarScanner.MSBuild</AssemblyName>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
@@ -11,16 +11,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
-    <ProjectReference Include="..\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj" />
     <ProjectReference Include="..\SonarScanner.MSBuild.PostProcessor\SonarScanner.MSBuild.PostProcessor.csproj" />
     <ProjectReference Include="..\SonarScanner.MSBuild.PreProcessor\SonarScanner.MSBuild.PreProcessor.csproj" />
     <ProjectReference Include="..\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj" />
-  </ItemGroup>
-
-  <!-- Conditionally reference project only if the framework is classic .NET Framework (not core or standard). -->
-  <ItemGroup Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework')">
-    <ProjectReference Include="..\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">
@@ -36,10 +33,4 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <!-- Define a constant if the framework is classic .NET Framework. -->
-  <Target Name="AddNetFrameworkMacro" BeforeTargets="CoreCompile" Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework')">
-    <PropertyGroup>
-      <DefineConstants>$(DefineConstants);IS_NET_FRAMEWORK</DefineConstants>
-    </PropertyGroup>
-  </Target>
 </Project>

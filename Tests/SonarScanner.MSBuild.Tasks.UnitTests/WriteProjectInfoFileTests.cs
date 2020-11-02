@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -47,7 +47,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_FileCreated()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var projectGuid = Guid.NewGuid();
 
@@ -88,7 +88,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_AnalysisResults()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var projectGuid = Guid.NewGuid();
 
@@ -137,7 +137,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_AnalysisSettings()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var projectGuid = Guid.NewGuid();
 
@@ -210,7 +210,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_MissingProjectGuid()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var task = new WriteProjectInfoFile
             {
@@ -230,10 +230,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Assert
             success.Should().BeTrue("Not expecting the task to fail as this would fail the build");
             engine.AssertNoErrors();
-            engine.Warnings.Should().HaveCount(1, "Expecting a build warning as the ProjectGuid is missing");
-
-            var firstWarning = engine.Warnings[0];
-            firstWarning.Message.Should().NotBeNull("Warning message should not be null");
+            engine.AssertNoWarnings();
 
             var projectInfoFilePath = Path.Combine(testFolder, ExpectedProjectInfoFileName);
             File.Exists(projectInfoFilePath).Should().BeTrue("Expecting the project info file to have been created");
@@ -244,7 +241,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         public void WriteProjectInfoFile_UseSolutionProjectGuid()
         {
             // Arrange
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var projectGuid = Guid.NewGuid();
 
@@ -291,7 +288,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
                 // 1. Null language
                 ProjectLanguage = null,
-                OutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "null.language")
+                OutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "null.language")
             };
 
             var actual = ExecuteAndCheckSucceeds(task, task.OutputFolder);
@@ -299,7 +296,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             // 2. Unrecognized language
             task.ProjectLanguage = "unrecognized language";
-            task.OutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "unrecog.language");
+            task.OutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "unrecog.language");
 
             actual = ExecuteAndCheckSucceeds(task, task.OutputFolder);
             actual.ProjectLanguage.Should().Be("unrecognized language", "Unexpected value for project language");
@@ -420,7 +417,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
                 ProjectGuid = Guid.NewGuid().ToString("B"),
                 ProjectLanguage = projectLanguage,
                 CodePage = codePage.ToString(),
-                OutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, folderName)
+                OutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, folderName)
             };
 
             // Act
@@ -430,41 +427,48 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         [TestMethod]
         public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreNull_ReturnsNull()
         {
-            AssertProjectGuidIsNull(null, null);
+            AssertProjectGuidIsRandomlyGenerated(null, null, @"C:\NetCorePrj\MyNetCoreProject.csproj");
         }
 
         [TestMethod]
-        public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreEmptyString_ReturnsNull()
+        public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreEmptyString_ReturnsRandomGuid()
         {
-            AssertProjectGuidIsNull("", "");
+            AssertProjectGuidIsRandomlyGenerated("", "", @"C:\NetCorePrj\MyNetCoreProject.csproj");
         }
 
         [TestMethod]
         public void GetProjectGuid_WhenProjectGuidNullAndSolutionConfigurationContentsEmptyString_ReturnsNull()
         {
-            AssertProjectGuidIsNull(null, "");
+            AssertProjectGuidIsRandomlyGenerated(null, "", @"C:\NetCorePrj\MyNetCoreProject.csproj"); 
         }
 
         [TestMethod]
         public void GetProjectGuid_WhenProjectGuidEmptyStringAndSolutionConfigurationContentsNull_ReturnsNull()
         {
-            AssertProjectGuidIsNull("", null);
+            AssertProjectGuidIsRandomlyGenerated("", null, @"C:\NetCorePrj\MyNetCoreProject.csproj");
         }
 
-        private void AssertProjectGuidIsNull(string projectGuid, string solutionConfigurationContents)
+        private void AssertProjectGuidIsRandomlyGenerated(string projectGuid, string solutionConfigurationContents, string fullProjectPath)
         {
+            
             // Arrange
             var testSubject = new WriteProjectInfoFile
             {
+                FullProjectPath = fullProjectPath,
                 ProjectGuid = projectGuid,
                 SolutionConfigurationContents = solutionConfigurationContents
             };
+
+            var engine = new DummyBuildEngine();
+            testSubject.BuildEngine = engine;
+
 
             // Act
             var actual = testSubject.GetProjectGuid();
 
             // Assert
-            actual.Should().BeNull();
+            actual.Should().NotBeNullOrEmpty();
+            actual.Should().NotBe(Guid.Empty.ToString());
         }
 
         [TestMethod]

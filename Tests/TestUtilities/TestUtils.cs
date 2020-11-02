@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -49,7 +49,7 @@ namespace TestUtilities
         /// full path to the new folder. This method will return the same path
         /// if called multiple times from within the same test.
         /// </summary>
-        public static string CreateTestSpecificFolder(TestContext testContext, params string[] subDirNames)
+        public static string CreateTestSpecificFolderWithSubPaths(TestContext testContext, params string[] subDirNames)
         {
             var fullPath = CreateTestSpecificFolder(testContext);
             if (subDirNames.Length > 0)
@@ -183,6 +183,88 @@ namespace TestUtilities
             File.Exists(fileName).Should().BeFalse("Not expecting a batch file to already exist: {0}", fileName);
             File.WriteAllText(fileName, content);
             return fileName;
+        }
+
+        /// <summary>
+        /// Creates a project info under the specified analysis root directory
+        /// together with the supporting project and content files, along with GUID and additional properties (if specified)
+        /// </summary>
+        public static string CreateProjectWithFiles(TestContext testContext, string projectName, string analysisRootPath, Guid projectGuid, bool createContentFiles = true, AnalysisProperties additionalProperties = null)
+        {
+            // Create a project with content files in a new subdirectory
+            var projectDir = CreateTestSpecificFolderWithSubPaths(testContext, Path.Combine("projects", projectName));
+            var projectFilePath = Path.Combine(projectDir, Path.ChangeExtension(projectName, "proj"));
+
+            // Create a project info file in the correct location under the analysis root
+            var contentProjectInfo = CreateProjectInfoInSubDir(analysisRootPath, projectName, projectGuid, ProjectType.Product, false, projectFilePath, "UTF-8", additionalProperties); // not excluded
+
+            // Create content / managed files if required
+            if (createContentFiles)
+            {
+                var contentFile = CreateEmptyFile(projectDir, "contentFile1.txt");
+                var contentFileList = CreateFile(projectDir, "contentList.txt", contentFile);
+                AddAnalysisResult(contentProjectInfo, AnalysisType.FilesToAnalyze, contentFileList);
+            }
+
+            return contentProjectInfo;
+        }
+
+        /// <summary>
+        /// Creates a project info under the specified analysis root directory
+        /// together with the supporting project and content files, along with additional properties (if specified)
+        /// </summary>
+        public static string CreateProjectWithFiles(TestContext testContext, string projectName, string analysisRootPath, bool createContentFiles = true, AnalysisProperties additionalProperties = null)
+        {
+            return CreateProjectWithFiles(testContext, projectName, analysisRootPath, Guid.NewGuid(), createContentFiles, additionalProperties);
+        }
+
+        public static string CreateEmptyFile(string parentDir, string fileName)
+        {
+            return CreateFile(parentDir, fileName, string.Empty);
+        }
+
+        public static string CreateFile(string parentDir, string fileName, string content)
+        {
+            var fullPath = Path.Combine(parentDir, fileName);
+            File.WriteAllText(fullPath, content);
+            return fullPath;
+        }
+
+        /// <summary>
+        /// Creates a new project info file in a new subdirectory with the given additional properties.
+        /// </summary>
+        public static string CreateProjectInfoInSubDir(string parentDir,
+            string projectName, Guid projectGuid, ProjectType projectType, bool isExcluded, string fullProjectPath, string encoding,
+            AnalysisProperties additionalProperties = null)
+        {
+            var newDir = Path.Combine(parentDir, projectName);
+            Directory.CreateDirectory(newDir); // ensure the directory exists
+
+            var project = new ProjectInfo()
+            {
+                FullPath = fullProjectPath,
+                ProjectName = projectName,
+                ProjectGuid = projectGuid,
+                ProjectType = projectType,
+                IsExcluded = isExcluded,
+                Encoding = encoding
+            };
+
+            if (additionalProperties != null)
+            {
+                project.AnalysisSettings = additionalProperties;
+            }
+
+            var filePath = Path.Combine(newDir, FileConstants.ProjectInfoFileName);
+            project.Save(filePath);
+            return filePath;
+        }
+
+        public static void AddAnalysisResult(string projectInfoFile, AnalysisType resultType, string location)
+        {
+            var projectInfo = ProjectInfo.Load(projectInfoFile);
+            projectInfo.AddAnalyzerResult(resultType, location);
+            projectInfo.Save(projectInfoFile);
         }
 
         #endregion Public methods

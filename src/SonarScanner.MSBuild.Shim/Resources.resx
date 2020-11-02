@@ -118,31 +118,28 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="MSG_SonarScannerCalling" xml:space="preserve">
-    <value>Calling the SonarQube Scanner...</value>
+    <value>Calling the SonarScanner CLI...</value>
   </data>
   <data name="WARN_FileIsOutsideProjectDirectory" xml:space="preserve">
     <value>File '{0}' is not located under the root directory '{1}' and will not be analyzed.</value>
   </data>
   <data name="MSG_GeneratingProjectProperties" xml:space="preserve">
-    <value>Generating SonarQube project properties file to {0}</value>
-  </data>
-  <data name="MSG_NoFilesToAnalyze" xml:space="preserve">
-    <value>The project does not contain any files that can analyzed by SonarQube. Project file: {0}</value>
+    <value>Generating {1} project properties file to {0}</value>
   </data>
   <data name="MSG_ProjectIsExcluded" xml:space="preserve">
-    <value>The exclude flag has been set so the project will not be analyzed by SonarQube. Project file: {0}</value>
+    <value>The exclude flag has been set so the project will not be analyzed. Project file: {0}</value>
   </data>
   <data name="MSG_PropertiesGenerationFailed" xml:space="preserve">
-    <value>Generation of the sonar-properties file failed. Unable to complete SonarQube analysis.</value>
+    <value>Generation of the sonar-properties file failed. Unable to complete the analysis.</value>
   </data>
   <data name="MSG_SonarScannerCompleted" xml:space="preserve">
-    <value>The SonarQube Scanner has finished</value>
+    <value>The SonarScanner CLI has finished</value>
   </data>
   <data name="MSG_WritingSummary" xml:space="preserve">
     <value>Writing processing summary to {0}</value>
   </data>
   <data name="ERR_NoProjectInfoFilesFound" xml:space="preserve">
-    <value>The SonarQube MSBuild integration failed: SonarQube was unable to collect the required information about your projects.
+    <value>The SonarScanner for MSBuild integration failed: {0} was unable to collect the required information about your projects.
 Possible causes:
   1. The project has not been built - the project must be built in between the begin and end steps
   2. An unsupported version of MSBuild has been used to build the project. Currently MSBuild 14.0.25420.1 and higher are supported.
@@ -150,10 +147,10 @@ Possible causes:
   4. None of the analyzed projects have a valid ProjectGuid and you have not used a solution (.sln)</value>
   </data>
   <data name="ERR_NoValidProjectInfoFiles" xml:space="preserve">
-    <value>No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.</value>
+    <value>No analysable projects were found. {0} analysis will not be performed. Check the build summary report for details.</value>
   </data>
   <data name="ERR_SonarScannerExecutionFailed" xml:space="preserve">
-    <value>The SonarQube Scanner did not complete successfully</value>
+    <value>The SonarScanner did not complete successfully</value>
   </data>
   <data name="MSG_UsingSuppliedSonarScannerOptsValue" xml:space="preserve">
     <value>Using the supplied value for {0}. Value: {1}</value>
@@ -177,13 +174,13 @@ Possible causes:
     <value>Test projects</value>
   </data>
   <data name="WARN_DuplicateProjectGuid" xml:space="preserve">
-    <value>Duplicate ProjectGuid: "{0}". The project will not be analyzed by SonarQube. Project file: "{1}"</value>
+    <value>Duplicate ProjectGuid: "{0}". The project will not be analyzed. Project file: "{1}"</value>
   </data>
   <data name="WARN_FileDoesNotExist" xml:space="preserve">
     <value>File '{0}' does not exist.</value>
   </data>
   <data name="WARN_InvalidProjectGuid" xml:space="preserve">
-    <value>The project has an invalid GUID "{0}". The project will not be analyzed by SonarQube. Project file: {1}</value>
+    <value>The project has an invalid GUID "{0}". The project will not be analyzed. Project file: {1}</value>
   </data>
   <data name="MSG_SonarScannerHomeIsSet" xml:space="preserve">
     <value>The SONAR_SCANNER_HOME environment variable is not required and will be ignored.</value>
@@ -196,9 +193,6 @@ Possible causes:
   </data>
   <data name="MSG_MandatorySettingIsCorrectlySpecified" xml:space="preserve">
     <value>Analysis property is already correctly set: {0}={1}</value>
-  </data>
-  <data name="ERR_ConflictingSonarProjectProperties" xml:space="preserve">
-    <value>sonar-project.properties files are not understood by the SonarScanner for MSBuild. Remove those files from the following folders: {0}</value>
   </data>
   <data name="MSG_SarifFileNotFound" xml:space="preserve">
     <value>No Code Analysis ErrorLog file found at {0}.</value>
@@ -229,12 +223,33 @@ Possible causes:
 {0}</value>
   </data>
   <data name="WARN_InvalidCharacterInPaths" xml:space="preserve">
-    <value>The following paths contain invalid characters for this version of SonarQube and will be excluded from this analysis: {0}</value>
+    <value>The following paths contain invalid characters and will be excluded from this analysis: {0}</value>
   </data>
   <data name="DEBUG_DumpSonarProjectProperties" xml:space="preserve">
     <value>Dumping content of sonar-project.properties
 ------------------------------------------------------------------------
 {0}
 ------------------------------------------------------------------------</value>
+  </data>
+  <data name="ERR_TFSProcessorExecutionFailed" xml:space="preserve">
+    <value>The TFS Processor did not complete successfully</value>
+  </data>
+  <data name="MSG_TFSProcessorCalling" xml:space="preserve">
+    <value>Calling the TFS Processor executable...</value>
+  </data>
+  <data name="MSG_TFSProcessorCompleted" xml:space="preserve">
+    <value>The TFS Processor has finished</value>
+  </data>
+  <data name="MSG_UsingAzDoSourceDirectoryAsProjectBaseDir" xml:space="preserve">
+    <value>Using TFS/Azure DevOps sources directory as project base directory: '{0}'.</value>
+  </data>
+  <data name="MSG_UsingLongestCommonRootProjectBaseDir" xml:space="preserve">
+    <value>Using longest common projects root path as project base directory: '{0}'.</value>
+  </data>
+  <data name="MSG_UsingUserSuppliedProjectBaseDir" xml:space="preserve">
+    <value>Using user supplied project base directory: '{0}'</value>
+  </data>
+  <data name="WARN_UsingFallbackProjectBaseDir" xml:space="preserve">
+    <value>Could not determine a suitable project base directory. Using the fallback {0} . Make sure that all dependencies of your project are available on your filesystem, as this fallback may lead to no result being show after the analysis.</value>
   </data>
 </root>

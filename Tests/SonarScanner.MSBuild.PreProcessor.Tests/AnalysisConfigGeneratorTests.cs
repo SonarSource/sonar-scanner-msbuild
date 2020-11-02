@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -25,7 +25,6 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
@@ -41,7 +40,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void GenerateFile_WhenLocalSettingsNull_ThrowArgumentNullException()
         {
             // Arrange
-            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Action act = () => AnalysisConfigGenerator.GenerateFile(null, tbSettings, new Dictionary<string, string>(),
                 new List<AnalyzerSettings>(), new MockSonarQubeServer(), new TestLogger());
@@ -54,8 +53,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void GenerateFile_WhenBuildSettingsNull_ThrowArgumentNullException()
         {
             // Arrange
+
+            var testLogger = new TestLogger();
+
             Action act = () => AnalysisConfigGenerator.GenerateFile(new ProcessedArgs("key", "name", "version", "org", false,
-                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance), null,
+                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, testLogger), null,
                 new Dictionary<string, string>(), new List<AnalyzerSettings>(), new MockSonarQubeServer(), new TestLogger());
 
             // Act & Assert
@@ -66,10 +68,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void GenerateFile_WhenServerPropertiesNull_ThrowArgumentNullException()
         {
             // Arrange
-            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testLogger = new TestLogger();
+            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Action act = () => AnalysisConfigGenerator.GenerateFile(new ProcessedArgs("key", "name", "version", "org", false,
-                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance), tbSettings,
+                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, testLogger), tbSettings,
                 null, new List<AnalyzerSettings>(), new MockSonarQubeServer(), new TestLogger());
 
             // Act & Assert
@@ -80,10 +83,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void GenerateFile_WhenSonarQubeServerNull_ThrowArgumentNullException()
         {
             // Arrange
-            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testLogger = new TestLogger();
+            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Action act = () => AnalysisConfigGenerator.GenerateFile(new ProcessedArgs("key", "name", "version", "org", false,
-                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance), tbSettings,
+                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, testLogger), tbSettings,
                 new Dictionary<string, string>(), new List<AnalyzerSettings>(), null, new TestLogger());
 
             // Act & Assert
@@ -94,10 +98,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void GenerateFile_WhenLoggerNull_ThrowArgumentNullException()
         {
             // Arrange
-            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testLogger = new TestLogger();
+            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Action act = () => AnalysisConfigGenerator.GenerateFile(new ProcessedArgs("key", "name", "version", "org", false,
-                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance), tbSettings,
+                EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, testLogger), tbSettings,
                 new Dictionary<string, string>(), new List<AnalyzerSettings>(), new MockSonarQubeServer(), null);
 
             // Act & Assert
@@ -108,13 +113,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void AnalysisConfGen_Simple()
         {
             // Arrange
-            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var logger = new TestLogger();
 
             var propertyProvider = new ListPropertiesProvider();
             propertyProvider.AddProperty(SonarProperties.HostUrl, "http://foo");
-            var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, EmptyPropertyProvider.Instance, propertyProvider, EmptyPropertyProvider.Instance);
+            var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, EmptyPropertyProvider.Instance, propertyProvider, EmptyPropertyProvider.Instance, logger);
 
             var tbSettings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
 
@@ -178,7 +183,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             // Instead, a pointer to the file should be created.
 
             // Arrange
-            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var logger = new TestLogger();
 
@@ -193,7 +198,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             var fileProvider = FilePropertyProvider.Load(settingsFilePath);
 
-            var args = new ProcessedArgs("key", "name", "version", "organization", false, EmptyPropertyProvider.Instance, fileProvider, EmptyPropertyProvider.Instance);
+            var args = new ProcessedArgs("key", "name", "version", "organization", false, EmptyPropertyProvider.Instance, fileProvider, EmptyPropertyProvider.Instance, logger);
 
             var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
@@ -222,7 +227,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void AnalysisConfGen_AnalysisConfigDoesNotContainSensitiveData()
         {
             // Arrange
-            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var logger = new TestLogger();
 
@@ -248,7 +253,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             fileSettings.Save(fileSettingsPath);
             var fileProvider = FilePropertyProvider.Load(fileSettingsPath);
 
-            var args = new ProcessedArgs("key", "name", "1.0", null, false, cmdLineArgs, fileProvider, EmptyPropertyProvider.Instance);
+            var args = new ProcessedArgs("key", "name", "1.0", null, false, cmdLineArgs, fileProvider, EmptyPropertyProvider.Instance, logger);
 
             IDictionary<string, string> serverProperties = new Dictionary<string, string>
             {
@@ -293,7 +298,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void AnalysisConfGen_WhenLoginSpecified_StoresThatItWasSpecified()
         {
             // Arrange
-            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var logger = new TestLogger();
 
@@ -302,7 +307,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             var cmdLineArgs = new ListPropertiesProvider();
             cmdLineArgs.AddProperty(SonarProperties.SonarUserName, "foo");
-            var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, cmdLineArgs, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
+            var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, cmdLineArgs, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
 
             // Act
             var config = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), new MockSonarQubeServer(), logger);
@@ -316,14 +321,14 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void AnalysisConfGen_WhenLoginNotSpecified_DoesNotStoreThatItWasSpecified()
         {
             // Arrange
-            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var logger = new TestLogger();
 
             var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
             Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
-            var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
+            var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, logger);
 
             // Act
             var config = AnalysisConfigGenerator.GenerateFile(args, settings, new Dictionary<string, string>(), new List<AnalyzerSettings>(), new MockSonarQubeServer(), logger);
@@ -337,10 +342,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void GenerateFile_WritesSonarQubeVersion()
         {
             // Arrange
-            var analysisDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testLogger = new TestLogger();
+            var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(analysisDir);
 
-            var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
+            var args = new ProcessedArgs("valid.key", "valid.name", "1.0", null, false, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, testLogger);
 
             var sonarqubeServer = new MockSonarQubeServer();
             sonarqubeServer.Data.SonarQubeVersion = new Version(1, 2, 3, 4);

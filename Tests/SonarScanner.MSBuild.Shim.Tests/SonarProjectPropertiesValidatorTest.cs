@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
@@ -37,26 +38,23 @@ namespace SonarScanner.MSBuild.Shim.Tests
         [TestMethod]
         public void SonarProjectPropertiesValidatorTest_FailCurrentDirectory()
         {
-            var folder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var folder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             File.Create(Path.Combine(folder, "sonar-project.properties"));
 
-            var called = false;
-            SonarProjectPropertiesValidator.Validate(
-                folder, new List<ProjectData>(),
-                onValid: () => Assert.Fail("expected validation to fail"),
-                onInvalid: (paths) =>
-                {
-                    called = true;
-                     paths.Count.Should().Be(1);
-                     paths[0].Should().Be(folder);
-                });
-            called.Should().BeTrue("Callback not called");
+            var underTest = new SonarProjectPropertiesValidator();
+
+            var result = underTest.AreExistingSonarPropertiesFilesPresent(folder, new List<ProjectData>(), out var expectedInvalidFolders);
+
+            Assert.IsTrue(result);
+
+            Assert.AreEqual(1, expectedInvalidFolders.Count());
+            Assert.AreEqual(folder, expectedInvalidFolders.First());
         }
 
         [TestMethod]
         public void SonarProjectPropertiesValidatorTest_FailProjectDirectory()
         {
-            var folder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var folder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var p1 = new ProjectData(MockProject(folder, "Project1")) { Status = ProjectInfoValidity.Valid };
             var p2 = new ProjectData(MockProject(folder, "Project2")) { Status = ProjectInfoValidity.Valid };
@@ -72,24 +70,21 @@ namespace SonarScanner.MSBuild.Shim.Tests
                 p3,
             };
 
-            var called = false;
-            SonarProjectPropertiesValidator.Validate(
-                folder, projects,
-                onValid: () => Assert.Fail("expected validation to fail"),
-                onInvalid: (paths) =>
-                {
-                    called = true;
-                     paths.Count.Should().Be(2);
-                     paths[0].Should().Be(Path.GetDirectoryName(p1.Project.FullPath));
-                     paths[1].Should().Be(Path.GetDirectoryName(p3.Project.FullPath));
-                });
-            called.Should().BeTrue("Callback not called");
+            var underTest = new SonarProjectPropertiesValidator();
+
+            var result = underTest.AreExistingSonarPropertiesFilesPresent(folder, projects, out var expectedInvalidFolders);
+
+            Assert.IsTrue(result);
+
+            Assert.AreEqual(2, expectedInvalidFolders.Count());
+            Assert.AreEqual(Path.GetDirectoryName(p1.Project.FullPath), expectedInvalidFolders.ElementAt(0));
+            Assert.AreEqual(Path.GetDirectoryName(p3.Project.FullPath), expectedInvalidFolders.ElementAt(1));
         }
 
         [TestMethod]
         public void SonarProjectPropertiesValidatorTest_SucceedAndSkipInvalidProjects()
         {
-            var folder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var folder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var p1 = new ProjectData(MockProject(folder, "Project1")) { Status = ProjectInfoValidity.Valid  };
             var p2 = new ProjectData(MockProject(folder, "Project3")) { Status = ProjectInfoValidity.ExcludeFlagSet };
@@ -108,15 +103,12 @@ namespace SonarScanner.MSBuild.Shim.Tests
                 p4,
             };
 
-            var called = false;
-            SonarProjectPropertiesValidator.Validate(
-                folder, projects,
-                onValid: () => called = true,
-                onInvalid: (paths) =>
-                {
-                    Assert.Fail("Expected to succeed");
-                });
-            called.Should().BeTrue("Callback not called");
+            var underTest = new SonarProjectPropertiesValidator();
+
+            var result = underTest.AreExistingSonarPropertiesFilesPresent(folder, projects, out var expectedInvalidFolders);
+
+            Assert.IsFalse(result);
+            Assert.AreEqual(0, expectedInvalidFolders.Count());
         }
 
         #endregion Tests

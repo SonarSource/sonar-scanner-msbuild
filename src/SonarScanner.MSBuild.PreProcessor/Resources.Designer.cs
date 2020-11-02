@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -88,7 +88,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /key:[SonarQube project key].
+        ///   Looks up a localized string similar to /key:[SonarQube/SonarCloud project key].
         /// </summary>
         internal static string CmdLine_ArgDescription_ProjectKey {
             get {
@@ -97,7 +97,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /name:[SonarQube project name] - required for SonarQube &lt; 6.1.
+        ///   Looks up a localized string similar to /name:[SonarQube/SonarCloud project name] - required for SonarQube &lt; 6.1.
         /// </summary>
         internal static string CmdLine_ArgDescription_ProjectName {
             get {
@@ -106,7 +106,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /version:[SonarQube project version] - required for SonarQube &lt; 6.1.
+        ///   Looks up a localized string similar to /version:[SonarQube/SonarCloud project version] - required for SonarQube &lt; 6.1.
         /// </summary>
         internal static string CmdLine_ArgDescription_ProjectVersion {
             get {
@@ -115,7 +115,16 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube pre-processing cannot be performed - required settings are missing.
+        ///   Looks up a localized string similar to Your SonarQube instance seems to have an invalid license. Please check it. Server url : {0}.
+        /// </summary>
+        internal static string ERR_UnlicensedServer {
+            get {
+                return ResourceManager.GetString("ERR_UnlicensedServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarScanner pre-processing cannot be performed - required settings are missing.
         /// </summary>
         internal static string ERROR_CannotPerformProcessing {
             get {
@@ -143,10 +152,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         
         /// <summary>
         ///   Looks up a localized string similar to Expecting at least the following command line argument:
-        ///- SonarQube project key
-        ///When connecting to a SonarQube server earlier than version 6.1, the following command line arguments are also required:
-        ///- SonarQube project name
-        ///- SonarQube project version
+        ///- SonarQube/SonarCloud project key
         ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
         ///Use &apos;/?&apos; or &apos;/h&apos; to see the help message..
         /// </summary>
@@ -175,11 +181,38 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to sonar.organization parameter has been detected in the provided SonarQube.Analysis.xml config file. Please pass it in the command line instead, using /o: flag..
+        /// </summary>
+        internal static string ERROR_Organization_Provided_In_SonarQubeAnalysis_file {
+            get {
+                return ResourceManager.GetString("ERROR_Organization_Provided_In_SonarQubeAnalysis_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Internal error: cannot create an analyzer provider without a SonarQube server instance.
         /// </summary>
         internal static string FACTORY_InternalError_MissingServer {
             get {
                 return ResourceManager.GetString("FACTORY_InternalError_MissingServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube Community Edition detected, license is valid..
+        /// </summary>
+        internal static string MSG_CE_Detected_LicenseValid {
+            get {
+                return ResourceManager.GetString("MSG_CE_Detected_LicenseValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Checking validity of server license.
+        /// </summary>
+        internal static string MSG_CheckingLicenseValidity {
+            get {
+                return ResourceManager.GetString("MSG_CheckingLicenseValidity", resourceCulture);
             }
         }
         
@@ -274,6 +307,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to To analyze private projects make sure the scanner user has &apos;Browse&apos; permission..
+        /// </summary>
+        internal static string MSG_Forbidden_BrowsePermission {
+            get {
+                return ResourceManager.GetString("MSG_Forbidden_BrowsePermission", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generating rulesets....
         /// </summary>
         internal static string MSG_GeneratingRulesets {
@@ -333,6 +375,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_NotCopyingTargets {
             get {
                 return ResourceManager.GetString("MSG_NotCopyingTargets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarCloud detected, skipping license check..
+        /// </summary>
+        internal static string MSG_SonarCloudDetected_SkipLicenseCheck {
+            get {
+                return ResourceManager.GetString("MSG_SonarCloudDetected_SkipLicenseCheck", resourceCulture);
             }
         }
         

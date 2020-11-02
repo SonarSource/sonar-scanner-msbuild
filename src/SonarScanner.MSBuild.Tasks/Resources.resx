@@ -145,7 +145,7 @@ Error: {1}</value>
     <value>Failed to resolve path relative to project file. Path: {0}</value>
   </data>
   <data name="WPIF_MissingOrInvalidProjectGuid" xml:space="preserve">
-    <value>The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded to SonarQube. Project file: {0}</value>
+    <value>The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded. Project file: {0}</value>
     <comment>We're including the project file name in the message as only the message appears in the TeamBuild summary.</comment>
   </data>
   <data name="WPIF_ResolvedPath" xml:space="preserve">
@@ -161,7 +161,7 @@ Error: {1}</value>
     <value>Analysis setting "{0}" does not have "Value" metadata and will be ignored</value>
   </data>
   <data name="AnalyzerSettings_NotSpecifiedInConfig" xml:space="preserve">
-    <value>Analyzer settings for language {0} have not been specified in the analysis config file</value>
+    <value>Analyzer settings for language {0} have not been specified in the analysis config file.</value>
   </data>
   <data name="IsTest_UsingDefaultRegEx" xml:space="preserve">
     <value>Using default regular expression for detecting test projects: {0}</value>
@@ -179,7 +179,7 @@ Error: {1}</value>
     <value>Overwriting analysis settings...</value>
   </data>
   <data name="AnalyzerSettings_NoSettingsFoundForCurrentLanguage" xml:space="preserve">
-    <value>No analysis settings were found in the Sonar config file for the current language: {0}</value>
+    <value>No analysis settings were found in the config file for the current language: {0}</value>
   </data>
   <data name="AnalyzerSettings_RemovingDuplicateFiles" xml:space="preserve">
     <value>Removing duplicate files: {0}</value>
@@ -200,7 +200,7 @@ Error: {1}</value>
     <value>Failed to find ruleset file: '{0}'</value>
   </data>
   <data name="AnalyzerSettings_ExternalIssueNotSupported" xml:space="preserve">
-    <value>External issues are not supported on this version of SonarQube. SQv7.4+ is required.</value>
+    <value>External issues are not supported on this version of {0}. SQv7.4+ is required.</value>
   </data>
   <data name="AnalyzerSettings_ImportAllSettingValue" xml:space="preserve">
     <value>{0}={1}</value>
@@ -216,5 +216,8 @@ Error: {1}</value>
   </data>
   <data name="WriteZeroLengthFiles_WritingFile" xml:space="preserve">
     <value>Writing zero-length file:{0}</value>
+  </data>
+  <data name="WPIF_GeneratingRandomGuid" xml:space="preserve">
+    <value>No ProjectGuid has been found in neither the csproj nor the solution (Project {0}). A random one has been generated ({1}).</value>
   </data>
 </root>

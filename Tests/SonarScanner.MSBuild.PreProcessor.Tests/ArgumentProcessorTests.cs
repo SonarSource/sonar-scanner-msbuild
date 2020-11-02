@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -194,7 +194,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void PreArgProc_PropertiesFileSpecifiedOnCommandLine()
         {
             // 0. Setup
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
 
             // 1. File exists -> args ok
@@ -211,6 +211,25 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
             // 2. File does not exist -> args not ok
             File.Delete(propertiesFilePath);
+
+            var logger = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
+            logger.AssertErrorsLogged(1);
+        }
+
+        [TestMethod]
+        public void PreArgProc_With_PropertiesFileSpecifiedOnCommandLine_Organization_Set_Only_In_It_Should_Fail()
+        {
+            // 0. Setup
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+            var propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
+
+            // 1. File exists -> args ok
+            var properties = new AnalysisProperties
+            {
+                new Property() { Id = SonarProperties.Organization, Value = "myorg1" },
+                new Property() { Id = SonarProperties.HostUrl, Value = "url" } // required property
+            };
+            properties.Save(propertiesFilePath);
 
             var logger = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
             logger.AssertErrorsLogged(1);

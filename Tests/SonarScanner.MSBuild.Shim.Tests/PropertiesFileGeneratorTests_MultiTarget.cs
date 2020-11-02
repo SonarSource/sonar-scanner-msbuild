@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -55,7 +55,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             */
 
             // Arrange
-            var solutionDir = TestUtils.CreateTestSpecificFolder(TestContext, "Solution1");
+            var solutionDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Solution1");
 
             var projectRoot = CreateProject(solutionDir, out List<string> files);
 
@@ -111,7 +111,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             */
 
             // Arrange
-            var solutionDir = TestUtils.CreateTestSpecificFolder(TestContext, "Solution1");
+            var solutionDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Solution1");
 
             var projectRoot = CreateProject(solutionDir, out List<string> files);
 
@@ -167,7 +167,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             */
 
             // Arrange
-            var solutionDir = TestUtils.CreateTestSpecificFolder(TestContext, "Solution1");
+            var solutionDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Solution1");
 
             var projectRoot = CreateProject(solutionDir, out List<string> files);
 
@@ -223,7 +223,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
             */
 
             // Arrange
-            var solutionDir = TestUtils.CreateTestSpecificFolder(TestContext, "Solution1");
+            var solutionDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Solution1");
 
             var projectRoot = CreateProject(solutionDir, out List<string> files);
 

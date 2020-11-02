@@ -1,6 +1,6 @@
 # Sonar Scanner for MSBuild
 
-[![Build Status](https://sonarsource.visualstudio.com/_apis/public/build/definitions/399fb241-ecc7-4802-8697-dcdd01fbb832/7/badge)](https://sonarsource.visualstudio.com/DotNetTeam%20Project/_build/index?definitionId=7)
+[![Build Status](https://sonarsource.visualstudio.com/DotNetTeam%20Project/_apis/build/status/SonarScanner%20for%20MSBuild?branchName=master)](https://sonarsource.visualstudio.com/DotNetTeam%20Project/_build/latest?definitionId=64&branchName=master)
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=sonarscanner-msbuild&metric=alert_status)](https://sonarcloud.io/dashboard?id=sonarscanner-msbuild)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=sonarscanner-msbuild&metric=coverage)](https://sonarcloud.io/component_measures?id=sonarscanner-msbuild&metric=coverage)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
@@ -13,7 +13,10 @@ SonarScanner for MSBuild is distributed as a
 * [Azure DevOps extension](https://github.com/SonarSource/sonar-scanner-vsts)
 * [Jenkins plugin](https://github.com/SonarSource/sonar-scanner-jenkins)
 
-For more info please look our [documentation page](https://docs.sonarqube.org/x/Lx9q).
+For more info please look our documentation page
+
+* [On SonarQube](https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/)
+* [On SonarCloud](https://sonarcloud.io/documentation/analysis/scan/sonarscanner-for-msbuild/)
 
 ## Contributing
 
@@ -21,6 +24,6 @@ Check out the [contributing](CONTRIBUTING.md) page to see the best places to log
 
 ## License
 
-Copyright 2016-2019 SonarSource.
+Copyright 2016-2020 SonarSource.
 
 Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)

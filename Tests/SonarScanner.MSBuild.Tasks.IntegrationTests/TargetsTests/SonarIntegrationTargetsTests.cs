@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -171,7 +171,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
         public static string CreateProjectFile(TestContext testContext, string testSpecificProjectXml)
         {
-            var projectDirectory = TestUtils.CreateTestSpecificFolder(testContext);
+            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(testContext);
             File.Exists(sqTargetFile).Should().BeTrue("Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);

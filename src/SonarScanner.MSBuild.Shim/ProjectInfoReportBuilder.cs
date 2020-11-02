@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@ namespace SonarScanner.MSBuild.Shim
     /// Outputs a report summarizing the project info files that were found.
     /// This is not used by SonarQube: it is only for debugging purposes.
     /// </summary>
-    internal class ProjectInfoReportBuilder
+    public class ProjectInfoReportBuilder
     {
         internal const string ReportFileName = "ProjectInfo.log";
 

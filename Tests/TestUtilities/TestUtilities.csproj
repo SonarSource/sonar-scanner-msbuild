@@ -38,9 +38,8 @@
       <HintPath>..\..\packages\FluentAssertions.5.9.0\lib\net47\FluentAssertions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
-    </Reference>
+		<HintPath>..\Assemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
+	</Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -68,6 +67,7 @@
     <Compile Include="DummyExeHelper.cs" />
     <Compile Include="JavaProperties.cs" />
     <Compile Include="JavaPropertyReader.cs" />
+    <Compile Include="MockTeamBuildSettings.cs" />
     <Compile Include="ParseException.cs" />
     <Compile Include="RuleSetAssertions.cs" />
     <Compile Include="TestEncodingProvider.cs" />

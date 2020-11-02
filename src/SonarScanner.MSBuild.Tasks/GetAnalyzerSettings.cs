@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -173,7 +173,7 @@ namespace SonarScanner.MSBuild.Tasks
             var serverVersion = config?.FindServerVersion();
             if (serverVersion == null || serverVersion < new Version("7.4"))
             {
-                logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported);
+                logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported, SonarProduct.GetSonarProductToLog(config?.SonarQubeHostUrl));
                 return false;
             }
 

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -20,11 +20,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild.TFS
 {
@@ -35,6 +34,7 @@ namespace SonarScanner.MSBuild.TFS
 
         private AnalysisConfig config;
         private ITeamBuildSettings settings;
+        private string propertiesFilePath;
 
         private bool succesfullyInitialised = false;
 
@@ -46,10 +46,11 @@ namespace SonarScanner.MSBuild.TFS
             this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
-        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings)
+        public bool Initialise(AnalysisConfig config, ITeamBuildSettings settings, string propertiesFilePath)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            this.propertiesFilePath = propertiesFilePath ?? throw new ArgumentNullException(nameof(propertiesFilePath));
 
             this.succesfullyInitialised = this.converter.Initialize();
             return this.succesfullyInitialised;
@@ -61,8 +62,6 @@ namespace SonarScanner.MSBuild.TFS
             {
                 throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialised);
             }
-
-            Debug.Assert(this.config != null, "Expecting the config to not be null. Did you call Initialize() ?");
 
             if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null) != null)
             {
@@ -76,7 +75,10 @@ namespace SonarScanner.MSBuild.TFS
                 if (TryGetTrxFiles(this.config, this.settings, out var trxPaths) &&
                     trxPaths.Any())
                 {
-                    this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsTestReportsPaths, Value = string.Join(",", trxPaths) });
+                    using (StreamWriter sw = File.AppendText(propertiesFilePath))
+                    {
+                        sw.WriteLine($"{SonarProperties.VsTestReportsPaths}={string.Join(",", trxPaths.Select(c => c.Replace(@"\", @"\\")))}");
+                    }
                 }
             }
 
@@ -87,8 +89,10 @@ namespace SonarScanner.MSBuild.TFS
                 coverageReportPaths.Any() &&
                 config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null) == null)
             {
-                this.config.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = string.Join(",", coverageReportPaths) });
-
+                using (StreamWriter sw = File.AppendText(propertiesFilePath))
+                {
+                    sw.WriteLine($"{SonarProperties.VsCoverageXmlReportsPaths}={string.Join(",", coverageReportPaths.Select(c => c.Replace(@"\", @"\\")))}");
+                }
             }
 
             return success;

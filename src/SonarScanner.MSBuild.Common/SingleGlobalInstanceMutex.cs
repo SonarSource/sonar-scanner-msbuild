@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -58,7 +58,7 @@ namespace SonarScanner.MSBuild.Common
 
         private static Mutex CreateMutex(string name)
         {
-#if IS_NET_FRAMEWORK
+#if NET46
             // Concurrent builds could be run under different user accounts, so we need to allow all users to wait on the mutex
             var mutexSecurity = new MutexSecurity();
             mutexSecurity.AddAccessRule(new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null),

@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.Tasks {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -79,7 +79,7 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to External issues are not supported on this version of SonarQube. SQv7.4+ is required..
+        ///   Looks up a localized string similar to External issues are not supported on this version of {0}. SQv7.4+ is required..
         /// </summary>
         internal static string AnalyzerSettings_ExternalIssueNotSupported {
             get {
@@ -124,7 +124,7 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No analysis settings were found in the Sonar config file for the current language: {0}.
+        ///   Looks up a localized string similar to No analysis settings were found in the config file for the current language: {0}.
         /// </summary>
         internal static string AnalyzerSettings_NoSettingsFoundForCurrentLanguage {
             get {
@@ -133,7 +133,7 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analyzer settings for language {0} have not been specified in the analysis config file.
+        ///   Looks up a localized string similar to Analyzer settings for language {0} have not been specified in the analysis config file..
         /// </summary>
         internal static string AnalyzerSettings_NotSpecifiedInConfig {
             get {
@@ -294,6 +294,15 @@ namespace SonarScanner.MSBuild.Tasks {
         internal static string WPIF_FailedToResolvePath {
             get {
                 return ResourceManager.GetString("WPIF_FailedToResolvePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No ProjectGuid has been found in neither the csproj nor the solution (Project {0}). A random one has been generated ({1})..
+        /// </summary>
+        internal static string WPIF_GeneratingRandomGuid {
+            get {
+                return ResourceManager.GetString("WPIF_GeneratingRandomGuid", resourceCulture);
             }
         }
         

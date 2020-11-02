@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -21,17 +21,18 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor;
-using SonarScanner.MSBuild.TFS.Interfaces;
 using TestUtilities;
 
-namespace SonarQube.Bootstrapper.Tests
+namespace SonarScanner.Bootstrapper.Tests
 {
     [TestClass]
     public class BootstrapperClassTests
@@ -47,7 +48,7 @@ namespace SonarQube.Bootstrapper.Tests
         [TestInitialize]
         public void MyTestInitialize()
         {
-            RootDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            RootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             // this is the Temp folder used by Bootstrapper
             TempDir = Path.Combine(RootDir, ".sonarqube");
             // it will look in Directory.GetCurrentDir, which is RootDir.
@@ -67,7 +68,7 @@ namespace SonarQube.Bootstrapper.Tests
         {
             MockPreProcessor = new Mock<ITeamBuildPreProcessor>();
             MockPostProcessor = new Mock<IMSBuildPostProcessor>();
-            MockPreProcessor.Setup(x => x.Execute(It.IsAny<string[]>())).Returns(preProcessorOutcome);
+            MockPreProcessor.Setup(x => x.Execute(It.IsAny<string[]>())).Returns(Task.FromResult(preProcessorOutcome));
             MockPostProcessor.Setup(x => x.Execute(It.IsAny<string[]>(), It.IsAny<AnalysisConfig>(), It.IsAny<ITeamBuildSettings>()
                 )).Returns(postProcessorOutcome);
             MockProcessorFactory = new Mock<IProcessorFactory>();
@@ -362,7 +363,7 @@ namespace SonarQube.Bootstrapper.Tests
             var bootstrapper = getAssemblyVersion != null
                 ? new BootstrapperClass(MockProcessorFactory.Object, settings, logger, getAssemblyVersion)
                 : new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
-            var exitCode = bootstrapper.Execute();
+            var exitCode = bootstrapper.Execute().Result;
 
             exitCode.Should().Be(Program.ErrorCode, "Bootstrapper did not return the expected exit code");
             logger.AssertErrorsLogged();
@@ -377,7 +378,7 @@ namespace SonarQube.Bootstrapper.Tests
             var bootstrapper = getAssemblyVersion != null
                 ? new BootstrapperClass(MockProcessorFactory.Object, settings, logger, getAssemblyVersion)
                 : new BootstrapperClass(MockProcessorFactory.Object, settings, logger);
-            var exitCode = bootstrapper.Execute();
+            var exitCode = bootstrapper.Execute().Result;
 
             exitCode.Should().Be(0, "Bootstrapper did not return the expected exit code");
             logger.AssertErrorsLogged(0);

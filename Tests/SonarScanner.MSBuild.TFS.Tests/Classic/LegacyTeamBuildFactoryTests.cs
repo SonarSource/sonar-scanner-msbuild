@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -32,14 +32,14 @@ namespace SonarScanner.MSBuild.TFS.Tests
         [TestMethod]
         public void Ctor_Argument_Check()
         {
-            Action action = () => new LegacyTeamBuildFactory(null);
+            Action action = () => new LegacyTeamBuildFactory(null, new Common.AnalysisConfig());
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
         public void BuildLegacyBuildSummaryLogger_Arguments_Check()
         {
-            var factory = new LegacyTeamBuildFactory(new TestLogger());
+            var factory = new LegacyTeamBuildFactory(new TestLogger(), new Common.AnalysisConfig());
 
             factory.BuildLegacyBuildSummaryLogger(tfsUri: "tfsUri", buildUri: "buildUri")
                 .Should().BeOfType<LegacyBuildSummaryLogger>();

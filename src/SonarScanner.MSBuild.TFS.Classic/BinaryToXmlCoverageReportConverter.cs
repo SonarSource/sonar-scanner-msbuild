@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ namespace SonarScanner.MSBuild.TFS.Classic
         private const int ConversionTimeoutInMs = 60000;
         private readonly IVisualStudioSetupConfigurationFactory setupConfigurationFactory;
         private readonly ILogger logger;
+        private readonly AnalysisConfig config;
 
         /// <summary>
         /// Registry containing information about installed VS versions
@@ -60,15 +61,16 @@ namespace SonarScanner.MSBuild.TFS.Classic
 
         #region Public methods
 
-        public BinaryToXmlCoverageReportConverter(ILogger logger)
-            : this(new VisualStudioSetupConfigurationFactory(), logger)
+        public BinaryToXmlCoverageReportConverter(ILogger logger, AnalysisConfig config)
+            : this(new VisualStudioSetupConfigurationFactory(), logger, config)
         { }
 
         public BinaryToXmlCoverageReportConverter(IVisualStudioSetupConfigurationFactory setupConfigurationFactory,
-            ILogger logger)
+            ILogger logger, AnalysisConfig config)
         {
             this.setupConfigurationFactory = setupConfigurationFactory;
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         #endregion Public methods
@@ -115,6 +117,13 @@ namespace SonarScanner.MSBuild.TFS.Classic
         private string GetExeToolPath()
         {
             this.logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageTool);
+
+            var userSuppliedVsCoverageToolPath = this.config.GetVsCoverageConverterToolPath();
+            if (userSuppliedVsCoverageToolPath != null)
+            {
+                this.logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageToolUserSuppliedProperty);
+                return userSuppliedVsCoverageToolPath;
+            }
 
             return GetExeToolPathFromSetupConfiguration()
                 ?? GetExeToolPathFromRegistry();

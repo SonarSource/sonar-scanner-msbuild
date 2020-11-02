@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -26,19 +26,19 @@ using System.Runtime.InteropServices;
 using System.Text;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
+using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim
 {
-    public class PropertiesFileGenerator
+    public class PropertiesFileGenerator : IPropertiesFileGenerator
     {
         private const string ProjectPropertiesFileName = "sonar-project.properties";
-        public const string ReportFileCsharpPropertyKey = "sonar.cs.roslyn.reportFilePath";
         public const string ReportFilesCsharpPropertyKey = "sonar.cs.roslyn.reportFilePaths";
-        public const string ReportFileVbnetPropertyKey = "sonar.vbnet.roslyn.reportFilePath";
         public const string ReportFilesVbnetPropertyKey = "sonar.vbnet.roslyn.reportFilePaths";
 
         // This delimiter needs to be the same as the one used in the Integration.targets
-        private const char RoslynReportPathsDelimiter = '|';
+        internal const char RoslynReportPathsDelimiter = '|';
+        internal const char AnalyzerOutputPathsDelimiter = ',';
 
         private readonly AnalysisConfig analysisConfig;
         private readonly ILogger logger;
@@ -69,7 +69,7 @@ namespace SonarScanner.MSBuild.Shim
         public ProjectInfoAnalysisResult GenerateFile()
         {
             var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
-            logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
+            logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
 
             var result = new ProjectInfoAnalysisResult();
 
@@ -86,6 +86,10 @@ namespace SonarScanner.MSBuild.Shim
 
                 result.FullPropertiesFilePath = projectPropertiesPath;
             }
+            else
+            {
+                logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
+            }
 
             result.Projects.AddRange(projects);
 
@@ -98,7 +102,7 @@ namespace SonarScanner.MSBuild.Shim
 
             if (!projects.Any())
             {
-                logger.LogError(Resources.ERR_NoProjectInfoFilesFound);
+                logger.LogError(Resources.ERR_NoProjectInfoFilesFound, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
                 allProjects = Enumerable.Empty<ProjectData>();
                 return false;
             }
@@ -125,7 +129,7 @@ namespace SonarScanner.MSBuild.Shim
 
             if (validProjects.Count == 0)
             {
-                logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
+                logger.LogError(Resources.ERR_NoValidProjectInfoFiles, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
                 return false;
             }
 
@@ -143,7 +147,7 @@ namespace SonarScanner.MSBuild.Shim
             if (rootModuleFiles.Count == 0 &&
                 validProjects.All(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze))
             {
-                logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
+                logger.LogError(Resources.ERR_NoValidProjectInfoFiles, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
                 return false;
             }
 
@@ -257,7 +261,7 @@ namespace SonarScanner.MSBuild.Shim
                 }
             }
 
-            return closestProjects.Items.Count == 1
+            return closestProjects.Items.Count >= 1
                 ? closestProjects.Items[0]
                 : null;
         }
@@ -314,8 +318,8 @@ namespace SonarScanner.MSBuild.Shim
                 {
                     projectData.Status = ProjectInfoValidity.Valid;
                     p.GetAllAnalysisFiles().ToList().ForEach(path => projectData.ReferencedFiles.Add(path));
-                    AddRoslynOutputFilePath(p, projectData);
-                    AddAnalyzerOutputFilePath(p, projectData);
+                    AddRoslynOutputFilePaths(p, projectData);
+                    AddAnalyzerOutputFilePaths(p, projectData);
                 }
             }
 
@@ -328,29 +332,29 @@ namespace SonarScanner.MSBuild.Shim
         }
 
         private void LogDuplicateGuidWarning(Guid projectGuid, string projectPath) =>
-            logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectGuid, projectPath);
+            logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectGuid, projectPath, SonarProduct.GetSonarProductToLog(analysisConfig.SonarQubeHostUrl));
 
-        private void AddAnalyzerOutputFilePath(ProjectInfo project, ProjectData projectData)
+        private void AddAnalyzerOutputFilePaths(ProjectInfo project, ProjectData projectData)
         {
-            var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".analyzer.projectOutPath"));
+            var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".analyzer.projectOutPaths"));
             if (property != null)
             {
-                projectData.AnalyzerOutPaths.Add(new FileInfo(property.Value));
+                foreach (var filePath in property.Value.Split(AnalyzerOutputPathsDelimiter))
+                {
+                    projectData.AnalyzerOutPaths.Add(new FileInfo(filePath));
+                }
             }
         }
 
-        private void AddRoslynOutputFilePath(ProjectInfo project, ProjectData projectData)
+        private void AddRoslynOutputFilePaths(ProjectInfo project, ProjectData projectData)
         {
-            var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".roslyn.reportFilePath"));
+            var property = project.AnalysisSettings.FirstOrDefault(p => p.Id.EndsWith(".roslyn.reportFilePaths"));
             if (property != null)
             {
-                var reportFilePaths = property.Value.Split(RoslynReportPathsDelimiter);
-                foreach (var reportFilePath in reportFilePaths)
+                foreach (var filePath in property.Value.Split(RoslynReportPathsDelimiter))
                 {
-                    projectData.RoslynReportFilePaths.Add(new FileInfo(reportFilePath));
+                    projectData.RoslynReportFilePaths.Add(new FileInfo(filePath));
                 }
-                // For compatibility with old SonarC#/VB.NET plugins we need to have only one path in this property
-                property.Value = reportFilePaths.First();
             }
         }
 
@@ -367,8 +371,41 @@ namespace SonarScanner.MSBuild.Shim
 
         private void TryFixSarifReport(ProjectInfo project)
         {
-            TryFixSarifReport(project, RoslynV1SarifFixer.CSharpLanguage, ReportFileCsharpPropertyKey);
-            TryFixSarifReport(project, RoslynV1SarifFixer.VBNetLanguage, ReportFileVbnetPropertyKey);
+            TryFixSarifReport(project, RoslynV1SarifFixer.CSharpLanguage, ReportFilesCsharpPropertyKey);
+            TryFixSarifReport(project, RoslynV1SarifFixer.VBNetLanguage, ReportFilesVbnetPropertyKey);
+        }
+
+        /// <summary>
+        /// Loads SARIF reports from the given projects and attempts to fix
+        /// improper escaping from Roslyn V1 (VS 2015 RTM) where appropriate.
+        /// </summary>
+        private void TryFixSarifReport(ProjectInfo project, string language, string reportFilesPropertyKey)
+        {
+            var tryResult = project.TryGetAnalysisSetting(reportFilesPropertyKey, out Property reportPathsProperty);
+            if (tryResult)
+            {
+                var listOfPaths = new List<string>();
+                project.AnalysisSettings.Remove(reportPathsProperty);
+                foreach (var reportPath in reportPathsProperty.Value.Split(RoslynReportPathsDelimiter))
+                {
+                    var fixedPath = fixer.LoadAndFixFile(reportPath, language);
+
+                    if (fixedPath != null)
+                    {
+                        listOfPaths.Add(fixedPath);
+                    }
+                }
+
+                if (listOfPaths.Any())
+                {
+                    var newReportPathProperty = new Property
+                    {
+                        Id = reportFilesPropertyKey,
+                        Value = string.Join(RoslynReportPathsDelimiter.ToString(), listOfPaths)
+                    };
+                    project.AnalysisSettings.Add(newReportPathProperty);
+                }
+            }
         }
 
         /// <summary>
@@ -388,61 +425,27 @@ namespace SonarScanner.MSBuild.Shim
             if (!string.IsNullOrWhiteSpace(projectBaseDir))
             {
                 rootDirectory = new DirectoryInfo(projectBaseDir);
-                logger.LogDebug("Using user supplied project base directory: '{0}'.", rootDirectory.FullName);
+                logger.LogDebug(Resources.MSG_UsingUserSuppliedProjectBaseDir, rootDirectory.FullName);
                 return rootDirectory;
             }
 
             if (!string.IsNullOrWhiteSpace(analysisConfig.SourcesDirectory))
             {
                 rootDirectory = new DirectoryInfo(analysisConfig.SourcesDirectory);
-                logger.LogDebug("Using TFS/VSTS sources directory as project base directory: '{0}'.", rootDirectory.FullName);
+                logger.LogDebug(Resources.MSG_UsingAzDoSourceDirectoryAsProjectBaseDir, rootDirectory.FullName);
                 return rootDirectory;
             }
 
             var commonRoot = PathHelper.GetCommonRoot(projectPaths);
             if (commonRoot != null)
             {
-                logger.LogDebug("Using longest common projects root path as project base directory: '{0}'.", commonRoot.FullName);
+                logger.LogDebug(Resources.MSG_UsingLongestCommonRootProjectBaseDir, commonRoot.FullName);
                 return commonRoot;
             }
 
             rootDirectory = new DirectoryInfo(analysisConfig.SonarOutputDir);
-            logger.LogDebug("Using fallback project base directory: '{0}'.", rootDirectory.FullName);
+            logger.LogWarning(Resources.WARN_UsingFallbackProjectBaseDir, rootDirectory.FullName);
             return rootDirectory;
-        }
-
-        /// <summary>
-        /// Loads SARIF reports from the given projects and attempts to fix
-        /// improper escaping from Roslyn V1 (VS 2015 RTM) where appropriate.
-        /// </summary>
-        private void TryFixSarifReport(ProjectInfo project, string language, string reportFilePropertyKey)
-        {
-            var tryResult = project.TryGetAnalysisSetting(reportFilePropertyKey, out Property reportPathProperty);
-            if (tryResult)
-            {
-                foreach (var reportPath in reportPathProperty.Value.Split(RoslynReportPathsDelimiter))
-                {
-                    var fixedPath = fixer.LoadAndFixFile(reportPath, language);
-
-                    if (!reportPath.Equals(fixedPath)) // only need to alter the property if there was no change
-                    {
-                        // remove the property ahead of changing it
-                        // if the new path is null, the file was unfixable and we should leave the property out
-                        project.AnalysisSettings.Remove(reportPathProperty);
-
-                        if (fixedPath != null)
-                        {
-                            // otherwise, set the property value (results in no change if the file was already valid)
-                            var newReportPathProperty = new Property
-                            {
-                                Id = reportFilePropertyKey,
-                                Value = fixedPath,
-                            };
-                            project.AnalysisSettings.Add(newReportPathProperty);
-                        }
-                    }
-                }
-            }
         }
 
         private static string GetSourceEncoding(AnalysisProperties properties, IEncodingProvider encodingProvider)

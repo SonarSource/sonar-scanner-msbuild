@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         /// we don't create actual files, but regardless we still use test-specific folders.
         /// </summary>
         private string RootDirectory =>
-            TestUtils.CreateTestSpecificFolder(TestContext);
+            TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
         [TestInitialize]
         public void TestInitialize()

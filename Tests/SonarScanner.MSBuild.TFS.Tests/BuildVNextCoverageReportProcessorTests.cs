@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
@@ -84,10 +83,10 @@ namespace SonarScanner.MSBuild.TFS.Tests
         public void SearchFallbackNotShouldBeCalled_IfTrxFilesFound()
         {
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = Path.GetTempPath();
+            var testDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
             var testResultsDir = Path.Combine(testDir, "TestResults");
             Directory.CreateDirectory(testResultsDir);
-            TestUtils.CreateTextFile(testResultsDir, "dummy.trx", "");
+            TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
 
             var testSubject = new BuildVNextCoverageReportProcessor(new MockReportConverter(), new TestLogger(), mockSearchFallback);
 
@@ -142,7 +141,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             analysisConfig.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = coveragePathValue });
 
-            testSubject.Initialise(analysisConfig, settings);
+            testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
             // Act
             var result = testSubject.ProcessCoverageReports();
@@ -159,7 +158,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             // Arrange
             var mockSearchFallback = new MockSearchFallback();
-            var testDir = Path.GetTempPath();
+            var testDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
             var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
             var testLogger = new TestLogger();
 
@@ -174,7 +173,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             analysisConfig.LocalSettings.Add(new Property { Id = SonarProperties.VsTestReportsPaths, Value = String.Empty });
 
-            testSubject.Initialise(analysisConfig, settings);
+            testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
             // Act
             var result = testSubject.ProcessCoverageReports();
@@ -215,7 +214,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
             analysisConfig.LocalSettings.Add(new Property { Id = SonarProperties.VsCoverageXmlReportsPaths, Value = String.Empty });
 
-            testSubject.Initialise(analysisConfig, settings);
+            testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
             try
             {
@@ -262,7 +261,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 BuildDirectory = testDir
             };
 
-            testSubject.Initialise(analysisConfig, settings);
+            testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
             // Act
             try
@@ -310,7 +309,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 BuildDirectory = testDir
             };
 
-            testSubject.Initialise(analysisConfig, settings);
+            testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
             // Act
             var result = testSubject.ProcessCoverageReports();
@@ -349,7 +348,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
                 BuildDirectory = testDir
             };
 
-            testSubject.Initialise(analysisConfig, settings);
+            testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
             // Act
             var result = testSubject.ProcessCoverageReports();

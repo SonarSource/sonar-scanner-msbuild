@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ namespace SonarScanner.MSBuild.PreProcessor
     /// </summary>
     public class TargetsInstaller : ITargetsInstaller
     {
-        private static readonly string AssemblyLocation = Path.GetDirectoryName(typeof(TeamBuildPreProcessor).Assembly.Location);
+        private static readonly string AssemblyLocation = Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location);
 
         /// <summary>
         /// Controls the default value for installing the loader targets.

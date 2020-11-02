@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -419,7 +419,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         private string CreateProjectFile(string projectFileName, string xmlSnippet, string analysisConfigDir)
         {
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
 
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, projectFileName);
@@ -477,7 +477,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
                 };
             }
 
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var fullPath = Path.Combine(testDir, "SonarQubeAnalysisConfig.xml");
             if (File.Exists(fullPath))
             {

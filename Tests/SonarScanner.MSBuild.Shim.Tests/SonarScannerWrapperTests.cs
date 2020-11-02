@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         {
             // Arrange
             var testSubject = new SonarScannerWrapper(new TestLogger());
-            Action act = () => testSubject.Execute(null, new string[] { });
+            Action act = () => testSubject.Execute(null, new string[] { }, String.Empty);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
@@ -54,7 +54,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
         {
             // Arrange
             var testSubject = new SonarScannerWrapper(new TestLogger());
-            Action act = () => testSubject.Execute(new AnalysisConfig(), null);
+            Action act = () => testSubject.Execute(new AnalysisConfig(), null, String.Empty);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userCmdLineArguments");
@@ -179,7 +179,7 @@ namespace SonarScanner.MSBuild.Shim.Tests
                 new Property() { Id = "file.not.sensitive.key", Value = "not sensitive value" }
             };
 
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var settingsFilePath = Path.Combine(testDir, "fileSettings.txt");
             fileSettings.Save(settingsFilePath);
 

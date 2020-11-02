@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using SonarScanner.MSBuild.TFS;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
@@ -58,7 +57,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             IList<SonarRule> inactiveRules = new List<SonarRule>();
             var pluginKey = RoslynAnalyzerProvider.CSharpPluginKey;
             var sonarProperties = new ListPropertiesProvider();
-            var settings = CreateSettings(TestUtils.CreateTestSpecificFolder(TestContext));
+            var settings = CreateSettings(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
 
             var testSubject = CreateTestSubject(logger);
 
@@ -84,7 +83,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             IList<SonarRule> inactiveRules = new List<SonarRule>();
             var pluginKey = "csharp";
             var sonarProperties = new ListPropertiesProvider();
-            var settings = CreateSettings(TestUtils.CreateTestSpecificFolder(TestContext));
+            var settings = CreateSettings(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
 
             var testSubject = CreateTestSubject(logger);
 
@@ -276,7 +275,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
 
         private string CreateTestFolders()
         {
-            var rootFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var rootFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             // Create the binary and conf folders that are created by the bootstrapper
             Directory.CreateDirectory(GetBinaryPath(rootFolder));

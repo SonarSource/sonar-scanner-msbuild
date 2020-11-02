@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -93,6 +93,15 @@ namespace SonarScanner.MSBuild.TFS.Classic {
         internal static string CONV_DIAG_LocatingCodeCoverageToolSetupConfiguration {
             get {
                 return ResourceManager.GetString("CONV_DIAG_LocatingCodeCoverageToolSetupConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VsTestToolsInstallerInstalledToolLocation environment variable detected, taking this one as tool path for CodeCoverage.exe..
+        /// </summary>
+        internal static string CONV_DIAG_LocatingCodeCoverageToolUserSuppliedProperty {
+            get {
+                return ResourceManager.GetString("CONV_DIAG_LocatingCodeCoverageToolUserSuppliedProperty", resourceCulture);
             }
         }
         
@@ -188,7 +197,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to More than one code coverage result file was created. Only one report can be uploaded to SonarQube. Please modify the build definition so either SonarQube analysis is disabled or only one platform/flavor is built.
+        ///   Looks up a localized string similar to More than one code coverage result file was created. Only one report can be uploaded to SonarQube. Please modify the build definition so either {0} analysis is disabled or only one platform/flavor is built.
         /// </summary>
         internal static string PROC_ERROR_MultipleCodeCoverageReportsFound {
             get {

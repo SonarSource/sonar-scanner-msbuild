@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild;
 using TestUtilities;
 
-namespace SonarQube.Bootstrapper.Tests
+namespace SonarScanner.Bootstrapper.Tests
 {
     [TestClass]
     public class ProgramTests
@@ -32,7 +32,7 @@ namespace SonarQube.Bootstrapper.Tests
         public void Execute_WhenIsHelp_ReturnsTrue()
         {
             var logger = new TestLogger();
-            var result = Program.Execute(new string[] { "/h", "/blah", "/xxx" }, logger);
+            var result = Program.Execute(new string[] { "/h", "/blah", "/xxx" }, logger).Result;
 
             // Assert
             result.Should().Be(0);
@@ -45,7 +45,7 @@ namespace SonarQube.Bootstrapper.Tests
         public void Execute_WhenInvalidDuplicateBeginArgument_ReturnsFalse()
         {
             var logger = new TestLogger();
-            var result = Program.Execute(new string[] { "begin", "begin" }, logger);
+            var result = Program.Execute(new string[] { "begin", "begin" }, logger).Result;
 
             // Assert
             result.Should().Be(1);

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
         public ProcessedArgs(string key, string name, string version, string organization, bool installLoaderTargets,
             IAnalysisPropertyProvider cmdLineProperties, IAnalysisPropertyProvider globalFileProperties,
-            IAnalysisPropertyProvider scannerEnvProperties)
+            IAnalysisPropertyProvider scannerEnvProperties, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(key))
             {
@@ -46,11 +46,21 @@ namespace SonarScanner.MSBuild.PreProcessor
             ProjectName = name;
             ProjectVersion = version;
             Organization = organization;
-
+            
             CmdLineProperties = cmdLineProperties ?? throw new ArgumentNullException(nameof(cmdLineProperties));
             this.globalFileProperties = globalFileProperties ?? throw new ArgumentNullException(nameof(globalFileProperties));
             ScannerEnvProperties = scannerEnvProperties ?? throw new ArgumentNullException(nameof(scannerEnvProperties));
             InstallLoaderTargets = installLoaderTargets;
+
+            if (Organization == null && this.globalFileProperties.TryGetValue(SonarProperties.Organization, out var filePropertiesOrganization))
+            {
+                logger.LogError(Resources.ERROR_Organization_Provided_In_SonarQubeAnalysis_file);
+                IsOrganizationValid = false;
+            }
+            else
+            {
+                IsOrganizationValid = true;
+            }
 
             AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
             if (!AggregateProperties.TryGetValue(SonarProperties.HostUrl, out this.sonarQubeUrl))
@@ -58,6 +68,8 @@ namespace SonarScanner.MSBuild.PreProcessor
                 this.sonarQubeUrl = "http://localhost:9000";
             }
         }
+
+        public bool IsOrganizationValid { get; set; }
 
         public string ProjectKey { get; }
 

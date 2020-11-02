@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -59,7 +59,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             // Arrange
             var testSubject = new GetAnalyzerSettings
             {
-                AnalysisConfigDir = TestUtils.CreateTestSpecificFolder(TestContext)
+                AnalysisConfigDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
             };
 
             // Act
@@ -171,6 +171,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
             var config = new AnalysisConfig
             {
+                SonarQubeHostUrl = "http://sonarqube.com",
                 SonarQubeVersion = "7.3",
                 ServerSettings = new AnalysisProperties
                 {
@@ -508,6 +509,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
             var logger = new TestLogger();
             var config = new AnalysisConfig
             {
+                SonarQubeHostUrl = "http://sonarqube.com",
                 SonarQubeVersion = serverVersion
             };
             if (ignoreExternalIssues != null)
@@ -556,7 +558,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         {
             // Arrange
 
-            var dir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
             var config = CreateMergingAnalysisConfig("xxx", dummyQpRulesetPath);
 
@@ -577,7 +579,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
         {
             // Arrange
 
-            var dir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
             var config = CreateMergingAnalysisConfig("xxx", dummyQpRulesetPath);
 
@@ -646,7 +648,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
         private static GetAnalyzerSettings CreateConfiguredTestSubject(AnalysisConfig config, string language, TestContext testContext)
         {
-            var testDir = TestUtils.CreateTestSpecificFolder(testContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
             var testSubject = new GetAnalyzerSettings
             {
                 Language = language
@@ -679,7 +681,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTests
 
         public string CreateRuleset(string fileNameWithoutExtension, string content)
         {
-            var dir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var filePath = TestUtils.CreateTextFile(dir, fileNameWithoutExtension + ".ruleset", content);
             return filePath;
         }

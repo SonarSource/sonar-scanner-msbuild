@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Shim;
 using TestUtilities;
 
-namespace SonarQube.Shim.Tests
+namespace SonarScanner.Shim.Tests
 {
     [TestClass]
     public class RoslynV1SarifFixerTests
@@ -43,7 +43,7 @@ namespace SonarQube.Shim.Tests
         {
             // Arrange
             var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var testSarifString = @"{
   ""version"": ""0.1"",
@@ -90,7 +90,7 @@ namespace SonarQube.Shim.Tests
         {
             // Arrange
             var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var testSarifString = @"{
   ""version"": ""0.1"",
@@ -146,7 +146,7 @@ namespace SonarQube.Shim.Tests
         {
             // Arrange
             var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var testSarifString = @"{
   ""version"": ""0.1"",
@@ -185,7 +185,7 @@ It features ""quoted text""."",
         {
             // Arrange
             var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var testSarifString = @"{
   ""version"": ""0.1"",
@@ -251,7 +251,7 @@ It features ""quoted text""."",
         {
             // Arrange
             var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var testSarifString = @"{
   ""version"": ""0.1"",
@@ -309,7 +309,7 @@ It features ""quoted text""."",
         {
             // Arrange
             var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var testSarifString = @"{
   ""version"": ""0.1"",
@@ -389,7 +389,7 @@ It features ""quoted text""."",
         {
             // Arrange
             var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var testSarifString = @"{
   ""version"": ""0.1"",
@@ -458,7 +458,7 @@ It features ""quoted text""."",
         {
             // Arrange
             var logger = new TestLogger();
-            var testDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var testSarifString = @"{
   ""version"": ""0.1"",

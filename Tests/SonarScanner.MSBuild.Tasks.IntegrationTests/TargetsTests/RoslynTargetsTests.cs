@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
-using Microsoft.Build.Construction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
@@ -33,8 +32,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
     [TestClass]
     public class RoslynTargetsTests
     {
-        private const string RoslynAnalysisResultsSettingName = "sonar.cs.roslyn.reportFilePath";
-        private const string AnalyzerWorkDirectoryResultsSettingName = "sonar.cs.analyzer.projectOutPath";
+        private const string RoslynAnalysisResultsSettingName = "sonar.cs.roslyn.reportFilePaths";
+        private const string AnalyzerWorkDirectoryResultsSettingName = "sonar.cs.analyzer.projectOutPaths";
         private const string ErrorLogFilePattern = "{0}.RoslynCA.json";
 
         public TestContext TestContext { get; set; }
@@ -135,11 +134,12 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
 
             // Set the config directory so the targets know where to look for the analysis config file
-            var confDir = TestUtils.CreateTestSpecificFolder(TestContext, "config");
+            var confDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "config");
 
             // Create a valid config file containing analyzer settings for both VB and C#
             var config = new AnalysisConfig
             {
+                SonarQubeHostUrl = "http://sonarqube.com",
                 SonarQubeVersion = "7.3", // legacy behaviour i.e. overwrite existing analyzer settings
                 AnalyzersSettings = new List<AnalyzerSettings>
                     {
@@ -215,6 +215,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Create a valid config containing analyzer settings
             var config = new AnalysisConfig
             {
+                SonarQubeHostUrl = "http://sonarqube.com",
                 SonarQubeVersion = "6.7", // legacy version
                 AnalyzersSettings = new List<AnalyzerSettings>
                 {
@@ -289,7 +290,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         {
             // Arrange
 
-            var dir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
 
             // Create a valid config containing analyzer settings
@@ -380,7 +381,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
 
             // Set the config directory so the targets know where to look for the analysis config file
-            var confDir = TestUtils.CreateTestSpecificFolder(TestContext, "config");
+            var confDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "config");
 
             // Create a valid config file that does not contain analyzer settings
             var config = new AnalysisConfig();
@@ -432,7 +433,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             // Arrange
 
             // Set the config directory so the targets know where to look for the analysis config file
-            var confDir = TestUtils.CreateTestSpecificFolder(TestContext, "config");
+            var confDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "config");
 
             // Create a valid config file that does not contain analyzer settings
             var config = new AnalysisConfig();
@@ -587,7 +588,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Roslyn_SetResults_ResultsFileDoesNotExist()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
 
             var projectSnippet = $@"
 <PropertyGroup>
@@ -609,7 +610,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Roslyn_SetResults_ResultsFileExists()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
             var resultsFile = TestUtils.CreateTextFile(rootInputFolder, "error.report.txt", "dummy report content");
 
             var projectSnippet = $@"
@@ -639,7 +640,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Roslyn_SetResults_BothResultsFilesCreated()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
 
             var resultsFile = TestUtils.CreateTextFile(rootInputFolder, "error.report.txt", "dummy report content");
             var razorResultsFile = TestUtils.CreateTextFile(rootInputFolder, "razor.error.report.txt", "dummy report content");
@@ -676,8 +677,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         public void Roslyn_TargetExecutionOrder()
         {
             // Arrange
-            var rootInputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Inputs");
-            var rootOutputFolder = TestUtils.CreateTestSpecificFolder(TestContext, "Outputs");
+            var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
+            var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
             // We need to set the CodeAnalyisRuleSet property if we want ResolveCodeAnalysisRuleSet
             // to be executed. See test bug https://github.com/SonarSource/sonar-scanner-msbuild/issues/776
@@ -836,7 +837,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
         /// </summary>
         private string CreateProjectFile(AnalysisConfig analysisConfig, string testSpecificProjectXml)
         {
-            var projectDirectory = TestUtils.CreateTestSpecificFolder(TestContext);
+            var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             CreateCaptureDataTargetsFile(projectDirectory);
 

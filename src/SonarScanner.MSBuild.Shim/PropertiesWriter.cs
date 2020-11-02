@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -192,11 +192,11 @@ namespace SonarScanner.MSBuild.Shim
             string property = null;
             if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
             {
-                property = "sonar.cs.roslyn.reportFilePaths";
+                property = PropertiesFileGenerator.ReportFilesCsharpPropertyKey;
             }
             else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
             {
-                property = "sonar.vbnet.roslyn.reportFilePaths";
+                property = PropertiesFileGenerator.ReportFilesVbnetPropertyKey;
             }
 
             sb.AppendLine($"{project.Guid}.{property}=\\");

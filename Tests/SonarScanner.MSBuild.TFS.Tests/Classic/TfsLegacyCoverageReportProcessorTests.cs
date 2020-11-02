@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -66,7 +67,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
-            var initResult = processor.Initialise(context, settings);
+            var initResult = processor.Initialise(context, settings, string.Empty);
 
             // Assert
             initResult.Should().BeFalse("Expecting false: processor should not have been initialized successfully");
@@ -90,11 +91,12 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var context = CreateValidContext();
             var settings = CreateValidSettings();
             var logger = new TestLogger();
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
             var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
-            var initResult = processor.Initialise(context, settings);
+            var initResult = processor.Initialise(context, settings, testDir + "\\sonar-project.properties");
             initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
@@ -119,13 +121,17 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var context = CreateValidContext();
             var settings = CreateValidSettings();
             var logger = new TestLogger();
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(testDir);
+
+            TestUtils.CreateTextFile(testDir, "sonar-project.properties", String.Empty);
 
             downloader.CreateFileOnDownloadRequest = true;
 
             var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
-            var initResult = processor.Initialise(context, settings);
+            var initResult = processor.Initialise(context, settings, testDir + "\\sonar-project.properties");
             initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
@@ -155,7 +161,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
-            var initResult = processor.Initialise(context, settings);
+            var initResult = processor.Initialise(context, settings, string.Empty);
             initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
@@ -183,13 +189,17 @@ namespace SonarScanner.MSBuild.TFS.Tests
             var context = CreateValidContext();
             var settings = CreateValidSettings();
             var logger = new TestLogger();
+            var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(testDir);
+
+            TestUtils.CreateTextFile(testDir, "sonar-project.properties", String.Empty);
 
             downloader.CreateFileOnDownloadRequest = true;
 
             var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
             // Act
-            var initResult = processor.Initialise(context, settings);
+            var initResult = processor.Initialise(context, settings, testDir + "\\sonar-project.properties");
             initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
             var result = processor.ProcessCoverageReports();
 
@@ -205,7 +215,9 @@ namespace SonarScanner.MSBuild.TFS.Tests
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(0);
 
-            context.LocalSettings.Should().Contain(x => x.Id == SonarProperties.VsCoverageXmlReportsPaths);
+            var linesWritten = File.ReadAllLines(testDir + "\\sonar-project.properties");
+
+            linesWritten[0].Should().Contain(SonarProperties.VsCoverageXmlReportsPaths);
         }
 
         #endregion Tests
@@ -216,8 +228,8 @@ namespace SonarScanner.MSBuild.TFS.Tests
         {
             var context = new AnalysisConfig()
             {
-                SonarOutputDir = TestUtils.CreateTestSpecificFolder(TestContext, "out"), // tests can write to this directory
-                SonarConfigDir = TestUtils.CreateTestSpecificFolder(TestContext, "conf"), // we don't read anything from this directory, we just want it to be different from the output directory
+                SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out"), // tests can write to this directory
+                SonarConfigDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "conf"), // we don't read anything from this directory, we just want it to be different from the output directory
                 LocalSettings = new AnalysisProperties(),
             };
             return context;
@@ -225,7 +237,7 @@ namespace SonarScanner.MSBuild.TFS.Tests
 
         private TeamBuildSettings CreateValidSettings()
         {
-            return TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolder(TestContext));
+            return TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
         }
 
         #endregion Private methods

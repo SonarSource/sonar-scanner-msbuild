@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS.Interfaces;
+using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
 {
@@ -35,9 +35,9 @@ namespace SonarScanner.MSBuild.TFS.Classic.XamlBuild
         private readonly ICoverageUrlProvider urlProvider;
         private readonly ICoverageReportDownloader downloader;
 
-        public TfsLegacyCoverageReportProcessor(ILogger logger)
+        public TfsLegacyCoverageReportProcessor(ILogger logger, AnalysisConfig config)
             : this(new CoverageReportUrlProvider(logger), new CoverageReportDownloader(logger),
-                  new BinaryToXmlCoverageReportConverter(logger), logger)
+                  new BinaryToXmlCoverageReportConverter(logger, config), logger)
         {
         }
 

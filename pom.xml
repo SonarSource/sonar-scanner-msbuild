@@ -4,15 +4,15 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>53</version>
+    <version>54</version>
     <relativePath />
   </parent>
 
   <groupId>org.sonarsource.scanner.msbuild</groupId>
   <artifactId>sonar-scanner-msbuild</artifactId>
-  <version>4.11-SNAPSHOT</version>
+  <version>5.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>SonarQube.Scanner.MSBuild</name>
+  <name>SonarScanner.MSBuild</name>
   <url>http://redirect.sonarsource.com/doc/msbuild-sq-runner.html</url>
   <inceptionYear>2016</inceptionYear>
 
@@ -45,7 +45,7 @@
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <gitRepositoryName>sonar-scanner-msbuild</gitRepositoryName>
     <!-- Release: enable publication to Bintray -->
-    <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net46,${project.groupId}:${project.artifactId}:zip:netcoreapp2.0,${project.groupId}:${project.artifactId}:zip:netcoreapp3.0</artifactsToPublish>
+    <artifactsToPublish>${project.groupId}:${project.artifactId}:zip:net46,${project.groupId}:${project.artifactId}:zip:netcoreapp2.0,${project.groupId}:${project.artifactId}:zip:netcoreapp3.0,${project.groupId}:${project.artifactId}:zip:net5.0</artifactsToPublish>
   </properties>
 
   <build>
@@ -73,6 +73,16 @@
                   <type>zip</type>
                   <classifier>netcoreapp2.0</classifier>
                 </artifact>
+				 <artifact>
+                  <file>dotnet3ScannerZipPath</file>
+                  <type>zip</type>
+                  <classifier>netcoreapp3.0</classifier>
+                </artifact>
+				<artifact>
+                  <file>dotnet5ScannerZipPath</file>
+                  <type>zip</type>
+                  <classifier>net5.0</classifier>
+                </artifact>
                 <artifact>
                   <file>dotnetScannerGlobalToolPath</file>
                   <type>nupkg</type>
@@ -91,6 +101,11 @@
                   <file>dotnetcore3ScannerChocoPath</file>
                   <type>nupkg</type>
                   <classifier>netcoreapp3.0</classifier>
+                </artifact>
+                <artifact>
+                  <file>dotnet5ScannerChocoPath</file>
+                  <type>nupkg</type>
+                  <classifier>net5.0</classifier>
                 </artifact>
               </artifacts>
             </configuration>

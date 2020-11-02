@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -22,12 +22,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using SonarScanner.MSBuild.TFS;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Tests
@@ -50,7 +51,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 new TestLogger());
 
             // Act and assert
-            Action act = () => preprocessor.Execute(null); act.Should().ThrowExactly<ArgumentNullException>();
+            Func<Task> act = async() => await preprocessor.Execute(null);
+            act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -64,7 +66,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             // * config file is created
 
             // Arrange
-            var workingDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
             // Configure the server
@@ -107,7 +109,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
+                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0")).Result;
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -135,7 +137,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             // * config file is created
 
             // Arrange
-            var workingDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
             // Configure the server
@@ -177,7 +179,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
+                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0")).Result;
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -205,7 +207,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             // * config file is created
 
             // Arrange
-            var workingDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
             // Configure the server
@@ -248,7 +250,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization"));
+                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", "organization")).Result;
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -269,7 +271,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void PreProc_NoPlugin()
         {
             // Arrange
-            var workingDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
             // Configure the server
@@ -302,7 +304,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0"));
+                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0")).Result;
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -326,7 +328,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
         public void PreProc_NoProject()
         {
             // Arrange
-            var workingDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
             // Configure the server
@@ -371,7 +373,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", null));
+                var success = preProcessor.Execute(CreateValidArgs("key", "name", "1.0", null)).Result;
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 
@@ -399,7 +401,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
             // overriding 
 
             // Arrange
-            var workingDir = TestUtils.CreateTestSpecificFolder(TestContext);
+            var workingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
             var logger = new TestLogger();
 
             // Configure the server
@@ -443,7 +445,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Tests
                 var preProcessor = new TeamBuildPreProcessor(mockFactory, logger);
 
                 // Act
-                var success = preProcessor.Execute(args.ToArray());
+                var success = preProcessor.Execute(args.ToArray()).Result;
                 success.Should().BeTrue("Expecting the pre-processing to complete successfully");
             }
 

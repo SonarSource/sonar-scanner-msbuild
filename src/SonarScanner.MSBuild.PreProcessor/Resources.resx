@@ -127,16 +127,16 @@
     <value>/organization:[Organization to which the project belongs]</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectKey" xml:space="preserve">
-    <value>/key:[SonarQube project key]</value>
+    <value>/key:[SonarQube/SonarCloud project key]</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectName" xml:space="preserve">
-    <value>/name:[SonarQube project name] - required for SonarQube &lt; 6.1</value>
+    <value>/name:[SonarQube/SonarCloud project name] - required for SonarQube &lt; 6.1</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectVersion" xml:space="preserve">
-    <value>/version:[SonarQube project version] - required for SonarQube &lt; 6.1</value>
+    <value>/version:[SonarQube/SonarCloud project version] - required for SonarQube &lt; 6.1</value>
   </data>
   <data name="ERROR_CannotPerformProcessing" xml:space="preserve">
-    <value>SonarQube pre-processing cannot be performed - required settings are missing</value>
+    <value>SonarScanner pre-processing cannot be performed - required settings are missing</value>
   </data>
   <data name="ERROR_CmdLine_InvalidInstallTargetsValue" xml:space="preserve">
     <value>Invalid value for /install: {0}. Valid values are "true" or "false".</value>
@@ -146,10 +146,7 @@
   </data>
   <data name="ERROR_InvalidCommandLineArgs" xml:space="preserve">
     <value>Expecting at least the following command line argument:
-- SonarQube project key
-When connecting to a SonarQube server earlier than version 6.1, the following command line arguments are also required:
-- SonarQube project name
-- SonarQube project version
+- SonarQube/SonarCloud project key
 The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
 Use '/?' or '/h' to see the help message.</value>
   </data>
@@ -159,8 +156,20 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERROR_MissingSetting" xml:space="preserve">
     <value>Missing analysis setting: {0}</value>
   </data>
+  <data name="ERROR_Organization_Provided_In_SonarQubeAnalysis_file" xml:space="preserve">
+    <value>sonar.organization parameter has been detected in the provided SonarQube.Analysis.xml config file. Please pass it in the command line instead, using /o: flag.</value>
+  </data>
+  <data name="ERR_UnlicensedServer" xml:space="preserve">
+    <value>Your SonarQube instance seems to have an invalid license. Please check it. Server url : {0}</value>
+  </data>
   <data name="FACTORY_InternalError_MissingServer" xml:space="preserve">
     <value>Internal error: cannot create an analyzer provider without a SonarQube server instance</value>
+  </data>
+  <data name="MSG_CE_Detected_LicenseValid" xml:space="preserve">
+    <value>SonarQube Community Edition detected, license is valid.</value>
+  </data>
+  <data name="MSG_CheckingLicenseValidity" xml:space="preserve">
+    <value>Checking validity of server license</value>
   </data>
   <data name="MSG_CreatingFolders" xml:space="preserve">
     <value>Creating config and output folders...</value>
@@ -192,6 +201,9 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_FetchingQualityProfile" xml:space="preserve">
     <value>Fetching quality profile for project '{0}' from {1}...</value>
   </data>
+  <data name="MSG_Forbidden_BrowsePermission" xml:space="preserve">
+    <value>To analyze private projects make sure the scanner user has 'Browse' permission.</value>
+  </data>
   <data name="MSG_GeneratingRulesets" xml:space="preserve">
     <value>Generating rulesets...</value>
   </data>
@@ -212,6 +224,9 @@ Use '/?' or '/h' to see the help message.</value>
   </data>
   <data name="MSG_NotCopyingTargets" xml:space="preserve">
     <value>Skipping installing the ImportsBefore targets file</value>
+  </data>
+  <data name="MSG_SonarCloudDetected_SkipLicenseCheck" xml:space="preserve">
+    <value>SonarCloud detected, skipping license check.</value>
   </data>
   <data name="MSG_UpdatingMSBuildTargets" xml:space="preserve">
     <value>Updating build integration targets...</value>

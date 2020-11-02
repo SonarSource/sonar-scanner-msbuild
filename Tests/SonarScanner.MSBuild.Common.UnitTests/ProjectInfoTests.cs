@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -62,7 +62,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void ProjectInfo_Serialization_SaveAndReload()
         {
             // 0. Setup
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var projectGuid = Guid.NewGuid();
 
@@ -86,7 +86,7 @@ namespace SonarScanner.MSBuild.Common.UnitTests
         public void ProjectInfo_Serialization_AnalysisResults()
         {
             // 0. Setup
-            var testFolder = TestUtils.CreateTestSpecificFolder(TestContext);
+            var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
             var projectGuid = Guid.NewGuid();
 

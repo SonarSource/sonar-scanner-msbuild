@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for MSBuild
- * Copyright (C) 2016-2019 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -24,10 +24,12 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS;
-using SonarScanner.MSBuild.TFS.Interfaces;
-using SonarScanner.MSBuild.Shim;
 using TestUtilities;
+using SonarScanner.MSBuild.Common.Interfaces;
+using SonarScanner.MSBuild.Shim;
+using SonarScanner.MSBuild.Shim.Interfaces;
+using System.IO;
+using System.Linq;
 
 namespace SonarScanner.MSBuild.PostProcessor.Tests
 {
@@ -40,84 +42,27 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
         #region Tests
 
+
         [TestMethod]
-        public void PostProc_ExecutionFailsIfCodeCoverageFails()
+        public void PostProc_NoProjectsToAnalyze_NoExecutionTriggered()
         {
             // Arrange
             var context = new PostProcTestContext(TestContext);
-            context.CodeCoverage.InitialiseValueToReturn = true;
-            context.CodeCoverage.ProcessValueToReturn = false;
+            context.Config.SonarOutputDir = Environment.CurrentDirectory;
+            context.Config.SonarConfigDir = Environment.CurrentDirectory;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
+            context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
+            context.Scanner.ValueToReturn = true;
+            context.TfsProcessor.ValueToReturn = true;
 
             // Act
-            var success = Execute(context);
+            var success = Execute_WithNoProject(context, true);
 
             // Assert
-            success.Should().BeFalse("Not expecting post-processor to have succeeded");
+            success.Should().BeFalse("Expecting post-processor to have failed");
 
-            context.CodeCoverage.AssertInitializedCalled();
-            context.CodeCoverage.AssertExecuteCalled();
+            context.TfsProcessor.AssertNotExecuted();
             context.Scanner.AssertNotExecuted();
-            context.ReportBuilder.AssertNotExecuted();
-
-            context.Logger.AssertErrorsLogged(0);
-            context.Logger.AssertWarningsLogged(0);
-
-            // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
-        }
-
-        [TestMethod]
-        public void PostProc_ExecutionFailsIfSonarScannerFails()
-        {
-            // Arrange
-            var context = new PostProcTestContext(TestContext);
-            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
-            {
-                RanToCompletion = false
-            };
-
-            // Act
-            var success = Execute(context);
-
-            // Assert
-            success.Should().BeFalse("Not expecting post-processor to have succeeded");
-
-            context.CodeCoverage.AssertExecuteCalled();
-            context.Scanner.AssertExecuted();
-            context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-scanner fails
-
-            context.Logger.AssertErrorsLogged(0);
-            context.Logger.AssertWarningsLogged(0);
-
-            // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
-        }
-
-        [TestMethod]
-        public void PostProc_ExecutionSucceeds()
-        {
-            // Arrange
-            var context = new PostProcTestContext(TestContext);
-            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
-            {
-                RanToCompletion = true
-            };
-
-            // Act
-            var success = Execute(context);
-
-            // Assert
-            success.Should().BeTrue("Expecting post-processor to have succeeded");
-
-            context.CodeCoverage.AssertInitializedCalled();
-            context.CodeCoverage.AssertExecuteCalled();
-            context.Scanner.AssertExecuted();
-
-            context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-scanner fails
-
-            context.Scanner.SuppliedCommandLineArgs.Should().Equal(
-                new string[] { "-Dsonar.scanAllFiles=true" },
-                "Unexpected command line args passed to the sonar-scanner");
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
@@ -131,23 +76,22 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         {
             // Arrange
             var context = new PostProcTestContext(TestContext);
-            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
-            {
-                RanToCompletion = true
-            };
+            context.Config.SonarOutputDir = Environment.CurrentDirectory;
+            context.Config.SonarConfigDir = Environment.CurrentDirectory;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
+            context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
+            context.Scanner.ValueToReturn = true;
+            context.TfsProcessor.ValueToReturn = true;
             context.Scanner.ErrorToLog = "Errors";
 
             // Act
-            var success = Execute(context);
+            var success = Execute(context, true);
 
             // Assert
             success.Should().BeTrue("Expecting post-processor to have succeeded");
 
-            context.CodeCoverage.AssertInitializedCalled();
-            context.CodeCoverage.AssertExecuteCalled();
+            context.TfsProcessor.AssertExecuted();
             context.Scanner.AssertExecuted();
-
-            context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-scanner fails
 
             context.Scanner.SuppliedCommandLineArgs.Should().Equal(
                 new string[] { "-Dsonar.scanAllFiles=true" },
@@ -161,55 +105,22 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         }
 
         [TestMethod]
-        [Description("The coverage processing has 2 paths for fail - initialization failures which are non-critical and processing errors that stop the post-processor workflow")]
-        public void PostProc_ExecutionSucceedsIfCoverageNotInitialised()
-        {
-            // Arrange
-            var context = new PostProcTestContext(TestContext);
-            context.CodeCoverage.InitialiseValueToReturn = false;
-            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
-            {
-                RanToCompletion = true
-            };
-
-            // Act
-            var success = Execute(context);
-
-            // Assert
-            success.Should().BeTrue("Expecting post-processor to have succeeded");
-
-            context.CodeCoverage.AssertInitializedCalled();
-            context.CodeCoverage.AssertExecuteNotCalled();
-            context.Scanner.AssertExecuted();
-            context.ReportBuilder.AssertExecuted(); // should be called even if the sonar-scanner fails
-
-            context.Scanner.SuppliedCommandLineArgs.Should().Equal(
-                new string[] { "-Dsonar.scanAllFiles=true" },
-                "Unexpected command line args passed to the sonar-scanner");
-
-            context.Logger.AssertErrorsLogged(0);
-            context.Logger.AssertWarningsLogged(0);
-
-            // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
-        }
-
-        [TestMethod]
         public void PostProc_FailsOnInvalidArgs()
         {
             // Arrange
             var context = new PostProcTestContext(TestContext);
+            context.Config.SonarOutputDir = Environment.CurrentDirectory;
+            context.TfsProcessor.ValueToReturn = false;
+            context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
 
             // Act
-            var success = Execute(context, "/d:sonar.foo=bar");
+            var success = Execute(context, true, "/d:sonar.foo=bar");
 
             // Assert
             success.Should().BeFalse("Expecting post-processor to have failed");
 
-            context.CodeCoverage.AssertInitialisedNotCalled();
-            context.CodeCoverage.AssertExecuteNotCalled();
+            context.TfsProcessor.AssertNotExecuted();
             context.Scanner.AssertNotExecuted();
-            context.ReportBuilder.AssertNotExecuted();
 
             context.Logger.AssertErrorsLogged(1);
             context.Logger.AssertWarningsLogged(0);
@@ -224,10 +135,12 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             // Arrange
             var context = new PostProcTestContext(TestContext);
             context.Config.HasBeginStepCommandLineCredentials = true;
-            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
-            {
-                RanToCompletion = true
-            };
+            context.Config.SonarOutputDir = Environment.CurrentDirectory;
+            context.Config.SonarConfigDir = Environment.CurrentDirectory;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
+            context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
+            context.Scanner.ValueToReturn = true;
+            context.TfsProcessor.ValueToReturn = true;
 
             var suppliedArgs = new string[]
             {
@@ -247,15 +160,13 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             };
 
             // Act
-            var success = Execute(context, suppliedArgs);
+            var success = Execute(context, true, suppliedArgs);
 
             // Assert
             success.Should().BeTrue("Expecting post-processor to have succeeded");
 
-            context.CodeCoverage.AssertExecuteCalled();
-            context.CodeCoverage.AssertInitializedCalled();
+            context.TfsProcessor.AssertExecuted();
             context.Scanner.AssertExecuted();
-            context.ReportBuilder.AssertExecuted();
 
 
             context.Scanner.SuppliedCommandLineArgs.Should().Equal(
@@ -275,18 +186,19 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             // Arrange
             var context = new PostProcTestContext(TestContext);
             context.Config.HasBeginStepCommandLineCredentials = true;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
+            context.TfsProcessor.ValueToReturn = false;
 
             // Act
-            var success = Execute(context, args: new string[0]);
+            var success = Execute(context, true, args: new string[0]);
 
             // Assert
             success.Should().BeFalse();
             context.Logger.AssertErrorLogged(CredentialsErrorMessage);
 
-            context.CodeCoverage.AssertInitialisedNotCalled();
-            context.CodeCoverage.AssertExecuteNotCalled();
+            context.TfsProcessor.AssertNotExecuted();
             context.Scanner.AssertNotExecuted();
-            context.ReportBuilder.AssertNotExecuted();
 
             context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
@@ -296,23 +208,22 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         {
             // Arrange
             var context = new PostProcTestContext(TestContext);
+            context.Config.SonarOutputDir = Environment.CurrentDirectory;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
+            context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
             context.Config.AdditionalConfig = new List<ConfigSetting>();
-            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
-            {
-                RanToCompletion = true
-            };
+            context.Scanner.ValueToReturn = true;
+            context.TfsProcessor.ValueToReturn = false;
 
             // Act
-            var success = Execute(context, args: "/d:sonar.login=foo");
+            var success = Execute(context, true, args: "/d:sonar.login=foo");
 
             // Assert
             success.Should().BeFalse();
             context.Logger.AssertErrorLogged(CredentialsErrorMessage);
 
-            context.CodeCoverage.AssertInitialisedNotCalled();
-            context.CodeCoverage.AssertExecuteNotCalled();
+            context.TfsProcessor.AssertNotExecuted();
             context.Scanner.AssertNotExecuted();
-            context.ReportBuilder.AssertNotExecuted();
 
             context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
@@ -322,14 +233,15 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         {
             // Arrange
             var context = new PostProcTestContext(TestContext);
+            context.Config.SonarOutputDir = Environment.CurrentDirectory;
+            context.Config.SonarConfigDir = Environment.CurrentDirectory;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
+            context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
             context.Config.AdditionalConfig = new List<ConfigSetting>();
-            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
-            {
-                RanToCompletion = true
-            };
+            context.Scanner.ValueToReturn = true;
 
             // Act
-            var success = Execute(context, args: new string[0]);
+            var success = Execute(context, true, args: new string[0]);
 
             // Assert
             success.Should().BeTrue();
@@ -342,13 +254,14 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             // Arrange
             var context = new PostProcTestContext(TestContext);
             context.Config.HasBeginStepCommandLineCredentials = true;
-            context.Scanner.ValueToReturn = new ProjectInfoAnalysisResult
-            {
-                RanToCompletion = true
-            };
+            context.Config.SonarConfigDir = Environment.CurrentDirectory;
+            context.Config.SonarQubeHostUrl = "http://sonarqube.com";
+            context.Config.SonarOutputDir = Environment.CurrentDirectory;
+            context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
+            context.Scanner.ValueToReturn = true;
 
             // Act
-            var success = Execute(context, args: "/d:sonar.login=foo");
+            var success = Execute(context, true, args: "/d:sonar.login=foo");
 
             // Assert
             success.Should().BeTrue();
@@ -388,12 +301,10 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             public PostProcTestContext(TestContext testContext)
             {
                 Config = new AnalysisConfig();
-                Settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolder(testContext));
-
+                Settings = TeamBuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
                 Logger = new TestLogger();
-                CodeCoverage = new MockCodeCoverageProcessor();
+                TfsProcessor = new MockTfsProcessor(Logger);
                 Scanner = new MockSonarScanner(Logger);
-                ReportBuilder = new MockSummaryReportBuilder();
                 TargetsUninstaller = new Mock<ITargetsUninstaller>();
                 var callCount = 0;
                 TargetsUninstaller
@@ -405,23 +316,82 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
                         callCount++;
                     });
 
-                CodeCoverage.InitialiseValueToReturn = true;
-                CodeCoverage.ProcessValueToReturn = true;
             }
 
             public AnalysisConfig Config { get; set; }
             public TeamBuildSettings Settings { get; }
-            public MockCodeCoverageProcessor CodeCoverage { get; }
             public MockSonarScanner Scanner { get; }
-            public MockSummaryReportBuilder ReportBuilder { get; }
             public TestLogger Logger { get; }
+             
+            public MockTfsProcessor TfsProcessor { get; }
         }
 
         #region Private methods
 
-        private static bool Execute(PostProcTestContext context, params string[] args)
+        private bool Execute_WithNoProject(PostProcTestContext context, bool propertyWriteSucceeded, params string[] args)
         {
-            var proc = new MSBuildPostProcessor(context.CodeCoverage, context.Scanner, context.ReportBuilder, context.Logger, context.TargetsUninstaller.Object);
+            var sonarProjectPropertiesValidator = new Mock<ISonarProjectPropertiesValidator>();
+
+            IEnumerable<string> expectedValue;
+
+            sonarProjectPropertiesValidator
+                .Setup(propValidator => propValidator.AreExistingSonarPropertiesFilesPresent(It.IsAny<string>(), It.IsAny<ICollection<ProjectData>>(), out expectedValue)).Returns(false);
+
+            var proc = new MSBuildPostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
+
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+
+            var projectInfo = TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
+
+            List<ProjectData> listOfProjects = new List<ProjectData>();
+            listOfProjects.Add(new ProjectData(ProjectInfo.Load(projectInfo)));
+
+            IEnumerable<ProjectData> expectedListOfProjects = Enumerable.Empty<ProjectData>();
+
+            var propertiesFileGenerator = Mock.Of<IPropertiesFileGenerator>();
+            Mock.Get(propertiesFileGenerator).Setup(m => m.TryWriteProperties(It.IsAny<PropertiesWriter>(), out expectedListOfProjects)).Returns(propertyWriteSucceeded);
+
+            var projectInfoAnalysisResult = new ProjectInfoAnalysisResult();
+            projectInfoAnalysisResult.Projects.AddRange(listOfProjects);
+            projectInfoAnalysisResult.RanToCompletion = true;
+            projectInfoAnalysisResult.FullPropertiesFilePath = null;
+
+            Mock.Get(propertiesFileGenerator).Setup(m => m.GenerateFile()).Returns(projectInfoAnalysisResult);
+            proc.SetPropertiesFileGenerator(propertiesFileGenerator);
+            var success = proc.Execute(args, context.Config, context.Settings);
+            return success;
+        }
+
+        private bool Execute(PostProcTestContext context, bool propertyWriteSucceeded, params string[] args)
+        {
+            var sonarProjectPropertiesValidator = new Mock<ISonarProjectPropertiesValidator>();
+
+            IEnumerable<string> expectedValue;
+
+            sonarProjectPropertiesValidator
+                .Setup(propValidator => propValidator.AreExistingSonarPropertiesFilesPresent(It.IsAny<string>(), It.IsAny<ICollection<ProjectData>>(), out expectedValue)).Returns(false);
+
+            var proc = new MSBuildPostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
+
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+
+            var projectInfo = TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
+
+            List<ProjectData> listOfProjects = new List<ProjectData>();
+            listOfProjects.Add(new ProjectData(ProjectInfo.Load(projectInfo)));
+
+            IEnumerable<ProjectData> expectedListOfProjects = listOfProjects;
+
+            var propertiesFileGenerator = Mock.Of<IPropertiesFileGenerator>();
+            Mock.Get(propertiesFileGenerator).Setup(m => m.TryWriteProperties(It.IsAny<PropertiesWriter>(), out expectedListOfProjects)).Returns(propertyWriteSucceeded);
+
+            var projectInfoAnalysisResult = new ProjectInfoAnalysisResult();
+            projectInfoAnalysisResult.Projects.AddRange(listOfProjects);
+            projectInfoAnalysisResult.RanToCompletion = true;
+            projectInfoAnalysisResult.FullPropertiesFilePath = Path.Combine(testDir, "sonar-project.properties");
+
+            Mock.Get(propertiesFileGenerator).Setup(m => m.GenerateFile()).Returns(projectInfoAnalysisResult);
+            proc.SetPropertiesFileGenerator(propertiesFileGenerator);
             var success = proc.Execute(args, context.Config, context.Settings);
             return success;
         }
@@ -429,7 +399,9 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         private void DummyPostProcessorExecute(string[] args, AnalysisConfig config, ITeamBuildSettings settings)
         {
             var context = new PostProcTestContext(TestContext);
-            var proc = new MSBuildPostProcessor(context.CodeCoverage, context.Scanner, context.ReportBuilder, context.Logger, context.TargetsUninstaller.Object);
+            var sonarProjectPropertiesValidator = new Mock<ISonarProjectPropertiesValidator>();
+
+            var proc = new MSBuildPostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
             proc.Execute(args, config, settings);
         }
 
