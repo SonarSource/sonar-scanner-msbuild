@@ -26,7 +26,7 @@ The SonarScanner for .NET is the recommended way to launch an analysis for proje
 
 SonarScanner for .NET is distributed as a standalone command line executable, as a extension for <!-- sonarcloud -->[Azure DevOps](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarcloud --><!-- sonarqube -->[Azure DevOps Server](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarqube -->, and as a plugin for [Jenkins](/analysis/scan/sonarscanner-for-jenkins/).
 
-It supports .Net Core multi-platform projects and it can be used on non-Windows platforms.
+It supports .Net Core on every platform (Windows, macOS, Linux).
 
 ## Prerequisites
 <!-- sonarqube -->
@@ -46,7 +46,7 @@ It supports .Net Core multi-platform projects and it can be used on non-Windows 
 
 ## Installation
 
-### SonarScanner for .NET for .NET Framework, .NET Core and .NET
+### Standalone executable
 
 * Expand the downloaded file into the directory of your choice. We'll refer to it as `$install_directory` in the next steps.
   * On Windows, you might need to unblock the ZIP file first (Right click on file > Properties > Unblock).
@@ -64,7 +64,7 @@ Consider setting file system permissions to restrict access to this file.:
 
 * Add `$install_directory` to your PATH environment variable.
 
-### Installation of the SonarScanner for .NET (.NET Core Global Tool)
+### .NET Core Global Tool
 
 ```bash
 dotnet tool install --global dotnet-sonarscanner --version x.x.x
