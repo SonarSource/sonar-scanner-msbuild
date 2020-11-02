@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>dotnet-sonarscanner</id>
-    <version>4.10.0</version>
+    <version>5.0.1</version>
     <title>SonarScanner for .Net Core</title>
     <authors>SonarSource,Microsoft</authors>
     <projectUrl>http://redirect.sonarsource.com/doc/msbuild-sq-runner.html</projectUrl>
@@ -29,8 +29,8 @@ All release notes for SonarScanner .Net Core can be found on the GitHub site - h
     <file src="..\..\build\sonarscanner-msbuild-netcoreapp2.0\" target="tools\netcoreapp2.0\any" />
     <file src="..\..\build\sonarscanner-msbuild-netcoreapp3.0\" target="tools\netcoreapp3.0\any" />
 	<file src="..\..\build\sonarscanner-msbuild-net5.0\" target="tools\net5.0\any" />
-    <file src="DotnetToolSettings.xml" target="tools\netcoreapp2.1\any\DotnetToolSettings.xml" />
-    <file src="DotnetToolSettings.xml" target="tools\netcoreapp3.1\any\DotnetToolSettings.xml" />
+    <file src="DotnetToolSettings.xml" target="tools\netcoreapp2.0\any\DotnetToolSettings.xml" />
+    <file src="DotnetToolSettings.xml" target="tools\netcoreapp3.0\any\DotnetToolSettings.xml" />
 	<file src="DotnetToolSettings.xml" target="tools\net5.0\any\DotnetToolSettings.xml" />
     <file src="..\..\License.txt" target="License.txt" />
   </files>
