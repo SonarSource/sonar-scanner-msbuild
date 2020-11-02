@@ -110,7 +110,7 @@ stages:
           restoreSolution: '$(tfsProcessorSolution)'
           feedsToUse: 'select'
       - task: DotNetCoreCLI@2
-        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         displayName: 'Build and prepare signing $(tfsProcessorSolution)'
         inputs:
           command: 'build'
@@ -118,7 +118,6 @@ stages:
           arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:configuration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal "/p:DefineConstants=SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
       - task: DotNetCoreCLI@2
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
-        enabled: false
         displayName: 'Build $(tfsProcessorSolution)'
         inputs:
           command: 'build'
@@ -144,7 +143,7 @@ stages:
           projects: '$(solution)'
           feedsToUse: 'select'
       - task: DotNetCoreCLI@2
-        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         displayName: 'Build and prepare signing $(solution)'
         inputs:
           command: 'build'
@@ -152,7 +151,6 @@ stages:
           arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)" "/p:DefineConstants=SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
       - task: DotNetCoreCLI@2
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
-        enabled: false
         displayName: 'Build $(solution)'
         inputs:
           command: 'build'
