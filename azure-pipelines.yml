@@ -173,7 +173,8 @@ stages:
           script: |
             Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
             Get-ChildItem $(Agent.TempDirectory) -Filter 'VSCodeCoverageReport.*' -Recurse -Attributes !Directory | Remove-Item
-
+      - task: SonarCloudAnalyze@1
+        displayName: 'Run SonarCloud analysis'
       - task: PowerShell@2
         displayName: 'Package scanner files'
         inputs:
@@ -205,9 +206,14 @@ stages:
           command: 'pack'
           packagesToPack: 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec'
           packDestination: 'build'
+          
           versioningScheme: 'off'
-      - task: SonarCloudAnalyze@1
-        displayName: 'Run SonarCloud analysis'
+      - task: NuGetCommand@2
+        displayName: "Sign NuGet packages"
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+        inputs:
+          command: 'custom'
+          arguments: 'sign $(Build.SourcesDirectory)\build\dotnet-sonarscanner*.nupkg -CertificatePath $(pfx.secureFilePath) -CertificatePassword $(pfxPassword) -Timestamper http://sha256timestamp.ws.symantec.com/sha256/timestamp'
       - task: PowerShell@2
         displayName: 'Write project version in file' 
         inputs:
