@@ -1,13 +1,12 @@
-# Contributing to Sonar Scanner for MSBuild
+# Contributing to Sonar Scanner for .NET
 
-There are many ways you can contribute to the Sonar Scanner for MSBuild project, some very easy and others more
+There are many ways you can contribute to the SonarScanner for .NET project, some very easy and others more
 involved. We want to be friendly and welcoming to all potential contributors, so we ask that everyone involved abide
 by some simple guidelines outlined in our [Code of Conduct](./CODE_OF_CONDUCT.md).
 
 ## Easy Ways to Contribute
 
-One of the easiest ways to contribute is to participate in discussions and discuss issues on
-[StackOverflow](http://stackoverflow.com/questions/tagged/sonarqube-msbuild-runner) or on our
+One of the easiest ways to contribute is to participate in discussions and discuss issues on our
 [Community Forum](https://community.sonarsource.com/).
 
 ## General feedback and discussions?
