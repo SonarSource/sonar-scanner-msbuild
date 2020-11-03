@@ -11,10 +11,7 @@ title: SonarScanner for .NET
 [[info]]
 | **Download SonarScanner for .NET 5.0.0** - [Issue Tracker](https://github.com/SonarSource/sonar-scanner-msbuild/issues) – [Source](https://github.com/SonarSource/sonar-scanner-msbuild)
 |
-| [.NET Framework 4.6](https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/4.10.0.19059/sonar-scanner-msbuild-4.10.0.19059-net46.zip) |
-| [.NET Core 2.x](https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/4.10.0.19059/sonar-scanner-msbuild-4.10.0.19059-netcoreapp2.0.zip) |
-| [.NET Core 3.x](https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/4.10.0.19059/sonar-scanner-msbuild-4.10.0.19059-netcoreapp3.0.zip) |
-| [.NET 5.0](https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/4.10.0.19059/sonar-scanner-msbuild-4.10.0.19059-net5.0.zip) |
+| [Standalone executables](https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/5.0.0.23533) |
 | [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner)
 <!-- /sonarcloud -->
 
@@ -22,9 +19,9 @@ title: SonarScanner for .NET
 | Since version 5.0, the SonarScanner for MSBuild is now the SonarScanner for .NET. 
 | documentation is updated with that new name, artifacts and links will remain with the old name for now.
 
-The SonarScanner for .NET is the recommended way to launch an analysis for projects/solutions using .NET or dotnet command as a build tool. It is the result of a [collaboration between SonarSource and Microsoft](http://www.sonarqube.org/announcing-sonarqube-integration-with-msbuild-and-team-build/).
+The SonarScanner for .NET is the recommended way to launch an analysis for projects/solutions using MSBuild or dotnet command as a build tool. It is the result of a [collaboration between SonarSource and Microsoft](http://www.sonarqube.org/announcing-sonarqube-integration-with-msbuild-and-team-build/).
 
-SonarScanner for .NET is distributed as a standalone command line executable, as a extension for <!-- sonarcloud -->[Azure DevOps](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarcloud --><!-- sonarqube -->[Azure DevOps Server](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarqube -->, and as a plugin for [Jenkins](/analysis/scan/sonarscanner-for-jenkins/).
+SonarScanner for .NET is distributed as a standalone command line executable, as an extension for <!-- sonarcloud -->[Azure DevOps](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarcloud --><!-- sonarqube -->[Azure DevOps Server](/analysis/scan/sonarscanner-for-azure-devops/)<!-- /sonarqube -->, and as a plugin for [Jenkins](/analysis/scan/sonarscanner-for-jenkins/).
 
 It supports .Net Core on every platform (Windows, macOS, Linux).
 
@@ -36,12 +33,12 @@ It supports .Net Core on every platform (Windows, macOS, Linux).
 * Java 11 or greater
 <!-- /sonarcloud -->
 * The SDK corresponding to your build system:
-   *  [.NET Framework v4.6](https://www.microsoft.com/fr-fr/download/details.aspx?id=53344) - either [Build Tools for Visual Studio 2015 Update 3](https://go.microsoft.com/fwlink/?LinkId=615458) or the [Build Tools for Visual Studio 2017](https://www.visualstudio.com/downloads/)
-   * [.NET Core SDK 2.0 and above](https://www.microsoft.com/net/learn/get-started/) (for .NET Core version of the scanner or if you plan to use [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner)
+   * [.NET Framework v4.6](https://www.microsoft.com/fr-fr/download/details.aspx?id=53344) - either [Build Tools for Visual Studio 2015 Update 3](https://go.microsoft.com/fwlink/?LinkId=615458) or the [Build Tools for Visual Studio 2017](https://www.visualstudio.com/downloads/)
+   * [.NET Core SDK 2.0 and above](https://dotnet.microsoft.com/download) (for .NET Core version of the scanner or if you plan to use [.NET Core Global Tool](https://www.nuget.org/packages/dotnet-sonarscanner)
 
 [[info]]
-| The flavor used to compile the Scanner for .NET (either .NET Framework or .NET Core) is independant of the .NET version the 
-| project you want to analyze has been built with. Concretely, you can analyze .NET Core code with the .NET Framework version of 
+| The flavor used to compile the Scanner for .NET (either .NET Framework, .NET Core or .NET) is independant of the .NET version the 
+| project you want to analyze has been built with. Concretly, you can analyze .NET Core code with the .NET Framework version of 
 | the Scanner. It's only relevant depending on your OS, and on the versions of .NET SDKs that are installed on your build machine.
 
 ## Installation
@@ -73,6 +70,7 @@ dotnet tool install --global dotnet-sonarscanner --version x.x.x
 The _--version_ argument is optional. If it is omitted the latest version will be installed. Full list of releases is available on the [NuGet page](https://www.nuget.org/packages/dotnet-sonarscanner)
 
 .NET Core Global Tool is available from .NET Core 2.1+
+
 <!-- sonarqube -->
 ### On Linux/OSX, if your SonarQube server is secured
 
@@ -118,7 +116,7 @@ dotnet sonarscanner end <!-- sonarcloud -->/d:sonar.login="<token>" <!-- /sonarc
 
 Notes:
 
-* The .NET Core version of the scanner does not support TFS XAML builds and automatic finding/conversion of Code Coverage files. Apart from that, the two versions of scanner have the same capabilities and command line arguments.
+* The .NET Core version of the scanner does not support TFS XAML builds and automatic finding/conversion of Code Coverage files. Apart from that, both versions of scanner have the same capabilities and command line arguments.
 
 ## Analysis steps
 ### Begin
