@@ -94,7 +94,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                 var jsonErrors = json["errors"];
 
-                if (json["errors"] != null && jsonErrors[0]["msg"] != null && jsonErrors[0]["msg"].Value<string>() == "License not found")
+                if (jsonErrors?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
                 {
                     return false;
                 }
