@@ -110,12 +110,14 @@ stages:
           restoreSolution: '$(tfsProcessorSolution)'
           feedsToUse: 'select'
       - task: DotNetCoreCLI@2
+        env: 
+          SignAssembly: 'true'
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         displayName: 'Build and prepare signing $(tfsProcessorSolution)'
         inputs:
           command: 'build'
           projects: '$(tfsProcessorSolution)'
-          arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:configuration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal "/p:DefineConstants=SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
+          arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:configuration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
       - task: DotNetCoreCLI@2
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
         displayName: 'Build $(tfsProcessorSolution)'
@@ -143,12 +145,14 @@ stages:
           projects: '$(solution)'
           feedsToUse: 'select'
       - task: DotNetCoreCLI@2
+        env: 
+          SignAssembly: 'true'
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         displayName: 'Build and prepare signing $(solution)'
         inputs:
           command: 'build'
           projects: '$(solution)'
-          arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)" "/p:DefineConstants=SignAssembly" /p:SignAssembly=true /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
+          arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BuildConfiguration) /p:platform="$(BuildPlatform)" /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
       - task: DotNetCoreCLI@2
         condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
         displayName: 'Build $(solution)'
