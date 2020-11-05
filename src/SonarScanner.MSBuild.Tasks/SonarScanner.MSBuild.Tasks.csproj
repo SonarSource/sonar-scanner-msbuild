@@ -3,6 +3,9 @@
     <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>SonarScanner.MSBuild.Tasks</AssemblyName>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(SignAssembly)'=='true'">
+    <DefineConstants>SignAssembly</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <None Include="Docs\IntegrationTargetDependencies.dgml" />
   </ItemGroup>
