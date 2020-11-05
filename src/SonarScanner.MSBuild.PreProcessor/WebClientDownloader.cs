@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.PreProcessor
         public async Task<bool> IsLicenseValid(string url)
         {
             this.logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await this.client.GetAsync(url);
+            var response = await new HttpClient().GetAsync(url);
 
             var content = await response.Content.ReadAsStringAsync();
 
@@ -92,7 +92,9 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 var json = JObject.Parse(content);
 
-                if (json["errors"] != null)
+                var jsonErrors = json["errors"];
+
+                if (jsonErrors?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
                 {
                     return false;
                 }
