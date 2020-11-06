@@ -84,11 +84,11 @@ namespace SonarScanner.MSBuild.PreProcessor
         public async Task<bool> IsLicenseValid(string url)
         {
             this.logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await new HttpClient().GetAsync(url);
+            var response = await this.client.GetAsync(url);
 
             var content = await response.Content.ReadAsStringAsync();
 
-            if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.Unauthorized)
+            if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 try
                 {
