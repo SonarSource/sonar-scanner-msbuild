@@ -6,6 +6,9 @@
     <OutputType>Exe</OutputType>
     <StartupObject>SonarScanner.MSBuild.TFS.Classic.Program</StartupObject>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(SignAssembly)'=='true'">
+    <DefineConstants>SignAssembly</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
     <ProjectReference Include="..\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj" />
