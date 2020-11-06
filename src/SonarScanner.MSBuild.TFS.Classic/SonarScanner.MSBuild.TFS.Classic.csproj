@@ -5,8 +5,6 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <OutputType>Exe</OutputType>
     <StartupObject>SonarScanner.MSBuild.TFS.Classic.Program</StartupObject>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>plop.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(SignAssembly)'=='true'">
     <DefineConstants>SignAssembly</DefineConstants>
