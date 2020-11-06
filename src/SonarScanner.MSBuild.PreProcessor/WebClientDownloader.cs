@@ -88,15 +88,21 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             var content = await response.Content.ReadAsStringAsync();
 
-            if (response.StatusCode == HttpStatusCode.NotFound)
+            if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                var json = JObject.Parse(content);
-
-                var jsonErrors = json["errors"];
-
-                if (jsonErrors?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
+                try
                 {
-                    return false;
+                    var json = JObject.Parse(content);
+                    var jsonErrors = json["errors"];
+
+                    if (jsonErrors?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
+                    {
+                        return false;
+                    }
+                }
+                catch
+                {
+                    // here we expect that license is valid
                 }
 
                 this.logger.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
@@ -106,9 +112,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 try
                 {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var json = JObject.Parse(responseContent);
-
+                    var json = JObject.Parse(content);
                     return json["isValidLicense"].ToObject<bool>();
                 }
                 catch
