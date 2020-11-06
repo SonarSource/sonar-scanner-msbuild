@@ -84,42 +84,31 @@ namespace SonarScanner.MSBuild.PreProcessor
         public async Task<bool> IsLicenseValid(string url)
         {
             this.logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await this.client.GetAsync(url);
+            var response = await new HttpClient().GetAsync(url);
 
             var content = await response.Content.ReadAsStringAsync();
 
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                try
-                {
-                    var json = JObject.Parse(content);
-                    var jsonErrors = json["errors"];
 
-                    if (jsonErrors?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
-                    {
-                        return false;
-                    }
-                }
-                catch
-                {
-                    // here we expect that license is valid
-                }
+            if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                // In the case of the Community Edition, the request may fail with one of the following status code:
+                //  - HttpStatusCode.NotFound - if "Force user authentication" is disabled
+                //  - HttpStatusCode.Unauthorized - if "Force user authentication" is enabled
+                //
+                // In the case of other editions, the request should not be authenticated and should exists so it will not met the above condition
 
                 this.logger.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
-                return true; //High probability that this is a SQ CE edition.
+                return true;
             }
-            else
+            try
             {
-                try
-                {
-                    var json = JObject.Parse(content);
-                    return json["isValidLicense"].ToObject<bool>();
-                }
-                catch
-                {
-                    this.logger.LogWarning("Failed to fetch license status from server.");
-                    return false;
-                }
+                var json = JObject.Parse(content);
+                return json["isValidLicense"].ToObject<bool>();
+            }
+            catch
+            {
+                this.logger.LogWarning("Failed to fetch license status from server.");
+                return false;
             }
         }
 
