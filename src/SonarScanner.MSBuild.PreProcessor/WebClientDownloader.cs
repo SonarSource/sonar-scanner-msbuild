@@ -88,14 +88,27 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             var content = await response.Content.ReadAsStringAsync();
 
-
             if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                // In the case of the Community Edition, the request may fail with one of the following status code:
+                // In the case of SQ CE. The request may fail with one of the following status code:
                 //  - HttpStatusCode.NotFound - if "Force user authentication" is disabled
                 //  - HttpStatusCode.Unauthorized - if "Force user authentication" is enabled
                 //
-                // In the case of other editions, the request should not be authenticated and should exists so it will not met the above condition
+                // In the case of other editions, the request could return NotFound so we have to check error messages
+
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    // In some non SQ CE we can got 404 and the license error is included in messages
+                    var json = JObject.Parse(content);
+
+                    var jsonErrors = json["errors"];
+
+                    if (jsonErrors?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
+                    {
+                        return false;
+                    }
+                }
+
 
                 this.logger.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
                 return true;
