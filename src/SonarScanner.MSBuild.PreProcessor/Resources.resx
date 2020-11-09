@@ -159,6 +159,9 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERROR_Organization_Provided_In_SonarQubeAnalysis_file" xml:space="preserve">
     <value>sonar.organization parameter has been detected in the provided SonarQube.Analysis.xml config file. Please pass it in the command line instead, using /o: flag.</value>
   </data>
+  <data name="ERR_TokenWithoutSufficientRights" xml:space="preserve">
+    <value>The token you provided doesn't have sufficient rights to check license.</value>
+  </data>
   <data name="ERR_UnlicensedServer" xml:space="preserve">
     <value>Your SonarQube instance seems to have an invalid license. Please check it. Server url : {0}</value>
   </data>

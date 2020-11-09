@@ -90,6 +90,13 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
+        public void TryGetLicenseInformation_ReturnsUnauthorized_ShouldThrowException()
+        {
+            var testLogger = new TestLogger();
+            var downloader = new WebClientDownloader(null, null, new TestLogger());
+        }
+
+        [TestMethod]
         public void SemicolonInUsername()
         {
             Action act = () => new WebClientDownloader("user:name", "", new TestLogger());
