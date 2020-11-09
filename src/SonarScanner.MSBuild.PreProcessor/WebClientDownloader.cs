@@ -81,45 +81,17 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
 
         #region IDownloaderMethods
-        public async Task<bool> IsLicenseValid(string url)
+        public async Task<HttpResponseMessage> TryGetLicenseInformation(string url)
         {
             this.logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await new HttpClient().GetAsync(url);
-
-            var content = await response.Content.ReadAsStringAsync();
+            var response = await this.client.GetAsync(url);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                // try to download content with authenticated user - this is the case when "Force user authentication" is enabled
-
-                response = await this.client.GetAsync(url);
-                content = await response.Content.ReadAsStringAsync();
+                throw new ArgumentException(Resources.ERR_TokenWithoutSufficientRights);
             }
 
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                var json = JObject.Parse(content);
-
-                var jsonErrors = json["errors"];
-
-                if (jsonErrors?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
-                {
-                    return false;
-                }
-
-                this.logger.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
-                return true; //High probability that this is a SQ CE edition.
-            }
-            try
-            {
-                var json = JObject.Parse(content);
-                return json["isValidLicense"].ToObject<bool>();
-            }
-            catch
-            {
-                this.logger.LogWarning("Failed to fetch license status from server.");
-                return false;
-            }
+            return response;
         }
 
         public async Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false)

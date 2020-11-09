@@ -862,7 +862,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 // Nothing to do here
             }
 
-            public Task<bool> IsLicenseValid(string url)
+            public Task<bool> TryGetLicenseInformation(string url)
             {
                 this.AccessedUrls.Add(url);
                 if (this.Pages.ContainsKey(url))

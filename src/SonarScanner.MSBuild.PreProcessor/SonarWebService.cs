@@ -183,7 +183,29 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 this.logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
                 var ws = GetUrl("/api/editions/is_valid_license");
-                return await this.downloader.IsLicenseValid(ws);
+                var response = await this.downloader.TryGetLicenseInformation(ws);
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    var json = JObject.Parse(content);
+
+                    var jsonErrors = json["errors"];
+
+                    if (jsonErrors?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
+                    {
+                        return false;
+                    }
+
+                    this.logger.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
+                    return true;
+                }
+                else
+                {
+                    var json = JObject.Parse(content);
+                    return json["isValidLicense"].ToObject<bool>();
+                }
             }
         }
 

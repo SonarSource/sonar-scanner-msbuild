@@ -115,6 +115,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The token you provided doesn&apos;t have sufficient rights to check license..
+        /// </summary>
+        internal static string ERR_TokenWithoutSufficientRights {
+            get {
+                return ResourceManager.GetString("ERR_TokenWithoutSufficientRights", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Your SonarQube instance seems to have an invalid license. Please check it. Server url : {0}.
         /// </summary>
         internal static string ERR_UnlicensedServer {
