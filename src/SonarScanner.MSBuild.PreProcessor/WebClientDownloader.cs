@@ -88,6 +88,14 @@ namespace SonarScanner.MSBuild.PreProcessor
 
             var content = await response.Content.ReadAsStringAsync();
 
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                // try to download content with authenticated user - this is the case when "Force user authentication" is enabled
+
+                response = await this.client.GetAsync(url);
+                content = await response.Content.ReadAsStringAsync();
+            }
+
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 var json = JObject.Parse(content);
@@ -102,20 +110,15 @@ namespace SonarScanner.MSBuild.PreProcessor
                 this.logger.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
                 return true; //High probability that this is a SQ CE edition.
             }
-            else
+            try
             {
-                try
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var json = JObject.Parse(responseContent);
-
-                    return json["isValidLicense"].ToObject<bool>();
-                }
-                catch
-                {
-                    this.logger.LogWarning("Failed to fetch license status from server.");
-                    return false;
-                }
+                var json = JObject.Parse(content);
+                return json["isValidLicense"].ToObject<bool>();
+            }
+            catch
+            {
+                this.logger.LogWarning("Failed to fetch license status from server.");
+                return false;
             }
         }
 
