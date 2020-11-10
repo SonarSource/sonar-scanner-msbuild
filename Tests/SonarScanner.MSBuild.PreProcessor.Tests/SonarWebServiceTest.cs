@@ -24,7 +24,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -108,7 +110,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
-        public void IsLicenseValid_SonarQube_InvalidLicense()
+        public void IsLicenseValid_SonarQube_Commercial_AuthNotForced_LicenseIsInvalid()
         {
             this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
             this.downloader.Pages["http://myhost:222/api/server/version"] = "8.5.1.34001";
@@ -123,7 +125,7 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
-        public void IsLicenseValid_SonarQube_ValidLicense()
+        public void IsLicenseValid_SonarQube_Commercial_AuthNotForced_LicenseIsValid()
         {
             this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
             this.downloader.Pages["http://myhost:222/api/server/version"] = "8.5.1.34001";
@@ -138,14 +140,28 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(AggregateException))]
+        public void IsLicenseValid_SonarQube_Commercial_AuthForced_WithoutCredentials_ShouldThrow()
+        {
+            this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
+            this.downloader.Pages["http://myhost:222/api/server/version"] = "8.5.1.34001";
+
+            this.downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.Unauthorized, "", false);
+
+            var result = this.ws.IsServerLicenseValid().Result;
+
+            this.logger.AssertErrorLogged("The token you provided doesn't have sufficient rights to check license.");
+        }
+
+        [TestMethod]
         public void IsLicenseValid_SonarQube_ServerNotLicensed()
         {
             this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
             this.downloader.Pages["http://myhost:222/api/server/version"] = "8.5.1.34001";
-            this.downloader.Pages["http://myhost:222/api/editions/is_valid_license"] =
-                @"{
+
+            this.downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.NotFound, @"{
                        ""errors"":[{""msg"":""License not found""}]
-                   }";
+                   }", false);
 
             var result = this.ws.IsServerLicenseValid().Result;
 
@@ -157,6 +173,8 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         {
             this.ws = new SonarWebService(this.downloader, "http://myhost:222", this.logger);
             this.downloader.Pages["http://myhost:222/api/server/version"] = "8.5.1.34001";
+
+            this.downloader.ConfigureGetLicenseInformationMock(HttpStatusCode.NotFound, @"{""errors"":[{""msg"":""Unknown url: /api/editions/is_valid_license""}]}", true);
 
             var result = this.ws.IsServerLicenseValid().Result;
 
@@ -862,24 +880,61 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 // Nothing to do here
             }
 
-            public Task<bool> IsLicenseValid(string url)
+            private string expectedReturnMessage { get; set; }
+            private HttpStatusCode expectedHttpStatusCode { get; set; }
+
+            private bool isCEEdition { get; set; }
+
+            public void ConfigureGetLicenseInformationMock(HttpStatusCode expectedStatusCode, string expectedReturnMessage, bool isCEEdition)
+            {
+                this.expectedHttpStatusCode = expectedStatusCode;
+                this.expectedReturnMessage = expectedReturnMessage;
+                this.isCEEdition = isCEEdition;
+            }
+
+            public Task<HttpResponseMessage> TryGetLicenseInformation(string url)
             {
                 this.AccessedUrls.Add(url);
                 if (this.Pages.ContainsKey(url))
                 {
-                    var json = JObject.Parse(this.Pages[url]);
-
-                    if (json["errors"] != null)
+                    //returns 200
+                    return Task.FromResult(new HttpResponseMessage()
                     {
-                        return Task.FromResult(false);
-                    }
-
-                    return Task.FromResult(json["isValidLicense"].ToObject<bool>());
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(this.Pages[url])
+                    });
                 }
                 else
                 {
-                    //Simulating a 404 on that one.
-                    return Task.FromResult(true);
+                    //returns either 404 or 401
+
+                    if(expectedHttpStatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        throw new ArgumentException("The token you provided doesn't have sufficient rights to check license.");
+                    }
+
+                    if (expectedHttpStatusCode == HttpStatusCode.NotFound)
+                    {
+                        if(isCEEdition)
+                        {
+                            return Task.FromResult(new HttpResponseMessage()
+                            {
+                                StatusCode = HttpStatusCode.NotFound,
+                                Content = new StringContent(@"{""errors"":[{""msg"":""Unknown url: /api/editions/is_valid_license""}]} ")
+                            });
+                        }
+                        else
+                        {
+                            return Task.FromResult(new HttpResponseMessage()
+                            {
+                                StatusCode = HttpStatusCode.NotFound,
+                                Content = new StringContent(@"{ ""errors"" : [ { ""msg"": ""License not found"" } ] } ")
+                            });
+                        }
+
+                    }
+
+                    return Task.FromResult<HttpResponseMessage>(null);
                 }
             }
         }

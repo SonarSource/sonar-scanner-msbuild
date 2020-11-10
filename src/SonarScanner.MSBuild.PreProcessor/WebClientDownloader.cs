@@ -25,8 +25,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor
@@ -81,42 +79,17 @@ namespace SonarScanner.MSBuild.PreProcessor
         }
 
         #region IDownloaderMethods
-        public async Task<bool> IsLicenseValid(string url)
+        public async Task<HttpResponseMessage> TryGetLicenseInformation(string url)
         {
             this.logger.LogDebug(Resources.MSG_Downloading, url);
-            var response = await new HttpClient().GetAsync(url);
+            var response = await this.client.GetAsync(url);
 
-            var content = await response.Content.ReadAsStringAsync();
-
-            if (response.StatusCode == HttpStatusCode.NotFound)
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                var json = JObject.Parse(content);
-
-                var jsonErrors = json["errors"];
-
-                if (jsonErrors?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
-                {
-                    return false;
-                }
-
-                this.logger.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
-                return true; //High probability that this is a SQ CE edition.
+                throw new ArgumentException(Resources.ERR_TokenWithoutSufficientRights);
             }
-            else
-            {
-                try
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var json = JObject.Parse(responseContent);
 
-                    return json["isValidLicense"].ToObject<bool>();
-                }
-                catch
-                {
-                    this.logger.LogWarning("Failed to fetch license status from server.");
-                    return false;
-                }
-            }
+            return response;
         }
 
         public async Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false)
