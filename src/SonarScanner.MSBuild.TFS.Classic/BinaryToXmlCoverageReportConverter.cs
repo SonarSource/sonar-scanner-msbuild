@@ -49,6 +49,8 @@ namespace SonarScanner.MSBuild.TFS.Classic
         /// </summary>
         private const string TeamToolPathandExeName = @"Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe";
 
+        private const string VsTestToolPlatformInstallerPathToExe = @"tools\net451\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe";
+
         /// <summary>
         /// Code coverage package names for Visual Studio setup configuration
         /// </summary>
@@ -119,10 +121,26 @@ namespace SonarScanner.MSBuild.TFS.Classic
             this.logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageTool);
 
             var userSuppliedVsCoverageToolPath = this.config.GetVsCoverageConverterToolPath();
-            if (userSuppliedVsCoverageToolPath != null)
+            if (!string.IsNullOrEmpty(userSuppliedVsCoverageToolPath))
             {
                 this.logger.LogDebug(Resources.CONV_DIAG_LocatingCodeCoverageToolUserSuppliedProperty);
-                return userSuppliedVsCoverageToolPath;
+                if (userSuppliedVsCoverageToolPath.EndsWith("CodeCoverage.exe") && File.Exists(userSuppliedVsCoverageToolPath))
+                {
+                    this.logger.LogDebug(Resources.CONV_DIAG_CodeCoverageFound, userSuppliedVsCoverageToolPath);
+                    return userSuppliedVsCoverageToolPath;
+                }
+
+                this.logger.LogDebug(Resources.CONV_DIAG_CodeCoverageIsNotInVariable);
+                var standardToolInstallerPath = Path.Combine(userSuppliedVsCoverageToolPath, VsTestToolPlatformInstallerPathToExe);
+                if (File.Exists(standardToolInstallerPath))
+                {
+                    this.logger.LogDebug(Resources.CONV_DIAG_CodeCoverageFound, standardToolInstallerPath);
+                    return standardToolInstallerPath;
+                }
+                else
+                {
+                    this.logger.LogWarning(Resources.CONV_WARN_UnableToFindCodeCoverageFileInUserSuppliedVariable);
+                }
             }
 
             return GetExeToolPathFromSetupConfiguration()

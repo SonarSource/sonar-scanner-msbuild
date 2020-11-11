@@ -61,6 +61,24 @@ namespace SonarScanner.MSBuild.TFS.Classic {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to CodeCoverage.exe found at {0}..
+        /// </summary>
+        internal static string CONV_DIAG_CodeCoverageFound {
+            get {
+                return ResourceManager.GetString("CONV_DIAG_CodeCoverageFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VsTestToolsInstallerInstalledToolLocation environment variable doesn&apos;t contain full path to CodeCoverage.exe tool, seeking in standard place set by VSTestPlatformToolInstaller....
+        /// </summary>
+        internal static string CONV_DIAG_CodeCoverageIsNotInVariable {
+            get {
+                return ResourceManager.GetString("CONV_DIAG_CodeCoverageIsNotInVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code coverage command line tool: {0}.
         /// </summary>
         internal static string CONV_DIAG_CommandLineToolInfo {
@@ -97,7 +115,7 @@ namespace SonarScanner.MSBuild.TFS.Classic {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to VsTestToolsInstallerInstalledToolLocation environment variable detected, taking this one as tool path for CodeCoverage.exe..
+        ///   Looks up a localized string similar to VsTestToolsInstallerInstalledToolLocation environment variable detected, seeking for CodeCoverage.exe location....
         /// </summary>
         internal static string CONV_DIAG_LocatingCodeCoverageToolUserSuppliedProperty {
             get {
@@ -148,6 +166,15 @@ namespace SonarScanner.MSBuild.TFS.Classic {
         internal static string CONV_WARN_FailToFindConversionTool {
             get {
                 return ResourceManager.GetString("CONV_WARN_FailToFindConversionTool", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CodeCoverage.exe was not found in the standard locations. Please provide the full path of the tool using the VsTestToolsInstallerInstalledToolLocation variable..
+        /// </summary>
+        internal static string CONV_WARN_UnableToFindCodeCoverageFileInUserSuppliedVariable {
+            get {
+                return ResourceManager.GetString("CONV_WARN_UnableToFindCodeCoverageFileInUserSuppliedVariable", resourceCulture);
             }
         }
         

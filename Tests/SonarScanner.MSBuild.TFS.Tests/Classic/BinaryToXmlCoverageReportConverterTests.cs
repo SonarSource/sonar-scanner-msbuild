@@ -204,12 +204,14 @@ echo success > """ + outputFilePath + @"""");
         }
 
         [TestMethod]
-        public void Initialize_CanGetGetExeToolPathFromEnvironmentVariable()
+        public void Initialize_CanGetGetExeToolPathFromEnvironmentVariable_FullPathToCodeCoverageToolGiven()
         {
             // Arrange
             var logger = new TestLogger();
             var config = new AnalysisConfig();
-            config.SetVsCoverageConverterToolPath(@"My:\Path\To\CodeCoverage.exe");
+            var filePath = Path.Combine(Environment.CurrentDirectory, "CodeCoverage.exe");
+            File.Create(filePath);
+            config.SetVsCoverageConverterToolPath(filePath);
 
             var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
 
@@ -219,7 +221,52 @@ echo success > """ + outputFilePath + @"""");
             // Assert
             result.Should().BeTrue();
 
-            logger.AssertDebugLogged(@"VsTestToolsInstallerInstalledToolLocation environment variable detected, taking this one as tool path for CodeCoverage.exe.");
+            logger.AssertDebugLogged($@"CodeCoverage.exe found at {filePath}.");
+        }
+
+        [TestMethod]
+        public void Initialize_CanGetGetExeToolPathFromEnvironmentVariable_NoExeInThePath_ShouldSeekForStandardInstall()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var config = new AnalysisConfig();
+
+            var filePath = Path.Combine(Environment.CurrentDirectory, @"tools\net451\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe");
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            File.Create(filePath);
+
+            config.SetVsCoverageConverterToolPath(Environment.CurrentDirectory);
+
+            var reporter = new BinaryToXmlCoverageReportConverter(logger, config);
+
+            // Act
+            var result = reporter.Initialize();
+
+            // Assert
+            result.Should().BeTrue();
+            logger.AssertDebugLogged($@"CodeCoverage.exe found at {filePath}.");
+        }
+
+        [TestMethod]
+        public void Initialize_CanGetGetExeToolPathFromEnvironmentVariable_FileDoesntExist_ShouldFallback()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var config = new AnalysisConfig();
+            var factory = CreateVisualStudioSetupConfigurationFactory("Microsoft.VisualStudio.TestTools.CodeCoverage");
+
+            config.SetVsCoverageConverterToolPath(Path.GetTempPath());
+
+            var reporter = new BinaryToXmlCoverageReportConverter(factory, logger, config);
+
+            // Act
+            var result = reporter.Initialize();
+
+            // Assert
+            result.Should().BeTrue();
+
+            logger.Warnings.Contains("CodeCoverage.exe was not found in the standard locations. Please provide the full path of the tool using the VsTestToolsInstallerInstalledToolLocation variable.");
+            logger.AssertDebugLogged("Code coverage command line tool: x:\\foo\\Team Tools\\Dynamic Code Coverage Tools\\CodeCoverage.exe");
         }
 
         [TestMethod]
