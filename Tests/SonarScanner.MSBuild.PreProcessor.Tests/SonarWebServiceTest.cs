@@ -208,6 +208,13 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
             result.Item1.Should().BeTrue();
             result.Item2.Should().Be("profile3k");
 
+            //multiple QPs for a project, taking the default one
+            this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=foo+bar"] =
+               "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\", \"isDefault\": false}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"cs\", \"isDefault\": true}]}";
+            result = this.ws.TryGetQualityProfile("foo bar", null, null, "cs").Result;
+            result.Item1.Should().BeTrue();
+            result.Item2.Should().Be("profile4k");
+
             // with organizations
             this.downloader.Pages["http://myhost:222/api/qualityprofiles/search?project=foo+bar&organization=my+org"] =
                "{ profiles: [{\"key\":\"profileOrganization\",\"name\":\"profile1\",\"language\":\"cs\"}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"java\"}]}";

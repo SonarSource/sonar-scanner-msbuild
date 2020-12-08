@@ -74,8 +74,16 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                 var json = JObject.Parse(contents);
                 var profiles = json["profiles"].Children<JObject>();
-
-                var profile = profiles.SingleOrDefault(p => language.Equals(p["language"].ToString()));
+                JObject profile = null;
+                try
+                {
+                    profile = profiles.SingleOrDefault(p => language.Equals(p["language"].ToString()));
+                }
+                catch (InvalidOperationException) //As we don't have fail-fast policy for unsupported version for now, we should handle gracefully multi-QPs set for a project, here for SQ < 6.7
+                {
+                    logger.LogWarning($"Your project has multiple Quality Profiles defined for language `{language}`, taking the default one.");
+                    profile = profiles.SingleOrDefault(p => language.Equals(p["language"].ToString()) && p["isDefault"].Value<bool>().Equals(true));
+                }
                 if (profile == null)
                 {
                     return null;
@@ -379,7 +387,7 @@ namespace SonarScanner.MSBuild.PreProcessor
             var ws = GetUrl("/api/settings/values?component={0}", projectId);
             this.logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId, ws);
 
-            var projectFound = await DoLogExceptions(async() => await this.downloader.TryDownloadIfExists(ws, true), ws);
+            var projectFound = await DoLogExceptions(async () => await this.downloader.TryDownloadIfExists(ws, true), ws);
 
             var contents = projectFound?.Item2;
 
@@ -387,10 +395,10 @@ namespace SonarScanner.MSBuild.PreProcessor
             {
                 ws = GetUrl("/api/settings/values");
                 this.logger.LogDebug("No settings for project {0}. Getting global settings: {1}", projectId, ws);
-                contents = await DoLogExceptions(async() => await this.downloader.Download(ws), ws);
+                contents = await DoLogExceptions(async () => await this.downloader.Download(ws), ws);
             }
 
-            return await DoLogExceptions(async() => ParseSettingsResponse(contents), ws);
+            return await DoLogExceptions(async () => ParseSettingsResponse(contents), ws);
         }
 
         private Dictionary<string, string> ParseSettingsResponse(string contents)
