@@ -71,13 +71,16 @@ public class CppTest {
     Path projectDir = TestUtils.projectDir(temp, "CppSolution");
     File wrapperOutDir = new File(projectDir.toFile(), "out");
 
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
       .setProjectVersion("1.0")
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
-      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ConsoleApp").toString()));
+      .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "ConsoleApp").toString())
+      .setProperty("sonar.login", token));
 
     File buildWrapper = temp.newFile();
     File buildWrapperDir = temp.newFolder();
@@ -92,7 +95,7 @@ public class CppTest {
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
       String.format("/p:PlatformToolset=%s", plateformToolset));
 
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey);
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
@@ -117,13 +120,16 @@ public class CppTest {
     Path projectDir = TestUtils.projectDir(temp, "CppSharedFiles");
     File wrapperOutDir = new File(projectDir.toFile(), "out");
 
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
+
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
       .setProjectKey(projectKey)
       .setProjectName("Cpp")
       .setProjectVersion("1.0")
       .setProperty("sonar.cfamily.build-wrapper-output", wrapperOutDir.toString())
-      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString()));
+      .setProperty("sonar.projectBaseDir", projectDir.toAbsolutePath().toString())
+      .setProperty("sonar.login", token));
 
     File buildWrapper = temp.newFile();
     File buildWrapperDir = temp.newFolder();
@@ -138,7 +144,7 @@ public class CppTest {
       String.format("/p:WindowsTargetPlatformVersion=%s", windowsSdk),
       String.format("/p:PlatformToolset=%s", plateformToolset));;
 
-    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey);
+    BuildResult result = TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, projectKey, token);
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getLogs()).doesNotContain("Invalid character encountered in file");
 
