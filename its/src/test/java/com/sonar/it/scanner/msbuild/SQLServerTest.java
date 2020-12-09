@@ -21,7 +21,6 @@ package com.sonar.it.scanner.msbuild;
 
 import com.sonar.it.scanner.SonarScannerTestSuite;
 import com.sonar.orchestrator.Orchestrator;
-import com.sonar.orchestrator.http.HttpMethod;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -43,23 +42,25 @@ public class SQLServerTest {
   public static TemporaryFolder temp = TestUtils.createTempFolder();
 
   @Before
-  public void setUp(){
+  public void setUp() {
     TestUtils.reset(ORCHESTRATOR);
   }
 
   @Test
   public void should_find_issues_in_cs_files() throws Exception {
     Path projectDir = TestUtils.projectDir(temp, "SQLServerSolution");
+    String token = TestUtils.getNewToken(ORCHESTRATOR);
     ORCHESTRATOR.executeBuild(TestUtils.newScanner(ORCHESTRATOR, projectDir)
       .addArgument("begin")
       .setProjectKey(PROJECT_KEY)
       .setProjectName("sample")
       .setProperty("sonar.projectBaseDir", Paths.get(projectDir.toAbsolutePath().toString(), "Database1").toString())
-      .setProjectVersion("1.0"));
+      .setProjectVersion("1.0")
+      .setProperty("sonar.login", token));
 
     TestUtils.runMSBuild(ORCHESTRATOR, projectDir, "/t:Rebuild");
 
-    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, PROJECT_KEY);
+    TestUtils.executeEndStepAndDumpResults(ORCHESTRATOR, projectDir, PROJECT_KEY, token);
 
     List<Issue> issues = TestUtils.allIssues(ORCHESTRATOR);
     assertThat(issues).hasSize(3);
