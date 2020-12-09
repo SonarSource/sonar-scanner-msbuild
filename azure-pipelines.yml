@@ -439,7 +439,7 @@ stages:
                Write-Host "##vso[task.setvariable variable=JDK_PATH]$JAVA_HOME_11_X64"
        - task: NuGetToolInstaller@1
          inputs:
-          versionSpec: '4.9.3'
+          versionSpec: '5.8.0'
        - task: PowerShell@2
          displayName: "Get version from artifact file"
          inputs:
