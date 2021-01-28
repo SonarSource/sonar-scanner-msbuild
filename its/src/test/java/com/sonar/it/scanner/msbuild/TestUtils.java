@@ -59,6 +59,7 @@ import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.usertokens.GenerateRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -66,6 +67,7 @@ public class TestUtils {
   final static Logger LOG = LoggerFactory.getLogger(ScannerMSBuildTest.class);
 
   private static final String NUGET_PATH = "NUGET_PATH";
+  private static String token = null;
 
   @CheckForNull
   public static String getScannerVersion(Orchestrator orchestrator) {
@@ -301,9 +303,10 @@ public class TestUtils {
     }
   }
 
-  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey){
+  static BuildResult executeEndStepAndDumpResults(Orchestrator orchestrator, Path projectDir, String projectKey, String token){
     BuildResult result = orchestrator.executeBuild(TestUtils.newScanner(orchestrator, projectDir)
-      .addArgument("end"));
+      .addArgument("end")
+      .setProperty("sonar.login", token));
 
     if (result.isSuccess()) {
       TestUtils.dumpComponentList(orchestrator, projectKey);
@@ -334,7 +337,22 @@ public class TestUtils {
   static WsClient newWsClient(Orchestrator orchestrator) {
     return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
       .url(orchestrator.getServer().getUrl())
+      .token(getNewToken(orchestrator))
       .build());
+  }
+
+  static WsClient newAdminWsClient(Orchestrator orchestrator) {
+    return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
+      .url(orchestrator.getServer().getUrl())
+      .credentials("admin", "admin")
+      .build());
+  }
+
+  static String getNewToken(Orchestrator orchestrator) {
+    if(token == null) {
+      token = newAdminWsClient(orchestrator).userTokens().generate(new GenerateRequest().setName("its")).getToken();
+    }
+    return token;
   }
 
   public static boolean hasModules(Orchestrator orch) {
