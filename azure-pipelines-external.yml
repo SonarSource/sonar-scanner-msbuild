@@ -20,9 +20,9 @@ stages:
       steps:
       - checkout: self
       - task: NuGetToolInstaller@1
-        displayName: 'Use NuGet 5.7.0'
+        displayName: 'Use NuGet 5.8.1'
         inputs:
-          versionSpec: '5.7.0'
+          versionSpec: '5.8.1'
       - task: DotNetCoreCLI@2
         displayName: Dotnet restore $(tfsProcessorSolution)
         inputs:
@@ -41,11 +41,6 @@ stages:
           command: 'build'
           projects: '$(tfsProcessorSolution)'
           arguments: '/m /p:DeployExtension=false /p:platform="$(BuildPlatform)" /p:configuration=$(BuildConfiguration) /p:ZipPackageCompressionLevel=normal'
-      - task: UseDotNet@2
-        inputs:
-          packageType: sdk
-          version: 5.0.100
-          installationPath: $(Agent.ToolsDirectory)/dotnet
       - task: NuGetCommand@2
         displayName: 'NuGet restore $(solution)'
         inputs:
