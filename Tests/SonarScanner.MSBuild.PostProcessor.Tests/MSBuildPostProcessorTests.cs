@@ -66,9 +66,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
-
-            // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -98,9 +95,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
             context.Logger.AssertErrorsLogged(1);
             context.Logger.AssertWarningsLogged(0);
-
-            // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -123,9 +117,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
             context.Logger.AssertErrorsLogged(1);
             context.Logger.AssertWarningsLogged(0);
-
-            // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -172,9 +163,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
             context.Logger.AssertErrorsLogged(0);
             context.Logger.AssertWarningsLogged(0);
-
-            // Verify that the method was called at least once
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -196,8 +184,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
             context.TfsProcessor.AssertNotExecuted();
             context.Scanner.AssertNotExecuted();
-
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -221,8 +207,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
 
             context.TfsProcessor.AssertNotExecuted();
             context.Scanner.AssertNotExecuted();
-
-            context.TargetsUninstaller.Verify(m => m.UninstallTargets());
         }
 
         [TestMethod]
@@ -292,8 +276,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
         /// Helper class that creates all of the necessary mocks
         /// </summary>
         private class PostProcTestContext
-        {
-            public Mock<ITargetsUninstaller> TargetsUninstaller { get; }
+        { 
 
             public PostProcTestContext(TestContext testContext)
             {
@@ -302,17 +285,6 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
                 Logger = new TestLogger();
                 TfsProcessor = new MockTfsProcessor(Logger);
                 Scanner = new MockSonarScanner(Logger);
-                TargetsUninstaller = new Mock<ITargetsUninstaller>();
-                var callCount = 0;
-                TargetsUninstaller
-                    .Setup(m => m.UninstallTargets())
-                    .Callback(() =>
-                    {
-                        // Verify that the method was called maximum once
-                        callCount.Should().Be(0, "Method should be called exactly once");
-                        callCount++;
-                    });
-
             }
 
             public AnalysisConfig Config { get; set; }
@@ -334,7 +306,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             sonarProjectPropertiesValidator
                 .Setup(propValidator => propValidator.AreExistingSonarPropertiesFilesPresent(It.IsAny<string>(), It.IsAny<ICollection<ProjectData>>(), out expectedValue)).Returns(false);
 
-            var proc = new MSBuildPostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
+            var proc = new MSBuildPostProcessor(context.Scanner, context.Logger, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
 
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
@@ -368,7 +340,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             sonarProjectPropertiesValidator
                 .Setup(propValidator => propValidator.AreExistingSonarPropertiesFilesPresent(It.IsAny<string>(), It.IsAny<ICollection<ProjectData>>(), out expectedValue)).Returns(false);
 
-            var proc = new MSBuildPostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
+            var proc = new MSBuildPostProcessor(context.Scanner, context.Logger, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
 
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Guid.NewGuid().ToString());
 
@@ -398,7 +370,7 @@ namespace SonarScanner.MSBuild.PostProcessor.Tests
             var context = new PostProcTestContext(TestContext);
             var sonarProjectPropertiesValidator = new Mock<ISonarProjectPropertiesValidator>();
 
-            var proc = new MSBuildPostProcessor(context.Scanner, context.Logger, context.TargetsUninstaller.Object, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
+            var proc = new MSBuildPostProcessor(context.Scanner, context.Logger, context.TfsProcessor, sonarProjectPropertiesValidator.Object);
             proc.Execute(args, config, settings);
         }
 

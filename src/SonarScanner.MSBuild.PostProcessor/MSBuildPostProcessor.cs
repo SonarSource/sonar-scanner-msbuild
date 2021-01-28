@@ -37,18 +37,16 @@ namespace SonarScanner.MSBuild.PostProcessor
 
         private readonly ISonarScanner sonarScanner;
         private readonly ILogger logger;
-        private readonly ITargetsUninstaller targetUninstaller;
         private readonly ISonarProjectPropertiesValidator sonarProjectPropertiesValidator;
         private readonly ITfsProcessor tfsProcessor;
 
         private IPropertiesFileGenerator propertiesFileGenerator;
 
         public MSBuildPostProcessor(ISonarScanner scanner,
-            ILogger logger, ITargetsUninstaller targetUninstaller, ITfsProcessor tfsProcessor, ISonarProjectPropertiesValidator sonarProjectPropertiesValidator)
+            ILogger logger, ITfsProcessor tfsProcessor, ISonarProjectPropertiesValidator sonarProjectPropertiesValidator)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             sonarScanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
-            this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
             this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
             this.tfsProcessor = tfsProcessor ?? throw new ArgumentNullException(nameof(tfsProcessor));
         }
@@ -74,8 +72,6 @@ namespace SonarScanner.MSBuild.PostProcessor
             }
 
             logger.SuspendOutput();
-
-            targetUninstaller.UninstallTargets();
 
             if (!ArgumentProcessor.TryProcessArgs(args, logger, out IAnalysisPropertyProvider provider))
             {
