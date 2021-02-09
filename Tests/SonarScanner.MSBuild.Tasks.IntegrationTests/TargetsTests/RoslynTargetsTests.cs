@@ -851,40 +851,14 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             File.Exists(sqTargetFile).Should().BeTrue("Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
             TestContext.AddResultFile(sqTargetFile);
 
+            string template = "";
 
-            var template = @"<?xml version='1.0' encoding='utf-8'?>
-<Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+            using (var stream = typeof(RoslynTargetsTests).Assembly.GetManifestResourceStream("SonarScanner.Integration.Tasks.IntegrationTests.Resources.RoslynTargetTestsTemplate.xml"))
+            using (var reader = new StreamReader(stream))
+            {
+                template = reader.ReadToEnd();
+            }
 
-  <!-- Boilerplate -->
-  <!-- All of these boilerplate properties can be overridden by setting the value again in the test-specific XML snippet -->
-  <PropertyGroup>
-    <ImportByWildcardBeforeMicrosoftCommonTargets>false</ImportByWildcardBeforeMicrosoftCommonTargets>
-    <ImportByWildcardAfterMicrosoftCommonTargets>false</ImportByWildcardAfterMicrosoftCommonTargets>
-    <ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>false</ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>
-    <ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>false</ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>
-    <OutputPath>bin\</OutputPath>
-    <OutputType>library</OutputType>
-    <ProjectGuid>ffdb93c0-2880-44c7-89a6-bbd4ddab034a</ProjectGuid>
-    <CodePage>65001</CodePage>
-    <Language>C#</Language>
-  </PropertyGroup>
-
-  <!-- Standard values that need to be set for each/most tests -->
-  <PropertyGroup>
-    <SonarQubeBuildTasksAssemblyFile>SONARSCANNER_MSBUILD_TASKS_DLL</SonarQubeBuildTasksAssemblyFile>
-    <SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
-    <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>
-  </PropertyGroup>
-
-  <!-- Test-specific data -->
-  TEST_SPECIFIC_XML
-
-  <!-- Standard boilerplate closing imports -->
-  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))SonarQube.Integration.targets' />
-  <Import Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
-  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Capture.targets))Capture.targets' />
-</Project>
-";
             var projectData = template.Replace("PROJECT_DIRECTORY_PATH", projectDirectory)
                 .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
                 .Replace("TEST_SPECIFIC_XML", testSpecificProjectXml ?? "<!-- none -->");
@@ -914,29 +888,15 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
                 TargetConstants.SetRoslynAnalysisPropertiesTarget
                 );
 
-            string xml = $@"<?xml version='1.0' encoding='utf-8'?>
-<Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
-  
-  <Target Name='CaptureValues' AfterTargets='{afterTargets}'>
-    <Message Importance='high' Text='CAPTURE::PROPERTY::TargetDir::$(TargetDir)' />
-    <Message Importance='high' Text='CAPTURE::PROPERTY::TargetFileName::$(TargetFileName)' />
-    <Message Importance='high' Text='CAPTURE::PROPERTY::ErrorLog::$(ErrorLog)' />
-    <Message Importance='high' Text='CAPTURE::PROPERTY::ProjectConfFilePath::$(ProjectConfFilePath)' />
-    <Message Importance='high' Text='CAPTURE::PROPERTY::ResolvedCodeAnalysisRuleSet::$(ResolvedCodeAnalysisRuleSet)' />
-    <Message Importance='high' Text='CAPTURE::PROPERTY::TreatWarningsAsErrors::$(TreatWarningsAsErrors)' />
-    <Message Importance='high' Text='CAPTURE::PROPERTY::WarningsAsErrors::$(WarningsAsErrors)' />
-    <Message Importance='high' Text='CAPTURE::PROPERTY::WarningLevel::$(WarningLevel)' />
-    <Message Importance='high' Text='CAPTURE::PROPERTY::ProjectSpecificOutDir::$(ProjectSpecificOutDir)' />
-    <Message Importance='high' Text='CAPTURE::PROPERTY::ProjectSpecificConfDir::$(ProjectSpecificConfDir)' />
+            string xml = "";
 
-    <!-- Item group values will be written out one per line -->
-    <Message Importance='high' Text='CAPTURE::ITEM::AdditionalFiles::%(AdditionalFiles.Identity)' Condition="" @(AdditionalFiles) != '' ""/>
-    <Message Importance='high' Text='CAPTURE::ITEM::Analyzer::%(Analyzer.Identity)'  Condition="" @(Analyzer) != '' "" />
+            using (var stream = typeof(RoslynTargetsTests).Assembly.GetManifestResourceStream("SonarScanner.Integration.Tasks.IntegrationTests.Resources.RoslynTargetTestsCaptureDataTargetsFileTemplate.xml"))
+            using (var reader = new StreamReader(stream))
+            {
+                xml = reader.ReadToEnd();
+            }
 
-    <!-- For the SonarQubeSetting items, we also want to capture the Value metadata item -->
-    <Message Importance='high' Text='CAPTURE::ITEM::SonarQubeSetting::%(SonarQubeSetting.Identity)::Value::%(SonarQubeSetting.Value)'  Condition="" @(SonarQubeSetting) != '' "" />
-  </Target>
-</Project>";
+            xml = string.Format(xml, afterTargets);
 
             // We're using :: as a separator here: replace it with whatever
             // whatever the logger is using as a separator
