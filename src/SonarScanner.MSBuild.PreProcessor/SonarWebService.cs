@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -81,9 +81,9 @@ namespace SonarScanner.MSBuild.PreProcessor
                 }
                 catch (InvalidOperationException) //As we don't have fail-fast policy for unsupported version for now, we should handle gracefully multi-QPs set for a project, here for SQ < 6.7
                 {
-                    logger.LogWarning($"Your project has multiple Quality Profiles defined for language `{language}`, taking the default one.");
-                    profile = profiles.SingleOrDefault(p => language.Equals(p["language"].ToString()) && p["isDefault"].Value<bool>().Equals(true));
+                    throw new AnalysisException(Resources.ERROR_UnsupportedSonarQubeVersion);
                 }
+
                 if (profile == null)
                 {
                     return null;
