@@ -40,7 +40,6 @@ namespace SonarScanner.MSBuild
             return new MSBuildPostProcessor(
                 new SonarScannerWrapper(logger),
                 logger,
-                new TargetsUninstaller(logger),
                 new TfsProcessorWrapper(logger),
                 new SonarProjectPropertiesValidator());
         }
