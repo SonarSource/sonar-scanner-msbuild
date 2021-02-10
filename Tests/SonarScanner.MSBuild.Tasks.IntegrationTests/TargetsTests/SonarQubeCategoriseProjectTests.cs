@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -424,32 +424,11 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
             var projectFilePath = Path.Combine(rootInputFolder, projectFileName);
 
+            var targetTestUtils = new TargetsTestsUtils(TestContext);
+
             // Boilerplate XML for minimal project file that will execute the "categorise project" task
-            var projectXml = @"<Project Sdk='Microsoft.NET.Sdk'>
+            var projectXml = targetTestUtils.GetTemplateContent("SonarScanner.Integration.Tasks.IntegrationTests.Resources.CategoriseProjectTestTemplate.xml");
 
-  <!-- Test-specific XML snippet -->
-  {0}
-
-  <!-- Boilerplate -->
-  <PropertyGroup>
-    <ProjectGuid>{1}</ProjectGuid>
-    <SonarQubeTempPath>c:\dummy\path</SonarQubeTempPath>
-    <SonarQubeOutputPath>c:\dummy\path</SonarQubeOutputPath>
-    <SonarQubeConfigPath>{4}</SonarQubeConfigPath>
-    <SonarQubeBuildTasksAssemblyFile>{2}</SonarQubeBuildTasksAssemblyFile>
-  </PropertyGroup>
-
-  <!-- We need to write out the properties we want to check later -->
-  <Target Name='CaptureData' AfterTargets='SonarQubeCategoriseProject' >
-    <Message Importance='high' Text='CAPTURE___PROPERTY___tmpSQServiceList___$(tmpSQServiceList)' />
-    <Message Importance='high' Text='CAPTURE___PROPERTY___tmpSQProjectCapabilities___$(tmpSQProjectCapabilities)' />
-    <Message Importance='high' Text='CAPTURE___PROPERTY___SonarQubeTestProject___$(SonarQubeTestProject)' />
-    <Message Importance='high' Text='CAPTURE___PROPERTY___SonarQubeExclude___$(SonarQubeExclude)' />
-  </Target>
-
-  <Import Project='{3}' />
-</Project>
-";
             BuildUtilities.CreateFileFromTemplate(projectFilePath, TestContext, projectXml,
                 xmlSnippet,
                 Guid.NewGuid(),

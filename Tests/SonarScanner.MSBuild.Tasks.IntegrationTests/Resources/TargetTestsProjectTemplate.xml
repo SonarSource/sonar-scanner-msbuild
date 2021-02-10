@@ -18,8 +18,11 @@
   <!-- Standard values that need to be set for each/most tests -->
   <PropertyGroup>
     <SonarQubeBuildTasksAssemblyFile>SONARSCANNER_MSBUILD_TASKS_DLL</SonarQubeBuildTasksAssemblyFile>
-    <SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
-    <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>
+  </PropertyGroup>
+
+  <!-- Test-specific properties -->
+  <PropertyGroup>
+    TEST_SPECIFIC_PROPERTIES
   </PropertyGroup>
 
   <!-- Test-specific data -->
@@ -28,5 +31,8 @@
   <!-- Standard boilerplate closing imports -->
   <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))SonarQube.Integration.targets' />
   <Import Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
-  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Capture.targets))Capture.targets' />
+  
+  <!-- Test-specific imports -->
+  TEST_SPECIFIC_IMPORTS
+
 </Project>

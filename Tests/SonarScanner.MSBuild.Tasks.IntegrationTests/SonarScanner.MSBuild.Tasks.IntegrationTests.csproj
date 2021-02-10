@@ -142,6 +142,7 @@
     <Compile Include="TargetsTests\SonarIntegrationTargetsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TargetsTests\SonarQubeCategoriseProjectTests.cs" />
+    <Compile Include="TargetsTests\TargetsTestsUtils.cs" />
     <Compile Include="TargetsTests\WriteProjectInfoFileTargetTests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -174,13 +175,14 @@
     <Analyzer Include="..\..\packages\FluentAssertions.Analyzers.0.11.4\analyzers\dotnet\cs\FluentAssertions.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\RoslynTargetTestsTemplate.xml" />
+    <EmbeddedResource Include="Resources\CaptureDataTargetsFileTemplate.xml" />
+    <EmbeddedResource Include="Resources\TargetTestsProjectTemplate.xml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\RoslynTargetTestsCaptureDataTargetsFileTemplate.xml" />
+    <EmbeddedResource Include="Resources\ImportBeforeTargetTestsTemplate.xml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\RazorTargetTestsCaptureDataTargetsFileTemplate.xml" />
+    <EmbeddedResource Include="Resources\CategoriseProjectTestTemplate.xml" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') And '$(IsCodedUITest)' == 'True'">
