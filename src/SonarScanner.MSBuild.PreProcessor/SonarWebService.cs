@@ -117,7 +117,7 @@ namespace SonarScanner.MSBuild.PreProcessor
 
                     return rules.Select(r => new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), false));
                 }, ws));
-            } while (fetched < total);
+            } while (fetched < total || page < 20);
 
             return ruleList;
         }
@@ -156,7 +156,7 @@ namespace SonarScanner.MSBuild.PreProcessor
                         return FilterRule(r, actives);
                     });
                 }, ws));
-            } while (fetched < total);
+            } while (fetched < total || page < 20);
 
             return activeRuleList;
         }
