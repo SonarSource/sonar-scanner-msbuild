@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -394,6 +394,75 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
+        public void GetActiveRules_ShouldNotGo_Beyond_10k_Results()
+        {
+
+            for (int page = 1; page <= 21; page++)
+            {
+                this.downloader.Pages[$"http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p={page}"] = $@"
+                    {{
+                    total: 10500,
+                    p: {page},
+                    ps: 500,
+                    rules: [{{
+                        key: ""vbnet:S2368"",
+                        repo: ""vbnet"",
+                        name: ""Public methods should not have multidimensional array parameters"",
+                        severity: ""MAJOR"",
+                        lang: ""vbnet"",
+                        params: [ ],
+                        type: ""CODE_SMELL""
+                    }},
+                    {{
+                        key: ""common-vbnet:InsufficientCommentDensity"",
+                        repo: ""common-vbnet"",
+                        internalKey: ""InsufficientCommentDensity.internal"",
+                        templateKey: ""dummy.template.key"",
+                        name: ""Source files should have a sufficient density of comment lines"",
+                        severity: ""MAJOR"",
+                        lang: ""vbnet"",
+                        params: [
+                            {{
+                                key: ""minimumCommentDensity"",
+                                defaultValue: ""25"",
+                                type: ""FLOAT""
+                            }}
+                        ],
+                        type: ""CODE_SMELL""
+                    }}],
+                    actives: {{
+                        ""vbnet:S2368"": [
+                            {{
+                                qProfile:""vbnet - sonar - way - 34825"",
+                                inherit: ""NONE"",
+                                severity:""MAJOR"",
+                                params: []
+                            }}
+                        ],
+                    ""common-vbnet:InsufficientCommentDensity"": [
+                        {{
+                            qProfile: ""vbnet - sonar - way - 34825"",
+                            inherit:""NONE"",
+                            severity:""MAJOR"",
+                            params: [
+                            {{
+                                key:""minimumCommentDensity"",
+                                value:""50""
+                            }}
+                            ]
+                        }}
+                    ]
+                    }}
+                }}";
+            }
+
+
+            var rules = this.ws.GetActiveRules("qp").Result;
+
+            rules.Should().HaveCount(40);
+        }
+
+        [TestMethod]
         public void GetActiveRules()
         {
             this.downloader.Pages["http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile=qp&p=1"] =
@@ -660,6 +729,42 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
         }
 
         [TestMethod]
+        public void GetInactiveRules_ShouldNotGo_Beyond_10k_Results()
+        {
+
+            for (int page = 1; page <= 21; page++)
+            {
+                this.downloader.Pages[$"http://myhost:222/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params&ps=500&activation=false&qprofile=my%23qp&p={page}&languages=cs"] = $@"
+                    {{
+                    total: 10500,
+                    p: {page},
+                    ps: 500,
+                    rules: [
+                        {{
+                            ""key"": ""csharpsquid:S2757"",
+                            ""repo"": ""csharpsquid"",
+                            ""type"": ""BUG""
+                        }},
+                        {{
+                            ""key"": ""csharpsquid:S1117"",
+                            ""repo"": ""csharpsquid"",
+                            ""type"": ""CODE_SMELL""
+                        }},
+                        {{
+                            ""key"": ""csharpsquid:S1764"",
+                            ""repo"": ""csharpsquid"",
+                            ""type"": ""BUG""
+                        }}
+                    ]}}";
+            }
+
+
+            var rules = this.ws.GetInactiveRules("my#qp", "cs").Result;
+
+            rules.Should().HaveCount(60); //3 rules times 20 pages, even if total is 10k
+        }
+
+        [TestMethod]
         public void GetProperties_NullProjectKey_Throws()
         {
             // Arrange
@@ -908,14 +1013,14 @@ namespace SonarScanner.MSBuild.PreProcessor.UnitTests
                 {
                     //returns either 404 or 401
 
-                    if(expectedHttpStatusCode == HttpStatusCode.Unauthorized)
+                    if (expectedHttpStatusCode == HttpStatusCode.Unauthorized)
                     {
                         throw new ArgumentException("The token you provided doesn't have sufficient rights to check license.");
                     }
 
                     if (expectedHttpStatusCode == HttpStatusCode.NotFound)
                     {
-                        if(isCEEdition)
+                        if (isCEEdition)
                         {
                             return Task.FromResult(new HttpResponseMessage()
                             {
