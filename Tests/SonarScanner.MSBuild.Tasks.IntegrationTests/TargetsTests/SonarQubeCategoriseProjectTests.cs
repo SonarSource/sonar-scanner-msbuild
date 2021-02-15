@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -96,25 +96,25 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         [TestMethod]
         [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
-        public void WildcardMatch_Default_Match()
+        public void WildcardMatch_Default_NoMatchForTestName()
         {
-            // Check the default wildcard matching
+            // Check the default behavior - name is not checked
             var configFilePath = CreateAnalysisConfigWithRegEx(null);
 
             // Act
             var result = BuildAndRunTarget("MyTests.csproj", string.Empty, configFilePath);
 
             // Assert
-            AssertIsTestProject(result);
+            AssertIsNotTestProject(result);
             AssertProjectIsNotExcluded(result);
         }
 
         [TestMethod]
         [TestCategory("ProjectInfo")]
         [TestCategory("IsTest")]
-        public void WildcardMatch_Default_NoMatch()
+        public void WildcardMatch_Default_NoMatchForOtherName()
         {
-            // Check the default wildcard matching
+            // Check the default behavior - name is not checked
             var configFilePath = CreateAnalysisConfigWithRegEx(null);
 
             // Act
@@ -502,7 +502,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         {
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeExcludeMetadata).Should().BeTrue();
         }
-        
+
         private static void AssertProjectIsNotExcluded(BuildLog log)
         {
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeExcludeMetadata).Should().BeFalse();

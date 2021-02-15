@@ -226,20 +226,11 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using default regular expression for detecting test projects: {0}.
+        ///   Looks up a localized string similar to Regular expression was not set in analysis config file. Project file name will not be checked..
         /// </summary>
-        internal static string IsTest_UsingDefaultRegEx {
+        internal static string IsTest_NameNotChecked {
             get {
-                return ResourceManager.GetString("IsTest_UsingDefaultRegEx", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using regular expression for detecting test projects from analysis config file: {0}.
-        /// </summary>
-        internal static string IsTest_UsingRegExFromConfig {
-            get {
-                return ResourceManager.GetString("IsTest_UsingRegExFromConfig", resourceCulture);
+                return ResourceManager.GetString("IsTest_NameNotChecked", resourceCulture);
             }
         }
         
@@ -307,7 +298,7 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded to SonarQube. Project file: {0}.
+        ///   Looks up a localized string similar to The project does not have a valid ProjectGuid. Analysis results for this project will not be uploaded. Project file: {0}.
         /// </summary>
         internal static string WPIF_MissingOrInvalidProjectGuid {
             get {

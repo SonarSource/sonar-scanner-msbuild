@@ -138,9 +138,6 @@ Error: {1}</value>
   <data name="Shared_ReadingConfigSucceeded" xml:space="preserve">
     <value>Read config file successfully</value>
   </data>
-  <data name="IsTest_UsingRegExFromConfig" xml:space="preserve">
-    <value>Using regular expression for detecting test projects from analysis config file: {0}</value>
-  </data>
   <data name="WPIF_FailedToResolvePath" xml:space="preserve">
     <value>Failed to resolve path relative to project file. Path: {0}</value>
   </data>
@@ -162,9 +159,6 @@ Error: {1}</value>
   </data>
   <data name="AnalyzerSettings_NotSpecifiedInConfig" xml:space="preserve">
     <value>Analyzer settings for language {0} have not been specified in the analysis config file.</value>
-  </data>
-  <data name="IsTest_UsingDefaultRegEx" xml:space="preserve">
-    <value>Using default regular expression for detecting test projects: {0}</value>
   </data>
   <data name="AnalyzerSettings_CreatingMergedRuleset" xml:space="preserve">
     <value>Creating merged ruleset at '{0}'</value>
@@ -219,5 +213,8 @@ Error: {1}</value>
   </data>
   <data name="WPIF_GeneratingRandomGuid" xml:space="preserve">
     <value>No ProjectGuid has been found in neither the csproj nor the solution (Project {0}). A random one has been generated ({1}).</value>
+  </data>
+  <data name="IsTest_NameNotChecked" xml:space="preserve">
+    <value>Regular expression was not set in analysis config file. Project file name will not be checked.</value>
   </data>
 </root>
