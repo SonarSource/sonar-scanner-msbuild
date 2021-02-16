@@ -226,11 +226,20 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regular expression was not set in analysis config file. Project file name will not be checked..
+        ///   Looks up a localized string similar to The deprecated regular expression property sonar.msbuild.testProjectPattern was not set in the analysis config file. The project file name will not be checked..
         /// </summary>
         internal static string IsTest_NameNotChecked {
             get {
                 return ResourceManager.GetString("IsTest_NameNotChecked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using regular expression for detecting test projects from analysis config file: {0}.
+        /// </summary>
+        internal static string IsTest_UsingRegExFromConfig {
+            get {
+                return ResourceManager.GetString("IsTest_UsingRegExFromConfig", resourceCulture);
             }
         }
         

@@ -70,6 +70,7 @@ namespace SonarScanner.MSBuild.Tasks
             {
                 if (config.GetAnalysisSettings(true).TryGetValue(TestRegExSettingId, out var regEx) && !string.IsNullOrWhiteSpace(regEx))
                 {
+                    Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);
                     try
                     {
                         // Let's use a case sensitive regex (default behavior)
