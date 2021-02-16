@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for MSBuild
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -366,7 +366,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
 
         #endregion Fakes projects tests
 
-
         #region Temp projects tests
 
         [TestMethod]
@@ -402,7 +401,6 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         }
 
         #endregion Temp projects tests
-
 
         private BuildLog BuildAndRunTarget(string projectFileName, string projectXmlSnippet, string analysisConfigDir = "c:\\dummy")
         {
@@ -491,18 +489,22 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         private static void AssertIsTestProject(BuildLog log)
         {
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeTestProject).Should().BeTrue();
+            // Case insensitive, could be "true" or "True"
+            log.MessageLog.Should().ContainEquivalentOf("Project categorized. SonarQubeTestProject=true. Your SonarQube/SonarCloud project will not have results.\n");
         }
 
         private static void AssertIsNotTestProject(BuildLog log)
         {
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeTestProject).Should().BeFalse();
+            // Case insensitive, could be "false" or "False"
+            log.MessageLog.Should().ContainEquivalentOf("Project categorized. SonarQubeTestProject=false.");
         }
 
         private static void AssertProjectIsExcluded(BuildLog log)
         {
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeExcludeMetadata).Should().BeTrue();
         }
-        
+
         private static void AssertProjectIsNotExcluded(BuildLog log)
         {
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeExcludeMetadata).Should().BeFalse();
