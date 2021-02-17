@@ -489,15 +489,13 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
         private static void AssertIsTestProject(BuildLog log)
         {
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeTestProject).Should().BeTrue();
-            // Case insensitive, could be "true" or "True"
-            log.MessageLog.Should().ContainEquivalentOf("Project categorized. SonarQubeTestProject=true. Your SonarQube/SonarCloud project will not have results.\n");
+            log.MessageLog.Should().Contain("categorized as TEST project (test code). This MSBuild project will not be analyzed.\n");
         }
 
         private static void AssertIsNotTestProject(BuildLog log)
         {
             log.GetPropertyAsBoolean(TargetProperties.SonarQubeTestProject).Should().BeFalse();
-            // Case insensitive, could be "false" or "False"
-            log.MessageLog.Should().ContainEquivalentOf("Project categorized. SonarQubeTestProject=false.");
+            log.MessageLog.Should().Contain("categorized as MAIN project (production code).\n");
         }
 
         private static void AssertProjectIsExcluded(BuildLog log)
