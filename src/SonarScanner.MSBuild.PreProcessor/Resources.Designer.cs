@@ -199,6 +199,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to It seems that you are using an old version of SonarQube which is not supported anymore. Please update to at least 6.7..
+        /// </summary>
+        internal static string ERROR_UnsupportedSonarQubeVersion {
+            get {
+                return ResourceManager.GetString("ERROR_UnsupportedSonarQubeVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Internal error: cannot create an analyzer provider without a SonarQube server instance.
         /// </summary>
         internal static string FACTORY_InternalError_MissingServer {
