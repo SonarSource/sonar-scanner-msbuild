@@ -239,7 +239,11 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
             var targetsTestUtils = new TargetsTestsUtils(TestContext);
 
             var importsBeforeTargets = Path.Combine(projectDirectory, TargetConstants.ImportsBeforeFile);
-            var template = targetsTestUtils.GetImportBeforeTemplate(importsBeforeTargets);
+
+            // Locate the real "ImportsBefore" target file
+            File.Exists(importsBeforeTargets).Should().BeTrue("Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
+
+            var template = Integration.Tasks.IntegrationTests.Properties.Resources.ImportBeforeTargetTestsTemplate;
 
             var projectData = template.Replace("SQ_IMPORTS_BEFORE", importsBeforeTargets)
                 .Replace("TEST_SPECIFIC_XML", testSpecificProjectXml);

@@ -75,8 +75,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var targetDir = result.GetCapturedPropertyValue(TargetProperties.TargetDir);
             var targetFileName = result.GetCapturedPropertyValue(TargetProperties.TargetFileName);
 
-            var expectedErrorLog = Path.Combine(targetDir, string.Format(CultureInfo.InvariantCulture, ErrorLogFilePattern, targetFileName));
-
+            var expectedErrorLog = Path.Combine(targetDir, string.Format(ErrorLogFilePattern, targetFileName));
             AssertExpectedErrorLog(result, expectedErrorLog);
         }
 

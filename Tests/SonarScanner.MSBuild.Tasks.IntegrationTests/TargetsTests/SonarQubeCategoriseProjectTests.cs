@@ -427,7 +427,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var targetTestUtils = new TargetsTestsUtils(TestContext);
 
             // Boilerplate XML for minimal project file that will execute the "categorise project" task
-            var projectXml = targetTestUtils.GetTemplateContent("SonarScanner.Integration.Tasks.IntegrationTests.Resources.CategoriseProjectTestTemplate.xml");
+            var projectXml = Properties.Resources.CategoriseProjectTestTemplate;
 
             BuildUtilities.CreateFileFromTemplate(projectFilePath, TestContext, projectXml,
                 xmlSnippet,

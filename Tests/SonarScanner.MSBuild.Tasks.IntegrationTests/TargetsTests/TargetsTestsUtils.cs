@@ -51,24 +51,7 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContextInstance);
             File.Exists(sqTargetFile).Should().BeTrue("Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
             TestContextInstance.AddResultFile(sqTargetFile);
-
-            return GetTemplateContent("SonarScanner.Integration.Tasks.IntegrationTests.Resources.TargetTestsProjectTemplate.xml");
-        }
-
-        public string GetImportBeforeTemplate(string importBeforeFilePath)
-        {
-            // Locate the real "ImportsBefore" target file
-            File.Exists(importBeforeFilePath).Should().BeTrue("Test error: the SonarQube imports before target file does not exist. Path: {0}", importBeforeFilePath);
-            return GetTemplateContent("SonarScanner.Integration.Tasks.IntegrationTests.Resources.ImportBeforeTargetTestsTemplate.xml");
-        }
-
-        public string GetTemplateContent(string resourceName)
-        {
-            using (var stream = typeof(TargetsTestsUtils).Assembly.GetManifestResourceStream(resourceName))
-            using (var reader = new StreamReader(stream))
-            {
-                return reader.ReadToEnd();
-            }
+            return Properties.Resources.TargetTestsProjectTemplate;
         }
 
         public string CreateProjectFile(string projectDirectory, string projectData)
@@ -89,18 +72,11 @@ namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests
             // we are interested in to the message log.
             // The SimpleXmlLogger has special handling to extract the data
             // from the message and add it to the BuildLog.
-            string xml = "";
-
-            using (var stream = typeof(TargetsTestsUtils).Assembly.GetManifestResourceStream("SonarScanner.Integration.Tasks.IntegrationTests.Resources.CaptureDataTargetsFileTemplate.xml"))
-            using (var reader = new StreamReader(stream))
-            {
-                xml = reader.ReadToEnd();
-            }
-
+            string xml = Properties.Resources.CaptureDataTargetsFileTemplate;
             xml = string.Format(xml, afterTargets);
 
             // We're using :: as a separator here: replace it with whatever
-            // whatever the logger is using as a separator
+            // the logger is using as a separator
             xml = xml.Replace("::", SimpleXmlLogger.CapturedDataSeparator);
 
             var filePath = Path.Combine(directory, "Capture.targets");

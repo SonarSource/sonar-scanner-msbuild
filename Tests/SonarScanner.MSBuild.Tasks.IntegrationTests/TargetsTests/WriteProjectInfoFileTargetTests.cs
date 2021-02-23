@@ -59,8 +59,6 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTests.TargetsTests
 
             var filePath = targetTestUtils.CreateProjectFile(projectDirectory, GetProjectData(projectTemplate, projectDirectory, null, rootOutputFolder));
 
-            //var projectFilePath = CreateProjectFile(null, null, rootOutputFolder);
-
             // Act
             var projectInfo = ExecuteWriteProjectInfo(filePath, rootOutputFolder);
 

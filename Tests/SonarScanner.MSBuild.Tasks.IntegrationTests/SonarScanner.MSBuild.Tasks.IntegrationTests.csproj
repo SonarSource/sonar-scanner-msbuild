@@ -136,6 +136,11 @@
     <Compile Include="Infrastructure\TargetConstants.cs" />
     <Compile Include="Infrastructure\WellKnownProjectProperties.cs" />
     <Compile Include="MSBuildExecution\SimpleXmlLogger.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="TargetsTests\ImportBeforeTargetsTests.cs" />
     <Compile Include="TargetsTests\RazorTargetTests.cs" />
     <Compile Include="TargetsTests\RoslynTargetsTests.cs" />
@@ -175,14 +180,18 @@
     <Analyzer Include="..\..\packages\FluentAssertions.Analyzers.0.11.4\analyzers\dotnet\cs\FluentAssertions.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\CaptureDataTargetsFileTemplate.xml" />
-    <EmbeddedResource Include="Resources\TargetTestsProjectTemplate.xml" />
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Resources\CaptureDataTargetsFileTemplate.xml" />
+    <None Include="Resources\TargetTestsProjectTemplate.xml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\ImportBeforeTargetTestsTemplate.xml" />
+    <None Include="Resources\ImportBeforeTargetTestsTemplate.xml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\CategoriseProjectTestTemplate.xml" />
+    <None Include="Resources\CategoriseProjectTestTemplate.xml" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') And '$(IsCodedUITest)' == 'True'">
