@@ -105,11 +105,11 @@ namespace SonarScanner.MSBuild.PreProcessor
         public async Task<IList<SonarRule>> GetInactiveRules(string qprofile, string language)
         {
             var fetched = 0;
-            var page = 1;
             var total = 0;
             var ruleList = new List<SonarRule>();
 
-            do
+
+            for (int page = 1; page <= 20; page++)
             {
                 var ws = GetUrl("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params&ps=500&activation=false&qprofile={0}&p={1}&languages={2}", qprofile, page.ToString(), language);
                 this.logger.LogDebug(Resources.MSG_FetchingInactiveRules, qprofile, language, ws);
@@ -120,12 +120,17 @@ namespace SonarScanner.MSBuild.PreProcessor
                     var json = JObject.Parse(contents);
                     total = json["total"].ToObject<int>();
                     fetched += json["ps"].ToObject<int>();
-                    page++;
                     var rules = json["rules"].Children<JObject>();
 
                     return rules.Select(r => new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), false));
                 }, ws));
-            } while (fetched < total);
+
+                if (fetched >= total)
+                {
+                    break;
+                }
+
+            }
 
             return ruleList;
         }
@@ -139,11 +144,10 @@ namespace SonarScanner.MSBuild.PreProcessor
         public async Task<IList<SonarRule>> GetActiveRules(string qprofile)
         {
             var fetched = 0;
-            var page = 1;
             var total = 0;
             var activeRuleList = new List<SonarRule>();
 
-            do
+            for (int page = 1; page <= 20; page++)
             {
                 var ws = GetUrl("/api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&activation=true&qprofile={0}&p={1}", qprofile, page.ToString());
                 this.logger.LogDebug(Resources.MSG_FetchingActiveRules, qprofile, ws);
@@ -154,8 +158,6 @@ namespace SonarScanner.MSBuild.PreProcessor
                     var json = JObject.Parse(contents);
                     total = json["total"].ToObject<int>();
                     fetched += json["ps"].ToObject<int>();
-                    page++;
-
                     var rules = json["rules"].Children<JObject>();
                     var actives = json["actives"];
 
@@ -164,7 +166,12 @@ namespace SonarScanner.MSBuild.PreProcessor
                         return FilterRule(r, actives);
                     });
                 }, ws));
-            } while (fetched < total);
+
+                if (fetched >= total)
+                {
+                    break;
+                }
+            }
 
             return activeRuleList;
         }
